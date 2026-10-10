@@ -17,6 +17,7 @@ import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
+import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
 export const headingInputSizes = ["h1", "h2", "h3"] as const;
@@ -66,6 +67,9 @@ type CommonFieldProps = {
   /** After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). */
   trailing?: IconName | ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio;
+   *  app code sets label / helpText / leading / trailing. */
+  overrides?: NestedOverrides;
 };
 
 export type InputHelpTheme = "neutral" | "negative" | "warning" | "positive";
@@ -287,15 +291,17 @@ export type TextAreaFieldProps = Omit<CommonFieldProps, "size"> & { /** Short (s
   onValueChange?: (value: string) => void;
 };
 
-function FieldLabel({ id, label, required, optional, tooltip, action, disabled }: { id: string; label?: ReactNode; required?: boolean; optional?: boolean; tooltip?: boolean | ReactNode; action?: ReactNode; disabled?: boolean }) {
+function FieldLabel({ id, label, required, optional, tooltip, action, disabled, nest }: { id: string; label?: ReactNode; required?: boolean; optional?: boolean; tooltip?: boolean | ReactNode; action?: ReactNode; disabled?: boolean; nest?: Nest }) {
   if (!label) return null;
-  return <InputLabel id={id} labelId={`${id}-label`} optional={optional} tooltip={tooltip} action={action} disabled={disabled}>{label}{required ? <span aria-hidden="true"> *</span> : null}</InputLabel>;
+  const element = <InputLabel id={id} labelId={`${id}-label`} optional={optional} tooltip={tooltip} action={action} disabled={disabled}>{label}{required ? <span aria-hidden="true"> *</span> : null}</InputLabel>;
+  return nest ? nest("Label", element) : element;
 }
 
-function FieldMessage({ id, error, helpText, helpTheme = "neutral", helpIcon = true, characterLimit }: { id: string; error?: ReactNode; helpText?: ReactNode; helpTheme?: InputHelpTheme; helpIcon?: boolean; characterLimit?: ReactNode }) {
+function FieldMessage({ id, error, helpText, helpTheme = "neutral", helpIcon = true, characterLimit, nest }: { id: string; error?: ReactNode; helpText?: ReactNode; helpTheme?: InputHelpTheme; helpIcon?: boolean; characterLimit?: ReactNode; nest?: Nest }) {
   const hasLimit = characterLimit !== undefined && characterLimit !== null && characterLimit !== false;
   if (!error && !helpText && !hasLimit) return null;
-  return <InputHelpText id={id} theme={error ? "negative" : helpTheme} icon={helpIcon && Boolean(error ?? helpText)} characterLimit={hasLimit ? characterLimit : undefined}>{error ?? helpText}</InputHelpText>;
+  const element = <InputHelpText id={id} theme={error ? "negative" : helpTheme} icon={helpIcon && Boolean(error ?? helpText)} characterLimit={hasLimit ? characterLimit : undefined}>{error ?? helpText}</InputHelpText>;
+  return nest ? nest("Help-Text", element) : element;
 }
 
 /** A consumer's `aria-describedby` plus the field's own help/error message id (space-separated IDREFs). */
@@ -355,31 +361,32 @@ function openFieldFromControl(event: MouseEvent<HTMLDivElement>) {
   if (trigger && !trigger.disabled) trigger.click(); // a Select opens from anywhere in its field
 }
 
-function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAction, required, messageId, error, helpText, helpTheme, helpIcon, characterLimit, size, state, leading, trailing, className }: Omit<CommonFieldProps, "characterLimit" | "size"> & { size?: InputSizeKey; characterLimit?: ReactNode; children: ReactNode; id: string; required?: boolean; messageId: string }) {
+function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAction, required, messageId, error, helpText, helpTheme, helpIcon, characterLimit, size, state, leading, trailing, className, overrides }: Omit<CommonFieldProps, "characterLimit" | "size"> & { size?: InputSizeKey; characterLimit?: ReactNode; children: ReactNode; id: string; required?: boolean; messageId: string }) {
+  const nest = useNested(overrides);
   const resolvedState = normalizeInputState(state, error);
   const disabled = resolvedState === "disabled";
   // Icon names draw at the affordance size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28.
   const iconSize = size === "small" ? "sm" : size === "large" ? "md" : size === "xlarge" ? "lg" : "base";
   return (
     <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState}>
-      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} />
+      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} nest={nest} />
       <FieldDisabledContext.Provider value={disabled}>
       <div className="zen-input__control" onMouseDown={focusFieldFromControl} onClick={openFieldFromControl}>
-        {leading ? <span className="zen-input__affordance zen-input__affordance--leading">{renderIcon(leading, { size: iconSize })}</span> : null}
+        {leading ? <span className="zen-input__affordance zen-input__affordance--leading">{nest("Leading", renderIcon(leading, { size: iconSize }))}</span> : null}
         {children}
-        {trailing ? <span className="zen-input__affordance zen-input__affordance--trailing">{renderIcon(trailing, { size: iconSize })}</span> : null}
+        {trailing ? <span className="zen-input__affordance zen-input__affordance--trailing">{nest("Trailing", renderIcon(trailing, { size: iconSize }))}</span> : null}
         {/* Figma State=Read-Only: 1px INSIDE stroke with dashPattern [2,2]. CSS dashed borders use browser-defined dash
             lengths, so the exact pattern is an SVG rect (stroke 2px centred on the edge → the inner 1px shows). */}
         {resolvedState === "read-only" ? <svg className="zen-input__dash" aria-hidden="true" focusable="false"><rect width="100%" height="100%" /></svg> : null}
       </div>
       </FieldDisabledContext.Provider>
-      <FieldMessage id={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit} />
+      <FieldMessage id={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit} nest={nest} />
     </div>
   );
 }
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, ...inputProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, overrides, ...inputProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -390,7 +397,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const count = useCharacterCount(characterLimit, inputProps.value, inputProps.defaultValue, inputProps.maxLength);
   const message = error ?? helpText ?? count.text;
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, inputProps.readOnly)} leading={leading} trailing={trailing} className={className}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, inputProps.readOnly)} leading={leading} trailing={trailing} className={className} overrides={overrides}>
       <input
         {...inputProps}
         onChange={(event) => { count.track(event.target.value); inputProps.onChange?.(event); onValueChange?.(event.target.value); }}
@@ -409,7 +416,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 });
 
 export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextAreaField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, rows = 4, onValueChange, ...textareaProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, rows = 4, onValueChange, overrides, ...textareaProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -420,7 +427,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const count = useCharacterCount(characterLimit, textareaProps.value, textareaProps.defaultValue, textareaProps.maxLength);
   const message = error ?? helpText ?? count.text;
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, textareaProps.readOnly)} leading={leading} trailing={trailing} className={className}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, textareaProps.readOnly)} leading={leading} trailing={trailing} className={className} overrides={overrides}>
       <textarea
         {...textareaProps}
         onChange={(event) => { count.track(event.target.value); textareaProps.onChange?.(event); onValueChange?.(event.target.value); }}
@@ -509,7 +516,7 @@ function selectFocusEvent(event: FocusEvent<HTMLElement>, select: HTMLSelectElem
 }
 
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(function SelectField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, ...selectProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, ...selectProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -600,7 +607,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
     onBlur?.(selectFocusEvent(event, nativeRef.current));
   };
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
       <button
         id={`${id}-trigger`}
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
@@ -908,6 +915,9 @@ export interface AutocompleteFieldProps {
   onCreate?: (label: string) => string | void;
   createLabel?: ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
+   *  app code sets label / helpText. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -916,7 +926,8 @@ export interface AutocompleteFieldProps {
  * over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag
  * moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
  */
-export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className }: AutocompleteFieldProps) {
+export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className, overrides }: AutocompleteFieldProps) {
+  const nest = useNested(overrides);
   const error = errorProp ?? errorMessage;
   const t = useZenLabels();
   const addLabel = addLabelProp === undefined ? t.addItem : addLabelProp;
@@ -964,7 +975,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
   const messageId = `${id}-message`;
   return (
     <div ref={rootRef} className={["zen-autocomplete", className].filter(Boolean).join(" ")} data-state={disabled ? "disabled" : readOnly ? "view-only" : error ? "error" : open ? "focused" : "default"} aria-describedby={error || helpText ? messageId : undefined}>
-      {label ? <InputLabel id={id} disabled={disabled}>{label}</InputLabel> : null}
+      {label ? nest("Label", <InputLabel id={id} disabled={disabled}>{label}</InputLabel>) : null}
       {selected.length ? (
         <div className="zen-autocomplete__tags" role="list" aria-label={typeof label === "string" ? label : undefined}>
           {selected.map((optionId) => {
@@ -1023,7 +1034,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
           )}
         </div>
       ) : null}
-      {error || helpText ? <InputHelpText id={messageId} theme={error ? "negative" : helpTheme} icon={helpIcon}>{error ?? helpText}</InputHelpText> : null}
+      {error || helpText ? nest("Help-Text", <InputHelpText id={messageId} theme={error ? "negative" : helpTheme} icon={helpIcon}>{error ?? helpText}</InputHelpText>) : null}
     </div>
   );
 }
@@ -1387,9 +1398,11 @@ const insertCopy: Record<RichTextInsert, { label: "insertLink" | "insertImage" |
  * outside (clearing the field after it was posted) starts a new history.
  */
 export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(function RichTextField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur, overrides },
   ref,
 ) {
+  // The label sits above the Editor-Bar, outside the shell: its own nest for the Label layer.
+  const labelNest = useNested(overrides);
   const error = errorProp ?? errorMessage;
   const t = useZenLabels();
   const size = scaleKey(sizeProp, inputSizes);
@@ -1621,7 +1634,7 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
   return (
     <div className={["zen-rich-text-field", className].filter(Boolean).join(" ")} data-size={size}>
       {/* The label names the whole composition, so it sits above the Editor-Bar (Figma's Text-Area has Label=false). */}
-      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} />
+      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} nest={labelNest} />
       {editorBar ? (
         <span className="zen-rich-text-field__bar">
           <RichTextEditorBar
@@ -1657,7 +1670,7 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
           </Popover>
         </span>
       ) : null}
-      <FieldShell id={id} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count} size={size} state={resolvedState}>
+      <FieldShell id={id} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count} size={size} state={resolvedState} overrides={overrides}>
         <div
           ref={editorRef}
           id={id}

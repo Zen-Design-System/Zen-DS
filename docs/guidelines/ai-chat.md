@@ -59,6 +59,7 @@ Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt B
 | `disabled` | `boolean` | `false` |  |
 | `defaultValue` | `string` | `""` |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio; app code sets onAttach / onVoice / onVoiceMode. |
 
 ### AiChatBlock
 Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon).
@@ -71,6 +72,7 @@ Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-F
 | `suggestions` | `AiChatSuggestion[]` | `[]` |  |
 | `children` (required) | `ReactNode` | — |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of the suggestion chips, by label (`{ "Suggestion[Plan a trip]": { level: "primary" } }`), written by Zen Studio. |
 
 ### AiChatThread
 Conversation column (max 800, gap 24); the field docks at the bottom.
@@ -123,6 +125,7 @@ interface AiChatSuggestion { label: string; icon?: IconName | ReactElement; onCl
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `ai-chat/no-actions-while-streaming` | warn | Hide Copy / Regenerate / feedback while the assistant is thinking or an answer is still streaming. | `zen-allow-ai-streaming-actions: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 

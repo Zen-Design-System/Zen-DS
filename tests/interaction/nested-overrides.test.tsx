@@ -8,6 +8,9 @@ import { overridesAt } from "../../src/components/_shared/nested";
 import { AvatarStack } from "../../src/components/Avatar";
 import { Badge } from "../../src/components/Badge";
 import { Card } from "../../src/components/Card";
+import { ChatMessage, ChatThread } from "../../src/components/Chat";
+import { DatePicker } from "../../src/components/DatePicker";
+import { InputField } from "../../src/components/Input";
 import { ListItem } from "../../src/components/ListItem";
 import { Sidebar } from "../../src/components/Sidebar";
 import { Table } from "../../src/components/Table";
@@ -83,6 +86,31 @@ describe("nested overrides", () => {
     expect(tones).toEqual(["accent", "red"]);
     // Icons outside the core set load lazily: wait for both.
     await expect.poll(() => Array.from(screen.container.querySelectorAll(".zen-sidebar__item-icon [data-icon]")).map((icon) => icon.getAttribute("data-icon"))).toEqual(["icon-home-02-solid", "icon-heart-line"]);
+  });
+
+  it("reaches a field's Label, Help-Text and Leading icon (Input family)", async () => {
+    const screen = await render(
+      <InputField label="Work email" helpText="We send the invoice here." leading="icon-users-line" overrides={{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-heart-line" } }} />,
+    );
+    expect(screen.container.querySelector(".zen-input-label__optional")).not.toBeNull();
+    expect(screen.container.querySelector(".zen-input-help")?.getAttribute("data-tone")).toBe("warning");
+    expect(screen.container.querySelector(".zen-input__affordance--leading [data-icon]")?.getAttribute("data-icon")).toBe("icon-heart-line");
+    // The native input never receives the table.
+    expect(screen.container.querySelector("input")?.hasAttribute("overrides")).toBe(false);
+  });
+
+  it("reaches a DatePicker's footer button and a Chat message's avatar", async () => {
+    const screen = await render(
+      <>
+        <DatePicker aria-label="Due date" defaultValue={new Date(2026, 9, 12)} today={new Date(2026, 9, 11)} showActions overrides={{ "Actions/Apply": { level: "accent" } }} />
+        <ChatThread aria-label="Thread">
+          <ChatMessage side="others" author={{ name: "Ava Chen" }} time="9:41" overrides={{ Avatar: { theme: "red" } }}>Hi</ChatMessage>
+        </ChatThread>
+      </>,
+    );
+    const apply = Array.from(screen.container.querySelectorAll(".zen-date-picker__actions .zen-button")).at(-1);
+    expect(apply?.getAttribute("data-level")).toBe("accent");
+    expect(screen.container.querySelector(".zen-chat-message .zen-avatar")?.getAttribute("data-tone")).toBe("red");
   });
 
   it("renders the same DOM without overrides", async () => {

@@ -11,6 +11,7 @@ import { useZen, useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./date-picker.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type DatePickerItemState =
   | "default" | "hover" | "single-selected" | "range-selected-start" | "range-selected-end"
@@ -107,12 +108,13 @@ const weekdayInitials = (locale: string) => {
 export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true, device = "desktop" }: DatePickerHeaderProps) {
   const mobile = device === "mobile";
   const t = useZenLabels();
+  const nest = useNested();
   const locale = useZenLocale();
   // Shown as two parts, month name then year; the accessible name is the locale's "Month YYYY" ("September 2026").
   const label = [monthName(month, locale), String(month.getFullYear())];
   const fullLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(month);
   const slot = (show: boolean, direction: "previous" | "next") => show
-    ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? t.previousMonth : t.nextMonth} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />
+    ? nest(direction === "previous" ? "Previous" : "Next", <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? t.previousMonth : t.nextMonth} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />)
     // Mobile has no centred label to balance: a hidden button leaves no slot.
     : mobile ? null : <span className="zen-date-picker__nav-slot" aria-hidden="true" />;
   // Mobile: the month and year in Heading/Subheading at the start (Date-Container 9923:3576), then Back and Next.
@@ -158,12 +160,13 @@ export interface DatePickerActionProps {
 /** `.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall. */
 export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp, cancelDisabled, applyDisabled }: DatePickerActionProps) {
   const t = useZenLabels();
+  const nest = useNested();
   const cancelLabel = cancelLabelProp === undefined ? t.cancel : cancelLabelProp;
   const applyLabel = applyLabelProp === undefined ? t.apply : applyLabelProp;
   return (
     <footer className="zen-date-picker__actions">
-      {action === "dual" ? <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button> : null}
-      <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>
+      {action === "dual" ? nest("Cancel", <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button>) : null}
+      {nest("Apply", <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>)}
     </footer>
   );
 }
@@ -628,6 +631,9 @@ export interface DatePickerProps {
   /** id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. */
   "aria-labelledby"?: string;
   className?: string;
+  /** Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Apply": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio;
+   *  app code sets the actions. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and
@@ -674,7 +680,9 @@ export function DatePicker({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
+  overrides,
 }: DatePickerProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const locale = useZenLocale();
   const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
@@ -913,7 +921,7 @@ export function DatePicker({
               <div className="zen-date-picker__panels">
                 {months.map((month, index) => (
                   <div className="zen-date-picker__panel" key={month.toISOString()}>
-                    <DatePickerHeader
+                    {nest("Header", <DatePickerHeader
                       month={month}
                       type={stacked ? "display" : dual ? "static" : "interactive"}
                       back={!dual || index === 0}
@@ -922,7 +930,7 @@ export function DatePicker({
                       onNext={() => setMonth(addMonths(currentMonth, 1))}
                       onMonthYearClick={() => switchView("month-year")}
                       device={device}
-                    />
+                    />, index)}
                     <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
                       {stacked ? null : weekdayRow()}
                       <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} device={device} day={date.getDate()} date={date} state={stateFor(date)} aria-current={dateKey(date) === dateKey(today) ? "date" : undefined} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} device={device} state="blank" />)}</div>
@@ -930,9 +938,9 @@ export function DatePicker({
                   </div>
                 ))}
               </div>
-              {timePicker ? <><Divider /><DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} /></> : null}
+              {timePicker ? <><Divider />{nest("Time", <DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} />)}</> : null}
               {/* Inline there is nothing to close: the actions are live only while there is a draft to apply or drop. */}
-              {showActions ? <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} /> : null}
+              {showActions ? nest("Actions", <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} />) : null}
             </>
           )}
         </div>

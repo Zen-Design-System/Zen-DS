@@ -233,6 +233,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void"
         ],
         "SelectField": [
@@ -251,6 +252,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "options?: SelectFieldOption[] = []",
           "onValueChange?: (value: string, option: SelectFieldOption) => void",
           "placeholder?: string",
@@ -279,6 +281,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
@@ -311,7 +314,8 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "TextAreaField": [
           "size?: Exclude<InputSize, xlarge|xl> = md",
@@ -329,7 +333,8 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AutocompleteField": [
           "id?: string",
@@ -352,7 +357,8 @@
           "searchPlaceholder?: string",
           "onCreate?: (label: string) => string|void",
           "createLabel?: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "RichTextField": [
           "id?: string",
@@ -379,7 +385,8 @@
           "error?: ReactNode",
           "errorMessage?: ReactNode (deprecated)",
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -419,6 +426,7 @@
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "focus/state-parity"
@@ -464,7 +472,8 @@
           "filterActionLabel?: string",
           "disabled?: boolean = false",
           "shortcut?: string",
-          "onClear?: () => void"
+          "onClear?: () => void",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -486,6 +495,7 @@
       ],
       "rules": [
         "search/needs-name",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -1077,7 +1087,8 @@
           "today?: Date",
           "aria-label?: string",
           "aria-labelledby?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "DateField": [
           "label?: ReactNode",
@@ -1095,6 +1106,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
@@ -1125,7 +1137,8 @@
           "summary?: ReactNode",
           "applyLabel?: ReactNode",
           "cancelLabel?: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1151,6 +1164,7 @@
         "input/needs-label",
         "input/placeholder-not-label",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "date-picker/actions-need-apply"
@@ -2169,7 +2183,8 @@
           "onResume?: () => void",
           "onFinish?: () => void",
           "onDiscard?: () => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AiVoiceConversation": [
           "state?: ready|listening|responding = ready",
@@ -2186,7 +2201,8 @@
           "onInterrupt?: () => void",
           "onEnd?: () => void",
           "note?: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2202,6 +2218,7 @@
       ],
       "rules": [
         "voice/actions-wired",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -2461,7 +2478,8 @@
           "lowLabel?: ReactNode",
           "highLabel?: ReactNode",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2480,6 +2498,7 @@
       "rules": [
         "rating/needs-name",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -3236,7 +3255,8 @@
           "reaction?: ChatQuickReaction|(string & {})",
           "onReact?: (kind: ChatReactionKind|undefined) => void",
           "onMoreReactions?: () => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChatComposer": [
           "onSend: (text: string) => void",
@@ -3249,7 +3269,8 @@
           "disabled?: boolean = false",
           "replyTo?: ChatReplyTarget",
           "onCancelReply?: () => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChatThread": [
           "children: ReactNode",
@@ -3267,7 +3288,8 @@
           "unread?: boolean = false",
           "online?: boolean = false",
           "selected?: boolean",
-          "onClick?: () => void"
+          "onClick?: () => void",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChatComposerReply": [
           "target: ChatReplyTarget",
@@ -3335,6 +3357,7 @@
         "chat/no-locked-interaction",
         "chat/reactions-name-people",
         "chat/hold-delete-destructive",
+        "api/overrides-studio-only",
         "layout/scroll-anchor-flex-end",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -3382,7 +3405,8 @@
           "onStop?: () => void",
           "disabled?: boolean = false",
           "defaultValue?: string = ",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AiChatBlock": [
           "greeting?: ReactNode",
@@ -3390,7 +3414,8 @@
           "logo?: IconName|ReactNode",
           "suggestions?: AiChatSuggestion[] = []",
           "children: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3409,6 +3434,7 @@
       ],
       "rules": [
         "ai-chat/no-actions-while-streaming",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -3902,7 +3928,8 @@
           "labelTooltip?: boolean|ReactNode",
           "labelAction?: ReactNode",
           "controlId?: string",
-          "children: ReactElement"
+          "children: ReactElement",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "FormFieldset": [
           "legend: ReactNode",
@@ -3914,7 +3941,8 @@
           "error?: ReactNode",
           "required?: boolean = false",
           "optional?: boolean = false",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "FormActions": [
           "align?: end|start|between = end",
@@ -3945,6 +3973,7 @@
         "Don't clear the fields after a failed submit, and don't use the placeholder as the label or for instructions."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "form/actions-order",
         "form/submit-button",
         "form/toggle-outside-form",

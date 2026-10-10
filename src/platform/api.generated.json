@@ -681,6 +681,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
+        },
+        {
           "name": "onValueChange",
           "type": "(value: string) => void",
           "required": false,
@@ -812,6 +820,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         },
         {
@@ -1026,6 +1042,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         },
         {
@@ -1281,6 +1305,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
         }
       ]
     },
@@ -1422,6 +1454,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         }
       ]
@@ -1596,6 +1636,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
           "deprecated": null
         }
       ]
@@ -1802,6 +1850,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         }
       ]
@@ -2496,6 +2552,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: \"accent-base\" }, Filter: { label: \"Status\" } }`). Written by Zen Studio;\n app code sets leading / trailing / theme.",
           "deprecated": null
         }
       ]
@@ -4412,6 +4476,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ \"Actions/Apply\": { level: \"accent\" }, \"Header[0]/Previous\": { appearance: \"flat\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "deprecated": null
         }
       ]
     },
@@ -4537,6 +4609,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         },
         {
@@ -4775,6 +4855,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets applyLabel.",
           "deprecated": null
         }
       ]
@@ -7506,6 +7594,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets state.",
+          "deprecated": null
         }
       ]
     },
@@ -7639,6 +7735,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: \"green\" } }`). Written by Zen Studio;\n app code sets state / transcript.",
           "deprecated": null
         }
       ]
@@ -8615,6 +8719,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the score chips it draws, by layer (`{ \"Chip[10]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
           "deprecated": null
         }
       ]
@@ -10058,6 +10170,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets author.",
+          "deprecated": null
         }
       ]
     },
@@ -10151,6 +10271,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
         }
       ]
@@ -10275,6 +10403,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets person / group.",
           "deprecated": null
         }
       ]
@@ -10544,6 +10680,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its Dock Icon (`{ Icon: { theme: \"blue\" } }`), written by Zen Studio.",
+          "deprecated": null
         }
       ]
     },
@@ -10597,6 +10741,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its Dock Icon and action (`{ Action: { level: \"primary\" } }`), written by Zen Studio.",
           "deprecated": null
         }
       ]
@@ -10675,6 +10827,14 @@
           "required": false,
           "default": null,
           "description": "The message's sound levels, 0–1 each (Figma draws 34).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets playing.",
           "deprecated": null
         }
       ]
@@ -10855,6 +11015,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its avatars (`{ \"Avatar[0]\": { theme: \"accent\" } }`), written by Zen Studio.",
           "deprecated": null
         }
       ]
@@ -11054,6 +11222,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: \"accent\" }, Attach: { appearance: \"main\" } }`). Written by Zen Studio;\n app code sets onAttach / onVoice / onVoiceMode.",
+          "deprecated": null
         }
       ]
     },
@@ -11107,6 +11283,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the suggestion chips, by label (`{ \"Suggestion[Plan a trip]\": { level: \"primary\" } }`), written by Zen Studio.",
           "deprecated": null
         }
       ]
@@ -13352,6 +13536,14 @@
           "default": null,
           "description": "Exactly one control. It receives `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` and `aria-required`,\nso it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
+          "deprecated": null
         }
       ]
     },
@@ -13437,6 +13629,14 @@
           "required": false,
           "default": null,
           "description": "The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the help text it draws, by layer (`{ \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets helpText.",
           "deprecated": null
         }
       ]

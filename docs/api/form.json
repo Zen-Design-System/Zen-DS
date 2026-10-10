@@ -138,6 +138,14 @@
           "default": null,
           "description": "Exactly one control. It receives `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` and `aria-required`,\nso it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
+          "deprecated": null
         }
       ]
     },
@@ -226,6 +234,14 @@
           "required": false,
           "default": null,
           "description": "The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the help text it draws, by layer (`{ \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets helpText.",
           "deprecated": null
         }
       ]

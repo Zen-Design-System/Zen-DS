@@ -227,5 +227,8 @@ User chọn A, một máy một tài khoản, làm trên nhánh `zen/feat/nested
 - **Studio:** ⌘-click vào instance lồng ở mọi cấp, Inspector hiện property Figma của nó, ghi thành `overrides` của owner
   (một bước undo, Reset all overrides theo layer), chỉ trên trang tự tạo (Q2). Ô của Table có mục "this row".
 - **Harness:** `api/overrides-studio-only`. **Kiểm tra:** Vitest 7 ca mới, E2E NO-01…03 (cấp 2, cấp 3, một hàng Table).
-- **Còn lại của A:** Input, DatePicker, Chat, AiChat, Voice, Search, Form, Image, Link, Rating. TopNavigation giữ hành động
-  sửa qua dữ liệu từng item (user chốt 2026-10-11); gate `nested-paths` khi chụp đủ contract.
+- **2026-10-11:** thêm Input (InputField, TextAreaField, SelectField, NumberField, DateField, RichTextField,
+  AutocompleteField: Label, Help-Text, Leading, Trailing), DatePicker (+Sheet), Search, Form (FormField, FormFieldset),
+  NpsScale, Chat (Message, File, Call, Voice, Composer, AvatarGroup, ConversationItem), AiChat (Field, Block), Voice —
+  tổng 64 component. Image và Link không có instance lồng đáng đổi (chỉ icon trạng thái); TopNavigation giữ hành động
+  sửa qua dữ liệu (user chốt). Còn: gate `nested-paths` khi chụp đủ contract.

@@ -129,6 +129,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets state.",
+          "deprecated": null
         }
       ]
     },
@@ -265,6 +273,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: \"green\" } }`). Written by Zen Studio;\n app code sets state / transcript.",
           "deprecated": null
         }
       ]

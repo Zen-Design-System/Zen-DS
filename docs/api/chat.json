@@ -177,6 +177,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets author.",
+          "deprecated": null
         }
       ]
     },
@@ -273,6 +281,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
         }
       ]
@@ -403,6 +419,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets person / group.",
           "deprecated": null
         }
       ]
@@ -690,6 +714,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its Dock Icon (`{ Icon: { theme: \"blue\" } }`), written by Zen Studio.",
+          "deprecated": null
         }
       ]
     },
@@ -746,6 +778,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its Dock Icon and action (`{ Action: { level: \"primary\" } }`), written by Zen Studio.",
           "deprecated": null
         }
       ]
@@ -827,6 +867,14 @@
           "required": false,
           "default": null,
           "description": "The message's sound levels, 0–1 each (Figma draws 34).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets playing.",
           "deprecated": null
         }
       ]
@@ -1025,6 +1073,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its avatars (`{ \"Avatar[0]\": { theme: \"accent\" } }`), written by Zen Studio.",
           "deprecated": null
         }
       ]

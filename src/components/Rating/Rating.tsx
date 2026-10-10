@@ -7,6 +7,7 @@ import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./rating.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const ratingSizes = ["xsmall", "small", "medium", "large", "xlarge"] as const;
 export const ratingThemes = ["default", "neutral", "accent"] as const;
@@ -176,6 +177,9 @@ export interface NpsScaleProps {
   highLabel?: ReactNode;
   "aria-label"?: string;
   className?: string;
+  /** Figma instance overrides: props of the score chips it draws, by layer (`{ "Chip[10]": { level: "primary" } }`). Written by Zen Studio;
+   *  app code keeps the defaults. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -192,8 +196,9 @@ export interface NpsScaleProps {
  * 7–8, promoters 9–10), so the component must not change the scale the app collects. 0–5 keeps 24px targets in one row
  * down to 144px.
  */
-export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel: lowLabelProp, highLabel: highLabelProp, "aria-label": ariaLabelProp, className }: NpsScaleProps) {
+export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel: lowLabelProp, highLabel: highLabelProp, "aria-label": ariaLabelProp, className, overrides }: NpsScaleProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const lowLabel = lowLabelProp === undefined ? t.npsLow : lowLabelProp;
   const highLabel = highLabelProp === undefined ? t.npsHigh : highLabelProp;
   const ariaLabel = ariaLabelProp ?? t.npsQuestion;
@@ -203,7 +208,7 @@ export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel:
     <div className={["zen-nps-scale", className].filter(Boolean).join(" ")} data-scale={scale} style={{ "--zen-nps-count": scale + 1 } as CSSProperties}>
       <div className="zen-nps-scale__numbers" role="group" aria-label={ariaLabel}>
         {Array.from({ length: scale + 1 }, (_, n) => (
-          <Chip key={n} variant="number-only" size="small" level="secondary" selected={current === n} aria-pressed={current === n} onClick={() => { if (value === undefined) setInternal(n); onValueChange?.(n); onChange?.(n); }}>{n}</Chip>
+          nest("Chip", <Chip key={n} variant="number-only" size="small" level="secondary" selected={current === n} aria-pressed={current === n} onClick={() => { if (value === undefined) setInternal(n); onValueChange?.(n); onChange?.(n); }}>{n}</Chip>, n)
         ))}
       </div>
       <div className={`zen-nps-scale__labels ${typographyStyles["Caption/Regular"]}`} aria-hidden="true"><span className="zen-nps-scale__label" data-end="low" aria-hidden="true">{lowLabel}</span><span className="zen-nps-scale__label" data-end="high" aria-hidden="true">{highLabel}</span></div>

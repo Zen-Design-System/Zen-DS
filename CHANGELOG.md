@@ -19,8 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
-- Figma instance overrides in the library: 40 components that draw other Zen components inside themselves (Card,
-  Button, Badge, Table, Sidebar, AppShell, Dialog, Menu, Popover, Tabs, Segmented, MetricCard, ChartCard…) take
+- Figma instance overrides in the library: 64 components that draw other Zen components inside themselves (Card,
+  Button, Badge, Table, Sidebar, AppShell, Dialog, Menu, Popover, Tabs, Segmented, MetricCard, ChartCard, the Input
+  fields' Label / Help-Text / Leading / Trailing, DatePicker, Search, Form, Chat, AiChat, Voice…) take
   `overrides`, the props of any nested layer by its Figma layer path, at any depth and row by row
   (`{ "Sub-Action": { level: "danger" } }`, `"Row[alex]/status/Badge"`, `"Item[team]/Item[members]/Badge-Counter"`). No
   DOM change and nothing changes without it. Zen Studio writes it; new harness rule `api/overrides-studio-only` reports it
