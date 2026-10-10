@@ -42,6 +42,7 @@ Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-che
 | `size` | `"xs" \| "sm" \| "xsmall" \| "small"` | `"xs"` | Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling. |
 | `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Pagination”. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the arrows, page items and page-size chip it draws, by layer (`{ Previous: { level: "secondary" }, "Page[3]": { level: "secondary" } }`). Written by Zen Studio; app code keeps the defaults. |
 
 ### PaginationItem
 Figma .Primitives/Pagination/Item (774:15999). The ellipsis renders as a non-interactive item.
@@ -87,6 +88,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `pagination/worth-paging` | warn | Paginate only when there are 3+ pages; otherwise show everything. | `zen-allow-short-pagination: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

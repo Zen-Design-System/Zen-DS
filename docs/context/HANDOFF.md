@@ -73,9 +73,12 @@ Last updated: 2026-10-07.
   `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:
   `edit/assets/picture.ts`, `tools/studio/picture.mjs`); ⌘-click selects the innermost written layer; E2E SE-36. The
   usability check and the remaining program: `docs/research/studio-usability-eval-2026-10-10.md`; follow-ups in BACKLOG.
-- **Zen Studio core rebuild — plan pending (2026-10-10):** nested-of-nested props stay unreachable because the Studio
-  writes where JSX is written; plan `docs/research/studio-doc-engine-plan-2026-10-10.md` (document model + library
-  override channel, M0 spike first) waits for the user's approval. Don't add more nested-edit tracers meanwhile.
+- **Zen Studio nested instances (2026-10-10, branch `zen/feat/nested-overrides`, worktree `Zen-CodeBase/Zen-DS-nested`):**
+  plan `docs/research/studio-doc-engine-plan-2026-10-10.md`; the user chose fast path A (§9). Library `overrides` +
+  `_shared/nested.tsx` (`useNested`/`nest`) on 40 components; Studio edits any nested instance on pages you made as the
+  owner's overrides (`inspector/OverrideProperties.tsx`, `select/parts.ts nestedPathOf`); harness
+  `api/overrides-studio-only`; E2E NO-01…03. Remaining A components and the doc-engine path B: plan §9 and BACKLOG.
+  Don't add nested-edit tracers: add `nest()` to the component instead.
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

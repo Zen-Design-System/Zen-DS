@@ -6,6 +6,7 @@ import { slotItems } from "../_shared/slots";
 import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tabs.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const tabSizes = ["medium", "small"] as const;
 export const tabVariants = ["indicator", "subtle"] as const;
@@ -38,6 +39,7 @@ export interface TabItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
 
 /** Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge). */
 export function TabItem({ label, icon, badge, selected = false, size: sizeProp = "md", variant = "indicator", state = "default", disabled, className, type = "button", value: _value, ...props }: TabItemProps) {
+  const nest = useNested();
   const size = scaleKey(sizeProp, tabSizes);
   const isDisabled = disabled || state === "disabled";
   const iconOnly = !label && Boolean(icon);
@@ -56,9 +58,9 @@ export function TabItem({ label, icon, badge, selected = false, size: sizeProp =
       data-icon-only={iconOnly ? "true" : undefined}
     >
       <span className="zen-tab__container">
-        {icon ? <span className="zen-tab__icon" aria-hidden="true">{renderIcon(icon)}</span> : null}
+        {icon ? <span className="zen-tab__icon" aria-hidden="true">{nest("Icon", renderIcon(icon))}</span> : null}
         {label ? <span className={`zen-tab__label ${typographyStyles[selected ? "Body/Base/Bold" : "Body/Base/Medium"]}`} data-text={typeof label === "string" ? label : undefined}>{label}{typeof label === "string" ? <span className="zen-tab__label-reserve" aria-hidden="true">{label}</span> : null}</span> : null}
-        {badge !== undefined && badge !== null && badge !== "" ? <BadgeCounter size="xsmall" theme="neutral" background="subtle" value={badge} /> : null}
+        {badge !== undefined && badge !== null && badge !== "" ? nest("Badge-Counter", <BadgeCounter size="xsmall" theme="neutral" background="subtle" value={badge} />) : null}
       </span>
     </button>
   );
@@ -96,10 +98,14 @@ export interface TabsProps {
   /** Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. */
   idPrefix?: string;
   className?: string;
+  /** Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab[members]/Badge-Counter": { theme: "accent" }, "Tab[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
+   *  app code sets the items. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End jump, disabled tabs are skipped. */
-export function Tabs({ items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className }: TabsProps) {
+export function Tabs({ items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className, overrides }: TabsProps) {
+  const nest = useNested(overrides);
   const size = scaleKey(sizeProp, tabSizes);
   const items: TabOption[] = itemsProp ?? slotItems(children, TabItem).map((tab, index) => ({
     id: tab.value ?? tab.slotKey ?? String(index), label: tab.label, icon: tab.icon, badge: tab.badge, disabled: tab.disabled, "aria-label": tab["aria-label"],
@@ -124,7 +130,7 @@ export function Tabs({ items: itemsProp, children, value, defaultValue, onValueC
   };
   return (
     <div role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className={["zen-tabs", className].filter(Boolean).join(" ")} data-variant={variant} data-size={size} data-full-width={fullWidth ? "true" : undefined} onKeyDown={onKeyDown}>
-      {items.map((item) => (
+      {items.map((item) => nest("Tab", (
         <TabItem
           key={item.id}
           ref={(node) => { refs.current[item.id] = node; }}
@@ -141,7 +147,7 @@ export function Tabs({ items: itemsProp, children, value, defaultValue, onValueC
           variant={variant}
           onClick={() => select(item.id)}
         />
-      ))}
+      ), item.id))}
     </div>
   );
 }

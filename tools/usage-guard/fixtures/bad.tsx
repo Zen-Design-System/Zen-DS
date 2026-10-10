@@ -383,4 +383,6 @@ export const Bad = () => <>
   <Text tone="warning-light">Due tomorrow</Text>
   {/* expect: content/lights-no-light-text */}
   <Heading level={3} tone={"support-yellow-light"}>Pending</Heading>
+  {/* expect: api/overrides-studio-only */}
+  <Card subAction={{ label: "More", onClick: act }} overrides={{ "Sub-Action": { level: "danger" } }}>Team</Card>
 </>;

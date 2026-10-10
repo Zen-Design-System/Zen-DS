@@ -12,6 +12,7 @@ import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./dialog.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const dialogThemes = ["default", "info", "positive", "warning", "negative"] as const;
 export type DialogTheme = (typeof dialogThemes)[number];
@@ -174,21 +175,25 @@ export interface ModalActionsProps {
   /** Makes the primary button submit the surrounding <form>. */
   submitPrimary?: boolean;
   className?: string;
+  /** Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: "danger" } }`). Written by Zen Studio;
+   *  app code sets the actions. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual · Triple), Button/Main Medium, gap Small. */
-export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, direction = "horizontal", onDefault, submitPrimary = false, className }: ModalActionsProps) {
+export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, direction = "horizontal", onDefault, submitPrimary = false, className, overrides }: ModalActionsProps) {
+  const nest = useNested(overrides);
   const count = [primaryAction, secondaryAction, tertiaryAction].filter(Boolean).length;
   if (!count) return null;
   const render = (action: DialogAction | undefined, fallbackLevel: ButtonLevel, key: "primary" | "secondary" | "tertiary") => {
     if (!action) return null;
     const submits = (action.type ?? (key === "primary" && submitPrimary ? "submit" : "button")) === "submit";
-    return (
+    return nest(key === "primary" ? "Primary" : key === "secondary" ? "Secondary" : "Tertiary", (
       <Button key={key} appearance="main" level={action.level ?? fallbackLevel} size="md" disabled={action.disabled}
         type={submits ? "submit" : "button"} form={action.form}
         data-autofocus={action.autoFocus ? "" : undefined} data-action={key}
         onClick={submits && !action.onClick ? undefined : () => (action.onClick ? action.onClick() : onDefault?.())}>{action.label}</Button>
-    );
+    ));
   };
   return (
     <div className={["zen-modal-actions", className].filter(Boolean).join(" ")} data-direction={direction} data-count={count}>
@@ -223,6 +228,9 @@ export interface DialogProps extends OverlayOpenProps {
   /** Close when the overlay is clicked. Default true; set false for destructive confirmations in progress. */
   dismissible?: boolean;
   className?: string;
+  /** Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "danger" }, Icon: { name: "icon-trash-line" } }`). Written by Zen Studio;
+   *  app code sets icon / the actions. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Modal/Dialog (841:17177): Theme × Device. Desktop 440px, Heading/3; ≤ 480px viewport switches to the Mobile
@@ -230,7 +238,8 @@ export interface DialogProps extends OverlayOpenProps {
  * bottom clear of the safe area). Focus is trapped while open and restored to the opener on close.
  * Inside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) it opens in that frame, and the frame's width
  * picks the Device (an unsaved-changes guard on a phone screen). */
-export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, theme = "default", icon = true, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", children, dismissible = true, className }: DialogProps) {
+export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, theme = "default", icon = true, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", children, dismissible = true, className, overrides }: DialogProps) {
+  const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLDivElement>(null);
@@ -240,7 +249,7 @@ export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp,
   useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`);
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
-  const iconNode = icon === false ? null : icon === true ? <Icon name={themeIcon[theme]} decorative /> : renderIcon(icon);
+  const iconNode = nest("Icon", icon === false ? null : icon === true ? <Icon name={themeIcon[theme]} decorative /> : renderIcon(icon));
   const Title = `h${headingLevel}` as const;
   const overlay = (
     <div className="zen-dialog-overlay" data-state={phase} data-modal="dialog" data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>
@@ -252,8 +261,8 @@ export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp,
           </div>
           {description ? <p id={`${id}-desc`} className={`zen-dialog__description ${typographyStyles["Body/Base/Regular"]}`}>{description}</p> : null}
         </div>
-        {children ? <div className="zen-dialog__custom">{children}</div> : null}
-        <ModalActions className="zen-dialog__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} />
+        {children ? <div className="zen-dialog__custom">{nest.slot(children)}</div> : null}
+        {nest("Actions", <ModalActions className="zen-dialog__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} />)}
       </div>
     </div>
   );
@@ -300,6 +309,9 @@ export interface ModalFormProps extends OverlayOpenProps {
   invalidMessage?: (count: number) => string;
   dismissible?: boolean;
   className?: string;
+  /** Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets the actions. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border,
@@ -307,7 +319,8 @@ export interface ModalFormProps extends OverlayOpenProps {
  * Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form.
  * Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a
  * `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count. */
-export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className }: ModalFormProps) {
+export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides }: ModalFormProps) {
+  const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.close;
@@ -335,9 +348,9 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
           {description ? <p id={`${id}-desc`} className={`zen-modal-form__description ${typographyStyles["Body/Base/Regular"]}`}>{description}</p> : null}
         </header>
       ) : null}
-      {children ? <div className="zen-modal-form__body">{children}</div> : null}
-      <ModalActions className="zen-modal-form__footer" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} submitPrimary={Boolean(onSubmit)} />
-      {closeButton ? <IconButton className="zen-modal-form__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} icon={<Icon name="icon-x-medium-line" />} onClick={() => onOpenChange(false)} /> : null}
+      {children ? <div className="zen-modal-form__body">{nest.slot(children)}</div> : null}
+      {nest("Actions", <ModalActions className="zen-modal-form__footer" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} submitPrimary={Boolean(onSubmit)} />)}
+      {closeButton ? nest("Close", <IconButton className="zen-modal-form__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} icon={<Icon name="icon-x-medium-line" />} onClick={() => onOpenChange(false)} />) : null}
     </>
   );
   const inner = (

@@ -4,6 +4,7 @@ import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import { scaleKey } from "../_shared/scale";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 import "./button.css";
 
 /** Figma Button/Main levels. `surface` is present in the current official file. */
@@ -76,6 +77,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** @deprecated Use endIcon (same values). */
   rightIcon?: IconName | ReactNode;
   children: ReactNode;
+  /** Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`).
+   *  Written by Zen Studio; app code sets the icon props. */
+  overrides?: NestedOverrides;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -92,10 +96,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     children,
     className,
     type = "button",
+    overrides,
     ...buttonProps
   },
   ref,
 ) {
+  const nest = useNested(overrides);
   const size = scaleKey(sizeProp, buttonSizes);
   const startIcon = startIconProp ?? leftIcon;
   const endIcon = endIconProp ?? rightIcon;
@@ -116,15 +122,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     >
       {startIcon ? (
         <span className="zen-button__icon" aria-hidden="true">
-          {renderIcon(startIcon)}
+          {nest("Leading-Icon", renderIcon(startIcon))}
         </span>
       ) : null}
       <span className={`zen-button__label ${typographyStyles[labelStyleBySize[size]]}`}>
-        {children}
+        {nest.slot(children)}
       </span>
       {endIcon ? (
         <span className="zen-button__icon" aria-hidden="true">
-          {renderIcon(endIcon)}
+          {nest("Trailing-Icon", renderIcon(endIcon))}
         </span>
       ) : null}
     </button>
@@ -154,6 +160,9 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
    * Defaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it.
    */
   tooltip?: ReactNode | false;
+  /** Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`).
+   *  Written by Zen Studio; app code sets the icon props. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -172,10 +181,12 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
     type = "button",
     disabled,
     tooltip,
+    overrides,
     ...buttonProps
   },
   ref,
 ) {
+  const nest = useNested(overrides);
   const size = scaleKey(sizeProp, buttonSizes);
   // Guideline defaults: Tertiary for everyday icon actions, Flat Primary for close/dismiss (Overlay keeps its old default).
   const resolvedLevel = level ?? variant ?? (appearance === "flat" ? "primary" : appearance === "overlay" ? "accent" : "tertiary");
@@ -196,7 +207,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         data-state={resolvedState}
         aria-label={buttonProps["aria-label"]}
       >
-        <span className="zen-button__icon" aria-hidden="true">{renderIcon(icon)}</span>
+        <span className="zen-button__icon" aria-hidden="true">{nest("Leading-Icon", renderIcon(icon))}</span>
       </button>
       {tip.tooltip}
     </>

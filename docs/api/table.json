@@ -161,6 +161,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer —\n`{ \"Row[alex]/status/Badge\": { theme: \"red\" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`,\n`Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead.",
+          "deprecated": null
         }
       ]
     },

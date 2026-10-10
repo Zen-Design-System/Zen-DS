@@ -85,6 +85,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the button draws, by layer (`{ \"Leading-Icon\": { name: \"icon-plus-line\" } }`).\n Written by Zen Studio; app code sets the icon props.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -152,6 +160,14 @@
           "required": false,
           "default": null,
           "description": "Zen rule: an icon-only button shows its name as a tooltip after 1s of hover (at once on keyboard focus).\nDefaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the button draws, by layer (`{ \"Leading-Icon\": { name: \"icon-plus-line\" } }`).\n Written by Zen Studio; app code sets the icon props.",
           "deprecated": null
         },
         {
@@ -427,6 +443,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: \"square\" }, Counter: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading / counter.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -518,6 +542,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the chips it draws, by layer (`{ \"Chip[week]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the options.",
           "deprecated": null
         }
       ]
@@ -2569,6 +2601,14 @@
           "default": null,
           "description": "Names the group (default \"Segmented control\", from the locale's labels).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the segments it draws, by layer (`{ \"Item[week]\": { level: \"primary\" }, \"Item[week]/Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the options.",
+          "deprecated": null
         }
       ]
     },
@@ -3187,6 +3227,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the badge draws, by layer (`{ Leading: { name: \"icon-check-line\" } }`).\n Written by Zen Studio; app code sets `leading`.",
+          "deprecated": null
         }
       ]
     },
@@ -3288,6 +3336,14 @@
           "required": false,
           "default": null,
           "description": "Name of the remove button (default \"Remove\" and the tag text, from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading.",
           "deprecated": null
         }
       ]
@@ -3406,6 +3462,14 @@
           "required": false,
           "default": "false",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of each avatar the stack draws, by layer (`{ \"Avatar[0]\": { src: \"…\" } }`, `More`\n for the overflow chip). Written by Zen Studio; app code sets `items`.",
           "deprecated": null
         },
         {
@@ -3574,6 +3638,14 @@
           "required": false,
           "default": "false",
           "description": "Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[alex]/Avatar\": { shape: \"square\" }, \"Item[draft]/Badge\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]
@@ -3906,6 +3978,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ \"Item[inbox]/Badge-Counter\": { theme: \"accent\" }, \"Item[team]/Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the sections.",
+          "deprecated": null
+        },
+        {
           "name": "background",
           "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
           "required": false,
@@ -3991,132 +4071,6 @@
           "required": false,
           "default": null,
           "description": "Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it.",
-          "deprecated": null
-        }
-      ]
-    },
-    {
-      "name": "SidebarMenuItem",
-      "extends": null,
-      "props": [
-        {
-          "name": "children",
-          "type": "ReactNode | SidebarItem[]",
-          "required": false,
-          "default": null,
-          "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`.",
-          "deprecated": null
-        },
-        {
-          "name": "id",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "icon",
-          "type": "IconName | ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail).",
-          "deprecated": null
-        },
-        {
-          "name": "active",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "selected",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "state",
-          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "theme",
-          "type": "\"neutral\" | \"accent\"",
-          "required": false,
-          "default": null,
-          "description": "Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is\n Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text).",
-          "deprecated": null
-        },
-        {
-          "name": "dropdown",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "indent",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "counter",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows\n the Notification-Dot instead and joins the row's name (\"Approvals, 3\").",
-          "deprecated": null
-        },
-        {
-          "name": "notificationDot",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "Figma Primitives/Notification-Dot on the icon.",
-          "deprecated": null
-        },
-        {
-          "name": "trailingAction",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row\n itself is the button or link.",
-          "deprecated": null
-        },
-        {
-          "name": "href",
-          "type": "string",
-          "required": false,
-          "default": null,
-          "description": "Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls\n `onItemClick`. Disabled items stay buttons.",
           "deprecated": null
         }
       ]
@@ -5330,6 +5284,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the tabs it draws, by layer (`{ \"Tab[members]/Badge-Counter\": { theme: \"accent\" }, \"Tab[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
         }
       ]
     },
@@ -5533,6 +5495,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the crumbs it draws, by layer (`{ \"Crumb[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Separator[home]\": { name: \"icon-minus-line\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]
@@ -5826,6 +5796,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"danger\" }, Icon: { name: \"icon-trash-line\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "deprecated": null
         }
       ]
     },
@@ -6016,6 +5994,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "deprecated": null
         }
       ]
     },
@@ -6077,6 +6063,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
         }
       ]
@@ -6205,6 +6199,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: \"primary\" } }`). Written by Zen Studio;\n app code sets icon / action.",
           "deprecated": null
         }
       ]
@@ -6393,6 +6395,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: \"primary\" } }`). Written by Zen Studio;\n app code sets leading / action.",
           "deprecated": null
         }
       ]
@@ -6585,6 +6595,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the arrows, page items and page-size chip it draws, by layer (`{ Previous: { level: \"secondary\" }, \"Page[3]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
           "deprecated": null
         }
       ]
@@ -6884,6 +6902,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / action.",
+          "deprecated": null
         }
       ]
     }
@@ -6972,6 +6998,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: \"accent\" }, \"Illustration/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets icon / primaryAction / secondaryAction.",
+          "deprecated": null
         }
       ]
     },
@@ -7057,6 +7091,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the step markers it draws, by layer (`{ \"Step[review]\": { icon: \"icon-check-line\" } }`). Written by Zen Studio;\n app code sets the steps.",
           "deprecated": null
         }
       ]
@@ -7327,6 +7369,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Zen components the card draws itself, by layer (`{ \"Sub-Action\": { level:\n \"primary\" } }`, `\"Sub-Action/Leading-Icon\"` one level deeper). Written by Zen Studio; app code sets `subAction`.",
           "deprecated": null
         }
       ]
@@ -7804,6 +7854,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the row draws for an icon-name `leading`, by layer (`{ Leading: { name:\n \"icon-heart-line\" } }`). Written by Zen Studio; app code sets `leading`. Slot content (an Avatar you pass) is edited\n as itself.",
+          "deprecated": null
         }
       ]
     },
@@ -7968,6 +8026,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the switch and icon it draws, by layer (`{ \"Toggle-Button\": { size: \"sm\" } }`). Written by Zen Studio;\n app code sets toggleSize / leading.",
+          "deprecated": null
         }
       ]
     }
@@ -8127,6 +8193,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer —\n`{ \"Row[alex]/status/Badge\": { theme: \"red\" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`,\n`Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead.",
           "deprecated": null
         }
       ]
@@ -8750,6 +8824,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
+          "deprecated": null
         }
       ]
     },
@@ -8894,6 +8976,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
+          "deprecated": null
+        },
+        {
           "name": "theme",
           "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
           "required": false,
@@ -8907,28 +8997,6 @@
           "required": false,
           "default": null,
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
-          "deprecated": null
-        }
-      ]
-    },
-    {
-      "name": "MetricTrend",
-      "extends": null,
-      "props": [
-        {
-          "name": "trend",
-          "type": "\"positive\" | \"negative\" | \"normal\"",
-          "required": false,
-          "default": "\"normal\"",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "children",
-          "type": "ReactNode",
-          "required": true,
-          "default": null,
-          "description": "",
           "deprecated": null
         }
       ]
@@ -9073,6 +9141,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
           "deprecated": null
         }
       ]
@@ -9263,6 +9339,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
           "deprecated": null
         }
       ]
@@ -9598,6 +9682,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Action/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
+          "deprecated": null
         }
       ]
     }
@@ -9781,6 +9873,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: \"danger\" }, \"Item[delete]/Icon\": { tone: \"negative-base\" } }`). Written by Zen Studio;\n app code sets the actions / items.",
           "deprecated": null
         }
       ]
@@ -11266,6 +11366,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the open button and range control it draws, by layer (`{ Open: { level: \"secondary\" }, \"Ranges/Item[week]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code sets onOpen / ranges.",
+          "deprecated": null
         }
       ]
     }
@@ -12608,6 +12716,14 @@
           "default": null,
           "description": "The page.",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: \"secondary\" }, Collapse: { appearance: \"main\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "deprecated": null
         }
       ]
     },
@@ -12670,6 +12786,14 @@
           "default": null,
           "description": "Tooltip text. Default: `aria-label` (without the count).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / appearance.",
+          "deprecated": null
         }
       ]
     },
@@ -12699,6 +12823,14 @@
           "required": false,
           "default": "\"neutral\"",
           "description": "Initials colour without a photo. Default neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: \"square\" } }`). Written by Zen Studio;\n app code sets src / theme.",
           "deprecated": null
         },
         {
@@ -12795,6 +12927,14 @@
           "required": false,
           "default": "1",
           "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already\n has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets back.",
           "deprecated": null
         }
       ]
@@ -12947,6 +13087,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the floating surface.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[delete]\": { danger: true }, \"Item[duplicate]/Icon\": { tone: \"accent-base\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]
@@ -13485,6 +13633,14 @@
           "required": false,
           "default": null,
           "description": "Custom actions (Buttons, in visual order: Primary first when vertical, last when horizontal). With primaryAction /\nsecondaryAction they sit on the side away from the Primary.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets primaryAction / secondaryAction.",
           "deprecated": null
         }
       ]

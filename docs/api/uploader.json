@@ -145,6 +145,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
+          "deprecated": null
         }
       ]
     },

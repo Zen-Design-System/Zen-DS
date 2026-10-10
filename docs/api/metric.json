@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "metric",
-  "import": "import { Metric, MetricCard, MetricTrend } from \"@zen/design-system\";",
+  "import": "import { Metric, MetricCard } from \"@zen/design-system\";",
   "components": [
     {
       "name": "Metric",
@@ -144,6 +144,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
           "deprecated": null
         }
       ]
@@ -292,6 +300,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
+          "deprecated": null
+        },
+        {
           "name": "theme",
           "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
           "required": false,
@@ -305,31 +321,6 @@
           "required": false,
           "default": null,
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
-          "deprecated": null
-        }
-      ]
-    },
-    {
-      "name": "MetricTrend",
-      "file": "src/components/MetricWidget/MetricWidget.tsx",
-      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral.",
-      "deprecated": null,
-      "extends": null,
-      "props": [
-        {
-          "name": "trend",
-          "type": "\"positive\" | \"negative\" | \"normal\"",
-          "required": false,
-          "default": "\"normal\"",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "children",
-          "type": "ReactNode",
-          "required": true,
-          "default": null,
-          "description": "",
           "deprecated": null
         }
       ]

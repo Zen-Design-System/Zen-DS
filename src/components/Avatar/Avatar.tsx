@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 import { scaleKey } from "../_shared/scale";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import "./avatar.css";
@@ -76,12 +77,16 @@ export interface AvatarStackProps extends Omit<AvatarProps, "children" | "alt" |
   items: Array<Pick<AvatarProps, "src" | "alt" | "children" | "theme">>;
   max?: number;
   showMore?: boolean;
+  /** Figma instance overrides: props of each avatar the stack draws, by layer (`{ "Avatar[0]": { src: "…" } }`, `More`
+   *  for the overflow chip). Written by Zen Studio; app code sets `items`. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Avatar/Stack: 1–5 avatars, first on top, no overflow chip (`showMore` is an opt-in extension). */
-export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp = "md", ...props }: AvatarStackProps) {
+export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp = "md", overrides, ...props }: AvatarStackProps) {
+  const nest = useNested(overrides);
   const size = scaleKey(sizeProp, avatarSizes);
   const visible = items.slice(0, max);
   const remaining = items.length - visible.length;
-  return <span className="zen-avatar-stack" data-size={size}>{visible.map((item, index) => <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />)}{showMore && remaining > 0 ? <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar> : null}</span>;
+  return <span className="zen-avatar-stack" data-size={size}>{visible.map((item, index) => nest("Avatar", <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />, index))}{showMore && remaining > 0 ? nest("More", <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar>) : null}</span>;
 }

@@ -61,6 +61,7 @@ Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over P
 | `empty` | `ReactNode` | — | Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). |
 | `onRowClick` | `(row: T) => void` | — | Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus reaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own clicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer — `{ "Row[alex]/status/Badge": { theme: "red" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`, `Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead. |
 
 ### TableText
 Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Caption/Regular 11/16, Light), gap 3XSmall — the same Subtext every Avatar/Photo/Icon/Dock cell renders.
@@ -186,6 +187,7 @@ type TableSortDirection = "asc" | "desc"
 | `table/editor-number-right` | warn | Number editors live in right-aligned columns, like the numbers they edit. | `zen-allow-editor-align: <reason>` |
 | `table/editor-number-validate` | warn | Number editors validate input (range, integer) and explain the error inline. | `zen-allow-editor-validate: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

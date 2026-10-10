@@ -357,3 +357,30 @@
   (localhost:5173 held Neutral-S7 + Contrast High) stuck on the canvas. Fix: the canvas takes the defaults; only the
   theme comes from prefs. Checked on the running 5173 server: stale prefs S7 + High + Comfortable + dark → canvas
   neutral-s1 · standard · compact · dark; a fresh profile → the defaults.
+
+## Nested instance overrides, fast path A (session "Studio nested props", worktree Zen-DS-nested, branch zen/feat/nested-overrides, tier L)
+
+- User decisions: Q2–Q7 as proposed (plan §8), fast path A (plan §9), one machine and one account, worked on a separate
+  branch from origin/main e78738f after Datarow's PR #11.
+- Library: `src/components/_shared/nested.tsx` — `useNested(overrides)` → `nest("<Figma layer>", el, key?)`, `nest.slot`,
+  `nest.scope`, `nest.at`; overrides by layer path, outermost instance wins, slots start a fresh scope, no DOM change.
+  40 components take `overrides` (CHANGELOG lists the families). Not yet: Input family, DatePicker, Chat family, AiChat,
+  Voice, Search, Form, TopNavigation (its actions already edit as data items), Image, Link, Rating and the leaf icons
+  (chevrons, check marks).
+- Studio: `select/parts.ts nestedPathOf` reads the layer path from the provider over a part (scopes marked `layer`);
+  ⌘-click prefers the nearest nested instance (Icon, not IconSvg); `inspector/OverrideProperties.tsx` (+ pure
+  `overrides.ts`, selftest) edits it as the owner's `overrides` (one setProp), pages made in the Studio only; Table cells
+  get a "this row" section (`table/TableCellPanel.tsx`); `overrides` is skipped in the prop lists (`propSchema.ts`).
+- Harness: `api/overrides-studio-only` (error; `// @zen-page` files and `src/templates/studio/` exempt), fixtures + a
+  studio-page fixture in the selftest. Found and fixed: `check-usage.mjs`/`cli.mjs` `process.exit()` cut piped stdout at
+  64 KB (the new rule pushed `--list` over it) → `process.exitCode`.
+- Tests: `tests/interaction/nested-overrides.test.tsx` (7: precedence, level 2 and 3, one Table row, slot isolation,
+  AvatarStack/ListItem, Sidebar row + child row, same DOM without overrides); E2E group `nested` NO-01…03 (Card ›
+  Sub-Action level, its Icon tone at level 3, Table row 2 Badge theme) in the baseline; full Vitest 52 files / 604 tests,
+  full Studio E2E 224/224 after the first six components, Studio and usage self-tests pass; generated files rebuilt
+  (guidelines/API docs, library keywords, part props).
+- Gate round 2 (`npm run qa -- --isolated --keep-going --files=<all changed>`): every static and browser step passed
+  but Studio E2E B-29 (⌘-click a Tab → its item): `slots/dataItems.ts` matched items by React key and took the nested
+  scope's provider (same key) as the item → providers are skipped there. MetricCard's own `overrides` pass-through to its
+  Card carries `zen-allow-overrides`. Two new dead-click warnings were checked: inline-message clean on a rerun (flaky),
+  uploader "Retry desert-trail-lookbook.jpg" also on main's 5173 and clean in a verbose run (timing of the demo upload).

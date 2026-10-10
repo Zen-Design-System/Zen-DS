@@ -29,7 +29,8 @@
           "endIcon?: IconName|ReactNode",
           "leftIcon?: IconName|ReactNode (deprecated)",
           "rightIcon?: IconName|ReactNode (deprecated)",
-          "children: ReactNode"
+          "children: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "IconButton": [
           "icon: IconName|ReactNode",
@@ -38,7 +39,8 @@
           "size?: 2xs|xs|sm|md|lg|xl|2xsmall|xsmall|small|medium|large|xlarge = md",
           "appearance?: main|flat|overlay = main",
           "state?: default|hover|pressed|focused|disabled",
-          "tooltip?: ReactNode|false"
+          "tooltip?: ReactNode|false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -86,6 +88,7 @@
         "button/compact-size-special",
         "focus/visible-ring",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
@@ -142,7 +145,8 @@
           "popoverScrollBar?: boolean = true",
           "onPopoverCreate?: (value: string) => void",
           "popoverCreateLabel?: ReactNode",
-          "popoverPortal?: boolean = false"
+          "popoverPortal?: boolean = false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChipGroup": [
           "ref?: Ref<HTMLDivElement>",
@@ -154,7 +158,8 @@
           "size?: xs|sm|md|xsmall|small|medium = sm",
           "level?: primary|secondary = primary",
           "disabled?: boolean = false",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -185,6 +190,7 @@
         "chip/multiple-needs-count",
         "chip/radio-is-chip-group",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -513,7 +519,8 @@
           "className?: string",
           "disabled?: boolean = false",
           "fullWidth?: boolean = false",
-          "aria-label?: string"
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -540,6 +547,7 @@
         "segmented/control-bar-full-width",
         "segmented/icon-only-needs-name",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -731,7 +739,8 @@
           "remove?: boolean = false",
           "onRemove?: () => void",
           "removeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "BadgeCounter": [
           "value?: ReactNode"
@@ -756,6 +765,7 @@
         "flag/no-emoji-flag",
         "badge/count-uses-counter",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler"
       ]
@@ -785,7 +795,8 @@
           "disabled?: boolean = false",
           "remove?: boolean = false",
           "onRemove?: () => void",
-          "removeLabel?: string"
+          "removeLabel?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -801,6 +812,7 @@
       "rules": [
         "removable/needs-handler",
         "flag/no-emoji-flag",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler"
       ]
@@ -836,7 +848,8 @@
         "AvatarStack": [
           "items: Array<Pick<AvatarProps, src|alt|children|theme>>",
           "max?: number = 5",
-          "showMore?: boolean = false"
+          "showMore?: boolean = false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -854,6 +867,7 @@
         "avatar/needs-alt",
         "avatar/solid-initials-contrast",
         "flag/no-emoji-flag",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -893,7 +907,8 @@
           "anchorRef?: RefObject<HTMLElement|null>",
           "searchClearable?: boolean = true",
           "align?: start|end = start",
-          "multiple?: boolean = false"
+          "multiple?: boolean = false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -918,6 +933,7 @@
         "popover/controlled-close",
         "popover/explicit-open",
         "popover/bulk-action-limit",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler",
         "focus/selected-fill-only"
@@ -929,7 +945,7 @@
       "file": "docs/guidelines/sidebar.md",
       "apiFile": "docs/api/sidebar.json",
       "figma": "Patterns/Sidebar (page 1536:27287)",
-      "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
+      "import": "import { Sidebar, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "use": [
         "App shells with 5+ destinations."
@@ -958,6 +974,7 @@
           "searchCollapsed?: ReactNode",
           "onItemClick?: (item: SidebarItem) => void",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "background?: default|alt|flat|inverse = default",
           "divider?: boolean = false",
           "workspaceBrand?: ReactNode",
@@ -969,23 +986,6 @@
           "subMenu?: ReactNode",
           "subMenuLabel?: string",
           "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void"
-        ],
-        "SidebarMenuItem": [
-          "children?: ReactNode|SidebarItem[]",
-          "id: string",
-          "label: string",
-          "icon?: IconName|ReactNode",
-          "active?: boolean",
-          "selected?: boolean",
-          "disabled?: boolean",
-          "state?: default|hover|focus|disabled",
-          "theme?: neutral|accent",
-          "dropdown?: boolean",
-          "indent?: boolean",
-          "counter?: ReactNode",
-          "notificationDot?: boolean",
-          "trailingAction?: ReactNode",
-          "href?: string"
         ],
         "SidebarMenuSection": [
           "label?: string",
@@ -1022,6 +1022,7 @@
       ],
       "rules": [
         "sidebar/submenu-close",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
@@ -1240,7 +1241,8 @@
           "fullWidth?: boolean = false",
           "aria-label?: string",
           "idPrefix?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "TabItem": [
           "ref?: Ref<HTMLButtonElement>",
@@ -1272,6 +1274,7 @@
         "tabs/needs-label",
         "tabs/item-count",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -1299,7 +1302,8 @@
           "maxItems?: number",
           "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "BreadcrumbItem": [
           "item: { id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`icon-home-03-line`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName|ReactNode; /** Figma Item › Level: Ma…",
@@ -1323,6 +1327,7 @@
         "Don't show breadcrumbs on top-level pages (only one item)."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1413,7 +1418,8 @@
           "actionsDirection?: horizontal|vertical = horizontal",
           "children?: ReactNode",
           "dismissible?: boolean = true",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ModalForm": [
           "open?: boolean",
@@ -1438,7 +1444,8 @@
           "noValidate?: boolean = true",
           "invalidMessage?: (count: number) => string",
           "dismissible?: boolean = true",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1467,6 +1474,7 @@
         "dialog/negative-uses-danger",
         "dialog/no-nested",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -1498,7 +1506,8 @@
           "action?: { label: ReactNode; onClick?: () => void; keepOpen?: boolean }",
           "onClose?: () => void",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ToastStack": [
           "toasts: ToastItem[]",
@@ -1538,6 +1547,7 @@
         "toast/needs-title",
         "toast/concise",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1569,7 +1579,8 @@
           "action?: { label: ReactNode; onClick?: () => void }",
           "onClose?: () => void",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1586,6 +1597,7 @@
       "rules": [
         "alert-banner/small-no-action",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1669,7 +1681,8 @@
           "onPageSizeChange?: (pageSize: number) => void",
           "size?: xs|sm|xsmall|small = xs",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1686,6 +1699,7 @@
       ],
       "rules": [
         "pagination/worth-paging",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -1818,7 +1832,8 @@
           "action?: { label: ReactNode; onClick?: () => void }",
           "onClose?: () => void",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1838,6 +1853,7 @@
         "inline-message/needs-content",
         "inline-message/custom-needs-visual",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
@@ -1872,7 +1888,8 @@
           "icon?: IconName|ReactElement",
           "primaryAction?: EmptyStateAction",
           "secondaryAction?: EmptyStateAction",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1891,6 +1908,7 @@
         "empty-state/needs-title",
         "empty-state/action-label",
         "empty-state/way-out-tertiary",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "copy/plural-count",
         "interaction/no-noop-handler",
@@ -1924,7 +1942,8 @@
           "orientation?: horizontal|vertical = horizontal",
           "onStepClick?: (step: StepperStep, index: number) => void",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1941,6 +1960,7 @@
       "rules": [
         "stepper/needs-label",
         "stepper/step-count",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler"
       ]
@@ -2038,7 +2058,8 @@
           "aria-label?: string",
           "subAction?: CardSubAction|ReactNode",
           "as?: div|article|section|li = div",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2061,6 +2082,7 @@
       "rules": [
         "card/clickable-no-nested-controls",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -2223,7 +2245,8 @@
           "onClick?: (event: MouseEvent<HTMLButtonElement|HTMLAnchorElement>) => void",
           "href?: string",
           "as?: li|div = li",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ListBox": [
           "ref?: Ref<HTMLElement>",
@@ -2246,7 +2269,8 @@
           "toggleSize?: sm|md|lg|small|medium|large = md",
           "name?: string",
           "as?: li|div = li",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2286,6 +2310,7 @@
         "list-item/switch-row",
         "list-item/trailing-button-medium",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -2331,7 +2356,8 @@
           "onSortChange?: (sort: TableSort|null) => void",
           "empty?: ReactNode",
           "onRowClick?: (row: T) => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2372,6 +2398,7 @@
         "table/editor-number-right",
         "table/editor-number-validate",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -2509,7 +2536,7 @@
       "file": "docs/guidelines/metric.md",
       "apiFile": "docs/api/metric.json",
       "figma": "Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)",
-      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen/design-system\";",
+      "import": "import { Metric, MetricCard } from \"@zen/design-system\";",
       "purpose": "Show one key number with its label, an identifying icon and how it changed.",
       "use": [
         "Dashboard KPI tiles (MetricCard).",
@@ -2539,7 +2566,8 @@
           "counter?: ReactNode",
           "labelIcon?: IconName|ReactNode",
           "hint?: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MetricCard": [
           "label: ReactNode",
@@ -2559,12 +2587,9 @@
           "labelIcon?: IconName|ReactNode",
           "hint?: ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "theme?: shadow|flat|pale|border|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
-        ],
-        "MetricTrend": [
-          "trend?: positive|negative|normal = normal",
-          "children: ReactNode"
         ]
       },
       "do": [
@@ -2583,6 +2608,7 @@
       ],
       "rules": [
         "metric/formatted-value",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
@@ -2622,7 +2648,8 @@
           "onRetry?: (file: UploaderFile) => void",
           "buttonLabel?: ReactNode",
           "extended?: boolean = true",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "UploaderFileItem": [
           "file: UploaderFile",
@@ -2652,6 +2679,7 @@
         "uploader/needs-label",
         "uploader/accept-caption",
         "uploader/no-noop-replace",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -2690,7 +2718,8 @@
           "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "dismissible?: boolean = true",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2708,6 +2737,7 @@
       "rules": [
         "side-panel/not-for-confirmations",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -3070,7 +3100,8 @@
           "fixed?: boolean = false",
           "backdrop?: surface|none = surface",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3088,6 +3119,7 @@
       ],
       "rules": [
         "bottom-navigation/destinations",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
@@ -3134,7 +3166,8 @@
           "dismissible?: boolean = true",
           "inline?: boolean = false",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3157,6 +3190,7 @@
         "bottom-sheet/action-needs-items",
         "bottom-sheet/choice-uses-list-item",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "mobile/full-size-controls",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
@@ -3428,7 +3462,8 @@
           "theme?: shadow|flat|pale|border|semi-pale = flat",
           "surface?: default|alt",
           "children: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3444,6 +3479,7 @@
       ],
       "rules": [
         "chart/stack-needs-legend",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -3729,7 +3765,8 @@
           "navLabel?: string",
           "mainId?: string",
           "layout?: auto|sidebar|drawer = auto",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AppShellAction": [
           "icon: IconName|ReactNode",
@@ -3738,12 +3775,14 @@
           "dot?: boolean = false",
           "tone?: default|active|accent = default",
           "appearance?: tertiary|flat = tertiary",
-          "tooltip?: ReactNode|false"
+          "tooltip?: ReactNode|false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AppShellAccount": [
           "name: string",
           "src?: string",
-          "theme?: Exclude<AvatarTheme, photo> = neutral"
+          "theme?: Exclude<AvatarTheme, photo> = neutral",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3769,6 +3808,7 @@
         "app-shell/nested",
         "app-shell/breadcrumbs-once",
         "app-shell/forced-layout",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -3801,7 +3841,8 @@
           "trailing?: ReactNode",
           "tabs?: ReactNode",
           "back?: PageHeaderBack",
-          "headingLevel?: 1|2 = 1"
+          "headingLevel?: 1|2 = 1",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3819,6 +3860,7 @@
       ],
       "rules": [
         "page-header/one-primary",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -3997,7 +4039,8 @@
           "defaultOpen?: boolean = false",
           "onOpenChange?: (open: boolean) => void",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MenuItem": [
           "id?: string",
@@ -4038,6 +4081,7 @@
         "Don't mix items with and without icons in one menu."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "menu/not-for-selection",
         "menu/needs-trigger",
@@ -4193,7 +4237,8 @@
           "primaryAction?: ActionBarAction",
           "secondaryAction?: ActionBarAction",
           "summary?: ReactNode",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -4213,6 +4258,7 @@
         "Don't pad the page for the home indicator yourself; the bar already clears the safe area."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "action-bar/one-primary",
         "action-bar/primary-order",
         "action-bar/full-width-size",

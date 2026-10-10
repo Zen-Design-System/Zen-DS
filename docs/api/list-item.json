@@ -154,6 +154,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the row draws for an icon-name `leading`, by layer (`{ Leading: { name:\n \"icon-heart-line\" } }`). Written by Zen Studio; app code sets `leading`. Slot content (an Avatar you pass) is edited\n as itself.",
+          "deprecated": null
         }
       ]
     },
@@ -323,6 +331,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the switch and icon it draws, by layer (`{ \"Toggle-Button\": { size: \"sm\" } }`). Written by Zen Studio;\n app code sets toggleSize / leading.",
           "deprecated": null
         }
       ]

@@ -15,7 +15,8 @@ import { InspectorFileContext } from "../inspector/controls/hostContext";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
 import { currentFiber, fiberOf, hostsOf, onSourceUpdate, shortSrc, srcOf, type Fiber } from "../select/picker";
-import { selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { OverrideProperties } from "../inspector/OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, ObjectShape, SourceAttr, SourceElement, StudioSelection } from "../types";
 import { bodyRows, fieldText, rowFieldsOf, tableCellOf, tableData, tableFiberOf, TABLE_PARTS, type TableCellHit, type TableColumnInfo } from "./tableCells";
@@ -485,11 +486,15 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
     }
   }
   if (!drawn && content) valueRows.push(...writtenValues(content, inner, cell, editable, header));
+  // The component the cell draws for this row (its Badge, Avatar, Checkbox): Figma's nested instance of this row, its
+  // props written as the Table's instance overrides on a page made in the Studio (OverrideProperties).
+  const rowLayer = part.name !== TABLE_PARTS.cell && parseSrc(selection.src)?.file.startsWith("local:") ? nestedPathOf(part) : null;
 
   return (
     <InspectorFileContext.Provider value={parseSrc(selection.src)?.file ?? null}>
     <div className="studio-inspector__panel">
       <PartHeader selection={selection} title={title} where={where} />
+      {rowLayer ? <OverrideProperties selection={selection} part={part} path={rowLayer} title={`${part.name} · this row`} note={`Changes row ${cell.row + 1} only; the column's Content, Align and Bold below change every row.`} /> : null}
       <InspectorSection title="Table/Cell/Default" note="A column shows one kind of data: Content, Align, Bold and Subtext change every row of this column.">
         <InspectorRow label="Content" name="content">
           {kind === "actions" || kind === "custom"

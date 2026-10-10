@@ -43,6 +43,7 @@ Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
 | `leftIcon` | `IconName \| ReactNode` | — | **Deprecated:** Use startIcon (same values).  |
 | `rightIcon` | `IconName \| ReactNode` | — | **Deprecated:** Use endIcon (same values).  |
 | `children` (required) | `ReactNode` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the icon props. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### IconButton
@@ -59,6 +60,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `appearance` | `"main" \| "flat" \| "overlay"` | `"main"` | Figma component set: Button/Icon-Main, Button/Icon-Flat or Button/Icon-Overlay. |
 | `state` | `"default" \| "hover" \| "pressed" \| "focused" \| "disabled"` | — |  |
 | `tooltip` | `ReactNode \| false` | — | Zen rule: an icon-only button shows its name as a tooltip after 1s of hover (at once on keyboard focus). Defaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the icon props. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ## Keyboard
@@ -124,6 +126,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `button/compact-size-special` | warn | Text buttons at XSmall/2XSmall are for special compact pills only — like the App Store's Get / Install / Open next to a list row. Actions in examples, cards, toolbars and forms use sm or larger. | `zen-allow-compact-button: <reason>` |
 | `focus/visible-ring` | error | Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element. | `zen-allow-focus-ring: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |

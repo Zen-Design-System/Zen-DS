@@ -49,6 +49,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `searchCollapsed` | `ReactNode` | — | What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6). |
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ "Item[inbox]/Badge-Counter": { theme: "accent" }, "Item[team]/Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets the sections. |
 | `background` | `"default" \| "alt" \| "flat" \| "inverse"` | `"default"` | Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. |
 | `divider` | `boolean` | `false` | A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. |
 | `workspaceBrand` | `ReactNode` | — |  |
@@ -60,27 +61,6 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `subMenu` | `ReactNode` | — | Figma Side-Bar/Sub: a 260px flyout panel opened beside the sidebar (usually a `<SidebarSubMenu>`). |
 | `subMenuLabel` | `string` | — | Accessible name of the flyout panel. Default: the locale's “Sub menu”. |
 | `onSubMenuClose` | `(event: KeyboardEvent \| globalThis.PointerEvent) => void` | — | Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it. |
-
-### SidebarMenuItem
-Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children), Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMenu`. It reads the Sidebar's selection (`selectedId`), rail and `onItemClick`, exactly like a `sections` entry with the same fields.
-
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `children` | `ReactNode \| SidebarItem[]` | — | Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`. |
-| `id` (required) | `string` | — |  |
-| `label` (required) | `string` | — |  |
-| `icon` | `IconName \| ReactNode` | — | Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail). |
-| `active` | `boolean` | — |  |
-| `selected` | `boolean` | — |  |
-| `disabled` | `boolean` | — |  |
-| `state` | `"default" \| "hover" \| "focus" \| "disabled"` | — |  |
-| `theme` | `"neutral" \| "accent"` | — | Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text). |
-| `dropdown` | `boolean` | — |  |
-| `indent` | `boolean` | — |  |
-| `counter` | `ReactNode` | — | Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows the Notification-Dot instead and joins the row's name ("Approvals, 3"). |
-| `notificationDot` | `boolean` | — | Figma Primitives/Notification-Dot on the icon. |
-| `trailingAction` | `ReactNode` | — | Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row itself is the button or link. |
-| `href` | `string` | — | Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls `onItemClick`. Disabled items stay buttons. |
 
 ### SidebarMenuSection
 A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label + Item-List). The collapsed rail hides the title and opens later groups with a divider, as for `sections`.
@@ -158,6 +138,7 @@ type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `sidebar/submenu-close` | warn | A Sidebar with a subMenu flyout wires onSubMenuClose so Escape and outside presses close it. | `zen-allow-submenu-close: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |

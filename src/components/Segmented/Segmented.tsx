@@ -7,6 +7,7 @@ import { useIconTooltip } from "../Tooltip";
 import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
 import "./segmented.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const segmentedLevels = ["primary", "secondary"] as const;
 // The Figma component set only contains Small and Medium.  Keep the public
@@ -53,6 +54,9 @@ export interface SegmentedProps {
   fullWidth?: boolean;
   /** Names the group (default "Segmented control", from the locale's labels). */
   "aria-label"?: string;
+  /** Figma instance overrides: props of the segments it draws, by layer (`{ "Item[week]": { level: "primary" }, "Item[week]/Badge-Counter": { theme: "accent" } }`). Written by Zen Studio;
+   *  app code sets the options. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -60,7 +64,8 @@ export interface SegmentedProps {
  * 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
  */
-export function Segmented({ options, value, defaultValue, onValueChange, onChange, level = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp }: SegmentedProps) {
+export function Segmented({ options, value, defaultValue, onValueChange, onChange, level = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides }: SegmentedProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.segmentedControl;
   const size = scaleKey(sizeProp, segmentedSizes);
@@ -92,7 +97,7 @@ export function Segmented({ options, value, defaultValue, onValueChange, onChang
   });
   return (
     <div ref={groupRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
-      {options ? options.map((option) => <SegmentedItem key={option.id} level={level} selected={selectedValue === option.id} disabled={disabled || option.disabled || option.state === "disabled"} leading={option.leading} badge={option.badge} state={disabled ? "disabled" : option.state} size={size} aria-label={option["aria-label"]} onClick={() => select(option.id)}>{option.label}</SegmentedItem>) : children}
+      {options ? options.map((option) => nest("Item", <SegmentedItem key={option.id} level={level} selected={selectedValue === option.id} disabled={disabled || option.disabled || option.state === "disabled"} leading={option.leading} badge={option.badge} state={disabled ? "disabled" : option.state} size={size} aria-label={option["aria-label"]} onClick={() => select(option.id)}>{option.label}</SegmentedItem>, option.id)) : nest.slot(children)}
     </div>
   );
 }
@@ -112,6 +117,7 @@ export interface SegmentedItemProps extends ButtonHTMLAttributes<HTMLButtonEleme
 
 /** One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip. */
 export function SegmentedItem({ selected = false, leading, badge, level = "secondary", size: sizeProp = "md", state = "default", className, children, ...props }: SegmentedItemProps) {
+  const nest = useNested();
   const size = scaleKey(sizeProp, segmentedSizes);
   // Icon-only segment (Figma Label=false): its name shows as a tooltip after 1s of hover and at once on keyboard focus.
   const noLabel = children === undefined || children === null || children === false || children === "";
@@ -120,11 +126,11 @@ export function SegmentedItem({ selected = false, leading, badge, level = "secon
   const resolvedState = props.disabled || state === "disabled" ? "disabled" : state;
   // Figma: unselected → Neutral/Subtle; selected Primary → Inverse/Solid; selected Secondary → Neutral/Solid.
   const counter = typeof badge === "number" || typeof badge === "string"
-    ? <BadgeCounter size="xsmall" value={badge} theme={selected && level === "primary" ? "inverse" : "neutral"} background={selected ? "solid" : "subtle"} />
+    ? nest("Badge-Counter", <BadgeCounter size="xsmall" value={badge} theme={selected && level === "primary" ? "inverse" : "neutral"} background={selected ? "solid" : "subtle"} />)
     : badge;
   return (
     <button {...tip.bind({ ...props })} disabled={resolvedState === "disabled" || props.disabled} type="button" className={["zen-segmented__item", className].filter(Boolean).join(" ")} data-selected={selected ? "true" : "false"} data-size={size} data-state={resolvedState} aria-pressed={selected}>
-      {leading ? <span className="zen-segmented__leading">{renderIcon(leading)}</span> : null}
+      {leading ? <span className="zen-segmented__leading">{nest("Leading", renderIcon(leading))}</span> : null}
       {/* An empty label ("" as well as null) renders no label box, so an icon-only segment centres its icon. */}
       {!noLabel ? <span className={`zen-segmented__label ${typographyStyles[size === "small" ? "Body/Small/Bold" : "Body/Base/Bold"]}`}>{children}</span> : null}
       {counter !== undefined && counter !== null && counter !== false ? <span className="zen-segmented__badge">{counter}</span> : null}

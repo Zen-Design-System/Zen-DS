@@ -177,6 +177,14 @@
           "default": null,
           "description": "The page.",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: \"secondary\" }, Collapse: { appearance: \"main\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "deprecated": null
         }
       ]
     },
@@ -242,6 +250,14 @@
           "default": null,
           "description": "Tooltip text. Default: `aria-label` (without the count).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / appearance.",
+          "deprecated": null
         }
       ]
     },
@@ -274,6 +290,14 @@
           "required": false,
           "default": "\"neutral\"",
           "description": "Initials colour without a photo. Default neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: \"square\" } }`). Written by Zen Studio;\n app code sets src / theme.",
           "deprecated": null
         },
         {

@@ -51,6 +51,7 @@ Also accepts `OverlayOpenProps`.
 | `dismissible` | `boolean` | `true` | Escape / scrim click close a modal panel (default true). |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close panel”. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / the actions. |
 
 ### Types
 Object shapes the props above refer to.
@@ -90,6 +91,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 | --- | --- | --- | --- |
 | `side-panel/not-for-confirmations` | warn | Destructive confirmations belong in a Dialog, not a Side Panel. | `zen-allow-panel-confirm: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

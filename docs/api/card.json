@@ -105,6 +105,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Zen components the card draws itself, by layer (`{ \"Sub-Action\": { level:\n \"primary\" } }`, `\"Sub-Action/Leading-Icon\"` one level deeper). Written by Zen Studio; app code sets `subAction`.",
+          "deprecated": null
         }
       ]
     }

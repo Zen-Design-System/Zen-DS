@@ -372,6 +372,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "MetricCard": {
     "Card": {
+      "overrides": "overrides",
       "subAction": "subAction",
       "theme": "theme"
     }

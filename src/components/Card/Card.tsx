@@ -2,6 +2,7 @@ import { isValidElement, type HTMLAttributes, type KeyboardEvent, type MouseEven
 import { IconButton } from "../Button";
 import type { IconName } from "../Icon";
 import { scaleKey } from "../_shared/scale";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 import "./card.css";
 import "../Icon/core";
 
@@ -54,20 +55,24 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
   subAction?: CardSubAction | ReactNode;
   as?: "div" | "article" | "section" | "li";
   className?: string;
+  /** Figma instance overrides: props of the Zen components the card draws itself, by layer (`{ "Sub-Action": { level:
+   *  "primary" } }`, `"Sub-Action/Leading-Icon"` one level deeper). Written by Zen Studio; app code sets `subAction`. */
+  overrides?: NestedOverrides;
 }
 
 /**
  * Figma Card (6643:51021): a Content slot on one of five surfaces, padded Card-padding-medium/small.
  * A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
  */
-export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, ...rest }: CardProps) {
+export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, overrides, ...rest }: CardProps) {
+  const nest = useNested(overrides);
   const spacing = scaleKey(spacingProp, cardSpacings);
   const active = selected ?? activeProp ?? false;
   const interactive = Boolean(onClick);
   // zen-allow-secondary: Figma Card Sub-Action (6664:21688) = Button/Icon-Flat Small Secondary.
   const sub: ReactNode = isSubActionConfig(subAction)
-    ? <IconButton appearance="flat" level="secondary" size="sm" aria-label={subAction.label} onClick={subAction.onClick} icon={subAction.icon ?? "icon-dots-vertical-line"} />
-    : subAction;
+    ? nest("Sub-Action", <IconButton appearance="flat" level="secondary" size="sm" aria-label={subAction.label} onClick={subAction.onClick} icon={subAction.icon ?? "icon-dots-vertical-line"} />)
+    : nest.slot(subAction);
   return (
     <Tag
       {...rest}
@@ -86,7 +91,7 @@ export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "
       onClick={onClick}
       onKeyDown={interactive ? (event: KeyboardEvent<HTMLElement>) => { onKeyDown?.(event); if (event.defaultPrevented) return; if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onClick?.(event); } } : onKeyDown}
     >
-      <div className="zen-card__content">{children}</div>
+      <div className="zen-card__content">{nest.slot(children)}</div>
       {sub ? <div className="zen-card__sub-action">{sub}</div> : null}
     </Tag>
   );

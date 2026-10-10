@@ -235,6 +235,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the open button and range control it draws, by layer (`{ Open: { level: \"secondary\" }, \"Ranges/Item[week]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code sets onOpen / ranges.",
+          "deprecated": null
         }
       ]
     }

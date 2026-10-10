@@ -8,6 +8,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./inline-message.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const inlineMessageThemes = ["neutral", "info", "positive", "warning", "negative", "custom"] as const;
 export type InlineMessageTheme = (typeof inlineMessageThemes)[number];
@@ -38,13 +39,17 @@ export interface InlineMessageProps {
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets icon / action. */
+  overrides?: NestedOverrides;
 }
 
 /**
  * Figma Inline-Message (595:54857): a Subtle-surface message inside the content it describes.
  * Padding Medium, gap Small, Corner-Radius/Large. Icon Content/<theme>/Light, title Strongest, caption Base.
  */
-export function InlineMessage({ theme: themeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className }: InlineMessageProps) {
+export function InlineMessage({ theme: themeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides }: InlineMessageProps) {
+  const nest = useNested(overrides);
   const theme: InlineMessageTheme = themeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.dismiss;
@@ -56,13 +61,13 @@ export function InlineMessage({ theme: themeProp, status, title, children, icon 
   return (
     <div className={["zen-inline-message", className].filter(Boolean).join(" ")} data-tone={theme} role={urgent ? "alert" : "status"}>
       <div className="zen-inline-message__container">
-        {leading ? <span className="zen-inline-message__icon" aria-hidden="true">{leading}</span> : null}
+        {leading ? <span className="zen-inline-message__icon" aria-hidden="true">{nest("Leading", leading)}</span> : null}
         <div className="zen-inline-message__content">
           <div className="zen-inline-message__text">
             {title ? <span className={`zen-inline-message__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span> : null}
-            {children ? <span className={`zen-inline-message__caption ${typographyStyles["Body/Small/Regular"]}`}>{children}</span> : null}
+            {children ? <span className={`zen-inline-message__caption ${typographyStyles["Body/Small/Regular"]}`}>{nest.slot(children)}</span> : null}
           </div>
-          {action ? <Button className="zen-inline-message__action" appearance="main" level="tertiary" size="sm" onClick={action.onClick}>{action.label}</Button> : null}
+          {action ? nest("Action", <Button className="zen-inline-message__action" appearance="main" level="tertiary" size="sm" onClick={action.onClick}>{action.label}</Button>) : null}
         </div>
       </div>
       {onClose ? (

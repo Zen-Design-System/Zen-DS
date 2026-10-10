@@ -81,4 +81,4 @@ export function main(argv = process.argv.slice(2)) {
 }
 
 // Run when executed directly or through the `zen-usage` bin symlink.
-if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) process.exit(main());
+if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) process.exitCode = main(); // not exit(): a piped stdout over 64 KB must be written out first

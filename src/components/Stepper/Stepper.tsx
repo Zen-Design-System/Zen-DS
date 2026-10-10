@@ -7,6 +7,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./stepper.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const stepperStates = ["default", "focused", "passed", "error"] as const;
 export type StepperState = (typeof stepperStates)[number];
@@ -42,6 +43,9 @@ export interface StepperProps extends HTMLAttributes<HTMLOListElement> {
   /** Names the list (default "Progress", from the locale's labels). */
   "aria-label"?: string;
   className?: string;
+  /** Figma instance overrides: props of the step markers it draws, by layer (`{ "Step[review]": { icon: "icon-check-line" } }`). Written by Zen Studio;
+   *  app code sets the steps. */
+  overrides?: NestedOverrides;
 }
 
 const stateOf = (step: StepperStep, index: number, current: number): StepperState =>
@@ -70,7 +74,8 @@ export function StepperItem({ state = "default", index = 1, icon }: { state?: St
  * Step-Vertical: a marker between two 2px progress lines (Neutral/Subtle ahead, Neutral/Solid behind, Negative/Solid
  * on error) with Title + Caption (gap 3XSmall, padding-inline XSmall).
  */
-export function Stepper({ ref, steps: stepsProp, children, current = 0, orientation = "horizontal", onStepClick, "aria-label": ariaLabelProp, className, ...rest }: StepperProps) {
+export function Stepper({ ref, steps: stepsProp, children, current = 0, orientation = "horizontal", onStepClick, "aria-label": ariaLabelProp, className, overrides, ...rest }: StepperProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.progress;
   const steps: StepperStep[] = stepsProp ?? slotItems(children, StepperStep).map(({ slotKey, ...step }, index) => ({ ...step, id: step.id ?? slotKey ?? String(index) }));
@@ -84,7 +89,7 @@ export function Stepper({ ref, steps: stepsProp, children, current = 0, orientat
           <>
             <span className="zen-stepper__track">
               <span className="zen-stepper__line" data-part="before" />
-              <StepperItem state={state} index={index + 1} icon={step.icon} />
+              {nest("Step", <StepperItem state={state} index={index + 1} icon={step.icon} />, step.id)}
               <span className="zen-stepper__line" data-part="after" />
             </span>
             <span className="zen-stepper__contents">

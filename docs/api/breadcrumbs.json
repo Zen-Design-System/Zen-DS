@@ -73,6 +73,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the crumbs it draws, by layer (`{ \"Crumb[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Separator[home]\": { name: \"icon-minus-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
         }
       ]
     },

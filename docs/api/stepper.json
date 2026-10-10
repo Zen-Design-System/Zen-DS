@@ -73,6 +73,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the step markers it draws, by layer (`{ \"Step[review]\": { icon: \"icon-check-line\" } }`). Written by Zen Studio;\n app code sets the steps.",
+          "deprecated": null
         }
       ]
     },

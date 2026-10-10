@@ -2,6 +2,10 @@ import { studioStore } from "../store";
 import type { StudioPartRef, StudioSelection } from "../types";
 import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit } from "./picker";
 import { tablePartName } from "../table/tableCells";
+import { NestedContext, type NestedScope } from "../../../components/_shared/nested";
+
+// ContextProvider (react-reconciler ReactWorkTags): the fiber of a `<Context value>`.
+const CONTEXT_PROVIDER = 10;
 
 /*
  * Deep select (read-only): the internal parts of an annotated JSX element, like Figma's ⌘-click into an instance. A
@@ -103,7 +107,10 @@ const wrapsOwner = (part: PartHit) => part.path.length === 1;
 
 /** The part a deep click lands on: the nearest internal component that is not a wrapper of the whole element, else the DOM node. */
 function nearestPart(chain: PartHit[]): PartHit | null {
-  return chain.find((part) => part.isComponent && !wrapsOwner(part)) ?? chain[0] ?? null;
+  // A nested instance first (the Icon in a Button, not the IconSvg inside the Icon): the layer Figma's ⌘-click lands on
+  // that has properties to change.
+  return chain.find((part) => !wrapsOwner(part) && nestedPathOf(part) !== null)
+    ?? chain.find((part) => part.isComponent && !wrapsOwner(part)) ?? chain[0] ?? null;
 }
 
 /** Cmd/Ctrl-click: the nearest internal component under the cursor (SidebarItem, InputLabel, a Badge in a cell), else the DOM node. */
@@ -170,6 +177,31 @@ export function partChildren(owner: FiberHit, parent: Fiber): PartHit[] {
     // React internals changed: what was found so far.
   }
   return out;
+}
+
+/**
+ * The Figma layer path of a part its owner draws as a nested instance (`Sub-Action`, `Row[alex]/status/Badge`): read from
+ * the nested scope that wraps it (src/components/_shared/nested.tsx), or null for a part that takes no overrides (a DOM
+ * node, a wrapper of the owner's own, a component drawn without a layer name).
+ */
+export function nestedPathOf(part: PartHit): string | null {
+  if (!part.isComponent) return null;
+  try {
+    for (let fiber = currentFiber(part.fiber).return; fiber; fiber = fiber.return) {
+      if (isOwnerFiber(part.owner, fiber)) return null;
+      if (fiber.tag === CONTEXT_PROVIDER && (fiber.type === NestedContext || (fiber.type as { _context?: unknown } | null)?._context === NestedContext)) {
+        const scope = fiber.memoizedProps?.value as NestedScope | undefined;
+        // A component's own scope (nest.scope) wraps its internals, not a nested layer.
+        return scope?.layer && scope.path ? scope.path : null;
+      }
+      // memo(forwardRef(X)): the part's own outer fibers, then the scope.
+      if (isComponentFiber(fiber) && nameOf(fiber) === part.name) continue;
+      return null;
+    }
+  } catch {
+    // React internals changed: no layer path.
+  }
+  return null;
 }
 
 /** The first DOM node's first meaningful class, as a hint beside a DOM part's tag ("div" · zen-sidebar__header). */

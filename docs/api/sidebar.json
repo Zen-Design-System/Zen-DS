@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "sidebar",
-  "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
+  "import": "import { Sidebar, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
   "components": [
     {
       "name": "Sidebar",
@@ -155,6 +155,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ \"Item[inbox]/Badge-Counter\": { theme: \"accent\" }, \"Item[team]/Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the sections.",
+          "deprecated": null
+        },
+        {
           "name": "background",
           "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
           "required": false,
@@ -240,135 +248,6 @@
           "required": false,
           "default": null,
           "description": "Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it.",
-          "deprecated": null
-        }
-      ]
-    },
-    {
-      "name": "SidebarMenuItem",
-      "file": "src/components/Sidebar/Sidebar.tsx",
-      "description": "Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children),\n Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMenu`. It reads the Sidebar's selection\n (`selectedId`), rail and `onItemClick`, exactly like a `sections` entry with the same fields.",
-      "deprecated": null,
-      "extends": null,
-      "props": [
-        {
-          "name": "children",
-          "type": "ReactNode | SidebarItem[]",
-          "required": false,
-          "default": null,
-          "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`.",
-          "deprecated": null
-        },
-        {
-          "name": "id",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "icon",
-          "type": "IconName | ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail).",
-          "deprecated": null
-        },
-        {
-          "name": "active",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "selected",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "state",
-          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "theme",
-          "type": "\"neutral\" | \"accent\"",
-          "required": false,
-          "default": null,
-          "description": "Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is\n Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text).",
-          "deprecated": null
-        },
-        {
-          "name": "dropdown",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "indent",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "counter",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows\n the Notification-Dot instead and joins the row's name (\"Approvals, 3\").",
-          "deprecated": null
-        },
-        {
-          "name": "notificationDot",
-          "type": "boolean",
-          "required": false,
-          "default": null,
-          "description": "Figma Primitives/Notification-Dot on the icon.",
-          "deprecated": null
-        },
-        {
-          "name": "trailingAction",
-          "type": "ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row\n itself is the button or link.",
-          "deprecated": null
-        },
-        {
-          "name": "href",
-          "type": "string",
-          "required": false,
-          "default": null,
-          "description": "Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls\n `onItemClick`. Disabled items stay buttons.",
           "deprecated": null
         }
       ]

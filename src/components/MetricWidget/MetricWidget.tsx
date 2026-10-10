@@ -10,6 +10,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./metric-widget.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const metricSizes = ["xsmall", "small", "medium", "large", "xlarge"] as const;
 /** CSS / Figma key (the `data-size` value). */
@@ -20,9 +21,10 @@ export type MetricTrendDirection = "positive" | "negative" | "normal";
 
 /** Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral. */
 export function MetricTrend({ trend = "normal", children }: { trend?: MetricTrendDirection; children: ReactNode }) {
+  const nest = useNested();
   const theme = trend === "positive" ? "green" : trend === "negative" ? "red" : "neutral";
   const icon: IconName | null = trend === "positive" ? "icon-arrow-circle-up-solid" : trend === "negative" ? "icon-arrow-circle-down-solid" : null;
-  return <Badge size="small" theme={theme} background="subtle" leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>;
+  return nest("Badge", <Badge size="small" theme={theme} background="subtle" leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>);
 }
 
 /** Figma Metric-Inline label and number text styles per Size. */
@@ -75,6 +77,9 @@ export interface MetricProps {
    *  this text in a Tooltip on hover and focus; say how the number is worked out. */
   hint?: ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio;
+   *  app code sets icon / trend / counter. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Metric-Color: the series dot before a label. */
@@ -86,7 +91,8 @@ function MetricColorDot({ color }: { color: boolean | string }) {
  * Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of
  * Label (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.
  */
-export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className }: MetricProps) {
+export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className, overrides }: MetricProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const size = scaleKey(sizeProp, metricSizes);
   const dot = metricColor ? <MetricColorDot color={metricColor} /> : null;
@@ -95,8 +101,8 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
     // Figma Title-Highlight: a title row at XLarge–Medium, the Caption label inside the content at Small/XSmall.
     const titled = size === "xlarge" || size === "large" || size === "medium";
     const dock = iconSize ? (iconSize === "lg" || iconSize === "large" ? "large" : "medium") : stacked ? "large" : "medium";
-    const mark = iconEmoji ? <DockIcon className="zen-metric__icon" theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} />
-      : icon ? <DockIcon className="zen-metric__icon" icon={icon} theme={iconTheme} background={iconBackground} size={dock} /> : null;
+    const mark = nest("Icon", iconEmoji ? <DockIcon className="zen-metric__icon" theme="emoji" emoji={iconEmoji} background={iconBackground} size={dock} />
+      : icon ? <DockIcon className="zen-metric__icon" icon={icon} theme={iconTheme} background={iconBackground} size={dock} /> : null);
     const body = (
       <>
         <div className="zen-metric__contents">
@@ -105,18 +111,18 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
               {/* Figma Header › Label-Container: [Label-Icon] Label, then the Hint icon; the action stays at the end. */}
               <span className="zen-metric__title-row">
                 {dot}
-                {labelIcon ? <span className="zen-metric__label-icon">{renderIcon(labelIcon, { size: "md" })}</span> : null}
+                {labelIcon ? <span className="zen-metric__label-icon">{nest("Label-Icon", renderIcon(labelIcon, { size: "md" }))}</span> : null}
                 <span className={`zen-metric__title ${typographyStyles["Heading/Subheading"]}`}>{label}</span>
                 {/* zen-allow-raw-icon-button: Figma Hint is a bare 20px info glyph (no button container), as InputLabel's tooltip icon; the Tooltip names and explains it. */}
                 {hint ? <Tooltip content={hint} size="small"><button type="button" className="zen-metric__hint" aria-label={typeof hint === "string" ? hint : t.moreInformation}><Icon name="icon-info-circle-line" size="base" decorative /></button></Tooltip> : null}
               </span>
-              {action}
+              {nest.slot(action)}
             </div>
           ) : null}
           <div className="zen-metric__content">
             {titled ? null : <span className="zen-metric__label-row">{dot}<span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span></span>}
             <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
-            {trend ? <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend> : null}
+            {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
           </div>
         </div>
         {mark}
@@ -131,19 +137,19 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
   }
   return (
     <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-layout={stacked ? "stacked" : "inline"}>
-      {iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background={iconBackground} size={stacked ? "large" : "medium"} />
-        : icon ? <DockIcon icon={icon} theme={iconTheme} background={iconBackground} size={stacked ? "large" : "medium"} /> : null}
+      {nest("Icon", iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background={iconBackground} size={stacked ? "large" : "medium"} />
+        : icon ? <DockIcon icon={icon} theme={iconTheme} background={iconBackground} size={stacked ? "large" : "medium"} /> : null)}
       <div className="zen-metric__contents">
         <div className="zen-metric__content">
           {/* Figma Metric-Title: [Color] Label [Counter], Spacing/Gap/2XSmall apart. */}
           <span className="zen-metric__label-row">
             {dot}
             <span className={`zen-metric__label ${typographyStyles[labelStyle[size]]}`}>{label}</span>
-            {counter !== undefined && counter !== null && counter !== false ? <Badge className="zen-metric__counter" size="small" theme="neutral" background="subtle">{counter}</Badge> : null}
+            {counter !== undefined && counter !== null && counter !== false ? nest("Counter", <Badge className="zen-metric__counter" size="small" theme="neutral" background="subtle">{counter}</Badge>) : null}
           </span>
           <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
         </div>
-        {trend ? <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend> : null}
+        {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
       </div>
     </div>
   );
@@ -157,10 +163,13 @@ export interface MetricCardProps extends MetricProps {
 }
 
 /** Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding an XLarge Metric and a ⋮ Sub-Action. */
-export function MetricCard({ theme = "shadow", subAction, className, ...metric }: MetricCardProps) {
+export function MetricCard({ theme = "shadow", subAction, className, overrides, ...metric }: MetricCardProps) {
+  const nest = useNested(overrides);
   return (
-    <Card theme={theme} subAction={subAction} className={["zen-metric-card", className].filter(Boolean).join(" ")}>
-      <Metric {...metric} />
+    // zen-allow-overrides: MetricCard passes its own overrides on, so the Card's Sub-Action and the Metric's layers
+    // (`Metric/Icon`) read the same table.
+    <Card theme={theme} subAction={subAction} className={["zen-metric-card", className].filter(Boolean).join(" ")} overrides={overrides}>
+      {nest("Metric", <Metric {...metric} />)}
     </Card>
   );
 }

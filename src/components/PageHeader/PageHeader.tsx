@@ -4,6 +4,7 @@ import { Icon } from "../Icon";
 import { Heading, Text } from "../Text";
 import "./page-header.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export interface PageHeaderBack {
   /** Where Back goes, named (e.g. "Projects"). */
@@ -34,6 +35,9 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   /** Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already
    *  has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level. */
   headingLevel?: 1 | 2;
+  /** Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets back. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -44,17 +48,18 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
  *     actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
  */
 export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function PageHeader(
-  { title, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, ...rest },
+  { title, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, overrides, ...rest },
   ref,
 ) {
+  const nest = useNested(overrides);
   return (
     <header {...rest} ref={ref} className={["zen-page-header", className].filter(Boolean).join(" ")}>
       {back ? (
         <div className="zen-page-header__back">
-          <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name="icon-chevron-left-line-medium" decorative />} onClick={back.onClick}>{back.label}</Button>
+          {nest("Back", <Button appearance="flat" level="primary" size="sm" startIcon={<Icon name="icon-chevron-left-line-medium" decorative />} onClick={back.onClick}>{back.label}</Button>)}
         </div>
       ) : null}
-      {breadcrumbs ? <div className="zen-page-header__breadcrumbs">{breadcrumbs}</div> : eyebrow ? <Text className="zen-page-header__eyebrow" textStyle="Body/Small/Medium" tone="base">{eyebrow}</Text> : null}
+      {breadcrumbs ? <div className="zen-page-header__breadcrumbs">{nest.slot(breadcrumbs)}</div> : eyebrow ? <Text className="zen-page-header__eyebrow" textStyle="Body/Small/Medium" tone="base">{eyebrow}</Text> : null}
       <div className="zen-page-header__row">
         <div className="zen-page-header__titles">
           {/* h1 = Heading/1 (Figma ◇ Master-Layout page title), h2 = Heading/4 (the house ladder's h2, backlog batch 6). */}
@@ -63,8 +68,8 @@ export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function Page
         </div>
         {actions || trailing ? (
           <div className="zen-page-header__actions">
-            {actions}
-            {trailing ? <span className="zen-page-header__trailing">{trailing}</span> : null}
+            {nest.slot(actions)}
+            {trailing ? <span className="zen-page-header__trailing">{nest.slot(trailing)}</span> : null}
           </div>
         ) : null}
       </div>

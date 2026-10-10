@@ -47,6 +47,7 @@ Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutra
 | `disabled` | `boolean` | `false` |  |
 | `fullWidth` | `boolean` | `false` | Stretch to the container and split it into equal items (mobile control bars, sheets, narrow panels). |
 | `aria-label` | `string` | — | Names the group (default "Segmented control", from the locale's labels). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the segments it draws, by layer (`{ "Item[week]": { level: "primary" }, "Item[week]/Badge-Counter": { theme: "accent" } }`). Written by Zen Studio; app code sets the options. |
 
 ### SegmentedItem
 One `Primitives/Segmented/Item` (1204:11690). Without a visible label, its `aria-label` shows as the 1s name tooltip.
@@ -110,6 +111,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | `segmented/control-bar-full-width` | warn | On mobile, a Segmented in a Top Navigation control bar or a Bottom Sheet spans the container with equal items (fullWidth). | `zen-allow-segmented-hug: <reason>` |
 | `segmented/icon-only-needs-name` | error | Icon-only segments (label null / empty) carry an "aria-label" in their option. | `zen-allow-segment-name: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

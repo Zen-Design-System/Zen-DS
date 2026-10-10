@@ -11,6 +11,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-sheet.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /** Figma Type: Modal (contents + Actions footer) · Action (a list of Sheet-Actions items). */
 export type BottomSheetType = "modal" | "action";
@@ -70,6 +71,9 @@ export interface BottomSheetProps extends OverlayOpenProps {
   /** Accessible name of the close button. Default: the locale's “Close”. */
   closeLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: "danger" }, "Item[delete]/Icon": { tone: "negative-base" } }`). Written by Zen Studio;
+   *  app code sets the actions / items. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -80,7 +84,8 @@ export interface BottomSheetProps extends OverlayOpenProps {
  * Initial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.
  * Modal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).
  */
-export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className }: BottomSheetProps) {
+export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides }: BottomSheetProps) {
+  const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.close;
@@ -127,9 +132,9 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
         const isPrimary = action === primaryAction;
         const submits = isPrimary && isForm;
         return (
-          <Button key={index} appearance="main" level={action.level ?? (isPrimary ? "primary" : "tertiary")} size="lg" disabled={action.disabled} data-autofocus={action.autoFocus ? "" : undefined}
+          nest(isPrimary ? "Primary" : "Secondary", <Button key={index} appearance="main" level={action.level ?? (isPrimary ? "primary" : "tertiary")} size="lg" disabled={action.disabled} data-autofocus={action.autoFocus ? "" : undefined}
             type={submits ? "submit" : "button"}
-            onClick={submits && !action.onClick ? undefined : () => (action.onClick ? action.onClick() : onOpenChange(false))}>{action.label}</Button>
+            onClick={submits && !action.onClick ? undefined : () => (action.onClick ? action.onClick() : onOpenChange(false))}>{action.label}</Button>)
         );
       })}
     </div>
@@ -144,16 +149,16 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
               <li key={item.id}>
                 <button type="button" className="zen-bottom-sheet__item" data-selected={selected ? "true" : undefined} data-destructive={item.destructive ? "true" : undefined} aria-pressed={selectedId !== undefined ? selected : undefined} disabled={item.disabled}
                   onClick={() => { onSelect?.(item); if (!keepOpen) onOpenChange(false); }}>
-                  {item.icon ? renderIcon(item.icon) : null}
+                  {item.icon ? nest.at("Item", item.id)("Icon", renderIcon(item.icon)) : null}
                   <span className={`zen-bottom-sheet__item-label ${typographyStyles["Body/Base/Medium"]}`}>{item.label}</span>
-                  {item.trailing ? <span className="zen-bottom-sheet__item-trailing">{item.trailing}</span> : null}
+                  {item.trailing ? <span className="zen-bottom-sheet__item-trailing">{nest.slot(item.trailing)}</span> : null}
                   {selected ? <Icon className="zen-bottom-sheet__check" name="icon-check-line" decorative /> : null}
                 </button>
               </li>
             );
           })}
         </ul>
-      ) : children}
+      ) : nest.slot(children)}
     </div>
   );
   const footerSlot = actionButtons ?? (type === "modal" ? footerContent : null);

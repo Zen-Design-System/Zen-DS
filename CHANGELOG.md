@@ -19,6 +19,16 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- Figma instance overrides in the library: 40 components that draw other Zen components inside themselves (Card,
+  Button, Badge, Table, Sidebar, AppShell, Dialog, Menu, Popover, Tabs, Segmented, MetricCard, ChartCard…) take
+  `overrides`, the props of any nested layer by its Figma layer path, at any depth and row by row
+  (`{ "Sub-Action": { level: "danger" } }`, `"Row[alex]/status/Badge"`, `"Item[team]/Item[members]/Badge-Counter"`). No
+  DOM change and nothing changes without it. Zen Studio writes it; new harness rule `api/overrides-studio-only` reports it
+  in hand-written code (pages Zen Studio made, `// @zen-page`, are exempt).
+- Zen Studio: nested instances like Figma on pages you made — ⌘-click into a component reaches its nested instances at
+  any depth (a Card's Sub-Action, the icon inside it, one Table row's Badge), and the Inspector shows that instance's
+  Figma properties; an edit changes this instance only (one undo step), with Reset all overrides per layer. A Table cell's
+  component gets a "this row" section above the column's settings.
 - Zen Studio: replace a picture like Figma, everywhere — Avatar, Image, Thumbnail and the App Shell account take a photo from
   Assets › Photos (click with the layer selected, or drag the photo onto the layer) and from the Inspector's Picture
   picker, in example and template code as well as on pages you made. A picture bound to a row's data (a Table cell, a
@@ -793,6 +803,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Usage harness: `zen-usage --list` (and `check-usage.mjs`) no longer cuts its JSON off at 64 KB when piped; the process
+  exited before stdout was written out.
 - Zen Studio: the canvas opens in the default modes (Neutral-S1, Standard contrast, Compact…) again; only light/dark is remembered. Modes saved before Present and Play took their own (2026-10-09) stuck on the canvas with no control left to change them.
 - Zen Studio: ⌘D (Duplicate) works on pages made in the Studio — the renderer's React key was mistaken for a written `key` and every copy was refused.
 - **Zen Studio: a click no longer writes an old field value (2026-10-10):** a text or number field in the Inspector

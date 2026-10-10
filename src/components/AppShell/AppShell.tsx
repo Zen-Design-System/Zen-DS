@@ -16,6 +16,7 @@ import { SidebarShellContext } from "../_shared/sidebar-shell";
 import { NotificationDot } from "../_shared/notification-dot";
 import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type AppShellLayout = "sidebar" | "drawer";
 
@@ -111,6 +112,9 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   layout?: "auto" | "sidebar" | "drawer";
   /** The page. */
   children?: ReactNode;
+  /** Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio;
+   *  app code keeps the defaults. */
+  overrides?: NestedOverrides;
 }
 
 /** Below this width the Sidebar leaves the page for a drawer (the Tablet and Mobile breakpoints). */
@@ -250,9 +254,11 @@ export function AppShell({
   className,
   style,
   children,
+  overrides,
   ...rest
 }: AppShellProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const navLabel = navLabelProp ?? t.navigation;
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const mainId = requestedMainId ?? `zen-main-${uid}`;
@@ -367,9 +373,9 @@ export function AppShell({
     <span ref={setToggleEl} className="zen-app-shell__toggle">
       {showMenuButton ? (
         // zen-allow-filter-button: this button opens the navigation drawer (a dialog), not a choice list.
-        <IconButton appearance="flat" level="primary" size="md" icon={<Icon name="icon-menu-01-line" />} aria-label={t.openNavigation} aria-haspopup="dialog" aria-expanded={open} onClick={() => setNavOpen(true)} />
+        nest("Menu", <IconButton appearance="flat" level="primary" size="md" icon={<Icon name="icon-menu-01-line" />} aria-label={t.openNavigation} aria-haspopup="dialog" aria-expanded={open} onClick={() => setNavOpen(true)} />)
       ) : (
-        <IconButton appearance="flat" level="primary" size="md" icon={<Icon name={sidebarCollapsed ? "icon-layout-right-line" : "icon-layout-left-line"} />} aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar} aria-expanded={!sidebarCollapsed} aria-controls={sidebarId} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        nest("Collapse", <IconButton appearance="flat" level="primary" size="md" icon={<Icon name={sidebarCollapsed ? "icon-layout-right-line" : "icon-layout-left-line"} />} aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar} aria-expanded={!sidebarCollapsed} aria-controls={sidebarId} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />)
       )}
     </span>
   ) : null;
@@ -390,21 +396,21 @@ export function AppShell({
               <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined} data-center={headerCenter ? "true" : undefined}>
                 <div className="zen-app-shell__header-leading">
                   {toggle}
-                  {header ? <div ref={setContentEl} className="zen-app-shell__header-content">{header}</div> : null}
+                  {header ? <div ref={setContentEl} className="zen-app-shell__header-content">{nest.slot(header)}</div> : null}
                 </div>
-                {headerCenter ? <div className="zen-app-shell__header-center">{headerCenter}</div> : null}
-                {headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{headerActions}</div> : null}
+                {headerCenter ? <div className="zen-app-shell__header-center">{nest.slot(headerCenter)}</div> : null}
+                {headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{nest.slot(headerActions)}</div> : null}
               </header>
             ) : null}
             <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>
-              {sections ? <div className="zen-app-shell__sections">{sections}</div> : null}
-              {children}
+              {sections ? <div className="zen-app-shell__sections">{nest.slot(sections)}</div> : null}
+              {nest.slot(children)}
             </main>
             {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
             {floatingAction || footer ? (
               <div className="zen-app-shell__bottom">
                 {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}>{floatingAction}</div> : null}
-                {footer ? <div className="zen-app-shell__footer">{footer}</div> : null}
+                {footer ? <div className="zen-app-shell__footer">{nest.slot(footer)}</div> : null}
               </div>
             ) : null}
           </div>
@@ -421,7 +427,7 @@ export function AppShell({
           <div ref={drawerRef} className="zen-app-shell__drawer" role="dialog" aria-modal="true" aria-label={navLabel} tabIndex={-1} data-state={presence.phase} inert={presence.phase === "closing" || undefined} onClick={onDrawerClick}>
             <div className="zen-app-shell__drawer-panel">{drawerSidebar}</div>
             <div className="zen-app-shell__drawer-close">
-              <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />
+              {nest("Close", <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />)}
             </div>
           </div>
         </div>
@@ -449,6 +455,9 @@ export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButto
   appearance?: "tertiary" | "flat";
   /** Tooltip text. Default: `aria-label` (without the count). */
   tooltip?: ReactNode | false;
+  /** Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets icon / appearance. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -458,15 +467,16 @@ export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButto
  * It forwards its ref and props to the button, so it can be a <Menu trigger>.
  */
 export const AppShellAction = forwardRef<HTMLButtonElement, AppShellActionProps>(function AppShellAction(
-  { icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, ...buttonProps },
+  { icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, overrides, ...buttonProps },
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const unread = typeof count === "number" && count > 0 ? Math.floor(count) : 0;
   const name = unread ? t.withUnread(label, unread) : dot ? t.withUnread(label) : label;
   return (
     <span className={["zen-app-shell-action", className].filter(Boolean).join(" ")} data-appearance={appearance}>
-      <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />
+      {nest("Button", <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />)}
       {unread ? (
         <span className="zen-app-shell-action__notification" data-style="number" data-tone={tone} aria-hidden="true">
           <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span>
@@ -483,6 +493,9 @@ export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButt
   src?: string;
   /** Initials colour without a photo. Default neutral. */
   theme?: Exclude<AvatarTheme, "photo">;
+  /** Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio;
+   *  app code sets src / theme. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -491,10 +504,11 @@ export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButt
  * Keyboard focus shows the Avatar's own focus ring.
  */
 export const AppShellAccount = forwardRef<HTMLButtonElement, AppShellAccountProps>(function AppShellAccount(
-  { name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, ...buttonProps },
+  { name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, overrides, ...buttonProps },
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const accessibleName = ariaLabel ?? t.accountOf(name);
   const [ring, setRing] = useState(false);
   // Name tooltip after 1s of hover, at once on keyboard focus, never on touch (house rule for icon-only controls).
@@ -509,7 +523,7 @@ export const AppShellAccount = forwardRef<HTMLButtonElement, AppShellAccountProp
     <>
       <button {...bound} ref={ref} type={type} className={["zen-app-shell-account", className].filter(Boolean).join(" ")} aria-label={accessibleName}>
         {/* Without a photo, alt only generates the initials ("Ava Chen" → AC); the button's aria-label names it. */}
-        <Avatar size="md" theme={src ? "photo" : theme} background="subtle" src={src} alt={src ? "" : name} focus={ring} />
+        {nest("Avatar", <Avatar size="md" theme={src ? "photo" : theme} background="subtle" src={src} alt={src ? "" : name} focus={ring} />)}
       </button>
       {tip.tooltip}
     </>

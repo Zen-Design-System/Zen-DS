@@ -228,4 +228,6 @@ export const Good = () => <>
   <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>
   <Icon name="icon-check-circle-line" tone="accent-light" />
+  {/* A card's ⋮ is set through its own props; `overrides` is Zen Studio's (fixtures/studio-page.zen.tsx). */}
+  <Card subAction={{ label: "More", icon: "icon-dots-horizontal-line", onClick: act }}>Team</Card>
 </>;

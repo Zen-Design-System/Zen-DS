@@ -46,6 +46,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color">`.
 | `onRemove` | `() => void` | — |  |
 | `removeLabel` | `string` | — | Name of the remove button. Default: "Remove" and the badge text from the locale's labels ("Remove Design"); pass it when the label is not plain text (a node, an icon, a number) so the button still says what it removes. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the badge draws, by layer (`{ Leading: { name: "icon-check-line" } }`). Written by Zen Studio; app code sets `leading`. |
 
 ### BadgeCounter
 Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "removeLabel" | "leading">`.
@@ -82,6 +83,7 @@ Also accepts `Omit<BadgeProps, "remove" | "onRemove" | "removeLabel" | "leading"
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `badge/count-uses-counter` | warn | A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height. | `zen-allow-badge-count: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

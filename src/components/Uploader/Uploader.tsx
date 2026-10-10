@@ -7,6 +7,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./uploader.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type UploaderFileState = "uploading" | "uploaded" | "replaceable" | "alert";
 
@@ -87,6 +88,7 @@ function useFocusAfterRemoval() {
  */
 export function UploaderFileItem({ file, thumbnail, theme = "default", onRemove, onReplace, onRetry }: UploaderFileItemProps) {
   const t = useZenLabels();
+  const nest = useNested();
   const state = file.state ?? "uploaded";
   const kind = thumbnail ?? (file.previewUrl ? "photo" : "none");
   const { itemRef, requestRemove } = useFocusAfterRemoval();
@@ -99,9 +101,9 @@ export function UploaderFileItem({ file, thumbnail, theme = "default", onRemove,
           <div className="zen-upload-file__main">
             <span className={`zen-upload-file__name ${typographyStyles["Body/Base/Bold"]}`} title={file.name}>{file.name}</span>
             <span className="zen-upload-file__actions">
-              {state === "replaceable" && onReplace ? <IconButton appearance="flat" level="primary" size="2xs" aria-label={t.replaceFile(file.name)} onClick={() => onReplace(file)} icon={<Icon name="icon-refresh-ccw-02-line" />} /> : null}
-              {state === "alert" && onRetry ? <IconButton appearance="flat" level="primary" size="2xs" aria-label={t.retryFile(file.name)} onClick={() => onRetry(file)} icon={<Icon name="icon-refresh-ccw-01-line" />} /> : null}
-              {onRemove ? <IconButton className="zen-upload-file__remove" appearance="flat" level="primary" size="2xs" aria-label={state === "uploading" ? t.cancelUpload(file.name) : t.removeItem(file.name)} onClick={() => { requestRemove(); onRemove(file); }} icon={<Icon name="icon-x-small-line" />} /> : null}
+              {state === "replaceable" && onReplace ? nest("Replace", <IconButton appearance="flat" level="primary" size="2xs" aria-label={t.replaceFile(file.name)} onClick={() => onReplace(file)} icon={<Icon name="icon-refresh-ccw-02-line" />} />) : null}
+              {state === "alert" && onRetry ? nest("Retry", <IconButton appearance="flat" level="primary" size="2xs" aria-label={t.retryFile(file.name)} onClick={() => onRetry(file)} icon={<Icon name="icon-refresh-ccw-01-line" />} />) : null}
+              {onRemove ? nest("Remove", <IconButton className="zen-upload-file__remove" appearance="flat" level="primary" size="2xs" aria-label={state === "uploading" ? t.cancelUpload(file.name) : t.removeItem(file.name)} onClick={() => { requestRemove(); onRemove(file); }} icon={<Icon name="icon-x-small-line" />} />) : null}
             </span>
           </div>
           <div className={`zen-upload-file__details ${typographyStyles["Caption/Regular"]}`}>
@@ -144,6 +146,9 @@ export interface FileUploadProps {
   /** Figma DragDrop-Field Extended: Yes (default) stacks icon, text and caption; No is a single 48px row (icon + text). */
   extended?: boolean;
   className?: string;
+  /** Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: "secondary" }, "File[f1]/Remove": { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets files / buttonLabel. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -153,7 +158,8 @@ export interface FileUploadProps {
  * Removing a file keeps focus in the field: the next file's Remove button, else the previous one's, else the upload
  * button (also when a single-file field shows its drop zone or Choose File button again). Apps need no refocus code.
  */
-export function FileUpload({ label, helpText, error, type = "dropzone", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className }: FileUploadProps) {
+export function FileUpload({ label, helpText, error, type = "dropzone", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className, overrides }: FileUploadProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const text = textProp === undefined ? t.dropzoneText : textProp;
   const buttonLabel = buttonLabelProp ?? t.chooseFile;
@@ -169,8 +175,8 @@ export function FileUpload({ label, helpText, error, type = "dropzone", text: te
   const single = !multiple && files.length > 0;
   // Single-file field: Figma shows the file as State=Replaceable; Replace re-opens the picker unless the app handles it.
   const items = single
-    ? [<UploaderFileItem key={files[0].id} file={files[0].state === "uploaded" || !files[0].state ? { ...files[0], state: "replaceable" } : files[0]} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace ?? (() => open())} onRetry={onRetry} />]
-    : files.map((file) => <UploaderFileItem key={file.id} file={file} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace} onRetry={onRetry} />);
+    ? [nest("File", <UploaderFileItem key={files[0].id} file={files[0].state === "uploaded" || !files[0].state ? { ...files[0], state: "replaceable" } : files[0]} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace ?? (() => open())} onRetry={onRetry} />, files[0].id)]
+    : files.map((file) => nest("File", <UploaderFileItem key={file.id} file={file} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace} onRetry={onRetry} />, file.id));
   return (
     <div className={["zen-file-upload", className].filter(Boolean).join(" ")} data-invalid={error ? "true" : undefined} data-files={files.length && !single ? "true" : undefined}>
       <div className="zen-file-upload__field">
@@ -200,7 +206,7 @@ export function FileUpload({ label, helpText, error, type = "dropzone", text: te
           {dragging && !error ? <svg className="zen-dropzone__dash" aria-hidden="true" focusable="false"><rect width="100%" height="100%" /></svg> : null}
         </button>
       ) : (
-        <span className="zen-file-upload__button"><Button id={`${id}-trigger`} appearance="main" level="tertiary" size="sm" onClick={open} aria-describedby={described}>{buttonLabel}</Button></span>
+        <span className="zen-file-upload__button">{nest("Button", <Button id={`${id}-trigger`} appearance="main" level="tertiary" size="sm" onClick={open} aria-describedby={described}>{buttonLabel}</Button>)}</span>
       )}
       {error || helpText ? (
         <span id={`${id}-help`} className={`zen-file-upload__help ${typographyStyles["Caption/Regular"]}`} data-tone={error ? "negative" : undefined}>

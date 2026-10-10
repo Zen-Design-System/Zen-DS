@@ -6,6 +6,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./breadcrumbs.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type BreadcrumbEmphasis = "default" | "medium";
 export type BreadcrumbLevel = "master" | "sub";
@@ -45,12 +46,13 @@ export interface BreadcrumbItemProps {
 
 /** Figma .Primitives/Breadcrumbs/Item (292:43787): Level × State × Emphasis. */
 export function BreadcrumbItem({ item, level: levelProp, emphasis: emphasisProp, current = false, state: stateProp, onNavigate }: BreadcrumbItemProps) {
+  const nest = useNested();
   const level = levelProp ?? item.level ?? "sub";
   const emphasis = emphasisProp ?? item.emphasis ?? "default";
   const state = stateProp ?? item.state ?? "default";
   const content = (
     <>
-      {level === "master" ? <span className="zen-breadcrumb__icon" aria-hidden="true">{renderIcon(item.icon ?? "icon-home-03-line")}</span> : null}
+      {level === "master" ? <span className="zen-breadcrumb__icon" aria-hidden="true">{nest("Icon", renderIcon(item.icon ?? "icon-home-03-line"))}</span> : null}
       <span className={`zen-breadcrumb__label ${typographyStyles[emphasis === "medium" ? "Body/Base/Medium" : "Body/Base/Regular"]}`}>{item.label}</span>
     </>
   );
@@ -79,10 +81,14 @@ export interface BreadcrumbsProps {
   /** Names the navigation landmark (default "Breadcrumb", from the locale's labels). */
   "aria-label"?: string;
   className?: string;
+  /** Figma instance overrides: props of the crumbs it draws, by layer (`{ "Crumb[home]/Icon": { name: "icon-home-02-solid" }, "Separator[home]": { name: "icon-minus-line" } }`). Written by Zen Studio;
+   *  app code sets the items. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-right-line-small, Neutral/Light). */
-export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className }: BreadcrumbsProps) {
+export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className, overrides }: BreadcrumbsProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.breadcrumb;
   // A BreadcrumbItem child's own level / emphasis / state count as its item's (the Item instance's properties in Figma).
@@ -115,8 +121,8 @@ export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", 
               <li key={entry === "ellipsis" ? "ellipsis" : entry.id} className="zen-breadcrumbs__item">
                 {entry === "ellipsis"
                   ? <button type="button" className="zen-breadcrumb" data-level="sub" aria-label={t.showMore(items.length - maxItems!)} onClick={() => { focusRevealed.current = true; setExpanded(true); }}><span className={`zen-breadcrumb__label ${typographyStyles["Body/Base/Regular"]}`}>…</span></button>
-                  : <BreadcrumbItem item={entry} level={entry.level ?? (master && index === 0 ? "master" : "sub")} emphasis={entry.emphasis ?? emphasis} current={last} onNavigate={onNavigate} />}
-                {dash ? <span className="zen-breadcrumbs__separator" aria-hidden="true"><Icon name="icon-chevron-right-line-small" /></span> : null}
+                  : nest("Crumb", <BreadcrumbItem item={entry} level={entry.level ?? (master && index === 0 ? "master" : "sub")} emphasis={entry.emphasis ?? emphasis} current={last} onNavigate={onNavigate} />, entry.id)}
+                {dash ? <span className="zen-breadcrumbs__separator" aria-hidden="true">{nest("Separator", <Icon name="icon-chevron-right-line-small" />, entry === "ellipsis" ? "ellipsis" : entry.id)}</span> : null}
               </li>
           );
         })}

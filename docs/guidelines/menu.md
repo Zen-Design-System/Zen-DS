@@ -47,6 +47,7 @@ An action menu (WAI-ARIA menu button): a trigger opens a list of actions on the 
 | `onOpenChange` | `(open: boolean) => void` | — | Called with `true` when the trigger opens the menu and `false` when it closes (choice, Escape, Tab, outside press). |
 | `aria-label` | `string` | — | Accessible name of the menu. Default: the trigger's name (aria-labelledby). |
 | `className` | `string` | — | Extra class on the floating surface. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[delete]": { danger: true }, "Item[duplicate]/Icon": { tone: "accent-base" } }`). Written by Zen Studio; app code sets the items. |
 
 ### MenuItem
 One action row (role=menuitem) on the Popover/Item primitive. Use it inside `<Menu>` when you compose children.
@@ -134,6 +135,7 @@ type MenuSeparatorData = { type: "separator"; id?: string }
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `menu/not-for-selection` | warn | A Menu runs actions. Choosing a value (a selected or checked item) is a SelectField, a Segmented or a Chip + Popover. | `zen-allow-menu-selection: <reason>` |
 | `menu/needs-trigger` | error | A Menu has a trigger: a Button, or an IconButton whose aria-label names the object (“Actions for INV-1042”). | `zen-allow-menu-trigger: <reason>` |

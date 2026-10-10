@@ -42,6 +42,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | `remove` | `boolean` | `false` | Figma Remove=Yes: trailing icon-x-circle-solid button. |
 | `onRemove` | `() => void` | — |  |
 | `removeLabel` | `string` | — | Name of the remove button (default "Remove" and the tag text, from the locale's labels). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio; app code sets photoSrc / leading. |
 
 ## Keyboard
 | Keys | Action |
@@ -71,6 +72,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | --- | --- | --- | --- |
 | `removable/needs-handler` | error | A remove affordance must be wired to onRemove. | `zen-allow-remove-handler: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

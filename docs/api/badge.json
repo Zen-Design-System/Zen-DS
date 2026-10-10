@@ -105,6 +105,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the badge draws, by layer (`{ Leading: { name: \"icon-check-line\" } }`).\n Written by Zen Studio; app code sets `leading`.",
+          "deprecated": null
         }
       ]
     },

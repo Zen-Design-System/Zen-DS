@@ -2,6 +2,7 @@ import { useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNo
 import { Chip, type ChipLevel, type ChipSize } from "../Chip";
 import type { IconName } from "../Icon";
 import "./chip-group.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export interface ChipGroupOption {
   /** What `value` / `onValueChange` carry for this chip. */
@@ -35,6 +36,9 @@ export interface ChipGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "de
   /** Every chip does nothing. */
   disabled?: boolean;
   className?: string;
+  /** Figma instance overrides: props of the chips it draws, by layer (`{ "Chip[week]": { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets the options. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -44,7 +48,8 @@ export interface ChipGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "de
  * choice and focus to the next enabled chip, wrapping; Space picks the focused chip. For several picks at once, use
  * Normal chips as toggles (`selected` + onClick) instead.
  */
-export function ChipGroup({ ref, options, value: valueProp, defaultValue = null, onValueChange, size = "sm", level = "primary", disabled = false, className, ...rest }: ChipGroupProps) {
+export function ChipGroup({ ref, options, value: valueProp, defaultValue = null, onValueChange, size = "sm", level = "primary", disabled = false, className, overrides, ...rest }: ChipGroupProps) {
+  const nest = useNested(overrides);
   const [inner, setInner] = useState<string | null>(defaultValue);
   const value = valueProp !== undefined ? valueProp : inner;
   const chips = useRef(new Map<string, HTMLButtonElement>());
@@ -70,7 +75,7 @@ export function ChipGroup({ ref, options, value: valueProp, defaultValue = null,
     <div {...rest} ref={ref} role="radiogroup" aria-disabled={disabled || undefined} className={["zen-chip-group", className].filter(Boolean).join(" ")}>
       {options.map((option) => {
         const checked = option.value === value;
-        return (
+        return nest("Chip", (
           // zen-allow-chip-radio: this is the radio group the rule points to.
           <Chip
             key={option.value}
@@ -89,7 +94,7 @@ export function ChipGroup({ ref, options, value: valueProp, defaultValue = null,
           >
             {option.label}
           </Chip>
-        );
+        ), option.value);
       })}
     </div>
   );
