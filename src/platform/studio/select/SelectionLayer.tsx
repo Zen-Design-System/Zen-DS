@@ -8,7 +8,8 @@ import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTa
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
-import { dataItemOfPart, groupTitlePartOf } from "../slots/dataItems";
+import { dataItemOfPart, dataItemRootOf, groupTitlePartOf, itemParts } from "../slots/dataItems";
+import { itemSelection } from "../slots/itemSelection";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
 import { ResizeLayer } from "./ResizeLayer";
@@ -35,7 +36,7 @@ import "./select.css";
 /** An outline with its name tag: `meta` is the file:line of an element, "in <Owner>" for a part. */
 type Tagged = Box & { name: string; src: string; meta: string };
 /** `spacing`: the selection's padding and gap areas; `spacingOwner`: the element they belong to. */
-type Overlay = { hover: Tagged | null; selected: Tagged | null; owner: Box | null; instances: Box[]; extras: Box[]; spacing: SpacingArea[]; spacingOwner: SpacingOwner | null };
+type Overlay = { hover: Tagged | null; selected: Tagged | null; owner: Box | null; instances: Box[]; extras: Box[]; items: Box[]; spacing: SpacingArea[]; spacingOwner: SpacingOwner | null };
 type Pick =
   /** `element`: the topmost DOM node under the pointer (deep select starts there). */
   | { kind: "node"; hit: FiberHit; frame: Element; element: Element }
@@ -45,7 +46,7 @@ type Pick =
   | { kind: "chrome"; element: Element }
   | { kind: "empty" };
 
-const emptyOverlay: Overlay = { hover: null, selected: null, owner: null, instances: [], extras: [], spacing: [], spacingOwner: null };
+const emptyOverlay: Overlay = { hover: null, selected: null, owner: null, instances: [], extras: [], items: [], spacing: [], spacingOwner: null };
 
 /** Layers whose text a double-click that lands on them edits at once (Figma's text layers). */
 const TEXT_LAYER = /^(Text|Heading|Link|p|span|label|a|strong|em|small|h[1-6])$/;
@@ -101,9 +102,17 @@ function frameElement(world: Element | null, frameId: string | null) {
 const sameBox = (a: Box | null, b: Box | null) => a === b || Boolean(a && b && Math.abs(a.x - b.x) < 0.25 && Math.abs(a.y - b.y) < 0.25 && Math.abs(a.w - b.w) < 0.25 && Math.abs(a.h - b.h) < 0.25);
 const sameList = (a: Box[], b: Box[]) => a.length === b.length && a.every((box, index) => sameBox(box, b[index]));
 const sameTagged = (a: Tagged | null, b: Tagged | null) => a === b || Boolean(a && b && a.src === b.src && a.name === b.name && a.meta === b.meta && sameBox(a, b));
-const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
+const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameList(a.items, b.items) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
 
 /** Capture layer (Select tool) + hover/selection outlines, in canvas-viewport coordinates. */
+/** The parts of the items selected with `part` (Shift/⌘+click, itemSelection.ts): none unless `part` is an item of that slot. */
+function itemExtras(part: PartHit | null): PartHit[] {
+  const set = itemSelection.get();
+  const item = part && set ? dataItemRootOf(part) : null;
+  if (!part || !set || !item || set.prop !== item.slot.prop) return [];
+  return itemParts(part.owner, item.slot).filter((candidate, index): candidate is PartHit => Boolean(candidate) && set.indices.includes(index));
+}
+
 export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | null; world: HTMLElement | null }) {
   const tool = useStudio((state) => state.tool);
   const presenting = useStudio((state) => state.presenting);
@@ -155,6 +164,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const box = boxOf(hit);
       if (!hit || !box) return null;
       const owner = (hit as Partial<PartHit>).owner;
+      // A data-slot item reads as Figma names it (Menu-Item in Body-Content), not its internal component.
+      const item = owner ? dataItemRootOf(hit as PartHit) : null;
+      if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : shortSrc(hit.src) };
     };
     const part = partRef.current;
@@ -171,6 +183,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       owner: part ? boxOf(selectedRef.current) : null,
       instances: toolRef.current === "select" && !part ? instancesRef.current.flatMap((hit) => boxOf(hit) ?? []) : [],
       extras: extrasRef.current.flatMap((hit) => boxOf(hit) ?? []),
+      // Not "extra" layers (single-layer actions still work on the item and its slot): their own kind.
+      items: itemExtras(part).flatMap((hit) => boxOf(hit) ?? []),
       spacing: layout.areas,
       spacingOwner: layout.owner,
     };
@@ -356,6 +370,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   }, [key, resolve, schedule, dropLost]);
 
   /** The extra layers on the canvas: each one's render (`instance`), dropped while the name there differs. */
+  // The other items selected with the selected one (itemSelection.ts): outlined like extra layers.
+  useEffect(() => itemSelection.subscribe(() => schedule(0)), [schedule]);
+
   const resolveExtras = useCallback((layers: ExtraLayer[]) => {
     extrasRef.current = world ? layers.flatMap((layer) => {
       const hit = findBySrc(world, layer.src)[layer.instance] ?? null;
@@ -623,6 +640,19 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (drawn) {
         choosePart(drawn);
         return;
+      }
+      // ⇧+click on another item of the selected item's data slot: it joins the selection (itemSelection.ts; Figma's
+      // Shift+click on instances in a slot, 2026-10-10).
+      // The press counts wherever it lands inside the item's owner (the layer picked there may be an outer one, an AppShell).
+      const under = event.shiftKey && partRef.current ? deepestAt(picked.element, event.clientX, event.clientY) : null;
+      if (under && partRef.current && partRef.current.owner.hosts.some((host) => host.contains(under))) {
+        const current = studioStore.getState().selection;
+        const primaryItem = dataItemRootOf(partRef.current);
+        const clicked = dataItemOfPart(deepPartAt(partRef.current.owner, under));
+        if (current?.kind === "node" && primaryItem && clicked && clicked.slot.prop === primaryItem.slot.prop) {
+          itemSelection.toggle(current, primaryItem.slot.prop, primaryItem.index, clicked.index);
+          return;
+        }
       }
       // ⌘ / Ctrl+click on the selected element, or a click inside the owner of the selected part: the part under the cursor.
       if (!event.shiftKey && deepAt(picked, deep)) {
@@ -900,6 +930,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       />
       {overlay.instances.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="instance" style={style(box)} />)}
       {overlay.extras.map((box, index) => <div key={`e${index}`} className="studio-selection__outline" data-kind="extra" style={style(box)} />)}
+      {overlay.items.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="extra-item" style={style(box)} />)}
       {overlay.owner ? <div className="studio-selection__outline" data-kind="owner" style={style(overlay.owner)} /> : null}
       {hover ? (
         <div className="studio-selection__outline" data-kind="hover" style={style(hover)}>

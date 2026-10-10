@@ -707,6 +707,50 @@ export const rows = [
     },
   },
   {
+    id: "B-33", feature: "Several selected, everywhere (user: \"Hành vi này phải làm được ở mọi nơi trong thiết kế\"): Sidebar rows written as children ⇧A into a SidebarMenuSection; a TopNavigation action added on a page you make (proto.toast), two actions ⌘ / ⇧-clicked and ⇧A share one pill", wp: "nested items 2026-10-10",
+    timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await focusScreen(page);
+      // The Sidebar's empty header picks the Sidebar (B-27); its first row from Slots, the second ⇧-clicked in Layers.
+      const head = await frame.locator(".zen-sidebar__header").first().boundingBox();
+      await page.mouse.click(head.x + head.width / 2, head.y + head.height / 2);
+      await until(async () => (await selectedName(page)) === "Sidebar", { message: "the Sidebar selected" });
+      await page.locator("#studio-right .studio-slots__slot li").nth(0).locator("button.studio-inspector__item").click();
+      await until(async () => (await selectedName(page)) === "SidebarMenuItem", { message: "the first row selected" });
+      const rows = page.locator('.studio-layers__tree [role="treeitem"][data-kind="node"]', { hasText: "SidebarMenuItem" });
+      await rows.nth(1).click({ modifiers: ["Shift"] });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyA");
+      await until(async () => /<SidebarMenuSection label="Section">\s*<SidebarMenuItem id="home"[^>]*\/>\s*<SidebarMenuItem id="projects"/.test((await pageText(page, id)) ?? ""), { message: "Home and Projects in a SidebarMenuSection" });
+      const phone = await newPage(ctx, { device: "phone" });
+      await selectStack(page, phone.id);
+      await insertAsset(page, "Top navigation");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      await page.locator('#studio-right .studio-slots__slot[data-slot="trailing"]').getByRole("button", { name: /^Add Action/ }).click();
+      const trailing = async () => ((await pageText(page, phone.id)) ?? "").match(/trailing=\{\[[\s\S]*?\]\}/)?.[0] ?? "";
+      await until(async () => /label: "Share", onClick: proto\.toast/.test(await trailing()), { message: "a second action with proto.toast" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      const press = async (label, keys) => {
+        const box = await page.locator(`[data-studio-frame^="screen:"] button[aria-label="${label}"]`).first().boundingBox();
+        for (const key of keys) await page.keyboard.down(key);
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        for (const key of [...keys].reverse()) await page.keyboard.up(key);
+        await sleep(400);
+      };
+      // The new action may be selected after its add: start from New task (its own panel names it).
+      const onNewTask = async () => (await selectedName(page)).startsWith("Action · in ") && /New task · 1 of/.test(await page.locator("#studio-right").innerText());
+      for (let k = 0; k < 4 && !(await onNewTask()); k++) await press("New task", ["ControlOrMeta"]);
+      await until(onNewTask, { message: "New task selected" });
+      await press("Share", ["Shift"]);
+      await until(async () => (await page.locator("#studio-right").innerText()).includes("2 Actions selected"), { message: "2 Actions selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyA");
+      await until(async () => (await trailing()).match(/group: "new-task"/g)?.length === 2, { message: "both actions in one group" }).catch(async (error) => { throw new Error(`${error.message} (${(await trailing()).replace(/\s+/g, " ").slice(0, 300)})`); });
+      return "Sidebar rows → SidebarMenuSection · TopNavigation: + Action (proto.toast) · 2 selected → ⇧A → one pill";
+    },
+  },
+  {
     id: "B-31", feature: "Pages list: a double-click renames a page or a folder in place (user: \"cho phép double click sửa tên folder, project trực tiếp trên list\"); Escape keeps the name", wp: "pages 2026-10-10",
     async run(ctx) {
       const { page, id, name } = await newPage(ctx);

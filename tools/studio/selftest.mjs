@@ -2157,7 +2157,7 @@ const wrapTsc = [];
     check("wrap a fragment: not a JSX element", applyOps(fragment, "2:2", "Fragment", [wrapOp]).code, "not-found");
     check("wrap text: not a JSX element", applyOps(fragment, "3:7", "b", [wrapOp]).code, "not-found");
     check("wrap stale name: stale", applyOps(src, loc, "Text", [wrapOp]).code, "stale");
-    check("wrap tag div: refused", wrapAt("wrap tag div", src, "<Card", "Card", { tag: "div" }).error, 'wrap puts the element in Box, Stack, Grid (not "div")');
+    check("wrap tag div: refused", wrapAt("wrap tag div", src, "<Card", "Card", { tag: "div" }).error, 'wrap puts the element in Box, Stack, Grid, SidebarMenuSection (not "div")');
     check("wrap props key: refused", wrapAt("wrap props key", src, "<Card", "Card", { props: { key: str("k") } }).code, "invalid");
     check("wrap props children: refused", wrapAt("wrap props children", src, "<Card", "Card", { props: { children: str("k") } }).code, "invalid");
     check("wrap props bad name: refused", wrapAt("wrap props bad name", src, "<Card", "Card", { props: { "bad name": str("k") } }).error, '"bad name" is not a JSX attribute name');
@@ -2326,7 +2326,7 @@ const wrapTsc = [];
     check("unwrap no layer: refused", /holds no layer/.test(unwrapAt("unwrap none", none, "1:23", "Box").error), true);
     const comment = ["export const W = () => (", "  <Box>", "    {/* note */}", "    <b>a</b>", "  </Box>", ");", ""].join("\n");
     check("unwrap beside a comment: refused", unwrapAt("unwrap comment", comment, "2:2", "Box").code, "invalid");
-    check("unwrap a Card: refused", unwrapAt("unwrap Card", src, locOf(src, "<Card"), "Card").error, "Only a Box, Stack, Grid can be unwrapped (not <Card>)");
+    check("unwrap a Card: refused", unwrapAt("unwrap Card", src, locOf(src, "<Card"), "Card").error, "Only a Box, Stack, Grid, SidebarMenuSection can be unwrapped (not <Card>)");
     check("unwrap with another op: refused", applyOps(two, "2:2", "Box", [{ op: "unwrap" }, { op: "removeProp", name: "x" }]).error, "unwrap cannot be combined with other ops");
   }
 }

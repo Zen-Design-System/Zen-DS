@@ -121,6 +121,14 @@ removed (four unused colour ramps were, see Removed).
   (a row of buttons justified to the end is centred, not pushed right), with Padding/XLarge around it; the line under the
   search ("Swap … for the chosen component", where an item lands) lines up with the search's icon, Padding/XSmall above,
   and is no longer cut; a heading is centred by its words, and every item is placed again when the focus moves.
+- **Zen Studio: ⇧A and + everywhere (2026-10-10):** ⇧A on Sidebar rows written as children puts them in a Menu
+  section (`SidebarMenuSection`), on several TopNavigation actions puts them in one pill; a list that cannot group (Tabs,
+  Breadcrumbs…) says so. "+ Add Action" (and any list item whose action shows a toast) now adds on a page you make,
+  as a `proto.toast` action.
+- **Zen Studio: several list items at once (2026-10-10):** with a Sidebar row (or any list item) selected, ⌘-click adds
+  another and ⇧-click a range, on the canvas and in Layers; the Inspector says how many are selected, ⇧A (or Group into
+  a section) puts them in a new section of their own and Delete removes them, each one undo step. Items read as Figma
+  names them on the canvas (Menu-Item in Body-Content).
 - **Zen Studio Delete key (2026-10-10):** Delete / Backspace removes a focused row in the Slots section (a layer, a list
   item, a section title, a separator) as its trash button does; on the Pages list it moves a page to the Trash and asks
   before deleting a folder.

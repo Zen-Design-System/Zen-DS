@@ -15,6 +15,8 @@
 .studio-selection__outline[data-kind="selected"] { box-shadow: 0 0 0 2px var(--zen-color-border-info-solid-default); }
 .studio-selection__outline[data-kind="instance"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-info-subtle-default); }
 .studio-selection__outline[data-kind="extra"] { box-shadow: 0 0 0 1px var(--zen-color-border-info-solid-default); }
+/* The other items selected with a data-slot item (Shift/⌘+click): outlined as the selection is. */
+.studio-selection__outline[data-kind="extra-item"] { box-shadow: 0 0 0 1px var(--zen-color-border-info-solid-default); }
 /* A selected part's owner: the component it belongs to, dashed (the context the deep select happens in). */
 /* zen-allow-dashed-color: selection chrome (the owner of a selected part), not a content divider — Info blue only. */
 .studio-selection__outline[data-kind="owner"] { outline: 1px dashed var(--zen-color-border-info-solid-default); outline-offset: 0; }

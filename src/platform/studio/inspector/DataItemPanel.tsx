@@ -7,7 +7,7 @@ import { selectPart, withoutPart } from "../select/parts";
 import { canEdit, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 import { computedCaption, dataItemBlock, duplicateShortcut, editDataItem, groupRuns, itemGroup, itemTitle, removeShortcut, renderedItemTitle, slotGroupsAt, sourceItems, useSlotRunning, useSlotServer, type DataItemHit } from "../slots";
-import { editDataGroup } from "../slots/actions";
+import { editDataGroup, editDataItems } from "../slots/actions";
 import type { DataGroupHit } from "../slots/dataItems";
 import { sectionEntries, titleOf } from "../slots/sectionList";
 import { plural } from "../../../components/Text";
@@ -196,6 +196,39 @@ export function DataGroupSections({ selection, hit }: { selection: PartSelection
         {/* zen-allow-accent: the add-to-slot button matches the Slots section's add buttons (user, 2026-10-04) */}
         <IconButton appearance="flat" level="accent" size="xs" icon="icon-plus-line" aria-label={`Add ${slot.itemName} to ${name}`} disabled={!can} onClick={() => { void editDataGroup(selection, slot, group, "addRow"); }} />
         <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={removeLabel} disabled={!can || (role === "title" && !title) || (role === "list" && !rows)} onClick={() => { void editDataGroup(selection, slot, group, removeVerb); }} />
+      </div>
+    </InspectorSection>
+  );
+}
+
+/**
+ * Several items of one data slot selected (itemSelection.ts: Shift/⌘+click on the canvas or in Layers): what they are,
+ * and what Figma does with a multi-selection in a slot: ⇧A puts them in a group of their own (a Sidebar section, a Menu
+ * group), ⌫ removes them. One undo step each.
+ */
+export function DataItemsSections({ selection, item, places }: { selection: PartSelection; item: DataItemHit; places: readonly number[] }) {
+  const host = withoutPart(selection) as NodeSelection;
+  const { element, api } = useOwnerSource(host);
+  useSlotServer();
+  const running = useSlotRunning();
+  const { slot } = item;
+  const source = element ? sourceItems(element, slot) : null;
+  const entries = element && (slot.nested || slot.grouped) ? sectionEntries(element, slot) : null;
+  const rows = entries ? entries.filter((entry) => entry.kind === "item") : (source?.state === "items" ? source.items : []);
+  const names = places.map((place) => (rows[place] ? itemTitle(slot, rows[place].fields, place) : `${slot.itemName} ${place + 1}`));
+  const can = !api.disabled && running === null;
+  const groups = Boolean(slot.nested || slot.grouped || slot.groups);
+  return (
+    <InspectorSection title={`${plural(places.length, slot.itemName)} selected`}>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${names.join(", ")} · in ${slot.name}`}</p>
+      <div className="studio-item__actions" role="group" aria-label="Selected items actions">
+        {groups ? (
+          // zen-allow-compact-button: a quiet action in a dense tool panel, like the item actions beside it
+          <Button appearance="flat" level="primary" size="xs" startIcon="icon-layout-alt-01-line" disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "group"); }}>
+            {slot.groups ? "Group (⇧A)" : "Group into a section (⇧A)"}
+          </Button>
+        ) : null}
+        <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={`Remove ${plural(places.length, slot.itemName.toLowerCase())} (${removeShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "remove"); }} />
       </div>
     </InspectorSection>
   );

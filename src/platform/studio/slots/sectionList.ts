@@ -128,6 +128,38 @@ function groupedCode(entries: readonly SectionEntry[], grouped: Grouped): string
   return lines.join("\n").replace(/: \[\n {2}\] \},/g, ": [] },");
 }
 
+/** A flat list of items back as one array literal (a data slot's items without some of them); null when empty. */
+export function itemsCode(items: ReadonlyArray<readonly ShapeField[]>): string | null {
+  return items.length ? ["[", ...items.map((fields) => `  ${objectCode(fields)},`), "]"].join("\n") : null;
+}
+
+/**
+ * The selected rows (`places` among the slot's items) in a new group of their own, right after the group the first of them
+ * was in (Figma's ⇧A on instances in a slot): a Sidebar section without a title, a Menu group titled "Section".
+ */
+export function groupedPlaces(entries: readonly SectionEntry[], places: readonly number[], slot: DataSlot): SectionEntry[] {
+  const chosen = new Set(places);
+  let place = -1;
+  const picked: SectionEntry[] = [];
+  const rest: SectionEntry[] = [];
+  let anchor = -1;
+  for (const entry of entries) {
+    if (entry.kind === "item") place += 1;
+    if (entry.kind === "item" && chosen.has(place)) {
+      if (anchor < 0) anchor = rest.length;
+      picked.push(entry);
+    } else rest.push(entry);
+  }
+  if (!picked.length) return [...entries];
+  // After the group the first chosen row was in: up to the next title.
+  let at = anchor < 0 ? rest.length : anchor;
+  while (at < rest.length && rest[at].kind !== "title") at += 1;
+  const title: SectionEntry = slot.grouped
+    ? { kind: "title", group: -1, fields: [{ key: slot.grouped.typeKey, kind: "string", value: slot.grouped.group }, { key: "label", kind: "string", value: "Section" }] }
+    : { kind: "title", group: -1, fields: [] };
+  return [...rest.slice(0, at), title, ...picked, ...rest.slice(at)];
+}
+
 /** The fields of a new row's code (DataSlot newItem: a flat `{ id: "…", label: "…", icon: "…" }` literal). */
 export function rowFields(code: string): ShapeField[] {
   const out: ShapeField[] = [];

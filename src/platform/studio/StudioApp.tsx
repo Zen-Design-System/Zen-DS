@@ -25,7 +25,8 @@ import { AssetsPanel } from "./edit/assets/AssetsPanel";
 import { duplicateLayers, removeLayers } from "./edit/multi";
 import { multiSelection } from "./select/multiSelection";
 import { wrapSelection } from "./select/wrapSelection";
-import { duplicateSelection, editDataGroup, editDataItem, removeSelection } from "./slots/actions";
+import { duplicateSelection, editDataGroup, editDataItem, editDataItems, removeSelection } from "./slots/actions";
+import { itemSelection, selectedPlaces } from "./slots/itemSelection";
 import { dataGroupOfPart, dataItemRootOf } from "./slots/dataItems";
 import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
@@ -392,7 +393,11 @@ export function StudioApp() {
           const group = item ? null : dataGroupOfPart(selectedPartStore.get());
           if (!item && !group) return;
           event.preventDefault();
-          if (item) void editDataItem(selection, item.slot, "remove", item.index);
+          // Several items of the slot selected (Shift/⌘+click): all of them, one undo step.
+          const set = itemSelection.get();
+          const places = item && set && set.src === selection.src && set.instance === selection.instance ? selectedPlaces(item.index, set, item.slot.prop) : [];
+          if (item && places.length > 1) void editDataItems(selection, item.slot, places, "remove");
+          else if (item) void editDataItem(selection, item.slot, "remove", item.index);
           else if (group) void editDataGroup(selection, group.slot, group.group, group.role === "group" ? "remove" : group.role === "title" ? "removeTitle" : "clearRows");
           return;
         }
@@ -413,6 +418,18 @@ export function StudioApp() {
       if (event.shiftKey) {
         // ⇧A wraps the selected layers in a Stack laid out as they render (Figma's Add auto layout).
         if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) { event.preventDefault(); void wrapSelection("stack"); return; }
+        // …and on items of a list (one or several, Shift/⌘+click): a Sidebar's or Menu's go in a section of their own, a
+        // TopNavigation's actions share one pill; a list without groups says so.
+        if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && state.selection.part && !inExample) {
+          const item = dataItemRootOf(selectedPartStore.get());
+          if (item) {
+            event.preventDefault();
+            const set = itemSelection.get();
+            const places = set && set.src === state.selection.src && set.instance === state.selection.instance ? selectedPlaces(item.index, set, item.slot.prop) : [item.index];
+            void editDataItems(state.selection, item.slot, places, "group");
+            return;
+          }
+        }
         // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
         if (event.code === "KeyI" && !event.repeat && !inExample) { event.preventDefault(); openQuickInsert(); return; }
         if (event.code === "Digit0") { event.preventDefault(); canvasApi.setZoom(1); return; }

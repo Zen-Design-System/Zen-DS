@@ -262,7 +262,10 @@ export async function wrapInBox(layer: ExtraLayer, props: Record<string, EditVal
 }
 
 async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Record<string, EditValue>; label: string; done: string }): Promise<boolean> {
-  const tag = tagOf(kind);
+  // Sidebar rows go in a section of their own, as Figma groups Menu-Items under a Section-Title (user, 2026-10-10:
+  // "Hành vi này phải làm được ở mọi nơi trong thiết kế"); other layers in a Stack or Box.
+  const rows = kind === "stack" && !given && layers.every((layer) => layer.name === "SidebarMenuItem");
+  const tag = rows ? "SidebarMenuSection" : tagOf(kind);
   const ordered = [...layers].sort(sourceOrder);
   const [first, ...others] = ordered;
   const at = parseSrc(first.src);
@@ -275,7 +278,7 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
     return false;
   }
   const withLocs = others.map((layer) => parseSrc(layer.src)?.loc ?? "");
-  const op: WrapOp = { op: "wrap", tag, props: given?.props ?? (kind === "stack" ? inferStack(hits) : {}), ...(withLocs.length ? { with: withLocs } : {}) };
+  const op: WrapOp = { op: "wrap", tag, props: given?.props ?? (rows ? { label: { kind: "string", value: "Section" } } : kind === "stack" ? inferStack(hits) : {}), ...(withLocs.length ? { with: withLocs } : {}) };
   const count = ordered.length;
   const what = count > 1 ? plural(count, "layer") : first.name;
   // Everything on the canvas before the write: the new container is a new element, never one of these.

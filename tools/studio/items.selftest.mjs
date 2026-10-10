@@ -342,4 +342,25 @@ test("setItems: the whole list rewritten at the prop's indent; null removes the 
   assert.match(run(nestedAt, "Sidebar", { op: "setItems", prop: "sections", code: "{ a: 1 }" }, NESTED, { componentModules: { Sidebar: "Sidebar" } }).error, /one array literal/);
 });
 
+test("insertItem on a builder page: a toast handler becomes proto.toast and the runtime import gains proto", () => {
+  const page = `// @zen-page {"format":1,"title":"Nav"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { TopNavigation } from "@zen/design-system";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Nav" device="phone">
+        <TopNavigation title="Inbox" trailing={[{ icon: "icon-plus-line", label: "New", onClick: proto.toast({ title: "Added" }) }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const result = ok(applySlotOp(page, locOf(page, "<TopNavigation"), "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }, { file: "local:nav.zen.tsx", hash: sha1(page), componentModules: { TopNavigation: "TopNavigation" } }));
+  assert.match(result.code, /\{ icon: "icon-star-line", label: "Action", onClick: proto\.toast\(\{ title: "Action" \}\) \}/);
+  assert.match(result.code, /import \{ Board, proto, Screen \} from "@zen\/design-system\/builder";|import \{ Board, Screen, proto \} from "@zen\/design-system\/builder";/);
+  assert.doesNotMatch(result.code, /useToast/);
+});
+
 console.log(`✓ items (insertItem · removeItem · duplicateItem · moveItem · groupItem · ungroupItem · setItems) self-test: ${passed} cases`);
