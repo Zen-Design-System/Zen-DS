@@ -76,17 +76,11 @@
 /* The 64px row sits directly on the home-indicator area (Figma 64 + 28). */
 .zen-bottom-nav:not([data-type="default"]) { padding: 0 var(--zen-spacing-padding-medium, 16px) var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, var(--zen-color-background-inverse-flat-default, rgb(0 0 0 / 0%)) 0%, var(--zen-color-background-surface-default, #fff) 100%); }
 /* Figma PROGRESSIVE background blur (radius 24, start 0): 0 at the top edge, full at the bottom — the mirror of the Top
-   Navigation blur. Five stacked layers, each masked to a band 20% shorter from the bottom and blurred by R/√5, so the
-   bottom edge sums to R (Figma radius ≈ 2 × CSS blur → R = 12px) and the top edge to 0. The wrapper itself must not
-   set backdrop-filter, or it becomes the backdrop root and the layers would only see its own gradient. */
+   Navigation blur, drawn by _shared/progressive-blur (a linear ramp; Figma radius ≈ 2 × CSS blur → R = 12px). The
+   wrapper itself must not set backdrop-filter, or it becomes the backdrop root and the layers would only see its own
+   gradient. */
 .zen-bottom-nav { --zen-bottom-nav-blur: 12px; }
-.zen-bottom-nav__progressive { position: absolute; z-index: -1; inset: 0; pointer-events: none; }
-.zen-bottom-nav__progressive > i { position: absolute; inset: 0; -webkit-backdrop-filter: blur(calc(var(--zen-bottom-nav-blur) / 2.236)); backdrop-filter: blur(calc(var(--zen-bottom-nav-blur) / 2.236)); }
-.zen-bottom-nav__progressive > i:nth-child(1) { -webkit-mask-image: linear-gradient(0deg, #000 80%, transparent 100%); mask-image: linear-gradient(0deg, #000 80%, transparent 100%); }
-.zen-bottom-nav__progressive > i:nth-child(2) { -webkit-mask-image: linear-gradient(0deg, #000 60%, transparent 80%); mask-image: linear-gradient(0deg, #000 60%, transparent 80%); }
-.zen-bottom-nav__progressive > i:nth-child(3) { -webkit-mask-image: linear-gradient(0deg, #000 40%, transparent 60%); mask-image: linear-gradient(0deg, #000 40%, transparent 60%); }
-.zen-bottom-nav__progressive > i:nth-child(4) { -webkit-mask-image: linear-gradient(0deg, #000 20%, transparent 40%); mask-image: linear-gradient(0deg, #000 20%, transparent 40%); }
-.zen-bottom-nav__progressive > i:nth-child(5) { -webkit-mask-image: linear-gradient(0deg, #000 0%, transparent 20%); mask-image: linear-gradient(0deg, #000 0%, transparent 20%); }
+.zen-bottom-nav__progressive { --zen-progressive-blur: var(--zen-bottom-nav-blur); position: absolute; z-index: -1; inset: 0; }
 .zen-bottom-nav__row { display: flex; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-bottom-nav__pill { position: relative; min-width: 0; flex: 1; padding: var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-glass, rgb(255 255 255 / 60%)); box-shadow: var(--zen-style-effect-popover-shadow-unclipped, 0 8px 24px rgb(0 0 0 / 8%)); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter, blur(20px)); }
 /* Figma 0.5px gradient glass border, drawn as a masked ring. */

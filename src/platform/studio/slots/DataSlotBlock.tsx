@@ -113,7 +113,7 @@ function pressRow(event: ReactPointerEvent, list: HTMLElement, from: number, gro
 }
 
 /** An item row: select it, move it, (un)group it, remove it (InspectorItem's look, with the slot rows' trailing actions). */
-function ItemRow({ index, name, meta, onSelect, onPress, move, group, link, onRemove, busy, reason }: {
+export function ItemRow({ index, name, meta, onSelect, onPress, move, group, link, add, onRemove, busy, reason }: {
   index: number;
   name: string;
   meta?: string;
@@ -124,6 +124,8 @@ function ItemRow({ index, name, meta, onSelect, onPress, move, group, link, onRe
   group?: { name: string; place: "first" | "middle" | "last" };
   /** Group it with the next row, or take it out of its group. */
   link?: { label: string; icon: "icon-link-01-line" | "icon-link-broken-01-line"; onClick: () => void };
+  /** Add a row under it (a Sidebar section title: a Menu-Item at the end of that section). */
+  add?: { label: string; onClick: () => void };
   onRemove?: () => void;
   busy: boolean;
   reason?: string;
@@ -131,7 +133,12 @@ function ItemRow({ index, name, meta, onSelect, onPress, move, group, link, onRe
   const reasonId = useId();
   return (
     <li className="studio-inspector__item-wrap studio-slots__item-wrap" data-item-index={index} data-group={group?.place} data-reason={reason ? true : undefined} onPointerDown={onPress}>
-      <button type="button" className="studio-inspector__item" data-component aria-describedby={reason ? reasonId : undefined} aria-description={group ? `In group ${group.name}` : undefined} onClick={onSelect}>
+      <button type="button" className="studio-inspector__item" data-component aria-describedby={reason ? reasonId : undefined} aria-description={group ? `In group ${group.name}` : undefined} onClick={onSelect}
+        onKeyDown={(event) => {
+        // Delete / Backspace on a focused row removes it, as on the canvas and in Layers (user, 2026-10-10: "xoá nên cho
+        // phép bấm phím xoá trên bàn phím").
+        if ((event.key === "Delete" || event.key === "Backspace") && onRemove && !busy && !event.repeat) { event.preventDefault(); event.stopPropagation(); onRemove(); }
+      }}>
         <span className="studio-inspector__item-icon" aria-hidden="true"><Icon name="icon-cube-line" size={16} /></span>
         <span className={`studio-inspector__item-name ${typographyStyles["Body/Small/Medium"]}`}>{name}</span>
         {meta ? <span className={`studio-inspector__item-meta ${typographyStyles["Body/Small/Regular"]}`}>{meta}</span> : null}
@@ -142,6 +149,8 @@ function ItemRow({ index, name, meta, onSelect, onPress, move, group, link, onRe
           <IconButton appearance="flat" level="primary" size="xs" icon="icon-arrow-down-line" aria-label={`Move ${name} down`} disabled={busy || !move.next} onClick={() => move.onMove("next")} />
         </span>
       ) : null}
+      {/* zen-allow-accent: the add-to-slot button matches the slot header's add button (user, 2026-10-04) */}
+      {add ? <IconButton appearance="flat" level="accent" size="xs" icon="icon-plus-line" aria-label={add.label} disabled={busy} onClick={add.onClick} /> : null}
       {link ? <IconButton appearance="flat" level="primary" size="xs" icon={link.icon} aria-label={link.label} disabled={busy} onClick={link.onClick} /> : null}
       {onRemove ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={`Remove ${name}`} disabled={busy} onClick={onRemove} /> : null}
       {reason ? <span id={reasonId} className={`studio-slots__item-reason ${typographyStyles["Body/Small/Regular"]}`}>{reason}</span> : null}
@@ -150,7 +159,7 @@ function ItemRow({ index, name, meta, onSelect, onPress, move, group, link, onRe
 }
 
 /** "icon-bell-01-line" → "bell-01" as a row's meta. */
-const iconMeta = (value: unknown) => (typeof value === "string" ? value.replace(/^icon-/, "").replace(/-(line|solid|duotone)$/, "") : undefined);
+export const iconMeta = (value: unknown) => (typeof value === "string" ? value.replace(/^icon-/, "").replace(/-(line|solid|duotone)$/, "") : undefined);
 
 export function DataSlotBlock({ selection, element, slot, editable, playground, running }: DataSlotBlockProps) {
   const busy = running !== null;

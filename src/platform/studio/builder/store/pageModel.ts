@@ -29,6 +29,21 @@ export function headerTitle(text: string): string | null {
 }
 
 /** The text with the header's title replaced (the rest byte for byte); unchanged when it has no readable header. */
+/**
+ * The page renamed from `from` to `to`: a Screen that still carries the page's name (a blank page's Screen takes it when
+ * the page is made) takes the new one; Screens named otherwise keep their names (user, 2026-10-09: name the page as you
+ * work, its Screen follows).
+ */
+export function withScreenTitles(text: string, from: string, to: string): string {
+  if (from === to) return text;
+  const old = JSON.stringify(from);
+  const next = JSON.stringify(to);
+  // The Screens' titles, and the app frame's that show the page's name (a Page Header, a Top Navigation).
+  return text
+    .replace(/<Screen\b[^>]*>/g, (tag) => tag.replace(`title=${old}`, `title=${next}`))
+    .replace(/<(PageHeader|TopNavigation)\b[^>]*?\btitle=("(?:[^"\\]|\\.)*")/g, (tag, _name: string, value: string) => (value === old ? `${tag.slice(0, -value.length)}${next}` : tag));
+}
+
 export function withHeaderTitle(text: string, title: string): string {
   const match = HEADER.exec(text);
   if (!match) return text;
@@ -40,6 +55,31 @@ export function withHeaderTitle(text: string, title: string): string {
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) return text;
   return `${match[1]}${JSON.stringify({ ...value, title })}${match[3]}${text.slice(match[0].length)}`;
+}
+
+/** The page's mobile OS (header `os`; user, 2026-10-10): what its phone and tablet Screens simulate. iOS when unset. */
+export function headerOs(text: string): "ios" | "android" {
+  const match = HEADER.exec(text);
+  try {
+    return match && (JSON.parse(match[2]) as { os?: unknown }).os === "android" ? "android" : "ios";
+  } catch {
+    return "ios";
+  }
+}
+
+/** The text with the header's `os` set (iOS is the default, so it is left out); unchanged without a readable header. */
+export function withHeaderOs(text: string, os: "ios" | "android"): string {
+  const match = HEADER.exec(text);
+  if (!match) return text;
+  let value: Record<string, unknown>;
+  try {
+    value = JSON.parse(match[2]) as Record<string, unknown>;
+  } catch {
+    return text;
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return text;
+  const { os: _old, ...rest } = value;
+  return `${match[1]}${JSON.stringify(os === "android" ? { ...rest, os } : rest)}${match[3]}${text.slice(match[0].length)}`;
 }
 
 /** A page id from a title or file name: "Checkout flow" → "checkout-flow" (Vietnamese marks dropped). */

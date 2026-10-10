@@ -17,11 +17,15 @@ import { itemParts, renderedItemTitle } from "../slots/dataItems";
 import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
-import { classHint, elementAt, isComponentFiber, partChildren, type PartHit } from "./parts";
+import { classHint, elementAt, isComponentFiber, partChildren, partForElement, type PartHit } from "./parts";
+import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
+import { isTableHit } from "../table/tableSelect";
 import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
+import { layerName, MAIN_FRAME, variantKey, variantRoot } from "../mainComponent/model";
+import type { StudioVariantRef } from "../types";
 import "./select.css";
 
 /*
@@ -43,7 +47,7 @@ const SHOW_ALL_KEY = "zen-studio:layers-show-all";
  * frame / panel: groups; node: an annotated JSX element; parts: a component's "Parts" folder; part: one internal part;
  * slot: a content slot of a component (its children in that slot under it).
  */
-type LayerKind = "frame" | "panel" | "node" | "parts" | "part" | "slot";
+type LayerKind = "frame" | "panel" | "node" | "parts" | "part" | "slot" | "variant";
 
 type LayerNode = {
   id: string;
@@ -71,6 +75,8 @@ type LayerNode = {
   part?: PartHit;
   /** Caption beside the name (a DOM part's class). */
   meta?: string;
+  /** variant: a variant of the Main component frame or a layer of it (its DOM node is `element`). */
+  variant?: StudioVariantRef;
   /** panel: the innermost element folded into it (what a click on the panel's own area selects on the canvas). */
   stand?: LayerNode;
   /** parts / part: children not computed yet. */
@@ -112,7 +118,9 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
         const group: LayerNode = { id: `frame:${frameId}`, kind: "frame", name: frameLabel(frameId, page), src: null, frameId, isComponent: false, instance: 0, count: 1, depth: 0, children: [], fiber: current, frame: element, parent: null };
         groups.push(group);
         byId.set(group.id, group);
-        visit(current.child, group, inherited, { id: frameId, element }, depth + 1);
+        // The Main component frame lists its sets, variants and their layers from the DOM (they are not page JSX).
+        if (frameId === MAIN_FRAME) variantLayers(element, group, byId);
+        else visit(current.child, group, inherited, { id: frameId, element }, depth + 1);
         continue;
       }
       const panelId = element && parent && frame ? element.getAttribute("data-studio-panel") : null;
@@ -159,13 +167,41 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
     if (node.kind === "node") total += 1;
     node.children.forEach((child) => relink(child, node));
   };
-  if (!showAll) groups.forEach(collapseWrappers);
+  const pageGroups = groups.filter((group) => group.frameId !== MAIN_FRAME);
+  if (!showAll) pageGroups.forEach(collapseWrappers);
   for (const group of groups) {
-    if (!showAll) group.children = simplify(group.children, aliases);
-    attachSlots(group.children, byId);
+    if (group.frameId !== MAIN_FRAME) {
+      if (!showAll) group.children = simplify(group.children, aliases);
+      attachSlots(group.children, byId);
+    }
     group.children.forEach((child) => relink(child, group));
   }
   return { groups, byId, total, aliases };
+}
+
+/** The Main component frame's layers: each component, its Figma sets, their variants and the elements inside them. */
+function variantLayers(frame: Element, group: LayerNode, byId: Map<string, LayerNode>) {
+  const add = (node: LayerNode, parent: LayerNode) => { parent.children.push(node); byId.set(node.id, node); return node; };
+  const layer = (ref: StudioVariantRef, element: Element, parent: LayerNode) => {
+    const part = Array.from(element.classList).find((name) => /^zen-[a-z0-9-]+__[a-z0-9-]+$/.test(name));
+    const node = add({ id: `variant:${variantKey(ref)}`, kind: "variant", name: ref.name, src: null, frameId: MAIN_FRAME, isComponent: !ref.path.length, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame, parent, element, variant: ref, meta: ref.path.length ? part : undefined }, parent);
+    // An icon's drawing is one layer, as Figma's vector.
+    if (element instanceof SVGElement) return;
+    Array.from(element.children).forEach((child, index) => layer({ ...ref, path: [...ref.path, index], name: layerName(child, ref.component) }, child, node));
+  };
+  for (const section of Array.from(frame.querySelectorAll(".studio-mc__component"))) {
+    const component = section.getAttribute("aria-label") ?? "";
+    const componentNode = add({ id: `mc:${component}`, kind: "panel", name: component, src: null, frameId: MAIN_FRAME, isComponent: true, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame, parent: group, element: section }, group);
+    for (const setElement of Array.from(section.querySelectorAll(":scope > .studio-mc__set"))) {
+      const set = setElement.getAttribute("aria-label") ?? "";
+      const setNode = add({ id: `mc:${component}|${set}`, kind: "panel", name: set, src: null, frameId: MAIN_FRAME, isComponent: false, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame, parent: componentNode, element: setElement }, componentNode);
+      for (const cell of Array.from(setElement.querySelectorAll<HTMLElement>("[data-mc-cell]"))) {
+        const root = variantRoot(cell);
+        if (!root) continue;
+        layer({ component, set, variant: JSON.parse(cell.dataset.mcVariant ?? "{}") as Record<string, string>, path: [], name: cell.dataset.mcName ?? component }, root, setNode);
+      }
+    }
+  }
 }
 
 /** The first DOM node of a layer (where it sits on the canvas), for sorting it into a slot. */
@@ -183,6 +219,7 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
   for (const node of nodes) {
     attachSlots(node.children, byId);
     if (node.kind !== "node" || !node.isComponent) continue;
+    if (tableRows(node, byId)) continue;
     const data = dataSlotRows(node, byId);
     const groups = layerSlotsOf(node.name, node.fiber, node.children.map(firstHostOf));
     if (!groups) {
@@ -203,6 +240,70 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
     });
     node.children = [...rows, ...data, ...node.children.filter((child) => !claimed.has(child))];
   }
+}
+
+/**
+ * A Table's rows and cells as Figma lists them (user, 2026-10-10: "giống Figma 100%"): Table › Header (Header-Cell…) and
+ * Data-Row › Cell, each Cell holding the layers its column's `cell` writes for that row (a column the Table draws itself:
+ * the Cell opens on what it draws). Rows and cells are parts (select/parts.ts names them); layers in no cell (the empty
+ * state) stay under the Table, and the DOM in between (div › table › tbody) is not listed. False for any other node.
+ */
+function tableRows(node: LayerNode, byId: Map<string, LayerNode>): boolean {
+  if (node.name !== "Table" || !node.fiber) return false;
+  const owner = hitOf(node.fiber);
+  if (!isTableHit(owner)) return false;
+  const root = owner.hosts.map((host) => (host.matches(".zen-table") ? host : host.querySelector(":scope > .zen-table"))).find(Boolean);
+  const table = root?.querySelector(":scope > table");
+  if (!table) return false;
+  const claimed = new Set<LayerNode>();
+  const partRow = (part: PartHit | null, parent: LayerNode, meta: string | undefined, children: LayerNode[] | null): LayerNode | null => {
+    if (!part) return null;
+    const row: LayerNode = {
+      id: `${node.id}/part:${partKey(part.path, part.name)}`, kind: "part", name: part.name, src: node.src, frameId: node.frameId, isComponent: true, instance: node.instance, count: 0,
+      depth: parent.depth + 1, children: children ?? [], fiber: part.fiber, frame: node.frame, parent, owner: node, part, meta, lazy: children === null, dataItem: true,
+    };
+    byId.set(row.id, row);
+    return row;
+  };
+  // A cell's first text (its label, not an avatar's initials) names a row; a header cell's text names its column.
+  const text = (element: Element) => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const value = (node.nodeValue ?? "").replace(/\s+/g, " ").trim();
+      if (value && !node.parentElement?.closest(".zen-avatar, svg, .zen-visually-hidden")) return value.slice(0, 28);
+    }
+    return undefined;
+  };
+  const rows: LayerNode[] = [];
+  const headerRow = table.querySelector(":scope > thead > tr");
+  const headers = headerRow ? Array.from(headerRow.children).filter((th) => !th.classList.contains("zen-table__select")) : [];
+  const header = headerRow ? partRow(partForElement(owner, headerRow, TABLE_PARTS.header), node, undefined, []) : null;
+  if (header) {
+    header.children = headers.flatMap((th) => {
+      const cell = partRow(partForElement(owner, th, TABLE_PARTS.headerCell), header, text(th), null);
+      return cell ? [cell] : [];
+    });
+    rows.push(header);
+  }
+  const tbody = table.querySelector(":scope > tbody");
+  for (const tr of tbody ? bodyRows(tbody) : []) {
+    const cells = rowCells(tr);
+    const row = partRow(partForElement(owner, tr, TABLE_PARTS.row), node, cells[0] ? text(cells[0]) : undefined, []);
+    if (!row) continue;
+    row.children = cells.flatMap((td, index) => {
+      const written = node.children.filter((child) => {
+        const host = firstHostOf(child);
+        return Boolean(host && td.contains(host));
+      });
+      written.forEach((child) => claimed.add(child));
+      const cell = partRow(partForElement(owner, td, TABLE_PARTS.cell), row, headers[index] ? text(headers[index]) : undefined, written.length ? written : null);
+      return cell ? [cell] : [];
+    });
+    rows.push(row);
+  }
+  node.children = [...rows, ...node.children.filter((child) => !claimed.has(child))];
+  node.hasParts = false;
+  return true;
 }
 
 /**
@@ -380,7 +481,7 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
 
 function hitForNode(node: LayerNode): FiberHit | null {
   if (node.kind === "frame") return node.frame ? { src: "", name: node.name, hosts: [node.frame], isComponent: false, props: {} } : null;
-  if (node.kind === "panel") return node.element ? { src: "", name: node.name, hosts: [node.element], isComponent: false, props: {} } : null;
+  if (node.kind === "panel" || node.kind === "variant") return node.element?.isConnected ? { src: "", name: node.name, hosts: [node.element], isComponent: false, props: {} } : null;
   if (node.kind === "part") return node.part?.hosts.every((host) => host.isConnected) ? node.part : null;
   if (node.kind === "parts") return node.owner?.fiber ? hitOf(node.owner.fiber) : null;
   // A slot: its container on the canvas (else its component, when the slot renders nothing while empty).
@@ -392,6 +493,7 @@ function hitForNode(node: LayerNode): FiberHit | null {
 function selectNode(node: LayerNode) {
   const hit = hitForNode(node);
   if (node.kind === "frame") studioStore.setState({ selection: { kind: "frame", frameId: node.frameId } });
+  else if (node.kind === "variant" && node.variant) studioStore.setState({ selection: { kind: "variant", frameId: MAIN_FRAME, ...node.variant } });
   else if (node.kind === "part" && node.owner?.src && node.part) {
     const owner = node.owner;
     const ownerHit = owner.fiber ? hitOf(owner.fiber) : null;
@@ -420,7 +522,8 @@ const defaultOpen = (node: LayerNode) => node.kind === "frame" || node.kind === 
 
 function rowIcon(node: LayerNode): IconName {
   if (node.kind === "frame") return "icon-layout-alt-01-line";
-  if (node.kind === "panel") return "icon-sliders-04-line";
+  if (node.kind === "panel") return node.frameId === MAIN_FRAME ? (node.isComponent ? "icon-cube-line" : "icon-grid-01-line") : "icon-sliders-04-line";
+  if (node.kind === "variant") return node.isComponent ? "icon-cube-line" : "icon-layers-three-01-line";
   if (node.kind === "parts") return "icon-layers-three-01-line";
   if (node.kind === "slot") return "icon-grid-dots-blank-line";
   return node.isComponent ? "icon-cube-line" : "icon-code-02-line";
@@ -429,7 +532,8 @@ function rowIcon(node: LayerNode): IconName {
 function rowTitle(node: LayerNode) {
   if (node.kind === "part") return `${node.name}${node.meta ? ` .${node.meta}` : ""}: part of ${node.owner?.name ?? "the element"} (read-only)`;
   if (node.kind === "parts") return `What ${node.owner?.name ?? "this component"} renders inside itself (read-only)`;
-  if (node.kind === "panel") return `Playground panel: ${node.name}`;
+  if (node.kind === "panel") return node.frameId === MAIN_FRAME ? node.name : `Playground panel: ${node.name}`;
+  if (node.kind === "variant") return `${node.variant?.component ?? ""} · ${node.variant?.set ?? ""}${node.meta ? ` · .${node.meta}` : ""}`;
   if (node.kind === "slot") return `${node.name}: a slot of ${node.owner?.name ?? "the component"}${node.children.length ? "" : " (empty)"}`;
   if (node.wrap) return `${shortSrc(node.src ?? "")} · in a Stack that sets its size (${shortSrc(node.wrap)})`;
   return node.src ? shortSrc(node.src) : undefined;
@@ -526,7 +630,7 @@ export function LayersPanel() {
   }, []);
 
   const part = selection?.kind === "node" ? selection.part : undefined;
-  const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
+  const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : selection.kind === "variant" ? `variant:${variantKey(selection)}` : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
   // A folded panel wrapper shows as its panel row.
   const selectedId = selectionId ? tree.aliases.get(selectionId) ?? selectionId : null;
 

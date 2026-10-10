@@ -135,11 +135,17 @@ Present button.
   name; its host DOM nodes (descendant host fibers until the first host level) give the outline rectangle (union).
 - In Select, a transparent capture layer covers the viewport: pointer events never reach the examples (no hover, no
   focus, no clicks); `document.elementsFromPoint` finds what is under the cursor.
-- Click selects the deepest annotated element under the cursor (Figma's ⌘-click). Hover shows a 1px accent outline
+- Clicks follow Figma (user, 2026-10-09: "Bấm như Figma"; `select/clickTarget.ts`): a click selects the outermost layer
+  under the cursor in the current context — the frame's top level (the children of the frame's content root, which
+  stands for the frame as a Figma frame with auto layout does; an overlay starts at its owner), or, with a layer
+  selected, the child of that layer's parent under the cursor (a sibling; a click inside the selected layer keeps it).
+  A double-click goes one level in (onto a text layer: its text is edited in place). ⌘/Ctrl-click selects the deepest
+  annotated element under the cursor; ⌘-click on the selected element goes on into its parts. Layers are read as the
+  Layers panel lists them (platform wrappers, a div holding one layer and the Studio's sizing Stack left out). Hover
+  outlines what a press would select. Hover shows a 1px accent outline
   and a name tag; selection shows a 2px accent outline with a name tag ("Button" + `button.tsx:84`) and, for layout
-  components (Stack/Grid/Box/Container/Form…), the gap and padding areas tinted. Shift+click toggles multi-select only
-  for display (editing applies to the primary). Double-click on text selects the text's element and focuses its
-  Content field in the inspector.
+  components (Stack/Grid/Box/Container/Form…), the gap and padding areas tinted. Shift+click adds or removes the layer a
+  click would select (⇧⌘: the deepest) in the multi-selection.
 - Escape → parent annotated element (then the frame, then nothing); Enter → first annotated child.
 - A JSX element rendered several times (`.map`) highlights all instances (thin) and the clicked one (thick); the inspector
   says "Shared by N instances — edits change all".
@@ -161,7 +167,12 @@ Nested parts (added 2026-10-02, read-only): ⌘/Ctrl+click, or a double-click on
 instance under the cursor, selects the internal part under the cursor (an internal Zen component such as SidebarItem or InputLabel, else the host element),
 stored as `selection.part = { path, name }` with `src` = the annotated owner (`select/parts.ts`). The inspector's
 PartPanel shows its props, text style, layout, size and colours with the matching tokens, and says which owner prop
-drives it; parts are never edited (edit the owner). Layers lists them lazily under a "Parts" folder. Docs scaffolding
+drives it. Since 2026-10-09 (user: "nested Modal action phải cho phép tôi sửa button direction như trong Figma") a part's
+props that its owner passes on unchanged are edited there, like Figma's exposed nested instance properties: ModalActions'
+Direction writes the Dialog's or ModalForm's `actionsDirection` (Properties section, the part's Figma name when its
+component has a Figma map). Which props: `tools/studio/part-props-build.mjs` reads the component sources into
+`inspector/partProps.generated.ts` (owner → part → part prop → owner prop), composed through the components between
+them (`inspector/partForwarding.ts`). Everything else on a part stays read-only. Layers lists them lazily under a "Parts" folder. Docs scaffolding
 (ComponentPreview, PlaygroundControls…, ExampleCard, ExamplePage) is transparent: never a layer or a selection.
 
 Undo safety (added 2026-10-02): records are context hunks (`history.ts`): 2–12 unique lines above and below each

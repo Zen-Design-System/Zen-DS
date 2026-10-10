@@ -14,6 +14,7 @@ import { iconGroups, iconsIn } from "./iconSuggestions";
 import { figmaOptions } from "./propGroups";
 import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence, matchOption, propLabel, typographyFamily, typographyKeys, type Literal, type PropSpec, type PropValue } from "./propSchema";
 import { useObjectStarter } from "./useObjectStarter";
+import { PhotoControl } from "./controls/PhotoControl";
 import { ScaleField } from "./controls/ScaleField";
 import { scaleOfType } from "./controls/scale";
 import { InspectorRow } from "./Section";
@@ -622,6 +623,7 @@ function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boo
       return <NumberControl {...common} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
     case "string":
     case "node":
+    case "photo":
       return typeof live === "string" || typeof live === "number" || live === undefined
         ? <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={live} onSet={onSet} multiline={typeof live === "string" && (live.length > 48 || live.includes("\n"))} />
         : null;
@@ -664,6 +666,10 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       if (literal !== undefined && typeof literal !== "string" && !(editor.kind === "string" && editor.numeric)) return null;
       // An unset slot (node) reads "None" in the placeholder tone, like Figma's empty instance swap.
       return <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={literal as string | number | undefined} fallback={fallback === undefined || fallback === null ? (editor.kind === "node" ? "None" : undefined) : String(fallback)} onSet={onSet} autoFocusToken={extra.autoFocusToken} multiline={typeof literal === "string" && (literal.length > 48 || literal.includes("\n"))} />;
+    case "photo": {
+      const text = typeof literal === "string" ? literal : undefined;
+      return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} textControl={<TextControl {...common} fallback={undefined} value={text} onSet={onSet} />} />;
+    }
     case "typography":
       return <TypographyControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
     case "icon":
@@ -749,6 +755,10 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
       const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon, component });
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
+    // An element written in the prop (Menu `trigger={<IconButton … />}`, ActionBar `summary={<Text …/>}`): a layer of its
+    // own, edited where it is selected, not code to change (2026-10-10 palette sweep: "bound in code").
+    const element = /^\s*<([A-Z][\w.]*)/.exec(value.expression)?.[1];
+    if (element) return <InspectorRow {...row} hint={hint ?? `Select the ${element} on the canvas or in Layers to edit it`}><StaticField text={`<${element}>`} title={`{${value.expression}}`} /></InspectorRow>;
     // State-bound (the keep-behaviour rule), or a playground's: read-only, what it renders now in a field's frame.
     const note = boundHint ?? (value.origin?.kind === "bound-state" ? "It reads state: change it in the code." : "Change it in the code.");
     return (

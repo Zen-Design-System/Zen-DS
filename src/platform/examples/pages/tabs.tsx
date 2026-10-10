@@ -17,7 +17,7 @@ import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
-import { TabPanel, Tabs } from "../../../components/Tabs";
+import { TabItem, TabPanel, Tabs } from "../../../components/Tabs";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
@@ -297,12 +297,13 @@ function YourWorkExample() {
     <Card theme="flat" className="px-tabs-work">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
-        <Tabs idPrefix={prefix} variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab} items={[
-          { id: "assigned", label: "Assigned", badge: assigned.length },
-          // The counter leaves with the last review instead of showing 0.
-          { id: "reviews", label: "Reviews", badge: reviews.length || undefined },
-          { id: "mentions", label: "Mentions", badge: mentions.length },
-        ]} />
+        {/* The tabs as TabItem children (Figma's Item-List slot); an items array works the same. */}
+        <Tabs idPrefix={prefix} variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab}>
+          <TabItem value="assigned" label="Assigned" badge={assigned.length} />
+          {/* The counter leaves with the last review instead of showing 0. */}
+          <TabItem value="reviews" label="Reviews" badge={reviews.length || undefined} />
+          <TabItem value="mentions" label="Mentions" badge={mentions.length} />
+        </Tabs>
         <TabPanel idPrefix={prefix} id="assigned" hidden={tab !== "assigned"}>{rows(assigned, "Assigned to you")}</TabPanel>
         <TabPanel idPrefix={prefix} id="reviews" hidden={tab !== "reviews"}>
           <Box ref={panelRef}>
@@ -554,11 +555,11 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "Inside a dashboard card, Subtle tabs switch between lists of one kind. Approving the last review removes the Reviews counter instead of showing 0, and the panel says there is nothing waiting.",
     render: () => <YourWorkExample />,
     code: `<Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
-<Tabs idPrefix="work" variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab} items={[
-  { id: "assigned", label: "Assigned", badge: assigned.length },
-  { id: "reviews", label: "Reviews", badge: reviews.length || undefined },
-  { id: "mentions", label: "Mentions", badge: mentions.length },
-]} />
+<Tabs idPrefix="work" variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab}>
+  <TabItem value="assigned" label="Assigned" badge={assigned.length} />
+  <TabItem value="reviews" label="Reviews" badge={reviews.length || undefined} />
+  <TabItem value="mentions" label="Mentions" badge={mentions.length} />
+</Tabs>
 <TabPanel idPrefix="work" id="reviews" hidden={tab !== "reviews"}>
   {reviews.length ? (
     <List aria-label="Reviews waiting for you">

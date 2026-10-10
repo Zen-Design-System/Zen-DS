@@ -35,6 +35,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Stepper } from "../components/Stepper";
 import { Slider } from "../components/Slider";
 import { Card } from "../components/Card";
+import { AiVoiceConversation, VoiceRecorder } from "../components/Voice";
 import { DockIcon } from "../components/DockIcon";
 import { List, ListItem, ToggleListItem } from "../components/ListItem";
 import { Table, TableText } from "../components/Table";
@@ -265,6 +266,12 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   "dock-icon": [
     { do: { preview: <Row><DockIcon icon="icon-folder-line" theme="yellow" background="subtle" /><DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" /><DockIcon icon="icon-colors-line" theme="purple" background="subtle" /></Row>, caption: "One size and one background per list; colour maps to a category." },
       dont: { preview: <Row><DockIcon icon="icon-folder-line" theme="yellow" size="large" /><DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" size="small" /><DockIcon icon="icon-colors-line" theme="accent" size="medium" /></Row>, caption: "Mixed sizes and fills read as noise." } },
+  ],
+  voice: [
+    { do: { preview: <Card theme="border" spacing="sm" className="pgv-voice"><VoiceRecorder state="paused" elapsed="00:24.18" start="00:16" end="00:24" onRecord={noop} onPause={noop} onResume={noop} onFinish={noop} onDiscard={noop} /></Card>, caption: "On a Card, every action wired: the main action follows the state, Discard and Finish work once there is a take." },
+      dont: { preview: <div className="pgv-voice"><VoiceRecorder state="paused" elapsed="00:24.18" start="00:16" end="00:24" onRecord={noop} onPause={noop} onResume={noop} /></div>, caption: "Bare on the page and without Finish / Discard handlers: the frame is transparent and two buttons do nothing." } },
+    { do: { preview: <Card theme="border" spacing="sm" className="pgv-voice"><AiVoiceConversation state="ready" transcript="“Help me plan a calm start to my day.”" onStart={noop} onDone={noop} onInterrupt={noop} onEnd={noop} /></Card>, caption: "Ready: the microphone stays off until Start talking; Mute and End wait for the conversation." },
+      dont: { preview: <Card theme="border" spacing="sm" className="pgv-voice"><AiVoiceConversation state="listening" heading="Listening" guidance="" onStart={noop} onDone={noop} onInterrupt={noop} onEnd={noop} /></Card>, caption: "Listening the moment the page opens, with no guidance or transcript: people do not know the microphone is on." } },
   ],
   "list-item": [
     { do: { preview: <div className="pgv-field"><List aria-label="Email"><ToggleListItem title="Daily digest" caption="One email at 8:00 am" defaultChecked /></List></div>, caption: "A switch row is one target: ToggleListItem flips the switch from anywhere on the row, and the title names it." },

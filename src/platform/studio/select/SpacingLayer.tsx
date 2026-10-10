@@ -36,6 +36,8 @@ type Props = {
   onPassPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
   /** A double-click on a read-only area drills in as it would on the canvas. */
   onPassDoubleClick: (event: ReactMouseEvent<HTMLDivElement>) => void;
+  /** A right-click on an area opens the canvas menu as it would on the canvas: the gap and padding are the owner's. */
+  onPassContextMenu: (event: ReactMouseEvent<HTMLDivElement>) => void;
 };
 
 /** The open picker (or read-only note): which area, which prop, and a small anchor box inside the area (at the click). */
@@ -70,7 +72,7 @@ function useOwnerSource(src: string | null, enabled: boolean): SourceElement | n
   return read && read.src === src ? read.element : null;
 }
 
-export function SpacingLayer({ areas: measured, owner, interactive, viewport, onPassPointerDown, onPassPointerMove, onPassDoubleClick }: Props) {
+export function SpacingLayer({ areas: measured, owner, interactive, viewport, onPassPointerDown, onPassPointerMove, onPassDoubleClick, onPassContextMenu }: Props) {
   const role = useStudio((state) => state.role);
   const server = useStudioServer();
   const writable = canEdit() && role === "admin" && server.writable;
@@ -169,6 +171,13 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>, index: number) => {
     const area = areas[index];
     if (event.button !== 0 || !area || !owner) return;
+    // The second press of a double-click goes on into the layer under the pointer, as Figma's double-click always does
+    // (a 0 gap's band lies over its neighbours' edges): the picker the first press opened closes.
+    if (event.detail >= 2) {
+      if (open) close();
+      onPassPointerDown(event);
+      return;
+    }
     const fit = area.kind === "free" ? fitColumn(area, owner, attributes) : null;
     const state = areaState(area, owner, attributes, event.altKey);
     const usable = writable && interactive && Boolean(attributes) && (area.kind === "free" ? Boolean(fit) : Boolean(state.prop));
@@ -247,8 +256,8 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
           onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
           onPointerMove={(event) => { if (event.altKey !== alt) setAlt(event.altKey); onPassPointerMove(event); }}
           onPointerDown={(event) => onPointerDown(event, index)}
-          onDoubleClick={(event) => { if (!(writable && owner.editable && (area.props.length || area.kind === "free"))) onPassDoubleClick(event); }}
-          onContextMenu={(event) => event.preventDefault()}
+          onDoubleClick={onPassDoubleClick}
+          onContextMenu={onPassContextMenu}
         />
       )) : null}
       {pillArea && pillText ? (

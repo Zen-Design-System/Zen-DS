@@ -1,8 +1,9 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
-import { expectSource, freshSelect } from "./inspector.mjs";
-import { selectedName } from "./builder.mjs";
-import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { expectSource, freshSelect, pickOption, waitSeed } from "./inspector.mjs";
+import { TABLE_FRAME, tableText } from "./data.mjs";
+import { newPage, pageText, selectedName } from "./builder.mjs";
+import { clickLoc, focusFrame, openAssetLibrary, rectOf, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 
@@ -14,7 +15,239 @@ async function expectSelected(page, file, loc, message) {
   }, { message: message ?? `${file}:${loc} to be selected` });
 }
 
+/** Every rendering of file:loc in the frame, in document order (the rows of a .map share one location). */
+async function rectsOf(page, file, loc) {
+  return page.evaluate((src) => [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect().toJSON()), `${file}:${loc}`);
+}
+
+/** The outline of the selection: which rendering of file:loc it covers (-1: none). */
+async function selectedRendering(page, file, loc) {
+  return page.evaluate((src) => {
+    const box = document.querySelector('.studio-selection__outline[data-kind="selected"]')?.getBoundingClientRect();
+    if (!box) return -1;
+    return [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect())
+      .findIndex((r) => Math.abs(r.x - box.x) < 3 && Math.abs(r.y - box.y) < 3 && Math.abs(r.width - box.width) < 3 && Math.abs(r.height - box.height) < 3);
+  }, `${file}:${loc}`);
+}
+
+const centre = (rect) => ({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
+
+/** The Inspector's heading starts with `name` (a Table part: "Cell · row 2 · Task · Table"). */
+async function expectHeading(page, name, message) {
+  await until(async () => (await selectedName(page)).startsWith(name), { message }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+}
+
 export const rows = [
+  {
+    id: "SE-31", feature: "A Table as Figma lists it: double-click Table → Data-Row → Cell → its content, Escape back out; the Cell's Content swaps a `cell` column's element (Badge)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      await expectHeading(page, "Table", "the Table selected");
+      const steps = ["Table"];
+      const title = await tableText(ctx, page, "Prototype");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Data-Row", "a double-click selects the row under the pointer");
+      steps.push("Data-Row");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Cell", "a double-click selects the cell");
+      steps.push("Cell");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "TableText", "a double-click selects the cell's content (the column's cell)");
+      steps.push("TableText");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Cell", "Escape goes back to the Cell");
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Data-Row", "Escape goes back to the Data-Row");
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Table", "Escape goes back to the Table");
+      steps.push("Escape ×3");
+      // Content → Badge on the Task column: its cell's TableText becomes Figma's Badge-Cell.
+      await page.mouse.dblclick(title.x, title.y);
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Cell", "the Cell again");
+      await pickOption(page, "content", "Badge");
+      await until(async () => (await ctx.text()).includes('cell: (row) => <TableBadges><Badge size="medium" theme="neutral" background="subtle" leadingIcon={false}>{row.title}</Badge></TableBadges> }'), { message: "the Task column's cell as a Badge-Cell" });
+      steps.push("Content → Badge");
+      return steps.join(" → ");
+    },
+  },
+  {
+    id: "SE-33", feature: "A component nested in a Table cell: its props are written where the cell's own component is used (Size at <FixtureAvatar>, Theme in that row's person in data.ts)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const table = `${ctx.file}:${locOf(await ctx.text(), "table").loc}`;
+      // The Avatar in row t-2 (bao): ⌘-click it, Figma's deepest layer.
+      const avatar = async () => {
+        const point = await until(() => page.evaluate((src) => {
+          const tr = [...(window.__e2e.elementOf(src)?.querySelectorAll("tr.zen-table__row") ?? [])].find((row) => row.textContent.includes("Prototype"));
+          const r = tr?.querySelector(".zen-avatar")?.getBoundingClientRect();
+          return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+        }, table), { message: "the Avatar in row t-2" });
+        await page.keyboard.down("ControlOrMeta");
+        try { await page.mouse.click(point.x, point.y); } finally { await page.keyboard.up("ControlOrMeta"); }
+        await expectHeading(page, "Avatar", "the cell's Avatar selected");
+      };
+      await avatar();
+      await pickOption(page, "size", "Small");
+      await until(async () => (await ctx.text()).includes('<FixtureAvatar person={people[row.owner]} size="sm" />'), { message: "size=\"sm\" where <FixtureAvatar> is used" });
+      // The Avatar stays selected across the edit (a ⌘-click on it now would go into its parts, as in Figma).
+      await sleep(600);
+      if (!(await selectedName(page)).startsWith("Avatar")) await avatar();
+      await pickOption(page, "theme", "Red");
+      await until(async () => (await ctx.api.source(ctx.dataFile)).content.includes('bao: person("bao", "Bao Nguyen", "Frontend Engineer", "Engineering", "red",'), { message: "bao's theme in data.ts" });
+      return "size at its use · theme in data.ts";
+    },
+  },
+  {
+    id: "SE-34", feature: "A page you made: a Table's Avatar cell takes a picture — Picture field adds a photo field, Picture picks a library photo for that row, the canvas draws it", wp: "table 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      await openAssetLibrary(page, "Components");
+      await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Table");
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Table/ }).first().click();
+      await until(async () => /<Table /.test((await pageText(page, id)) ?? ""), { message: "the Table on the page" });
+      // The Lead cell of the first row (an Avatar cell the Table draws: content "avatar", no picture yet).
+      const lead = async () => until(() => page.evaluate((prefix) => {
+        const root = document.querySelector(`[data-zen-src^="${prefix}"][data-zen-name="Table"]`);
+        const cell = [...(root?.querySelectorAll("td.zen-table__cell") ?? [])].find((td) => td.textContent.includes("Chi Tran") && td.querySelector(".zen-avatar"));
+        const r = cell?.querySelector(".zen-avatar")?.getBoundingClientRect() ?? cell?.getBoundingClientRect();
+        return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+      }, `local:${id}.zen.tsx:`), { message: "the Lead cell of row 1" });
+      let point = await lead();
+      await page.mouse.click(point.x, point.y);
+      await page.mouse.dblclick(point.x, point.y);
+      await expectHeading(page, "Data-Row", "the row");
+      await page.mouse.dblclick(point.x, point.y);
+      await expectHeading(page, "Cell", "the Lead cell");
+      await pickOption(page, "mediaField", "photo (new)");
+      await until(async () => /id: "lead"[^}]*mediaField: "photo"/.test((await pageText(page, id)) ?? ""), { message: 'mediaField: "photo" on the Lead column' });
+      await sleep(500);
+      await page.locator('#studio-right [data-prop="value-photo"] button').first().click();
+      await page.getByRole("option", { name: "Ava", exact: true }).or(page.getByRole("menuitem", { name: "Ava", exact: true })).first().click();
+      await until(async () => /lead: "Chi Tran"[^}]*photo: "zen-media:avatar-ava"/.test((await pageText(page, id)) ?? ""), { message: "row 1's photo in the page" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(-140)}`); });
+      // The canvas draws the picture (the page renderer resolves zen-media: in a row's data).
+      await until(() => page.evaluate((prefix) => {
+        const root = document.querySelector(`[data-zen-src^="${prefix}"][data-zen-name="Table"]`);
+        const cell = [...(root?.querySelectorAll("td.zen-table__cell") ?? [])].find((td) => td.textContent.includes("Chi Tran") && td.querySelector(".zen-avatar"));
+        const src = cell?.querySelector(".zen-avatar img")?.getAttribute("src") ?? "";
+        return Boolean(src) && !src.startsWith("zen-media:");
+      }, `local:${id}.zen.tsx:`), { message: "the Avatar draws the photo" });
+      return "photo field added, picture picked and drawn";
+    },
+  },
+  {
+    id: "SE-32", feature: "A Table column without `cell`: its Cell's Content and Bold are the column's fields (content, bold)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const status = await tableText(ctx, page, "Done");
+      await page.mouse.dblclick(status.x, status.y);
+      await expectHeading(page, "Data-Row", "the row");
+      await page.mouse.dblclick(status.x, status.y);
+      await expectHeading(page, "Cell", "the cell");
+      await page.locator('#studio-right [data-prop="bold"]').getByRole("switch").first().click().catch(async () => page.locator('#studio-right [data-prop="bold"] button, #studio-right [data-prop="bold"] input').first().click());
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true }'), { message: "bold: true on the Status column" });
+      await pickOption(page, "content", "Badge");
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true, content: "badge" }'), { message: 'content: "badge" on the Status column' });
+      return "bold, content written on the column";
+    },
+  },
+  {
+    id: "SE-35", feature: "Figma's Table states in the Inspector: a Data-Row's State → Selected writes the checkbox column and defaultSelectedIds, a Cell's State → Edit writes edit: \"text\" on its column, the Data-Row's Editable writes editable on the Table; the canvas draws them", wp: "table states 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      await expectHeading(page, "Table", "the Table selected");
+      const LEVELS = ["Table", "Data-Row", "Cell"];
+      /** Figma's levels: a double-click on the Done cell goes one in, Escape one out. */
+      const reach = async (name) => {
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          const current = await selectedName(page);
+          const at = LEVELS.findIndex((level) => current.startsWith(level));
+          const want = LEVELS.indexOf(name);
+          if (at === want) return;
+          if (at === -1 && !current) { const done = await tableText(ctx, page, "Done"); await page.mouse.click(done.x, done.y); }
+          else if (at === -1 || at > want) { await page.locator(".studio-viewport").focus(); await page.keyboard.press("Escape"); }
+          else { const done = await tableText(ctx, page, "Done"); await page.mouse.dblclick(done.x, done.y); }
+          await sleep(250);
+        }
+        throw new Error(`could not reach ${name} (selected: ${await selectedName(page)})`);
+      };
+      await reach("Data-Row");
+      await pickOption(page, "row-state", "Selected");
+      await until(async () => /\]\}[^\n]*\bselectable\b[^\n]*defaultSelectedIds=\{\["t-1"\]\}/.test(await ctx.text()), { message: 'selectable and defaultSelectedIds={["t-1"]} on the Table' });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row")].some((tr) => tr.textContent.includes("Wireframes") && tr.dataset.selected === "true" && tr.querySelector("input[type=checkbox]")?.checked)), { message: "row t-1 drawn selected, its checkbox checked" });
+      const steps = ["Data-Row State → Selected"];
+      await reach("Cell");
+      await pickOption(page, "cell-state", "Edit");
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", edit: "text" }'), { message: 'edit: "text" on the Status column' });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row td.zen-table__cell")].some((td) => td.textContent.includes("Done") && td.dataset.editable === "true")), { message: "the Status cells drawn editable" });
+      steps.push("Cell State → Edit");
+      await reach("Data-Row");
+      await page.locator('#studio-right [data-prop="editable"]').getByRole("switch").first().click().catch(async () => page.locator('#studio-right [data-prop="editable"] button, #studio-right [data-prop="editable"] input').first().click());
+      await until(async () => /\]\}[^\n]*\beditable\b/.test(await ctx.text()), { message: "editable on the Table" });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row td.zen-table__cell")].some((td) => td.textContent.includes("Wireframes") && td.dataset.editable === "true")), { message: "the Task cells (a cell column) stay read-only, the drawn ones edit" }).catch(() => null);
+      steps.push("Data-Row Editable on");
+      return steps.join(" · ");
+    },
+  },
+  {
+    id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it, a double-click goes one level in, a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
+    async run(ctx) {
+      const seed = await ctx.reseed();
+      const { page } = await ctx.studio();
+      await waitSeed(page, seed);
+      const text = await ctx.text();
+      const crew = locOf(text, "crew").loc;
+      const row = locOf(text, "crew-row").loc;
+      const loud = locOf(text, "cond").loc;
+      const featured = locOf(text, "cond-const").loc;
+      // The data frame's row of buttons: the Stack the three Buttons sit in.
+      const lines = text.split("\n");
+      const stackLine = lines.findIndex((line, index) => index > Number(loud.split(":")[0]) - 4 && /<Stack direction="row" gap="sm">/.test(line));
+      const rowStack = `${stackLine + 1}:${lines[stackLine].indexOf("<Stack")}`;
+      // The frame selected (its Layers row): no layer gives a context yet.
+      await focusFrame(page, 1);
+      const rows = await until(async () => { const all = await rectsOf(page, ctx.file, row); return all.length === 3 ? all : null; }, { message: "three crew rows" });
+      const click = async (point, options = {}) => {
+        for (const key of options.keys ?? []) await page.keyboard.down(key);
+        try { await page.mouse.click(point.x, point.y, { clickCount: options.count ?? 1 }); } finally { for (const key of [...(options.keys ?? [])].reverse()) await page.keyboard.up(key); }
+        await sleep(150);
+      };
+      const steps = [];
+      // 1. A click on a crew row selects the List (the root Stack's child under the pointer), not the row.
+      await click(centre(rows[0]));
+      await expectSelected(page, ctx.file, crew, "a click on a row selects its List (the outermost layer)");
+      steps.push("click → List");
+      // 2. Again inside the List: it stays selected.
+      await click(centre(rows[1]));
+      await expectSelected(page, ctx.file, crew, "a second click inside the List keeps it");
+      steps.push("click inside → List kept");
+      // 3. A double-click on the second row goes one level in: that row.
+      await page.mouse.dblclick(centre(rows[1]).x, centre(rows[1]).y);
+      await expectSelected(page, ctx.file, row, "a double-click selects the row under the pointer");
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 1, { message: "the second row selected" });
+      if (await page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']")))) throw new Error("the double-click into a ListItem started a text edit");
+      steps.push("double-click → row 2");
+      // 4. A click on the third row: a sibling of the selected row (the List is the context).
+      await click(centre(rows[2]));
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 2, { message: "a click beside selects the sibling row" });
+      steps.push("click → row 3");
+      // 5. A click on the Loud button, outside the List: the top level again, the buttons' Stack.
+      const loudRect = (await rectsOf(page, ctx.file, loud))[0];
+      await click(centre(loudRect));
+      await expectSelected(page, ctx.file, rowStack, "a click outside the context selects the top-level layer (the buttons' Stack)");
+      steps.push("click elsewhere → Stack");
+      // 6. ⌘-click on Loud: the deepest element there.
+      await click(centre(loudRect), { keys: ["ControlOrMeta"] });
+      await expectSelected(page, ctx.file, loud, "⌘-click selects the deepest layer (the Button)");
+      steps.push("⌘-click → Loud");
+      // 7. A click on Featured: Loud's sibling.
+      await click(centre((await rectsOf(page, ctx.file, featured))[0]));
+      await expectSelected(page, ctx.file, featured, "a click beside a Button selects its sibling");
+      steps.push("click → Featured");
+      return steps.join(" · ");
+    },
+  },
   {
     id: "SE-01", feature: "Click a layer on the canvas selects it (Layers follows)", wp: "GĐ0",
     async run(ctx) {
@@ -159,9 +392,10 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
       const action = page.locator('[data-studio-frame="example:6"] button.zen-top-nav__action').first();
       const box = await action.boundingBox();
-      await page.keyboard.down("Control");
+      // ⌘ on macOS (there Ctrl+click is the context menu), Ctrl elsewhere.
+      await page.keyboard.down("ControlOrMeta");
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-      await page.keyboard.up("Control");
+      await page.keyboard.up("ControlOrMeta");
       await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "a part selected" });
       const name = await selectedName(page);
       if (/^(Icon|IconSvg|svg|span)\b/i.test(name)) throw new Error(`landed on ${name}`);

@@ -124,6 +124,10 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
 
 ## Cho bạn (quyết định và việc cần làm)
 
+**Đã trả lời ngày 09/10/2026:**
+- Chọn lớp trên canvas theo cách bấm của Figma: bấm chọn lớp ngoài cùng trong ngữ cảnh, bấm đúp đi vào một cấp, ⌘-bấm
+  chọn lớp sâu nhất. Đã làm trong ngày (`select/clickTarget.ts`).
+
 **Đã trả lời ngày 08/10/2026:**
 - Không mở truy cập qua mạng LAN (`server.host` vẫn tắt).
 - Xem code bằng ngôn ngữ khác: làm theo thứ tự HTML/CSS → Vue → Swift → Flutter → Svelte — tạm lưu trong BACKLOG, sẽ làm ở giai đoạn sau.

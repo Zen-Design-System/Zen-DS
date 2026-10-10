@@ -13,9 +13,17 @@
         {
           "name": "items",
           "type": "BottomNavigationItem[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The destinations as BottomNavigationItem elements, in order, when `items` is not given.",
           "deprecated": null
         },
         {

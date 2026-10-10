@@ -56,6 +56,9 @@ export type PaletteItem = {
   input: boolean;
   /** The JSX, one element; lines after the first are indented 2 spaces per level from column 0 (reindent on insert). */
   build(ctx: PaletteContext): string;
+  /** Its code on a builder page, which keeps no state or hooks: a static version of a stateful item (a Sidebar with its
+   *  current item fixed). Without it, a stateful item cannot go on a builder page. */
+  builder?(ctx: PaletteContext): string;
 };
 
 export type PaletteHostContext = PaletteContext & {
@@ -111,13 +114,15 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
-  BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
+  BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
-  AiChatField: "AiChat",
+  AiChatField: "AiChat", VoiceRecorder: "Voice", AiVoiceConversation: "Voice",
 };
 
 const level = (ctx: PaletteContext) => Math.min(6, Math.max(2, Math.round(ctx.headingLevel) || 3));
 const uidOf = (ctx: PaletteContext) => ctx.uid.toLowerCase().replace(/[^a-z0-9]/g, "") || "1";
+/** A short id suffix for rows the owner keys by id (Sidebar rows): the end of the insert's uid, so two inserts differ. */
+const rowId = (ctx: PaletteContext) => uidOf(ctx).slice(-4);
 const lines = (...rows: string[]) => rows.join("\n");
 const TOAST = ["toast"] as const;
 const MEDIA = ["media"] as const;
@@ -199,15 +204,39 @@ export const PALETTE: readonly PaletteItem[] = [
     build: (ctx) => `<Segmented aria-label="Billing period" defaultValue="monthly"${ctx.mobile ? " fullWidth" : ""} options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly" }]} />`,
   },
   {
+    // The bar alone, switching by itself (no panels, no state): a PageHeader's Tabs slot, a page's section bar.
+    id: "tab-bar", label: "Tab bar", group: "Navigation", caption: "Page sections", root: "Tabs", components: ["Tabs"], interactive: true, input: false,
+    build: (ctx) => `<Tabs idPrefix="sections-${uidOf(ctx)}" aria-label="Page sections" defaultValue="overview" items={[{ id: "overview", label: "Overview" }, { id: "activity", label: "Activity" }]} />`,
+  },
+  {
     id: "breadcrumbs", label: "Breadcrumbs", group: "Navigation", root: "Breadcrumbs", components: ["Breadcrumbs"], requires: TOAST, interactive: true, input: false,
     build: () => lines(
       `<Breadcrumbs items={[{ id: "projects", label: "Projects", href: "#projects" }, { id: "loyalty", label: "Loyalty app" }]}`,
       `  onNavigate={(_, event) => { event.preventDefault(); toast({ title: "Projects opened" }); }} />`,
     ),
+    // A builder page keeps no handlers that need code: the trail as the page shows it, no links to leave the canvas by.
+    builder: () => `<Breadcrumbs items={[{ id: "projects", label: "Projects" }, { id: "loyalty", label: "Loyalty app" }]} />`,
+  },
+  /* Sidebar rows (Figma Menu-Item): what the Sidebar's Body-Content and Footer-Content slots hold. */
+  {
+    id: "menu-item", label: "Menu item", group: "Navigation", caption: "Sidebar row", root: "SidebarMenuItem", components: ["SidebarMenuItem"], interactive: true, input: false,
+    // Each insert its own id (the Sidebar keys and selects rows by id: three "invoices" rows were one row to it).
+    build: (ctx) => `<SidebarMenuItem id="invoices-${rowId(ctx)}" label="Invoices" icon="icon-receipt-line" />`,
+  },
+  {
+    id: "menu-section", label: "Menu section", group: "Navigation", caption: "Titled Sidebar rows", root: "SidebarMenuSection", components: ["SidebarMenuSection", "SidebarMenuItem"], interactive: true, input: false,
+    build: (ctx) => lines(
+      `<SidebarMenuSection label="Projects">`,
+      `  <SidebarMenuItem id="loyalty-app-${rowId(ctx)}" label="Loyalty app" icon="icon-cube-line" />`,
+      `  <SidebarMenuItem id="online-banking-${rowId(ctx)}" label="Online banking redesign" icon="icon-cube-line" />`,
+      `</SidebarMenuSection>`,
+    ),
   },
   {
     id: "pagination", label: "Pagination", group: "Navigation", root: "Pagination", components: ["Pagination"], state: [state("page", "1")], interactive: true, input: false,
     build: () => `<Pagination aria-label="Invoice pages" page={page} onPageChange={setPage} pageCount={5} />`,
+    // A builder page keeps no state: the page shown is fixed (2026-10-10 palette sweep: it was refused on pages you make).
+    builder: () => `<Pagination aria-label="Invoice pages" page={1} pageCount={5} />`,
   },
   {
     id: "stepper", label: "Stepper", group: "Navigation", caption: "Step 2 of 3", root: "Stepper", components: ["Stepper"], interactive: false, input: false,
@@ -326,22 +355,28 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<RatingDisplay value={4.5} label="Rated 4.5 out of 5" />`,
   },
   {
-    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table", "TableText"], interactive: false, input: false,
+    // Each column's cell is a Figma Content (Table/Cell/Default) drawn from the row's fields, so the Inspector switches it
+    // (Text, Avatar, Badge, Progress…) and a page you made can hold it (no cell functions).
+    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table"], interactive: false, input: false,
     build: () => lines(
       `<Table aria-label="Projects"`,
       `  rows={[`,
-      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", due: "Oct 14, 2026" },`,
-      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", due: "Nov 2, 2026" },`,
+      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", lead: "Chi Tran", status: "In progress", due: "Oct 14, 2026" },`,
+      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", lead: "Bao Nguyen", status: "Review", due: "Nov 2, 2026" },`,
       `  ]}`,
       `  columns={[`,
-      `    { id: "project", header: "Project", cell: (row) => <TableText bold caption={row.client}>{row.name}</TableText> },`,
-      `    { id: "due", header: "Due", width: "152px", cell: (row) => <TableText>{row.due}</TableText> },`,
+      `    { id: "project", header: "Project", content: "text", field: "name", captionField: "client", bold: true },`,
+      `    { id: "lead", header: "Lead", content: "avatar", field: "lead" },`,
+      `    { id: "status", header: "Status", content: "badge", field: "status" },`,
+      `    { id: "due", header: "Due", width: "152px", field: "due" },`,
       `  ]} />`,
     ),
   },
   {
     id: "image", label: "Image", group: "Data display", caption: "4:3 photo", root: "Image", components: ["Image"], requires: MEDIA, interactive: false, input: false,
     build: () => `<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio="4:3" />`,
+    // A page you make takes the library's photo by key (builder/library/media.ts), not platformMedia.
+    builder: () => `<Image src="zen-media:site-cafe" alt="Café table with a coffee" ratio="4:3" />`,
   },
   /* Charts */
   {
@@ -454,6 +489,8 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "date-picker", label: "Calendar", group: "Inputs", caption: "Inline date picker", root: "DatePicker", components: ["DatePicker"], interactive: true, input: true,
     build: () => `<DatePicker aria-label="Due date" today={new Date(2026, 8, 30)} defaultValue={new Date(2026, 9, 14)} />`,
+    // No Date code on a page you make: the calendar opens on this month.
+    builder: () => `<DatePicker aria-label="Due date" />`,
   },
   {
     id: "number-field", label: "Number field", group: "Inputs", root: "NumberField", components: ["NumberField"], interactive: true, input: true,
@@ -484,11 +521,19 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "nps-scale", label: "NPS scale", group: "Inputs", caption: "0 to 10", root: "NpsScale", components: ["NpsScale"], state: [state("score", "null", "number | null")], interactive: true, input: true,
     build: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" value={score} onValueChange={setScore} />`,
+    builder: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" />`,
   },
   {
     id: "color-selector", label: "Colour selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,
     build: () => lines(
       `<ColorSelector aria-label="Project colour" value={color} onValueChange={setColor} colors={[`,
+      `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
+      `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
+      `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
+      `]} />`,
+    ),
+    builder: () => lines(
+      `<ColorSelector aria-label="Project colour" value="var(--zen-color-background-support-blue-solid)" colors={[`,
       `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
       `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
       `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
@@ -501,6 +546,10 @@ export const PALETTE: readonly PaletteItem[] = [
       `<FileUpload label="Kickoff files" multiple accept=".pdf,.png,.jpg,.jpeg"`,
       `  text="Drop files here or choose them" caption="PDF or images. Max size of 100 MB"`,
       `  onFilesAdd={(added) => toast({ title: added.length === 1 ? "1 file added" : \`\${added.length} files added\` })} />`,
+    ),
+    builder: () => lines(
+      `<FileUpload label="Kickoff files" multiple accept=".pdf,.png,.jpg,.jpeg"`,
+      `  text="Drop files here or choose them" caption="PDF or images. Max size of 100 MB" />`,
     ),
   },
   /* Overlays: each comes with the Button that opens it. */
@@ -630,27 +679,52 @@ export const PALETTE: readonly PaletteItem[] = [
       `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
       `]} />`,
     ),
-  },
-  {
-    id: "sidebar", label: "Sidebar", group: "Page", caption: "Navigation", root: "Sidebar", components: ["Sidebar"], state: [state("section", '"projects"')], interactive: true, input: false,
-    build: () => lines(
-      `<Sidebar aria-label="Workspace" selectedId={section} onItemClick={(item) => setSection(item.id)} sections={[{ items: [`,
+    builder: () => lines(
+      `<BottomNavigation aria-label="Main" value="home" items={[`,
       `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
       `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  { id: "people", label: "People", icon: "icon-users-line" },`,
-      `] }]} />`,
+      `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
+      `]} />`,
     ),
   },
   {
-    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
+    // Its rows are Body-Content children (Figma Menu-Item instances), so each is a layer of the slot.
+    id: "sidebar", label: "Sidebar", group: "Page", caption: "Navigation", root: "Sidebar", components: ["Sidebar", "SidebarMenuItem"], state: [state("section", '"projects"')], interactive: true, input: false,
+    build: () => lines(
+      `<Sidebar aria-label="Workspace" selectedId={section} onItemClick={(item) => setSection(item.id)}>`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
+    ),
+    builder: () => lines(
+      `<Sidebar aria-label="Workspace" selectedId="projects">`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
+    ),
+  },
+  {
+    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "SidebarMenuItem", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
     build: () => lines(
       `<AppShell`,
-      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)} sections={[{ items: [`,
-      `    { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `    { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  ] }]} />}`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)}>`,
+      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  </Sidebar>}`,
       `  header={<Breadcrumbs master={false} items={[{ id: area, label: area === "home" ? "Home" : "Projects" }]} />}>`,
       `  <Text tone="base">{area === "home" ? "3 projects are due this week." : "12 active projects."}</Text>`,
+      `</AppShell>`,
+    ),
+    builder: () => lines(
+      `<AppShell`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId="projects">`,
+      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  </Sidebar>}`,
+      `  header={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }]} />}>`,
+      `  <Text tone="base">12 active projects.</Text>`,
       `</AppShell>`,
     ),
   },
@@ -677,10 +751,21 @@ export const PALETTE: readonly PaletteItem[] = [
       `  </ChatMessage>`,
       `</ChatThread>`,
     ),
+    builder: () => lines(
+      `<ChatThread aria-label="Chat with Bao Nguyen">`,
+      `  <ChatMessage side="others" author={{ name: "Bao Nguyen", theme: "indigo" }} time="9:41 AM">`,
+      `    Can you send the rewards flow before Friday?`,
+      `  </ChatMessage>`,
+      `  <ChatMessage side="you" time="9:43 AM">`,
+      `    Sure, it goes out Thursday morning.`,
+      `  </ChatMessage>`,
+      `</ChatThread>`,
+    ),
   },
   {
     id: "chat-composer", label: "Chat composer", group: "Chat", root: "ChatComposer", components: ["ChatComposer"], requires: TOAST, interactive: true, input: false,
     build: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={(text) => toast({ title: "Message sent", children: text })} />`,
+    builder: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={proto.toast({ title: "Message sent" })} />`,
   },
   {
     id: "ai-chat", label: "AI chat", group: "Chat", caption: "Thread and field", root: "Stack", components: ["Stack", "AiChatThread", "AiChatBubble", "AiChatField"], requires: TOAST, interactive: true, input: false,
@@ -692,6 +777,18 @@ export const PALETTE: readonly PaletteItem[] = [
       `  </AiChatThread>`,
       `  <AiChatField placeholder="Ask about your projects" onSubmit={(text) => toast({ title: "Question sent", children: text })} />`,
       `</Stack>`,
+    ),
+  },
+  {
+    // Figma ❖ Voice (15081:1294): every action wired (harness voice/actions-wired); a page's toasts become proto.toast.
+    id: "voice-recorder", label: "Voice recorder", group: "Chat", caption: "Record a voice note", root: "VoiceRecorder", components: ["VoiceRecorder"], requires: TOAST, interactive: true, input: false,
+    build: () => lines(
+      `<VoiceRecorder title="Voice note" input="Built-in microphone" format="48 kHz · Mono"`,
+      `  onRecord={() => toast({ title: "Recording started" })}`,
+      `  onPause={() => toast({ title: "Recording paused" })}`,
+      `  onResume={() => toast({ title: "Recording resumed" })}`,
+      `  onFinish={() => toast({ title: "Voice note saved" })}`,
+      `  onDiscard={() => toast({ title: "Take discarded" })} />`,
     ),
   },
 ];
@@ -719,6 +816,11 @@ const PREFERRED: Readonly<Record<string, readonly string[]>> = {
   "ListBox.header": ["heading", "paragraph"],
   "ListBox.children": ["list"],
   "ListBox.footer": ["button"],
+  "Sidebar.brand": ["avatar", "dock-icon"],
+  "Sidebar.children": ["menu-item", "menu-section"],
+  "Sidebar.footer": ["menu-item"],
+  "PageHeader.actions": ["button", "button-primary", "menu"],
+  "PageHeader.trailing": ["icon-button", "menu", "avatar"],
 };
 
 /** The slot's preferred item ids ("metric" stands for Metric or MetricCard, whichever the host offers). */
@@ -729,6 +831,9 @@ const CARD_SURFACES = new Set(["Card", "ChartCard", "MetricCard"]);
 const FORM_HOSTS = new Set(["ModalForm", "Form"]);
 const MOBILE_HOSTS = new Set(["BottomSheet", "PlatformPhone"]);
 const CHOICE_CONTROLS = new Set(["checkbox", "toggle", "radio-group"]);
+/** Sidebar rows go in a Sidebar (Body-Content, Footer-Content) or its flyout, and nowhere else. */
+const SIDEBAR_ROWS = new Set(["SidebarMenuItem", "SidebarMenuSection"]);
+const SIDEBAR_HOSTS = new Set(["Sidebar", "SidebarSubMenu"]);
 
 /** Set to something other than false / null / undefined (a bound handler counts). */
 const isSet = (value: HostProps[string]) => value !== undefined && value !== false && !(typeof value === "object" && /^(null|undefined|false)$/.test(value.bound));
@@ -760,6 +865,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
 
   const warningFor = (item: PaletteItem): PaletteWarning | null => {
     if (only && !only.includes(item.root)) return { short: `${ctx.slot.name} prefers others`, reason: `${ctx.slot.name} takes ${sentence(only)}` };
+    if (SIDEBAR_ROWS.has(item.root) && !inChain(SIDEBAR_HOSTS)) return { short: "Sidebar rows only", reason: "Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout" };
     if (item.components.includes("Accordion") && (deny.has("Accordion") || chain.includes("Accordion"))) return { short: "Accordion in an Accordion", reason: "Accordions are one level deep" };
     if (insideCard && item.components.some((name) => CARD_SURFACES.has(name))) return { short: "Card inside a card", reason: "A card never goes inside a card" };
     const denied = item.components.find((name) => deny.has(name));
@@ -776,7 +882,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   };
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
-    if (ctx.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
+    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
     if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "Actions and stateful items need a component to hold their hooks; this code sits outside one";
     if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Images read platformMedia, which only the example pages import";
     return null;
@@ -797,7 +903,12 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
       continue;
     }
     // A builder page gets the item with proto handlers (and needs no toast hook).
-    items.push(ctx.builder ? { ...item, requires: item.requires?.filter((need) => need !== "toast"), build: (built) => builderCode(item.build(built)) ?? item.build(built) } : item);
+    items.push(ctx.builder ? {
+      ...item,
+      requires: item.requires?.filter((need) => need !== "toast"),
+      // Its static version (no state), or its code with proto handlers.
+      ...(item.builder ? { state: undefined, build: item.builder } : { build: (built: PaletteContext) => builderCode(item.build(built)) ?? item.build(built) }),
+    } : item);
     const warning = warningFor(item);
     if (warning) warnings[item.id] = warning;
   }

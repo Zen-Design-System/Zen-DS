@@ -3858,11 +3858,19 @@
           "deprecated": null
         },
         {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Body-Content (Child-Body-Content in the workspace variant), after `sections`: `<SidebarMenuItem>` rows and\n `<SidebarMenuSection>` groups, or any content. Consecutive rows form one unlabelled section. The rows share the\n Sidebar's selection, rail and `onItemClick`; other content renders as it is, so it handles the rail itself.",
+          "deprecated": null
+        },
+        {
           "name": "footer",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Footer-Content (Child-Footer-Content), under a divider: `<SidebarMenuItem>` rows like the body's, or the app's\n own buttons of an Icon and a label span (the rail hides the label visually, keeps it as the name and the tooltip).",
           "deprecated": null
         },
         {
@@ -3988,6 +3996,162 @@
       ]
     },
     {
+      "name": "SidebarMenuItem",
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode | SidebarItem[]",
+          "required": false,
+          "default": null,
+          "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`.",
+          "deprecated": null
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail).",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is\n Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text).",
+          "deprecated": null
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "indent",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows\n the Notification-Dot instead and joins the row's name (\"Approvals, 3\").",
+          "deprecated": null
+        },
+        {
+          "name": "notificationDot",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Primitives/Notification-Dot on the icon.",
+          "deprecated": null
+        },
+        {
+          "name": "trailingAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row\n itself is the button or link.",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls\n `onItemClick`. Disabled items stay buttons.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SidebarMenuSection",
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Section title: the Menu-Item section label (Body/Small), as `SidebarSection.label`.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The section's `<SidebarMenuItem>` rows.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
       "name": "SidebarSubMenu",
       "extends": null,
       "props": [
@@ -4028,7 +4192,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Extra content under the item list.",
+          "description": "Figma Sub-Item slot content under the item list: `<SidebarMenuItem>` rows (they share `onItemClick`) or anything else.",
           "deprecated": null
         },
         {
@@ -5074,9 +5238,17 @@
         {
           "name": "items",
           "type": "TabOption[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value=\"general\" label=\"General\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the\n selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`,\n `disabled`, `aria-label`.",
           "deprecated": null
         },
         {
@@ -5163,7 +5335,7 @@
     },
     {
       "name": "TabItem",
-      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\" | \"value\">",
       "props": [
         {
           "name": "ref",
@@ -5171,6 +5343,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then\n its position.",
           "deprecated": null
         },
         {
@@ -5294,9 +5474,17 @@
         {
           "name": "items",
           "type": "BreadcrumbItemData[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets the current page and collapsing; a BreadcrumbItem's own `level`, `emphasis` and\n `state` (or its item's) win over Breadcrumbs' defaults.",
           "deprecated": null
         },
         {
@@ -5304,7 +5492,7 @@
           "type": "\"default\" | \"medium\"",
           "required": false,
           "default": "\"default\"",
-          "description": "",
+          "description": "Every crumb's Figma Emphasis, unless the crumb sets its own (`items[n].emphasis`).",
           "deprecated": null
         },
         {
@@ -5312,7 +5500,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Show the first item as the Master level (with icon). Default true.",
+          "description": "Show the first item as the Master level (with icon), unless a crumb sets its own `level`. Default true.",
           "deprecated": null
         },
         {
@@ -5355,7 +5543,7 @@
       "props": [
         {
           "name": "item",
-          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName | ReactNode; }",
+          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName | ReactNode; /** Figma Item › Level: Master draws the leading icon. Unset: the first crumb is Master while Breadcrumbs' `master` is * on, the others Sub. */ level?: BreadcrumbLevel; /** Figma Item › Emphasis: Medium sets the label in Body/Base/Medium. Unset: Breadcrumbs' `emphasis`. */ emphasis?: BreadcrumbEmphasis; /** Figma Item › State, for a static mockup or matrix (Hover shows Neutral/Flat/Hover); real hover applies anyway. */ state?: \"default\" | \"hover\"; /** Figma Item/Slot › Dash: the chevron after this crumb. Unset: after every crumb but the last. */ dash?: boolean; }",
           "required": true,
           "default": null,
           "description": "",
@@ -5365,16 +5553,16 @@
           "name": "level",
           "type": "\"master\" | \"sub\"",
           "required": false,
-          "default": "\"sub\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Level. Unset: the item's own `level`, else Sub.",
           "deprecated": null
         },
         {
           "name": "emphasis",
           "type": "\"default\" | \"medium\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Emphasis. Unset: the item's own `emphasis`, else Default.",
           "deprecated": null
         },
         {
@@ -5389,8 +5577,8 @@
           "name": "state",
           "type": "\"default\" | \"hover\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "Deterministic Figma State for matrices; real hover applies natively.",
+          "default": null,
+          "description": "Deterministic Figma State for matrices; real hover applies natively. Unset: the item's own `state`.",
           "deprecated": null
         },
         {
@@ -6818,9 +7006,17 @@
         {
           "name": "steps",
           "type": "StepperStep[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id=\"details\" title=\"Details\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state\n from `current`, the progress lines and the click behaviour.",
           "deprecated": null
         },
         {
@@ -7123,6 +7319,268 @@
           "required": false,
           "default": "\"div\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "voice": [
+    {
+      "name": "VoiceRecorder",
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"ready\" | \"recording\" | \"paused\"",
+          "required": false,
+          "default": "\"ready\"",
+          "description": "Figma State: Ready (nothing recorded yet), Recording, Paused. Your recorder drives it.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The header's name of the take. Default: the locale's \"New recording\".",
+          "deprecated": null
+        },
+        {
+          "name": "elapsed",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00.00\"",
+          "description": "The take's length so far (\"00:24.18\"), Heading/Subheading.",
+          "deprecated": null
+        },
+        {
+          "name": "start",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00\"",
+          "description": "The waveform window's start and end times under it (\"00:16\", \"00:24\").",
+          "deprecated": null
+        },
+        {
+          "name": "end",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line.",
+          "deprecated": null
+        },
+        {
+          "name": "guidance",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under the waveform. Default: what the state means (\"Capturing audio from your microphone.\").",
+          "deprecated": null
+        },
+        {
+          "name": "input",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The footer: the input device (\"Built-in microphone\") and the format (\"48 kHz · Mono\").",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRecord",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Record (Ready), Pause (Recording) and Resume (Paused): the main action. Without the handler for the current state it\n is off, e.g. leave out `onResume` once a take reaches its length limit.",
+          "deprecated": null
+        },
+        {
+          "name": "onPause",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onResume",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onFinish",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Finish the take (Recording, Paused).",
+          "deprecated": null
+        },
+        {
+          "name": "onDiscard",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Throw the take away (Recording, Paused).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AiVoiceConversation",
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"ready\" | \"listening\" | \"responding\"",
+          "required": false,
+          "default": "\"ready\"",
+          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers).",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The assistant's name in the header. Default: the locale's \"Zen voice\".",
+          "deprecated": null
+        },
+        {
+          "name": "heading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The status heading and its line (Heading/Subheading, Body/Small/Regular). Default: what the state means.",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "The status heading's level in the page outline (an `h3` by default; `2` straight under a screen's h1).",
+          "deprecated": null
+        },
+        {
+          "name": "guidance",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "speaker",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Who the transcript is from (\"You · Live transcript\", \"Zen · Spoken response\"); Ready: \"Try saying\".",
+          "deprecated": null
+        },
+        {
+          "name": "transcript",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The transcript card's text (Figma AI/Chat-Bubble Side=AI): a suggestion when ready, what you say, what it says.",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7).",
+          "deprecated": null
+        },
+        {
+          "name": "muted",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mute (the left action, a toggle; off until the conversation starts).",
+          "deprecated": null
+        },
+        {
+          "name": "onMutedChange",
+          "type": "(muted: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onStart",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding).",
+          "deprecated": null
+        },
+        {
+          "name": "onDone",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onInterrupt",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onEnd",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "End the conversation (off while Ready).",
+          "deprecated": null
+        },
+        {
+          "name": "note",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing.",
           "deprecated": null
         },
         {
@@ -7587,8 +8045,16 @@
           "name": "selectedIds",
           "type": "string[]",
           "required": false,
-          "default": "[]",
-          "description": "",
+          "default": null,
+          "description": "The selected rows (controlled, with `onSelectionChange`); without it the Table keeps the selection itself.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultSelectedIds",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "The rows selected at first when the selection is not controlled.",
           "deprecated": null
         },
         {
@@ -7597,6 +8063,22 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Table/Cell/Default State=Edit on every cell that shows a row's value: each column without its own `edit`\n(and without `cell`, checkbox or toggle content) edits in place by its content — text or number by the value, a\nlist of the column's values for badges, tags for lists. The Table keeps the edits, or hands them to `onCellCommit`.",
+          "deprecated": null
+        },
+        {
+          "name": "onCellCommit",
+          "type": "(row: T, columnId: string, value: string | string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "An edit made through a shorthand `edit` or `editable`: the row, the column id and the new value (a tags list for\n tags). Without it the Table applies the edit to the row it draws.",
           "deprecated": null
         },
         {
@@ -9016,9 +9498,17 @@
         {
           "name": "items",
           "type": "BottomNavigationItem[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The destinations as BottomNavigationItem elements, in order, when `items` is not given.",
           "deprecated": null
         },
         {
@@ -10012,6 +10502,84 @@
       ]
     },
     {
+      "name": "ChatVoice",
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "duration",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The message's length (\"0:32\").",
+          "deprecated": null
+        },
+        {
+          "name": "elapsed",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Where playback is (\"0:12\"): Business shows \"0:12 / 0:32\" while playing.",
+          "deprecated": null
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "The share already played, 0–1: those bars are full strength, the rest 30%.",
+          "deprecated": null
+        },
+        {
+          "name": "playing",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State: Playing (the control pauses) or Idle (it plays). Your audio element drives it.",
+          "deprecated": null
+        },
+        {
+          "name": "onPlayingChange",
+          "type": "(playing: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Playback speed (1, 1.5, 2); the \"1×\" button steps to the next one. Without `onSpeedChange` it is shown, not a button.",
+          "deprecated": null
+        },
+        {
+          "name": "onSpeedChange",
+          "type": "(speed: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The message's sound levels, 0–1 each (Figma draws 34).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
       "name": "ChatPhotos",
       "extends": null,
       "props": [
@@ -10320,7 +10888,31 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma trailing microphone (Icon-Flat) and the empty field's Voice action. Without it neither is drawn: the empty\n field shows a disabled Send instead.",
+          "description": "Figma trailing microphone (Icon-Flat): dictation into the prompt. Also the empty field's Voice action unless\n `onVoiceMode` is set. Without either, the empty field shows a disabled Send instead.",
+          "deprecated": null
+        },
+        {
+          "name": "onVoiceMode",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The empty field's Voice action (Primary, recording icon): start voice mode, e.g. an AiVoiceConversation. Default:\n `onVoice`.",
+          "deprecated": null
+        },
+        {
+          "name": "listening",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Voice: the field is taking dictation. The prompt reads the locale's \"Listening…\" (Content/Placeholder)\n and the microphone becomes Stop (`onStopListening`); the Primary stays Voice.",
+          "deprecated": null
+        },
+        {
+          "name": "onStopListening",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
           "deprecated": null
         },
         {
@@ -11862,7 +12454,23 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "description": "Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "headerCenter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the\nleading content and the actions, e.g. a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "sections",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),\na toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding\n(Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.",
           "deprecated": null
         },
         {
@@ -11926,7 +12534,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded.",
+          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the\n Sidebar's `collapsed` moves the rail too.",
           "deprecated": null
         },
         {
@@ -12155,6 +12763,14 @@
           "required": false,
           "default": null,
           "description": "Next to the title: a status Badge, Tag or AvatarStack.",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or\n Share (Button/Icon-Main), Spacing/Gap/Small after them.",
           "deprecated": null
         },
         {

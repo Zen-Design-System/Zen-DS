@@ -1,14 +1,13 @@
 // Library rows (Studio builder GĐ3, spec docs/research/studio-builder-library-spec-2026-10-06.md): the Assets search
 // (synonyms in English and Vietnamese, typos, best first) and where an item goes with nothing selected.
-import { showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { openAssetLibrary, sleep, statusText, until } from "../lib/studio.mjs";
 import { focusScreen, newPage, pageText, selectStack, selectedName } from "./builder.mjs";
 import { freshSelect } from "./inspector.mjs";
 
 const quick = (page) => page.locator('[data-e2e="quick-insert"]');
-/** The Assets tab on `kind` (Components · Icons · Photos), its search set to `query`. */
+/** The Assets tab's `kind` library (Components · Icons · Photos) open, its search set to `query`. */
 async function library(page, kind, query) {
-  await showLeftTab(page, "assets");
-  await assets(page).getByRole("button", { name: kind, exact: true }).click();
+  await openAssetLibrary(page, kind);
   await assets(page).getByLabel(`Search ${kind.toLowerCase()}`).fill(query);
   await sleep(200);
 }
@@ -24,10 +23,11 @@ const tagCount = (text, tag) => (String(text ?? "").match(new RegExp(`<${tag}\\b
 const assets = (page) => page.locator("#studio-left-panel-assets");
 /** The Assets rows' names for `query`, in the order shown. */
 async function results(page, query) {
-  // On the Components library: the Assets tab keeps the library an earlier row left it on (LB-12 leaves Photos, and
-  // "Search components" is then not there: LB-13 and LB-14 waited out their 20 s for it).
+  // In the Components library: the Assets tab keeps the library an earlier row left it in (LB-12 leaves Photos).
   await library(page, "Components", query);
-  return assets(page).locator(".studio-assets__row .studio-assets__name").allInnerTexts();
+  // The search's own list: "N results" over it, or the empty state (not the groups the library opened on).
+  await until(async () => (await assets(page).locator(".studio-assets__section[aria-label=\"Results\"]").count()) > 0 || (await assets(page).locator(".studio-assets__empty").count()) > 0, { message: `the results for "${query}"` });
+  return assets(page).locator(".studio-assets__section[aria-label=\"Results\"] [data-asset] .studio-assets__name").allInnerTexts();
 }
 
 export const rows = [
@@ -67,8 +67,8 @@ export const rows = [
       await page.locator(".studio-viewport").focus();
       for (let i = 0; i < 3; i += 1) await page.keyboard.press("Escape");
       await library(page, "Components", "badge");
-      await assets(page).locator(".studio-assets__row", { hasText: /^Badge/ }).first().click();
-      await until(async () => /<Stack gap="md" padding="lg">[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge inside the Screen's Stack" });
+      await assets(page).locator("[data-asset]", { hasText: /^Badge/ }).first().click();
+      await until(async () => /<Stack gap="md" padding="(lg|xl)">[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge inside the Screen's Stack" });
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await until(async () => (await selectedName(page)) === "Badge", { message: "the new Badge selected" });
       return "Badge into the Screen's Stack, selected";
@@ -81,7 +81,7 @@ export const rows = [
       await focusScreen(page);
       const before = await pageText(page, id);
       await library(page, "Components", "dialog");
-      await assets(page).locator(".studio-assets__row", { hasText: /^Dialog/ }).first().click();
+      await assets(page).locator("[data-asset]", { hasText: /^Dialog/ }).first().click();
       await until(async () => /Prototype › Add overlay/.test(await statusText(page)), { message: "the Add overlay hint in the status" });
       if ((await pageText(page, id)) !== before) throw new Error("the page changed");
       return "refused with the way to do it";
@@ -99,7 +99,7 @@ export const rows = [
       await until(async () => (await activeOption(page)) === "Badge", { message: "Badge focused" });
       await page.keyboard.press("Enter");
       await until(async () => (await quick(page).count()) === 0, { message: "Quick insert closed" });
-      await until(async () => /<Stack gap="md" padding="lg">[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge in the Stack" });
+      await until(async () => /<Stack gap="md" padding="(lg|xl)">[\s\S]*<Badge/.test((await pageText(page, id)) ?? ""), { message: "a Badge in the Stack" });
       await until(async () => (await selectedName(page)) === "Badge", { message: "the Badge selected" });
       return `"${where}" → Badge added and selected`;
     },
@@ -125,10 +125,24 @@ export const rows = [
       const preview = quick(page).locator('[data-e2e="quick-insert-preview"][data-ready="true"]');
       await preview.waitFor({ state: "visible", timeout: 10_000 });
       await until(async () => (await preview.locator(".zen-button").count()) > 0, { timeout: 10_000, message: "a real Button in the preview" });
+      // Centred in the pane: what it paints (its buttons), not the row they are justified in (user, 2026-10-10).
+      const offset = await until(async () => {
+        const off = await preview.evaluate((pane) => {
+          const box = pane.getBoundingClientRect();
+          const rects = [...pane.querySelectorAll(".zen-button")].map((button) => button.getBoundingClientRect());
+          const left = Math.min(...rects.map((r) => r.left)), right = Math.max(...rects.map((r) => r.right));
+          const top = Math.min(...rects.map((r) => r.top)), bottom = Math.max(...rects.map((r) => r.bottom));
+          return { x: Math.round((left + right) / 2 - (box.left + box.right) / 2), y: Math.round((top + bottom) / 2 - (box.top + box.bottom) / 2) };
+        });
+        return Math.abs(off.x) <= 4 && Math.abs(off.y) <= 4 ? off : null;
+      }, { timeout: 5000, message: "the preview centred in its pane" });
+      void offset;
+      // The line under the search keeps its height (it was squeezed and cut under the search).
+      if (await quick(page).locator('[data-e2e="quick-insert-target"]').evaluate((line) => line.scrollHeight > line.clientHeight + 1)) throw new Error("the target line under the search is cut");
       await page.keyboard.press("Escape");
       await until(async () => (await quick(page).count()) === 0, { message: "Esc closes" });
       if ((await pageText(page, id)) !== before) throw new Error("the page changed");
-      return "Dialog → ↓ Modal form; Button previewed; Esc, no change";
+      return "Dialog → ↓ Modal form; Button previewed, centred; Esc, no change";
     },
   },
   {
@@ -245,7 +259,7 @@ export const rows = [
       const none = await results(page, "zzqqxx");
       if (none.length) throw new Error(`"zzqqxx" lists ${none.slice(0, 3).join(", ")}`);
       await assets(page).locator(".studio-assets__empty").getByRole("button", { name: "Clear search" }).click();
-      await until(async () => (await assets(page).getByLabel("Search components").inputValue()) === "" && (await assets(page).locator(".studio-assets__row").count()) > 0, { message: "the search cleared and the list back" });
+      await until(async () => (await assets(page).getByLabel("Search components").inputValue()) === "" && (await assets(page).locator("[data-asset]").count()) > 0, { message: "the search cleared and the list back" });
       return "No components match → Clear search → the list";
     },
   },
@@ -255,7 +269,7 @@ export const rows = [
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
       await library(page, "Components", "badge");
-      await assets(page).locator(".studio-assets__row", { hasText: /^Badge/ }).first().click();
+      await assets(page).locator("[data-asset]", { hasText: /^Badge/ }).first().click();
       await until(async () => tagCount(await pageText(page, id), "Badge") === 1, { message: "a Badge in the page" });
       await until(async () => (await selectedName(page)) === "Badge", { message: "the Badge selected" });
       await page.locator(".studio-viewport").focus();

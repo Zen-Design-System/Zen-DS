@@ -6,7 +6,8 @@ import { multiSelection } from "../select/multiSelection";
 import { rowOf } from "../inspector/detach";
 import { childHits, fiberOf, findBySrc, srcOf, type Fiber } from "../select/picker";
 import { canEdit, studioStore } from "../store";
-import type { EditOp, SourceElement, StudioSelection } from "../types";
+import { cellFieldOf, rowFieldsOf, tableCellOf } from "../table/tableCells";
+import type { DataSource, EditOp, SourceElement, StudioSelection } from "../types";
 
 /*
  * Inline text editing on the canvas (Figma: double-click a text layer, or Enter on it, edits it in place).
@@ -16,7 +17,9 @@ import type { EditOp, SourceElement, StudioSelection } from "../types";
  * first one whose source holds that exact text — a literal text child (`<Button>Save</Button>`) or a string prop
  * (`<ListItem title="Invoices">`) — is what the edit writes (op setText / setProp: one draft edit, one undo step).
  * Text from data (`title={one.name}` in a `.map` row, `{studio.name}`) is written where the data holds it (op
- * setDataField, the row counted on the canvas; plan WP-F, E2E DA-02) when the dev server says it can be.
+ * setDataField, the row counted on the canvas; plan WP-F, E2E DA-02) when the dev server says it can be. A Table cell's
+ * text writes its row (2026-10-10): the row the <tr> draws, named by its key, in the data the Table reads; a column
+ * without `cell` draws the row's field itself, so that field of the Table's rows is written.
  * While typing, the rendered text node gets the new value so the layout reflows live, as in Figma; the editor
  * (TextEditor.tsx) draws the text over it. Other text that comes from an expression is not edited here.
  */
@@ -30,8 +33,12 @@ export type TextTarget = {
   loc: string;
   src: string;
   element: SourceElement;
-  /** `data`: the text comes from data (a `.map` row's item, a data const): op setDataField writes it there (WP-C). */
-  op: { kind: "text"; index: number } | { kind: "prop"; name: string } | { kind: "data"; prop?: string; child?: number; row?: number; source: string };
+  /**
+   * `data`: the text comes from data (a `.map` row's item, a Table cell's row, a data const): op setDataField writes it
+   * there (WP-C). `rowKey` / `table`: a Table cell's row key and Table loc; `field`: the row field a column without
+   * `cell` draws (sent on the Table).
+   */
+  op: { kind: "text"; index: number } | { kind: "prop"; name: string } | { kind: "data"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; source: string };
   /** The rendered text at the start (restored on a failed or empty edit). */
   original: string;
   /** How many places the edit changes (a `.map` row renders the same source several times). */
@@ -175,18 +182,28 @@ function writtenProps(fiber: Fiber | undefined, src: string): Record<string, unk
 /** The text the element's live prop (or string children) renders, for matching the clicked text to its source. */
 const liveText = (value: unknown) => (typeof value === "string" || typeof value === "number" ? normalizeText(String(value)) : null);
 
-/** Text from data the dev server can write at its source: an expression prop or child whose live value is the text. */
-function dataMatch(element: SourceElement, props: Record<string, unknown>, wanted: string): Exclude<TextTarget["op"], { kind: "text" } | { kind: "prop" }> | null {
+type DataOp = Extract<TextTarget["op"], { kind: "data" }>;
+
+/**
+ * Text from data the dev server can write at its source: an expression prop or child whose live value is the text.
+ * `from`: what feeds it (a `.map` row, a Table cell's row, a data const).
+ */
+function dataMatch(element: SourceElement, props: Record<string, unknown>, wanted: string): { op: DataOp; from: DataSource["kind"] } | null {
   const prop = element.attributes.find((attribute) => attribute.kind === "expression" && attribute.dataSource?.editable && !NOT_TEXT_PROPS.test(attribute.name) && liveText(props[attribute.name]) === wanted);
-  if (prop) return { kind: "data", prop: prop.name, source: prop.dataSource?.source ?? prop.value ?? prop.name };
+  if (prop?.dataSource) return { op: { kind: "data", prop: prop.name, source: prop.dataSource.source ?? prop.value ?? prop.name }, from: prop.dataSource.kind };
   // Expression children, counted as the server counts them (whitespace-only text left out).
   let index = -1;
   for (const child of element.children) {
     if (child.kind === "text" && !child.value.trim()) continue;
     index += 1;
-    if (child.kind === "expression" && child.dataSource?.editable && liveText(props.children) === wanted) return { kind: "data", child: index, source: child.dataSource.source ?? child.raw };
+    if (child.kind === "expression" && child.dataSource?.editable && liveText(props.children) === wanted) return { op: { kind: "data", child: index, source: child.dataSource.source ?? child.raw }, from: child.dataSource.kind };
   }
   return null;
+}
+
+/** "Name · row 2" for a Table cell's edit label. */
+function cellName(header: unknown, id: string, row: number) {
+  return `${typeof header === "string" && header.trim() ? header.trim() : id} · row ${row + 1}`;
 }
 
 async function sourceOf(chain: Array<{ src: string; fiber?: Fiber }>, text: string, node?: Node): Promise<Match | { reason: string } | null> {
@@ -197,15 +214,31 @@ async function sourceOf(chain: Array<{ src: string; fiber?: Fiber }>, text: stri
     if (!at) continue;
     const element = await studioApi.element(at.file, at.loc);
     if (!element) continue;
+    // A Table cell whose column has no `cell`: the Table draws the row's field itself, so that field is written.
+    const cell = index === 0 && element.tableRows && node ? tableCellOf(node) : null;
+    if (cell && cell.src === chain[0].src && cell.columnDef && !cell.columnDef.cell) {
+      const field = cellFieldOf(cell, text, normalizeText);
+      if (!field) return { reason: "This text is drawn by the Table from its row; edit the row's data in the code" };
+      if (!element.tableRows!.editable) return { reason: `This text comes from the Table's rows: ${element.tableRows!.reason ?? "they are computed in the code"}` };
+      return { element, op: { kind: "data", field, row: cell.row, ...(cell.rowKey !== null ? { rowKey: cell.rowKey } : {}), rowFields: rowFieldsOf(cell.item), source: cellName(cell.columnDef.header, cell.columnDef.id, cell.row) } };
+    }
     const child = element.children.find((entry) => entry.kind === "text" && normalizeText(entry.value) === wanted);
     if (child && child.kind === "text") return { element, op: { kind: "text", index: child.index } };
     const prop = element.attributes.find((attribute) => attribute.kind === "string" && !NOT_TEXT_PROPS.test(attribute.name) && normalizeText(attribute.value ?? "") === wanted);
     if (prop) return { element, op: { kind: "prop", name: prop.name } };
     const data = dataMatch(element, writtenProps(chain[index].fiber, chain[index].src), wanted);
-    if (data) {
+    if (data?.from === "cell") {
+      // A Table column's cell: the row the <tr> draws, named by its key in the data the Table reads.
+      const hit = node ? tableCellOf(node) : null;
+      if (hit) {
+        const table = hit.src ? parseSrc(hit.src) : null;
+        const header = hit.columnDef ? cellName(hit.columnDef.header, hit.columnDef.id, hit.row) : `row ${hit.row + 1}`;
+        return { element, op: { ...data.op, row: hit.row, ...(hit.rowKey !== null ? { rowKey: hit.rowKey } : {}), rowFields: rowFieldsOf(hit.item), ...(table && table.file === element.file ? { table: table.loc } : {}), source: `${header}: ${data.op.source}` } };
+      }
+    } else if (data) {
       const repeated = element.attributes.some((attribute) => attribute.dataSource?.kind === "row") || element.children.some((child) => child.kind === "expression" && child.dataSource?.kind === "row");
       const row = repeated && node ? rowAt(chain[index].src, node) : undefined;
-      if (!repeated || row !== undefined) return { element, op: { ...data, row } };
+      if (!repeated || row !== undefined) return { element, op: { ...data.op, row } };
     }
     if (index === 0) {
       const expression = element.children.find((entry) => entry.kind === "expression");
@@ -289,7 +322,8 @@ async function open(node: Text, chain: Array<{ src: string }>, caret: TextTarget
     element: found.element,
     op: found.op,
     original,
-    instances: world ? Math.max(1, findBySrc(world, src).length) : 1,
+    // A row's data (a .map row, a Table cell) is one place, however many rows the source line draws.
+    instances: found.op.kind === "data" && (found.op.row !== undefined || found.op.field) ? 1 : world ? Math.max(1, findBySrc(world, src).length) : 1,
     multiline: preservesBreaks(host),
     caret,
   };
@@ -377,7 +411,11 @@ export function startTextEditOnSelection(): boolean {
 const short = (value: string) => (value.length > 32 ? `${value.slice(0, 32)}…` : value);
 
 function opFor(target: TextTarget, value: string): EditOp {
-  if (target.op.kind === "data") return { op: "setDataField", ...(target.op.prop ? { prop: target.op.prop } : { child: target.op.child }), ...(target.op.row !== undefined ? { row: target.op.row } : {}), value: { kind: "string", value } };
+  if (target.op.kind === "data") {
+    const { prop, child, row, rowKey, rowFields, table, field } = target.op;
+    const at = field ? { field } : prop ? { prop } : { child };
+    return { op: "setDataField", ...at, ...(row !== undefined ? { row } : {}), ...(rowKey !== undefined ? { rowKey } : {}), ...(rowFields ? { rowFields } : {}), ...(table !== undefined ? { table } : {}), value: { kind: "string", value } };
+  }
   return target.op.kind === "text"
     ? { op: "setText", index: target.op.index, value }
     : { op: "setProp", name: target.op.name, value: { kind: "string", value } };

@@ -301,4 +301,45 @@ test("groups the code computes are refused, never rewritten", () => {
   assert.match(run(locOf(GROUPS, '<TopNavigation title="Kind"'), "TopNavigation", { op: "groupItem", prop: "trailing", index: 1, with: 0 }, GROUPS).error, /computes its group/);
 });
 
-console.log(`✓ items (insertItem · removeItem · duplicateItem · moveItem · groupItem · ungroupItem) self-test: ${passed} cases`);
+/* Nested lists (2026-10-10): Sidebar `sections[n].items`, the Menu-Items of Figma's Body-Content under their titles. */
+const NESTED = `import { Sidebar } from "../../../components/Sidebar";
+
+export function Shell() {
+  return (
+    <Sidebar
+      sections={[
+        { items: [{ id: "home", label: "Home", icon: "icon-home" }, { id: "projects", label: "Projects", icon: "icon-folder" }] },
+        { label: "Admin", items: [{ id: "members", label: "Members", icon: "icon-users" }] },
+      ]}
+    />
+  );
+}
+`;
+const nestedAt = locOf(NESTED, "<Sidebar\n");
+const nRun = (op, code = NESTED) => ok(run(locOf(code, "<Sidebar\n"), "Sidebar", { prop: "sections", ...op }, code, { componentModules: { Sidebar: "Sidebar" } }));
+
+test("nest: remove, duplicate, move and insert in one group's list; its last item leaves []", () => {
+  const removed = nRun({ op: "removeItem", index: 0, nest: { index: 0, key: "items" } });
+  assert.match(removed.code, /\{ items: \[\{ id: "projects", label: "Projects", icon: "icon-folder" \}\] \}/);
+  const copy = nRun({ op: "duplicateItem", index: 1, nest: { index: 0, key: "items" } });
+  assert.match(copy.code, /label: "Projects", icon: "icon-folder" \}, \{ id: "projects-2", label: "Projects", icon: "icon-folder" \}\] \}/);
+  assert.deepEqual(copy.item, { prop: "sections", index: 2 });
+  const moved = nRun({ op: "moveItem", index: 1, to: 0, nest: { index: 0, key: "items" } });
+  assert.match(moved.code, /items: \[\{ id: "projects", [^}]*\}, \{ id: "home",/);
+  const added = nRun({ op: "insertItem", code: '{ id: "billing", label: "Billing", icon: "icon-card" }', nest: { index: 1, key: "items" } });
+  assert.match(added.code, /\{ id: "members", label: "Members", icon: "icon-users" \}, \{ id: "billing", label: "Billing", icon: "icon-card" \}\] \}/);
+  const emptied = nRun({ op: "removeItem", index: 0, nest: { index: 1, key: "items" } });
+  assert.match(emptied.code, /\{ label: "Admin", items: \[\] \}/);
+  assert.match(run(nestedAt, "Sidebar", { op: "removeItem", prop: "sections", index: 0, nest: { index: 5, key: "items" } }, NESTED, { componentModules: { Sidebar: "Sidebar" } }).error, /no item 6/);
+});
+
+test("setItems: the whole list rewritten at the prop's indent; null removes the prop", () => {
+  const code = '[\n  { label: "Admin", items: [\n    { id: "members", label: "Members", icon: "icon-users" },\n    { id: "home", label: "Home", icon: "icon-home" },\n  ] },\n]';
+  const result = nRun({ op: "setItems", code });
+  assert.match(result.code, /sections=\{\[\n {8}\{ label: "Admin", items: \[\n {10}\{ id: "members"[^\n]*\n {10}\{ id: "home"[^\n]*\n {8}\] \},\n {6}\]\}/);
+  const cleared = nRun({ op: "setItems", code: null });
+  assert.doesNotMatch(cleared.code, /sections=/);
+  assert.match(run(nestedAt, "Sidebar", { op: "setItems", prop: "sections", code: "{ a: 1 }" }, NESTED, { componentModules: { Sidebar: "Sidebar" } }).error, /one array literal/);
+});
+
+console.log(`✓ items (insertItem · removeItem · duplicateItem · moveItem · groupItem · ungroupItem · setItems) self-test: ${passed} cases`);

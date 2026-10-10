@@ -39,6 +39,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Slider](slider.md) | `slider/needs-name`, `slider/white-no-small`, `slider/solid-icon`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Card](card.md) | `card/clickable-no-nested-controls`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Dock Icon](dock-icon.md) | `flag/no-emoji-flag`, `dock-icon/emoji-needs-glyph`, `icon/unknown-name`, `interaction/no-noop-handler` |
+| [Voice](voice.md) | `voice/actions-wired`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [List Item](list-item.md) | `flag/no-emoji-flag`, `list-item/inset-not-padding`, `list-item/clickable-row-toggle`, `list-item/switch-row`, `list-item/trailing-button-medium`, `api/deprecated-prop`, `copy/plural-count`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Table](table.md) | `table/actions-flat`, `table/title-heading-4`, `table/needs-name`, `table/interaction-needs-handler`, `table/media-size-by-subtext`, `table/editor-needs-commit`, `table/editor-number-right`, `table/editor-number-validate`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Rating](rating.md) | `rating/needs-name`, `api/deprecated-prop`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |

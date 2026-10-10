@@ -446,7 +446,7 @@ export function EmptyErrorTemplate() {
       ) : undefined}
     >
       <Container maxWidth="full">
-        <Stack gap="lg" paddingY="lg">
+        <Stack gap="lg" paddingY="sm">
           <PageHeader
             title="Projects"
             description={workspaces[workspace].about}

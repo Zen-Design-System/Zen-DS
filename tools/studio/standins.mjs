@@ -1,6 +1,6 @@
 // Stand-ins for what a component requires but a builder page cannot write (Studio builder GĐ5 M1, spec
 // docs/research/studio-builder-handoff-spec-2026-10-07.md §3a). A page holds literals and proto.* only, so a required
-// function (AiChatField `onSubmit`, a Table column's `cell`, TopNavigation `searchAction.onClick`) is missing: the page
+// function (AiChatField `onSubmit`, TopNavigation `searchAction.onClick`) is missing: the page
 // renderer passes a stand-in so the component renders, and the exported React (compile.mjs) writes one with a TODO(dev).
 // Isomorphic, no imports beyond the generated list (compile-api-build.mjs).
 import { OBJECT_FIELDS, REQUIRED_FUNCTIONS } from "./compile-api.generated.mjs";
@@ -37,11 +37,3 @@ export const requiredFunctions = (component) => REQUIRED_FUNCTIONS[component] ??
 /** Per prop of `component` whose type is closed objects: the fields those objects may have; null for none. */
 export const objectFields = (component) => OBJECT_FIELDS[component] ?? null;
 
-/**
- * A Table column without a `cell` shows its row's field named by the column's id (`{ id: "status" }` → row.status), when
- * that field holds text or a number: the page's rows are its data, and a page cannot write a cell function.
- */
-export const isColumnCell = (component, prop, field) => component === "Table" && prop === "columns" && field === "cell";
-
-/** A row field a column shows as is: text or a number. */
-export const showsAsText = (value) => typeof value === "string" || typeof value === "number";

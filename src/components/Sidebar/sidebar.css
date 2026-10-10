@@ -72,15 +72,17 @@
 .zen-sidebar__sub-menu { position: relative; display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-left: calc(var(--zen-spacing-padding-small, 12px) + var(--zen-element-size-popular-small, 16px)); }
 .zen-sidebar__sub-menu::before { position: absolute; top: 0; bottom: 0; left: calc(var(--zen-spacing-padding-small, 12px) + 9px); width: 2px; background: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); content: ""; }
 
+/* The fallbacks are the .zen-sidebar defaults: a SidebarMenuItem placed outside a Sidebar (a page's Stack, a flyout)
+   draws Figma's Menu-Item all the same (Studio, 2026-10-10: it lost its padding and gap there). */
 .zen-sidebar__item {
   position: relative;
   display: flex;
   width: 100%;
   min-height: 44px;
   align-items: center;
-  gap: var(--zen-sidebar-item-gap);
+  gap: var(--zen-sidebar-item-gap, var(--zen-spacing-gap-small, 12px));
   box-sizing: border-box;
-  padding: var(--zen-sidebar-item-padding);
+  padding: var(--zen-sidebar-item-padding, var(--zen-spacing-padding-small, 12px));
   border: 0;
   border-radius: var(--zen-corner-radius-base, 12px);
   background: var(--zen-color-background-neutral-flat-default, transparent);
@@ -124,6 +126,8 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__footer { display: flex; width: 100%; flex-direction: column; align-items: flex-start; box-sizing: border-box; padding: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar__footer-content { display: flex; width: 100%; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-sidebar__footer-content > button { display: flex; width: 100%; min-height: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-items: center; gap: var(--zen-sidebar-item-gap, 12px); box-sizing: border-box; padding: var(--zen-sidebar-item-padding, 12px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); text-align: left; }
+/* Figma Footer-Content holds Menu-Items: a SidebarMenuItem row spans the footer like the body's rows. */
+.zen-sidebar__footer-content > .zen-sidebar__item-group { align-self: stretch; }
 .zen-sidebar__footer-content > button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-sidebar__footer-content > button > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); }
 
@@ -196,7 +200,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__body { align-items: center; }
 /* Collapsed: Figma keeps the collapse wrapper centred and items square (icon 20 + 12px padding = 44). */
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__collapse { margin: var(--zen-sidebar-collapse-bleed); }
-.zen-sidebar[data-variant="basic"][data-collapsed="true"] :is(.zen-sidebar__body .zen-sidebar__item, .zen-sidebar__footer-content > button) { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-self: center; margin-inline: auto; }
+.zen-sidebar[data-variant="basic"][data-collapsed="true"] :is(.zen-sidebar__body .zen-sidebar__item, .zen-sidebar__footer-content .zen-sidebar__item, .zen-sidebar__footer-content > button) { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); align-self: center; margin-inline: auto; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__item-label,
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__counter,
@@ -207,8 +211,10 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__items { width: 100%; gap: 0; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section { gap: 0; }
 /* Figma HR Sidebar-List Expand=No (7373:57684): the rail's groups sit Spacing/Gap/XSmall (8px) apart and each later
-   group opens with a 1px Divider as wide as an item (44px), 2px above its first item. */
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section { margin-top: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+   group opens with a 1px Divider as wide as an item (44px). Figma puts it 2px above the group's first item; the user
+   (2026-10-10, "tăng spacing giữa divider với các item dưới") asked for more room, so it sits Spacing/Gap/XSmall below
+   as well, centred between the groups (a selected item's fill no longer touches it). */
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section { margin-top: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section::before { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); height: 1px; justify-self: center; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); content: ""; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }

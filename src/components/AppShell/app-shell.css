@@ -23,16 +23,25 @@
 .zen-app-shell__sidebar:has(> .zen-sidebar[data-variant="basic"][data-collapsed="true"]) { margin-inline-end: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); }
 .zen-app-shell__column { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
 
-/* Top bar = Figma Primitives/Dashboard/Header Type=Navigation (4122:33400) as in HR-Platform: Margin-Comfortable top
-   and sides, Spacing/Padding/XSmall bottom and a Button/Size/Medium row (72px on desktop). Leading (toggle + content)
-   and trailing are Spacing/Gap/Medium apart; the toggle sits Spacing/Gap/Medium before the Breadcrumbs and
+/* Top bar = Figma Primitives/Dashboard/Header Type=Navigation (4122:33400) as a row of Header/Dashboard (4122:34662, the
+   rows of its Sections slot): Spacing/Padding/Small above and below, Margin-Comfortable at the sides and a
+   Button/Size/Medium row (64px on desktop). Leading (toggle + content), the Center-Slots (up to 400px, centred) and the
+   trailing actions are Spacing/Gap/Medium apart; the toggle sits Spacing/Gap/Medium before the Breadcrumbs and
    Spacing/Gap/Large before a Search; the actions are Spacing/Gap/Small apart. */
 /* zen-allow-canvas-layer: the sticky top bar continues the page Canvas so content scrolls under it. */
-.zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); display: flex; min-width: 0; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-app-shell-canvas); }
+.zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); display: flex; min-width: 0; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); background: var(--zen-app-shell-canvas); }
 .zen-app-shell__header-leading { display: flex; min-width: 0; min-height: var(--zen-button-size-medium, 40px); flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-app-shell__header-leading:has(> .zen-app-shell__header-content > .zen-search) { gap: var(--zen-spacing-gap-large, 24px); }
 .zen-app-shell__header-content { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-app-shell__header-actions { display: flex; min-width: 0; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* Center-Slots: up to 400px in the middle; the leading content and the actions share the rest equally so it stays centred. */
+.zen-app-shell__header-center { display: flex; min-width: 0; flex: 0 1 400px; align-items: center; justify-content: center; }
+.zen-app-shell__header-center > * { width: 100%; min-width: 0; }
+.zen-app-shell__header[data-center="true"] > .zen-app-shell__header-leading { flex: 1 1 0; }
+.zen-app-shell__header[data-center="true"] > .zen-app-shell__header-actions { flex: 1 1 0; justify-content: flex-end; }
+/* Header/Dashboard Sections: each row (a PageHeader, a toolbar, your own) takes the Header row padding. */
+.zen-app-shell__sections { display: flex; min-width: 0; flex-direction: column; }
+.zen-app-shell__sections > * { box-sizing: border-box; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
 /* Toggle = Figma's flat header action: a Button/Icon-Flat Medium (40px) centred in an Element-Size/Popular/Base (20px)
    wrapper, so the glyph lines up like the 20px icon-layout-left in Figma while the hit area stays 40px. */
 .zen-app-shell__toggle { --zen-app-shell-toggle-bleed: calc((var(--zen-element-size-popular-base, 20px) - var(--zen-button-size-medium, 40px)) / 2); display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
@@ -47,6 +56,8 @@
 .zen-app-shell__header[data-stacked="true"] .zen-app-shell__toggle { height: var(--zen-button-size-medium, 40px); }
 .zen-app-shell__header[data-stacked="true"] .zen-app-shell__header-content { order: 3; flex-basis: 100%; }
 .zen-app-shell__header[data-stacked="true"] .zen-app-shell__header-actions { margin-inline-start: auto; }
+/* Stacked, the Center-Slots take a row of their own too, under the content. */
+.zen-app-shell__header[data-stacked="true"] > .zen-app-shell__header-center { order: 4; flex-basis: 100%; }
 .zen-app-shell__main { min-width: 0; flex: 1 1 auto; outline: none; }
 /* With a floating action, the end of the page keeps its height and a Margin-Comfortable above and below it free, so
    the last row can scroll clear of the button. */

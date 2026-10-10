@@ -3,7 +3,7 @@ import { chatHoldActionsFor, chatReactionGlyph, type ChatReaction, type ChatReac
 import { useToast, type ToastApi } from "../components/Toast";
 import { typographyStyles } from "../tokens/typography.generated";
 
-export type ChatDemoKind = "text" | "photo" | "file" | "call";
+export type ChatDemoKind = "text" | "photo" | "file" | "call" | "voice";
 
 /** The example card's toast queue (its ZenProvider hosts one); null where none is mounted (playground panels). */
 function useOptionalToast(): ToastApi | null {

@@ -27,8 +27,10 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { cssRules, detachPlan } from "./detach.mjs";
 import { changedLines, draftInfo, followDisk, nextDraft, parseDrafts, planSave, rebaseDraft, serializeDrafts } from "./drafts.mjs";
+import { isComponentCss } from "./css-edit.mjs";
+import { backlogLine, insertBacklog, runSuites, suitesFor } from "./parity.mjs";
 import { frameRangesOf, lineChanges, ownChanges, splitDraft } from "./frame-scope.mjs";
-import { dataFieldEdit, isDataFile, originsOf } from "./data-source.mjs";
+import { dataFieldEdit, dataRowEdit, isDataFile, originsOf } from "./data-source.mjs";
 import { importersOf } from "./shared-code.mjs";
 import { annotate, applyOps, describeElement, isAnnotatedFile, parseSource, sha1 } from "./jsx-source.mjs";
 import { SLOT_OPS, describeSlots, requiredFromApi, withSlots } from "./slots.mjs";
@@ -49,7 +51,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/drafts", "/frame-drafts", "/save", "/discard", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -199,12 +201,12 @@ export function zenStudio() {
         };
         return send(res, 200, detachPlan(content, url.searchParams.get("loc") ?? "", name, { file: target.rel, instances: count("instances"), lists: count("lists") }));
       }
-      if (route === "POST /edit" || route === "POST /write") {
+      if (route === "POST /edit" || route === "POST /write" || route === "POST /css-edit") {
         checkWriteHeaders(req);
         // The body is read before the queue: a slow or abandoned upload never holds up other writes.
         const body = await readJson(req);
         const gone = watchClient(req, res);
-        const result = await exclusive(() => (route === "POST /edit" ? edit(body) : write(body)), gone);
+        const result = await exclusive(() => (route === "POST /edit" ? edit(body) : route === "POST /css-edit" ? cssEdit(body) : write(body)), gone);
         return send(res, 200, result);
       }
       if (route === "GET /drafts") {
@@ -227,10 +229,30 @@ export function zenStudio() {
         const files = frame ? null : draftFiles(body);
         const gone = watchClient(req, res);
         if (route === "POST /discard") return send(res, 200, await exclusive(() => (frame ? discardFrame(frame) : discard(files)), gone));
-        const { saved, conflicts } = await exclusive(() => (frame ? saveFrame(frame) : save(files)), gone);
+        // A library component's stylesheet: its disk text before the save, so the Figma check's "undo the save" can put it back.
+        const { saved, conflicts, prior } = await exclusive(async () => {
+          const before = frame ? new Map() : await priorStylesheets(files);
+          return { ...(await (frame ? saveFrame(frame) : save(files))), prior: before };
+        }, gone);
         // The harness runs outside the write queue: edits can go on while it checks the saved files.
         const harness = await runHarness(saved.map((entry) => entry.file));
-        return send(res, 200, { ok: true, saved, conflicts, harness });
+        // Then the Figma check of each saved component stylesheet runs in the background (Main component M3).
+        const parity = startParity(saved, prior);
+        return send(res, 200, { ok: true, saved, conflicts, harness, parity });
+      }
+      if (route === "GET /parity") {
+        checkToken(req);
+        const job = parityJobs.get(url.searchParams.get("id") ?? "");
+        if (!job) throw new HttpError("not-found", "No such Figma check");
+        return send(res, 200, { ok: true, ...parityReport(job) });
+      }
+      if (route === "POST /parity-keep" || route === "POST /parity-revert") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        const job = parityJobs.get(typeof body.id === "string" ? body.id : "");
+        if (!job || !job.result) throw new HttpError("not-found", "No finished Figma check with that id");
+        const gone = watchClient(req, res);
+        return send(res, 200, await exclusive(() => (route === "POST /parity-keep" ? keepParity(job) : revertParity(job)), gone));
       }
       if (route === "GET /pages") {
         // Builder pages in .zen-studio/pages/ (the browser keeps its copy in IndexedDB and syncs with these).
@@ -303,6 +325,11 @@ export function zenStudio() {
     }
     const target = await resolveFile(file, true);
     if (ops.length === 1 && ops[0]?.op === "setDataField") return editData(target, body);
+    // A .map row's root removed, copied or moved with its row index: the list's data changes (null: not a row, edit the code).
+    if (ops.length === 1 && ["removeElement", "duplicateElement", "moveElement"].includes(ops[0]?.op) && Number.isInteger(ops[0].row)) {
+      const answered = await editRow(target, body);
+      if (answered) return answered;
+    }
     // The edit applies to the effective text (the draft, else the disk) and goes into the draft, never to the disk.
     const disk = await readText(target.abs);
     const before = drafts.get(target.realRel)?.content ?? disk;
@@ -384,10 +411,15 @@ export function zenStudio() {
       if (child.kind === "expression") children.push({ child, index: childIndex });
     }
     const targets = [...attrs.map((attr) => ({ prop: attr.name })), ...children.map((entry) => ({ child: entry.index }))];
+    // A Table (columns and rows): whether its rows can be edited where they are written (a column without `cell` draws
+    // its row's field, which a cell's text edit writes: op setDataField { field }).
+    const table = attrs.some((attr) => attr.name === "columns") && element.attributes.some((attr) => attr.name === "rows" || attr.name === "data");
+    if (table) targets.push({ tableRows: true });
     if (!targets.length) return;
     const origins = originsOf(content, rel, loc, targets, { read: readEffectiveSync });
     attrs.forEach((attr, index) => { attr.dataSource = origins[index]; });
     children.forEach((entry, index) => { entry.child.dataSource = origins[attrs.length + index]; });
+    if (table) element.tableRows = origins[targets.length - 1];
   }
 
   /**
@@ -404,7 +436,27 @@ export function zenStudio() {
     const disk = await readText(dataTarget.abs);
     const before = drafts.get(dataTarget.realRel)?.content ?? disk;
     const draft = result.code !== before ? await setDraft(dataTarget, disk, result.code) : drafts.has(dataTarget.realRel);
-    return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source } };
+    return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source, state: result.state } };
+  }
+
+  /**
+   * Ops removeElement / duplicateElement / moveElement with `row` on the element a .map callback returns (data-source.mjs
+   * dataRowEdit): the row goes from, is copied in or moves in its list where it is written, possibly another file
+   * (examples/data.ts), which gets the draft. `row.loc` is the element's loc after the edit in its own file, `row.state`
+   * a useState list (the client starts the frame again). Null when the element is not a row's root.
+   */
+  async function editRow(target, body) {
+    const { loc, name, ops, hash } = body;
+    const host = await effectiveText(target);
+    if (hash && hash !== sha1(host)) throw new HttpError("stale", `${target.rel} changed since it was read`);
+    const result = dataRowEdit(host, target.rel, loc, name, ops[0], { read: readEffectiveSync });
+    if (result.notRow) return null;
+    if (result.error) throw new HttpError(result.code ?? "forbidden", result.error);
+    const dataTarget = await resolveFile(result.file, true);
+    const disk = await readText(dataTarget.abs);
+    const before = drafts.get(dataTarget.realRel)?.content ?? disk;
+    const draft = result.code !== before ? await setDraft(dataTarget, disk, result.code) : drafts.has(dataTarget.realRel);
+    return { ok: true, file: dataTarget.rel, hash: sha1(result.code), hashBefore: sha1(before), before, after: result.code, changed: result.changed, draft, data: { source: result.source }, row: { index: result.index, state: result.state, loc: result.loc, file: target.rel } };
   }
 
   async function write(body) {
@@ -416,6 +468,111 @@ export function zenStudio() {
     if (sha1(current) !== expectHash) throw new HttpError("stale", `${target.rel} changed since this edit; not overwritten`);
     const draft = content !== current ? await setDraft(target, disk, content) : drafts.has(target.realRel);
     return { ok: true, hash: sha1(content), draft };
+  }
+
+  /**
+   * A token edit of a library component's stylesheet (Studio Main component M2, tools/studio/css-edit.mjs): one
+   * declaration of one rule reads another existing token. Into the file's draft, answered as /edit answers (before /
+   * after / hashes), so the Studio's undo, history and status line take it as any edit.
+   */
+  async function cssEdit(body) {
+    const { file, selector, media, prop, value, expectHash } = body ?? {};
+    if (!isComponentCss(file)) throw new HttpError("forbidden", `${file} is not a library component's stylesheet`);
+    const target = await resolveFile(file, true);
+    const disk = await readText(target.abs);
+    const before = drafts.get(target.realRel)?.content ?? disk;
+    if (typeof expectHash === "string" && sha1(before) !== expectHash) throw new HttpError("stale", `${target.rel} changed since it was read; not changed`);
+    const { CssEditError, definedTokens, editDeclaration } = await import("./css-edit.mjs");
+    let result;
+    try {
+      result = editDeclaration(before, { selector, media: media ?? "", prop, value }, definedTokens(await tokenStylesheets()));
+    } catch (error) {
+      if (error instanceof CssEditError) throw new HttpError(error.code, error.message);
+      throw error;
+    }
+    const draft = result.css !== before ? await setDraft(target, disk, result.css) : drafts.has(target.realRel);
+    return { ok: true, file: target.rel, hash: sha1(result.css), hashBefore: sha1(before), before, after: result.css, changed: { from: result.line, to: result.line }, draft };
+  }
+
+  /* ── Figma check after a component stylesheet is saved (Main component M3, tools/studio/parity.mjs) ─────────── */
+
+  const parityJobs = new Map();
+  const PARITY_ROWS = 40;
+
+  /** The disk text of the component stylesheets a save is about to write (`files`: null = every draft). */
+  async function priorStylesheets(files) {
+    const prior = new Map();
+    for (const file of files ?? [...drafts.keys()]) {
+      if (!isComponentCss(file) || !drafts.has(file)) continue;
+      const text = await readDisk(file);
+      if (text !== null) prior.set(file, text);
+    }
+    return prior;
+  }
+
+  /** What the Studio is told about a check (its first rows; the rest are counted). */
+  function parityReport(job) {
+    const result = job.result;
+    return { id: job.id, file: job.file, suites: job.suites.length, status: result ? "done" : "running", ...(result ? { total: result.total, failures: result.failures, variants: new Set(result.rows.map((row) => `${row.suite}|${JSON.stringify(row.variant)}`)).size, rows: result.rows.slice(0, PARITY_ROWS), more: Math.max(0, result.rows.length - PARITY_ROWS), errors: result.errors } : {}), kept: job.kept ?? false, reverted: job.reverted ?? false };
+  }
+
+  const announceParity = (job) => devServer?.ws?.send({ type: "custom", event: "zen-studio:parity", data: parityReport(job) });
+
+  /** Starts the Figma check of each saved component stylesheet; answers what the Studio shows until each is done. */
+  function startParity(saved, prior) {
+    const started = [];
+    for (const entry of saved) {
+      if (!isComponentCss(entry.file) || !prior.has(entry.file)) continue;
+      const job = { id: randomBytes(8).toString("hex"), file: entry.file, suites: suitesFor(root, entry.file), prior: prior.get(entry.file), after: entry.hash, result: null };
+      parityJobs.set(job.id, job);
+      started.push({ id: job.id, file: job.file, suites: job.suites.length });
+      // A component without a contract suite has nothing to compare: done at once.
+      const run = job.suites.length ? runSuites(root, job.suites) : Promise.resolve({ total: 0, failures: 0, rows: [], errors: [] });
+      announceParity(job);
+      void run.then((result) => { job.result = result; announceParity(job); });
+    }
+    return started;
+  }
+
+  /** Keeps a save that is off Figma: one line under Open items in docs/context/BACKLOG.md. */
+  async function keepParity(job) {
+    if (job.kept) return { ok: true, ...parityReport(job) };
+    const file = path.join(root, "docs/context/BACKLOG.md");
+    const text = await fsp.readFile(file, "utf8").catch(() => "# Backlog\n");
+    // The local date, as the session logs and the backlog write it.
+    const now = new Date();
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const line = backlogLine({ file: job.file, rows: job.result.rows, failures: job.result.failures, date });
+    await writeAtomic(file, insertBacklog(text, line));
+    job.kept = true;
+    announceParity(job);
+    return { ok: true, line, ...parityReport(job) };
+  }
+
+  /** Undoes the save: the stylesheet's disk text before it, while nobody has changed the file since. */
+  async function revertParity(job) {
+    const target = await resolveFile(job.file, true);
+    const disk = await readText(target.abs);
+    if (sha1(disk) !== job.after) throw new HttpError("stale", `${job.file} changed after the save; not put back`);
+    if (drafts.has(target.realRel)) throw new HttpError("stale", `${job.file} has a new draft; save or discard it first`);
+    await writeAtomic(target.abs, job.prior);
+    reloadFile(target.realRel);
+    job.reverted = true;
+    announceParity(job);
+    return { ok: true, ...parityReport(job) };
+  }
+
+  /** The stylesheets whose custom properties are the design system's tokens: src/styles and every component's own. */
+  async function tokenStylesheets() {
+    const files = [];
+    const styles = path.join(root, "src/styles");
+    for (const name of await fsp.readdir(styles)) if (name.endsWith(".css")) files.push(path.join(styles, name));
+    const components = path.join(root, "src/components");
+    for (const entry of await fsp.readdir(components, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      for (const name of await fsp.readdir(path.join(components, entry.name))) if (name.endsWith(".css")) files.push(path.join(components, entry.name, name));
+    }
+    return Promise.all(files.map((file) => fsp.readFile(file, "utf8").catch(() => "")));
   }
 
   /* ── admin drafts ───────────────────────────────────────────────────────────────────────────────────────────── */
@@ -717,6 +874,10 @@ export function zenStudio() {
         return;
       }
       for (const mod of modules) {
+        // A plain invalidation first: it moves lastInvalidationTimestamp, the stamp Vite compares before it caches a
+        // transform (an HMR invalidation does not move it). Without it, a transform of the previous text still in flight
+        // (a discard right after a draft, E2E K-23) landed in the cache after this reload and was served from then on.
+        graph.invalidateModule?.(mod);
         Promise.resolve(reload(mod)).catch((error) => {
           logger.warn?.(`[zen-studio] HMR for ${rel} failed (${error?.message ?? error}); reloading the page`);
           devServer.ws.send({ type: "full-reload" });
@@ -729,7 +890,7 @@ export function zenStudio() {
   }
 
   /** A draft key from a persisted file: a normalised repo-relative path of an annotated file. */
-  const draftable = (file) => typeof file === "string" && !file.includes("\\") && !file.includes("\0") && path.posix.normalize(file) === file && !path.posix.isAbsolute(file) && file.startsWith("src/") && (isAnnotatedFile(file) || isDataFile(file));
+  const draftable = (file) => typeof file === "string" && !file.includes("\\") && !file.includes("\0") && path.posix.normalize(file) === file && !path.posix.isAbsolute(file) && file.startsWith("src/") && (isAnnotatedFile(file) || isDataFile(file) || isComponentCss(file));
 
   /** Loads this server's persisted drafts (once). A missing file means no drafts; an unreadable one is moved aside. */
   function ensureRestored() {
@@ -877,7 +1038,8 @@ export function zenStudio() {
     if (path.posix.normalize(rel) !== rel || path.posix.isAbsolute(rel)) throw new HttpError("forbidden", `${rel} is not a normalised repo-relative path`);
     if (!rel.startsWith("src/")) throw new HttpError("forbidden", `${rel} is outside src/`);
     // Data files (examples/data.ts, a template's data) take the edits a value's source gets (op setDataField, then undo).
-    if (forEdit && !isAnnotatedFile(rel) && !isDataFile(rel)) throw new HttpError("forbidden", `${rel} is not an editable example source`);
+    // A library component's stylesheet takes token edits only (POST /css-edit, then undo through /write).
+    if (forEdit && !isAnnotatedFile(rel) && !isDataFile(rel) && !isComponentCss(rel)) throw new HttpError("forbidden", `${rel} is not an editable example source`);
     const srcDir = path.join(root, "src");
     const abs = path.resolve(root, rel);
     if (!abs.startsWith(srcDir + path.sep)) throw new HttpError("forbidden", `${rel} is outside src/`);
@@ -893,7 +1055,7 @@ export function zenStudio() {
     if (!realRel.startsWith("src/") || realRel.startsWith("../") || path.isAbsolute(realRel)) throw new HttpError("forbidden", `${rel} resolves outside src/`);
     if (forEdit) {
       if (realRel !== rel) throw new HttpError("forbidden", `${rel} is a link or a differently-cased path (the file is ${realRel})`);
-      if (!isAnnotatedFile(realRel) && !isDataFile(realRel)) throw new HttpError("forbidden", `${realRel} is not an editable example source`);
+      if (!isAnnotatedFile(realRel) && !isDataFile(realRel) && !isComponentCss(realRel)) throw new HttpError("forbidden", `${realRel} is not an editable example source`);
     }
     // realRel keys the drafts (a read may name the file by another spelling).
     return { rel, realRel, abs: real };

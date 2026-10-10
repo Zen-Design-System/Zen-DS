@@ -2,6 +2,7 @@ import { useId, useRef, useState, type ButtonHTMLAttributes, type KeyboardEvent,
 import { BadgeCounter } from "../Badge";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
+import { slotItems } from "../_shared/slots";
 import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tabs.css";
@@ -16,8 +17,11 @@ export type TabSize = "md" | "sm" | "medium" | "small";
 export type TabVariant = (typeof tabVariants)[number];
 export type TabState = (typeof tabStates)[number];
 
-export interface TabItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface TabItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "value"> {
   ref?: Ref<HTMLButtonElement>;
+  /** As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then
+   *  its position. */
+  value?: string;
   label?: ReactNode;
   /** Leading icon (Element-Size/Popular/Base 20): an icon name (`"icon-home-03-line"`) or a node. */
   icon?: IconName | ReactNode;
@@ -33,7 +37,7 @@ export interface TabItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 /** Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge). */
-export function TabItem({ label, icon, badge, selected = false, size: sizeProp = "md", variant = "indicator", state = "default", disabled, className, type = "button", ...props }: TabItemProps) {
+export function TabItem({ label, icon, badge, selected = false, size: sizeProp = "md", variant = "indicator", state = "default", disabled, className, type = "button", value: _value, ...props }: TabItemProps) {
   const size = scaleKey(sizeProp, tabSizes);
   const isDisabled = disabled || state === "disabled";
   const iconOnly = !label && Boolean(icon);
@@ -71,7 +75,12 @@ export type TabOption = {
 };
 
 export interface TabsProps {
-  items: TabOption[];
+  /** The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value="general" label="General" />`. */
+  items?: TabOption[];
+  /** The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the
+   *  selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`,
+   *  `disabled`, `aria-label`. */
+  children?: ReactNode;
   value?: string;
   defaultValue?: string;
   /** Called with the selected tab's id. */
@@ -90,8 +99,11 @@ export interface TabsProps {
 }
 
 /** Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End jump, disabled tabs are skipped. */
-export function Tabs({ items, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className }: TabsProps) {
+export function Tabs({ items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className }: TabsProps) {
   const size = scaleKey(sizeProp, tabSizes);
+  const items: TabOption[] = itemsProp ?? slotItems(children, TabItem).map((tab, index) => ({
+    id: tab.value ?? tab.slotKey ?? String(index), label: tab.label, icon: tab.icon, badge: tab.badge, disabled: tab.disabled, "aria-label": tab["aria-label"],
+  }));
   const generated = useId().replace(/:/g, "");
   const prefix = idPrefix ?? `zen-tabs-${generated}`;
   const [internal, setInternal] = useState(defaultValue ?? items.find((item) => !item.disabled)?.id);

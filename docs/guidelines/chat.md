@@ -186,6 +186,21 @@ Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4,
 | `actionLabel` | `string` | — | The action's text (the locale's Call back / Call again / Send voice message by default). |
 | `onAction` | `() => void` | — |  |
 
+### ChatVoice
+Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small, Spacing/Gap/XSmall, Corner-Radius/Large) — Others on Background/Neutral/Subtle (Business: Bubble-Chat-Others-Business), You on Bubble-Chat-You — with a 32px playback row: the Small play / pause control (Others: Button/Icon-Main Surface, Business Tertiary; You: Button/Icon-Overlay Inverse), the waveform (3px bars, Spacing/Gap/3XSmall; the played share full strength, the rest 30%) and the speed in Label/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing and the time. Hover and the reaction pill come from ChatMessage, as on every bubble.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `side` | `"you" \| "others"` | `"others"` |  |
+| `duration` (required) | `string` | — | The message's length ("0:32"). |
+| `elapsed` | `string` | — | Where playback is ("0:12"): Business shows "0:12 / 0:32" while playing. |
+| `progress` | `number` | `0` | The share already played, 0–1: those bars are full strength, the rest 30%. |
+| `playing` | `boolean` | `false` | Figma State: Playing (the control pauses) or Idle (it plays). Your audio element drives it. |
+| `onPlayingChange` | `(playing: boolean) => void` | — |  |
+| `speed` | `number` | `1` | Playback speed (1, 1.5, 2); the "1×" button steps to the next one. Without `onSpeedChange` it is shown, not a button. |
+| `onSpeedChange` | `(speed: number) => void` | — |  |
+| `levels` | _HTML attribute_ | — | The message's sound levels, 0–1 each (Figma draws 34). |
+
 ### ChatPhotos
 Figma Chat/Photo/Grid-Slot (6347:52935): 1 · 2 · 3 · 4+ photos as radius-16 tiles in a 260 (Mobile) / 400 (Desktop) square; the 4th tile shows "+N" (Heading/2 on Background/Overlay). Business wraps the grid in a Surface card (padding 12, radius 24) with the time under it (Figma Chat/Bubble/Photo-*, Domain=Business).
 

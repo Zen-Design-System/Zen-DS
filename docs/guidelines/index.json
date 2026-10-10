@@ -929,7 +929,7 @@
       "file": "docs/guidelines/sidebar.md",
       "apiFile": "docs/api/sidebar.json",
       "figma": "Patterns/Sidebar (page 1536:27287)",
-      "import": "import { Sidebar, SidebarSubMenu } from \"@zen/design-system\";",
+      "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "use": [
         "App shells with 5+ destinations."
@@ -952,6 +952,7 @@
           "sections?: SidebarSection[] = []",
           "selectedId?: string",
           "linkAs?: ElementType",
+          "children?: ReactNode",
           "footer?: ReactNode",
           "search?: ReactNode",
           "searchCollapsed?: ReactNode",
@@ -968,11 +969,34 @@
           "subMenu?: ReactNode",
           "subMenuLabel?: string",
           "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void"
+        ],
+        "SidebarMenuItem": [
+          "children?: ReactNode|SidebarItem[]",
+          "id: string",
+          "label: string",
+          "icon?: IconName|ReactNode",
+          "active?: boolean",
+          "selected?: boolean",
+          "disabled?: boolean",
+          "state?: default|hover|focus|disabled",
+          "theme?: neutral|accent",
+          "dropdown?: boolean",
+          "indent?: boolean",
+          "counter?: ReactNode",
+          "notificationDot?: boolean",
+          "trailingAction?: ReactNode",
+          "href?: string"
+        ],
+        "SidebarMenuSection": [
+          "label?: string",
+          "action?: ReactNode",
+          "children?: ReactNode"
         ]
       },
       "do": [
         "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
         "Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.",
+        "Put footer destinations (Settings, Help) in footer as <SidebarMenuItem> rows, as Figma's Footer-Content holds Menu-Items: the same row, selection and rail tooltip as the body.",
         "Move selection with onItemClick; exactly one selected item.",
         "Group items under short section titles.",
         "Use counters for actionable counts; notification dots for \"something new\".",
@@ -1205,7 +1229,8 @@
       ],
       "props": {
         "Tabs": [
-          "items: TabOption[]",
+          "items?: TabOption[]",
+          "children?: ReactNode",
           "value?: string",
           "defaultValue?: string",
           "onValueChange?: (id: string) => void",
@@ -1216,6 +1241,17 @@
           "aria-label?: string",
           "idPrefix?: string",
           "className?: string"
+        ],
+        "TabItem": [
+          "ref?: Ref<HTMLButtonElement>",
+          "value?: string",
+          "label?: ReactNode",
+          "icon?: IconName|ReactNode",
+          "badge?: number|string",
+          "selected?: boolean = false",
+          "size?: md|sm|medium|small = md",
+          "variant?: indicator|subtle = indicator",
+          "state?: default|hover|disabled = default"
         ]
       },
       "do": [
@@ -1256,13 +1292,22 @@
       ],
       "props": {
         "Breadcrumbs": [
-          "items: BreadcrumbItemData[]",
+          "items?: BreadcrumbItemData[]",
+          "children?: ReactNode",
           "emphasis?: default|medium = default",
           "master?: boolean = true",
           "maxItems?: number",
           "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void",
           "aria-label?: string",
           "className?: string"
+        ],
+        "BreadcrumbItem": [
+          "item: { id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`icon-home-03-line`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName|ReactNode; /** Figma Item › Level: Ma…",
+          "level?: master|sub",
+          "emphasis?: default|medium",
+          "current?: boolean = false",
+          "state?: default|hover",
+          "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void"
         ]
       },
       "do": [
@@ -1873,7 +1918,8 @@
       "props": {
         "Stepper": [
           "ref?: Ref<HTMLOListElement>",
-          "steps: StepperStep[]",
+          "steps?: StepperStep[]",
+          "children?: ReactNode",
           "current?: number = 0",
           "orientation?: horizontal|vertical = horizontal",
           "onStepClick?: (step: StepperStep, index: number) => void",
@@ -2068,6 +2114,77 @@
       ]
     },
     {
+      "slug": "voice",
+      "title": "Voice",
+      "file": "docs/guidelines/voice.md",
+      "apiFile": "docs/api/voice.json",
+      "figma": "Voice Recorder (15084:79711) + AI Voice Conversation (15084:79715) (page 15081:1294)",
+      "import": "import { VoiceRecorder, AiVoiceConversation } from \"@zen/design-system\";",
+      "purpose": "Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action.",
+      "use": [
+        "Voice notes on a task, a comment or a ticket (VoiceRecorder).",
+        "Recording a take before attaching or sending it.",
+        "Voice mode with the assistant: listening, answering, interrupting (AiVoiceConversation).",
+        "Full-screen voice on a phone."
+      ],
+      "avoid": [
+        "A voice message already sent in a chat → ChatVoice (Chat/Bubble/Voice).",
+        "Dictating into the prompt → AiChatField listening.",
+        "Audio playback of a file → a media player, not a recorder."
+      ],
+      "props": {
+        "VoiceRecorder": [
+          "state?: ready|recording|paused = ready",
+          "title?: ReactNode",
+          "elapsed?: string = 00:00.00",
+          "start?: string = 00:00",
+          "end?: string = 00:00",
+          "guidance?: ReactNode",
+          "input?: ReactNode",
+          "format?: ReactNode",
+          "onRecord?: () => void",
+          "onPause?: () => void",
+          "onResume?: () => void",
+          "onFinish?: () => void",
+          "onDiscard?: () => void",
+          "className?: string"
+        ],
+        "AiVoiceConversation": [
+          "state?: ready|listening|responding = ready",
+          "name?: ReactNode",
+          "heading?: ReactNode",
+          "headingLevel?: 2|3|4|5|6 = 3",
+          "guidance?: ReactNode",
+          "speaker?: ReactNode",
+          "transcript?: ReactNode",
+          "muted?: boolean = false",
+          "onMutedChange?: (muted: boolean) => void",
+          "onStart?: () => void",
+          "onDone?: () => void",
+          "onInterrupt?: () => void",
+          "onEnd?: () => void",
+          "note?: ReactNode",
+          "className?: string"
+        ]
+      },
+      "do": [
+        "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
+        "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
+        "Let your audio code drive state, and give the time and levels from it.",
+        "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
+      ],
+      "dont": [
+        "Don't start recording or listening without a press: the microphone stays off until Record / Start talking.",
+        "Don't hide the state's meaning in colour alone: the Badge and the guidance line say it in words.",
+        "Don't use AiVoiceConversation for a recording to send: that is VoiceRecorder."
+      ],
+      "rules": [
+        "voice/actions-wired",
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
+      ]
+    },
+    {
       "slug": "list-item",
       "title": "List Item",
       "file": "docs/guidelines/list-item.md",
@@ -2204,8 +2321,11 @@
           "aria-label?: string",
           "caption?: ReactNode",
           "selectable?: boolean = false",
-          "selectedIds?: string[] = []",
+          "selectedIds?: string[]",
+          "defaultSelectedIds?: string[]",
           "onSelectionChange?: (ids: string[]) => void",
+          "editable?: boolean = false",
+          "onCellCommit?: (row: T, columnId: string, value: string|string[]) => void",
           "bulkActions?: TableBulkAction[]|((selectedIds: string[]) => TableBulkAction[])",
           "sort?: TableSort|null",
           "onSortChange?: (sort: TableSort|null) => void",
@@ -2938,7 +3058,8 @@
       ],
       "props": {
         "BottomNavigation": [
-          "items: BottomNavigationItem[]",
+          "items?: BottomNavigationItem[]",
+          "children?: ReactNode",
           "value: string",
           "onValueChange: (id: string) => void",
           "type?: default|floating|floating-glass = default",
@@ -3048,7 +3169,7 @@
       "file": "docs/guidelines/chat.md",
       "apiFile": "docs/api/chat.json",
       "figma": "❖ Chat (7042:23220)",
-      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
+      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatVoice, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen/design-system\";",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
       "use": [
         "Direct and group conversations, support chat (Business domain).",
@@ -3220,6 +3341,9 @@
           "onModelClick?: () => void",
           "onAttach?: () => void",
           "onVoice?: () => void",
+          "onVoiceMode?: () => void",
+          "listening?: boolean = false",
+          "onStopListening?: () => void",
           "busy?: boolean = false",
           "onStop?: () => void",
           "disabled?: boolean = false",
@@ -3587,6 +3711,8 @@
         "AppShell": [
           "sidebar?: ReactNode",
           "header?: ReactNode",
+          "headerCenter?: ReactNode",
+          "sections?: ReactNode",
           "headerActions?: ReactNode",
           "banner?: ReactNode",
           "aside?: ReactNode",
@@ -3672,6 +3798,7 @@
           "eyebrow?: ReactNode",
           "actions?: ReactNode",
           "meta?: ReactNode",
+          "trailing?: ReactNode",
           "tabs?: ReactNode",
           "back?: PageHeaderBack",
           "headingLevel?: 1|2 = 1"

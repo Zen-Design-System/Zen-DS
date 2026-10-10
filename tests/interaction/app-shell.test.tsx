@@ -208,3 +208,25 @@ describe("Sidebar rail mark", () => {
     for (const item of items) expect(offCentre(item)).toBeLessThan(0.5);
   });
 });
+
+describe("AppShell › the Sidebar's own collapsed", () => {
+  // Zen Studio's Collapsed toggle (and an edited `collapsed`) re-renders the same shell: the rail follows the prop.
+  const page = (collapsed: boolean) => (
+    <ZenProvider>
+      <AppShell layout="sidebar" sidebar={<Sidebar aria-label="Modules" collapsed={collapsed} sections={sections} />}>
+        <Text>Home</Text>
+      </AppShell>
+    </ZenProvider>
+  );
+
+  it("starts from it and follows a change to it", async () => {
+    const screen = await render(page(true));
+    const rail = () => document.querySelector(".zen-sidebar")?.getAttribute("data-collapsed");
+    expect(rail()).toBe("true");
+    await screen.rerender(page(false));
+    await expect.poll(rail).toBe("false");
+    await screen.rerender(page(true));
+    await expect.poll(rail).toBe("true");
+  });
+});
+

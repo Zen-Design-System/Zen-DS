@@ -209,13 +209,18 @@ function describeAttr(attr, text) {
 const isUseState = (callee) => (callee?.type === "Identifier" && callee.name === "useState")
   || (callee?.type === "MemberExpression" && !callee.computed && callee.property.type === "Identifier" && callee.property.name === "useState");
 
-/** The literal a useState argument holds (true/false, a string, a number, -n), or undefined for anything else. */
+/** The literal a useState argument holds (true/false, a string, a number, -n, a list of strings such as a Table's
+ * selectedIds), or undefined for anything else. */
 function stateLiteral(node) {
   const value = unwrapTs(node);
   if (!value) return undefined;
   if (value.type === "BooleanLiteral" || value.type === "StringLiteral" || value.type === "NumericLiteral") return value.value;
   if (value.type === "UnaryExpression" && value.operator === "-" && value.argument.type === "NumericLiteral") return -value.argument.value;
   if (value.type === "TemplateLiteral") return staticString(value) ?? undefined;
+  if (value.type === "ArrayExpression") {
+    const items = value.elements.map((element) => (element ? unwrapTs(element) : null));
+    return items.every((item) => item?.type === "StringLiteral") ? items.map((item) => item.value) : undefined;
+  }
   return undefined;
 }
 
@@ -267,6 +272,15 @@ function attrState(attr, path) {
   return binding ? { name: expression.name, value: binding.value, line: binding.declarator.loc.start.line } : null;
 }
 
+/** The expression `code` parses to (an array literal for setStateInit on a list state), or null when it does not parse. */
+function parseList(code) {
+  try {
+    return parseExpression(code, { plugins: PLUGINS });
+  } catch {
+    return null;
+  }
+}
+
 /** Op setStateInit { name, value }: attribute `name` reads a useState(<literal>); `value` replaces that literal. */
 function setStateInitEdits(ast, element, text, op) {
   const attr = element.openingElement.attributes.find((candidate) => candidate.type === "JSXAttribute" && jsxName(candidate.name) === op.name);
@@ -275,11 +289,20 @@ function setStateInitEdits(ast, element, text, op) {
   const binding = stateBinding(ancestry(ast, element), expression.name);
   if (!binding) throw new EditError("invalid", `${op.name}={${expression.name}} does not read a useState(<literal>) in this component`);
   const value = op.value;
-  if (!value || !["boolean", "string", "number"].includes(value.kind) || typeof value.value !== value.kind || (value.kind === "number" && !Number.isFinite(value.value))) {
-    throw new EditError("invalid", "setStateInit takes a boolean, string or number value");
+  let code;
+  if (Array.isArray(binding.value)) {
+    // A list of strings (a Table's selectedIds): the new list, as an expression that is one.
+    const items = value?.kind === "expression" && typeof value.code === "string" ? stateLiteral(parseList(value.code)) : undefined;
+    if (!Array.isArray(items)) throw new EditError("invalid", `${expression.name} holds a list of strings: setStateInit takes a list of strings for it`);
+    const quote = binding.arg.elements.some((element) => element?.type === "StringLiteral" && text[element.start] === "'") ? "'" : '"';
+    code = `[${items.map((item) => jsString(item, quote)).join(", ")}]`;
+  } else {
+    if (!value || !["boolean", "string", "number"].includes(value.kind) || typeof value.value !== value.kind || (value.kind === "number" && !Number.isFinite(value.value))) {
+      throw new EditError("invalid", "setStateInit takes a boolean, string or number value");
+    }
+    const quote = binding.arg.type === "StringLiteral" && text[binding.arg.start] === "'" ? "'" : '"';
+    code = value.kind === "string" ? jsString(value.value, quote) : String(value.value);
   }
-  const quote = binding.arg.type === "StringLiteral" && text[binding.arg.start] === "'" ? "'" : '"';
-  const code = value.kind === "string" ? jsString(value.value, quote) : String(value.value);
   const declaratorText = text.slice(binding.declarator.start, binding.declarator.end);
   const at = binding.arg.start - binding.declarator.start;
   return [{
@@ -527,14 +550,21 @@ function fieldValue(node, text) {
  * an array literal (`trailing={[{ … }, { … }]}`), one level deep: what the inspector edits field by field (op setField).
  * Spreads and computed keys are listed as `kind: "spread"` / skipped; they stay as written. null for anything else.
  */
-function shapeOf(node, text) {
+function shapeOf(node, text, depth = 0) {
   const value = unwrapTs(node);
   if (value?.type === "ObjectExpression") {
     const fields = [];
     for (const prop of value.properties) {
       if (prop.type === "SpreadElement") { fields.push({ key: "…", kind: "spread", value: text.slice(prop.argument.start, prop.argument.end) }); continue; }
       const key = propertyKey(prop);
-      if (key !== null) fields.push({ key, ...fieldValue(prop.value, text) });
+      if (key === null) continue;
+      const field = { key, ...fieldValue(prop.value, text) };
+      // One level further for a list of objects in an item (Sidebar `sections[n].items`): the Studio edits those items
+      // too (setField `path`, item ops `nest`).
+      const inner = unwrapTs(prop.value);
+      // …and an object of plain values in an item (StackBarChart `data[n].values`: { design: 120, … }), edited key by key.
+      if (depth === 0 && field.kind === "expression" && (inner.type === "ArrayExpression" || inner.type === "ObjectExpression")) field.shape = shapeOf(inner, text, depth + 1);
+      fields.push(field);
     }
     return { type: "object", fields };
   }
@@ -544,7 +574,7 @@ function shapeOf(node, text) {
       items: value.elements.map((item) => {
         if (!item) return { type: "value", kind: "expression", value: "" };
         if (item.type === "SpreadElement") return { type: "value", kind: "spread", value: text.slice(item.argument.start, item.argument.end) };
-        return unwrapTs(item).type === "ObjectExpression" ? shapeOf(item, text) : { type: "value", ...fieldValue(item, text) };
+        return unwrapTs(item).type === "ObjectExpression" ? shapeOf(item, text, depth) : { type: "value", ...fieldValue(item, text) };
       }),
     };
   }
@@ -962,7 +992,8 @@ function sameField(node, value, text) {
  * Op setField: one field of an object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item
  * when the attribute is an array literal (`trailing={[{ … }, …]}`). A value replaces the field's value (a shorthand
  * `{ icon }` becomes `icon: …`) or appends the field in the object's own layout (one per line, or inline); null removes
- * the field with its comma. Spreads and other fields stay as written.
+ * the field with its comma. Spreads and other fields stay as written. `path` goes on into a list held by that object
+ * (`[{ key: "items", index: 2 }]`: Sidebar `sections[1].items[2]`), one step per level.
  */
 function setFieldEdits(element, text, op, eol, ast) {
   if (!ATTR_NAME.test(op.name ?? "")) throw new EditError("invalid", `"${op.name}" is not a JSX attribute name`);
@@ -982,7 +1013,20 @@ function setFieldEdits(element, text, op, eol, ast) {
     if (!item || item.type === "SpreadElement") throw new EditError("stale", `${op.name} has no item #${op.index + 1}`);
     target = unwrapTs(item);
   }
-  if (target.type !== "ObjectExpression") throw new EditError("stale", `${op.name}${op.index !== undefined ? ` item #${op.index + 1}` : ""} is not an object written in place`);
+  if (op.path !== undefined && !(Array.isArray(op.path) && op.path.every((step) => typeof step?.key === "string" && step.key && (step.index === undefined || (Number.isInteger(step.index) && step.index >= 0))))) throw new EditError("invalid", "setField `path` is a list of { key, index? } steps");
+  for (const step of op.path ?? []) {
+    if (target.type !== "ObjectExpression") break;
+    const holder = target.properties.findLast((prop) => propertyKey(prop) === step.key);
+    if (!holder || holder.type === "SpreadElement" || holder.shorthand) throw new EditError("stale", `${op.name} has no ${step.key} written in place`);
+    target = unwrapTs(holder.value);
+    if (step.index !== undefined) {
+      if (target.type !== "ArrayExpression") throw new EditError("stale", `${step.key} is not a list written in place`);
+      const item = target.elements[step.index];
+      if (!item || item.type === "SpreadElement") throw new EditError("stale", `${step.key} has no item #${step.index + 1}`);
+      target = unwrapTs(item);
+    }
+  }
+  if (target.type !== "ObjectExpression") throw new EditError("stale", `${op.name}${op.index !== undefined ? ` item #${op.index + 1}` : ""}${(op.path ?? []).map((step) => ` › ${step.key}${step.index !== undefined ? ` #${step.index + 1}` : ""}`).join("")} is not an object written in place`);
   const properties = target.properties;
   const existing = properties.findLast((prop) => propertyKey(prop) === op.key);
   if (op.value === null) return existing ? [removePropertyEdit(target, existing)] : [];

@@ -8,6 +8,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar
+  (24) and gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
+  ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Designer: add
+  Status-bar/Android/Mobile (+ Tablet) and an Android navigation bar there; then the code follows those nodes.
+- **Zen Studio Main component (user, 2026-10-09; spec docs/research/studio-main-component-spec-2026-10-09.md):** M1–M3 done
+  (frame, selection, Layers, Inspector; token edits of component CSS as drafts with undo; Figma check on save with keep /
+  undo the save). P2 · not drawn yet: overlays (Dialog, ModalForm, SidePanel, BottomSheet, Toast) and 12
+  components no Assets item uses (spec §3.2).
+
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
 - **Zen-High-Contrast, next steps (prototype in code since 2026-10-05; user: keep step 9, no new tokens):**
@@ -33,12 +42,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
 
 ## Backlog (plan before opening sessions)
-- **P2 · Studio E2E SE-12 fails on main (2026-10-09):** "⌘-click on a TopNavigation action lands on the action" times out
-  ("a part selected") on origin/main 315efcd itself (checked in a clean worktree), and after merging it into the feature
-  branch. Pointer: `tools/studio/e2e/scenarios/select.mjs` SE-12, the deep-select of data-slot items.
-- **P3 · Studio chrome lint debt (2026-10-09, seen by the gate, not caused by the changes):** LayoutSection.tsx "Remove"
-  button not level danger (button/destructive-is-danger); `.studio-part__swatch` frames an actionable box with a Pale
-  border (border/pale-actionable-box); AssetsPanel.tsx:153 Button size xs (button/compact-size-special).
 - **P3 · Example lint debt seen in the DockIcon re-sync gate (2026-10-09, not caused by it):** `divider.tsx:358` a
   `<Text textStyle="Heading/2">` used as a title (type/visual-heading); `action-bar.tsx:406, 521` ListItem trailing
   buttons at size xs (list-item/trailing-button-medium).
@@ -354,6 +357,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   without its JSX props, keeps the saved identity; slots selftest); remove + insert of a same-named element in one slot is matched as the same element by "Modified"; menu captions over
   240px ("Required by ChartCard — replace its content instead") need shorter copy; snippet sync for inserts is best
   effort (most hand-written snippets do not contain the inserted element's anchor).
+- P3 (2026-10-09, session 604bd7) · Studio slots, still "edit it in the code" (`node tools/studio/slot-audit.mjs --ops`
+  lists them): moving an element of a condition held in a const (`{narrow ? … : tasksEmpty}`, 12), an atom slot holding
+  a string (EmptyState `icon="…"`, 41: the icon is a prop, swapped in Properties), and `.map` rows whose list is computed
+  (`Object.entries(…)`, a spread, `.filter` first: 33 per op, refused with the reason). A drag of one row moves the whole
+  `{rows.map(…)}` block; Move up / down reorder the row in its data (a drag between rows could too).
 - P3 (2026-10-08, Studio backlog agent) · Studio E2E I-06 timed out once in ~10 library + inspector runs (`--no-retry`): after the reseed the canvas still showed the previous row's seed and edit (Seed 9, I-05's label), also after waitSeed's reload. Not seen again in 10 runs; the next failure now names its step (10 s step timeout). Pointer: `tools/studio/e2e/scenarios/inspector.mjs` waitSeed, `run.mjs` reseed.
 - P3 (2026-10-06, same session): **Card Flat has no hover/pressed** when clickable (`card.css` only styles Border's
   interactive states), so clickable cards stay `theme="border"` under §16; a Flat interactive state would let them

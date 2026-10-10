@@ -41,18 +41,23 @@
 .studio-align-box__bars[data-justify="end"] { justify-content: flex-end; }
 .studio-align-box__bars[data-justify="spread"] { justify-content: space-between; }
 
-/* ── Layout groups: a label above, the controls, the fixed trailing slot (as the Size group) ── */
-.studio-layout-group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* ── Columns group (ColumnsField): a label above (Caption, 2xs), rows xs apart, each [control][24px slot] — the edges of
+   InspectorFields' two field columns and icon column, so it lines up with the other groups ── */
+.studio-layout-group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-layout-group__label { color: var(--zen-color-content-neutral-base); }
-.studio-layout-group__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-layout-group__row[data-pair="true"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-/* A row with an action (Relink the gaps, Same padding on all sides) adds its slot; the others fill to the edge. */
-.studio-layout-group__row:has(> .studio-layout-group__slot) { grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
-.studio-layout-group__row[data-pair="true"]:has(> .studio-layout-group__slot) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
+.studio-layout-group__row + .studio-layout-group__row { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-layout-group__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-layout-group__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
-/* Alignment box beside its right column (Gap, Cross axis), Figma UI3's arrangement. */
-.studio-layout-align { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: start; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-layout-align__side { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The alignment box fills its field column (Figma: the box is as wide as the Gap field beside it); each mark keeps the
+   size of the 24 × 20 target it had, centred where its dot is, so a chosen cell's bars sit on the dot's spot. */
+.studio-fields .studio-align-box { width: 100%; box-sizing: border-box; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.studio-fields .studio-align-box__bars { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-small, 16px); }
+.studio-layout-cross { display: inline-flex; }
+
+/* ScaleField: the token in the field, its value beside the chevron ("md … 16 ⌄"). */
+.studio-scale__trail { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-scale__px { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-input-field[data-state="disabled"] .studio-scale__px { color: var(--zen-color-content-disabled); }
 /* A field or segmented control fills its cell (the pair's half, or the row up to the slot). */
 .studio-layout-field { display: flex; min-width: 0; }
 .studio-layout-field > .studio-enum,

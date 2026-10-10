@@ -101,4 +101,13 @@ describe("PageHeader on a phone (backlog batch 6)", () => {
     await render(header("desktop"));
     expect(top(".zen-page-header__actions")).toBeLessThan(top(".zen-page-header__description"));
   });
+
+  // Figma Header-Text (2026-10-09): the title and the description sit Spacing/Gap/2XSmall (4px) apart, on both.
+  for (const breakpoint of ["desktop", "mobile"] as const) {
+    it(`sets the description 4px under the title (${breakpoint})`, async () => {
+      await render(<ZenProvider breakpoint={breakpoint}><PageHeader title="Studio overview" description="Money, capacity and delivery across the client work." /></ZenProvider>);
+      const title = query(".zen-page-header .zen-heading")!.getBoundingClientRect();
+      expect(Math.round(top(".zen-page-header__description") - title.bottom)).toBe(4);
+    });
+  }
 });

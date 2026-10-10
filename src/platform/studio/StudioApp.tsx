@@ -25,8 +25,8 @@ import { AssetsPanel } from "./edit/assets/AssetsPanel";
 import { duplicateLayers, removeLayers } from "./edit/multi";
 import { multiSelection } from "./select/multiSelection";
 import { wrapSelection } from "./select/wrapSelection";
-import { duplicateSelection, editDataItem, removeSelection } from "./slots/actions";
-import { dataItemRootOf } from "./slots/dataItems";
+import { duplicateSelection, editDataGroup, editDataItem, removeSelection } from "./slots/actions";
+import { dataGroupOfPart, dataItemRootOf } from "./slots/dataItems";
 import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
@@ -43,6 +43,7 @@ import { CODE_EXPANDED_WIDTH, revealLeftPanel, toggleSidePanels, usePanelLayout 
 import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
 import { DraftsDialog } from "./shell/DraftsControls";
+import { ParityDialog } from "./mainComponent/ParityDialog";
 import { PanelResizer } from "./shell/PanelResizer";
 import { ShortcutsDialog } from "./shell/ShortcutsDialog";
 import { openShortcuts } from "./shell/shortcutsOpen";
@@ -382,14 +383,17 @@ export function StudioApp() {
         const inspectorControl = Boolean(target?.closest("#studio-right") && !target.closest("[data-slot], [data-item-index]")
           && target.getAttribute("aria-expanded") !== "true");
         const here = !target || target === document.body || target.matches(".studio-viewport") || inspectorControl
-          || Boolean(row && row === target && row.getAttribute("data-kind") === "node" && row.getAttribute("aria-selected") === "true");
+          || Boolean(row && row === target && (row.getAttribute("data-kind") === "node" || row.getAttribute("data-kind") === "part") && row.getAttribute("aria-selected") === "true");
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;
         if (selection.part) {
-          // A data-slot item goes like a layer (its host stays selected); other parts are read-only.
+          // A data-slot item goes like a layer (its host stays selected); so does a nested slot's group, its title or its
+          // rows (a Sidebar section, 2026-10-10: "section title đang không xoá được"); other parts are read-only.
           const item = dataItemRootOf(selectedPartStore.get());
-          if (!item) return;
+          const group = item ? null : dataGroupOfPart(selectedPartStore.get());
+          if (!item && !group) return;
           event.preventDefault();
-          void editDataItem(selection, item.slot, "remove", item.index);
+          if (item) void editDataItem(selection, item.slot, "remove", item.index);
+          else if (group) void editDataGroup(selection, group.slot, group.group, group.role === "group" ? "remove" : group.role === "title" ? "removeTitle" : "clearRows");
           return;
         }
         event.preventDefault();
@@ -420,6 +424,9 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       else if (key === "i") studioStore.setState({ tool: "interact" });
+      // The toolbar's placement tools (Figma's A for a frame, T for text): point, then click to place.
+      else if (key === "a") studioStore.setState({ tool: "stack" });
+      else if (key === "t") studioStore.setState({ tool: "text" });
       else if (key === "p" && state.localPage) {
         // Play the builder page from the selected Screen (else its first).
         event.preventDefault();
@@ -527,6 +534,7 @@ export function StudioApp() {
           <SlotConfirm />
           <SharedConfirm />
           <DraftsDialog />
+          <ParityDialog />
           <CanvasMenu />
         </ChromeScope>
         {/* Popovers, menus, tooltips and dialogs of the chrome: above the canvas and its overlays. */}

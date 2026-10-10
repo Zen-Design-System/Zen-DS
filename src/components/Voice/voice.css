@@ -1,0 +1,54 @@
+/* Figma ❖ Voice (15081:1294): Voice Recorder (15084:79711) and AI Voice Conversation (15084:79715). */
+
+/* The frame: Spacing/Padding/XLarge around, Spacing/Gap/Medium between rows; transparent (it sits on a Card or Surface). */
+.zen-voice { display: grid; min-width: 0; box-sizing: border-box; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xlarge, 24px); color: var(--zen-color-content-neutral-strongest); }
+.zen-voice__header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The state badge keeps its word; the title is what truncates. */
+.zen-voice__header > .zen-badge { flex: 0 0 auto; }
+.zen-voice__title { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+.zen-voice__guidance { margin: 0; color: var(--zen-color-content-neutral-base); text-align: center; }
+.zen-voice__note { margin: 0; color: var(--zen-color-content-neutral-light); text-align: center; }
+
+/* Voice actions: Large Tertiary · XLarge Primary · Large Tertiary, centred on the row. Figma's 80px columns sit
+   Spacing/Gap/Medium apart; here the columns take half of that gap on each side (80 + Medium − XSmall) and the row keeps
+   XSmall, so the buttons' centres land where Figma's do, and on a narrow screen (Comfortable at 390) the columns give
+   that margin back before anything overflows. */
+.zen-voice__actions { display: flex; min-width: 0; align-items: flex-start; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* zen-allow-slot-size: Figma's Voice action column is 80 wide, so the three names sit on one grid however long they are. */
+.zen-voice-action { display: flex; flex: 0 1 calc(80px + var(--zen-spacing-gap-medium, 16px) - var(--zen-spacing-gap-xsmall, 8px)); min-width: min-content; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-voice-action__label { max-width: 100%; color: var(--zen-color-content-neutral-base); text-align: center; }
+.zen-voice-action[data-disabled] .zen-voice-action__label { color: var(--zen-color-content-neutral-light); }
+
+/* The footer: a Border/Neutral/Pale rule, then the input and its format (Caption/Regular, Neutral/Light). */
+.zen-voice__details { display: flex; min-width: 0; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-medium, 16px); border-top: 1px solid var(--zen-color-border-neutral-pale-default); color: var(--zen-color-content-neutral-light); }
+
+/* A waveform: 3px bars, Spacing/Gap/3XSmall apart, Corner-Radius/Rounded, centred on both axes. */
+.zen-voice-wave { display: flex; min-width: 0; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: hidden; }
+/* zen-allow-slot-size: a waveform bar is a drawn glyph, 3px wide as in Figma, and at least a dot when silent. */
+.zen-voice-wave__bar { width: 3px; min-height: 3px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; }
+
+/* ── Voice Recorder ── */
+/* The audio monitor: Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium, rows Spacing/Gap/XSmall apart. */
+.zen-voice-recorder__monitor { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-alt); }
+.zen-voice-recorder__time { color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; text-align: center; }
+/* zen-allow-slot-size: Figma's waveform box is 80 high; the bars are the levels' share of it. */
+.zen-voice-recorder__wave { height: 80px; color: var(--zen-color-content-neutral-strongest); }
+.zen-voice-recorder[data-state="paused"] .zen-voice-recorder__wave { color: var(--zen-color-content-neutral-light); }
+/* Ready: a flat Border/Neutral/Subtle line (nothing recorded yet): the bars are drawn as a rule, not as text. */
+.zen-voice-recorder[data-state="ready"] .zen-voice-recorder__wave .zen-voice-wave__bar { background: var(--zen-color-border-neutral-subtle-default); }
+.zen-voice-recorder__timeline { display: flex; justify-content: space-between; color: var(--zen-color-content-neutral-light); font-variant-numeric: tabular-nums; }
+
+/* ── AI Voice Conversation ── */
+.zen-ai-voice__presence { display: flex; justify-content: center; }
+/* zen-allow-slot-size: Figma's voice signal is a 96px circle (Corner-Radius/Rounded). */
+.zen-ai-voice__signal { display: inline-flex; width: 96px; height: 96px; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 999px); background: var(--zen-color-background-surface-alt); color: var(--zen-color-content-neutral-base); }
+.zen-ai-voice:not([data-state="ready"]) .zen-ai-voice__signal { background: var(--zen-color-background-accent-subtle-default); }
+/* zen-allow-slot-size: a voice level bar is a drawn glyph, 4px wide as in Figma. */
+/* zen-allow-colour-role: Figma paints the level bars (drawn glyphs, like an icon) Content/Accent/Light. */
+.zen-ai-voice__level { width: 4px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: var(--zen-color-content-accent-light); }
+.zen-ai-voice__status { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); text-align: center; }
+.zen-ai-voice__heading { margin: 0; color: var(--zen-color-content-neutral-strongest); }
+.zen-ai-voice__guidance { color: var(--zen-color-content-neutral-light); }
+/* The transcript card: Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Small, Spacing/Gap/2XSmall. */
+.zen-ai-voice__context { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-alt); }
+.zen-ai-voice__speaker { color: var(--zen-color-content-neutral-light); }

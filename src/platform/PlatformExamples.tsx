@@ -52,6 +52,7 @@ import { PlatformPageTemplate, PlatformTypographyContext } from "./PlatformTempl
 import { PlatformCode } from "./PlatformCode";
 import { ComponentGuidelines } from "./PlatformGuidelines";
 import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformOnThisPage, PlatformSection } from "./PlatformReference";
+import { VoicePlayground } from "./PlatformVoicePlayground";
 import { AiChatPlayground, BottomNavigationPlayground, BottomSheetPlayground, ChartPlayground, ChatPlayground, TopNavigationPlayground } from "./PlatformMobilePlaygrounds";
 import { figmaSidebarBrand } from "./PlatformSidebarBrand";
 import { appLayerPages } from "./PlatformAppLayer";
@@ -65,7 +66,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "metric" | "rating" | "side-panel" | "uploader" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -635,7 +636,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
               onCollapsedChange={setSidebarCollapsed}
               background={resolvedSidebarBackground}
               workspaceBar={sidebarWorkspaceBar}
-              workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: sidebarWorkspace === "workspace-a", icon: <Avatar size="medium" shape="square" theme="brown" background="solid" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", selected: sidebarWorkspace === "workspace-b", icon: <Avatar size="medium" shape="square" theme="indigo" background="solid" alt="">B</Avatar> }, ...sidebarNewWorkspaces.map((id, index) => ({ id, label: `Workspace ${String.fromCharCode(67 + index)}`, selected: sidebarWorkspace === id, icon: <Avatar size="medium" shape="square" theme="green" background="solid" alt="">{String.fromCharCode(67 + index)}</Avatar> }))]}
+              workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: sidebarWorkspace === "workspace-a", icon: <Avatar size="medium" shape="square" theme="brown" background="solid" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", selected: sidebarWorkspace === "workspace-b", icon: <Avatar size="medium" shape="square" theme="indigo" background="solid" alt="">B</Avatar> }, ...sidebarNewWorkspaces.map((id, index) => ({ id, label: `Workspace ${String.fromCharCode(67 + index)}`, selected: sidebarWorkspace === id, icon: <Avatar size="medium" shape="square" theme="purple" background="solid" alt="">{String.fromCharCode(67 + index)}</Avatar> }))]}
               workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" icon={<Icon name="icon-plus-line" />} onClick={addSidebarWorkspace} />}
               headerAction={(
                 <Menu align="end" aria-label="Workspace settings"
@@ -1779,6 +1780,9 @@ ${code}`} />
   }
   if (page === "chart") {
     return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation: a Line chart for trends, a Stack-bar chart for part-to-whole comparisons, and the Chart Card that frames either with a title, range switch and report link."><ChartPlayground /></ExamplePage>;
+  }
+  if (page === "voice") {
+    return <ExamplePage page="voice" eyebrow="Components / Voice" title="Voice" description="Voice Recorder for notes and takes (Ready, Recording, Paused) and AI Voice Conversation for talking with the assistant (Ready, Listening, Responding): Zen buttons, badges and type around a waveform."><VoicePlayground /></ExamplePage>;
   }
   if (page === "uploader") {
     const type = (uploadType ?? "dropzone") as "dropzone" | "button";

@@ -24,6 +24,7 @@ Switch between related panels of content at the same level.
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Panels | `idPrefix + TabPanel` | aria-controls wiring |
 | Full width | `fullWidth` | equal-width items that share the bar (min-width 0, centred labels) — e.g. a mobile screen header |
+| Item-List slot | `children: <TabItem value label icon badge disabled />` | instead of items (Figma Item-List); Tabs keeps the selection, keys and ids |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/tabs.json`.
@@ -33,7 +34,8 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `items` (required) | `TabOption[]` | — |  |
+| `items` | `TabOption[]` | — | The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value="general" label="General" />`. |
+| `children` | `ReactNode` | — | The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`, `disabled`, `aria-label`. |
 | `value` | `string` | — |  |
 | `defaultValue` | `string` | — |  |
 | `onValueChange` | `(id: string) => void` | — | Called with the selected tab's id. |
@@ -48,11 +50,12 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 ### TabItem
 Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge).
 
-Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
+Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "value">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLButtonElement>` | — |  |
+| `value` | `string` | — | As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then its position. |
 | `label` | `ReactNode` | — |  |
 | `icon` | `IconName \| ReactNode` | — | Leading icon (Element-Size/Popular/Base 20): an icon name (`"icon-home-03-line"`) or a node. |
 | `badge` | `number \| string` | — | Figma Badge=Yes: Badge-Counter XSmall · Neutral · Subtle after the label. |

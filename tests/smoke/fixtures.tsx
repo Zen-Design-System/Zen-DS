@@ -81,6 +81,7 @@ export const fixtures: Record<string, Fixture> = {
   ChatPhotos: { props: { photos: [{ src: photo, alt: "Beach" }, { src: photo, alt: "Harbour" }] } },
   ChatFile: { props: { name: "Q4 brief.pdf" } },
   UploaderFileItem: { props: { file: { id: "f1", name: "Q4 brief.pdf", size: "2.4 MB", state: "uploaded" } }, wrap: (el) => <ul>{el}</ul> },
+  ChatVoice: { props: { duration: "0:32" } },
   FileIcon: { props: { format: "pdf" } },
   Flag: { props: { name: "Vietnam", label: "Vietnam" } },
   TopNavigationActionButton: { props: { action: { icon: "icon-search-medium-line", label: "Search" }, variant: "default" } },

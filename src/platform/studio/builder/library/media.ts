@@ -69,6 +69,22 @@ export function resolveMedia<T>(value: T): T | string {
   return mediaSrc(value.slice(MEDIA_PREFIX.length)) ?? value;
 }
 
+/**
+ * resolveMedia through a prop's data (a Table's `rows: [{ photo: "zen-media:avatar-ava" }]`, a column's media): lists
+ * and plain objects are copied where a picture changes, anything else (elements, functions) is left as it is.
+ */
+export function resolveMediaDeep<T>(value: T, depth = 0): T | string {
+  if (typeof value === "string") return resolveMedia(value);
+  if (depth > 6 || !value || typeof value !== "object") return value;
+  if (Array.isArray(value)) {
+    const items = value.map((item) => resolveMediaDeep(item, depth + 1));
+    return (items.some((item, index) => item !== value[index]) ? items : value) as T;
+  }
+  if (Object.getPrototypeOf(value) !== Object.prototype || "$$typeof" in value) return value;
+  const entries = Object.entries(value as Record<string, unknown>).map(([key, field]) => [key, resolveMediaDeep(field, depth + 1)] as const);
+  return (entries.some(([key, field]) => field !== (value as Record<string, unknown>)[key]) ? Object.fromEntries(entries) : value) as T;
+}
+
 /** The code that adds `entry` to a page: a literal `zen-media:` source on a builder page, platformMedia elsewhere. */
 export function photoCode(entry: LibraryPhoto, builderPage: boolean): string {
   return builderPage

@@ -55,6 +55,15 @@ slots). v1 entries, from the live Figma scan (native SLOT properties) and the co
 | ListItem | leading | Leading | atom (max 1) | `.zen-list-item__leading` | no | — |
 | ListItem | trailing | Slot-Actions `4060:8` | atom group | `.zen-list-item__trailing` | no | row |
 | Stack, Grid, Box | children | (auto-layout frame) | layout | root | yes | own props |
+| PageHeader | breadcrumbs | (Header Type=Navigation › Leading-Slots `4122:33333`) | content, max 1, Breadcrumbs | `.zen-page-header__breadcrumbs` | no (ghost before the title row) | block, none |
+| PageHeader | meta | — | content, Badge · AvatarStack | `.zen-page-header__meta` | no | row, own |
+| PageHeader | tabs | — | content, max 1, Tabs | `.zen-page-header__tabs` | no (ghost at the end) | block, none |
+| Screen (builder page) | header | (Header Type=Custom `6034:46170`) | content | `.studio-builder-screen__header` | no; not on a phone | block, none → wrap |
+
+(2026-10-10, user: "breadcrumb nên là slot cho phép thêm item vào", "Header page cũng nên là slot để custom được header
+tuỳ use case".) A prop that is a content slot shows in Properties as a switch (Figma's boolean showing the layer), never
+a text field: on puts the slot's one component in at once (Breadcrumbs, a Tab bar) or opens the picker, off removes the
+prop; the content is edited in the Slots section (Breadcrumbs' own Item-List adds items).
 
 Host rules (warn-first, the usage harness enforces at Save): a clickable Card/ListItem hides Actions and Inputs
 (`card/clickable-no-nested-controls`); Dialog hosts deny nested overlays and primary buttons (actions are props);
@@ -148,6 +157,34 @@ the parent's opening tag for an insert). Otherwise `snippet: { synced: false, re
 `GET /element` gains, per attribute whose value holds JSX, `elements: [{ name, loc }]` (fragments flattened), per
 expression child `elements` + `form: "map" | "and" | "ternary" | "other"`, and `selfClosing`.
 
+### Content written as code (2026-10-09, user: "mọi thao tác bên Studio phải thoải mái tự do như Figma")
+
+- **Blocks move:** an element shown by a child's code (`{open && <X />}`, `{a ? <X /> : <Y />}`, `{rows.map((row) =>
+  <X />)}`) moves with that whole `{…}` among its siblings: moveElement and moveTo (`childUnitAt`); a drag checks the
+  names the block reads (`open`, `rows`) where it lands.
+- **A `.map` row is its data:** removeElement / duplicateElement / moveElement with `row` (the row of the list the
+  instance renders, `rowOf`) on the element a `.map` callback returns (describeSlots marks it `row: true`) take that
+  item out of, copy it in, or swap it with the item before / after it in the list the `.map` reads, where the list is
+  written (`dataRowEdit` in data-source.mjs: inline, a const, an import such as examples/data.ts, a `useState` start
+  value — the frame then starts again; `.slice(n)` shifts the row). The copy follows the item and its `key={item.x}`
+  field gets a value no row has (`ava-copy`, `…-copy-2`, text "Ava Chen copy", the next number); a key built in code,
+  `.filter` / `.sort` before the `.map`, a spread or a lazy initializer are refused with the reason. No repeat
+  confirmation (one row changes); the copy, or the moved row, is selected (Move up / Down in the menu and on the
+  keyboard are offered by the row's place in its list). Anything inside a row edits the JSX for every row, as before;
+  the Slots section's "Each row" layer and a drag move the whole `{rows.map(…)}` block.
+- **Slots that show a const:** `prop={name}` / `{name}` where `const name = <JSX>` is in the file (`constJsx`): insert
+  joins that JSX (a fragment when it was one element), duplicate makes a fragment of two there, removing its whole JSX
+  removes the const (with its comment lines) and every `prop={name}` / `{name}` that shows it; refused when the code also
+  reads it elsewhere, when the file exports it, and (insert) when a module-level const would need an action or state.
+  describeSlots names it (`const`), and the Slots section says "Written in name: every place that shows it changes too".
+  A const shown as `{name}` in several places (both branches of a ternary) moves where the selected one is: moveElement
+  `parent` names the element that lists it.
+- **Props that hold code:** an insert into `prop={open ? <A /> : null}`, `prop={renderActions()}` or `prop={name}` (not
+  JSX) keeps the code and adds the element beside it: `prop={<>{code}<New /></>}`. Icon props (`icon`, `…Icon`) take one
+  icon and refuse it.
+- **Measure:** `node tools/studio/slot-audit.mjs` (content forms per slot) and `--ops` / `--op=<op>` (every op in memory,
+  what is refused and why).
+
 ## Client (`src/platform/studio/slots/*`)
 
 - **SlotsSection** `{ api, selection, element }` (mounted by the inspector owner after Properties). One block per slot:
@@ -155,7 +192,7 @@ expression child `elements` + `form: "map" | "and" | "ternary" | "other"`, and `
   frame) · `+` IconButton "Add to {Slot}" (opens the picker). Content rows (InspectorItem): click selects, trailing trash
   IconButton "Remove {Name}". A "Modified" tag when the slot differs from the saved file, and a "More actions for
   {Slot}" menu: Reset slot (caption "Back to the saved file", disabled with a visible caption when unchanged) and
-  Clear contents (danger, caption "Removes N layers · ⌘Z to undo"). `.map`/conditional children show as read-only rows with the reason. Playground: caption
+  Clear contents (danger, caption "Removes N layers · ⌘Z to undo"). `.map`/conditional children show as rows that move as a block; a `.map` row's own Remove edits its data. Playground: caption
   "Empty in the component · add content in an example" and a flat "Show examples" button; no `+`. Layout primitives
   show the same block titled "Children". Overlay content (portalled, not pickable on the canvas) is edited from these
   rows.

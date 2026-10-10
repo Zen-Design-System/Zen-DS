@@ -4,7 +4,7 @@ import { canvasApi } from "../canvas/viewport";
 import { isTypingTarget } from "../select/picker";
 import { multiSelection } from "../select/multiSelection";
 import { expectRender, renderedNow } from "../select/remap";
-import { canStructurallyEdit, insideWrap, structuralBlock, studioWrapOf } from "../slots/actions";
+import { canStructurallyEdit, constHolderOf, insideWrap, moveMapRow, structuralBlock, studioWrapOf } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, StudioNodeRef } from "../types";
 import { stepLayers } from "./multi";
@@ -55,6 +55,11 @@ export async function stepLayer(layer: NodeSelection, to: "prev" | "next"): Prom
   try {
     // A component in its Studio wrap Stack moves with that Stack (GĐ4 M4).
     const wrap = await studioWrapOf(layer);
+    // One row of a `.map`: it swaps with the row before or after it in its data, and stays selected.
+    if (!wrap) {
+      const moved = await moveMapRow(layer, to);
+      if (moved !== null) return Boolean(moved);
+    }
     const moving = wrap ?? layer;
     const at = parseSrc(moving.src);
     if (!at) return false;
@@ -64,7 +69,10 @@ export async function stepLayer(layer: NodeSelection, to: "prev" | "next"): Prom
     if (!element) { fail(`${layer.name} is no longer there — select it again`); return false; }
     const before = renderedNow(canvasApi.getWorldElement());
     const label = `Move ${layer.name} ${to === "prev" ? "up" : "down"}`;
-    const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "moveElement", to }], hash: element.hash }, label);
+    // A const shown in several places (`{summary}` in both branches): the `{name}` this one is shown by moves.
+    const holder = await constHolderOf(moving);
+    const op = { op: "moveElement", to, ...(holder ? { parent: holder } : {}) } as EditOp;
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
     if (!response.ok) return false;
     const loc = response.moved?.loc;
     const current = studioStore.getState().selection;

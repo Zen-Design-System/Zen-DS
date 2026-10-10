@@ -8,7 +8,7 @@ import { componentSlug } from "../../inspector/propSchema";
 import { loadCompile, loadEngine, zenComponents } from "../engine";
 import { assetBlob, assetOfUrl, loadUploads } from "../assets/uploads";
 import { MEDIA_FILES, mediaSrc } from "../library/media";
-import { ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
+import { PageOsContext, pageOsOf, ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
 import { frameOf, literalOf, type PageFrame } from "../render/frames";
 import { renderFrame, type PageNode, type PageTree } from "../render/renderPage";
 import { pageKey, studioStore } from "../../store";
@@ -56,7 +56,12 @@ async function settle(host: HTMLElement) {
 /** Attributes only the Studio reads (selection, Layers, the board), never part of the page. */
 const STUDIO_ATTRIBUTE = /^data-(zen-src|zen-name|studio-.*|screen|screen-state|overlay|export-frame)$/;
 /** The builder runtime's wrappers (proto/runtime.tsx) under the names the exported page's own CSS gives them. */
-const RENAMED_CLASS: Record<string, string> = { "studio-builder-screen": "screen", "studio-builder-overlay": "overlay", "studio-builder-overlay__portal": "overlay__portal" };
+const RENAMED_CLASS: Record<string, string> = {
+  "studio-builder-screen": "screen", "studio-builder-overlay": "overlay", "studio-builder-overlay__portal": "overlay__portal",
+  // A Screen's app frame (sidebar, header, top and bottom navigation), laid out by builder.css (appFrameRule).
+  "studio-builder-screen__side": "screen__side", "studio-builder-screen__main": "screen__main", "studio-builder-screen__header": "screen__header",
+  "studio-builder-screen__content": "screen__content", "studio-builder-screen__top": "screen__top", "studio-builder-screen__bottom": "screen__bottom",
+};
 
 type Assets = Map<string, HtmlAsset>;
 
@@ -113,12 +118,20 @@ export function exportCopy(root: HTMLElement, mapUrl: (url: string) => string): 
   for (const element of [copy, ...copy.querySelectorAll("*")]) {
     for (const name of element.getAttributeNames()) if (STUDIO_ATTRIBUTE.test(name)) element.removeAttribute(name);
     for (const [from, to] of Object.entries(RENAMED_CLASS)) if (element.classList.contains(from)) element.classList.replace(from, to);
+    // A phone or tablet Screen's system bars (builder/proto/DeviceBars.tsx): device-status, device-home, ….
+    for (const name of [...element.classList]) if (name.startsWith("studio-device-")) element.classList.replace(name, name.slice("studio-".length));
     for (const name of ["src", "poster", "href", "xlink:href"]) {
       const value = element.getAttribute(name);
       if (value && (name !== "href" || element.namespaceURI === "http://www.w3.org/2000/svg") && element.tagName.toLowerCase() !== "use") element.setAttribute(name, mapUrl(value));
     }
     const srcset = element.getAttribute("srcset");
     if (srcset) element.setAttribute("srcset", srcset.split(",").map((part) => { const [url, ...size] = part.trim().split(/\s+/); return [mapUrl(url), ...size].join(" "); }).join(", "));
+    // Liquid Glass (components/_shared/liquid-glass.ts) is drawn live with this page's SVG filters: the export keeps the
+    // component's own CSS frost instead of a filter it does not ship.
+    if (element instanceof HTMLElement && element.style.backdropFilter.includes("zen-liquid-glass-")) {
+      for (const property of ["backdrop-filter", "-webkit-backdrop-filter", "background-image", "background-size", "background-repeat"]) element.style.removeProperty(property);
+      if (!element.getAttribute("style")) element.removeAttribute("style");
+    }
     const style = element.getAttribute("style");
     if (style && /url\(/.test(style)) element.setAttribute("style", style.replace(/url\((['"]?)([^'")]+)\1\)/g, (_match, quote: string, url: string) => `url(${quote}${mapUrl(url)}${quote})`));
   }
@@ -160,8 +173,22 @@ function usedBy(part: string, roots: HTMLElement[]): boolean {
   }
 }
 
+/** builder.css's rules for a Screen's app frame (proto/runtime.tsx: the sidebar and header row, top / bottom navigation). */
+const APP_FRAME = /\.studio-builder-screen(?:__(?:side|main|content|header|top|bottom)(?![\w-])|\[data-chrome\])/;
+
+/**
+ * An app frame rule under the export's class names (.screen[data-chrome], .screen__main, …), so a Screen with a sidebar or
+ * a header lays out in the exported page as on the canvas (2026-10-10: its rows stacked without them). Null when the rule
+ * still names another Studio class (styles.css holds no .studio- rule).
+ */
+function appFrameRule(rule: CSSStyleRule): string | null {
+  const text = rule.cssText.replace(/\.studio-builder-screen(__[\w-]+)?(?![\w-])/g, (_match, part: string | undefined) => `.screen${part ?? ""}`);
+  return text.includes(".studio-") ? null : text;
+}
+
 /** A style rule as styles.css keeps it, or null: a library rule the screens use; a token rule with its Zen tokens only. */
 function styleRule(rule: CSSStyleRule, roots: HTMLElement[]): string | null {
+  if (APP_FRAME.test(rule.selectorText)) return appFrameRule(rule);
   const parts = selectorParts(rule.selectorText);
   if (!parts.length || !parts.every(isLibraryPart)) return null;
   if (parts.every(isTokenPart)) {
@@ -177,6 +204,15 @@ function styleRule(rule: CSSStyleRule, roots: HTMLElement[]): string | null {
   return parts.some((part) => usedBy(part, roots)) ? rule.cssText : null;
 }
 
+/** The system bars' own rules (builder/proto/deviceBars.css), with the export's class names (.screen, .device-*): the
+ *  exported phone and tablet frames show their OS's bars as the canvas does. */
+function deviceBarsRule(rule: CSSStyleRule): string | null {
+  if (!/\.studio-device-|\.studio-builder-screen\[data-os\]/.test(rule.selectorText)) return null;
+  const text = rule.cssText.replace(/\.studio-builder-screen(?![\w-])/g, ".screen").replace(/\.studio-device-/g, ".device-");
+  // Only the renamed classes: a rule that still names a Studio class stays out (styles.css holds no .studio- rule).
+  return text.includes(".studio-") ? null : text;
+}
+
 const rulesOf = (sheet: CSSStyleSheet | null) => { try { return sheet ? Array.from(sheet.cssRules) : []; } catch { return []; } };
 const absoluteUrls = (text: string, base: string) => text.replace(/url\((['"]?)([^'")]+)\1\)/g, (match, quote: string, url: string) => (/^(data:|#)/.test(url) ? match : `url(${quote}${absolute(url, base)}${quote})`));
 
@@ -185,7 +221,7 @@ type Collected = { rules: string[]; fonts: Array<{ family: string; text: string;
 function collect(rules: CSSRule[], base: string, roots: HTMLElement[], into: Collected, out: string[]) {
   for (const rule of rules) {
     if (rule instanceof CSSImportRule) { collect(rulesOf(rule.styleSheet), rule.styleSheet?.href ?? base, roots, into, out); continue; }
-    if (rule instanceof CSSStyleRule) { const text = styleRule(rule, roots); if (text) out.push(absoluteUrls(text, base)); continue; }
+    if (rule instanceof CSSStyleRule) { const text = styleRule(rule, roots) ?? deviceBarsRule(rule); if (text) out.push(absoluteUrls(text, base)); continue; }
     if (rule instanceof CSSFontFaceRule) { into.fonts.push({ family: rule.style.getPropertyValue("font-family").replace(/["']/g, "").trim(), text: rule.cssText, base }); continue; }
     if (rule instanceof CSSKeyframesRule) { into.keyframes.push({ name: rule.name, text: rule.cssText }); continue; }
     if (rule instanceof CSSGroupingRule) {
@@ -288,11 +324,13 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
   try {
     root.render(
       <ProtoContext value={INERT}>
+        <PageOsContext value={pageOsOf(tree.header)}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
             <ZenProvider {...canvasModes(id, frame.id)} brand="zen" breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
+        </PageOsContext>
       </ProtoContext>,
     );
     await settle(host);

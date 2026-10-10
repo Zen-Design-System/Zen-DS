@@ -34,6 +34,8 @@ export type SlotGap = "none" | "md" | "own";
 
 /** Where a ghost drop zone sits relative to its anchor element (for slots whose container does not mount empty). */
 export type SlotPlace = "before" | "after" | "first-child" | "last-child";
+/** A ghost's anchor: the element (`selector`), the side, and `flow` when the ghost lays out otherwise there. */
+export type SlotGhostAnchor = { selector: string; place: SlotPlace; flow?: SlotFlow };
 
 type Literal = string | number | boolean;
 
@@ -65,10 +67,11 @@ export type ContentSlot = {
   /** The container renders while the slot is empty. False: draw a ghost drop zone at `ghostAnchor` instead. */
   mountsWhenEmpty: boolean;
   /**
-   * Where the empty slot would render (resolved from the root like `container`; `:scope` is the root itself). Missing
-   * anchor: the component edge.
+   * Where the empty slot would render (resolved from the root like `container`; `:scope` is the root itself). A list: the
+   * first anchor on the page (PageHeader Trailing-Slots: after the actions, else under the header). Missing anchor: the
+   * component edge.
    */
-  ghostAnchor?: { selector: string; place: SlotPlace };
+  ghostAnchor?: SlotGhostAnchor | readonly SlotGhostAnchor[];
   /**
    * How the empty slot's ghost sits beside its anchor when that differs from `flow` (the content's own layout):
    * TopNavigation's Control-Slot lays one control out in a row, but it stacks under the bar.
@@ -254,6 +257,221 @@ const topNavigationControl: ContentSlot = {
   accepts: { only: ["Search", "Segmented", "Tabs"] },
 };
 
+const sidebarHeader: ContentSlot = {
+  // Sidebar.tsx SidebarPanel: <div className="zen-sidebar__header">{brand}{collapse control}</div> always (the default
+  // logo and the collapse control are the component's own parts); sidebar.css: a flex row, no gap. Figma ❖ Sidebar
+  // Side-Bar/Master/Basic Header-Content (the LOGO; the collapse Wrapper follows it). The workspace variant's
+  // Child-Header-Content is the same prop.
+  component: "Sidebar", prop: "brand", name: "Header-Content", figma: { property: "Header-Content#4081:58", node: "4081:15234", native: true },
+  // The default brand is the slot's content once it shows a logo: a collapsed rail draws `logoCollapsed` there instead of
+  // `brand`, which is not Empty. Without any logo it is the component's own (empty) part.
+  kind: "content", container: ".zen-sidebar__header", mountsWhenEmpty: true,
+  parts: ".zen-sidebar__default-brand:not(:has(> .zen-sidebar__default-brand-expanded, > .zen-sidebar__default-brand-collapsed, > .zen-sidebar__default-brand-product)), .zen-sidebar__workspace-title, .zen-sidebar__collapse",
+  flow: "row", gap: "none",
+  accepts: { only: ["Avatar", "Image", "Icon", "DockIcon", "Text", "Badge"] },
+};
+
+const sidebarBody: ContentSlot = {
+  // ItemList: <div className="zen-sidebar__items"> always, the `sections` entries first, then the children (runs of
+  // SidebarMenuItem rows share one section); sidebar.css: a flex column, gap Medium between sections. Figma
+  // Body-Content#4081:59 holds the Menu-Item instances (Child-Body-Content in the workspace variant).
+  component: "Sidebar", prop: "children", name: "Body-Content", figma: { property: "Body-Content#4081:59", node: "4081:15234", native: true },
+  kind: "content", container: ".zen-sidebar__body > .zen-sidebar__items", mountsWhenEmpty: true, flow: "column", gap: "md",
+  accepts: { only: ["SidebarMenuItem", "SidebarMenuSection"], deny: [...overlayDeny] },
+};
+
+const sidebarFooter: ContentSlot = {
+  // {footer ? <><divider /><div className="zen-sidebar__footer"><div className="zen-sidebar__footer-content">… only
+  // with a footer; sidebar.css: a flex column, Gap/3XSmall like the rows. Figma Footer-Content#4081:60 holds Menu-Items.
+  component: "Sidebar", prop: "footer", name: "Footer-Content", figma: { property: "Footer-Content#4081:60", node: "4081:15234", native: true },
+  kind: "content", container: ".zen-sidebar__footer-content", mountsWhenEmpty: false,
+  // Empty: a strip at the body's end, the Sidebar's bottom edge where the footer goes (after the body would be under it).
+  ghostAnchor: { selector: ".zen-sidebar__body", place: "last-child" }, flow: "column", gap: "own",
+  accepts: { only: ["SidebarMenuItem"], deny: [...overlayDeny] },
+};
+
+const pageHeaderActions: ContentSlot = {
+  // PageHeader.tsx: {actions || trailing ? (<div className="zen-page-header__actions">{actions}<span trailing/></div>)}
+  // in the title row; page-header.css: a wrapping flex row, Gap/Small. Figma ◇ Master-Layout Primitives/Dashboard/Header
+  // Type=Main Action-Slots (two Button/Main). Trailing-Slots shares the container: it is a part here.
+  component: "PageHeader", prop: "actions", name: "Action-Slots", figma: { property: "Action-Slots#4122:78", node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-page-header__row > .zen-page-header__actions", mountsWhenEmpty: false,
+  // Empty: a strip at the title row's end (the titles fill the row, so after them would be outside it).
+  ghostAnchor: { selector: ":scope > .zen-page-header__row", place: "last-child" }, parts: ".zen-page-header__trailing", flow: "row", gap: "own",
+  accepts: { only: ["Button", "IconButton", "Menu"], deny: [...overlayDeny] },
+};
+
+/*
+ * AppShell (AppShell.tsx), Figma Header/Dashboard's layout: each ReactNode part is a slot, so a part switched on in
+ * Properties gets a real component, never a text (user, 2026-10-10: "các component đã hết lỗi boolean chưa").
+ */
+const APP_SHELL_COLUMN = ":scope > .zen-app-shell__frame > .zen-app-shell__column";
+const APP_SHELL_HEADER = `${APP_SHELL_COLUMN} > .zen-app-shell__header`;
+
+const appShellSidebar: ContentSlot = {
+  // {sidebar && !compact ? <div … className="zen-app-shell__sidebar">…} beside the column (a phone shows it as the drawer).
+  component: "AppShell", prop: "sidebar", name: "Sidebar",
+  kind: "content", container: ":scope > .zen-app-shell__frame > .zen-app-shell__sidebar", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-app-shell__frame", place: "first-child", flow: "column" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Sidebar"] },
+};
+
+const appShellHeader: ContentSlot = {
+  // {header ? <div … className="zen-app-shell__header-content">…} after the menu toggle (Figma Leading-Slots): Breadcrumbs,
+  // a title, a Search. The top bar renders only with a part in it: without one the ghost sits at the column's top.
+  component: "AppShell", prop: "header", name: "Leading-Slots",
+  kind: "content", container: `${APP_SHELL_HEADER} > .zen-app-shell__header-leading > .zen-app-shell__header-content`, mountsWhenEmpty: false,
+  ghostAnchor: [
+    { selector: `${APP_SHELL_HEADER} > .zen-app-shell__header-leading`, place: "last-child" },
+    { selector: APP_SHELL_COLUMN, place: "first-child", flow: "row" },
+  ],
+  flow: "row", gap: "own",
+  accepts: { deny: [...overlayDeny] },
+};
+
+const appShellHeaderCenter: ContentSlot = {
+  // {headerCenter ? <div className="zen-app-shell__header-center">…} the top bar's middle (Figma Center-Slots, up to 400px).
+  component: "AppShell", prop: "headerCenter", name: "Center-Slots",
+  kind: "content", container: `${APP_SHELL_HEADER} > .zen-app-shell__header-center`, mountsWhenEmpty: false,
+  ghostAnchor: [
+    { selector: `${APP_SHELL_HEADER} > .zen-app-shell__header-leading`, place: "after" },
+    { selector: APP_SHELL_COLUMN, place: "first-child", flow: "row" },
+  ],
+  flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Search", "Segmented", "Tabs"] },
+};
+
+const appShellHeaderActions: ContentSlot = {
+  // {headerActions ? <div … className="zen-app-shell__header-actions">…} at the top bar's end (Figma Trailing-Slots): a plan
+  // Badge, AppShellAction buttons, the account.
+  component: "AppShell", prop: "headerActions", name: "Trailing-Slots",
+  kind: "content", container: `${APP_SHELL_HEADER} > .zen-app-shell__header-actions`, mountsWhenEmpty: false,
+  ghostAnchor: [
+    { selector: APP_SHELL_HEADER, place: "last-child" },
+    { selector: APP_SHELL_COLUMN, place: "first-child", flow: "row" },
+  ],
+  flow: "row", gap: "own",
+  accepts: { only: ["AppShellAction", "AppShellAccount", "Badge", "Button", "IconButton", "Avatar", "Menu"] },
+};
+
+const appShellSections: ContentSlot = {
+  // {sections ? <div className="zen-app-shell__sections">…} at the top of main (Figma Header/Dashboard Sections): rows
+  // under the top bar.
+  component: "AppShell", prop: "sections", name: "Sections",
+  kind: "content", container: `${APP_SHELL_COLUMN} > .zen-app-shell__main > .zen-app-shell__sections`, mountsWhenEmpty: false,
+  ghostAnchor: { selector: `${APP_SHELL_COLUMN} > .zen-app-shell__main`, place: "first-child" }, flow: "column", gap: "none",
+  accepts: { deny: [...overlayDeny] },
+};
+
+const appShellAside: ContentSlot = {
+  // {aside && asideDocked ? <div … className="zen-app-shell__aside">…} beside the column (stacked under it when narrow):
+  // a docked SidePanel (Figma Side-Panel).
+  component: "AppShell", prop: "aside", name: "Side-Panel",
+  kind: "content", container: ".zen-app-shell__aside", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-app-shell__frame", place: "last-child", flow: "column" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["SidePanel"] },
+};
+
+const appShellFloating: ContentSlot = {
+  // {floatingAction ? <div … className="zen-app-shell__floating">…} the page's one floating button (Figma Floating-Item).
+  component: "AppShell", prop: "floatingAction", name: "Floating-Item",
+  kind: "content", container: `${APP_SHELL_COLUMN} > .zen-app-shell__bottom > .zen-app-shell__floating`, mountsWhenEmpty: false,
+  ghostAnchor: { selector: APP_SHELL_COLUMN, place: "last-child", flow: "row" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Button", "IconButton"] },
+};
+
+const appShellFooter: ContentSlot = {
+  // {footer ? <div className="zen-app-shell__footer">…} a sticky bar at the column's bottom: an ActionBar.
+  component: "AppShell", prop: "footer", name: "Footer",
+  kind: "content", container: `${APP_SHELL_COLUMN} > .zen-app-shell__bottom > .zen-app-shell__footer`, mountsWhenEmpty: false,
+  ghostAnchor: { selector: APP_SHELL_COLUMN, place: "last-child" }, flow: "block", gap: "none", max: 1,
+  accepts: { only: ["ActionBar"] },
+};
+
+const sidebarMenuItemTrailing: ContentSlot = {
+  // Sidebar.tsx SidebarItemView: {item.trailingAction ? <span className="zen-sidebar__trailing-action">…} at the row's end,
+  // inside its button (sidebar.css: a 20px inline flex box). Figma Menu-Item Trailing-Action › Trailing-Slot: an icon or
+  // a shortcut (no control: the row is the click target).
+  component: "SidebarMenuItem", prop: "trailingAction", name: "Trailing-Slot",
+  kind: "atom", container: ":scope > .zen-sidebar__item > .zen-sidebar__trailing-action", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-sidebar__item", place: "last-child" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Icon", "Badge", "Text"] },
+};
+
+const sidebarMenuSectionAction: ContentSlot = {
+  // SidebarSectionTitle: {action ? <span className="zen-sidebar__section-action">…} after the section label (a 16px
+  // inline flex box): a Button/Icon-Flat Small.
+  component: "SidebarMenuSection", prop: "action", name: "Action",
+  kind: "atom", container: ":scope > .zen-sidebar__section-item > .zen-sidebar__section-action", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-sidebar__section-item", place: "last-child" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["IconButton"] },
+};
+
+const topNavigationTitleLeading: ContentSlot = {
+  // TopNavigation.tsx: {titleLeading ? <span className="zen-top-nav__identity-leading">…</span> : null} before the title in
+  // the identity (a chat header; top-navigation.css: a 48px inline flex box): one Avatar.
+  component: "TopNavigation", prop: "titleLeading", name: "Title-Leading",
+  kind: "atom", container: ".zen-top-nav__identity-leading", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ".zen-top-nav__identity", place: "first-child" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Avatar", "AvatarStack"] },
+};
+
+const pageHeaderBreadcrumbs: ContentSlot = {
+  // PageHeader.tsx: {breadcrumbs ? <div className="zen-page-header__breadcrumbs">…</div> : eyebrow …} above the title row.
+  // Figma Primitives/Dashboard/Header Type=Navigation › Leading-Slots (4122:33333) holds a Breadcrumbs instance, whose own
+  // Item-List takes the items (dataSlots.ts). User, 2026-10-10: "breadcrumb nên là slot cho phép thêm item vào" — on, a
+  // real Breadcrumbs (not a text label).
+  component: "PageHeader", prop: "breadcrumbs", name: "Breadcrumbs", figma: { node: "4122:33333", native: true },
+  kind: "content", container: ":scope > .zen-page-header__breadcrumbs", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-page-header__row", place: "before" }, flow: "block", gap: "none", max: 1,
+  accepts: { only: ["Breadcrumbs"] },
+};
+
+const pageHeaderMeta: ContentSlot = {
+  // {meta ? <div className="zen-page-header__meta">…</div> : null} beside the title (page-header.css: an inline flex row,
+  // Gap/XSmall): a status Badge, Tag or AvatarStack (the prop's doc).
+  component: "PageHeader", prop: "meta", name: "Meta",
+  kind: "content", container: ":scope > .zen-page-header__row > .zen-page-header__titles > .zen-page-header__meta", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-page-header__row > .zen-page-header__titles", place: "last-child" }, flow: "row", gap: "own",
+  accepts: { only: ["Badge", "AvatarStack"], deny: [...overlayDeny] },
+};
+
+const pageHeaderTabs: ContentSlot = {
+  // {tabs ? <div className="zen-page-header__tabs">…</div> : null} under the header: <Tabs> that switch the page's sections.
+  component: "PageHeader", prop: "tabs", name: "Tabs",
+  kind: "content", container: ":scope > .zen-page-header__tabs", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope", place: "last-child" }, flow: "block", gap: "none", max: 1,
+  accepts: { only: ["Tabs"] },
+};
+
+const screenHeader: ContentSlot = {
+  // A builder page's Screen (builder/proto/runtime.tsx): {header ? <div className="studio-builder-screen__header">…} at the
+  // top of the desktop layout's main column (builder.css: a block with padding). Figma Primitives/Dashboard/Header
+  // Type=Custom is one free slot (6034:46170): the header holds what the page needs (user, 2026-10-10: "Header page cũng
+  // nên là slot để custom được header tuỳ use case"); the Screen's Page header toggle starts it with a PageHeader.
+  component: "Screen", prop: "header", name: "Header", figma: { node: "6034:46170", native: true },
+  kind: "content", container: ":scope > .studio-builder-screen__main > .studio-builder-screen__header", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .studio-builder-screen__main", place: "first-child" }, flow: "block", gap: "none",
+  accepts: { deny: [...overlayDeny] },
+  // A phone shows the mobile layout (top and bottom navigation), which has no header.
+  activeWhen: [{ prop: "device", not: ["phone"], default: "desktop" }],
+};
+
+const pageHeaderTrailing: ContentSlot = {
+  // {trailing ? <span className="zen-page-header__trailing">…</span> : null} after the actions; page-header.css: an
+  // inline flex row, Gap/Small. Figma Trailing-Slots (Action-Item Button/Icon-Main, Avatar/Single).
+  component: "PageHeader", prop: "trailing", name: "Trailing-Slots", figma: { property: "Trailing-Slots#4122:82", node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-page-header__row > .zen-page-header__actions > .zen-page-header__trailing", mountsWhenEmpty: false,
+  // Empty: after the action buttons; without actions, under the header (as TopNavigation's Control-Slot), so it does not
+  // sit on Action-Slots' ghost at the row's end.
+  ghostAnchor: [
+    { selector: ":scope > .zen-page-header__row > .zen-page-header__actions", place: "last-child" },
+    { selector: ":scope", place: "after", flow: "column" },
+  ],
+  flow: "row", gap: "own",
+  accepts: { only: ["IconButton", "Avatar", "Menu"], deny: [...overlayDeny] },
+};
+
 const metricAction: ContentSlot = {
   // MetricWidget.tsx Title-Highlight at XLarge–Medium: <div className="zen-metric__header"><span
   // className="zen-metric__title-row">…label…</span>{action}</div>, always while titled (activeWhen); metric-widget.css: a
@@ -294,7 +512,15 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   ListItem: { root: ".zen-list-item", titleLevel: null, slots: [listItemLeading, listItemContents, listItemTrailing] },
   ListBox: { root: ".zen-list-box", titleLevel: null, slots: [listBoxHeader, listBoxBody, listBoxFooter] },
   // Its title level is a string prop ("h1"); nothing inserted into the Control-Slot takes a heading level from it.
-  TopNavigation: { root: ".zen-top-nav", titleLevel: null, slots: [topNavigationControl] },
+  TopNavigation: { root: ".zen-top-nav", titleLevel: null, slots: [topNavigationTitleLeading, topNavigationControl] },
+  // A Sidebar row or section placed on its own or in a Sidebar slot: their own small slots.
+  SidebarMenuItem: { root: ".zen-sidebar__item-group", titleLevel: null, slots: [sidebarMenuItemTrailing] },
+  SidebarMenuSection: { root: ".zen-sidebar__section", titleLevel: null, slots: [sidebarMenuSectionAction] },
+  AppShell: { root: ".zen-app-shell", titleLevel: null, slots: [appShellSidebar, appShellHeader, appShellHeaderCenter, appShellHeaderActions, appShellSections, appShellAside, appShellFloating, appShellFooter] },
+  Sidebar: { root: ".zen-sidebar", titleLevel: null, slots: [sidebarHeader, sidebarBody, sidebarFooter] },
+  PageHeader: { root: ".zen-page-header", titleLevel: { prop: "headingLevel", default: 1 }, slots: [pageHeaderBreadcrumbs, pageHeaderMeta, pageHeaderActions, pageHeaderTrailing, pageHeaderTabs] },
+  // A builder page's Screen (not a library component): its app frame's header is a free slot.
+  Screen: { root: ".studio-builder-screen", titleLevel: null, slots: [screenHeader] },
   Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction] },
   EmptyState: { root: ".zen-empty-state", titleLevel: null, slots: [emptyStateIcon] },
   // Stack and Grid space their children with their gap prop (default md); Box is a plain block (Layout.tsx, layout.css).
@@ -484,11 +710,16 @@ export function slotHostRoot(component: string, hosts: readonly Element[]): Elem
 /** The element the slot's children render in (null: not mounted, e.g. an empty Dialog Custom or a closed overlay). */
 export const slotContainer = (root: Element, slot: ContentSlot) => (slot.container === null ? root : root.querySelector(slot.container));
 
+/** A slot's ghost anchors in order (none, one or a list). */
+export const ghostAnchorsOf = (slot: ContentSlot): readonly SlotGhostAnchor[] => (!slot.ghostAnchor ? [] : "selector" in slot.ghostAnchor ? [slot.ghostAnchor] : slot.ghostAnchor);
+
 /** Where to draw an empty slot that does not mount: the anchor element and the side. Null: use the component edge. */
-export function slotGhostAnchor(root: Element, slot: ContentSlot): { element: Element; place: SlotPlace } | null {
-  if (!slot.ghostAnchor) return null;
-  const element = slot.ghostAnchor.selector === ":scope" ? root : root.querySelector(slot.ghostAnchor.selector);
-  return element ? { element, place: slot.ghostAnchor.place } : null;
+export function slotGhostAnchor(root: Element, slot: ContentSlot): { element: Element; place: SlotPlace; flow?: SlotFlow } | null {
+  for (const anchor of ghostAnchorsOf(slot)) {
+    const element = anchor.selector === ":scope" ? root : root.querySelector(anchor.selector);
+    if (element) return { element, place: anchor.place, ...(anchor.flow ? { flow: anchor.flow } : {}) };
+  }
+  return null;
 }
 
 /** The container's children that are slot content (the component's own `parts`, relative to the container, left out). */

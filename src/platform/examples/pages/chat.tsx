@@ -10,7 +10,7 @@ import { Avatar } from "../../../components/Avatar";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { IconButton } from "../../../components/Button";
 import {
-  ChatAvatarGroup, ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatEmojiPicker, ChatFile, ChatMessage, ChatPhotos, ChatThread,
+  ChatAvatarGroup, ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatEmojiPicker, ChatFile, ChatMessage, ChatPhotos, ChatThread, ChatVoice,
   type ChatCallState, type ChatComposerProps, type ChatConversationItemProps, type ChatDomain, type ChatFileKind, type ChatPerson,
   type ChatReaction, type ChatReplyTarget, type ChatSide,
 } from "../../../components/Chat";
@@ -795,6 +795,60 @@ function FilesPhotosCalls() {
   return <DesktopThread m={m} />;
 }
 
+// ——— 9. Voice messages (phone) ——————————————————————————————————————————————————————————————————————————
+/** A voice message that plays: progress moves while it plays, the speed steps 1× → 1.5× → 2×. */
+function useVoicePlayback(seconds: number) {
+  const [playing, setPlaying] = useState(false);
+  const [at, setAt] = useState(0);
+  const [speed, setSpeed] = useState(1);
+  useEffect(() => {
+    if (!playing) return undefined;
+    const timer = window.setInterval(() => setAt((now) => {
+      const next = now + 0.25 * speed;
+      if (next >= seconds) { setPlaying(false); return 0; }
+      return next;
+    }), 250);
+    return () => window.clearInterval(timer);
+  }, [playing, speed, seconds]);
+  const mmss = (value: number) => `${Math.floor(value / 60)}:${String(Math.floor(value % 60)).padStart(2, "0")}`;
+  return { playing, onPlayingChange: setPlaying, progress: at / seconds, elapsed: mmss(at), duration: mmss(seconds), speed, onSpeedChange: setSpeed };
+}
+
+function VoiceMessages() {
+  const demo = useChatDemo();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const fromBao = useVoicePlayback(32);
+  const mine = useVoicePlayback(18);
+  const [sent, setSent] = useState<Array<{ id: string; text: string }>>([]);
+  const header = (
+    <PlatformChatHeader title={bao.name} person={cp(bao)} online scrollRef={screenRef}
+      onAction={(what) => demo.headerAction(what)} />
+  );
+  return (
+    <Stack gap="sm">
+      <PlatformPhone label="Voice messages with Bao Tran" canvas="canvas" screenRef={screenRef} header={header}
+        footer={<ChatComposer actions={demo.composerActions} onEmoji={demo.onEmoji} {...demo.composerReply} onSend={(text) => { demo.takeReply(); setSent((all) => [...all, { id: `voice-sent-${all.length}`, text }]); demo.say("Sent"); }} />}>
+        <ChatThread aria-label="Voice messages with Bao Tran">
+          {demo.isDeleted("voice-bao") ? null : (
+            <ChatMessage side="others" author={cp(bao)} {...demo.act("voice-bao", "others", { kind: "voice", author: bao.name, reply: { duration: "0:32" } })}>
+              <ChatVoice side="others" {...fromBao} />
+            </ChatMessage>
+          )}
+          {demo.isDeleted("voice-you") ? null : (
+            <ChatMessage side="you" status={sent.length ? undefined : "Seen"} {...demo.act("voice-you", "you", { kind: "voice", reply: { duration: "0:18" } })}>
+              <ChatVoice side="you" {...mine} />
+            </ChatMessage>
+          )}
+          {sent.map((message, index) => (
+            <ChatMessage key={message.id} side="you" continued status={index === sent.length - 1 ? "Sent" : undefined} {...demo.act(message.id, "you", { text: message.text })}>{message.text}</ChatMessage>
+          ))}
+        </ChatThread>
+      </PlatformPhone>
+      <ChatDemoNote note={demo.note} />
+    </Stack>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Team messenger",
@@ -943,6 +997,24 @@ const handle = (action, id) => {
   <ChatMessage side="you"><ChatFile side="you" kind="doc" name="Naming shortlist.docx" size="240 KB" onOpen={download} /></ChatMessage>
   <ChatMessage side="you" seenBy={[gia, emi, linh, hana, chi, ava]}>Here's the naming shortlist for Friday's workshop.</ChatMessage>
 </ChatThread>`,
+  },
+  {
+    title: "Voice messages",
+    description: "On a phone, ChatVoice plays a voice message in its bubble: the played share of the waveform turns full strength, the speed steps 1× → 1.5× → 2×, and hold (or Shift+F10 on a focused bubble) offers Reply, Forward, Pin and Delete as on a file.",
+    render: () => <VoiceMessages />,
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef}
+  header={<PlatformChatHeader title="Bao Tran" person={bao} online scrollRef={screenRef} onAction={onAction} />}
+  footer={<ChatComposer replyTo={replyTo} onCancelReply={cancelReply} onSend={send} />}>
+  <ChatThread aria-label="Voice messages with Bao Tran">
+    <ChatMessage side="others" author={bao} {...act("voice-bao", "others", { kind: "voice" })}>
+      <ChatVoice side="others" duration="0:32" elapsed={elapsed} progress={progress}
+        playing={playing} onPlayingChange={setPlaying} speed={speed} onSpeedChange={setSpeed} />
+    </ChatMessage>
+    <ChatMessage side="you" status="Seen" {...act("voice-you", "you", { kind: "voice" })}>
+      <ChatVoice side="you" duration="0:18" playing={mine} onPlayingChange={setMine} speed={mineSpeed} onSpeedChange={setMineSpeed} />
+    </ChatMessage>
+  </ChatThread>
+</PlatformPhone>`,
   },
   {
     title: "Customer support",

@@ -130,18 +130,47 @@ export async function rectOf(page, file, loc) {
   return page.evaluate((src) => window.__e2e.rectOf(src), `${file}:${loc}`);
 }
 
-/** Clicks the centre of what file:loc rendered (real pointer, through the canvas picker). */
-export async function clickLoc(page, file, loc, { modifiers, clickCount, position = "center" } = {}) {
+/** Whether the selection's outline covers `rect` (a box from getBoundingClientRect / boundingBox). */
+export async function outlines(page, rect) {
+  return page.evaluate((r) => {
+    const box = document.querySelector('.studio-selection__outline[data-kind="selected"]')?.getBoundingClientRect();
+    return Boolean(box && Math.abs(box.x - r.x) < 3 && Math.abs(box.y - r.y) < 3 && Math.abs(box.width - r.width) < 3 && Math.abs(box.height - r.height) < 3);
+  }, { x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+}
+
+/**
+ * Selects the element whose box is `rect` by a click at (x, y): ⌘ / Ctrl held (Figma's deep select reaches the
+ * element itself) unless the element is selected already (a plain click inside it keeps it; ⌘ would go into its parts).
+ */
+export async function selectAt(page, rect, x = rect.x + rect.width / 2, y = rect.y + rect.height / 2) {
+  const deep = !(await outlines(page, rect));
+  if (deep) await page.keyboard.down("ControlOrMeta");
+  try {
+    await page.mouse.click(x, y);
+  } finally {
+    if (deep) await page.keyboard.up("ControlOrMeta");
+  }
+}
+
+/**
+ * Clicks the centre of what file:loc rendered (real pointer, through the canvas picker), so that element is selected:
+ * ⌘ / Ctrl is held (Figma's deep select; a plain click picks the outermost layer in context, 2026-10-09), except on the
+ * element already selected (⌘ there goes on into its parts; a plain click keeps it) and for a double-click (the drill
+ * gesture). `deep: false` clicks plainly, `deep: true` always holds ⌘.
+ */
+export async function clickLoc(page, file, loc, { modifiers, clickCount, position = "center", deep } = {}) {
   const rect = await until(() => rectOf(page, file, loc), { message: `${file}:${loc} on the canvas` });
   // "center", or { dx, dy } from the top-left corner (a container's padding, where no child covers it).
   const x = position === "center" ? rect.x + rect.width / 2 : rect.x + (position.dx ?? 2);
   const y = position === "center" ? rect.y + rect.height / 2 : rect.y + (position.dy ?? 2);
+  const selected = await outlines(page, rect);
+  const keys = [...(modifiers ?? []), ...((deep ?? (!selected && !(clickCount > 1))) ? ["ControlOrMeta"] : [])];
   // page.mouse.click has no `modifiers`: hold the keys around the click.
-  for (const key of modifiers ?? []) await page.keyboard.down(key);
+  for (const key of keys) await page.keyboard.down(key);
   try {
     await page.mouse.click(x, y, { clickCount });
   } finally {
-    for (const key of [...(modifiers ?? [])].reverse()) await page.keyboard.up(key);
+    for (const key of [...keys].reverse()) await page.keyboard.up(key);
   }
   return rect;
 }
@@ -155,6 +184,19 @@ export async function selectedSrc(page) {
 }
 
 export const inspector = (page) => page.locator("#studio-right");
+/**
+ * Opens an Assets library (Components · Icons · Photos) from wherever the tab was left: Figma's drill-in (2026-10-09) —
+ * back to the libraries first, then the library's row; resolves once its search ("Search components") shows.
+ */
+export async function openAssetLibrary(page, kind) {
+  await showLeftTab(page, "assets");
+  const panel = page.locator("#studio-left-panel-assets");
+  const back = panel.getByRole("button", { name: "All libraries" });
+  if (await back.count()) await back.click();
+  await panel.getByRole("button", { name: kind, exact: true }).click();
+  await panel.getByLabel(`Search ${kind.toLowerCase()}`).waitFor({ state: "visible", timeout: 5000 });
+}
+
 export const inspectorRow = (page, prop) => page.locator(`#studio-right [data-prop="${prop}"]`).first();
 
 /** The canvas status hint text (CanvasStatus), where the Studio reports refusals and results. */

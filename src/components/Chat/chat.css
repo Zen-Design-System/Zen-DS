@@ -257,3 +257,27 @@
 .zen-chat-thread[data-device="desktop"] > .zen-chat-message:is(:hover, :focus-within) { position: relative; z-index: 4; }
 /* The message whose menu is open keeps its toolbar above a neighbour that is merely hovered or focused. */
 .zen-chat-thread[data-device="desktop"] > .zen-chat-message:has(.zen-chat-message__hover[data-open="true"]) { z-index: 5; }
+
+/* Figma Chat/Bubble/Voice (15084:80205): 288 wide, Spacing/Padding/Small, Spacing/Gap/XSmall, Corner-Radius/Large.
+   Others: Background/Neutral/Subtle (Business: Bubble-Chat-Others-Business with the cards' lift); You: Bubble-Chat-You. */
+/* zen-allow-slot-size: Figma's voice bubble is 288 wide (34 bars, the control and the speed). */
+.zen-chat-voice { display: flex; width: 288px; max-width: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-subtle-default); color: var(--zen-color-content-neutral-strongest); }
+/* zen-allow-raw-shadow: the Business card lift is the same local 0 6 16 −4 Light shadow as the other Business cards. */
+.zen-chat-voice[data-domain="business"][data-side="others"] { background: var(--zen-bubble-chat-others-business-background-default, var(--zen-color-background-surface-default, #fff)); box-shadow: 0 6px 16px -4px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%)); }
+.zen-chat-voice[data-side="you"] { background: var(--zen-bubble-chat-you-background-default); color: var(--zen-bubble-chat-you-content-default); }
+.zen-chat-voice__playback { display: flex; min-width: 0; height: var(--zen-button-size-small, 32px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chat-voice__wave { display: flex; height: 100%; min-width: 0; flex: 1 1 auto; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: hidden; }
+/* zen-allow-slot-size: a waveform bar is a drawn glyph, 3px wide as in Figma; the unplayed share is 30% (Figma's opacity). */
+.zen-chat-voice__bar { width: 3px; min-height: 3px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; opacity: 0.3; }
+.zen-chat-voice__bar[data-played] { opacity: 1; }
+/* zen-allow-slot-size: Figma's Playback speed box is 40 wide, so the bubble does not move as "1×" becomes "1.5×". */
+.zen-chat-voice__speed { display: inline-flex; width: 40px; height: 100%; flex: 0 0 auto; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: inherit; cursor: default; font-variant-numeric: tabular-nums; }
+button.zen-chat-voice__speed { cursor: pointer; }
+button.zen-chat-voice__speed:hover { background: var(--zen-color-background-neutral-flat-hover); }
+button.zen-chat-voice__speed:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+/* Business: the length (or where playback is), the status (Neutral/Light) and the time on the right, 2XSmall apart. */
+.zen-chat-voice__meta { display: flex; min-width: 0; align-items: baseline; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-chat-voice__duration { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+.zen-chat-voice__status { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zen-chat-voice__time { flex: 0 0 auto; }
+.zen-chat-voice[data-side="others"] :is(.zen-chat-voice__status, .zen-chat-voice__time) { color: var(--zen-color-content-neutral-light); }

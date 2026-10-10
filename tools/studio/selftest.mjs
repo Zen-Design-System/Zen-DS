@@ -330,7 +330,9 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
     "  const [agree, setAgree] = useState(false);",
     "  const [tab, setTab] = useState<\"all\" | \"unread\">('all');",
     "  const label = \"Agree\";",
+    "  const [picked, setPicked] = useState<string[]>([\"t-1\"]);",
     "  return <><Checkbox label={label} checked={agree} onCheckedChange={setAgree} /><Tabs value={tab} onValueChange={setTab} options={[]} />",
+    "    <Table aria-label=\"Tasks\" rows={[]} columns={[]} selectable selectedIds={picked} onSelectionChange={setPicked} />",
     "    {[true].map((agree) => <Checkbox key=\"x\" checked={agree} />)}</>;",
     "}",
   );
@@ -345,11 +347,14 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("state: a typed useState string", attr(at("<Tabs"), "value").state, { name: "tab", value: "all", line: 3 });
   check("state: a const is not state", attr(at("<Checkbox"), "label").state, undefined);
   check("state: a .map parameter shadows it", attr(at("<Checkbox", 1), "checked").state, undefined);
+  check("state: a useState list of strings (a Table's selectedIds)", attr(at("<Table"), "selectedIds").state, { name: "picked", value: ["t-1"], line: 5 });
   check("setStateInit: the initializer changes, the binding stays", edit(terms, at("<Checkbox"), "Checkbox", [{ op: "setStateInit", name: "checked", value: { kind: "boolean", value: true } }]), terms.replace("useState(false)", "useState(true)"));
   check("setStateInit: keeps the string's quotes", edit(terms, at("<Tabs"), "Tabs", [{ op: "setStateInit", name: "value", value: { kind: "string", value: "unread" } }]), terms.replace("('all')", "('unread')"));
   check("setStateInit: refused when not state", edit(terms, at("<Checkbox"), "Checkbox", [{ op: "setStateInit", name: "label", value: { kind: "string", value: "x" } }]).code, "invalid");
   check("setStateInit: refused under a shadowing parameter", edit(terms, at("<Checkbox", 1), "Checkbox", [{ op: "setStateInit", name: "checked", value: { kind: "boolean", value: false } }]).code, "invalid");
   check("setStateInit: refused for a wrong value kind", edit(terms, at("<Checkbox"), "Checkbox", [{ op: "setStateInit", name: "checked", value: { kind: "expression", code: "x" } }]).code, "invalid");
+  check("setStateInit: a list state takes a list of strings (a row selected in the Studio)", edit(terms, at("<Table"), "Table", [{ op: "setStateInit", name: "selectedIds", value: { kind: "expression", code: '["t-1", "t-2"]' } }]), terms.replace('useState<string[]>(["t-1"])', 'useState<string[]>(["t-1", "t-2"])'));
+  check("setStateInit: a list state refuses anything but a list of strings", edit(terms, at("<Table"), "Table", [{ op: "setStateInit", name: "selectedIds", value: { kind: "string", value: "t-2" } }]).code, "invalid");
 }
 
 /* ── what an expression prop reads: SourceAttr.origin (2026-10-05) ──────────────────────────────────────────────── */
@@ -467,6 +472,10 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
   check("setField: add a field inline", edit(nav, "1:0", "TopNavigation", [{ op: "setField", name: "trailing", index: 0, key: "dot", value: { kind: "boolean", value: true } }]), nav.replace('label: "Call" }', 'label: "Call", dot: true }'));
   check("setField: remove the last field", edit(nav, "1:0", "TopNavigation", [{ op: "setField", name: "trailing", index: 1, key: "dot", value: null }]), nav.replace(', dot: true', ""));
   check("setField: remove a middle field", edit(nav, "1:0", "TopNavigation", [{ op: "setField", name: "leading", key: "label", value: null }]), nav.replace('label: "Back", ', ""));
+  const shell = '<Sidebar sections={[{ items: [{ id: "home", label: "Home" }] }, { label: "Admin", items: [{ id: "members", label: "Members", icon: "icon-users" }] }]} />;';
+  check("shape: a list in an item is read one level down", describe(shell, "1:0").attributes[0].shape.items[1].fields[1].shape.items[0].fields.map((field) => field.key), ["id", "label", "icon"]);
+  check("setField: path into a nested list", edit(shell, "1:0", "Sidebar", [{ op: "setField", name: "sections", index: 1, path: [{ key: "items", index: 0 }], key: "counter", value: { kind: "number", value: 3 } }]), shell.replace('icon: "icon-users" }', 'icon: "icon-users", counter: 3 }'));
+  check("setField: path field removed", edit(shell, "1:0", "Sidebar", [{ op: "setField", name: "sections", index: 1, path: [{ key: "items", index: 0 }], key: "icon", value: null }]), shell.replace(', icon: "icon-users"', ""));
   check("setField: same value → no change", edit(nav, "1:0", "TopNavigation", [{ op: "setField", name: "trailing", index: 1, key: "dot", value: { kind: "boolean", value: true } }]), nav);
   check("setField: absent removal → no change", edit(nav, "1:0", "TopNavigation", [{ op: "setField", name: "leading", key: "dot", value: null }]), nav);
   check("setField: keeps single quotes", edit("<A x={{ label: 'Hi' }} />;", "1:0", "A", [{ op: "setField", name: "x", key: "label", value: { kind: "string", value: "It's" } }]), "<A x={{ label: 'It\\'s' }} />;");

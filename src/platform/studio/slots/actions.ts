@@ -13,11 +13,12 @@ import { stackTagBefore, studioWrapper, wrappedChildLoc, wrapperCandidate } from
 import { studioDrafts } from "../sourceDrafts";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
-import { attributeFormOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
+import { attributeFormOf, constOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
 import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaption } from "./dataItems";
 import { itemTitle, type DataSlot } from "./dataSlots";
 import { frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
 import { answeredLoc, isUnknownSlotOp, sendSlotEdit, type InsertChildOp, type ItemEditOp, type SlotEditApplied, type SlotEditOp, type SlotWrap } from "./ops";
+import { freshRow, rowFields, sectionEntries, sectionsCode, titleOf } from "./sectionList";
 import { paletteFor, type PaletteContext, type PaletteHostContext, type PaletteItem } from "./palette";
 import { headingLevelFor, hostPropsOf, insertTargetFor, isClickableHost, type ContentSlot, type HostProps } from "./registry";
 
@@ -284,6 +285,8 @@ export function rememberInsert(file: string, after: string, before: StudioSelect
 function stillSelected(from: StudioSelection, current: StudioSelection | null, write: StudioWrite) {
   if (!current) return false;
   if (from.kind === "frame") return current.kind === "frame" && current.frameId === from.frameId;
+  // A layer of the Main component frame is never the target of a slot write.
+  if (from.kind === "variant") return false;
   return sameSelectedElement(from, current) || (current.kind === "node" && !current.part && current.name === from.name
     && current.instance === from.instance && (current.src === from.src || current.src === mapSrc(from.src, write)));
 }
@@ -414,8 +417,14 @@ export function moveAvailability(selection: NodeSelection): { prev: boolean; nex
     parent = parentHit(parent, frame);
   }
   if (!parent) return { prev: true, next: true };
+  const children = childHits(parent);
+  // A `.map` row among its list's rows (one JSX element rendered several times here): Move up / down swap it with the
+  // row before or after it in its data (moveMapRow).
+  const rows = hit && src === selection.src ? children.filter((child) => child.src === src) : [];
+  const position = rows.findIndex((child) => child.hosts[0] === hit?.hosts[0]);
+  if (rows.length > 1 && position >= 0) return { prev: position > 0, next: position < rows.length - 1 };
   // One entry per JSX element: the rows of a `.map` share one source location.
-  const order = [...new Set(childHits(parent).map((child) => child.src))];
+  const order = [...new Set(children.map((child) => child.src))];
   const index = order.indexOf(src);
   return index < 0 ? { prev: true, next: true } : { prev: index > 0, next: index < order.length - 1 };
 }
@@ -426,7 +435,8 @@ export type StructuralVerb = "remove" | "duplicate" | "move";
 
 /* Answers per selection, until the next write or source update. */
 const blocks = new Map<string, Promise<string | null>>();
-const forgetBlocks = () => blocks.clear();
+const placements = new Map<string, Promise<Placement | null>>();
+const forgetBlocks = () => { blocks.clear(); placements.clear(); };
 const unsubscribeBlocks = subscribeStudioWrites(forgetBlocks);
 const offBlockUpdates = onSourceUpdate(forgetBlocks);
 import.meta.hot?.dispose(() => { unsubscribeBlocks(); offBlockUpdates(); });
@@ -436,7 +446,7 @@ import.meta.hot?.dispose(() => { unsubscribeBlocks(); offBlockUpdates(); });
  * their siblings), a `.map` row, a condition's branch, a prop's value, another expression; "unknown" while the server
  * does not locate expression elements; null when it is not there.
  */
-type Place = "child" | "map" | "condition" | "prop" | "other" | "unknown";
+type Place = "child" | "map" | "condition" | "prop" | "prop-map" | "prop-condition" | "other" | "unknown";
 function placeIn(element: SourceElement, loc: string): Place | null {
   let unknown = false;
   for (const child of element.children) {
@@ -454,20 +464,41 @@ function placeIn(element: SourceElement, loc: string): Place | null {
     const located = locatedElements(attr);
     if (!located?.some((ref) => ref.loc === loc)) continue;
     const form = attributeFormOf(attr);
-    return form === "map" ? "map" : form === "fragment" ? "child" : form === "and" || form === "ternary" ? "condition" : form === "element" ? "prop" : "other";
+    return form === "map" ? "prop-map" : form === "fragment" ? "child" : form === "and" || form === "ternary" ? "prop-condition" : form === "element" ? "prop" : "other";
   }
   return unknown ? "unknown" : null;
 }
 
-async function readBlock(selection: NodeSelection, verb: StructuralVerb): Promise<string | null> {
+/** Whether the JSX at `loc` is the element a `.map` callback in `element` returns (describeSlots `row`). */
+function isRowRoot(element: SourceElement, loc: string): boolean {
+  return [...element.children, ...element.attributes].some((entry) => locatedElements(entry)?.some((ref) => ref.loc === loc && ref.row === true));
+}
+
+/**
+ * Where the selection's JSX sits in the nearest annotated element of its file that lists it (placeIn); `row`: it is the
+ * element a `.map` callback returns, `keyed`: its render has a key. `place` null: no JSX around it lists it (`unknown`
+ * and `reads` say whether that could be told). Null when the canvas or the server cannot say.
+ */
+type Placement = { place: Place | null; row: boolean; keyed: boolean; unknown: boolean; reads: number };
+
+function placementOf(selection: NodeSelection): Promise<Placement | null> {
+  const key = `${selection.src}#${selection.instance}`;
+  let pending = placements.get(key);
+  // Not on the canvas (yet, or an overlay's content): nothing to tell, and nothing kept.
+  if (!pending && !selectedHit(selection)) return Promise.resolve(null);
+  if (!pending) {
+    pending = readPlacement(selection).catch(() => null);
+    placements.set(key, pending);
+  }
+  return pending;
+}
+
+async function readPlacement(selection: NodeSelection): Promise<Placement | null> {
   const world = canvasApi.getWorldElement();
   const parsed = parseSrc(selection.src);
   const hit = parsed && world ? selectedHit(selection, world) : null;
   if (!parsed || !hit) return null;
-  const name = selection.name;
   const keyed = (hit.fiber as { key?: unknown } | undefined)?.key != null;
-  // The server refuses to copy a keyed element (the copy would repeat the key).
-  if (verb === "duplicate" && keyed) return `${name} has a key; a copy would repeat it — edit it in the code`;
   // The nearest annotated elements of the same file around it, read until one lists it (its JSX parent).
   const frame = frameElement(selection.frameId, world);
   let unknown = false;
@@ -481,21 +512,97 @@ async function readBlock(selection: NodeSelection, verb: StructuralVerb): Promis
     const place = placeIn(element, parsed.loc);
     if (place === null) continue;
     if (place === "unknown") { unknown = true; continue; }
-    // The element a `.map` callback returns (keyed: a fragment's children are plain children of it).
-    if (place === "map") return keyed ? (verb === "remove" ? "One per row: remove the row in its data" : verb === "duplicate" ? "One per row: add the row to its data" : "One per row: reorder the rows in its data") : null;
-    // Only an element's children (or a prop fragment's) swap places.
-    if (verb === "move" && place === "condition") return `${name} is shown on a condition, not among siblings — it cannot move`;
-    if (verb === "move" && place === "prop") return `${name} is a prop's only content — it cannot move`;
-    return null;
+    return { place, row: isRowRoot(element, parsed.loc), keyed, unknown, reads };
   }
+  return { place: null, row: false, keyed, unknown, reads };
+}
+
+/**
+ * The row of its `.map` list the selection renders, when it is the element the callback returns: remove and duplicate
+ * then take that row out of the list's data or copy it there (data-source.mjs dataRowEdit), the other rows stay.
+ * `group`: lists before it on the canvas that show the same rows (other frames). Null otherwise.
+ */
+async function mapRowIndex(selection: NodeSelection): Promise<{ row: number; group: number; keyed: boolean } | null> {
+  const placed = await placementOf(selection);
+  if (!placed?.row) return null;
+  const at = rowOf(selection);
+  return at && !("reason" in at) ? { row: at.row, group: at.group, keyed: placed.keyed } : null;
+}
+
+/**
+ * Move up / down of the element a `.map` callback returns: the row swaps with the one before or after it in its data
+ * (data-source.mjs dataRowEdit) and stays selected at its new place. Its new location; false when it did not move; null
+ * when the selection is not such a row (the caller moves the code as usual).
+ */
+export async function moveMapRow(selection: NodeSelection, to: "prev" | "next"): Promise<string | false | null> {
+  const row = await mapRowIndex(selection);
+  if (!row) return null;
+  const element = await readElement(selection.src, selection.name);
+  if (!element) return false;
+  const step = to === "prev" ? -1 : 1;
+  const world = canvasApi.getWorldElement();
+  const hits = world ? findBySrc(world, selection.src) : [];
+  // Keyed rows: React moves the row's own DOM node to its new place; unkeyed rows keep their nodes and swap what they
+  // show. The selection waits for the node that shows this row after the render, not the one standing there now.
+  const before = renderedNow(world);
+  const shows = row.keyed ? hits[selection.instance] : hits[selection.instance + step];
+  for (const host of shows?.hosts ?? []) before.delete(host);
+  const direction = to === "prev" ? "up" : "down";
+  writing("Moving…");
+  const response = await write(targetOf(element), { op: "moveElement", to, row: row.row }, `Move ${selection.name} ${direction}`);
+  if (!response) return false;
+  if (!response.row) {
+    announce(outcomeOf(`Moved ${selection.name} ${direction}`, response));
+    return answeredLoc(response, "moved") ? `${response.file}:${answeredLoc(response, "moved")}` : false;
+  }
+  announce(outcomeOf(`Moved ${selection.name} row ${row.row + 1} ${direction} in its data`, response));
+  const src = `${response.row.file}:${response.row.loc}`;
+  const current = studioStore.getState().selection;
+  if (current?.kind === "node" && sameSelectedElement(selection, current)) {
+    const moved: NodeSelection = { ...current, src, instance: current.instance + step };
+    expectRender(moved, before, () => undefined, 1500);
+    studioStore.setState({ selection: moved });
+    flushStudioStore();
+    remember(response.file, response.after, selection, moved, { before: false, after: false });
+  }
+  return src;
+}
+
+async function readBlock(selection: NodeSelection, verb: StructuralVerb): Promise<string | null> {
+  const placed = await placementOf(selection);
+  if (!placed) return null;
+  const { place, row, keyed, unknown, reads } = placed;
+  const name = selection.name;
+  // The element a `.map` callback returns: this row is removed from, copied in or moved in the list's data (mapRowIndex,
+  // moveMapRow); the Slots section's layer for the whole `.map` moves it as one block.
+  if (row) {
+    const at = rowOf(selection);
+    if (at && "reason" in at) return at.reason;
+    // Move up / down swap the row with its neighbour in the data (moveMapRow); the server has the final say.
+    if (verb === "move") return null;
+    return at ? null : `${name} is one per row and the canvas cannot tell which — select it again`;
+  }
+  // The server refuses to copy a keyed element (the copy would repeat the key).
+  if (verb === "duplicate" && keyed) return `${name} has a key; a copy would repeat it — edit it in the code`;
+  // A `.map` row's element the server does not mark as its root (a server started before `row`; keyed: a fragment's
+  // children are plain children of it).
+  if (place === "map" || place === "prop-map") {
+    if (verb === "move") return place === "map" ? null : "One per row: reorder the rows in its data";
+    return keyed ? (verb === "remove" ? "One per row: remove the row in its data" : "One per row: add the row to its data") : null;
+  }
+  // Among children a condition's element moves with its `{… && …}` / `{… ? … : …}`; in a prop it has no siblings.
+  if (verb === "move" && place === "prop-condition") return `${name} is shown on a condition in a prop, not among siblings — it cannot move`;
+  if (verb === "move" && place === "prop") return `${name} is a prop's only content — it cannot move`;
+  if (place) return null;
   // No JSX around it lists it: a function returns it or a variable holds it (an example's root, a helper's result).
   return unknown || reads >= 8 ? null : `${name} is what its code returns or holds, not slot content — edit it in the code`;
 }
 
 /**
  * Why the element cannot be removed, duplicated or moved from the Studio, read from the source around it (the server's
- * own refusals): the row a `.map` callback returns, a keyed element's copy, or what a function returns or a variable
- * holds (no JSX around it lists it). Null when it can, or when that cannot be told: the server has the final say.
+ * own refusals): a `.map` row the canvas cannot place in one list, a keyed element's copy, or what a function returns
+ * or a variable holds (no JSX around it lists it). Null when it can, or when that cannot be told: the server has the
+ * final say.
  */
 export function structuralBlock(selection: NodeSelection, verb: StructuralVerb): Promise<string | null> {
   const key = `${verb}|${selection.src}#${selection.instance}`;
@@ -834,11 +941,13 @@ async function runRemove(selection: NodeSelection, parentHint?: StudioSelection 
   const parentAt = parent?.kind === "node" ? parseSrc(parent.src) : null;
   // A parent whose opening tag sits above the removed lines keeps its place through the write.
   const keep = parent?.kind === "node" && parentAt && parentAt.file === element.file && parentAt.line <= element.startLine ? [parent.src] : [];
-  if (!(await confirmRepeats(selection, { verb: "remove", name: selection.name }))) return false;
+  // A `.map` row's element: this row goes from the list's data, the other rows stay (nothing to confirm).
+  const row = await mapRowIndex(target);
+  if (!row && !(await confirmRepeats(selection, { verb: "remove", name: selection.name }))) return false;
   writing("Removing…");
-  const response = await write(targetOf(element), { op: "removeElement" }, `Remove ${selection.name}`, keep);
+  const response = await write(targetOf(element), row ? { op: "removeElement", row: row.row } : { op: "removeElement" }, `Remove ${selection.name}`, keep);
   if (!response) return false;
-  announce(outcomeOf(`Removed ${selection.name}`, response));
+  announce(outcomeOf(response.row ? `Removed ${selection.name} row ${row!.row + 1} from its data` : `Removed ${selection.name}`, response));
   if (sameSelectedElement(selection, studioStore.getState().selection)) {
     const next = parentAfter(parent, element, response);
     if (next && parent && isOffCanvasSelection(parent)) markOffCanvas(next);
@@ -863,15 +972,25 @@ export function duplicateSelection(selection: NodeSelection): Promise<boolean> {
     if (!element) return false;
     const block = await structuralBlock(target, "duplicate");
     if (block) return fail(block);
-    if (!(await confirmRepeats(selection, { verb: "duplicate", name: selection.name }))) return false;
+    // A `.map` row's element: the row is copied in the list's data, right after itself (nothing to confirm).
+    const row = await mapRowIndex(target);
+    if (!row && !(await confirmRepeats(selection, { verb: "duplicate", name: selection.name }))) return false;
     writing("Duplicating…");
     // The copy renders where the original does: off the canvas with an overlay's content.
     const away = isOffCanvasSelection(selection) || !selectedHit(selection);
     const before = renderedNow(canvasApi.getWorldElement());
-    const response = await write(targetOf(element), { op: "duplicateElement" }, `Duplicate ${selection.name}`, [target.src]);
+    const response = await write(targetOf(element), row ? { op: "duplicateElement", row: row.row } : { op: "duplicateElement" }, `Duplicate ${selection.name}`, [target.src]);
     if (!response) return false;
-    const text = outcomeOf(`Duplicated ${selection.name}`, response);
+    const text = outcomeOf(response.row ? `Duplicated ${selection.name} row ${row!.row + 1} in its data` : `Duplicated ${selection.name}`, response);
     announce(text);
+    if (response.row && row) {
+      // The copy is the next render of the same JSX: past the copies lists before it got too (module data shows in
+      // every frame; a useState list changes only in the frame that starts again).
+      const shift = response.row.state ? 0 : row.group;
+      const copy: NodeSelection = { kind: "node", src: `${response.row.file}:${response.row.loc}`, name: selection.name, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance + shift + 1 };
+      if (selectNew(selection, copy, before, text, { timeout: 3000, away })) remember(response.file, response.after, selection, copy, { before: false, after: true }, { before: away, after: away });
+      return true;
+    }
     const loc = answeredLoc(response, "inserted");
     if (!loc) return true;
     const copy: NodeSelection = wrap ? insideWrap(selection, response.file, response.after, loc)
@@ -892,15 +1011,44 @@ export async function moveSlotLayer(host: NodeSelection, layer: { name: string; 
   const child: NodeSelection = { kind: "node", src: layer.src, name: layer.name, frameId: host.frameId, panelId: host.panelId, instance: host.instance };
   let moved: string | null = null;
   await exclusive(async () => {
-    moved = await runMove(child, to);
+    moved = await runMove(child, to, false);
     return moved !== null;
   });
   return moved;
 }
 
-async function runMove(selection: NodeSelection, to: "prev" | "next"): Promise<string | null> {
+/**
+ * The element whose children show the selection through a const's `{name}` (`{summary}` with `const summary = <…/>`),
+ * read up from the canvas as readBlock reads: its loc, so the server moves that `{name}` when the const shows in several
+ * places. Null when the selection is not a const's JSX shown as a child.
+ */
+export async function constHolderOf(selection: NodeSelection): Promise<string | null> {
+  const world = canvasApi.getWorldElement();
+  const parsed = parseSrc(selection.src);
+  const hit = parsed && world ? selectedHit(selection, world) : null;
+  if (!parsed || !hit) return null;
+  const frame = frameElement(selection.frameId, world);
+  let reads = 0;
+  for (let current = parentHit(hit, frame), guard = 0; current && guard < 60 && reads < 8; current = parentHit(current, frame), guard++) {
+    const at = parseSrc(current.src);
+    if (!at || at.file !== parsed.file) continue;
+    reads += 1;
+    const element = await studioApi.element(at.file, at.loc);
+    if (!element) return null;
+    if (element.children.some((child) => child.kind === "expression" && constOf(child) && locatedElements(child)?.some((ref) => ref.loc === parsed.loc))) return at.loc;
+    if (placeIn(element, parsed.loc) !== null) return null;
+  }
+  return null;
+}
+
+async function runMove(selection: NodeSelection, to: "prev" | "next", rows = true): Promise<string | null> {
   const check = canStructurallyEdit(selection);
   if (!check.ok) { fail(check.reason); return null; }
+  // One row of a `.map` on the canvas moves in its data; the Slots section's layer (`rows` false) moves the whole block.
+  if (rows) {
+    const moved = await moveMapRow(selection, to);
+    if (moved !== null) return moved || null;
+  }
   // A component in its Studio wrap Stack moves with that Stack, among the Stack's siblings.
   const wrap = await studioWrapOf(selection);
   const target = wrap ?? selection;
@@ -914,7 +1062,9 @@ async function runMove(selection: NodeSelection, to: "prev" | "next"): Promise<s
   // What the canvas shows before the write: the selection waits for the re-render instead of outlining the sibling that
   // still stands at the new place (as edit/arrange.ts stepLayer does; BACKLOG "Move up/down drops the selection").
   const before = renderedNow(canvasApi.getWorldElement());
-  const response = await write(targetOf(element), { op: "moveElement", to }, `Move ${selection.name} ${direction}`);
+  // A const shown in several places: the `{name}` this one is shown by moves.
+  const holder = await constHolderOf(target);
+  const response = await write(targetOf(element), { op: "moveElement", to, ...(holder ? { parent: holder } : {}) }, `Move ${selection.name} ${direction}`);
   if (!response) return null;
   announce(outcomeOf(`Moved ${selection.name} ${direction}`, response));
   const loc = answeredLoc(response, "moved");
@@ -1153,6 +1303,85 @@ function selectItemWhenRendered(host: NodeSelection, slot: DataSlot, index: numb
   window.setTimeout(tick, 80);
 }
 
+/**
+ * A nested data slot written back whole (op setItems): Sidebar Body-Content's section titles and rows reordered, merged
+ * and removed as freely as Figma's slot (user, 2026-10-10: "hành vi thiết kế phải tự do như Figma"). `code` null removes
+ * the prop. `select`: the row (its place among the slot's items) to select once it renders.
+ */
+export function rewriteDataSlot(selection: NodeSelection, slot: DataSlot, code: string | null, label: string, select?: number): Promise<boolean> {
+  return exclusive(async () => {
+    const hostSelection = withoutPart(selection) as NodeSelection;
+    const host = await readElement(hostSelection.src, hostSelection.name);
+    if (!host) return false;
+    return runRewrite(hostSelection, host, slot, code, label, select);
+  });
+}
+
+async function runRewrite(hostSelection: NodeSelection, host: SlotSourceElement, slot: DataSlot, code: string | null, label: string, select?: number): Promise<boolean> {
+  {
+    const check = canStructurallyEdit(hostSelection);
+    if (!check.ok) return fail(check.reason);
+    if (!single("Edit")) return false;
+    writing("Updating…");
+    const before = renderedSignature(selectedHit(hostSelection), slot);
+    const isHost = (candidate: StudioSelection | null): candidate is NodeSelection => candidate?.kind === "node" && candidate.name === host.name
+      && candidate.frameId === hostSelection.frameId && candidate.instance === hostSelection.instance && parseSrc(candidate.src)?.file === host.file;
+    const selected = studioStore.getState().selection;
+    if (isHost(selected) && selected.part) {
+      studioStore.setState({ selection: withoutPart(selected) });
+      flushStudioStore();
+    }
+    const response = await write(targetOf(host), { op: "setItems", prop: slot.prop, code }, label);
+    if (!response) return false;
+    const loc = response.file === host.file ? hostLocAfter(response.before, response.after, host.loc, host.name, mapLine) : null;
+    const current = studioStore.getState().selection;
+    if (loc && isHost(current) && `${response.file}:${loc}` !== current.src) {
+      remapSelection(`${response.file}:${loc}`);
+      flushStudioStore();
+    }
+    announce(outcomeOf(label, response));
+    if (select !== undefined) selectItemWhenRendered(hostSelection, slot, select, before);
+    return true;
+  }
+}
+
+/**
+ * A nested slot's group as a frame (dataGroupOfPart): `remove` takes the group with its title and rows, `removeTitle`
+ * only its title (its rows join the group above, as deleting a Section-Title in Figma), `clearRows` its rows, `addRow`
+ * puts a new row at its end. One write of the whole list (op setItems).
+ */
+export function editDataGroup(selection: NodeSelection, slot: DataSlot, group: number, verb: "remove" | "removeTitle" | "clearRows" | "addRow"): Promise<boolean> {
+  return exclusive(async () => {
+    const hostSelection = withoutPart(selection) as NodeSelection;
+    const host = await readElement(hostSelection.src, hostSelection.name);
+    if (!host) return false;
+    const entries = sectionEntries(host, slot);
+    if (!entries) return fail(`${host.name} › ${slot.name}: the code builds ${slot.prop}; edit it there`);
+    const inGroup = (entry: (typeof entries)[number]) => (entry.kind === "title" || entry.kind === "item") && entry.group === group;
+    const title = entries.find((entry) => entry.kind === "title" && entry.group === group);
+    const name = title && title.kind === "title" ? titleOf(title) : `section ${group + 1}`;
+    let next = entries;
+    let label = "";
+    let select: number | undefined;
+    if (verb === "remove") { next = entries.filter((entry) => !inGroup(entry)); label = `Remove ${name} from ${slot.name}`; }
+    else if (verb === "removeTitle") {
+      if (!title) return fail(`${name} has no title to remove`);
+      next = entries.filter((entry) => entry !== title);
+      label = `Remove the title ${name}`;
+    } else if (verb === "clearRows") { next = entries.filter((entry) => !(entry.kind === "item" && entry.group === group)); label = `Remove the rows of ${name}`; }
+    else {
+      const last = entries.reduce((at, entry, index) => (inGroup(entry) ? index : at), -1);
+      const at = last + 1;
+      const ids = new Set(entries.flatMap((entry) => entry.fields.filter((field) => field.key === "id" && field.kind === "string").map((field) => String(field.value))));
+      next = [...entries.slice(0, at), { kind: "item", group, index: -1, fields: freshRow(rowFields(slot.newItem(entries.length).code), ids) }, ...entries.slice(at)];
+      label = `Add ${slot.itemName} to ${name}`;
+      select = next.slice(0, at).filter((entry) => entry.kind === "item").length;
+    }
+    const code = sectionsCode(next, slot);
+    return runRewrite(hostSelection, host, slot, code, label, select);
+  });
+}
+
 /** One item op on the host's data slot; `index`/`to` as the source's array literal holds the items (`group`: `to` = the item it joins). */
 /** `keepHost`: the host stays selected after an add (a Figma presence boolean switched on: its row must stay reachable). */
 /** `all` (remove): every item, the prop with them (the boolean switched off: their useToast() line goes too). */
@@ -1171,6 +1400,26 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
   const source = sourceItems(host, slot);
   if (source.state === "computed") return fail(`${where}: ${computedCaption(slot, source.code, source.via)}`);
   const items = source.state === "items" ? source.items : [];
+  // A nested slot (Sidebar `sections[n].items`): each item's group and place in its list. Ops go to that list (`nest`), a
+  // new item to the last group's end, and a move stays inside its group.
+  const places = source.state === "items" ? source.at : undefined;
+  const nestAt = (flat: number) => (slot.nested && places?.[flat] ? { nest: { index: places[flat].group, key: slot.nested }, inner: places[flat].index } : null);
+  const flatOf = (group: number, inner: number) => (places ?? []).filter((place) => place.group < group).length + inner;
+  if (slot.nested && verb === "add" && !places?.length) return fail(`${where}: add a group with an \`${slot.nested}\` list in the code first`);
+  // Across a group's title (Figma's flat slot): one step in the list of titles and rows, written back whole.
+  if (slot.nested && (verb === "move" || verb === "drop") && places?.[index] && places[to] && places[index].group !== places[to].group) {
+    const entries = sectionEntries(host, slot);
+    const at = entries?.findIndex((entry) => entry.kind === "item" && entry.group === places[index].group && entry.index === places[index].index) ?? -1;
+    if (!entries || at < 0) return fail(`${where} has no item ${index + 1} any more — select it again`);
+    const next = [...entries];
+    const [entry] = next.splice(at, 1);
+    const step = to < index ? at - 1 : at + 1;
+    next.splice(Math.max(0, Math.min(next.length, step)), 0, entry);
+    const response = await write(targetOf(host), { op: "setItems", prop: slot.prop, code: sectionsCode(next, slot) }, `Move ${itemTitle(slot, items[index].fields, index)} in ${where}`);
+    if (!response) return false;
+    announce(outcomeOf(`Moved ${itemTitle(slot, items[index].fields, index)} in ${where}`, response));
+    return true;
+  }
   // Groups as the host is drawn now (TopNavigation: the compact types' Flat actions never share a pill).
   const grouping = slotGroupsAt(selectedHit(hostSelection), slot);
   if (verb === "group" && !grouping) return fail(`${where}: ${slot.groupsOffNote ?? "its items do not group here"}`);
@@ -1192,7 +1441,17 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
 
   let op: ItemEditOp;
   let warning: string | undefined;
-  if (verb === "add") {
+  const lastGroup = places?.length ? places[places.length - 1].group : 0;
+  if (slot.nested) {
+    const from = nestAt(index);
+    const target = nestAt(to);
+    if (verb === "add") op = { op: "insertItem", prop: slot.prop, code: slot.newItem(items.length).code, nest: { index: lastGroup, key: slot.nested } };
+    else if (!from) return fail(`${where} has no item ${index + 1} any more — select it again`);
+    else if (verb === "remove") op = { op: "removeItem", prop: slot.prop, index: from.inner, nest: from.nest };
+    else if (verb === "duplicate") op = { op: "duplicateItem", prop: slot.prop, index: from.inner, nest: from.nest };
+    else if ((verb === "move" || verb === "drop") && target) op = { op: "moveItem", prop: slot.prop, index: from.inner, to: target.inner, nest: from.nest };
+    else return fail(`${where}: its ${slot.itemName}s do not group`);
+  } else if (verb === "add") {
     const item = slot.newItem(items.length);
     op = { op: "insertItem", prop: slot.prop, code: item.code, ...(slot.form === "object" ? { single: true } : slot.form === "list" ? { list: true } : {}), ...(item.requires?.length ? { requires: [...item.requires] } : {}) };
     // A limit warns, it never blocks (Figma): the status says what the slot holds now.
@@ -1235,7 +1494,9 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
       : `Moved ${name} to place ${(response.item?.index ?? to) + 1} in ${where}`;
   announce(outcomeOf(done, response, warning));
   if (verb === "remove") return true;
-  const at = response.item?.prop === slot.prop && Number.isInteger(response.item.index) ? response.item.index : null;
+  const answered = response.item?.prop === slot.prop && Number.isInteger(response.item.index) ? response.item.index : null;
+  // A nested slot answers the place in its group's list: the item's place across the groups.
+  const at = answered === null ? null : slot.nested ? flatOf(verb === "add" ? lastGroup : places?.[index]?.group ?? lastGroup, answered) : answered;
   if (at !== null && !keepHost) selectItemWhenRendered(hostSelection, slot, at, before);
   return true;
 }

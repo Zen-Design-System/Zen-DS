@@ -39,6 +39,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `eyebrow` | `ReactNode` | — | Above the title when there are no breadcrumbs: a short section label. |
 | `actions` | `ReactNode` | — | Page actions on the right of the title: Tertiary buttons first, then at most one Primary. They wrap under the title on narrow screens; on phones (ZenProvider breakpoint mobile) the Primary is shown first. |
 | `meta` | `ReactNode` | — | Next to the title: a status Badge, Tag or AvatarStack. |
+| `trailing` | `ReactNode` | — | Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or Share (Button/Icon-Main), Spacing/Gap/Small after them. |
 | `tabs` | `ReactNode` | — | Under the header: `<Tabs>` that switch the page's sections. |
 | `back` | `PageHeaderBack` | — | A Back control for detail pages (chevron icon, per the navigation rule). |
 | `headingLevel` | `1 \| 2` | `1` | Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level. |

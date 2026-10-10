@@ -1,6 +1,7 @@
 import { studioStore } from "../store";
 import type { StudioPartRef, StudioSelection } from "../types";
 import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit } from "./picker";
+import { tablePartName } from "../table/tableCells";
 
 /*
  * Deep select (read-only): the internal parts of an annotated JSX element, like Figma's ⌘-click into an instance. A
@@ -59,7 +60,9 @@ export function partHit(owner: FiberHit, fiber: Fiber): PartHit | null {
     if (!element) return null;
     const path = pathOf(owner, element);
     if (!path) return null;
-    return { src: owner.src, name: nameOf(live), hosts, isComponent: !host, props: live.memoizedProps ?? {}, fiber: live, owner, path, element };
+    // A Table's rows and cells go by Figma's names (Data-Row, Cell, Header, Header-Cell), as its Layers list them.
+    const name = (host && tablePartName(element)) || nameOf(live);
+    return { src: owner.src, name, hosts, isComponent: !host, props: live.memoizedProps ?? {}, fiber: live, owner, path, element };
   } catch {
     return null;
   }

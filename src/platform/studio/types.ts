@@ -7,7 +7,8 @@ import type { PlatformShellSettings } from "../PlatformTemplate";
  */
 
 /** Canvas tools: Select (V) picks layers, Hand (H) pans, Interact (I) uses the examples like a real app. */
-export type StudioTool = "select" | "hand" | "interact";
+/** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image). */
+export type StudioTool = "select" | "hand" | "interact" | "screen" | "stack" | "text" | "image";
 
 /** Admin edits source through the dev server; Viewer inspects read-only. Default admin. */
 export type StudioRole = "admin" | "viewer";
@@ -19,7 +20,7 @@ export type StudioViewport = { x: number; y: number; zoom: number };
 export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "docs", "document", "example:<n>". */
-export type StudioFrameKind = "playground" | "example" | "docs" | "document";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };
@@ -46,8 +47,15 @@ export type StudioNodeRef = {
  */
 export type StudioPartRef = { path: number[]; name: string };
 
+/**
+ * A layer of a library component in the Main component frame (spec docs/research/studio-main-component-spec-2026-10-09.md):
+ * one variant of a Figma set (`variant`: code prop → value, its set's `fixed` props included) and, with `path`, an
+ * element inside it ([] = the variant's root; then child-element indices). Not JSX of a page: it has no `src`.
+ */
+export type StudioVariantRef = { component: string; set: string; variant: Readonly<Record<string, string>>; path: readonly number[]; name: string };
+
 /** `src` stays the annotated JSX element (the owner) when `part` names one of its internal parts. */
-export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef);
+export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef) | ({ kind: "variant"; frameId: string } & StudioVariantRef);
 
 export type StudioLeftTab = "pages" | "layers" | "assets";
 export type StudioInspectorTab = "design" | "code" | "prototype";
@@ -143,7 +151,7 @@ export type SourceAttr = {
    * A bare identifier that reads `const [name, setName] = useState(<literal>)` in an enclosing function: its initial state,
    * which op setStateInit edits (the binding, and so the component's behaviour, stays).
    */
-  state?: { name: string; value: string | number | boolean; line: number };
+  state?: { name: string; value: string | number | boolean | string[]; line: number };
   /**
    * What an expression attribute (not a literal, not `state`) reads, from the identifiers at its root (dev server,
    * 2026-10-05): `bound-state` reads a useState value of an enclosing function directly or through a local const
@@ -164,13 +172,18 @@ export type SourceAttr = {
 
 /**
  * Where an expression's value is written as data (dev server, tools/studio/data-source.mjs, plan WP-C): a `.map` row of a
- * literal list (`row`: the list is `source`, the field `path`), a data const or import read by path (`data`), state,
- * a condition or other code. `editable`: op setDataField can write the value there (`file`: where, maybe data.ts);
- * otherwise `reason` says why it stays read-only.
+ * literal list (`row`: the list is `source`, the field `path`), a Table column cell's row (`cell`: the Table's rows, the
+ * row named by its key), a data const or import read by path (`data`), state, a condition or other code; `rows` is a
+ * Table's own rows (SourceElement.tableRows); `param` is a prop of a component of the file, written where that component
+ * is used. `editable`: op setDataField can write the value there (`file`: where, maybe data.ts); otherwise `reason`
+ * says why it stays read-only.
  */
 export type DataSource = {
-  kind: "row" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
+  kind: "row" | "cell" | "rows" | "param" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
   editable: boolean;
+  /** kind "param": a prop of a component of the file (`PersonAvatar`'s `person`, then `path`), written where it is used. */
+  component?: string;
+  prop?: string;
   source?: string;
   path?: string[];
   file?: string;
@@ -184,7 +197,8 @@ export type ShapeField =
   | { key: string; kind: "string"; value: string }
   | { key: string; kind: "boolean"; value: boolean }
   | { key: string; kind: "number"; value: number }
-  | { key: string; kind: "expression" | "spread"; value: string };
+  /** `shape`: a list of objects written in the item (Sidebar `sections[n].items`), read one level further. */
+  | { key: string; kind: "expression" | "spread"; value: string; shape?: AttrShape };
 
 export type ObjectShape = { type: "object"; fields: ShapeField[] };
 /** An array item that is not an object literal (a string, an expression, a spread). */
@@ -228,6 +242,11 @@ export type SourceElement = {
    * (`status={one.online}` after a fixed value) and a presence toggle restore what it removed.
    */
   savedAttributes?: Record<string, SourceAttr | null>;
+  /**
+   * A Table (`columns` and `rows`): whether the rows can be edited where they are written (a column without `cell` draws
+   * its row's field, which a cell's text edit writes with op setDataField { field }).
+   */
+  tableRows?: DataSource;
   hash: string;
 };
 
@@ -258,13 +277,20 @@ export type EditOp =
   | { op: "removeProp"; name: string }
   /** Attribute `name` reads a useState(<literal>) (SourceAttr.state): `value` becomes that initial state. */
   | { op: "setStateInit"; name: string; value: EditValue }
-  /** Writes a prop's (or an expression child's) value where the data holds it: a `.map` row's item, a data const (WP-C). */
-  | { op: "setDataField"; prop?: string; child?: number; row?: number; value: EditValue }
+  /**
+   * Writes a prop's (or an expression child's) value where the data holds it: a `.map` row's item, a data const (WP-C).
+   * A Table cell (2026-10-10): `row` is the row's place among the Table's rendered rows, `rowKey` its React key
+   * (getRowId), `rowFields` its plain fields as rendered (the row is found by them when the code computes its key),
+   * `table` the Table's loc (the column may be written apart from it); `field` (on the Table itself) names the row field
+   * a column without `cell` draws. `path`: fields after the value (`person={people[row.id]}` then `.theme`).
+   */
+  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; path?: string[]; value: EditValue }
   /**
    * One field of the object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item when it is
    * an array literal (`trailing={[{ … }]}`): `value` replaces or appends the field, null removes it (SourceAttr.shape).
    */
-  | { op: "setField"; name: string; index?: number; key: string; value: EditValue | null }
+  /** `path`: on into a list the object holds (`[{ key: "items", index: 2 }]`: Sidebar `sections[1].items[2]`). */
+  | { op: "setField"; name: string; index?: number; path?: Array<{ key: string; index?: number }>; key: string; value: EditValue | null }
   /** Replace the index-th text child (as listed in SourceElement.children). */
   | { op: "setText"; index: number; value: string }
   /** Swap a typographyStyles["from"] key for "to" in the element's className. */

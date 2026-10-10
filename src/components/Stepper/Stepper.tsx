@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactElement, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
+import { slotItems } from "../_shared/slots";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./stepper.css";
@@ -27,7 +28,11 @@ export interface StepperStep {
 export interface StepperProps extends HTMLAttributes<HTMLOListElement> {
   /** The root `<ol>`. */
   ref?: Ref<HTMLOListElement>;
-  steps: StepperStep[];
+  /** The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id="details" title="Details" />`. */
+  steps?: StepperStep[];
+  /** The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state
+   *  from `current`, the progress lines and the click behaviour. */
+  children?: ReactNode;
   /** Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. */
   current?: number;
   /** Figma Stepper-Bar/Horizontal or Stepper-Bar/Vertical. */
@@ -41,6 +46,14 @@ export interface StepperProps extends HTMLAttributes<HTMLOListElement> {
 
 const stateOf = (step: StepperStep, index: number, current: number): StepperState =>
   step.error ? "error" : index < current ? "passed" : index === current ? "focused" : "default";
+
+/**
+ * One step as a child of Stepper (Figma Stepper-Bar's Step-Horizontal / Step-Vertical): `<StepperStep id title caption />`.
+ * It declares the step and renders nothing on its own; Stepper draws it.
+ */
+export function StepperStep(_step: StepperStep): null {
+  return null;
+}
 
 /** Figma .Primitives/Stepper/Item (1625:4827): 24px marker — number (Style=Text) or icon (Style=Icon). */
 export function StepperItem({ state = "default", index = 1, icon }: { state?: StepperState; index?: number; icon?: IconName | ReactElement }) {
@@ -57,9 +70,10 @@ export function StepperItem({ state = "default", index = 1, icon }: { state?: St
  * Step-Vertical: a marker between two 2px progress lines (Neutral/Subtle ahead, Neutral/Solid behind, Negative/Solid
  * on error) with Title + Caption (gap 3XSmall, padding-inline XSmall).
  */
-export function Stepper({ ref, steps, current = 0, orientation = "horizontal", onStepClick, "aria-label": ariaLabelProp, className, ...rest }: StepperProps) {
+export function Stepper({ ref, steps: stepsProp, children, current = 0, orientation = "horizontal", onStepClick, "aria-label": ariaLabelProp, className, ...rest }: StepperProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.progress;
+  const steps: StepperStep[] = stepsProp ?? slotItems(children, StepperStep).map(({ slotKey, ...step }, index) => ({ ...step, id: step.id ?? slotKey ?? String(index) }));
   return (
     <ol {...rest} ref={ref} className={["zen-stepper", className].filter(Boolean).join(" ")} data-orientation={orientation} aria-label={ariaLabel}>
       {steps.map((step, index) => {

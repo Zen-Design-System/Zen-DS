@@ -4,7 +4,7 @@
 // carries data-e2e="<id>"; the harness finds its loc in the current text, so edits that move lines never break a row.
 // "Seed <n>" changes on every reseed, so the harness can wait until the canvas shows the new text.
 // Keep it a valid example page module: { page, examples }.
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertBanner } from "../../../components/AlertBanner";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
@@ -18,6 +18,7 @@ import { NumberField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
 import { Segmented } from "../../../components/Segmented";
+import { Table, TableMedia, TableText } from "../../../components/Table";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { Heading, Text } from "../../../components/Text";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -98,7 +99,7 @@ function OverlayFixture() {
   return (
     <Stack data-e2e="overlay" gap="md" padding="lg">
       <Button data-e2e="open" level="secondary" onClick={() => setOpen(true)}>Open dialog</Button>
-      <Dialog data-e2e="dialog" open={open} onClose={() => setOpen(false)} title="Fixture dialog" primaryAction={{ label: "Done", onClick: () => setOpen(false) }} />
+      <Dialog data-e2e="dialog" open={open} onClose={() => setOpen(false)} title="Fixture dialog" primaryAction={{ label: "Done", onClick: () => setOpen(false) }} secondaryAction={{ label: "Cancel" }} />
     </Stack>
   );
 }
@@ -163,6 +164,35 @@ function ConstFixture() {
  * Canvas editing (backlog 2026-10-08): a scroll box whose content it clips, a 0-gap row, two Headings (a number prop on
  * a multi-selection), two floating Boxes in a positioned Box, two Boxes in the flow and a Button in its Studio wrap Stack.
  */
+/**
+ * Table cells (2026-10-10): rows sorted in a useMemo over useState(list); a column's `cell` writes a field and a lookup
+ * into data.ts; a column without `cell` draws its field (Figma Table/Cell/Default › Content).
+ */
+const tableTasks: Array<{ id: string; title: string; owner: keyof typeof people; status: string }> = [
+  { id: "t-1", title: "Wireframes", owner: "ava", status: "Done" },
+  { id: "t-2", title: "Prototype", owner: "bao", status: "In progress" },
+];
+
+/** A person's Avatar through a component of the file: its props come from where it is used. */
+function FixtureAvatar({ person, size }: { person: (typeof people)[keyof typeof people]; size: "xs" | "sm" }) {
+  return <Avatar size={size} theme={person.theme} background="subtle" alt="">{person.name.slice(0, 2)}</Avatar>;
+}
+
+function TableFixture() {
+  const [rows] = useState(tableTasks);
+  const sorted = useMemo(() => [...rows].sort((a, b) => b.title.localeCompare(a.title)), [rows]);
+  return (
+    <Stack gap="md" padding="lg">
+      <Table data-e2e="table" aria-label="Tasks" rows={sorted} columns={[
+        { id: "title", header: "Task", cell: (row) => <TableText>{row.title}</TableText> },
+        { id: "owner", header: "Owner", cell: (row) => <TableText>{people[row.owner].name}</TableText> },
+        { id: "status", header: "Status", field: "status" },
+        { id: "who", header: "Who", cell: (row) => <TableMedia media={<FixtureAvatar person={people[row.owner]} size="xs" />}>{row.owner}</TableMedia> },
+      ]} />
+    </Stack>
+  );
+}
+
 function CanvasFixture() {
   return (
     <Stack data-e2e="canvas" gap="md" padding="lg">
@@ -232,4 +262,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E html", description: "An example's own HTML: flex and grid boxes, a heading, a paragraph with a link, a tinted note.", code: "<HtmlFixture />", render: () => <HtmlFixture /> },
   { title: "E2E const", description: "A Segmented whose options a same-file const holds.", code: "<ConstFixture />", render: () => <ConstFixture /> },
   { title: "E2E canvas", description: "A clipping scroll box, a 0 gap, two Headings, floating and flowing Boxes, a wrapped Button.", code: "<CanvasFixture />", render: () => <CanvasFixture /> },
+  { title: "E2E table", description: "A Table: sorted rows, a column's cell from a field and from data.ts, a column without cell.", code: "<TableFixture />", render: () => <TableFixture /> },
 ];

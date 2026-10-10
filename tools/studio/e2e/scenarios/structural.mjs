@@ -1,6 +1,6 @@
 // Structural rows: insert from Assets, the canvas context menu, drag to reorder, slots, wrap, and clean-up after a remove.
 import { countOf, e2eLocs, locOf } from "../lib/source.mjs";
-import { clickLoc, inViewport, rectOf, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, inViewport, openAssetLibrary, rectOf, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { expectSource, freshSelect, waitInspector } from "./inspector.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
@@ -37,9 +37,9 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-c");
       const before = tagCount(await ctx.text(), "Badge");
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Badge");
-      await page.locator(".studio-assets__row", { hasText: "Badge" }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: "Badge" }).first().click();
       await until(async () => tagCount(await ctx.text(), "Badge") > before, { message: "a Badge in the source" });
       return "Badge inserted next to the selection";
     },
@@ -51,9 +51,9 @@ export const rows = [
       await canvas(page).focus();
       for (let i = 0; i < 4; i += 1) await page.keyboard.press("Escape");
       const before = tagCount(await ctx.text(), "Badge");
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Badge");
-      await page.locator(".studio-assets__row", { hasText: "Badge" }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: "Badge" }).first().click();
       try {
         await until(async () => tagCount(await ctx.text(), "Badge") > before, { timeout: 2500, message: "a Badge in the source" });
       } catch {
@@ -332,6 +332,40 @@ export const rows = [
       await dragFrom(page, favourite, { x: share.x + share.width / 2, y: share.y + share.height / 2 });
       await until(async () => ((/trailing=\{\[([\s\S]*?)\]\}/.exec(await ctx.text())?.[1] ?? "").match(/group:/g) ?? []).length === 2, { message: "both actions with a group in the source" });
       return "Favourite on Share → one group";
+    },
+  },
+  {
+    id: "ST-26", feature: "Toolbar › Text (T): point beside a layer in a Stack, click: a Text lands there, selected; Move again", wp: "toolbar 2026-10-09",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      const before = tagCount(await ctx.text(), "Text");
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Text", exact: true }).click();
+      // Over Beta's right edge in the row Stack: the insertion line goes after it.
+      const rect = await rectOf(page, ctx.file, await at(ctx, "btn-b"));
+      await page.mouse.move(rect.x + rect.width - 4, rect.y + rect.height / 2);
+      await page.mouse.move(rect.x + rect.width - 2, rect.y + rect.height / 2);
+      await page.mouse.down();
+      await page.mouse.up();
+      await until(async () => tagCount(await ctx.text(), "Text") > before, { message: "a Text in the source" });
+      const move = page.locator(".studio-canvas-tools").getByRole("button", { name: "Move", exact: true });
+      await until(async () => (await move.getAttribute("aria-pressed")) === "true", { message: "Move again" });
+      return "Text placed in the row Stack; the tool back to Move";
+    },
+  },
+  {
+    id: "ST-27", feature: "Toolbar: Escape puts a placement tool away and adds nothing", wp: "toolbar 2026-10-09",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      const before = await ctx.text();
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Stack", exact: true }).click();
+      if (!(await page.locator(".studio-viewport[data-studio-placing]").count())) throw new Error("the canvas is not placing");
+      await page.keyboard.press("Escape");
+      const move = page.locator(".studio-canvas-tools").getByRole("button", { name: "Move", exact: true });
+      await until(async () => (await move.getAttribute("aria-pressed")) === "true", { message: "Move again" });
+      if (await page.locator(".studio-viewport[data-studio-placing]").count()) throw new Error("still placing after Escape");
+      await sleep(300);
+      if ((await ctx.text()) !== before) throw new Error("the source changed");
+      return "Stack tool → Escape → Move, nothing added";
     },
   },
 ];

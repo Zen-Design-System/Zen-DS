@@ -28,6 +28,8 @@ export type PropEditor =
   /** An icon that can also be switched off (`boolean | IconName`, `IconName | false`): Figma's boolean plus its instance
    *  swap in one row. */
   | { kind: "icon-toggle" }
+  /** A picture (Avatar / AppShellAccount / Image `src`): the photo picker on a page you made (controls/PhotoControl.tsx). */
+  | { kind: "photo" }
   /** Text / Heading `align` in the Text section: Figma's icon-only Align left / center / right (never from editorFor). */
   | { kind: "text-align"; options: string[] }
   /** Text / Heading `truncate` (boolean | number) in the Text section: Figma's Truncate text switch plus Max lines. `state`
@@ -286,6 +288,10 @@ export function dataSourceLabel(source: DataSource, row?: number): string {
   const fields = (source.path ?? []).map((key) => `.${key}`).join("");
   // A list written in place of names (`[people.ava, people.bao]`) names the row's item itself.
   const items = source.kind === "row" ? /^\[\s*([\w$.]+(?:\s*,\s*[\w$.]+)*)\s*,?\s*\]$/.exec(source.source ?? "")?.[1].split(/\s*,\s*/) : undefined;
+  // A prop of a component of the file: written where it is used.
+  if (source.kind === "param") return `<${source.component ?? "the component"}>'s ${[source.prop, ...(source.path ?? [])].filter(Boolean).join(".")} where it is used`;
+  // A Table cell's row: the value as the cell reads it, and which row.
+  if (source.kind === "cell") return `${source.source ?? "the row"}${row !== undefined ? ` (row ${row + 1})` : ""}${source.file ? ` in ${source.file.split("/").pop()}` : ""}`;
   const where = source.kind !== "row" ? source.source ?? "data" : items?.[row ?? 0] ? `${items[row ?? 0]}${fields}` : `${source.source ?? "data"}[${row ?? 0}]${fields}`;
   return source.file ? `${where} in ${source.file.split("/").pop()}` : where;
 }
@@ -336,12 +342,15 @@ function inheritedBooleans(schema: ApiComponent, depth = 0): string[] {
  * the props it takes from another Zen component's props type (inheritedProps.ts: NumberField's label, size…), then the
  * boolean HTML attributes it inherits (disabled, required, readOnly), which Figma shows as boolean properties too.
  */
+/** Props that take a picture (user, 2026-10-10: "Avatar không bỏ ảnh vào được"): a photo picker, not a text field. */
+const PHOTO_PROPS: Readonly<Record<string, string>> = { Avatar: "src", AppShellAccount: "src", Image: "src" };
+
 export function propSpecs(name: string): PropSpec[] {
   const schema = componentSchema(name);
   if (!schema) return [];
   const own = [...schema.props, ...inheritedProps(schema, componentSchema)]
     .filter((prop) => !prop.deprecated && !isSkippedProp(prop.name) && !/^\(.*\) => /.test(prop.type))
-    .map((prop): PropSpec => ({ name: prop.name, type: prop.type, description: prop.description, defaultValue: parseDefault(prop.default), editor: editorFor(prop.type) }));
+    .map((prop): PropSpec => ({ name: prop.name, type: prop.type, description: prop.description, defaultValue: parseDefault(prop.default), editor: PHOTO_PROPS[name] === prop.name ? { kind: "photo" } : editorFor(prop.type) }));
   const inherited = inheritedBooleans(schema).filter((prop) => !own.some((spec) => spec.name === prop)).map((prop): PropSpec => ({ name: prop, type: "boolean", description: `The HTML ${prop} attribute (inherited).`, defaultValue: false, editor: { kind: "boolean" } }));
   return [...own, ...inherited];
 }
@@ -365,9 +374,11 @@ export const layoutComponents = new Set(["Stack", "Grid", "Box", "Container", "F
 export const layoutProps = new Set(["direction", "gap", "rowGap", "columnGap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", "columns", "minColumnWidth", "maxWidth", "gutter", "inset"]);
 
 /** Whether a component's prop belongs in the Layout block. maxWidth is scoped by component: Container's is the token
- * width (sm…full); Stack/Grid/Box's is px sizing, which stays with the other sizing props. */
+ * width (sm…full); Stack/Grid/Box's is px sizing, which stays with the other sizing props. Box's clip is Figma's Clip content. */
 export function isLayoutProp(component: string, name: string) {
   if (name === "maxWidth") return component === "Container";
+  // Figma's Clip content sits in the Layout section, under Padding (spec 2026-10-09 §3).
+  if (name === "clip") return component === "Box";
   return layoutProps.has(name);
 }
 /** Text and Heading props shown in the Text block. */

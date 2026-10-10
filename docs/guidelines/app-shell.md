@@ -43,7 +43,9 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `sidebar` | `ReactNode` | — | Left navigation, usually `<Sidebar>`. When the shell is 1024px or wider it sits beside the content, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the shell's rail and drawer by itself, also when it is wrapped in a component of your own. |
-| `header` | `ReactNode` | — | Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
+| `header` | `ReactNode` | — | Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
+| `headerCenter` | `ReactNode` | — | Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the leading content and the actions, e.g. a Search. |
+| `sections` | `ReactNode` | — | Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main), a toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding (Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page. |
 | `headerActions` | `ReactNode` | — | Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader. |
 | `banner` | `ReactNode` | — | A full-width message strip above the whole shell, usually `<AlertBanner>` (trial ending, maintenance, offline). It stays in view while the page scrolls. |
 | `aside` | `ReactNode` | — | A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other content stacks under the page. |
@@ -51,7 +53,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `footer` | `ReactNode` | — | A sticky bar at the bottom of the main column, e.g. an ActionBar. |
 | `canvas` | `"default" \| "alt" \| "flat"` | `"default"` | Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). |
 | `sidebarCollapsed` | `boolean` | — | Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. |
-| `defaultSidebarCollapsed` | `boolean` | — | Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded. |
+| `defaultSidebarCollapsed` | `boolean` | — | Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the Sidebar's `collapsed` moves the rail too. |
 | `onSidebarCollapsedChange` | `(collapsed: boolean) => void` | — | Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits. |
 | `sidebarToggle` | `boolean` | `true` | The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs). Default true: shown when the shell has a top bar (`header` or `headerActions`) and a Sidebar that can collapse. A Sidebar with its own `onCollapsedChange` keeps its header control instead. |
 | `navOpen` | `boolean` | — | Drawer state when controlled (narrow shells). |

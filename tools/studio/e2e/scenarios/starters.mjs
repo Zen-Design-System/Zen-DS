@@ -1,7 +1,7 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
 import { focusFrame, openStudioSpace, showLeftTab, sleep, until } from "../lib/studio.mjs";
-import { clickNamed, pageText } from "./builder.mjs";
+import { clickNamed, focusScreen, pageText } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
 /**
@@ -100,8 +100,10 @@ export const rows = [
     id: "SP-06", feature: "New page from a frame with a Dialog: the Dialog becomes an Overlay frame whose own action closes it", wp: "GĐ3b M3",
     async run(ctx) {
       const { page, id, text } = await pageFromFrame(ctx, 3);
-      const expected = ['<Button level="secondary">Open dialog</Button>', '<Overlay id="fixture-dialog">', '<Dialog title="Fixture dialog" primaryAction={{ label: "Done", onClick: proto.close() }} />'];
-      const missing = expected.filter((line) => !text.includes(line));
+      const expected = ['<Button level="secondary">Open dialog</Button>', '<Overlay id="fixture-dialog">', '<Dialog title="Fixture dialog" primaryAction={{ label: "Done", onClick: proto.close() }} secondaryAction={{ label: "Cancel" }} />'];
+      // A tag too long for one line is written over several (the Dialog with two actions): compare with spaces folded.
+      const flat = text.replace(/\s+/g, " ");
+      const missing = expected.filter((line) => !flat.includes(line));
       if (missing.length) throw new Error(`the page lacks ${missing.join(", ")}\n${text.slice(0, 1200)}`);
       await page.locator('[data-studio-frame="overlay:fixture-dialog"]').waitFor({ state: "attached", timeout: 10_000 });
       return `${id}: Screen › Button "Open dialog" · Overlay fixture-dialog › Dialog (Done closes it)`;
@@ -123,6 +125,96 @@ export const rows = [
         await sleep(300);
         if (newErrors().length) throw new Error(`console errors on the new page: ${newErrors().slice(0, 2).join(" | ").slice(0, 300)}`);
         return `${cells.length} cells, ${shown(cells).length} show their row's field (${[...new Set(shown(cells))].slice(0, 4).join(", ")})`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-08", feature: "HR · Home's Sidebar footer is a shared const (footer={appsButton}): Footer-Content lists its button and + adds a Menu item where the const is written", wp: "slots 2026-10-09",
+    timeout: 60_000,
+    async run(ctx) {
+      const file = "src/templates/hr/HrShell.tsx";
+      try {
+        const { page } = await ctx.studio({ page: "templates" });
+        // HR · Home is the templates page's 9th frame.
+        const label = page.locator('.studio-frame-label[data-chrome-key="label:example:8"]');
+        await label.waitFor({ state: "attached", timeout: 20_000 });
+        await label.evaluate((element) => element.click());
+        // Zoom to the selected frame (⇧2), so the Sidebar is on screen to click.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Shift+Digit2");
+        const frame = page.locator('[data-studio-frame="example:8"]');
+        const body = frame.locator(".zen-sidebar__body").first();
+        await body.waitFor({ state: "visible", timeout: 20_000 });
+        await sleep(800);
+        // The rail's empty space under its items is the Sidebar itself (its items are data, not layers).
+        const box = await body.boundingBox();
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height - 12);
+        const heading = async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
+        await until(async () => (await heading()) === "Sidebar", { message: "the Sidebar selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await heading()})`); });
+        const slot = page.locator('#studio-right [data-slot="footer"]');
+        await slot.waitFor({ state: "visible", timeout: 5000 });
+        await until(async () => /Written in\s*appsButton/.test(await page.locator("#studio-right").innerText()), { message: "the note: Written in appsButton" });
+        await slot.getByRole("button", { name: "Add to Footer-Content" }).click();
+        await page.getByRole("option", { name: /^Menu item/ }).first().click();
+        const written = async () => (await ctx.api.source(file)).content;
+        await until(async () => /const appsButton = <>[\s\S]*<SidebarMenuItem id="invoices-\w+"/.test(await written()), { message: "the Menu item added inside const appsButton" });
+        const text = await written();
+        if ((text.match(/footer=\{appsButton\}/g) ?? []).length !== 2) throw new Error("both Sidebars should still show appsButton");
+        await until(async () => (await frame.locator(".zen-sidebar__footer-content").first().locator(":scope > *").count()) >= 2, { message: "two footer rows on the canvas" });
+        return "footer={appsButton} → Footer-Content › + Menu item → const appsButton = <>…<SidebarMenuItem …/></>";
+      } finally {
+        await ctx.api.discard([file]).catch(() => {});
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-09", feature: "Admin list page: its Sidebar's `sections` rows are Body-Content items (user: \"chưa list chỉnh được props của nested. Ví dụ như sidebar\", \"không remove được item trong sidebar mẫu\"): a double-click selects a Menu-Item, its Counter writes that row, Remove takes it out", wp: "nested items 2026-10-10",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id: pageId } = await pageFromFrame(ctx, 0, { on: "templates" });
+        const text = async () => (await pageText(page, pageId)) ?? "";
+        if (!/<Sidebar\b[\s\S]*?\bsections=\{\[/.test(await text())) throw new Error(`the Admin list page has no Sidebar sections: ${(await text()).match(/<Sidebar[\s\S]{0,300}/)?.[0] ?? "no Sidebar"}`);
+        await focusScreen(page);
+        const sidebar = page.locator(`[data-zen-src^="local:${pageId}.zen.tsx:"] .zen-sidebar, .studio-frame .zen-sidebar`).first();
+        const row = sidebar.locator(".zen-sidebar__item", { hasText: "Reports" }).first();
+        await row.waitFor({ state: "visible", timeout: 10_000 });
+        const named = async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
+        for (let k = 0; k < 5 && !(await named()).startsWith("Menu-Item · in "); k++) {
+          const box = await row.boundingBox();
+          await page.mouse.dblclick(box.x + 16, box.y + box.height / 2);
+          await sleep(500);
+        }
+        await until(async () => (await named()).startsWith("Menu-Item · in Body-Content"), { message: "the Menu-Item selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
+        const counter = page.locator('#studio-right [data-prop="counter"] input').first();
+        await counter.fill("3");
+        await counter.press("Enter");
+        await until(async () => /label: "Reports", icon: "[\w-]+", counter: (3|"3") \}/.test(await text()), { message: "the row's counter in the page" });
+        await page.locator("#studio-right").getByRole("button", { name: /^Remove Reports/ }).click();
+        await until(async () => !/label: "Reports"/.test(await text()) && /label: "Billing"/.test(await text()), { message: "Reports removed, Billing kept" });
+        await until(async () => (await sidebar.locator(".zen-sidebar__item", { hasText: "Reports" }).count()) === 0, { message: "Reports gone from the Screen" });
+        // The section title is Figma's Section-Title: ⌘-click selects it, Delete takes it (its rows join the section above).
+        const title = sidebar.locator(".zen-sidebar__section-item", { hasText: "Admin" }).first();
+        for (let k = 0; k < 4 && !(await named()).startsWith("Section-Title"); k++) {
+          const box = await title.boundingBox();
+          await page.keyboard.down("ControlOrMeta");
+          await page.mouse.click(box.x + 16, box.y + box.height / 2);
+          await page.keyboard.up("ControlOrMeta");
+          await sleep(500);
+        }
+        await until(async () => (await named()).startsWith("Section-Title · in Body-Content"), { message: "the Section-Title selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Backspace");
+        // Only the Sidebar's list: the page's role filter has an "Admin" option of its own.
+        const sections = async () => (await text()).match(/sections=\{\[[\s\S]*?\n\s*\]\}/)?.[0] ?? "";
+        await until(async () => !/label: "Admin"/.test(await sections()) && /label: "Billing"/.test(await sections()), { message: "the Admin title removed, its rows kept" }).catch(async (error) => {
+          const status = await page.locator(".studio-status, [role=status]").allInnerTexts().catch(() => []);
+          throw new Error(`${error.message} (selected: ${await named()}; focus: ${await page.evaluate(() => document.activeElement?.className ?? "")}; status: ${status.filter(Boolean).join(" | ").slice(0, 400)}; sections: ${((await text()).match(/sections=\{\[[\s\S]{0,400}/)?.[0] ?? "").replace(/\s+/g, " ")})`);
+        });
+        return "double-click → Menu-Item · Counter 3 → that row · Remove → gone · ⌘-click Admin → Section-Title · Delete → title gone, rows kept";
       } finally {
         await ctx.studio({ fresh: true });
       }

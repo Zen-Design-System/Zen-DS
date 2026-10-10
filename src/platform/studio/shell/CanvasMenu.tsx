@@ -35,8 +35,12 @@ import "./shell.css";
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 type MenuTarget = { kind: "node"; selection: NodeSelection } | { kind: "frame"; frameId: string } | { kind: "canvas" };
 type MenuState = { x: number; y: number; target: MenuTarget; at: number };
-/** The window margin the menu keeps when the anchor moves it (Menu's own is 8px). */
+/** What Menu's placement keeps between the anchor and the window edge: its 8px margin, its 4px gap and the 1px anchor
+ * (.studio-canvas-menu__anchor). Leaving out the gap and the anchor made Menu find 5px too little room below the moved
+ * anchor and open the menu above it, cut off by the window's top (2026-10-09). */
 const WINDOW_MARGIN = 8;
+const MENU_GAP = 4;
+const ANCHOR_HEIGHT = 1;
 
 let state: MenuState | null = null;
 const listeners = new Set<() => void>();
@@ -136,13 +140,15 @@ export function CanvasMenu() {
     { type: "separator", id: "canvas-separator" },
     { id: "canvas-ui", label: "Hide or show UI", icon: "icon-layout-alt-04-line", shortcut: "⌘\\", onSelect: () => toggleSidePanels() },
   ];
-  const items: MenuEntry[] = menu?.target.kind === "canvas" ? canvasItems
+  const entries: MenuEntry[] = menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
         : [...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, detach, ...slotItems.trailing];
+  // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
+  const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 
   // Taller than the room above and below the pointer: move the anchor up so the menu stays whole in the window (E2E ST-03).
-  // Measured again whenever the menu's size changes: captions arrive after it opens ("Checking…" → the Detach reason).
+  // Measured again whenever the menu's size changes: items can arrive after it opens (the slot items).
   const [anchorY, setAnchorY] = useState<number | null>(null);
   useLayoutEffect(() => {
     if (!menu || !layer) { setAnchorY(null); return undefined; }
@@ -154,8 +160,10 @@ export function CanvasMenu() {
       observer.observe(surface);
       const height = surface.offsetHeight;
       const room = window.innerHeight;
-      const fits = menu.y + height + WINDOW_MARGIN <= room || menu.y - height - WINDOW_MARGIN >= 0;
-      setAnchorY(fits ? null : Math.max(WINDOW_MARGIN, room - WINDOW_MARGIN - height));
+      const below = ANCHOR_HEIGHT + MENU_GAP + WINDOW_MARGIN;
+      const fits = menu.y + below + height <= room || menu.y - MENU_GAP - WINDOW_MARGIN - height >= 0;
+      // The lowest anchor with the whole menu below it, so Menu opens it downwards.
+      setAnchorY(fits ? null : Math.max(0, room - below - height));
     };
     const observer = new ResizeObserver(() => measure());
     measure();

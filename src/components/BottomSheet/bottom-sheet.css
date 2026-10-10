@@ -82,7 +82,8 @@
 .zen-bottom-sheet__item:hover:not(:disabled), .zen-bottom-sheet__item:active:not(:disabled) { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-bottom-sheet__item:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
 .zen-bottom-sheet__item[data-selected="true"] { background: var(--zen-color-background-active-accent-subtle, rgb(255 2 152 / 9%)); }
-.zen-bottom-sheet__item[data-destructive="true"] { color: var(--zen-color-content-negative-base, #c0392b); }
+/* A destructive action reads Content/Negative/Light, as Button's danger levels and Menu's danger items. */
+.zen-bottom-sheet__item[data-destructive="true"] { color: var(--zen-color-content-negative-light, #d03e19); }
 .zen-bottom-sheet__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 .zen-bottom-sheet__item-label { overflow: hidden; min-width: 0; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
 .zen-bottom-sheet__item-trailing { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 64%)); }

@@ -78,10 +78,11 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
   // Spacing steps read "md · 16" as in the one-layer Layout section, measured where the first layer renders.
   const world = canvasApi.getWorldElement();
   const host = world ? findBySrc(world, layers[0].src)[layers[0].instance]?.hosts[0] ?? null : null;
-  const stepLabel = (spec: PropSpec, option: string) => {
+  // A spacing token's value, shown at the end of its option's row ("md … 16px"), as every token select.
+  const stepMeta = (spec: PropSpec, option: string) => {
     const scale = host ? spacingScaleOf(component, spec.name) : null;
     const px = scale && host ? tokenPx(host, scale, option) : null;
-    return px === null ? null : `${option} · ${Number.isInteger(px) ? px : px.toFixed(1)}`;
+    return px === null ? undefined : `${Number.isInteger(px) ? px : px.toFixed(1)}px`;
   };
   // The rows and options by their Figma names, as the one-layer panel shows them (generated groups, propGroups.ts).
   const groups = componentGroupsOf(component);
@@ -123,7 +124,7 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
           : spec.editor.kind === "number-enum" ? { options: spec.editor.options.map(String), labels: undefined }
           : { options: ["true", "false"], labels: undefined };
         const options = named.options;
-        const label = (option: string) => (spec.editor.kind === "boolean" ? (option === "true" ? "Yes" : "No") : named.labels?.[option] ?? stepLabel(spec, option) ?? option);
+        const label = (option: string) => (spec.editor.kind === "boolean" ? (option === "true" ? "Yes" : "No") : named.labels?.[option] ?? option);
         return (
           <InspectorRow key={spec.name} label={rowLabel} name={spec.name} hint={hint}>
             <SelectField
@@ -133,7 +134,7 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
               value={mixed || value === null ? "" : spec.editor.kind === "enum" ? matchOption(String(value), options) : String(value)}
               placeholder={mixed ? "Mixed" : "—"}
               onValueChange={(next) => write(spec, spec.editor.kind === "boolean" ? next === "true" : spec.editor.kind === "number-enum" ? Number(next) : next)}
-              options={options.map((option) => ({ value: String(option), label: label(String(option)) }))}
+              options={options.map((option) => ({ value: String(option), label: label(String(option)), meta: spec.editor.kind === "enum" ? stepMeta(spec, String(option)) : undefined }))}
             />
           </InspectorRow>
         );

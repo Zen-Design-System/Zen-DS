@@ -13,9 +13,17 @@
         {
           "name": "items",
           "type": "TabOption[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value=\"general\" label=\"General\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the\n selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`,\n `disabled`, `aria-label`.",
           "deprecated": null
         },
         {
@@ -105,7 +113,7 @@
       "file": "src/components/Tabs/Tabs.tsx",
       "description": "Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge).",
       "deprecated": null,
-      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\" | \"value\">",
       "props": [
         {
           "name": "ref",
@@ -113,6 +121,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then\n its position.",
           "deprecated": null
         },
         {

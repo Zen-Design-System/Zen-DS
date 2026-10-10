@@ -1,6 +1,6 @@
 // Appearance and Effects rows (WP-D): Box corner radius in canonical form, the effect style with its eye, the warnings.
 import { inspectorRow, sleep, until } from "../lib/studio.mjs";
-import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
+import { expectSource, freshSelect, pickOption, scaleStep } from "./inspector.mjs";
 
 const selectBox = (ctx) => freshSelect(ctx, "box", { frame: 2, position: { dx: 6, dy: 6 } });
 
@@ -11,10 +11,10 @@ export const rows = [
       const page = await selectBox(ctx);
       await page.locator("#studio-right").getByRole("button", { name: "Independent corners" }).click();
       await until(async () => (await inspectorRow(page, "radiusBottomRight").count()) > 0, { message: "the four corner rows" });
-      await pickOption(page, "radiusBottomRight", /^xs · /);
+      await pickOption(page, "radiusBottomRight", scaleStep("xs"));
       await expectSource(ctx, "box", (el) => el.attr("radiusBottomRight") === "xs" && el.attr("radius") === "md", 'radius="md" radiusBottomRight="xs"');
       await sleep(300);
-      await pickOption(page, "radiusBottomRight", /^md · /);
+      await pickOption(page, "radiusBottomRight", scaleStep("md"));
       await expectSource(ctx, "box", (el) => el.attr("radiusBottomRight") === undefined && el.attr("radius") === "md", "the corner removed again (equals radius)");
       return 'chat tail radius="md" radiusBottomRight="xs", then back to radius only';
     },
@@ -39,8 +39,9 @@ export const rows = [
     id: "AP-03", feature: "Effects warn with a fix: a shadowed surface takes no border", wp: "WP-D",
     async run(ctx) {
       const page = await selectBox(ctx);
-      // Border is a segmented control (none · pale · subtle).
-      await inspectorRow(page, "border").getByText("pale", { exact: true }).click();
+      // Border: a segmented control (none · pale · subtle) when its options fit the field column, else a select.
+      if (await inspectorRow(page, "border").locator(".zen-segmented").count()) await inspectorRow(page, "border").getByRole("button", { name: "pale", exact: true }).click();
+      else await pickOption(page, "border", "pale");
       await expectSource(ctx, "box", (el) => el.attr("border") === "pale", "border pale");
       await page.locator("#studio-right").getByRole("button", { name: "Add effect" }).click();
       await expectSource(ctx, "box", (el) => el.attr("effectStyle") !== undefined, "an effect");

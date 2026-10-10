@@ -900,6 +900,14 @@ export const rules = [
   { id: "chip/radio-is-chip-group", components: ["Chip"], severity: "warn", allow: "chip-radio", guideline: "docs/guidelines/chip.md",
     summary: "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
     check: ({ attrs }) => literal(attrs, "role") === "radio" && "is a hand-made radio chip — use <ChipGroup options value onValueChange> (roving focus, arrow keys, aria-checked)." },
+  { id: "voice/actions-wired", components: ["VoiceRecorder", "AiVoiceConversation"], severity: "warn", allow: "voice-actions", guideline: "docs/guidelines/voice.md",
+    summary: "A Voice component shows its main action in every state: wire it (VoiceRecorder onRecord · onPause · onResume; AiVoiceConversation onStart · onDone · onInterrupt), or the big button does nothing.",
+    check: ({ tag, attrs }) => {
+      if (spreadsProps(attrs)) return null;
+      const need = tag === "VoiceRecorder" ? ["onRecord", "onPause", "onResume"] : ["onStart", "onDone", "onInterrupt"];
+      const missing = need.filter((name) => !present(attrs, name));
+      return missing.length ? `has no ${missing.join(" / ")}: its main action does nothing in that state.` : null;
+    } },
   { id: "dock-icon/emoji-needs-glyph", components: ["DockIcon"], severity: "warn", allow: "dock-emoji", guideline: "docs/guidelines/dock-icon.md",
     summary: "Theme=Emoji needs the emoji prop (otherwise a placeholder face renders).",
     check: ({ attrs }) => literal(attrs, "theme") === "emoji" && !present(attrs, "emoji") && "is theme emoji without an emoji." },
@@ -948,8 +956,8 @@ export const rules = [
     summary: "A Table is named by a caption or aria-label.",
     check: ({ attrs }) => !present(attrs, "caption") && !named(attrs) && "has neither caption nor aria-label." },
   { id: "table/interaction-needs-handler", components: ["Table"], severity: "warn", allow: "table-handler", guideline: "docs/guidelines/table.md",
-    summary: "Selectable tables need onSelectionChange; sortable columns need onSortChange.",
-    check: ({ attrs }) => { if (opaque(attrs)) return null; if (has(attrs, "selectable") && !/selectable=\{false\}/.test(attrs) && !present(attrs, "onSelectionChange")) return "is selectable without onSelectionChange."; return /sortable:\s*true/.test(value(attrs, "columns") ?? "") && !present(attrs, "onSortChange") && "has sortable columns without onSortChange."; } },
+    summary: "A selectable Table with selectedIds needs onSelectionChange — without it the checkboxes are dead (leave selectedIds out, or pass defaultSelectedIds, for a selection the Table keeps itself); sortable columns need onSortChange.",
+    check: ({ attrs }) => { if (opaque(attrs)) return null; if (has(attrs, "selectable") && !/selectable=\{false\}/.test(attrs) && present(attrs, "selectedIds") && !present(attrs, "onSelectionChange")) return "is selectable with selectedIds but no onSelectionChange."; return /sortable:\s*true/.test(value(attrs, "columns") ?? "") && !present(attrs, "onSortChange") && "has sortable columns without onSortChange."; } },
   { id: "list-item/trailing-button-medium", components: ["ListItem"], severity: "warn", allow: "trailing-size", guideline: "docs/guidelines/list-item.md",
     summary: "Buttons in a List-Item trailing slot are size Medium (md).",
     check: ({ attrs }) => { const t = value(attrs, "trailing") ?? ""; const bad = [...t.matchAll(/<(?:IconButton|Button)\b[^]*?size="([^"]+)"/g)].map((m) => m[1]).find((size) => step(size) !== "md"); return bad && `has a trailing button at size "${bad}" — use size="md".`; } },

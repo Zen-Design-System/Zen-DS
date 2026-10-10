@@ -106,6 +106,9 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
 
 ## For the user (decisions and actions)
 
+Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,
+a double-click goes one level in, ⌘-click the deepest), done the same day (`select/clickTarget.ts`).
+
 Answered on 2026-10-08: no LAN access (`server.host` stays off); Code view languages in the order HTML/CSS → Vue →
 Swift → Flutter → Svelte, on hold for a later phase (BACKLOG); read-only fields already show a focus ring (input.css, since 2026-10-06);
 List-Box: code stays, the designer updates the master (above); Studio polish N1–N11 later (BACKLOG).

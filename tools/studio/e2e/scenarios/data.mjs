@@ -1,6 +1,7 @@
 // Data rows: text and props whose value comes from data (a .map item, examples/data.ts) rather than a literal.
 import { element, locOf } from "../lib/source.mjs";
 import { inspectorRow, sleep, statusText, until } from "../lib/studio.mjs";
+import { selectedName } from "./builder.mjs";
 import { expectSource, freshSelect } from "./inspector.mjs";
 
 /** The box of the deepest element under file:loc whose own text is `text` (to double-click the words themselves). */
@@ -19,6 +20,21 @@ async function textBox(page, file, loc, text) {
   }, { src: `${file}:${loc}`, text });
 }
 
+/**
+ * Which rendering of `src` (0-based, document order) the selection outline covers: -1 when none does, -2 when `src`
+ * renders nothing with its data-zen-src.
+ */
+async function selectedRendering(page, src) {
+  return page.evaluate((src) => {
+    const rows = [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect());
+    if (!rows.length) return -2;
+    const outline = document.querySelector('.studio-selection__outline[data-kind="selected"]');
+    if (!outline) return -1;
+    const box = outline.getBoundingClientRect();
+    return rows.findIndex((r) => Math.abs(r.y + r.height / 2 - (box.y + box.height / 2)) < 4 && Math.abs(r.x - box.x) < 4);
+  }, src);
+}
+
 async function editInPlace(page, rect, text) {
   await page.mouse.dblclick(rect.x + rect.width / 2, rect.y + rect.height / 2);
   await until(async () => page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']"))), { timeout: 2500, message: "an inline text editor" });
@@ -27,7 +43,60 @@ async function editInPlace(page, rect, text) {
   await page.keyboard.press("Enter");
 }
 
+/** The fixture's Table frame (host-page.tsx TableFixture, the 11th example). */
+export const TABLE_FRAME = 10;
+
+/** `text` drawn in the fixture's Table: its box and centre (the Table's root carries its data-zen-src). */
+export async function tableText(ctx, page, text) {
+  const table = locOf(await ctx.text(), "table").loc;
+  const rect = await until(() => textBox(page, ctx.file, table, text), { message: `"${text}" in the Table` });
+  return { rect, x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+}
+
+/** ⌘-click (Figma's deepest layer) at a point. */
+async function deepClick(page, point) {
+  await page.keyboard.down("ControlOrMeta");
+  try {
+    await page.mouse.click(point.x, point.y);
+  } finally {
+    await page.keyboard.up("ControlOrMeta");
+  }
+  await sleep(300);
+}
+
 export const rows = [
+  {
+    id: "DA-08", feature: "A Table cell's text from its row: ⌘-click, double-click edits that row's data (rows sorted in a useMemo over useState; a lookup into data.ts)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      // people[row.owner].name: t-2's owner is bao, so people.bao's name in data.ts.
+      const bao = await tableText(ctx, page, "Bao Nguyen");
+      await deepClick(page, bao);
+      await editInPlace(page, bao.rect, "Bao N.");
+      await until(async () => (await ctx.api.source(ctx.dataFile)).content.includes('bao: person("bao", "Bao N.",'), { message: "people.bao's name in data.ts" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      // The frame starts again with the new data (the edit's remount): the next cell once the canvas shows it.
+      await tableText(ctx, page, "Bao N.");
+      await sleep(600);
+      // row.title: the useState list's item t-2, found by its key although the rows are sorted.
+      const title = await tableText(ctx, page, "Prototype");
+      await deepClick(page, title);
+      await editInPlace(page, title.rect, "Clickable prototype");
+      await until(async () => (await ctx.text()).includes('{ id: "t-2", title: "Clickable prototype", owner: "bao", status: "In progress" }'), { message: "t-2's title in the fixture's list" });
+      return "people.bao.name in data.ts · t-2.title in its list";
+    },
+  },
+  {
+    id: "DA-09", feature: "A Table column without `cell`: ⌘-click selects what the Table draws there, a double-click edits that row's field", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const status = await tableText(ctx, page, "In progress");
+      await deepClick(page, status);
+      await until(async () => /^TableText\b/.test(await selectedName(page)), { message: "the drawn Text-Cell selected (TableText, a part of the Table)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await editInPlace(page, status.rect, "Blocked");
+      await until(async () => (await ctx.text()).includes('{ id: "t-2", title: "Prototype", owner: "bao", status: "Blocked" }'), { message: "t-2's status in the fixture's list" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      return "t-2.status edited";
+    },
+  },
   {
     id: "DA-01", feature: "Double-click literal text edits it in place", wp: "GĐ0",
     async run(ctx) {
@@ -66,6 +135,63 @@ export const rows = [
       const draft = (await ctx.api.drafts()).drafts.map((row) => row.file);
       if (!draft.includes(ctx.dataFile)) throw new Error("no draft of examples/data.ts");
       return "data.ts drafted";
+    },
+  },
+  {
+    id: "DA-05", feature: "⌘D on a .map row copies its data item (a new id), the JSX stays one element; the copy is selected", wp: "slots 2026-10-09",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "crew-row", { frame: 1 });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => (await ctx.text()).includes('{ id: "ava", name: "Ava Tran", role: "Design lead" },\n  { id: "ava-copy", name: "Ava Tran", role: "Design lead" },'), { message: "crew[1]: a copy of Ava with id ava-copy" });
+      const text = await ctx.text();
+      if ((text.match(/data-e2e="crew-row"/g) ?? []).length !== 1) throw new Error("the row's JSX was copied, not its data");
+      const src = `${ctx.file}:${locOf(text, "crew-row").loc}`;
+      let at = -1;
+      await until(async () => (at = await selectedRendering(page, src)) === 1, { message: "the copy (second row) selected" }).catch((error) => {
+        throw new Error(`${error.message}: the outline covers rendering ${at}`);
+      });
+      return "crew[1] = Ava's copy, selected";
+    },
+  },
+  {
+    id: "DA-06", feature: "Delete on a .map row removes its data item; the other rows and the JSX stay, nothing to confirm", wp: "slots 2026-10-09",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "crew-row", { frame: 1 });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Backspace");
+      await until(async () => !(await ctx.text()).includes('id: "ava"'), { message: "crew[0] (Ava) removed from the const" });
+      const text = await ctx.text();
+      if (!text.includes('{ id: "bao", name: "Bao Le", role: "Engineer" },') || !text.includes('{ id: "chi"')) throw new Error("other rows changed");
+      if ((text.match(/data-e2e="crew-row"/g) ?? []).length !== 1) throw new Error("the row's JSX was removed");
+      if (await page.getByRole("alertdialog").count()) throw new Error("a confirmation was asked");
+      return "crew = [bao, chi]";
+    },
+  },
+  {
+    id: "DA-07", feature: "Menu › Move down on a .map row swaps it with the next row in its data; the moved row stays selected", wp: "slots 2026-10-09",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "crew-row", { frame: 1 });
+      const src = `${ctx.file}:${locOf(await ctx.text(), "crew-row").loc}`;
+      const rect = await page.evaluate((src) => document.querySelector(`[data-zen-src="${CSS.escape(src)}"]`)?.getBoundingClientRect().toJSON() ?? null, src);
+      if (!rect) throw new Error("no crew row on the canvas");
+      // Near the row's left edge, below its slot chips: the selected row's slot "+" buttons sit at its centre.
+      await page.mouse.click(rect.x + 24, rect.y + rect.height - 14, { button: "right" });
+      await until(async () => (await page.getByRole("menuitem").count()) > 0, { message: "the canvas menu" });
+      const item = page.getByRole("menuitem", { name: /^Move down/ });
+      if (!(await item.count()) || (await item.getAttribute("aria-disabled")) === "true") {
+        const items = await page.getByRole("menuitem").evaluateAll((all) => all.map((el) => `${el.textContent.trim().replace(/\s+/g, " ")}${el.getAttribute("aria-disabled") === "true" ? " (off)" : ""}`));
+        throw new Error(`Move down not offered: ${items.join(" · ").slice(0, 400)}`);
+      }
+      await item.click();
+      await until(async () => /const crew = \[\n {2}\{ id: "bao"[^\n]*\},\n {2}\{ id: "ava"/.test(await ctx.text()), { message: "crew = [bao, ava, chi]" });
+      const text = await ctx.text();
+      if ((text.match(/data-e2e="crew-row"/g) ?? []).length !== 1) throw new Error("the row's JSX moved, not its data");
+      let at = -1;
+      await until(async () => (at = await selectedRendering(page, `${ctx.file}:${locOf(text, "crew-row").loc}`)) === 1, { message: "Ava (now the second row) selected" }).catch((error) => {
+        throw new Error(`${error.message}: the outline covers rendering ${at}`);
+      });
+      return "crew = [bao, ava, chi], Ava selected";
     },
   },
   {

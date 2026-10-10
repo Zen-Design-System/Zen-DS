@@ -48,6 +48,7 @@ export * from "./components/Rating";
 export * from "./components/ColorSelector";
 export * from "./components/MetricWidget";
 export * from "./components/Uploader";
+export * from "./components/Voice";
 export * from "./components/SidePanel";
 export * from "./components/Motion";
 export * from "./components/TopNavigation";

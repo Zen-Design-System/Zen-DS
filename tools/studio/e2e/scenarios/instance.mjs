@@ -1,7 +1,7 @@
 // Instance rows (Studio builder GĐ4, spec docs/research/studio-builder-instance-spec-2026-10-07.md): a Zen instance
 // customised as in Figma's instance panel — option names, Reset all overrides, a field's Label group, the switches that
 // show a layer — on the fixture's "E2E instance" frame and on a builder page.
-import { inspectorRow, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, selectStack } from "./builder.mjs";
 import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
 
@@ -162,9 +162,9 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Primary button");
-      await page.locator(".studio-assets__row", { hasText: /^Primary button/ }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Primary button/ }).first().click();
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "the Button" });
       await sleep(400);
       await clickNamed(page, id, "Button");
@@ -293,9 +293,9 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Badge");
-      await page.locator(".studio-assets__row", { hasText: /^Badge/ }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Badge/ }).first().click();
       await until(async () => /<Badge\b/.test((await pageText(page, id)) ?? ""), { message: "the Badge" });
       await sleep(400);
       await clickNamed(page, id, "Badge");
@@ -317,9 +317,9 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Primary button");
-      await page.locator(".studio-assets__row", { hasText: /^Primary button/ }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Primary button/ }).first().click();
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "the Button" });
       await sleep(400);
       await clickNamed(page, id, "Button");

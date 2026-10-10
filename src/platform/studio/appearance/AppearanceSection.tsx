@@ -16,14 +16,14 @@ import "./appearance.css";
 
 /*
  * Figma UI3's Appearance and Effects sections for Box (and corner radius for Image): Fill (surface), Border, Corner
- * radius with independent corners, Clip content; then the Box's effect style. Token-only, one apply per gesture, the
+ * radius with independent corners (Clip content is in the Layout section); then the Box's effect style. Token-only, one apply per gesture, the
  * canonical corner form (appearanceModel.ts). WP-D of docs/research/studio-builder-plan-2026-10-05.md; spec
  * docs/research/studio-position-effects-radius-spec-2026-10-03.md §4.2–4.3.
  */
 
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
 export const appearancePropNames: Readonly<Record<string, readonly string[]>> = {
-  Box: ["surface", "border", "radius", ...CORNERS, "clip", "effectStyle"],
+  Box: ["surface", "border", "radius", ...CORNERS, "effectStyle"],
   Image: ["radius", ...CORNERS],
 };
 
@@ -108,7 +108,7 @@ export function CornerRadiusField({ api, specs, host }: { api: FieldApi; specs: 
   );
 }
 
-/** Appearance: Fill, Border, Corner radius, Clip content (Box); Corner radius only (Image). */
+/** Appearance: Fill, Border, Corner radius (Box); Corner radius only (Image). Clip content is in the Layout section (Figma UI3). */
 export function AppearanceSection({ api, specs, component, host }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null }) {
   const spec = (name: string) => specs.find((candidate) => candidate.name === name);
   const field = (name: string, label: string) => {
@@ -120,7 +120,6 @@ export function AppearanceSection({ api, specs, component, host }: { api: FieldA
       {component === "Box" ? field("surface", "Fill") : null}
       {component === "Box" ? field("border", "Border") : null}
       <CornerRadiusField api={api} specs={specs} host={host} />
-      {component === "Box" ? field("clip", "Clip content") : null}
     </InspectorSection>
   );
 }

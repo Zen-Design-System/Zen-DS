@@ -686,6 +686,8 @@
 .pgv-field .zen-toggle { width: 100%; }
 .pgv-narrow { width: 220px; }
 .pgv-wide { width: 100%; }
+/* zen-allow-slot-size: the Voice frames are 400 wide in Figma (+ the Card's Small padding). */
+.pgv-voice { width: min(448px, 100%); }
 .pgv-wide.pgv-stack { justify-items: stretch; }
 .pgv-grow { flex: 1 1 auto; min-width: 0; }
 .pgv-skeleton-card { display: flex; width: min(320px, 100%); align-items: center; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-surface-default, #fff); }

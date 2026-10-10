@@ -59,6 +59,14 @@
           "deprecated": null
         },
         {
+          "name": "trailing",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or\n Share (Button/Icon-Main), Spacing/Gap/Small after them.",
+          "deprecated": null
+        },
+        {
           "name": "tabs",
           "type": "ReactNode",
           "required": false,

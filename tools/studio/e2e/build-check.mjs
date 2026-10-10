@@ -16,7 +16,7 @@ import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { build, preview } from "vite";
 import { unzipFiles } from "../zip.mjs";
-import { launchBrowser, openStudio, openStudioSpace, showLeftTab, sleep, until } from "./lib/studio.mjs";
+import { launchBrowser, openAssetLibrary, openStudio, openStudioSpace, showLeftTab, sleep, until } from "./lib/studio.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -241,9 +241,9 @@ try {
     await clickNamed(page, id, "Text");
     await page.keyboard.press("Escape");
     await until(async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim() === "Stack", { message: "the Stack selected" });
-    await showLeftTab(page, "assets");
+    await openAssetLibrary(page, "Components");
     await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Button");
-    await page.locator(".studio-assets__row", { hasText: /^Button/ }).first().click();
+    await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Button/ }).first().click();
     await until(async () => /<Button /.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "<Button in the stored page" });
     await named(page, id, "Button").waitFor({ state: "attached", timeout: 10_000 });
     return "inserted and rendered";

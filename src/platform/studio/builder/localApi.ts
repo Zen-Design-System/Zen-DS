@@ -42,11 +42,15 @@ export async function localElement(file: string, loc: string): Promise<SourceEle
     index += 1;
     if (child.kind === "expression") children.push({ child, index });
   }
-  const targets = [...attrs.map((attr) => ({ prop: attr.name })), ...children.map((entry) => ({ child: entry.index }))];
+  const targets: Array<{ prop: string } | { child: number } | { tableRows: true }> = [...attrs.map((attr) => ({ prop: attr.name })), ...children.map((entry) => ({ child: entry.index }))];
+  // A Table: whether its rows can be edited (a column without `cell` draws its row's field), as GET /element says.
+  const table = attrs.some((attr) => attr.name === "columns") && (element.attributes as Array<{ name: string }>).some((attr) => attr.name === "rows" || attr.name === "data");
+  if (table) targets.push({ tableRows: true });
   if (targets.length) {
     const origins = engine.originsOf(page.text, file, loc, targets, { read: () => null });
     attrs.forEach((attr, at) => { attr.dataSource = origins[at]; });
     children.forEach((entry, at) => { entry.child.dataSource = origins[attrs.length + at]; });
+    if (table) (element as { tableRows?: unknown }).tableRows = origins[targets.length - 1];
   }
   return element as unknown as SourceElement;
 }

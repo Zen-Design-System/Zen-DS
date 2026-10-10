@@ -1,0 +1,274 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "voice",
+  "import": "import { VoiceRecorder, AiVoiceConversation } from \"@zen/design-system\";",
+  "components": [
+    {
+      "name": "VoiceRecorder",
+      "file": "src/components/Voice/Voice.tsx",
+      "description": "Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Subtle Badge: Neutral Ready / Paused,\nRed Recording with its dot), the audio monitor (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium:\nthe elapsed time in Heading/Subheading, an 80px waveform — Content/Neutral/Strongest while recording, Neutral/Light\npaused, a flat Border/Neutral/Subtle line when ready — and its start / end times in Caption/Regular Neutral/Light),\nthe guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and\nFinish disabled until there is a take), a Border/Neutral/Pale divider and the input details.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"ready\" | \"recording\" | \"paused\"",
+          "required": false,
+          "default": "\"ready\"",
+          "description": "Figma State: Ready (nothing recorded yet), Recording, Paused. Your recorder drives it.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The header's name of the take. Default: the locale's \"New recording\".",
+          "deprecated": null
+        },
+        {
+          "name": "elapsed",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00.00\"",
+          "description": "The take's length so far (\"00:24.18\"), Heading/Subheading.",
+          "deprecated": null
+        },
+        {
+          "name": "start",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00\"",
+          "description": "The waveform window's start and end times under it (\"00:16\", \"00:24\").",
+          "deprecated": null
+        },
+        {
+          "name": "end",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line.",
+          "deprecated": null
+        },
+        {
+          "name": "guidance",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under the waveform. Default: what the state means (\"Capturing audio from your microphone.\").",
+          "deprecated": null
+        },
+        {
+          "name": "input",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The footer: the input device (\"Built-in microphone\") and the format (\"48 kHz · Mono\").",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRecord",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Record (Ready), Pause (Recording) and Resume (Paused): the main action. Without the handler for the current state it\n is off, e.g. leave out `onResume` once a take reaches its length limit.",
+          "deprecated": null
+        },
+        {
+          "name": "onPause",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onResume",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onFinish",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Finish the take (Recording, Paused).",
+          "deprecated": null
+        },
+        {
+          "name": "onDiscard",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Throw the take away (Recording, Paused).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AiVoiceConversation",
+      "file": "src/components/Voice/Voice.tsx",
+      "description": "Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a Small Subtle Badge with its dot:\nNeutral Ready, Accent Listening / Responding), the 96px voice signal (Corner-Radius/Rounded: Background/Surface/Alt with\nthe microphone when ready, Background/Accent/Subtle with 4px Content/Accent/Light bars, Spacing/Gap/2XSmall apart),\nthe status (Heading/Subheading + Body/Small/Regular Neutral/Light), the transcript card (Background/Surface/Alt,\nCorner-Radius/Base, Spacing/Padding/Small: the speaker in Label/Small/Medium Neutral/Light over an AI/Chat-Bubble),\nthe actions (Mute · Start talking / Done speaking / Interrupt · End) and the note.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"ready\" | \"listening\" | \"responding\"",
+          "required": false,
+          "default": "\"ready\"",
+          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers).",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The assistant's name in the header. Default: the locale's \"Zen voice\".",
+          "deprecated": null
+        },
+        {
+          "name": "heading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The status heading and its line (Heading/Subheading, Body/Small/Regular). Default: what the state means.",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "The status heading's level in the page outline (an `h3` by default; `2` straight under a screen's h1).",
+          "deprecated": null
+        },
+        {
+          "name": "guidance",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "speaker",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Who the transcript is from (\"You · Live transcript\", \"Zen · Spoken response\"); Ready: \"Try saying\".",
+          "deprecated": null
+        },
+        {
+          "name": "transcript",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The transcript card's text (Figma AI/Chat-Bubble Side=AI): a suggestion when ready, what you say, what it says.",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7).",
+          "deprecated": null
+        },
+        {
+          "name": "muted",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mute (the left action, a toggle; off until the conversation starts).",
+          "deprecated": null
+        },
+        {
+          "name": "onMutedChange",
+          "type": "(muted: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onStart",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding).",
+          "deprecated": null
+        },
+        {
+          "name": "onDone",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onInterrupt",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onEnd",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "End the conversation (off while Ready).",
+          "deprecated": null
+        },
+        {
+          "name": "note",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

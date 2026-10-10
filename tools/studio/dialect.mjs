@@ -3,8 +3,9 @@
 //
 //   parsePage(text, { components? }) → { header, mock, board, errors }   the neutral tree the renderer (and GĐ5 export) walk
 //   validateDialect(text, { components? }) → errors [{ line, column, message }]
-//   newPageText({ title, device }) → the text of a blank page
-//   PAGE_DEVICES, SCREEN_STATES
+//   newPageText({ title, device, chrome }) → the text of a blank page
+//   PAGE_DEVICES, SCREEN_STATES, SCREEN_CANVASES, SCREEN_LAYOUTS, SCREEN_CHROME, screenLayout(device, layout),
+//   screenChromeCode(prop, title)
 //   boardFrames(tree), freeFrameId(base, taken), frameCode({ kind, id, title, device }), protoCode(action, arg)   (M3)
 //
 // Tree: Node = { kind: "element", name, loc: "line:col", props: { [name]: Value }, children: Child[] }
@@ -12,9 +13,13 @@
 //             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock" or a .map item name)
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
+import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout } from "./screen-chrome.mjs";
+
+export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
 export const PAGE_DEVICES = ["phone", "tablet", "desktop"];
 export const SCREEN_STATES = ["empty", "loading", "error"];
+export const SCREEN_CANVASES = ["default", "alt", "flat"];
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "proto"]);
 const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link"]);
 const PACKAGE = "@zen/design-system";
@@ -35,22 +40,35 @@ export function pageHeader(text) {
 
 const quote = (value) => JSON.stringify(String(value));
 
-/** A blank page: one Screen on `device` holding a padded Stack and its title, ready to take components. */
-export function newPageText({ title = "Untitled", device = "desktop" } = {}) {
+/** The chrome props of a new Screen's opening tag, one per line at `indent` (multi-line components indented under it). */
+const chromeAttrs = (title, indent) => SCREEN_CHROME.map((part) => {
+  const code = screenChromeCode(part.prop, title).split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n");
+  return `${indent}${part.prop}={${code}}`;
+});
+const CHROME_IMPORTS = [...new Set(SCREEN_CHROME.flatMap((part) => [...screenChromeCode(part.prop).matchAll(/<([A-Z]\w*)/g)].map((match) => match[1])))];
+
+/**
+ * A blank page: one Screen on `device` holding a padded Stack, ready to take components. With `chrome` (the default) the
+ * Screen comes with its app frame (SCREEN_CHROME: Sidebar + Page Header, Top + Bottom Navigation; the title is in the
+ * header, so the Stack starts with a line of body text); without it, the Stack starts with the title as a heading.
+ */
+export function newPageText({ title = "Untitled", device = "desktop", chrome = true } = {}) {
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
+  const names = [...new Set(["Stack", "Text", ...(chrome ? CHROME_IMPORTS : [])])].sort((a, b) => a.localeCompare(b));
+  const open = `      <Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
   return [
     `// @zen-page ${JSON.stringify({ format: 1, title })}`,
     `import { Board, Screen, proto } from ${quote(BUILDER_PACKAGE)};`,
-    `import { Stack, Text } from ${quote(PACKAGE)};`,
+    `import { ${names.join(", ")} } from ${quote(PACKAGE)};`,
     "",
     "export const mock = {};",
     "",
     "export default function Page() {",
     "  return (",
     "    <Board>",
-    `      <Screen id="screen-1" title=${quote(title)} device="${screenDevice}">`,
+    ...(chrome ? [open, ...chromeAttrs(title, "        ").map((line, index, all) => (index === all.length - 1 ? `${line}>` : line))] : [`${open}>`]),
     `        <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
-    `          <Text textStyle="Heading/3">${title.replace(/[{}<>]/g, "")}</Text>`,
+    chrome ? `          <Text tone="base">Start building here: add components from Assets.</Text>` : `          <Text textStyle="Heading/3">${title.replace(/[{}<>]/g, "")}</Text>`,
     "        </Stack>",
     "      </Screen>",
     "    </Board>",
@@ -83,7 +101,7 @@ export function freeFrameId(base, taken) {
  * The code of a new Board child: a Screen (title heading in a padded Stack, on `device`) or an Overlay holding a Dialog
  * whose actions close it. Inserted with insertChild on the Board; slots.mjs adds the runtime and component imports.
  */
-export function frameCode({ kind, id, title, device = "desktop" }) {
+export function frameCode({ kind, id, title, device = "desktop", chrome = true }) {
   const name = String(title ?? id).replace(/[{}<>]/g, "");
   if (kind === "overlay") {
     return [
@@ -93,10 +111,12 @@ export function frameCode({ kind, id, title, device = "desktop" }) {
     ].join("\n");
   }
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
+  // A new Screen comes with the app frame as a new page does (its title in the header).
+  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"`;
   return [
-    `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}">`,
+    ...(chrome ? [open, ...chromeAttrs(name, "  ").map((line, index, all) => (index === all.length - 1 ? `${line}>` : line))] : [`${open}>`]),
     `  <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
-    `    <Text textStyle="Heading/3">${name}</Text>`,
+    chrome ? `    <Text tone="base">Start building here: add components from Assets.</Text>` : `    <Text textStyle="Heading/3">${name}</Text>`,
     "  </Stack>",
     "</Screen>",
   ].join("\n");
@@ -330,6 +350,14 @@ export function parsePage(text, { components } = {}) {
       if (child.name === "Screen") {
         const device = child.props.device;
         if (device && !(device.kind === "literal" && PAGE_DEVICES.includes(device.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `device is ${PAGE_DEVICES.join(", ")}` });
+        const layout = child.props.layout;
+        if (layout && !(layout.kind === "literal" && SCREEN_LAYOUTS.includes(layout.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `layout is ${SCREEN_LAYOUTS.join(", ")}` });
+        for (const part of SCREEN_CHROME) {
+          const value = child.props[part.prop];
+          if (value && value.kind !== "element") errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `${part.prop} holds one component (<${part.component} … />)` });
+        }
+        const canvas = child.props.canvas;
+        if (canvas && !(canvas.kind === "literal" && SCREEN_CANVASES.includes(canvas.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `canvas is ${SCREEN_CANVASES.join(", ")}` });
         const state = child.props.state;
         if (state && !(state.kind === "literal" && SCREEN_STATES.includes(state.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `state is ${SCREEN_STATES.join(", ")} (no state = the default)` });
       }

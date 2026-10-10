@@ -1,7 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
+import { Checkbox } from "../../../components/Checkbox";
 import { Icon } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
+import { Popover, PopoverItem } from "../../../components/Popover";
 import { Segmented } from "../../../components/Segmented";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { EditOp, SourceAttr } from "../types";
@@ -11,27 +13,35 @@ import { ScaleField } from "./controls/ScaleField";
 import "./controls/controls.css";
 import type { FieldApi } from "./fieldApi";
 import {
-  alignView, crossOps, flowOf, flowOps, gapAutoOps, gapOps, gapsSplit, layoutWarnings, paddingAxial, relinkChoices, relinkOps, uniformPadding,
-  uniformPaddingOps, type CrossMode, type Flow, type Literal, type Written,
+  alignView, axisPadding, axisPaddingOps, crossOps, flowOf, flowOps, gapAutoOps, gapOps, gapsSplit, layoutWarnings, relinkChoices, relinkOps,
+  type AlignView, type CrossMode, type Flow, type Literal, type Written,
 } from "./layoutModel";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
-import { InspectorRow, InspectorSection } from "./Section";
+import { InspectorFields, InspectorSection } from "./Section";
 
 /*
- * The Layout section (spec docs/research/studio-inspector-redesign-2026-10-03.md, Phases 3, 4 and 6; plan WP-D): one
- * control per concept, each gesture one apply (one undo step) planned by layoutModel.ts.
- *   Stack     Flow (Vertical · Horizontal · Wrap), Size, the alignment box beside Gap (with Auto) and the cross axis,
- *             Padding (all sides or per axis).
- *   Grid      Size, Align cells, Gap (one, or row and column), Columns (Auto-fit · Count · Tracks, per breakpoint), Padding.
- *   Box       Size, Padding.   FormFieldset: Flow (2), Gap.   FormActions: Alignment, Side inset (when pinned).
+ * The Auto layout / Layout section in Figma UI3's words and field grid (docs/research/studio-inspector-figma-spec-2026-10-09.md
+ * §1 and §3; first version: docs/research/studio-inspector-redesign-2026-10-03.md, Phases 3, 4 and 6): labels above the
+ * fields, two field columns and an icon column; one control per concept, each gesture one apply (one undo step) planned
+ * by layoutModel.ts. Figma's words, Zen's code: Flow → direction / wrap, Resizing → width / height, Alignment → align +
+ * justify, Gap (Auto) → gap / justify="between", Padding H / V → paddingX / paddingY (padding when equal), Clip content → clip.
+ *   Stack     Flow (Vertical · Horizontal, Wrap beside), Resizing, Alignment | Gap (the cross axis beside), Padding H | V.
+ *   Grid      Resizing, Alignment (cells), Gap (one, or column and row), Columns (Auto-fit · Count · Tracks, per breakpoint), Padding.
+ *   Box       Resizing, Padding H | V, Clip content.   FormFieldset: Flow (2), Gap.   FormActions: Alignment, Side inset (when pinned).
  *   others    their rows as before (Container max width and page margin, Form gap).
  * A value the source binds or spreads keeps its own row (PropField: edited in place when it may be, else read-only), so
  * the grouped controls only ever show literals. Written props that do nothing here get a warning with Remove.
  */
 
 /** The props a written literal is read for (the model's `Written`). */
-const READ = ["direction", "wrap", "align", "justify", "gap", "rowGap", "columnGap", "padding", "paddingX", "paddingY", "columns", "minColumnWidth", "inset", "sticky"];
+const READ = ["direction", "wrap", "align", "justify", "gap", "rowGap", "columnGap", "padding", "paddingX", "paddingY", "columns", "minColumnWidth", "inset", "sticky", "clip"];
+
+/** Figma's words for the layout props that keep a row of their own (a bound or spread value). */
+const figmaWords: Readonly<Record<string, string>> = {
+  direction: "Flow", wrap: "Wrap", align: "Alignment · cross axis", justify: "Alignment · main axis", gap: "Gap", rowGap: "Row gap",
+  columnGap: "Column gap", padding: "Padding", paddingX: "Horizontal padding", paddingY: "Vertical padding", clip: "Clip content",
+};
 
 /** What an apply shows at once: a set prop as its literal, a removed one as unset. */
 function optimisticOf(ops: EditOp[]): Record<string, PropValue> {
@@ -41,16 +51,6 @@ function optimisticOf(ops: EditOp[]): Record<string, PropValue> {
     else if (op.op === "removeProp") out[op.name] = { state: "unset" };
   }
   return out;
-}
-
-/** A group: its label above the controls (Figma UI3), `name` for data-prop. */
-function Group({ label, name, children }: { label: string; name?: string; children: ReactNode }) {
-  return (
-    <div className="studio-layout-group" role="group" aria-label={label} data-prop={name}>
-      <span className={`studio-layout-group__label ${typographyStyles["Body/Small/Regular"]}`}>{label}</span>
-      {children}
-    </div>
-  );
 }
 
 /** A Segmented whose unset (effective) segment reads in the default tone. */
@@ -70,6 +70,40 @@ function Seg({ label, value, unset, disabled, options, onPick }: { label: string
   );
 }
 
+/** Figma's advanced layout settings beside Gap: how the children sit on the cross axis (where the alignment box puts
+ *  them, stretched, or on the text baseline in a row). */
+function CrossMenu({ view, disabled, onPick }: { view: AlignView; disabled: boolean; onPick: (mode: CrossMode) => void }) {
+  const [open, setOpen] = useState(false);
+  const [withKeys, setWithKeys] = useState(false);
+  const anchor = useRef<HTMLSpanElement>(null);
+  const items: Array<{ id: CrossMode; label: string; caption: string }> = [
+    { id: "position", label: "Position", caption: "Where the alignment box puts them" },
+    { id: "stretch", label: "Stretch", caption: view.row ? "Fill the row's height" : "Fill the column's width" },
+    ...(view.row ? [{ id: "baseline" as const, label: "Text baseline", caption: "On their first line of text" }] : []),
+  ];
+  const current = items.find((item) => item.id === view.cross)?.label ?? "Position";
+  return (
+    <span ref={anchor} className="studio-layout-cross">
+      {/* zen-allow-filter-button: Figma's advanced layout settings, a 24px icon in the panel's icon column (no room for a Chip); not a filter */}
+      <IconButton
+        icon="icon-sliders-02-line"
+        aria-label={`Cross axis: ${current}${view.crossDefault ? " (default)" : ""}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        appearance="flat"
+        level="primary"
+        size="xs"
+        disabled={disabled}
+        onClick={(event) => { setWithKeys(event.detail === 0); setOpen((now) => !now); }}
+      />
+      <Popover open={open} onOpenChange={(next) => { if (!next) setOpen(false); }} anchorRef={anchor} align="end" autoFocus={withKeys} aria-label="Cross axis">
+        {items.map((item) => (
+          <PopoverItem key={item.id} label={item.label} caption={item.caption} selected={view.cross === item.id} onSelect={() => { setOpen(false); if (item.id !== view.cross || view.crossDefault) onPick(item.id); }} />
+        ))}
+      </Popover>
+    </span>
+  );
+}
 
 export function LayoutSection({ specs, api, note, component, sizing, attributes, host }: {
   specs: PropSpec[];
@@ -83,7 +117,6 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   /** The selection's rendered element (the frame's breakpoint, the grid's tracks). */
   host: HTMLElement | null;
 }) {
-  const [axialView, setAxialView] = useState<boolean | null>(null);
   const [splitView, setSplitView] = useState(false);
   const spec = (name: string) => specs.find((candidate) => candidate.name === name);
   const state = (name: string) => api.valueFor(name).state;
@@ -99,8 +132,8 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   const handled = new Set<string>();
   const groups: ReactNode[] = [];
 
-  /** A plain row (PropField), as every prop the groups do not take. */
-  const field = (name: string, label?: string) => {
+  /** A plain row (PropField), as every prop the groups do not take: Figma's word for it where there is one. */
+  const field = (name: string, label: string | undefined = figmaWords[name]) => {
     const found = spec(name);
     if (!found) return null;
     handled.add(name);
@@ -154,17 +187,39 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     handled.add("direction");
     handled.add("wrap");
     const flow = flowOf(written);
+    const wraps = Boolean(spec("wrap"));
     const items: Array<{ id: Flow; icon: string; name: string }> = [
       { id: "vertical", icon: "icon-arrow-down-line", name: "Vertical" },
       { id: "horizontal", icon: "icon-arrow-right-line", name: component === "FormFieldset" ? "Horizontal (wraps)" : "Horizontal" },
-      ...(spec("wrap") ? [{ id: "wrap" as const, icon: "icon-corner-down-left-line", name: "Wrap" }] : []),
     ];
     const anyWritten = written.direction !== undefined || written.wrap !== undefined;
+    // Figma: Wrap is the toggle beside the flow icons; on a vertical flow it turns the flow horizontal and wrapping.
+    const wrapToggle = wraps ? (
+      // zen-allow-secondary: a pressed toolbar toggle (Figma's wrap), as CodeView's "Wrap lines"
+      <IconButton
+        icon="icon-corner-down-left-line"
+        aria-label="Wrap"
+        aria-pressed={flow === "wrap"}
+        appearance="flat"
+        level={flow === "wrap" ? "secondary" : "primary"}
+        size="xs"
+        disabled={disabled}
+        onClick={() => apply(flowOps(written, flow === "wrap" ? "horizontal" : "wrap"), flow === "wrap" ? "wrap off" : "flow → wrap")}
+      />
+    ) : undefined;
     groups.push(
-      <InspectorRow key="flow" name="direction" label="Direction" labelTitle="Direction · direction, wrap" isDefault={!anyWritten}>
-        <Seg label="Direction" value={flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), `flow → ${next}`)} />
-      </InspectorRow>,
+      <InspectorFields
+        key="flow"
+        name="direction"
+        labels={["Flow"]}
+        code={wraps ? "Stack direction · wrap" : `${component} direction`}
+        icon={wrapToggle}
+        fields={[<Seg key="flow" label="Flow" value={flow === "wrap" ? "horizontal" : flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), `flow → ${next}`)} />]}
+      />,
     );
+  } else if (component === "Stack" || component === "FormFieldset") {
+    // Bound or spread: their own rows, still first (Figma's order).
+    groups.push(field("direction"), field("wrap"));
   }
 
   if (sizing) groups.push(<div key="size">{sizing}</div>);
@@ -174,31 +229,25 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     handled.add("align");
     handled.add("justify");
     const gapPlain = Boolean(spec("gap")) && plain("gap");
-    const crossItems: Array<{ id: CrossMode; icon: string; name: string }> = row
-      ? [{ id: "position", icon: "icon-align-vertical-center-01-line", name: "Position" }, { id: "stretch", icon: "icon-chevron-selector-vertical-line", name: "Stretch" }, { id: "baseline", icon: "icon-type-01-line", name: "Text baseline" }]
-      : [{ id: "position", icon: "icon-align-horizontal-centre-01-line", name: "Position" }, { id: "stretch", icon: "icon-chevron-selector-horizontal-line", name: "Stretch" }];
+    const gapField = gapPlain ? scale("gap", "Gap", row ? "icon-spacing-width-01-line" : "icon-spacing-height-01-line", (key) => apply(key === "auto" ? gapAutoOps(written) : gapOps(written, key), key === "auto" ? "gap → Auto (space between)" : `gap → ${key}`), {
+      value: view.auto ? "auto" : undefined,
+      extras: [{ key: "auto", label: "Auto" }],
+      onReset: view.auto ? () => apply([{ op: "removeProp", name: "justify" }], "Auto off") : written.gap !== undefined ? () => api.removeProp("gap") : undefined,
+    }) : null;
     groups.push(
-      <Group key="align" label="Alignment" name="align justify">
-        <div className="studio-layout-align">
-          <AlignmentBox written={written} disabled={disabled} onOps={(ops, label) => apply(ops, label)} />
-          <div className="studio-layout-align__side">
-            {gapPlain ? scale("gap", "Gap", row ? "icon-spacing-width-01-line" : "icon-spacing-height-01-line", (key) => apply(key === "auto" ? gapAutoOps(written) : gapOps(written, key), key === "auto" ? "gap → Auto (space between)" : `gap → ${key}`), {
-              value: view.auto ? "auto" : undefined,
-              extras: [{ key: "auto", label: "Auto" }],
-              onReset: view.auto ? () => apply([{ op: "removeProp", name: "justify" }], "Auto off") : written.gap !== undefined ? () => api.removeProp("gap") : undefined,
-            }) : field("gap")}
-            <Seg
-              label="Cross axis"
-              value={view.cross}
-              unset={view.crossDefault}
-              disabled={disabled}
-              options={crossItems}
-              onPick={(next) => apply(crossOps(written, next as CrossMode), `cross axis → ${next}`)}
-            />
-          </div>
-        </div>
-      </Group>,
+      <InspectorFields
+        key="align"
+        name="align justify"
+        labels={gapField ? ["Alignment", "Gap"] : ["Alignment"]}
+        code="Stack align · justify · gap"
+        icon={<CrossMenu view={view} disabled={disabled} onPick={(mode) => apply(crossOps(written, mode), `cross axis → ${mode}`)} />}
+        fields={[<AlignmentBox key="box" written={written} disabled={disabled} onOps={(ops, label) => apply(ops, label)} />, gapField ?? <span key="gap" />]}
+      />,
     );
+    // A bound or spread gap keeps its own row (PropField).
+    if (!gapField) groups.push(field("gap"));
+  } else if (component === "Stack") {
+    groups.push(field("align"), field("justify"), field("gap"));
   }
 
   // ── Grid: align cells, gap (one or two), columns ──
@@ -207,9 +256,14 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       handled.add("align");
       const value = typeof written.align === "string" ? written.align : "stretch";
       groups.push(
-        <Group key="grid-align" label="Alignment" name="align">
-          <div className="studio-layout-group__row">
+        <InspectorFields
+          key="grid-align"
+          name="align"
+          labels={["Alignment"]}
+          code="Grid align"
+          fields={[
             <Seg
+              key="cells"
               label="Align cells"
               value={value}
               unset={written.align === undefined}
@@ -221,9 +275,9 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
                 { id: "stretch", icon: "icon-chevron-selector-vertical-line", name: "Stretch" },
               ]}
               onPick={(next) => apply(next === "stretch" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `align → ${next}`)}
-            />
-          </div>
-        </Group>,
+            />,
+          ]}
+        />,
       );
     }
     if (spec("gap") && plain("gap", "rowGap", "columnGap")) {
@@ -237,20 +291,16 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
           ? <IconButton icon="icon-link-broken-01-line" aria-label="Use one gap" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => setSplitView(false)} />
           : <IconButton icon="icon-link-01-line" aria-label="Separate row and column gaps" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => setSplitView(true)} />;
       groups.push(
-        <Group key="grid-gap" label="Gap">
-          {split ? (
-            <div className="studio-layout-group__row" data-pair="true">
-              {scale("columnGap", "Column gap", "icon-spacing-width-01-line", (key) => apply([{ op: "setProp", name: "columnGap", value: { kind: "string", value: key } }], `column gap → ${key}`))}
-              {scale("rowGap", "Row gap", "icon-spacing-height-01-line", (key) => apply([{ op: "setProp", name: "rowGap", value: { kind: "string", value: key } }], `row gap → ${key}`))}
-              <span className="studio-layout-group__slot">{relink}</span>
-            </div>
-          ) : (
-            <div className="studio-layout-group__row">
-              {scale("gap", "Gap", "icon-layout-grid-01-line", (key) => apply(gapOps(written, key), `gap → ${key}`))}
-              <span className="studio-layout-group__slot">{relink}</span>
-            </div>
-          )}
-        </Group>,
+        <InspectorFields
+          key="grid-gap"
+          labels={split ? ["Column gap", "Row gap"] : ["Gap"]}
+          code={split ? "Grid columnGap · rowGap" : "Grid gap"}
+          icon={relink}
+          fields={split ? [
+            scale("columnGap", "Column gap", "icon-spacing-width-01-line", (key) => apply([{ op: "setProp", name: "columnGap", value: { kind: "string", value: key } }], `column gap → ${key}`)),
+            scale("rowGap", "Row gap", "icon-spacing-height-01-line", (key) => apply([{ op: "setProp", name: "rowGap", value: { kind: "string", value: key } }], `row gap → ${key}`)),
+          ] : [scale("gap", "Gap", "icon-layout-grid-01-line", (key) => apply(gapOps(written, key), `gap → ${key}`)), <span key="none" />]}
+        />,
       );
       handled.add("gap");
       handled.add("rowGap");
@@ -268,40 +318,18 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     }
   }
 
-  // ── Padding: all sides or per axis (Stack, Box); Grid has one ──
+  // ── Padding: Figma's Horizontal | Vertical fields (Stack, Box); equal axes write one padding. Grid has one. ──
   if (spec("padding") && (spec("paddingX") || spec("paddingY")) && plain("padding", "paddingX", "paddingY")) {
-    const axial = axialView ?? paddingAxial(written);
-    const uniform = uniformPadding(written);
-    const mixed = uniform === null;
-    const resetAll = () => apply(["padding", "paddingX", "paddingY"].filter((name) => written[name] !== undefined).map((name): EditOp => ({ op: "removeProp", name })), "reset padding");
-    groups.push(
-      <Group key="padding" label="Padding">
-        <div className="studio-layout-group__row" data-pair={axial || undefined}>
-          {axial ? (
-            <>
-              {scale("paddingX", "Horizontal padding", "icon-spacing-width-02-line", (key) => apply([{ op: "setProp", name: "paddingX", value: { kind: "string", value: key } }], `horizontal padding → ${key}`))}
-              {scale("paddingY", "Vertical padding", "icon-spacing-height-02-line", (key) => apply([{ op: "setProp", name: "paddingY", value: { kind: "string", value: key } }], `vertical padding → ${key}`))}
-            </>
-          ) : scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply(uniformPaddingOps(written, key), `padding → ${key}`), {
-            value: mixed ? undefined : uniform ?? undefined,
-            placeholder: mixed ? `Mixed · ${String(written.paddingX ?? written.padding ?? "none")} / ${String(written.paddingY ?? written.padding ?? "none")}` : undefined,
-            onReset: written.padding !== undefined || written.paddingX !== undefined || written.paddingY !== undefined ? resetAll : undefined,
-          })}
-          <span className="studio-layout-group__slot">
-            {/* zen-allow-secondary: a pressed toolbar toggle (the view of the padding fields), as CodeView's "Wrap lines" */}
-            <IconButton
-              icon="icon-grid-dots-outer-line"
-              aria-label="Same padding on all sides"
-              aria-pressed={!axial}
-              appearance="flat"
-              level={axial ? "primary" : "secondary"}
-              size="xs"
-              onClick={() => setAxialView(!axial)}
-            />
-          </span>
-        </div>
-      </Group>,
-    );
+    const axisField = (axis: "x" | "y") => {
+      const name = axis === "x" ? "paddingX" : "paddingY";
+      const shown = axisPadding(written, axis);
+      return scale(name, axis === "x" ? "Horizontal padding" : "Vertical padding", axis === "x" ? "icon-spacing-width-02-line" : "icon-spacing-height-02-line", (key) => apply(axisPaddingOps(written, axis, key), `${axis === "x" ? "horizontal" : "vertical"} padding → ${key}`), {
+        value: typeof shown === "string" ? shown : undefined,
+        // ⌫ removes the axis's own value (it falls back to padding); a value it only inherits stays.
+        onReset: written[name] !== undefined ? () => api.removeProp(name) : undefined,
+      });
+    };
+    groups.push(<InspectorFields key="padding" labels={["Padding"]} code={`${component} paddingX · paddingY (padding when equal)`} fields={[axisField("x"), axisField("y")]} />);
     handled.add("padding");
     handled.add("paddingX");
     handled.add("paddingY");
@@ -309,12 +337,20 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
 
   // Grid's one padding (no per-axis props).
   if (component === "Grid" && spec("padding") && !spec("paddingX") && plain("padding")) {
+    groups.push(<InspectorFields key="grid-padding" labels={["Padding"]} code="Grid padding" fields={[scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `padding → ${key}`)), <span key="none" />]} />);
+  }
+
+  // ── Clip content (Box clip), under Padding as in Figma ──
+  if (spec("clip") && plain("clip")) {
+    handled.add("clip");
+    const clipped = written.clip === true;
     groups.push(
-      <Group key="grid-padding" label="Padding">
-        <div className="studio-layout-group__row">
-          {scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `padding → ${key}`))}
-        </div>
-      </Group>,
+      <InspectorFields
+        key="clip"
+        name="clip"
+        code="Box clip"
+        fields={[<Checkbox key="clip" label="Clip content" checked={clipped} disabled={disabled} onCheckedChange={(next) => apply(next ? [{ op: "setProp", name: "clip", value: { kind: "boolean", value: true } }] : [{ op: "removeProp", name: "clip" }], next ? "clip content" : "clip content off")} />]}
+      />,
     );
   }
 
@@ -323,9 +359,14 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     handled.add("align");
     const value = typeof written.align === "string" ? written.align : "end";
     groups.push(
-      <Group key="actions-align" label="Alignment" name="align">
-        <div className="studio-layout-group__row">
+      <InspectorFields
+        key="actions-align"
+        name="align"
+        labels={["Alignment"]}
+        code="FormActions align"
+        fields={[
           <Seg
+            key="align"
             label="Alignment"
             value={value}
             unset={written.align === undefined}
@@ -336,9 +377,9 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
               { id: "end", icon: "icon-flex-align-right-line", name: "End" },
             ]}
             onPick={(next) => apply(next === "end" ? [{ op: "removeProp", name: "align" }] : [{ op: "setProp", name: "align", value: { kind: "string", value: next } }], `align → ${next}`)}
-          />
-        </div>
-      </Group>,
+          />,
+        ]}
+      />,
     );
     if (spec("inset") && written.sticky !== true && written.inset === undefined && plain("inset")) handled.add("inset");
   }
@@ -347,7 +388,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   const rest = specs.filter((candidate) => !handled.has(candidate.name)).map((candidate) => field(candidate.name));
   const warnings = layoutWarnings(component, written);
   return (
-    <InspectorSection title="Layout" note={note}>
+    <InspectorSection title={component === "Stack" || component === "Grid" || component === "FormFieldset" ? "Auto layout" : "Layout"} note={note} fieldGrid>
       {groups}
       {rest}
       {warnings.map((warning) => (
@@ -356,6 +397,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
             <Icon name="icon-alert-triangle-line" size="sm" decorative />
             {warning.text}
           </p>
+          {/* zen-allow-destructive: removes a prop that does nothing here, as one undoable draft edit; not an irreversible delete */}
           <Button appearance="flat" level="primary" size="sm" disabled={disabled} onClick={() => apply(warning.fix, `remove ${warning.prop}`)}>Remove</Button>
         </div>
       ))}

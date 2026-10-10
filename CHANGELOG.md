@@ -19,6 +19,159 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- Table: `defaultSelectedIds` keeps a selection without app state; `editable` (whole table) and `column.edit: "text" | "number" | "select" | "tags" | true`
+  put cells in Figma's State=Edit without an editor object (the Table keeps the edit, or `onCellCommit` gets it). Zen Studio: a Data-Row's
+  State Default · Selected, Checkbox and Editable, a Cell's State Default · Edit · Selected, written to the page. Harness
+  `table/interaction-needs-handler` warns only for `selectable` + `selectedIds` without `onSelectionChange`.
+- **Zen Studio: Main component frame, M1 (2026-10-09, spec `docs/research/studio-main-component-spec-2026-10-09.md`):**
+  beside the Playground, every Figma component set of the page's components is drawn as Figma lays it out (Button: Main,
+  Flat, Overlay, Icon-Main, Icon-Flat, Icon-Overlay — 178 variants; overlay sets on a photo). A click selects a variant,
+  a double-click goes one layer in, ⌘-click selects the deepest layer; Layers lists sets, variants and their layers. The
+  Inspector shows the variant's Figma properties (switching Size or Level selects that variant) and, for each style the
+  library's CSS sets, the token it reads, the custom properties in between and the variants its rule covers ("Size = xs
+  · every Level, State").
+- **Zen Studio: Main component, M2 — change a token (2026-10-09):** each style row whose rule reads a token has a token
+  select (its family first — button-size-*, spacing-gap-*, corner-radius-* — then every token of its kind, with the value
+  each stands for; searchable). The pick rewrites that one declaration of the component's CSS (src/components/…/*.css)
+  as a draft: every variant the rule covers updates at once, ⌘Z / ⇧⌘Z work, and the panel saves or discards the
+  stylesheet's draft. Only existing tokens are accepted (a raw value is refused).
+- **Zen Studio: iOS or Android bars on a page you make (2026-10-10):** Page › Mobile OS picks iOS (default) or Android
+  for the page; its phone and tablet Screens draw that OS's status bar and bottom bar (iOS: island and home indicator as
+  Figma's Status-bar/IOS; Android, Material 3: 24px status bar with a punch-hole and the gesture handle), with dummy
+  status icons, on the canvas, in Play and in the design-file export. Content and a Top / Bottom Navigation pad by the
+  bars (`--zen-safe-area-top/-bottom`, as the docs' phone frames do).
+- **Zen Studio: Main component, M3 — the Figma check on save (2026-10-10):** saving a component's stylesheet runs its
+  Figma contract suites in the background (Button: 7 suites, about 10–90 s); the status line says it is checking, then
+  that it matches. When the code no longer matches Figma, a dialog lists where (suite, variant, layer, property, Figma vs
+  code) with **Keep and log for Figma** (one P2 line under Open items in docs/context/BACKLOG.md) or **Undo the save**
+  (the stylesheet's text before the save comes back, unless the file changed since).
+- **Sidebar slots like Figma (2026-10-09, ❖ Sidebar 6849:33453):** `<SidebarMenuItem>` (Figma Menu-Item 1536:27473)
+  and `<SidebarMenuSection label>` fill the Body-Content slot as `<Sidebar>` children (after `sections`, nested rows as
+  item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and
+  `onItemClick`. `sections` / `items` arrays keep working. The Sidebar examples use them (footer Settings / Help,
+  Handbook body).
+- **Zen Studio: slots edit content written as code (2026-10-09):** Move up / down and drag move a child written as
+  `{open && <X />}`, `{a ? <X /> : <Y />}` or `{rows.map(…)}` as one block (the canvas, Layers and the Slots section),
+  where it was refused before; a slot that shows a same-file `const name = <JSX>` (HR's `footer={appsButton}`,
+  `brand={workspaceBrand}`) takes inserts, duplicates, removals and moves where the const is written, so every place
+  that shows it changes (the Slots section says so); a prop that holds code (`footer={open ? <A /> : null}`) takes an
+  insert as `<>{code}<New /></>`. One row of a `.map` is its data: Remove, Duplicate (⌘D) and Move up / down on a row
+  edit the list where it is written (inline, a const, examples/data.ts, a `useState` start value), the other rows stay,
+  a copy gets a key no row has (`ava-copy`) and the copy or moved row stays selected. `tools/studio/slot-audit.mjs`
+  (`--ops`) runs every slot op in memory over the examples and templates: 616 refused moves, 58 refused const edits,
+  103 refused row removals and copies and 89 refused inserts are now done.
+- **Zen Studio: a nested part edits what its owner passes on (2026-10-09):** like Figma's exposed nested instances, a
+  deep-selected part (⌘-click: the ModalActions of a Dialog or ModalForm) lists the props its owner passes on unchanged
+  under Properties and writes them to the owner: Direction → `actionsDirection` (Figma Modal › Buttons › Direction).
+  Read from the component sources for every component (`tools/studio/part-props-build.mjs`, 74 owners), through the
+  components in between; the rest of a part stays read-only.
+- **Zen Studio: Sidebar and Page Header slots (2026-10-09):** a selected Sidebar shows Figma's Header-Content
+  (`brand`), Body-Content (children) and Footer-Content (`footer`); a Page Header its Action-Slots (`actions`) and
+  Trailing-Slots (`trailing`): outlined on the canvas with a "+", listed in the Slots section. The insert picker offers
+  Menu item / Menu section (not recommended outside a Sidebar). A new page's Sidebar writes its rows as
+  `<SidebarMenuItem>` children, so each row is a layer. Screen › Sidebar / Page header (and the phone bars) are Toggles.
+- **Voice (2026-10-09, Figma ❖ Voice 15081:1294):** `VoiceRecorder` (State Ready · Recording · Paused: the take's time,
+  an 80px waveform and its timeline, Discard · Record / Pause / Resume · Finish, the input and format) and
+  `AiVoiceConversation` (Ready · Listening · Responding: the voice signal, the status, the transcript card, Mute · Start
+  talking / Done speaking / Interrupt · End; its status is a real heading, `headingLevel` 3 by default). A main action
+  without its handler is off (leave out `onResume` once a take reaches its limit). New page Components › Voice; harness
+  `voice/actions-wired`; new labels (en / vi).
+- **ChatVoice (2026-10-09, Figma Chat/Bubble/Voice 15084:80205):** a voice message bubble — play / pause, a waveform
+  whose played share is full strength, a 1× · 1.5× · 2× speed button; Business adds the length, Ready to play / Playing
+  and the time. Held like a file (Reply · Forward · Pin · Delete).
+- **AiChatField `listening` and `onVoiceMode` (2026-10-09, Figma State=Voice):** dictation — the prompt reads
+  Listening… and the microphone becomes Stop (`onStopListening`); `onVoiceMode` gives the empty field's Voice action its
+  own handler (voice mode, e.g. an AiVoiceConversation), apart from the microphone's dictation (`onVoice`, its default).
+- **PageHeader: title and description 4px apart (2026-10-09, Figma Header-Text, Spacing/Gap/2XSmall):** was 8px; the
+  header's other parts keep Gap/XSmall.
+- **Table columns pick their cell content, as Figma's Table/Cell/Default › Content (2026-10-10):** a column without a
+  `cell` function draws `content` from the row's `field` (default its id): text, avatar, photo, icon, dock-icon (with
+  `captionField` Subtext, `mediaField` picture or icon, `bold`), badge or tag (one per value), trend (by the value's
+  sign), progress (0–100), checkbox or toggle (a boolean). `cell` is now optional. Zen Studio's Inspector offers Content
+  for every column, a page made in the Studio can hold it, and Assets › Table inserts columns of each kind (its
+  preview, empty before, now draws).
+- **Zen Studio: Table rows and cells as in Figma (2026-10-10):** a double-click goes Table → Data-Row → Cell → its
+  content → its text, Escape back out, and with a row or a cell selected a click picks the one under the pointer;
+  Layers lists Table › Header, Data-Row › Cell. A Cell's Inspector is Figma's Table/Cell/Default: Content (Text, Avatar,
+  Photo, Icon, Dock Icon, Badge, Tag, Trend, Progress, Checkbox, Toggle), Align, then the content's Bold and Subtext and
+  the row's value — written on the column (a `cell` column's element is swapped; a column without `cell` gets its
+  `content`, `bold`, `captionField`, `mediaField`). A cell's text and a Data-Row's fields edit that row's data in
+  templates and examples too: the row is found by its key (or its fields) in the data the Table reads, through sorts,
+  filters, useMemo, useState and factory calls, and lookups such as `people[row.id].name` write the entry they read.
+  A component nested in a cell (an Avatar, a Badge) edits its own props: a fixed value on the cell's JSX (every row), a
+  prop bound to the row (`theme={row.theme}`, `theme={statusTheme[row.status]}`) in that row's data, and a prop a
+  component of the file passes on (`<PersonAvatar size="sm">`'s Avatar) where that component is used. A row written in
+  place takes a field it lacks (a picture for a row without one), and on a page you made an Avatar or Photo cell's
+  Picture is the photo picker (a Table row's `zen-media:` picture is drawn).
+- **Zen Studio: App Shell, Top Navigation and Sidebar row slots (2026-10-10):** a selected App Shell shows Figma's
+  Sidebar, Leading-Slots, Center-Slots (Search, Segmented, Tabs), Trailing-Slots, Sections, Side-Panel, Floating-Item
+  and Footer as slots (outlined, "+", the Slots section); a Top Navigation's title leading takes an Avatar, a Sidebar
+  row's Trailing-Slot an Icon, Badge or Text and a section its Action. Any component prop that is a registered slot is
+  a switch that puts the real component in (it was a text field), and a double-click on text inside a padding area
+  reaches the text instead of stopping at the spacing handle.
+- **Table: an Icon cell without `mediaField` draws Figma's default icon (2026-10-10):** `icon-face-smile-line`, where an
+  unknown icon name drew nothing.
+- **Liquid Glass, as Figma draws it (2026-10-10, GLASS effects Liquid-Glass/Normal · Glass-Floating):** AI Chat-Field
+  Style=Liquid Glass, the Top Navigation's glass actions (Nav-Action/Liquid-Glass, Liquid Glass and overlay types) and
+  the Bottom Navigation Floating-Glass bar, its CTA and its selected item now bend the picture behind them at the rim
+  (refraction over the effect's depth), split its colours there (dispersion), frost it and light the bevel from Figma's
+  light angle, with the effect style's own values (`src/styles/generated/glass-styles.ts`, from the Figma styles).
+  Chromium draws the bend (an SVG backdrop filter); other browsers and `prefers-reduced-transparency` keep the frost.
+- **Zen Studio Quick insert / Swap (2026-10-10):** the preview sits in the middle of its pane, by what the item paints
+  (a row of buttons justified to the end is centred, not pushed right), with Padding/XLarge around it; the line under the
+  search ("Swap … for the chosen component", where an item lands) lines up with the search's icon, Padding/XSmall above,
+  and is no longer cut; a heading is centred by its words, and every item is placed again when the focus moves.
+- **Zen Studio Delete key (2026-10-10):** Delete / Backspace removes a focused row in the Slots section (a layer, a list
+  item, a section title, a separator) as its trash button does; on the Pages list it moves a page to the Trash and asks
+  before deleting a folder.
+- **Zen Studio: slots as free as Figma's (2026-10-10):** a Sidebar's Body-Content is one slot, as in Figma: its section
+  titles and rows in one list (then any row components), where every row moves anywhere (across titles too), goes, or
+  is added at the end or inside a section (its own +); a title removed lets its rows join the section above, and
+  Remove all empties it. On the canvas and in Layers a section, its Section-Title and its rows are selected, renamed,
+  added to and deleted (Delete key). A Menu's Item-List works the same with items, separators and section titles,
+  and a Menu group's items edit in the Menu's Properties. On a page you make a slot's last child goes too, even where
+  the component type asks for children.
+- **Zen Studio: Sidebar rows and every library component editable on pages you make (2026-10-10):** a Sidebar's
+  `sections` rows are Figma's Body-Content Menu-Items: a double-click (or ⌘-click) selects one, its Label, Icon,
+  Counter, Notification dot, Theme, State… edit that row, and it duplicates, moves within its section and is removed
+  like any slot item. A double-click on a selected Breadcrumbs, Tabs or Sidebar reaches the item under the pointer
+  before its text. Pagination, Image, Calendar, NPS scale, Colour selector, File upload, Bottom navigation, Chat thread
+  and Chat composer now insert on a page you make (static versions); a chart's per-series values and a list of numbers
+  edit field by field; an element written in a prop (a Menu's trigger) says to select it instead of "change it in the
+  code". The Pages list renames a page or folder in place on a double-click (Rename in the ⋯ menu too).
+- **Sidebar collapsed rail (2026-10-10):** the divider before a later group of rows sits Spacing/Gap/XSmall above its
+  first row too (Figma draws 2px), so a selected row's fill no longer touches it.
+- **Breadcrumbs per crumb (2026-10-10):** each item takes Figma's Item-List instance properties on its own: `level`
+  (Master / Sub), `emphasis`, `state` (Hover, for mockups) and `dash` (the chevron after it). Unset fields keep the old
+  trail (the first crumb Master while `master` is on, Breadcrumbs' `emphasis`, a chevron after all but the last); a
+  BreadcrumbItem child's own `level` / `emphasis` / `state` now count too. New example "Next level". In Zen Studio a
+  selected crumb shows these rows, with the values the canvas draws when they are unset.
+- **Zen Studio photo picker (2026-10-10):** an Avatar's, account's or Image's Src on a page you made picks a picture
+  (your uploads, people photos, the library) instead of a text field, and a photo clicked in Assets with an Avatar
+  selected becomes its picture instead of a new Image.
+- **Zen Studio nested items (2026-10-10):** a crumb, tab, segment, step, Description List item, Bottom Navigation item
+  or Bottom Sheet action ⌘-clicked on the canvas is selected as that item, with its own fields, move / duplicate /
+  remove and the props its owner passes to every item (a crumb's Emphasis, a tab's Variant, a segment's Level), where
+  only Breadcrumbs and Top Navigation items were found before and the rest were read-only.
+- **Zen Studio Pages list (2026-10-10):** a long page or folder name ends in "…" before its actions, instead of being cut
+  at the panel's edge.
+- **Progressive blur grows linearly (2026-10-10):** the Top Navigation's blurring types and the Floating Bottom
+  Navigation now ramp the blur evenly from 0 to the Figma radius (six stacked blurs whose σ² add up), where the five
+  equal layers reached most of the blur within the first fifth.
+- **SelectField options take Figma's Popover Item content (2026-10-09, .Primitives/Popover/Item/Content):** `theme`
+  (icon · text-only · photo-small · photo-big · avatar-small · avatar-big · dock-icon · badge), `leading`, `caption`
+  (Subtext), `photoSrc` / `photoAlt`, `badgeTheme` — drawn in the open list (and a phone's sheet); the field still shows
+  the label. Zen Studio's Options editor offers them.
+- **AppShell follows its Sidebar's `collapsed` (2026-10-09):** an uncontrolled shell starts from it as before and now
+  also moves the rail when the prop changes (edited code, Zen Studio's Collapsed toggle on a page made from a template).
+- **List slots as children (2026-10-09, Figma Item-List / Nav-Items):** Tabs takes `<TabItem value label />`,
+  Breadcrumbs `<BreadcrumbItem item />`, Stepper `<StepperStep id title caption />` and BottomNavigation
+  `<BottomNavigationItem id label icon />` children instead of their array (`items` / `steps` stay and win when given);
+  the parent keeps selection, keyboard and ids, and renders the same markup either way. StepperStep and
+  BottomNavigationItem render nothing on their own. Shared helper `_shared/slots.ts` (Sidebar's slots use it too).
+- **AppShell `headerCenter` and `sections`; PageHeader `trailing` (2026-10-09, Figma slots):** the top bar's
+  Center-Slots (up to 400px, centred — a Search), Header/Dashboard's Sections (rows under the top bar, each padded as a
+  header row) and the Main row's Trailing-Slots (icon actions after the page's buttons).
 - **Table `bulkActions` (2026-10-08):** a selectable Table shows a Popover/Bulk-Action bar under the table while rows are
   selected — Clear selection, "N selected" and your actions (`TableBulkAction[]`: id, icon, label, onClick, disabled,
   group; or a function of the selected ids) — held at the bottom of the window on a long table. Actions that don't fit
@@ -621,6 +774,24 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: a Screen with its app frame exports laid out (2026-10-10):** Export › HTML kept the sidebar, header,
+  top and bottom navigation wrappers under Studio class names without their layout rules, so a page with a Sidebar or a
+  Page header stacked its parts; the wrappers are now `.screen__side`, `.screen__main`, `.screen__header`… and
+  styles.css carries their rules (E2E HO-08: the exported page matches the canvas, 0.00%).
+- **SidebarMenuItem and SidebarMenuSection outside a Sidebar (2026-10-10):** a row placed on its own (a page's Stack,
+  a flyout) lost its padding and the gap between icon and label, because both came from variables only the Sidebar
+  defines; they fall back to the Sidebar's own values (Padding/Small, Gap/Small), so the row draws Figma's Menu-Item
+  anywhere.
+- **Zen Studio: Discard right after an edit could keep the old canvas (2026-10-09):** the edit's in-flight compile landed
+  in Vite's cache after the discard and was served from then on (Vite's HMR invalidation does not stop that); the Studio
+  now invalidates the file plainly before its hot reload. The E2E rows that failed only in full runs (ST-12, D-01, D-02,
+  D-06) pass again.
+- **Zen Studio: the canvas menu stays whole (2026-10-09):** a right-click menu taller than the room above and below the
+  pointer opens downwards from a raised point inside the window; it used to open upwards, its top items cut off by the
+  window's top. Disabled items show their label only (no reason line under them).
+- **Zen Studio: an instance's W / H choice right after a size change (2026-10-09):** picking Fill, Hug or a width in
+  the Inspector while the canvas is still showing the previous change is now written once it has caught up; it was
+  dropped without a word.
 - **Zen Studio: Reset slot after a duplicate (2026-10-08):** duplicate a slot item, then Clear the original: Reset
   slot now gives the original its saved content back (it was refused as "new since the last save") and the copy stays
   the new one.
@@ -951,6 +1122,67 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- **Zen Studio: slot props are switches, the Page header and the Screen header take real content (2026-10-10):** a
+  component's prop that is a content slot shows in Properties as a switch (Figma's boolean), never as a text field, so
+  PageHeader › Breadcrumbs on puts a real `<Breadcrumbs>` (its Item-List adds items) instead of a text label; a slot that
+  takes one component gets it at once, others open the picker. PageHeader's Breadcrumbs, Meta and Tabs are slots beside
+  Action- and Trailing-Slots, and a builder Screen's Header is a free slot (Figma Header Type=Custom) for any header a
+  page needs. Assets: a Tab bar item (Tabs without panels); every Menu item gets its own id (three "invoices" rows were
+  one row to the Sidebar); Breadcrumbs go on builder pages (a static trail).
+- **Zen Studio: clicks on the canvas work like Figma (2026-10-09):** a click selects the outermost layer under the
+  pointer in the current context (a frame's top level, or the selected layer's siblings; a click inside the selected
+  layer keeps it), a double-click goes one level in (onto a text layer it edits the text), ⌘ / Ctrl-click selects the
+  deepest element (again on it: its parts). So a Stack, Grid or List its children fill is one click away: on HR · Home
+  46 of 99 layers could not be clicked before. Hover outlines what a press would select; ⇧ adds that layer, ⇧⌘ the
+  deepest.
+- **AppShell top bar spacing from Figma Header/Dashboard (2026-10-09):** Spacing/Padding/Small above and below (was
+  Margin-Comfortable above, Padding/XSmall below), Margin-Comfortable at the sides: a 64px bar on desktop (was 72). The
+  templates start their PageHeader 12px under it (paddingY sm), as Header/Dashboard's Main row.
+- **Zen Studio: Auto layout in Figma's words and grid (2026-10-09, step 1 of the Figma-language inspector):** the Layout
+  section of a Stack, Grid or FormFieldset is titled "Auto layout" and reads like Figma UI3's: labels above the fields, two
+  field columns and an icon column, so every field lines up. Flow (Vertical · Horizontal, the Wrap toggle beside),
+  Resizing (W / H; Auto shows no number; the W / H menu is Figma's — "Fixed width (240)", "Hug contents", "Fill
+  container" one line each with its glyph, then "Add min width…" / "Remove min width" in the same menu instead of a
+  separate min/max button), Alignment beside Gap (the cross axis — Position, Stretch, Text baseline — in the
+  icon beside Gap), Padding as Horizontal | Vertical fields (equal values write one `padding`; the "Same padding on all
+  sides" toggle is gone) and Clip content under Padding (moved from Appearance). Every token select (gap, padding,
+  radius, position offsets, a multi-selection's spacing) reads token + value on one line, as the canvas spacing menu:
+  "md … 16px" in the list, "md 16" in the field; the code keeps the token. A value set in code keeps its own row, with
+  Figma's word, in the same place. The whole Design tab shares one grid — label and control in the two field columns,
+  the icon column always kept — so fields, selects and toggles line up across sections; the alignment box's marks sit
+  on their dots. Spec: `docs/research/studio-inspector-figma-spec-2026-10-09.md`.
+- **Zen Studio toolbar, Figma UI3's tools (2026-10-09):** the canvas toolbar reads Move (V) · Hand (H) | Screen | Stack
+  (A) · Text (T) · Image · Assets (⇧I) | Interact (I). Stack, Text and Image are placed with the pointer: the insertion
+  line of a drag shows where they land (or why nothing there can take them), a click places them (one edit, the new
+  layer selected) and the tool goes back to Move; Escape puts it away. Screen (on a page you made) adds a Screen on the
+  page's device with a click on the canvas. Renaming a page renames its Screen still named after it.
+- **Zen Studio: a page you make comes with its app frame (2026-10-09):** a blank page's Screen holds a Sidebar and a
+  Page Header (desktop) and a Top and a Bottom Navigation (phone), each a real layer you edit and switch off or on in
+  Screen (checkboxes). A tablet is laid out as mobile or as desktop (Screen › Layout). The Screen keeps both sets, so a
+  device change keeps your edits; renaming the page renames the header's title; Export writes an AppShell (desktop) or
+  the bars around the page (phone). Screen › Canvas paints it Canvas/Default, Alt (white) or Flat.
+- **Zen Studio fixes (2026-10-09):** a right-click on a selected Stack's gap or padding opens that Stack's menu; ⇧A on
+  one layer of a page you made selects the new Stack; Assets › Sidebar and App shell go onto a page you made (their
+  selected item fixed, a page keeps no state), and their thumbnails no longer throw; Assets gains Voice recorder; a
+  dialog's buttons sit 8px apart (Gap/XSmall) in the Studio sizes, as the chrome's other button groups.
+- **Zen Studio Assets in Figma's way (2026-10-09):** one search over every library at the top ("Search all assets":
+  the best components, icons and photos, each with See all); with no search, the libraries — Components (Zen DS),
+  Icons, Photos — as rows with their counts. A library opens in place (← back) with its own search; components sit in
+  groups that fold, as a grid of real thumbnails (drawn by the engine when they scroll into view; one that cannot draw
+  shows its group icon instead of breaking the panel) or a list (Grid · List, remembered); Icons has Line · Solid in its
+  header. Quick insert's preview no longer takes the Studio down when an item cannot render.
+- **Zen Studio New page (2026-10-09):** pick a start (Blank or a template) and Create — no title or device to fill in: a
+  blank page is "Untitled page" on a desktop Screen. Rename it with nothing selected (Page › Name) and change a Screen's
+  device from its frame panel (Screen › Device: Phone · Tablet · Desktop with the Zen Mobile, Tablet and Monitor icons).
+  The cards are Zen Cards (Border theme: a Pale frame; the picked one takes the Card's Active stroke) and Create /
+  Cancel stay at the bottom of the modal while the templates scroll. The Grid columns' Mobile breakpoint and the
+  Prototype panel's screens use the Mobile icon (was the telephone).
+- **Destructive actions read Content/Negative/Light (2026-10-09):** Menu's danger items and Bottom Sheet's destructive
+  items (text and icon) now use Negative/Light, as Button's danger levels already did: a coloured action reads in its
+  Light step (Base only when a Button is pressed).
+- **SelectField option `meta` (2026-10-09):** `SelectFieldOption` takes an optional `meta`, short text at the end of the
+  option's row on the same line (Body/Small/Regular, Neutral/Base; before the check), e.g. a token's value
+  (`{ label: "md", meta: "16px" }`); in the mobile sheet it sits before the check too. The field shows only the label.
 - **Zen Studio inspector: inputs read the same everywhere (2026-10-09):** no per-field "Reset … to default" button
   (properties, Layout direction and alignment, Align in parent, Position offsets, text alignment, text style); a field
   goes back to its default from inside it ("None", "Default", "none · 0", Backspace) or with Reset all overrides. A row

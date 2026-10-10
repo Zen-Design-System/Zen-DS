@@ -35,10 +35,45 @@
 body[data-studio-asset-drag],
 body[data-studio-asset-drag] * { cursor: grabbing !important; }
 
-/* Library kinds (GĐ3 M3): Components · Icons · Photos above the search; icon tiles and photo thumbnails in grids. */
-.studio-assets__kinds { flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px) 0; }
+/* Figma's Assets (2026-10-09): the libraries as rows, one opened in place under a back header; icon tiles and photo
+   thumbnails in grids, components as thumbnail cards or list rows. */
+.studio-assets__head { display: flex; min-width: 0; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px) 0 var(--zen-spacing-padding-xsmall, 8px); }
+.studio-assets__title { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+.studio-assets__head > .zen-segmented { flex: 0 0 auto; }
+
+/* A library row: its icon on a Pale tile, the name over its source, the count, a chevron (it opens in place). */
+.studio-assets__library { display: flex; width: 100%; min-height: 40px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-color-content-neutral-strongest); cursor: pointer; text-align: start; }
+.studio-assets__library:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-assets__library:active { background: var(--zen-color-background-neutral-flat-pressed); }
+.studio-assets__library:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-assets__library > .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+.studio-assets__library-icon { display: inline-flex; width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 auto; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-pale-default); color: var(--zen-color-content-neutral-base); }
+.studio-assets__library-text { display: grid; min-width: 0; flex: 1 1 auto; }
+.studio-assets__source { overflow: hidden; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+.studio-assets__count { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
+
+/* A component group that folds (Figma: a library's pages): chevron, name, count. */
+.studio-assets__fold { display: flex; width: 100%; min-height: var(--zen-button-size-xsmall, 24px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-top: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-color-content-neutral-base); cursor: pointer; text-align: start; }
+.studio-assets__fold:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-assets__fold:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-assets__fold-name { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest); }
+
+/* Components as Figma's asset grid: square thumbnails, the name under each. */
+.studio-assets__cards { display: grid; margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); gap: var(--zen-spacing-gap-xsmall, 8px); grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); list-style: none; }
+.studio-assets__card { position: relative; display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-assets__card-button { min-width: 0; padding: 0; border: 0; background: transparent; color: var(--zen-color-content-neutral-strongest); cursor: grab; text-align: center; touch-action: none; user-select: none; }
+.studio-assets__card-button::after { position: absolute; inset: 0; border-radius: var(--zen-corner-radius-base, 12px); content: ""; }
+.studio-assets__card-button:active { cursor: grabbing; }
+.studio-assets__card-button:focus-visible { outline: none; }
+.studio-assets__card-button:focus-visible::after { box-shadow: 0 0 0 2px var(--zen-color-focus-neutral-solid); }
+.studio-assets__card-button > .studio-assets__name { display: block; }
+.studio-assets__card:hover > .studio-assets__thumb { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-assets__thumb { position: relative; display: flex; width: 100%; overflow: hidden; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); aspect-ratio: 1 / 1; pointer-events: none; }
+.studio-assets__stage { position: relative; flex: 0 0 auto; width: max-content; transform-origin: center; }
+.studio-assets__portal { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .studio-assets__bar { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); }
-.studio-assets__note { min-width: 0; flex: 1 1 auto; margin: 0; overflow: hidden; text-align: end; text-overflow: ellipsis; white-space: nowrap; }
+/* A library's status line (Icons: how many show, the swap hint): a caption under the search, one line. */
+.studio-assets__note { min-width: 0; margin: 0; overflow: hidden; padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); text-overflow: ellipsis; white-space: nowrap; }
 .studio-assets__grid { display: grid; margin: 0; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); gap: var(--zen-spacing-gap-2-xsmall, 4px); grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); list-style: none; }
 /* Icon tiles are IconButtons (flat, md): a grab cursor, and they take a drag. */
 .studio-assets__grid > li { display: flex; justify-content: center; }

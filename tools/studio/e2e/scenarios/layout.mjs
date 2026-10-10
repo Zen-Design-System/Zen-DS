@@ -1,7 +1,8 @@
-// Layout section rows (WP-D, redesign spec Phases 3, 4, 6): Flow, the alignment box, Gap with Auto, Padding per axis or
-// all sides, Grid gaps, Grid columns (plain and per breakpoint) and the no-effect warnings. Each gesture is one write.
+// Auto layout / Layout section rows (WP-D, redesign spec Phases 3, 4, 6; Figma-language spec 2026-10-09 §3): Flow with
+// the Wrap toggle, the alignment box, Gap with Auto, the cross axis, Padding H / V, Clip content, Grid gaps, Grid columns
+// (plain and per breakpoint) and the no-effect warnings. Each gesture is one write.
 import { inspectorRow, sleep, until } from "../lib/studio.mjs";
-import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
+import { expectSource, freshSelect, pickOption, scaleStep } from "./inspector.mjs";
 
 /** The row Stack of the layout fixture (its first button selected, then Escape to the parent). */
 async function selectRowStack(ctx) {
@@ -18,7 +19,7 @@ const has = (text, pattern) => pattern.test(text);
 
 export const rows = [
   {
-    id: "L-01", feature: "Flow: Wrap writes direction row + wrap in one edit; Vertical removes both", wp: "WP-D",
+    id: "L-01", feature: "Flow: the Wrap toggle writes direction row + wrap in one edit; Vertical removes both", wp: "WP-D",
     async run(ctx) {
       const page = await selectRowStack(ctx);
       await inspectorRow(page, "direction").getByRole("button", { name: "Wrap" }).click();
@@ -53,26 +54,49 @@ export const rows = [
       await pickOption(page, "gap", "Auto");
       await expectSource(ctx, "row", (el) => el.attr("justify") === "between", "justify between");
       await sleep(300);
-      await pickOption(page, "gap", /^md · /);
+      await pickOption(page, "gap", scaleStep("md"));
       await expectSource(ctx, "row", (el) => el.attr("gap") === "md" && el.attr("justify") === undefined, "gap md, Auto off");
       return "Auto → md";
     },
   },
   {
-    id: "L-04", feature: "Padding: per axis, then all sides from Mixed in one edit", wp: "WP-D",
+    id: "L-04", feature: "Padding H / V (Figma): one axis writes paddingX over padding; equal axes write one padding", wp: "Figma spec 2026-10-09",
     async run(ctx) {
       const page = await selectBox(ctx);
-      const toggle = page.locator("#studio-right").getByRole("button", { name: "Same padding on all sides" });
-      await toggle.click();
-      await until(async () => (await inspectorRow(page, "paddingX").count()) > 0, { message: "the per-axis fields" });
-      await pickOption(page, "paddingX", /^lg · /);
-      await expectSource(ctx, "box", (el) => el.attr("paddingX") === "lg" && el.attr("padding") === "md", "paddingX lg");
+      await pickOption(page, "paddingX", scaleStep("lg"));
+      await expectSource(ctx, "box", (el) => el.attr("paddingX") === "lg" && el.attr("padding") === "md" && el.attr("paddingY") === undefined, "paddingX lg, padding md kept");
       await sleep(300);
-      await toggle.click();
-      await until(async () => /Mixed/.test(await inspectorRow(page, "padding").innerText()), { message: "Mixed in the all-sides field" });
-      await pickOption(page, "padding", /^sm · /);
-      await expectSource(ctx, "box", (el) => el.attr("padding") === "sm" && el.attr("paddingX") === undefined, "padding sm, paddingX removed");
-      return "paddingX lg → Mixed → padding sm";
+      await pickOption(page, "paddingY", scaleStep("lg"));
+      await expectSource(ctx, "box", (el) => el.attr("padding") === "lg" && el.attr("paddingX") === undefined && el.attr("paddingY") === undefined, "padding lg, the axes removed");
+      return "H lg → paddingX; V lg → padding lg";
+    },
+  },
+  {
+    id: "L-10", feature: "Clip content (Figma, under Padding): the checkbox writes clip, unchecked removes it", wp: "Figma spec 2026-10-09",
+    async run(ctx) {
+      const page = await selectBox(ctx);
+      // The Zen Checkbox's label is the target (its native input is visually hidden).
+      const clip = inspectorRow(page, "clip").getByText("Clip content");
+      await clip.click();
+      await expectSource(ctx, "box", (el) => /^\{?true\}?$/.test(el.attr("clip") ?? ""), "clip written");
+      await sleep(300);
+      await clip.click();
+      await expectSource(ctx, "box", (el) => el.attr("clip") === undefined, "clip removed");
+      return "Clip content on → off";
+    },
+  },
+  {
+    id: "L-11", feature: "Cross axis (the icon beside Gap): Stretch writes align stretch, Position goes back to the default", wp: "Figma spec 2026-10-09",
+    async run(ctx) {
+      const page = await selectRowStack(ctx);
+      await page.locator("#studio-right").getByRole("button", { name: /^Cross axis/ }).click();
+      await page.getByRole("option", { name: /^Stretch/ }).click();
+      await expectSource(ctx, "row", (el) => el.attr("align") === "stretch", "align stretch");
+      await sleep(300);
+      await page.locator("#studio-right").getByRole("button", { name: /^Cross axis/ }).click();
+      await page.getByRole("option", { name: /^Position/ }).click();
+      await expectSource(ctx, "row", (el) => el.attr("align") === undefined, "align removed (rows centre)");
+      return "Stretch → Position";
     },
   },
   {
@@ -113,7 +137,7 @@ export const rows = [
       const page = await selectGrid(ctx);
       await page.locator("#studio-right").getByRole("button", { name: "Separate row and column gaps" }).click();
       await until(async () => (await inspectorRow(page, "columnGap").count()) > 0, { message: "column and row gap fields" });
-      await pickOption(page, "columnGap", /^lg · /);
+      await pickOption(page, "columnGap", scaleStep("lg"));
       await expectSource(ctx, "grid", (el) => el.attr("columnGap") === "lg" && el.attr("gap") === "md", "columnGap lg, gap kept");
       await sleep(300);
       await page.locator("#studio-right").getByRole("button", { name: "Use one gap" }).click();

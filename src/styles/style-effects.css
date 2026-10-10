@@ -58,7 +58,7 @@
   --zen-style-background-canvas-liquid-glass-fill: linear-gradient(rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03)), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
 }
 
-/* Glass-Floating: Figma GLASS effect has no CSS equivalent; see style-manifest.json. */
+/* Glass-Floating: the GLASS effect is drawn by useLiquidGlass (glass-styles.ts); CSS keeps its shadows. */
 .zen-effect-glass-floating {
   box-shadow: var(--zen-style-glass-floating-shadow);
 }
@@ -127,12 +127,12 @@
   box-shadow: var(--zen-style-shadow-top-level-4-shadow);
 }
 
-/* Liquid-Glass/Normal: Figma GLASS effect has no CSS equivalent; see style-manifest.json. */
+/* Liquid-Glass/Normal: the GLASS effect is drawn by useLiquidGlass (glass-styles.ts); CSS keeps its shadows. */
 .zen-effect-liquid-glass-normal {
   box-shadow: var(--zen-style-liquid-glass-normal-shadow);
 }
 
-/* Liquid-Glass/Large: Figma GLASS effect has no CSS equivalent; see style-manifest.json. */
+/* Liquid-Glass/Large: the GLASS effect is drawn by useLiquidGlass (glass-styles.ts); CSS keeps its shadows. */
 .zen-effect-liquid-glass-large {
   box-shadow: var(--zen-style-liquid-glass-large-shadow);
 }

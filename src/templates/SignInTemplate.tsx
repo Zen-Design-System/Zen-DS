@@ -209,7 +209,7 @@ export function SignInTemplate() {
       <Stack gap="lg" justify={phone ? "start" : "center"} paddingY={phone ? "2xl" : "xl"} style={{ minHeight: "100cqh", boxSizing: "border-box" }}>
         {/* No Sidebar sets an elevation here, so the card takes the default pairing: a flat Surface on the Canvas, no
             border and no shadow (usage rules §16; on a phone the form stands on the page). */}
-        {phone ? card : <Card theme="flat"><Box padding="xl">{card}</Box></Card>}
+        {phone ? card : <Card theme="flat"><Stack justify="center" width="fill" direction="row"><Box padding="xl" paddingX="none" width="fill" maxWidth={400}>{card}</Box></Stack></Card>}
 
         {view === "sign-in" ? (
           <Text textStyle="Caption/Regular" tone="light" align="center">

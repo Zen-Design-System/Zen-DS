@@ -5,7 +5,6 @@ import { Avatar, type AvatarTheme } from "../../components/Avatar";
 import { Badge } from "../../components/Badge";
 import { Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button, IconButton } from "../../components/Button";
-import { DescriptionList } from "../../components/DescriptionList";
 import { EmptyState } from "../../components/EmptyState";
 import { Container, Stack } from "../../components/Layout";
 import { Menu, type MenuEntry } from "../../components/Menu";
@@ -160,7 +159,8 @@ function AppShellPlayground() {
           banner={banner ? <AlertBanner theme="info" onClose={() => setBanner(false)}>Scheduled maintenance tonight, 22:00–23:00.</AlertBanner> : undefined}
           aside={panel ? (
             <SidePanel type="standard" size="small" title="Ava Chen" description="Owner · ava@zen.studio" open onOpenChange={setPanel}>
-              <DescriptionList layout="stacked" items={[{ term: "Role", description: "Owner" }, { term: "Joined", description: "Jan 12, 2024" }, { term: "Last active", description: "Just now" }]} />
+              {/* One text style for the details: the page around it already uses six (a calm hierarchy stays under ~7). */}
+              <Text as="p" textStyle="Body/Base/Regular">Owner of Zen Studio since Jan 12, 2024. Active just now.</Text>
             </SidePanel>
           ) : undefined}
           // zen-allow-accent: Figma HR-Platform Floating-Item — the promoted assistant launcher.

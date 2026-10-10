@@ -10,7 +10,7 @@ export function describeSlots(code: string, file: string, loc: string, options?:
 export function withSlots(element: Record<string, unknown> | null, slots: Record<string, unknown> | null): Record<string, unknown> | null;
 export function requiredFromApi(api: unknown): { requiredChildren: Set<string>; requiredProps: Map<string, Set<string>> };
 export function dataFieldEdit(code: string, file: string, loc: string, name: string, op: unknown, options?: { read?: (rel: string) => string | null }): { file: string; code: string; source: string; changed: boolean } | EngineError;
-export function originsOf(code: string, file: string, loc: string, targets: Array<{ prop: string } | { child: number }>, options?: { read?: (rel: string) => string | null }): Array<Record<string, unknown>>;
+export function originsOf(code: string, file: string, loc: string, targets: Array<{ prop: string } | { child: number } | { tableRows: true }>, options?: { read?: (rel: string) => string | null }): Array<Record<string, unknown>>;
 export type DialectError = { line: number; column: number; message: string };
 export function parsePage(text: string, options?: { components?: Set<string> }): { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown; errors: DialectError[] };
 export function validateDialect(text: string, options?: { components?: Set<string> }): DialectError[];

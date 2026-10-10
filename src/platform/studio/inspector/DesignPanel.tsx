@@ -17,10 +17,12 @@ import { navigate } from "../shell/navigation";
 import { RemoveAction, SlotsSection } from "../slots";
 import { slotOf } from "../slots/registry";
 import { detachShown, rowOf, useDetachPlan } from "./detach";
+import { cellDataTarget } from "../table/tableCells";
+import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
-import { GroupedProperties } from "./GroupedProperties";
+import { GroupedProperties, ToggleRow } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
 import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
@@ -385,6 +387,14 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     return row && !("reason" in row) ? row.row : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection.src, selection.instance, instances]);
+  // An element a Table column's `cell` writes: the row of the cell this instance is drawn in (a prop bound to the row,
+  // an Avatar's `src={row.photo}`, is written in that row's data).
+  const cellRow = useMemo(() => {
+    const world = canvasApi.getWorldElement();
+    const hit = world ? findBySrc(world, selection.src)[selection.instance] : null;
+    return cellDataTarget(hit?.hosts[0], parseSrc(selection.src)?.file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection.src, selection.instance, instances]);
   // Row-ness comes from the canvas whenever the server gives no plan (loading or refused), so the label and the Repeats
   // line keep their wording and height when a refusal arrives.
   const rowDetach = detach.state === "ready" ? detach.plan.repeated : mapRow;
@@ -515,19 +525,30 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     // State props show their initial state (useState literal, defaultX) and edit it, so the component keeps toggling.
     valueFor: (name) => {
       const value = overrides[name] ?? (element ? displayValueOf(element.name, element.attributes, name, live) : { state: "unset" });
-      // A .map row's data is edited in this instance's row (the note names it).
+      // A .map row's data is edited in this instance's row, a Table cell's in its cell's row (the note names it).
+      if (value.state === "bound" && value.dataSource?.kind === "cell" && cellRow) return { ...value, dataSource: { ...value.dataSource, row: cellRow.row } };
       return value.state === "bound" && value.dataSource?.kind === "row" && dataRow !== null ? { ...value, dataSource: { ...value.dataSource, row: dataRow } } : value;
     },
     setProp: (name, value) => {
       if (!element) return;
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
       if (dataEditable(current, selection.panelId ? "playground" : undefined)) {
+        // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
+        if (current.dataSource.kind === "param") {
+          const world = canvasApi.getWorldElement();
+          void writeAtUse(world ? findBySrc(world, selection.src)[selection.instance] : null, current.dataSource, toEditValue(value), `${element.name} ${name} → ${display(value)}`);
+          return;
+        }
         // Written where the data is (WP-C): the binding stays, so the optimistic value is the same binding rendering `value`.
         if (current.dataSource.kind === "row" && dataRow === null) {
           inspectorStatus.set("negative", "This list renders in several places on the canvas, so the row to edit is unclear; edit the data in code");
           return;
         }
-        const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : {};
+        if (current.dataSource.kind === "cell" && !cellRow) {
+          inspectorStatus.set("negative", "This value comes from a Table row: select it in its cell on the canvas to edit that row");
+          return;
+        }
+        const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : current.dataSource.kind === "cell" ? cellRow : {};
         void send([{ op: "setDataField", prop: name, ...row, value: toEditValue(value) }], `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: value } });
         return;
       }
@@ -573,7 +594,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         },
       };
     },
-  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow]);
+  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow, cellRow]);
 
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.
@@ -598,7 +619,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name)) : [];
   const layoutSpecs = isLayout ? specs.filter((spec) => isLayoutProp(name, spec.name) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec)) : [];
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
-  // Box fill, border, corners, clip and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
+  // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
   const appearanceSpecs = specs.filter((spec) => (appearancePropNames[name] ?? []).includes(spec.name));
   const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec));
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
@@ -859,7 +880,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         <>
           {autoGroups(propertySpecs.filter((spec) => !shapedNames.has(spec.name))).map((group, index) => (
             <InspectorSection key={group.id} title={group.title} note={index === 0 ? propertiesNote : undefined}>
-              {group.specs.map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={labelInGroup(propLabel(spec.name, name), group)} />)}
+              {group.specs.map((spec) => {
+                const label = labelInGroup(propLabel(spec.name, name), group);
+                // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
+                // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
+                if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
+                  const value = api.valueFor(spec.name);
+                  return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
+                }
+                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} />;
+              })}
             </InspectorSection>
           ))}
           {shapedProps.map((entry) => (

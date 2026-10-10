@@ -8,7 +8,7 @@ import { announceEditStatus } from "../api";
 import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
-import { ProtoContext, type ProtoActions } from "./proto/runtime";
+import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
 import { frameOf } from "./render/frames";
 import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
 import { renderFrame, type PageNode } from "./render/renderPage";
@@ -101,6 +101,7 @@ export function BuilderBoard({ id }: { id: string }) {
   }
   return (
     <ProtoContext value={proto}>
+      <PageOsContext value={pageOsOf(tree?.header)}>
       <div ref={boardRef} className="studio-board studio-builder-board" data-page={`local:${id}`}>
         <header className="studio-board__title">
           <Text as="p" textStyle="Body/Small/Medium" tone="base">{whereKept(storage)}</Text>
@@ -121,6 +122,7 @@ export function BuilderBoard({ id }: { id: string }) {
         </div>
         {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
       </div>
+      </PageOsContext>
     </ProtoContext>
   );
 }

@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
+import { plural } from "../../../components/Text";
+import { announceEditStatus } from "../api";
 import { dataItemBlock, dataSlotOf, editDataItem, useSlotRunning, useSlotServer, type DataSlot } from "../slots";
 import type { StudioSelection } from "../types";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { AttrShape, EditValue, ObjectShape, ShapeField } from "../types";
 import type { FieldApi } from "./fieldApi";
-import { objectSchemaOf, useApiTypes, type FieldSpec } from "./objectSchema";
+import { objectSchemaOf, objectSchemasOf, schemaFor, useApiTypes, type FieldSpec } from "./objectSchema";
 import { PropField } from "./PropField";
 import { componentSlug, propLabel, type Literal, type PropEditor, type PropSpec, type PropValue } from "./propSchema";
 import "./nested.css";
@@ -42,6 +44,25 @@ function valueOfField(field: ShapeField | undefined): PropValue {
 const toEditValue = (value: Literal): EditValue =>
   typeof value === "boolean" ? { kind: "boolean", value } : typeof value === "number" ? { kind: "number", value } : { kind: "string", value };
 
+/*
+ * A list of numbers in an item (StackBarChart `data[n].values`, 2026-10-10 palette sweep: "bound in code"): edited as
+ * text, "12, 18, 7", and written back as the array literal `[12, 18, 7]`.
+ */
+const isNumberList = (field: FieldSpec) => /^(?:readonly\s+)?number\[\]$|^(?:Readonly)?Array<number>$/.test(field.type.trim());
+const NUMBER = /^-?\d+(?:\.\d+)?$/;
+function numberListText(written: ShapeField | undefined): string | null {
+  if (written?.kind !== "expression") return null;
+  const body = /^\[([\s\S]*)\]$/.exec(written.value.trim())?.[1];
+  if (body === undefined) return null;
+  const parts = body.split(",").map((part) => part.trim()).filter(Boolean);
+  return parts.every((part) => NUMBER.test(part)) ? parts.join(", ") : null;
+}
+/** "12, 18 7" → `[12, 18, 7]`; null when a part is not a number. */
+function numberListCode(text: string): string | null {
+  const parts = text.split(/[\s,;]+/).filter(Boolean);
+  return parts.every((part) => NUMBER.test(part)) ? `[${parts.join(", ")}]` : null;
+}
+
 const display = (value: Literal) => (typeof value === "string" ? `"${value.length > 24 ? `${value.slice(0, 24)}…` : value}"` : String(value));
 
 /** What names an item in its group title ("Audio call"): its label, title, term or name when written as text. */
@@ -59,6 +80,8 @@ function groupFields(object: ObjectShape, typed: FieldSpec[] | null): FieldSpec[
   const out: FieldSpec[] = [];
   for (const spec of typed ?? []) {
     const field = written.find((candidate) => candidate.key === spec.name);
+    // A tag with one value (Menu `type: "group"`) says which kind the item is: nothing to choose.
+    if (spec.editor.kind === "enum" && spec.editor.options.length === 1) continue;
     if (spec.editor.kind !== "readonly" || field) out.push(spec);
   }
   for (const field of written) {
@@ -78,7 +101,16 @@ function groupFields(object: ObjectShape, typed: FieldSpec[] | null): FieldSpec[
  * group headers, in example and template content (Backlog P2 after B2, user 2026-10-04). A data slot's items
  * (TopNavigation trailing) do that in the Slots section instead.
  */
-export function ObjectProperties({ component, props, api, only, selection }: { component: string; props: ShapedProp[]; api: FieldApi; only?: { prop: string; index?: number }; selection?: NodeSelection }) {
+export function ObjectProperties({ component, props, api, only, selection, defaults, within }: {
+  component: string;
+  props: ShapedProp[];
+  api: FieldApi;
+  only?: { prop: string; index?: number };
+  selection?: NodeSelection;
+  defaults?: Readonly<Record<string, Literal>>;
+  /** The props are a list inside the element's `name` (its index-th object): Sidebar `sections[1].items` (setField `path`). */
+  within?: { name: string; index?: number };
+}) {
   const types = useApiTypes(componentSlug(component));
   const [overrides, setOverrides] = useState<Record<string, PropValue>>({});
   // The element read again (its shapes changed): what it holds now replaces the optimistic values.
@@ -93,14 +125,15 @@ export function ObjectProperties({ component, props, api, only, selection }: { c
         const schema = objectSchemaOf(spec.type, types, "object");
         out.push({ key: spec.name, prop: spec.name, title: label, meta: schema?.typeName || undefined, object: shape, fields: groupFields(shape, schema?.fields ?? null), via });
       } else {
-        const schema = objectSchemaOf(spec.type, types, "array");
+        // A union of item types (Menu `MenuEntry[]`): each item takes the one it is (`type: "group"`).
+        const schemas = objectSchemasOf(spec.type, types, "array");
         // Item ops count the array literal's items: only a list of plain objects written in place changes from here (a
         // const's list edits field by field; its items stay as the code writes them).
         const literal = !via && shape.items.every((item) => item.type === "object");
         shape.items.forEach((item, index) => {
           if (item.type !== "object") return;
           const list = { count: shape.items.length, last: index === shape.items.length - 1, literal };
-          out.push({ key: `${spec.name}#${index}`, prop: spec.name, index, title: `${label} · ${index + 1}`, meta: itemName(item), object: item, fields: groupFields(item, schema?.fields ?? null), list, via });
+          out.push({ key: `${spec.name}#${index}`, prop: spec.name, index, title: `${label} · ${index + 1}`, meta: itemName(item), object: item, fields: groupFields(item, schemaFor(schemas, item.fields)?.fields ?? null), list, via });
         });
       }
     }
@@ -119,14 +152,37 @@ export function ObjectProperties({ component, props, api, only, selection }: { c
   };
   const busy = running !== null;
 
-  const write = (group: Group, field: FieldSpec, value: Literal | null) => {
+  // What a data-slot item's unset fields draw (dataSlots.ts itemDefaults: a crumb's level and chevron come from its
+  // place): the one selected item's from DataItemPanel, every listed item's from the owner's values here.
+  const ownerValues = new Proxy({} as Record<string, unknown>, {
+    get: (_target, key) => {
+      if (typeof key !== "string") return undefined;
+      const value = api.valueFor(key);
+      return value.state === "literal" ? value.value : value.state === "unset" ? undefined : value.live;
+    },
+  });
+  const defaultsOf = (group: Group): Readonly<Record<string, Literal>> | undefined => {
+    if (only) return defaults;
+    if (group.index === undefined || !group.list) return undefined;
+    return dataSlotOf(component, group.prop)?.itemDefaults?.(group.index, group.list.count, ownerValues);
+  };
+
+  /** `sub`: one key of an object the field holds (StackBarChart `values.design`), written through setField `path`. */
+  const write = (group: Group, field: FieldSpec, value: Literal | null, sub?: string) => {
     if (api.disabled) return;
-    // An optional boolean switched off is left out (`dot: false` reads as noise); a field reset is removed.
-    const remove = value === null || (value === false && field.optional && field.editor.kind === "boolean");
-    const where = `${group.prop}${group.index !== undefined ? `[${group.index}]` : ""}.${field.name}`;
-    setOverrides((current) => ({ ...current, [`${group.key}.${field.name}`]: remove ? { state: "unset" } : { state: "literal", value: value as Literal, raw: "" } }));
+    // An optional boolean switched to what it draws unset is left out (`dot: false` reads as noise; a crumb's `dash`
+    // is on unset, so off is written); a field reset is removed.
+    const remove = value === null || (!sub && field.optional && field.editor.kind === "boolean" && value === (defaultsOf(group)?.[field.name] ?? false));
+    const where = `${group.prop}${group.index !== undefined ? `[${group.index}]` : ""}.${field.name}${sub ? `.${sub}` : ""}`;
+    const list = !remove && !sub && isNumberList(field) ? numberListCode(String(value)) : null;
+    if (!remove && !sub && isNumberList(field) && list === null) { announceEditStatus({ kind: "error", message: `${propLabel(field.name)}: write numbers separated by commas (12, 18, 7)`, at: Date.now() }); return; }
+    const edit: EditValue | null = remove ? null : list !== null ? { kind: "expression", code: list } : toEditValue(value as Literal);
+    setOverrides((current) => ({ ...current, [`${group.key}.${field.name}${sub ? `.${sub}` : ""}`]: remove ? { state: "unset" } : { state: "literal", value: value as Literal, raw: "" } }));
+    const into = sub ? [{ key: field.name }] : [];
     void api.apply(
-      [{ op: "setField", name: group.prop, ...(group.index !== undefined ? { index: group.index } : {}), key: field.name, value: remove ? null : toEditValue(value as Literal) }],
+      [within
+        ? { op: "setField", name: within.name, ...(within.index !== undefined ? { index: within.index } : {}), path: [{ key: group.prop, ...(group.index !== undefined ? { index: group.index } : {}) }, ...into], key: sub ?? field.name, value: edit }
+        : { op: "setField", name: group.prop, ...(group.index !== undefined ? { index: group.index } : {}), ...(into.length ? { path: into } : {}), key: sub ?? field.name, value: edit }],
       `${component} ${where} → ${remove ? "reset" : display(value as Literal)}`,
     ).then((written) => { if (!written) setOverrides({}); });
   };
@@ -160,11 +216,50 @@ export function ObjectProperties({ component, props, api, only, selection }: { c
           ) : null}
           {group.fields.map((field) => {
             const written = group.object.fields.find((candidate) => candidate.key === field.name);
-            const value = overrides[`${group.key}.${field.name}`] ?? valueOfField(written);
+            // A nested data slot's list (Sidebar `sections[n].items`): its rows are items of their own, selected on the
+            // canvas or in Slots, not one code field here.
+            const nested = !within && group.index !== undefined ? dataSlotOf(component, group.prop) : null;
+            if (nested?.nested === field.name) {
+              const rows = written?.kind === "expression" && written.shape?.type === "array" ? written.shape.items.length : null;
+              return (
+                <p key={field.name} className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>
+                  {rows === null ? `${propLabel(field.name)}: written in the code` : `${plural(rows, nested.itemName)} in ${nested.name}: select one on the canvas or in Slots to edit it`}
+                </p>
+              );
+            }
+            // An object of plain values (StackBarChart `values`: { design: 120, engineering: 180 }): one row per key.
+            const keyed = written?.kind === "expression" && written.shape?.type === "object" && written.shape.fields.length
+              && written.shape.fields.every((sub) => sub.kind === "string" || sub.kind === "number" || sub.kind === "boolean") ? written.shape.fields : null;
+            if (keyed) {
+              return (
+                <Fragment key={field.name}>
+                  {keyed.map((sub) => (
+                    <PropField
+                      key={`${field.name}.${sub.key}`}
+                      spec={{ name: `${field.name}.${sub.key}`, type: "", description: "", defaultValue: null, editor: inferredEditor(sub) }}
+                      label={`${propLabel(field.name)} · ${sub.key}`}
+                      value={overrides[`${group.key}.${field.name}.${sub.key}`] ?? valueOfField(sub)}
+                      disabled={api.disabled}
+                      resettable={false}
+                      onSet={(next) => write(group, field, next, sub.key)}
+                      onReset={() => undefined}
+                    />
+                  ))}
+                </Fragment>
+              );
+            }
+            // A list of objects in an item (a Menu group's `items`): its own groups, written through setField `path`.
+            if (!within && written?.kind === "expression" && written.shape?.type === "array" && written.shape.items.length && written.shape.items.every((item) => item.type === "object")) {
+              return <ObjectProperties key={field.name} component={component} props={[{ spec: field, shape: written.shape }]} api={api} within={{ name: group.prop, index: group.index }} />;
+            }
+            const fieldDefaults = defaultsOf(group);
+            const listText = isNumberList(field) ? numberListText(written) : null;
+            const value = overrides[`${group.key}.${field.name}`] ?? (listText !== null ? { state: "literal" as const, value: listText, raw: "" } : valueOfField(written));
+            const shown = listText !== null || (isNumberList(field) && !written) ? { ...field, editor: { kind: "string" as const } } : field;
             return (
               <PropField
                 key={field.name}
-                spec={field}
+                spec={fieldDefaults && field.name in fieldDefaults ? { ...shown, defaultValue: fieldDefaults[field.name] } : shown}
                 label={propLabel(field.name)}
                 value={value}
                 disabled={api.disabled}

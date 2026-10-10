@@ -12,7 +12,7 @@ import { renderNode, type PageNode, type PageTree } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
-import { DEVICE_WIDTH, ProtoContext, type PageDevice, type ProtoActions } from "./runtime";
+import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, type PageDevice, type ProtoActions } from "./runtime";
 
 /*
  * Play (Studio builder GĐ2 M3, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page runs full
@@ -137,6 +137,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   return (
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes)}>
       <ProtoContext value={actions}>
+      <PageOsContext value={pageOsOf(tree?.header)}>
         <div className="studio-player__stage">
           <div className="studio-player__device" style={{ width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-zen-overlay-root="" data-screen-id={current}>
             {screen ? (
@@ -147,6 +148,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
             {overlayChild ? renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay}`, { open: true, onOpenChange: (open: boolean) => { if (!open) setOverlay(null); } }) : null}
           </div>
         </div>
+      </PageOsContext>
       </ProtoContext>
       <PresentBar title={screenTitle ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
         leading={<>

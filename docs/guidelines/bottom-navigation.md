@@ -25,6 +25,7 @@ Root-level navigation on mobile: switch between three to five top destinations w
 | Labels | `showLabels` | Label/Small/Medium (Bold when selected on floating) |
 | Action | `action {icon, label, onClick, theme}` | Default: 48px Primary/Accent item · Floating: 64px floating button |
 | Backdrop | `backdrop` | floating types: surface (Figma fade to Surface/Default) · none (progressive blur only, for photos / video) |
+| Nav-Items slot | `children: <BottomNavigationItem id label icon selectedIcon dot />` | instead of items (Figma Nav-Items); it renders nothing alone |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/bottom-navigation.json`.
@@ -34,7 +35,8 @@ Figma Bottom-Navigation (page ❖ Bottom-Navigations, 7042:38507): 3–5 root de
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `items` (required) | `BottomNavigationItem[]` | — |  |
+| `items` | `BottomNavigationItem[]` | — | The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items). |
+| `children` | `ReactNode` | — | The destinations as BottomNavigationItem elements, in order, when `items` is not given. |
 | `value` (required) | `string` | — |  |
 | `onValueChange` (required) | `(id: string) => void` | — |  |
 | `type` | `"default" \| "floating" \| "floating-glass"` | `"default"` |  |

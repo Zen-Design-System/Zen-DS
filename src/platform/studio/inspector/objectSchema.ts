@@ -37,6 +37,18 @@ export function useApiTypes(slug: string | null): ApiTypes {
   return state.slug === slug ? state.types : {};
 }
 
+/** The schema an item is: the one whose single-literal field matches the item's (`type: "group"`), else the first. */
+export function schemaFor(schemas: readonly ObjectSchema[], written: ReadonlyArray<{ key: string; kind: string; value: unknown }>): ObjectSchema | null {
+  for (const schema of schemas) {
+    const tag = schema.fields.find((field) => /^"[^"]*"$/.test(field.type.trim()));
+    if (!tag) continue;
+    const value = written.find((field) => field.key === tag.name);
+    if (value?.kind === "string" && JSON.stringify(value.value) === tag.type.trim()) return schema;
+  }
+  // No tag written: the first schema whose own tag field is optional (a Menu item's `type?: "item"`), else the first.
+  return schemas.find((schema) => schema.fields.every((field) => !/^"[^"]*"$/.test(field.type.trim()) || field.optional)) ?? schemas[0] ?? null;
+}
+
 /** Splits a type at its top-level `separators` (an arrow's `=>` never closes a bracket, unlike splitUnion's count). */
 function splitTop(body: string, separators: string): string[] {
   const parts: string[] = [];
@@ -102,19 +114,30 @@ const skippedField = (name: string, type: string) => /^on[A-Z]/.test(name) || na
  * `TopNavigationAction | ReactNode` and for `TopNavigationAction[]`; an inline `{ … }` type too. null when none is known.
  */
 export function objectSchemaOf(propType: string, types: ApiTypes, want: "object" | "array"): ObjectSchema | null {
+  return objectSchemasOf(propType, types, want)[0] ?? null;
+}
+
+/**
+ * Every object type of a union the prop takes (Menu `MenuEntry[]`: MenuItemData, MenuSeparatorData, MenuGroupData), in
+ * order; `schemaFor` picks the one an item is, by a field whose type is one string literal (`type: "group"`).
+ */
+export function objectSchemasOf(propType: string, types: ApiTypes, want: "object" | "array", depth = 0): ObjectSchema[] {
+  const out: ObjectSchema[] = [];
+  if (depth > 3) return out;
   for (const raw of splitTop(propType, "|")) {
     let member = raw.replace(/^readonly\s+/, "").trim();
     const array = /^(?:Array|ReadonlyArray)<([\s\S]+)>$/.exec(member) ?? /^([\s\S]+)\[\]$/.exec(member);
     if (Boolean(array) !== (want === "array")) continue;
     if (array) member = array[1].trim().replace(/^\(([\s\S]*)\)$/, "$1");
     for (const candidate of array ? splitTop(member, "|") : [member]) {
-      if (candidate.startsWith("{")) return { typeName: "", fields: fieldsOf(candidate, types) };
+      if (candidate.startsWith("{")) { out.push({ typeName: "", fields: fieldsOf(candidate, types) }); continue; }
       const name = /^([A-Za-z_$][\w$]*)(?:<[\s\S]*>)?$/.exec(candidate)?.[1];
       const declaration = name ? types[name] : undefined;
-      if (name && declaration && isObjectDeclaration(declaration)) return { typeName: name, fields: fieldsOf(declaration, types) };
+      if (name && declaration && isObjectDeclaration(declaration)) out.push({ typeName: name, fields: fieldsOf(declaration, types) });
+      else if (name && declaration && !isObjectDeclaration(declaration)) out.push(...objectSchemasOf(declaration.replace(/^[\s\S]*?=\s*/, "").replace(/;\s*$/, ""), types, "object", depth + 1));
     }
   }
-  return null;
+  return out;
 }
 
 function fieldsOf(declaration: string, types: ApiTypes): FieldSpec[] {

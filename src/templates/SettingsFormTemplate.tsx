@@ -297,8 +297,8 @@ export function SettingsFormTemplate() {
           primaryAction={{ label: profile.isSubmitting ? "Saving…" : "Save changes", type: "submit", form: formId, disabled: !profile.isDirty || profile.isSubmitting }} />
       )}
     >
-      <Container maxWidth="md">
-        <Stack gap="xl" paddingY="lg">
+      <Container maxWidth="full">
+        <Stack gap="xl" paddingY="sm" fillChildren>
           <PageHeader title="Settings" description={`Your account and the ${workspace.name} workspace.`} />
 
           <SettingsSection title="Profile" description="How you appear to the studio in projects, comments and mentions.">

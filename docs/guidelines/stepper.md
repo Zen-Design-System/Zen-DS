@@ -24,6 +24,7 @@ Shows progress through a multi-step, sequential process and where the user is in
 | Current | `current` | earlier = Passed (check), current = Focused (ring), later = Default |
 | Error | `step.error` | State=Error: negative marker, ring and lines |
 | Navigation | `onStepClick` | Passed/Focused/Error steps become buttons |
+| Steps slot | `children: <StepperStep id title caption icon error />` | instead of steps; it renders nothing alone, Stepper draws each state from current |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/stepper.json`.
@@ -36,7 +37,8 @@ Also accepts `HTMLAttributes<HTMLOListElement>`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLOListElement>` | — | The root `<ol>`. |
-| `steps` (required) | `StepperStep[]` | — |  |
+| `steps` | `StepperStep[]` | — | The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id="details" title="Details" />`. |
+| `children` | `ReactNode` | — | The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state from `current`, the progress lines and the click behaviour. |
 | `current` | `number` | `0` | Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma Stepper-Bar/Horizontal or Stepper-Bar/Vertical. |
 | `onStepClick` | `(step: StepperStep, index: number) => void` | — | Makes Passed/Focused/Error steps clickable (e.g. to go back and edit). Default steps stay inert. |

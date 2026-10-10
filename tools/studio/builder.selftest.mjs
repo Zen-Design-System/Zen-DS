@@ -2,7 +2,7 @@
 // The edit engine on a builder page kept in the browser ("local:<id>.zen.tsx", Studio builder GĐ2 M1): the same ops as
 // on example code, results that stay valid pages. Run: node tools/studio/builder.selftest.mjs
 import { dataFieldEdit } from "./data-source.mjs";
-import { boardFrames, frameCode, freeFrameId, newPageText, parsePage, protoCode, validateDialect } from "./dialect.mjs";
+import { SCREEN_CHROME, boardFrames, frameCode, freeFrameId, newPageText, parsePage, protoCode, screenChromeCode, screenLayout, validateDialect } from "./dialect.mjs";
 import { applyOps, describeElement, sha1 } from "./jsx-source.mjs";
 
 const failures = [];
@@ -14,11 +14,11 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
-let page = newPageText({ title: "Checkout", device: "phone" });
+let page = newPageText({ title: "Checkout", device: "phone", chrome: false });
 const stackLoc = () => parsePage(page).board.children[0].children[0].loc;
 
 // Insert a component: the import joins the package import, the page stays valid.
@@ -53,7 +53,7 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
 
 // An action on a builder page is a proto handler: the page's runtime import gains proto; a hook is refused.
 {
-  let fresh = newPageText({ title: "Actions" });
+  let fresh = newPageText({ title: "Actions", chrome: false });
   const at = parsePage(fresh).board.children[0].children[0].loc;
   const withProto = applyOps(fresh, at, "Stack", [{ op: "insertChild", code: '<Button level="primary" onClick={proto.toast({ title: "Saved" })}>Save</Button>' }], options(fresh));
   check("insert with proto.toast", withProto.error ?? null, null);
@@ -67,13 +67,13 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
 
 // Prototype (M3): a Screen and an Overlay added to the Board, their imports, and a proto action written on a Button.
 {
-  let proto = newPageText({ title: "Flow", device: "phone" });
+  let proto = newPageText({ title: "Flow", device: "phone", chrome: false });
   const board = () => parsePage(proto).board.loc;
   const frames = () => boardFrames(parsePage(proto));
   check("one screen at first", frames().map((frame) => `${frame.kind}:${frame.id}`), ["screen:screen-1"]);
   const id = freeFrameId("screen", frames().map((frame) => frame.id));
   check("a free screen id", id, "screen-2");
-  const screen = applyOps(proto, board(), "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id, title: "Done", device: "phone" }) }], options(proto));
+  const screen = applyOps(proto, board(), "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id, title: "Done", device: "phone", chrome: false }) }], options(proto));
   check("insert a Screen into the Board", screen.error ?? null, null);
   proto = screen.code ?? proto;
   const overlay = applyOps(proto, board(), "Board", [{ op: "insertChild", code: frameCode({ kind: "overlay", id: "confirm" }) }], options(proto));
@@ -93,6 +93,34 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("written as code", /<Button level="primary" onClick=\{proto\.navigate\("screen-2"\)\}>Next<\/Button>/.test(proto), true);
   check("read back as a proto value", parsePage(proto).board.children[0].children[0].children[1].props.onClick, { kind: "proto", action: "navigate", args: ["screen-2"] });
   check("protoCode forms", [protoCode("close"), protoCode("toast", 'Say "hi"'), protoCode("link", "https://zen.dev")], ["proto.close()", 'proto.toast({ title: "Say \\"hi\\"" })', 'proto.link("https://zen.dev")']);
+}
+
+// The app frame (user, 2026-10-09): a blank page's Screen holds Sidebar + Page Header and Top + Bottom Navigation as
+// props; a part switched off is the prop removed, switched on again it comes back with its import.
+{
+  let framed = newPageText({ title: "Orders" });
+  check("a page with its frame is valid", validateDialect(framed, { components }), []);
+  const screen = () => parsePage(framed).board.children[0];
+  check("the Screen holds the four parts", SCREEN_CHROME.map((part) => screen().props[part.prop]?.node?.name ?? null), ["Sidebar", "PageHeader", "TopNavigation", "BottomNavigation"]);
+  check("the header carries the title", screen().props.header.node.props.title, { kind: "literal", value: "Orders" });
+  check("the Stack is still the Screen's first child", screen().children[0].name, "Stack");
+  const off = applyOps(framed, screen().loc, "Screen", [{ op: "removeProp", name: "sidebar" }], options(framed));
+  check("switch the Sidebar off", off.error ?? null, null);
+  framed = off.code ?? framed;
+  check("no sidebar prop, still valid", ["sidebar" in screen().props, validateDialect(framed, { components })], [false, []]);
+  const bare = framed.replace(/import \{ [^}]+ \} from "@zen\/design-system";/, 'import { BottomNavigation, PageHeader, Stack, Text, TopNavigation } from "@zen/design-system";');
+  const on = applyOps(bare, parsePage(bare).board.children[0].loc, "Screen", [{ op: "insertChild", prop: "sidebar", code: screenChromeCode("sidebar", "Orders") }], options(bare));
+  check("switch it on again", on.error ?? null, null);
+  check("Sidebar back, imported", [parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.name ?? null, /import \{ [^}]*\bSidebar\b[^}]* \} from "@zen\/design-system";/.test(on.code ?? "")], ["Sidebar", true]);
+  // Its rows are Body-Content children (Figma Menu-Item instances), imported with it.
+  check("the Sidebar's rows are SidebarMenuItem children, imported", [(parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.children ?? []).filter((child) => child.kind === "element").map((child) => child.name), /import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen\/design-system";/.test(on.code ?? "")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
+  check("layouts", [screenLayout("phone"), screenLayout("desktop", "mobile"), screenLayout("tablet"), screenLayout("tablet", "desktop")], ["mobile", "desktop", "mobile", "desktop"]);
+  const tablet = applyOps(framed, screen().loc, "Screen", [{ op: "setProp", name: "layout", value: { kind: "string", value: "desktop" } }], options(framed));
+  check("a tablet laid out as desktop is valid", validateDialect(tablet.code ?? "", { components }), []);
+  const wrong = framed.replace('device="desktop"', 'device="tablet" layout="wide"');
+  check("an unknown layout is refused", validateDialect(wrong, { components }).map((error) => error.message), ["layout is mobile, desktop"]);
+  const added = applyOps(framed, parsePage(framed).board.loc, "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id: "screen-2", title: "Detail", device: "phone" }) }], options(framed));
+  check("a new Screen comes with its frame", [added.error ?? null, parsePage(added.code ?? "").board?.children[1]?.props.topNavigation?.node?.props.title ?? null, validateDialect(added.code ?? "", { components })], [null, { kind: "literal", value: "Detail" }, []]);
 }
 
 if (failures.length) {

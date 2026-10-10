@@ -7,7 +7,13 @@
 .zen-page-header__titles > .zen-heading { min-width: 0; overflow-wrap: anywhere; }
 .zen-page-header__meta { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-page-header__actions { display: flex; order: var(--zen-page-header-actions-order, 0); flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-small, 12px); margin-top: var(--zen-page-header-actions-offset, 0px); }
+/* Figma Trailing-Slots: icon actions after the page actions, Spacing/Gap/Small apart. */
+.zen-page-header__trailing { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-page-header__description { max-width: 72ch; }
+/* Figma Header-Text (◇ Header/Dashboard 4122:34662, 2026-10-09): the title and its description sit Spacing/Gap/2XSmall
+   apart; the header's other parts keep Gap/XSmall. On a phone the row dissolves and the description still follows the
+   title, so the same 4px holds. */
+.zen-page-header__row + .zen-page-header__description { margin-top: calc(var(--zen-spacing-gap-2-xsmall, 4px) - var(--zen-spacing-gap-xsmall, 8px)); }
 .zen-page-header__tabs { order: var(--zen-page-header-tabs-order, 0); margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 /* Phones: the actions wrap under the title, so the one Primary leads them; desktop and tablet keep Tertiary → Primary.
    Only the visual order changes (DOM and focus order stay). Set per ZenProvider breakpoint, like the breakpoint tokens,
