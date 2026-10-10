@@ -793,6 +793,7 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Zen Studio: the canvas opens in the default modes (Neutral-S1, Standard contrast, Compact…) again; only light/dark is remembered. Modes saved before Present and Play took their own (2026-10-09) stuck on the canvas with no control left to change them.
 - Zen Studio: ⌘D (Duplicate) works on pages made in the Studio — the renderer's React key was mistaken for a written `key` and every copy was refused.
 - **Zen Studio: a click no longer writes an old field value (2026-10-10):** a text or number field in the Inspector
   could write its previous value back when the selection changed right after the field had been updated (a Sidebar

@@ -341,3 +341,19 @@
   selects the row on its padding, since ⌘ reaches the Badge under it); gate `npm run qa -- --isolated --keep-going
   --files=…` PASS: style, usage, Studio self-tests (the peer's SLOT_OPS fix landed), docs, tsc, Vitest 51 files, audit
   1512 + 390, dark, behaviour, Studio E2E; table sheets unchanged.
+
+## Studio core rebuild plan (session "Studio nested props", tier: docs only)
+
+- User: nested-of-nested props/variants still not editable; asked whether a rebuild is needed, then for a plan first.
+- Diagnosis: the Studio writes where JSX is written (library internals: 112 owner→child pairs, 12 variant-like props
+  forwarded; `.map` rows; helpers) and identifies layers by file:line:col (`select/remap.ts`).
+- Wrote `docs/research/studio-doc-engine-plan-2026-10-10.md` (document model, library override channel by Figma layer
+  path, Figma pull, M0 spike → M8, questions Q1–Q7). No code changed; waiting for the user's approval.
+
+## Studio default modes (user: "mode mặc định của studio đang để là sai với mặc định lúc trước" → "Contrast và Component theme" → "đưa về mode mặc định đi") — tier XS, session "Table states"
+
+- Cause: store.ts initialState spread the saved `prefs.preview` over the defaults. Since 2026-10-09 the canvas modes have
+  no control (Present and Play keep their own; the toolbar has light/dark), so modes saved earlier on an origin
+  (localhost:5173 held Neutral-S7 + Contrast High) stuck on the canvas. Fix: the canvas takes the defaults; only the
+  theme comes from prefs. Checked on the running 5173 server: stale prefs S7 + High + Comfortable + dark → canvas
+  neutral-s1 · standard · compact · dark; a fresh profile → the defaults.
