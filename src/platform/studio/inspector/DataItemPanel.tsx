@@ -14,6 +14,7 @@ import { plural } from "../../../components/Text";
 import { PropField } from "./PropField";
 import { canvasApi } from "../canvas/viewport";
 import type { FieldApi } from "./fieldApi";
+import { useFocusContentToken } from "./focusContent";
 import { ObjectProperties } from "./ObjectProperties";
 import { objectSchemaOf, useApiTypes } from "./objectSchema";
 import { componentSlug, propSpecs } from "./propSchema";
@@ -117,6 +118,11 @@ export function DataItemSections({ selection, item, children }: { selection: Par
   // What its unset fields draw (a crumb's level and chevron come from its place): shown in the default tone.
   const ownerProps = item.part.owner.fiber ? currentFiber(item.part.owner.fiber).memoizedProps ?? {} : {};
   const defaults = slot.itemDefaults?.(index, count, ownerProps);
+  // A double-click on its text the canvas cannot edit in place (a Sidebar row's label comes from a nested list) lands in
+  // its text field here.
+  const focusToken = useFocusContentToken();
+  const textField = shape?.fields.find((field) => field.kind === "string" && ["label", "title", "name", "term"].includes(field.key))?.key;
+  const focus = textField ? { field: textField, token: focusToken } : undefined;
 
   return (
     <>
@@ -153,8 +159,8 @@ export function DataItemSections({ selection, item, children }: { selection: Par
       </InspectorSection>
       <InspectorSection title="Properties" note={computed ?? (element && !shape ? "Not found in the source — select it again" : undefined)}>
         {slot.nested
-          ? (listSpec && listShape && place ? <ObjectProperties component={host.name} props={[{ spec: listSpec, shape: listShape }]} api={api} only={{ prop: slot.nested, index: place.index }} within={{ name: slot.prop, index: place.group }} defaults={defaults} /> : null)
-          : spec && attr?.shape && shape ? <ObjectProperties component={host.name} props={[{ spec, shape: attr.shape }]} api={api} only={{ prop: slot.prop, index: attr.shape.type === "array" ? index : undefined }} defaults={defaults} /> : null}
+          ? (listSpec && listShape && place ? <ObjectProperties component={host.name} props={[{ spec: listSpec, shape: listShape }]} api={api} only={{ prop: slot.nested, index: place.index }} within={{ name: slot.prop, index: place.group }} defaults={defaults} focus={focus} /> : null)
+          : spec && attr?.shape && shape ? <ObjectProperties component={host.name} props={[{ spec, shape: attr.shape }]} api={api} only={{ prop: slot.prop, index: attr.shape.type === "array" ? index : undefined }} defaults={defaults} focus={focus} /> : null}
         {/* The props its owner passes on to every item (PartPanel's PartProperties: a crumb's Emphasis). */}
         {children}
       </InspectorSection>
@@ -182,6 +188,8 @@ export function DataGroupSections({ selection, hit }: { selection: PartSelection
   const can = !api.disabled && entries !== null && running === null;
   const removeVerb = role === "group" ? "remove" : role === "title" ? "removeTitle" : "clearRows";
   const removeLabel = role === "group" ? `Remove the section ${name}` : role === "title" ? `Remove the title ${name}` : `Remove the rows of ${name}`;
+  // A double-click on the title's text the canvas cannot edit in place lands in Label (focusContent.ts).
+  const focusToken = useFocusContentToken();
   return (
     <InspectorSection title={role === "title" ? "Section-Title" : role === "list" ? "Section rows" : "Section"} note={element && !entries ? `The code builds ${slot.prop}: edit it there` : undefined}>
       <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${name} · ${plural(rows, slot.itemName)} in ${slot.name}`}</p>
@@ -191,6 +199,7 @@ export function DataGroupSections({ selection, hit }: { selection: PartSelection
           label="Label"
           value={label?.kind === "string" ? { state: "literal", value: label.value, raw: "" } : { state: "unset" }}
           disabled={!can}
+          autoFocusToken={focusToken}
           onSet={(value) => { void api.apply([{ op: "setField", name: slot.prop, index: group, key: "label", value: { kind: "string", value: String(value) } }], `${host.name} ${slot.prop}[${group}].label → "${String(value)}"`); }}
           onReset={() => { void editDataGroup(selection, slot, group, "removeTitle"); }}
         />

@@ -101,7 +101,7 @@ function groupFields(object: ObjectShape, typed: FieldSpec[] | null): FieldSpec[
  * group headers, in example and template content (Backlog P2 after B2, user 2026-10-04). A data slot's items
  * (TopNavigation trailing) do that in the Slots section instead.
  */
-export function ObjectProperties({ component, props, api, only, selection, defaults, within }: {
+export function ObjectProperties({ component, props, api, only, selection, defaults, within, focus }: {
   component: string;
   props: ShapedProp[];
   api: FieldApi;
@@ -110,6 +110,8 @@ export function ObjectProperties({ component, props, api, only, selection, defau
   defaults?: Readonly<Record<string, Literal>>;
   /** The props are a list inside the element's `name` (its index-th object): Sidebar `sections[1].items` (setField `path`). */
   within?: { name: string; index?: number };
+  /** The field that takes the focus when `token` changes (a double-click on the item's text, focusContent.ts). */
+  focus?: { field: string; token: number };
 }) {
   const types = useApiTypes(componentSlug(component));
   const [overrides, setOverrides] = useState<Record<string, PropValue>>({});
@@ -265,6 +267,7 @@ export function ObjectProperties({ component, props, api, only, selection, defau
                 disabled={api.disabled}
                 boundHint={api.boundHint}
                 resettable={field.optional}
+                autoFocusToken={focus?.field === field.name ? focus.token : 0}
                 onSet={(next) => write(group, field, next)}
                 onReset={() => write(group, field, null)}
               />

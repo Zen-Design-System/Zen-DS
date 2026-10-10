@@ -121,6 +121,10 @@ removed (four unused colour ramps were, see Removed).
   (a row of buttons justified to the end is centred, not pushed right), with Padding/XLarge around it; the line under the
   search ("Swap … for the chosen component", where an item lands) lines up with the search's icon, Padding/XSmall above,
   and is no longer cut; a heading is centred by its words, and every item is placed again when the focus moves.
+- **Zen Studio: sections are easy to select on the canvas (2026-10-10):** double-clicks go Sidebar → section → row →
+  its text, as in Figma; with a section selected, a click on another section selects that one, and Escape climbs back
+  one level (row's label → row → section → Sidebar). A double-click on a row's or a section title's text that the canvas
+  cannot edit in place puts the cursor in its Label field (E2E SP-11).
 - **Zen Studio: ⇧A and + everywhere (2026-10-10):** ⇧A on Sidebar rows written as children puts them in a Menu
   section (`SidebarMenuSection`), on several TopNavigation actions puts them in one pill; a list that cannot group (Tabs,
   Breadcrumbs…) says so. "+ Add Action" (and any list item whose action shows a toast) now adds on a page you make,
@@ -782,6 +786,9 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: a click no longer writes an old field value (2026-10-10):** a text or number field in the Inspector
+  could write its previous value back when the selection changed right after the field had been updated (a Sidebar
+  section's title went empty, then came back, on a double-click); fields now write only what was typed.
 - **Zen Studio: a Screen with its app frame exports laid out (2026-10-10):** Export › HTML kept the sidebar, header,
   top and bottom navigation wrappers under Studio class names without their layout rules, so a page with a Sidebar or a
   Page header stacked its parts; the wrappers are now `.screen__side`, `.screen__main`, `.screen__header`… and

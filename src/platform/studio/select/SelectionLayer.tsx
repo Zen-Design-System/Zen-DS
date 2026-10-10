@@ -8,7 +8,7 @@ import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTa
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
-import { dataItemOfPart, dataItemRootOf, groupTitlePartOf, itemParts } from "../slots/dataItems";
+import { dataGroupOfPart, dataItemOfPart, dataItemRootOf, groupPartAt, groupTitlePartOf, itemParts, rowPartAtPoint, sectionPartAtPoint } from "../slots/dataItems";
 import { itemSelection } from "../slots/itemSelection";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
@@ -105,6 +105,12 @@ const sameTagged = (a: Tagged | null, b: Tagged | null) => a === b || Boolean(a 
 const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameList(a.items, b.items) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
 
 /** Capture layer (Select tool) + hover/selection outlines, in canvas-viewport coordinates. */
+/** `part` as drawn now: the same part found again from its path when the canvas drew its element anew. */
+function livePart(owner: FiberHit, part: PartHit): PartHit | null {
+  if (part.element.isConnected) return part;
+  return resolvePart(owner.hosts[0]?.isConnected ? owner : part.owner, { path: part.path, name: part.name });
+}
+
 /** The parts of the items selected with `part` (Shift/⌘+click, itemSelection.ts): none unless `part` is an item of that slot. */
 function itemExtras(part: PartHit | null): PartHit[] {
   const set = itemSelection.get();
@@ -167,6 +173,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       // A data-slot item reads as Figma names it (Menu-Item in Body-Content), not its internal component.
       const item = owner ? dataItemRootOf(hit as PartHit) : null;
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
+      const group = owner ? dataGroupOfPart(hit as PartHit) : null;
+      if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
       return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : shortSrc(hit.src) };
     };
     const part = partRef.current;
@@ -533,6 +541,12 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const target = deepestAt(picked.element, x, y);
     const current = partRef.current;
     if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
+    // A section selected: a click on another section selects that one (the same level, as Figma's siblings).
+    const live = current ? livePart(picked.hit, current) : null;
+    if (live && dataGroupOfPart(live)?.role === "group") {
+      const section = sectionPartAtPoint(picked.hit, x, y);
+      if (section) return section;
+    }
     // A data-slot item (a TopNavigation action) is the part to land on, not the icon inside it (user, 2026-10-07); a
     // double-click then drills on into it.
     const deep = deepPartAt(picked.hit, target);
@@ -787,8 +801,26 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (before?.kind === "node" && before.src === picked.hit.src && owner && owner.hosts[0] === picked.hit.hosts[0]) {
       const target = deepestAt(picked.element, event.clientX, event.clientY);
       const current = partRef.current;
+      // From a section: the row or the Section-Title under the pointer (not the section's inner wrappers). The canvas may
+      // have drawn the section again since it was selected: found again from its path.
+      const fromSection = before.part && current ? livePart(picked.hit, current) : null;
+      if (fromSection && dataGroupOfPart(fromSection)?.role === "group") {
+        // The owner as drawn now (the part keeps the one it was selected on, which the canvas may have drawn anew).
+        const row = rowPartAtPoint(picked.hit, event.clientX, event.clientY);
+        if (row) {
+          choosePart(row);
+          return;
+        }
+      }
       if (before.part && current) {
-        const deeper = drillPart(picked.hit, target, current);
+        // A data item or a Section-Title selected (a Sidebar row): its text next, as the double-click that selected it
+        // promised (Figma's text layer inside the instance), not its own frame again.
+        const live = livePart(picked.hit, current);
+        const unit = live && (dataItemRootOf(live) || dataGroupOfPart(live)?.role === "title") ? live : null;
+        if (unit && tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
+        let deeper = drillPart(picked.hit, target, current);
+        // Its root node draws the same box: one level more (Figma has no such step).
+        if (unit && deeper && deeper.element === unit.element) deeper = drillPart(picked.hit, target, deeper) ?? deeper;
         if (deeper) choosePart(deeper);
         // The innermost part: its text (the owner's) is edited in place (edit/textEdit.ts).
         else tryStartTextEdit(event.clientX, event.clientY, picked.hit.src);
@@ -797,6 +829,13 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const nested = picked.hit.isComponent ? nestedHitAt(picked.hit, target) : null;
       if (nested) {
         choose(nested, false);
+        studioStore.setState({ inspectorTab: "design" });
+        return;
+      }
+      // A component that draws sections (a Sidebar's `sections`): the section under the pointer first, then its rows.
+      const section = picked.hit.isComponent ? sectionPartAtPoint(picked.hit, event.clientX, event.clientY) : null;
+      if (section) {
+        choosePart(section);
         studioStore.setState({ inspectorTab: "design" });
         return;
       }
@@ -838,6 +877,24 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         event.preventDefault();
         multiSelection.clear();
         choosePart(up.part);
+        return;
+      }
+      // A layer inside a data item (a Sidebar row's button or label) → the item, one level up as in Figma.
+      const selectedPart = partRef.current ? livePart(partRef.current.owner, partRef.current) : null;
+      const item = event.key === "Escape" && current.part && selectedPart ? dataItemOfPart(selectedPart) : null;
+      if (item && selectedPart && !dataItemRootOf(selectedPart)) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(item.part);
+        return;
+      }
+      // A Sidebar row or Section-Title → its section (Figma's parent frame in the slot), then the section → the Sidebar.
+      const section = event.key === "Escape" && current.part && selectedPart && (dataItemRootOf(selectedPart) || dataGroupOfPart(selectedPart)?.role === "title")
+        ? groupPartAt(selectedPart.owner, selectedPart.element) : null;
+      if (section && selectedPart && section.element !== selectedPart.element) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(section);
         return;
       }
       if (event.key === "Escape" && current.part) {

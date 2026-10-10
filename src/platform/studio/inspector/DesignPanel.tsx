@@ -34,6 +34,7 @@ import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { PositionSection, positionProps } from "../position";
 import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
+import { useFocusContentToken } from "./focusContent";
 import {
   attributeSpec, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, requiredProps, textComponents, textProps, valueOf,
   type Literal, type PropSpec, type PropValue,
@@ -63,34 +64,6 @@ const toEditValue = (value: Literal): EditValue =>
   typeof value === "boolean" ? { kind: "boolean", value } : typeof value === "number" ? { kind: "number", value } : { kind: "string", value };
 
 const display = (value: Literal) => (typeof value === "string" ? `"${value.length > 24 ? `${value.slice(0, 24)}…` : value}"` : String(value));
-
-/* Double-click on canvas text asks the Content field for focus (the panel may mount a moment later). */
-let focusRequestedAt = 0;
-const focusListeners = new Set<() => void>();
-if (typeof window !== "undefined") {
-  const onFocusRequest = () => {
-    focusRequestedAt = Date.now();
-    focusListeners.forEach((listener) => listener());
-  };
-  window.addEventListener("zen-studio:focus-content", onFocusRequest);
-  import.meta.hot?.dispose(() => window.removeEventListener("zen-studio:focus-content", onFocusRequest));
-}
-
-function useFocusContentToken() {
-  const [token, setToken] = useState(() => (Date.now() - focusRequestedAt < 2000 ? Date.now() : 0));
-  useEffect(() => {
-    const listener = () => setToken(Date.now());
-    focusListeners.add(listener);
-    return () => { focusListeners.delete(listener); };
-  }, []);
-  useEffect(() => {
-    if (!token) return undefined;
-    focusRequestedAt = 0;
-    const timer = window.setTimeout(() => setToken(0), 1500);
-    return () => window.clearTimeout(timer);
-  }, [token]);
-  return token;
-}
 
 /** The rendered hit of the selection (for child lookups). */
 function selectedHit(selection: NodeSelection): FiberHit | null {

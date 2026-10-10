@@ -282,3 +282,19 @@
   shortcuts in title / aria-keyshortcuts, a ⇧A · ⌫ · ⌘Z line), then "Selected items" (a row selects that item alone).
   The primary item's own part details are hidden while several are selected. E2E SP-10 / B-33 read the header count.
 
+
+## Sections easy to select on the canvas (user: "khó chọn section. chỉ chọn được item bên trong. Muốn chọn section lại phải bấm bên layer") — tier M, session "Lỗi nested properties"
+
+- Double-click drill Sidebar → section → Menu-Item / Section-Title → text: `sectionPartAtPoint` / `rowPartAtPoint`
+  (dataItems.ts, by geometry: the capture layer and `display: contents` hide what is under the pointer), `livePart` for
+  parts the canvas drew anew. A section selected: a click on another section selects it. Escape: inside a row → the row
+  → its section → the Sidebar.
+- Root cause of the flaky row pick: TextControl's stale draft. Between a new source value and the effect that copies it
+  into the draft, a selection change flushed the drafts (drafts.ts) with the old one: `sections[1].label → ""` then
+  back, two real writes, and the title vanished for ~50 ms so the row under the pointer shifted. Text/Number/Lines
+  controls now commit only user-typed drafts (`edited` ref).
+- After a row or title is selected, the next double-click edits its text; nested `sections` text cannot be edited in
+  place (textEdit `sourceOf` → null), so the fallback focus request (moved to inspector/focusContent.ts, out of
+  DesignPanel to avoid a cycle) focuses the row's / title's Label field. The row's root `div` (same box) is skipped.
+- E2E SP-11 (drill, sibling click, Escape, no writes) added to the baseline; SP-09/SP-10 still work. Checked on the
+  user's page copy (AppShell Sidebar): Screen → Sidebar → Section → Menu-Item → button, Escape back, file unchanged.
