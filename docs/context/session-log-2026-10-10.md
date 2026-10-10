@@ -275,3 +275,10 @@
   builderImportEdits / LOCAL_PAGE); items selftest 24.
 - Tests: E2E B-33 (Sidebar rows ⇧A → section; + Action on a phone page; ⌘ New task, ⇧ Share → 2 selected → ⇧A → one group).
 
+## Multi-item panel easier to see (user: "Chỗ này user khó thấy") — tier S, session "Lỗi nested properties"
+
+- DataItemsSections now reads like the layers' SelectionActions: the header names the count ("3 Menu-Items"), a Selection
+  section holds a primary "Group into a section" (or "Group" for pills) and a danger-subtle "Remove" (sm buttons, key
+  shortcuts in title / aria-keyshortcuts, a ⇧A · ⌫ · ⌘Z line), then "Selected items" (a row selects that item alone).
+  The primary item's own part details are hidden while several are selected. E2E SP-10 / B-33 read the header count.
+

@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { Heading } from "../../../components/Text";
+import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
@@ -307,7 +307,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           <Heading level={2} textStyle="Body/Small/Bold" className="studio-part__title">
-            {item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : name}
+            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : name}
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
@@ -339,7 +339,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
         </DataItemSections>
       ) : null}
       {resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
-      {resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

@@ -243,7 +243,7 @@ export const rows = [
         };
         for (let k = 0; k < 4 && !(await named()).startsWith("Menu-Item · in "); k++) await press("Projects", ["ControlOrMeta"]);
         await press("Billing", ["Shift"]);
-        await until(async () => (await page.locator("#studio-right").innerText()).includes("2 Menu-Items selected"), { message: "2 Menu-Items selected" });
+        await until(async () => (await named()).startsWith("2 Menu-Items"), { message: "2 Menu-Items selected" });
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("Shift+KeyA");
         // Right after the section Projects was in (before Admin's title).

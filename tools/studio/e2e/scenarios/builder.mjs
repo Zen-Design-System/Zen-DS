@@ -743,7 +743,7 @@ export const rows = [
       for (let k = 0; k < 4 && !(await onNewTask()); k++) await press("New task", ["ControlOrMeta"]);
       await until(onNewTask, { message: "New task selected" });
       await press("Share", ["Shift"]);
-      await until(async () => (await page.locator("#studio-right").innerText()).includes("2 Actions selected"), { message: "2 Actions selected" });
+      await until(async () => (await selectedName(page)).startsWith("2 Actions"), { message: "2 Actions selected" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Shift+KeyA");
       await until(async () => (await trailing()).match(/group: "new-task"/g)?.length === 2, { message: "both actions in one group" }).catch(async (error) => { throw new Error(`${error.message} (${(await trailing()).replace(/\s+/g, " ").slice(0, 300)})`); });
