@@ -6,8 +6,8 @@ import { currentFiber, onSourceUpdate } from "../select/picker";
 import { selectPart, withoutPart } from "../select/parts";
 import { canEdit, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
-import { computedCaption, dataItemBlock, duplicateShortcut, editDataItem, groupRuns, itemGroup, itemTitle, removeShortcut, renderedItemTitle, slotGroupsAt, sourceItems, useSlotRunning, useSlotServer, type DataItemHit } from "../slots";
-import { editDataGroup } from "../slots/actions";
+import { computedCaption, dataItemBlock, duplicateShortcut, editDataItem, groupRuns, itemGroup, itemParts, itemTitle, removeShortcut, renderedItemTitle, slotGroupsAt, sourceItems, useSlotRunning, useSlotServer, type DataItemHit } from "../slots";
+import { editDataGroup, editDataItems } from "../slots/actions";
 import type { DataGroupHit } from "../slots/dataItems";
 import { sectionEntries, titleOf } from "../slots/sectionList";
 import { plural } from "../../../components/Text";
@@ -17,7 +17,10 @@ import type { FieldApi } from "./fieldApi";
 import { ObjectProperties } from "./ObjectProperties";
 import { objectSchemaOf, useApiTypes } from "./objectSchema";
 import { componentSlug, propSpecs } from "./propSchema";
-import { InspectorSection } from "./Section";
+import { InspectorItem, InspectorSection } from "./Section";
+import { Icon } from "../../../components/Icon";
+import { autoLayoutKeys, autoLayoutShortcut } from "../select/wrapSelection";
+import { undoShortcut } from "./status";
 
 /*
  * A data-slot item selected on the canvas (TopNavigation's Top-Trailing action, dataSlots.ts): Figma's nested instance in
@@ -198,6 +201,58 @@ export function DataGroupSections({ selection, hit }: { selection: PartSelection
         <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={removeLabel} disabled={!can || (role === "title" && !title) || (role === "list" && !rows)} onClick={() => { void editDataGroup(selection, slot, group, removeVerb); }} />
       </div>
     </InspectorSection>
+  );
+}
+
+/**
+ * Several items of one data slot selected (itemSelection.ts: Shift/⌘+click on the canvas or in Layers): what they are,
+ * and what Figma does with a multi-selection in a slot: ⇧A puts them in a group of their own (a Sidebar section, a Menu
+ * group), ⌫ removes them. One undo step each.
+ */
+export function DataItemsSections({ selection, item, places }: { selection: PartSelection; item: DataItemHit; places: readonly number[] }) {
+  const host = withoutPart(selection) as NodeSelection;
+  const { element, api } = useOwnerSource(host);
+  useSlotServer();
+  const running = useSlotRunning();
+  const { slot } = item;
+  const source = element ? sourceItems(element, slot) : null;
+  const entries = element && (slot.nested || slot.grouped) ? sectionEntries(element, slot) : null;
+  const rows = entries ? entries.filter((entry) => entry.kind === "item") : (source?.state === "items" ? source.items : []);
+  const names = places.map((place) => (rows[place] ? itemTitle(slot, rows[place].fields, place) : `${slot.itemName} ${place + 1}`));
+  const can = !api.disabled && running === null;
+  // Sections (a Sidebar's, a Menu's) or shared pills (TopNavigation's actions); other lists draw one row of items.
+  const groups = Boolean(slot.nested || slot.grouped || slot.groups);
+  const groupLabel = slot.groups ? "Group" : "Group into a section";
+  // One item alone (a row of the list below): the others leave the selection.
+  const selectOnly = (place: number) => {
+    const part = itemParts(item.part.owner, slot)[place];
+    if (part) selectPart(part, canvasApi.getWorldElement());
+  };
+  return (
+    <>
+      <InspectorSection title="Selection" note={groups ? undefined : `${slot.name} draws one row of ${slot.itemName.toLowerCase()}s: they cannot go in a group of their own.`}>
+        {/* The multi-selection's actions, as the layers' (SelectionActions: Stack / Box): buttons, not quiet links (user,
+            2026-10-10: "Chỗ này user khó thấy"). */}
+        <div className="studio-inspector__actions">
+          {groups ? (
+            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`${groupLabel} (${autoLayoutShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "group"); }}>
+              {groupLabel}
+            </Button>
+          ) : null}
+          <Button level="danger-subtle" size="sm" startIcon="icon-trash-line" aria-keyshortcuts="Delete" title={`Remove ${plural(places.length, slot.itemName.toLowerCase())} (${removeShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "remove"); }}>
+            Remove
+          </Button>
+        </div>
+        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${groups ? `${slot.groups ? "Group" : "Section"} ${autoLayoutShortcut} · ` : ""}Remove ${removeShortcut} · ${undoShortcut} to undo`}</p>
+      </InspectorSection>
+      <InspectorSection title="Selected items">
+        <ul aria-label="Selected items" className="studio-inspector__items">
+          {places.map((place, k) => (
+            <InspectorItem key={place} icon={<Icon name="icon-cube-line" size={16} />} component name={names[k]} meta={`${slot.itemName} · ${place + 1}`} onClick={() => selectOnly(place)} />
+          ))}
+        </ul>
+      </InspectorSection>
+    </>
   );
 }
 

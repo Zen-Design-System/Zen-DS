@@ -250,3 +250,35 @@
   → Trash (restorable), a folder row → the delete confirmation (an alertdialog). E2E B-31 (folder asks, page to Trash) and
   B-32 (a focused Separator row) cover it.
 
+## Several items selected, ⇧A into a section (user: "Chưa chọn được nhiều item add stack được") — tier M, session "Lỗi nested properties"
+
+- slots/itemSelection.ts: extra items of the selected item's slot (src · frame · instance · prop · places), cleared by any
+  other selection change (a write that only moves the line keeps them). Layers: item rows carry `item` { prop, index };
+  ⌘-click toggles, ⇧-click selects the range; rows highlight. Canvas: ⇧-click inside the item's owner toggles (wherever
+  the layer pick lands, an AppShell included); extra items outline as `extra-item` (not "extra": single-layer actions read
+  that), and an item's tag reads its Figma name (Menu-Item in Body-Content). Layers tooltip no longer says read-only.
+- Inspector: DataItemsSections ("N Menu-Items selected", names, Group into a section (⇧A), Remove). actions.ts
+  editDataItems: group (sectionList groupedPlaces: a Sidebar section without a title, a Menu group "Section", right after
+  the group the first item was in) or remove (nested/grouped via setItems; a flat slot via itemsCode). StudioApp: Delete on
+  several items, ⇧A on an item of a nested or grouped slot.
+- Tests: E2E SP-10 (⌘ Projects, ⇧ Billing → 2 selected → ⇧A → new section; ⌘ Home, ⇧ Security → Delete); baseline.
+
+## ⇧A and + everywhere (user: "Hành vi này phải làm được ở mọi nơi trong thiết kế") — tier M, session "Lỗi nested properties"
+
+- Multi-select surfaces are the canvas and Layers (the Inspector shows the selected item, so Slots rows are not one).
+  ⇧A on any list item now goes through editDataItems: nested / grouped lists → a new section; a list with groups
+  (TopNavigation trailing) → the selected actions moved together and given one `group` (one pill); others refuse with why.
+- Layers: ⇧A on Sidebar rows written as children (SidebarMenuItem layers) wraps them in `<SidebarMenuSection label="Section">`
+  (wrapSelection; jsx-source WRAP_TAGS + types WrapOp; selftest refusals updated).
+- Bug found on the way: "+ Add Action" on a page you make was refused ("useToast is not exported…"): items.mjs prepareItem
+  turns `() => toast({ … })` into `proto.toast({ … })` there and adds `proto` to the runtime import (ITEM_HELPERS gains
+  builderImportEdits / LOCAL_PAGE); items selftest 24.
+- Tests: E2E B-33 (Sidebar rows ⇧A → section; + Action on a phone page; ⌘ New task, ⇧ Share → 2 selected → ⇧A → one group).
+
+## Multi-item panel easier to see (user: "Chỗ này user khó thấy") — tier S, session "Lỗi nested properties"
+
+- DataItemsSections now reads like the layers' SelectionActions: the header names the count ("3 Menu-Items"), a Selection
+  section holds a primary "Group into a section" (or "Group" for pills) and a danger-subtle "Remove" (sm buttons, key
+  shortcuts in title / aria-keyshortcuts, a ⇧A · ⌫ · ⌘Z line), then "Selected items" (a row selects that item alone).
+  The primary item's own part details are hidden while several are selected. E2E SP-10 / B-33 read the header count.
+

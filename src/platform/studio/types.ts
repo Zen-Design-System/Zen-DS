@@ -314,7 +314,7 @@ export type EditOp =
    * `with`: the opening-tag locs of more layers of the same JSX parent, wrapped together in source order (Frame selection /
    * Add auto layout on a multi-selection; tools/studio/README.md "Wrap several layers").
    */
-  | { op: "wrap"; tag: "Box" | "Stack" | "Grid"; props: Record<string, EditValue>; with?: string[] }
+  | { op: "wrap"; tag: "Box" | "Stack" | "Grid" | "SidebarMenuSection"; props: Record<string, EditValue>; with?: string[] }
   /**
    * A one-layer wrap undone (the Studio's Ignore auto layout off on a Box it made float): the Box, Stack or Grid that
    * holds exactly one element is replaced by it, the wrapper's props going with it (its `key` back onto the element). Must

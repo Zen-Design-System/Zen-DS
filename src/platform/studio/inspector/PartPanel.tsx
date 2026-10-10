@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { Heading } from "../../../components/Text";
+import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
@@ -22,7 +22,8 @@ import { InspectorRow, InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { dataItemOfPart, dataItemRootOf, type DataSlot } from "../slots";
 import { dataGroupOfPart } from "../slots/dataItems";
-import { DataGroupSections, DataItemBanner, DataItemSections } from "./DataItemPanel";
+import { DataGroupSections, DataItemBanner, DataItemSections, DataItemsSections } from "./DataItemPanel";
+import { selectedPlaces, useItemSelection } from "../slots/itemSelection";
 
 /*
  * Design tab for a part (deep select): what a component renders inside itself, read-only. The part's props, text
@@ -285,6 +286,9 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   const inside = item ? null : dataItemOfPart(resolved);
   // A nested slot's group as drawn (a Sidebar section, its title or its rows): removed, renamed and added to.
   const group = item || inside ? null : dataGroupOfPart(resolved);
+  // Other items of the same slot selected with it (Shift/⌘+click): the panel speaks for them all.
+  const itemSet = useItemSelection();
+  const places = item && itemSet && itemSet.src === selection.src && itemSet.instance === selection.instance ? selectedPlaces(item.index, itemSet, item.slot.prop) : [];
   // Props the owner passes on to it: edited here, written to the owner (the rest stays read-only). A data-slot item has
   // them too (a crumb's Emphasis is Breadcrumbs' emphasis, a tab's Variant is Tabs' variant), after its own fields; a
   // pass named like one of its fields (a segment's `disabled`) stays that field.
@@ -303,7 +307,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           <Heading level={2} textStyle="Body/Small/Bold" className="studio-part__title">
-            {item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : name}
+            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : name}
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
@@ -329,13 +333,13 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
       </header>
 
       {group ? <DataGroupSections selection={selection} hit={group} /> : null}
-      {item ? (
+      {item && places.length > 1 ? <DataItemsSections selection={selection} item={item} places={places} /> : item ? (
         <DataItemSections selection={selection} item={item}>
           {resolved && passes.length ? <PartProperties selection={selection} part={resolved} passes={passes} itemName={item.slot.itemName} /> : null}
         </DataItemSections>
       ) : null}
       {resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
-      {resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

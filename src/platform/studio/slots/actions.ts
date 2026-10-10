@@ -15,10 +15,10 @@ import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
 import { attributeFormOf, constOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
 import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaption } from "./dataItems";
-import { itemTitle, type DataSlot } from "./dataSlots";
+import { itemGroup, itemTitle, type DataSlot } from "./dataSlots";
 import { frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
 import { answeredLoc, isUnknownSlotOp, sendSlotEdit, type InsertChildOp, type ItemEditOp, type SlotEditApplied, type SlotEditOp, type SlotWrap } from "./ops";
-import { freshRow, rowFields, sectionEntries, sectionsCode, titleOf } from "./sectionList";
+import { freshRow, groupedPlaces, itemsCode, rowFields, sectionEntries, sectionsCode, titleOf } from "./sectionList";
 import { paletteFor, type PaletteContext, type PaletteHostContext, type PaletteItem } from "./palette";
 import { headingLevelFor, hostPropsOf, insertTargetFor, isClickableHost, type ContentSlot, type HostProps } from "./registry";
 
@@ -1379,6 +1379,50 @@ export function editDataGroup(selection: NodeSelection, slot: DataSlot, group: n
     }
     const code = sectionsCode(next, slot);
     return runRewrite(hostSelection, host, slot, code, label, select);
+  });
+}
+
+/**
+ * Several items of a data slot at once (itemSelection.ts: Shift/⌘+click): `remove` takes them all, `group` puts them in a
+ * new group of their own (a nested or grouped slot: a Sidebar section, a Menu group; Figma's ⇧A). One write (setItems).
+ */
+export function editDataItems(selection: NodeSelection, slot: DataSlot, places: readonly number[], verb: "remove" | "group"): Promise<boolean> {
+  return exclusive(async () => {
+    const hostSelection = withoutPart(selection) as NodeSelection;
+    const host = await readElement(hostSelection.src, hostSelection.name);
+    if (!host) return false;
+    const where = `${host.name} › ${slot.name}`;
+    const count = plural(places.length, slot.itemName.toLowerCase());
+    if (slot.nested || slot.grouped) {
+      const entries = sectionEntries(host, slot);
+      if (!entries) return fail(`${where}: the code builds ${slot.prop}; edit it there`);
+      if (verb === "group") return runRewrite(hostSelection, host, slot, sectionsCode(groupedPlaces(entries, places, slot), slot), `Group ${count} in a new section of ${where}`);
+      const chosen = new Set(places);
+      let place = -1;
+      const next = entries.filter((entry) => { if (entry.kind !== "item") return true; place += 1; return !chosen.has(place); });
+      return runRewrite(hostSelection, host, slot, sectionsCode(next, slot), `Remove ${count} from ${where}`);
+    }
+    const source = sourceItems(host, slot);
+    if (source.state !== "items") return fail(`${where}: ${source.state === "computed" ? computedCaption(slot, source.code, source.via) : "nothing to remove"}`);
+    const chosen = new Set(places);
+    if (verb === "group") {
+      // Items that share a pill (TopNavigation trailing `group`): next to each other where the first was, one group name.
+      if (!slot.groups) return fail(`${where}: its ${slot.itemName.toLowerCase()}s have no groups (the component draws them as one list)`);
+      const sorted = [...chosen].sort((a, b) => a - b);
+      const taken = new Set(source.items.map((item) => itemGroup(item.fields)).filter(Boolean));
+      const label = source.items[sorted[0]]?.fields.find((field) => field.key === "label");
+      const base = (label?.kind === "string" ? label.value : slot.itemName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "group";
+      let name = base;
+      for (let n = 2; taken.has(name); n += 1) name = `${base}-${n}`;
+      const grouped = sorted.map((index) => {
+        const fields = source.items[index].fields.filter((field) => field.key !== "group");
+        return [...fields, { key: "group", kind: "string" as const, value: name }];
+      });
+      const rest = source.items.filter((_, index) => !chosen.has(index)).map((item) => item.fields);
+      const at = sorted[0];
+      return runRewrite(hostSelection, host, slot, itemsCode([...rest.slice(0, at), ...grouped, ...rest.slice(at)]), `Group ${count} in ${where}`);
+    }
+    return runRewrite(hostSelection, host, slot, itemsCode(source.items.filter((_, index) => !chosen.has(index)).map((item) => item.fields)), `Remove ${count} from ${where}`);
   });
 }
 

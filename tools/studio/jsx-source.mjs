@@ -1871,7 +1871,8 @@ function applyDetach(code, bom, text, ast, element, ops, { snippets, keys, file,
 /* ── wrap (op "wrap": Figma's Frame selection, ⌥⌘G) ─────────────────────────────────────────────────────────────── */
 
 /** Layout primitives an element can be wrapped in (all exported by src/components/Layout; each renders a <div>). */
-const WRAP_TAGS = ["Box", "Stack", "Grid"];
+// SidebarMenuSection: ⇧A on Sidebar rows written as children puts them in a section (Figma's Section in Body-Content).
+const WRAP_TAGS = ["Box", "Stack", "Grid", "SidebarMenuSection"];
 /** Host elements the HTML parser keeps only inside their table or select: a <div> around them breaks the markup. */
 const CONTEXT_BOUND = new Set(["caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr", "option", "optgroup"]);
 /** Host parents that hold only table or select parts: the parser moves or drops a <div> inside them. */

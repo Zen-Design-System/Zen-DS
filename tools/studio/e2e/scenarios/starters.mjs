@@ -220,6 +220,45 @@ export const rows = [
       }
     },
   },
+  {
+    id: "SP-10", feature: "Admin list page: several Sidebar rows selected (⌘-click one, ⇧-click another; user: \"Chưa chọn được nhiều item add stack được\") show as N selected, ⇧A puts them in a new section, Delete removes several at once", wp: "nested items 2026-10-10",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id: pageId } = await pageFromFrame(ctx, 0, { on: "templates" });
+        const text = async () => (await pageText(page, pageId)) ?? "";
+        const sections = async () => {
+          const list = (await text()).match(/sections=\{\[[\s\S]*?\n\s*\]\}/)?.[0] ?? "";
+          return [...list.matchAll(/label: "([^"]*)"|items:/g)].map((match) => (match[0] === "items:" ? "|" : match[1])).join(" ");
+        };
+        await focusScreen(page);
+        const sidebar = page.locator(".studio-frame .zen-sidebar").first();
+        const named = async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
+        const press = async (label, keys) => {
+          const box = await sidebar.locator(".zen-sidebar__item", { hasText: label }).first().boundingBox();
+          for (const key of keys) await page.keyboard.down(key);
+          await page.mouse.click(box.x + 16, box.y + box.height / 2);
+          for (const key of [...keys].reverse()) await page.keyboard.up(key);
+          await sleep(500);
+        };
+        for (let k = 0; k < 4 && !(await named()).startsWith("Menu-Item · in "); k++) await press("Projects", ["ControlOrMeta"]);
+        await press("Billing", ["Shift"]);
+        await until(async () => (await named()).startsWith("2 Menu-Items"), { message: "2 Menu-Items selected" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Shift+KeyA");
+        // Right after the section Projects was in (before Admin's title).
+        await until(async () => /^\| Home Reports \| Projects Billing Admin \|/.test(await sections()), { message: "a new section of Projects and Billing" }).catch(async (error) => { throw new Error(`${error.message} (sections: ${await sections()})`); });
+        for (let k = 0; k < 4 && !(await named()).startsWith("Menu-Item · in "); k++) await press("Home", ["ControlOrMeta"]);
+        await press("Security", ["Shift"]);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Delete");
+        await until(async () => !/Home|Security/.test(await sections()), { message: "Home and Security removed" }).catch(async (error) => { throw new Error(`${error.message} (sections: ${await sections()})`); });
+        return await sections();
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
   ...[["SP-02", 4, "Sign in", "desktop"], ["SP-03", 5, "Mobile list", "phone"]].map(([id, frame, name, device]) => ({
     id, feature: `New page from the ${name} template: a ${device} page that renders`, wp: "GĐ3b M1",
     // The first row opens the Templates page, which the server compiles then (about 20 s).

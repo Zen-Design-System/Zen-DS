@@ -94,8 +94,11 @@ function itemAt(items, index, prop, h) {
  * The new item's code, checked: one object literal, no line separators, and no free names but `toast` and JS built-ins
  * (a handler's own parameters and names it declares are fine). `toast` says whether it calls toast.
  */
-function prepareItem(raw, h) {
+function prepareItem(raw, h, builder = false) {
   if (typeof raw !== "string" || !raw.trim()) h.refuse("insertItem needs `code`: one object literal");
+  // A builder page has no hooks (2026-10-10: "+ Add Action" refused there): `() => toast({ … })` becomes proto.toast({ … }),
+  // the page's prototype action, as the palette writes it.
+  if (builder) raw = raw.replace(/\(\)\s*=>\s*toast\((\{[^{}]*\})\)/g, "proto.toast($1)");
   if (/[\u2028\u2029]/.test(raw)) h.refuse("The item holds a line separator (U+2028/U+2029); write it as \\u2028");
   let node;
   try {
@@ -118,10 +121,12 @@ function prepareItem(raw, h) {
   walk(node, (item) => {
     if (item.type !== "Identifier" || keys.has(item) || declared.has(item.name) || item.name === "undefined") return true;
     if (item.name === "toast") toast = true;
+    else if (builder && item.name === "proto") return true;
     else if (!h.JS_GLOBALS.has(item.name)) h.refuse(`The item reads \`${item.name}\`, which is not defined here; only toast and JS built-ins can be used`);
     return true;
   });
-  return { code: raw.trim(), toast };
+  if (builder && toast) h.refuse("A builder page has no hooks: an item's action is proto.toast(…), proto.navigate(…) or proto.open(…)");
+  return { code: raw.trim(), toast, proto: builder && /\bproto\./.test(raw) };
 }
 
 /** `code` with its lines after the first moved from column 0 to `indent`. */
@@ -490,11 +495,13 @@ export function itemPlan(ctx, nodePath, op, h) {
   if (typeof op.prop !== "string" || !PROP.test(op.prop) || op.prop === "children" || op.prop === "key" || /^on[A-Z]/.test(op.prop)) h.refuse(`"${op.prop}" is not a prop that holds items`);
   if (op.op === "insertItem") {
     if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast"))) h.refuse('`requires` lists what the item needs: "toast"');
-    ctx.item = prepareItem(op.code, h);
+    ctx.item = prepareItem(op.code, h, h.LOCAL_PAGE?.test(ctx.file ?? "") ?? false);
   }
   const helpers = { ...h, text: (node) => ctx.text.slice(h.valueRange(ctx.text, node).start, h.valueRange(ctx.text, node).end) };
   const { edits, index } = attributeEdits(ctx, ctx.element, op, helpers);
   const all = [...edits];
+  // A builder page's proto.toast(…) handler: its runtime import gains `proto`.
+  if (op.op === "insertItem" && ctx.item.proto) all.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, ["proto"]));
   if (op.op === "insertItem" && ctx.item.toast) {
     const hooks = h.hookEdits(ctx, nodePath, { toast: true, statements: [] });
     all.push(...hooks.edits);

@@ -13,11 +13,12 @@ import { canvasApi } from "../canvas/viewport";
 import { frameLabel } from "../inspector/frames";
 import { focusSlot } from "../slots/actions";
 import { layerSlotsOf } from "../slots/layers";
-import { itemParts, renderedItemTitle } from "../slots/dataItems";
+import { dataItemRootOf, itemParts, renderedItemTitle } from "../slots/dataItems";
+import { itemSelection, useItemSelection } from "../slots/itemSelection";
 import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
-import { classHint, elementAt, isComponentFiber, partChildren, partForElement, type PartHit } from "./parts";
+import { classHint, elementAt, isComponentFiber, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
 import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
 import { isTableHit } from "../table/tableSelect";
 import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
@@ -87,6 +88,8 @@ type LayerNode = {
   wrap?: string;
   /** part: a data-slot item listed under its slot row (the Parts folder gives its own copy another id). */
   dataItem?: boolean;
+  /** part: that item's slot prop and place among the slot's items (Shift/⌘+click selects several, itemSelection.ts). */
+  item?: { prop: string; index: number };
 };
 
 /** `aliases`: a folded wrapper's id → the panel row that stands for it (selecting the wrapper highlights the panel). */
@@ -330,7 +333,7 @@ function dataSlotRows(node: LayerNode, byId: Map<string, LayerNode>): LayerNode[
       const id = `${node.id}/part:${partKey(part.path, part.name)}`;
       const item: LayerNode = {
         id, kind: "part", name: renderedItemTitle({ slot, index, part }), src: node.src, frameId: node.frameId, isComponent: true, instance: node.instance, count: 0,
-        depth: node.depth + 2, children: [], fiber: part.fiber, frame: node.frame, parent: row, owner: node, part, meta: slot.itemName, lazy: true, dataItem: true,
+        depth: node.depth + 2, children: [], fiber: part.fiber, frame: node.frame, parent: row, owner: node, part, meta: slot.itemName, lazy: true, dataItem: true, item: { prop: slot.prop, index },
       };
       byId.set(id, item);
       return [item];
@@ -530,6 +533,8 @@ function rowIcon(node: LayerNode): IconName {
 }
 
 function rowTitle(node: LayerNode) {
+  // A data-slot item is edited, moved and removed like a layer (⌘/Shift+click adds it to the selection).
+  if (node.kind === "part" && node.item) return `${node.name} · ${node.meta ?? "Item"} in ${node.owner?.name ?? "the element"} (⌘/Shift+click to select several)`;
   if (node.kind === "part") return `${node.name}${node.meta ? ` .${node.meta}` : ""}: part of ${node.owner?.name ?? "the element"} (read-only)`;
   if (node.kind === "parts") return `What ${node.owner?.name ?? "this component"} renders inside itself (read-only)`;
   if (node.kind === "panel") return node.frameId === MAIN_FRAME ? node.name : `Playground panel: ${node.name}`;
@@ -554,6 +559,7 @@ export function LayersPanel() {
   const selection = useStudio((state) => state.selection);
   const extras = useExtraSelection();
   const extraIds = useMemo(() => new Set(extras.map((layer) => `${layer.src}#${layer.instance}`)), [extras]);
+  const itemSet = useItemSelection();
   const [tree, setTree] = useState<Tree>(emptyTree);
   const [ready, setReady] = useState(false);
   const [version, setVersion] = useState(0);
@@ -696,6 +702,16 @@ export function LayersPanel() {
   const activate = (node: LayerNode, event?: MouseEvent) => {
     const target = node.stand ?? node;
     const layer = layerOf(node);
+    // Items of one data slot (Sidebar Menu-Items): with an item of that slot selected, ⌘/Ctrl+click adds one, Shift+click
+    // the range from it (user, 2026-10-10: "Chưa chọn được nhiều item add stack được").
+    if (event && (event.shiftKey || event.metaKey || event.ctrlKey) && target.kind === "part" && target.item && target.owner) {
+      const current = studioStore.getState().selection;
+      const primaryItem = current?.kind === "node" && current.part ? dataItemRootOf(selectedPartStore.get()) : null;
+      if (current?.kind === "node" && primaryItem && primaryItem.slot.prop === target.item.prop && current.src === target.owner.src && current.instance === target.owner.instance) {
+        itemSelection.toggle(current, target.item.prop, primaryItem.index, target.item.index, event.shiftKey && !event.metaKey && !event.ctrlKey);
+        return;
+      }
+    }
     // Shift+click selects the layers of every row from the anchor to this one, the anchor staying primary (Figma's range
     // in Layers); ⌘/Ctrl+click adds the layer to the selection or takes it out.
     if (event?.shiftKey && !event.metaKey && !event.ctrlKey && layer) {
@@ -828,7 +844,8 @@ export function LayersPanel() {
               role="treeitem"
               aria-level={node.depth + 1}
               aria-expanded={hasChildren ? open : undefined}
-              aria-selected={node.id === selectedId || extraIds.has(node.id)}
+              aria-selected={node.id === selectedId || extraIds.has(node.id) || Boolean(node.item && itemSet && node.owner?.src === itemSet.src && node.owner.instance === itemSet.instance
+                && node.item.prop === itemSet.prop && itemSet.indices.includes(node.item.index))}
               tabIndex={node.id === tabbable ? 0 : -1}
               data-layer-id={node.id}
               data-kind={node.kind}

@@ -2820,7 +2820,7 @@ const asFolders = (modules) => {
 /** What arrange.mjs (op moveTo: drag to reorder, reparent or copy) reuses from here. */
 const ARRANGE_HELPERS = { childUnitAt, constChildUse, refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
 /** What items.mjs (data-slot items: insertItem, removeItem, duplicateItem, moveItem) borrows from this module. */
-const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, FUNCTION_TYPES, JS_GLOBALS };
+const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, builderImportEdits, LOCAL_PAGE, FUNCTION_TYPES, JS_GLOBALS };
 
 export function applySlotOp(code, loc, name, op, options = {}) {
   const { snippets = true, file, componentModules, requiredChildren, requiredProps, hash, base, shared = false } = options;
