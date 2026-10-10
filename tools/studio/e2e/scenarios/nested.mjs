@@ -138,4 +138,33 @@ export const rows = [
       return "row 2 Badge neutral → red, rows 1 and 3 unchanged · ⌘Z";
     },
   },
+  {
+    id: "NO-04", feature: "A component's state shows at once on a page you made (user: \"đổi xong phải refresh trang mới thấy\"): Data-Row State → Selected draws the row selected, ⌘Z draws it unselected, no reload", wp: "states 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      const table = `[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Table"]`;
+      // Figma's levels: a click selects the outermost layer there (the page's Stack), each double-click on a cell's text
+      // goes one level in (Table, then its Data-Row).
+      const cell = page.locator(`${table} tbody tr`).nth(1).locator("td").first();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      for (let attempt = 0; attempt < 5 && !(await heading(page)).startsWith("Data-Row"); attempt += 1) {
+        const box = await cell.boundingBox();
+        if (!box) throw new Error("no box for row 2");
+        if (attempt === 0) await page.mouse.click(box.x + 12, box.y + box.height / 2);
+        else await page.mouse.dblclick(box.x + 12, box.y + box.height / 2);
+        await sleep(300);
+      }
+      if (!(await heading(page)).startsWith("Data-Row")) throw new Error(`could not reach row 2's Data-Row (Inspector: "${await heading(page)}")`);
+      await pick(page, "row-state", "Selected");
+      await until(async () => /defaultSelectedIds=\{\["binh"\]\}/.test((await pageText(page, id)) ?? ""), { message: 'defaultSelectedIds={["binh"]} in the page' });
+      const selected = () => page.locator(`${table} tbody tr`).evaluateAll((rows) => rows.map((row) => row.getAttribute("data-selected") === "true"));
+      await until(async () => JSON.stringify(await selected()) === "[false,true,false]", { timeout: 1500, message: "row 2 drawn selected without a reload" }).catch(async (error) => { throw new Error(`${error.message} (rows ${JSON.stringify(await selected())})`); });
+      await shot(page, "NO-04");
+      await undo(page);
+      await until(async () => !/defaultSelectedIds/.test((await pageText(page, id)) ?? ""), { message: "no defaultSelectedIds after ⌘Z" });
+      await until(async () => !(await selected()).includes(true), { timeout: 1500, message: "no row drawn selected after ⌘Z, without a reload" }).catch(async (error) => { throw new Error(`${error.message} (rows ${JSON.stringify(await selected())})`); });
+      return "Data-Row State → Selected draws row 2 selected at once · ⌘Z draws none";
+    },
+  },
 ];

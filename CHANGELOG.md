@@ -803,6 +803,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Zen Studio: on a page you made, a component's state shows at once — a Data-Row's State → Selected, a Checkbox's
+  default, a Tab's default value, any `defaultX`/`initialX` (also inside `overrides`) — instead of after a page reload.
 - Usage harness: `zen-usage --list` (and `check-usage.mjs`) no longer cuts its JSON off at 64 KB when piped; the process
   exited before stdout was written out.
 - Zen Studio: the canvas opens in the default modes (Neutral-S1, Standard contrast, Compact…) again; only light/dark is remembered. Modes saved before Present and Play took their own (2026-10-09) stuck on the canvas with no control left to change them.
