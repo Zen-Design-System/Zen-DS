@@ -498,7 +498,9 @@ async function readPlacement(selection: NodeSelection): Promise<Placement | null
   const parsed = parseSrc(selection.src);
   const hit = parsed && world ? selectedHit(selection, world) : null;
   if (!parsed || !hit) return null;
-  const keyed = (hit.fiber as { key?: unknown } | undefined)?.key != null;
+  // A written key (`key={item.id}` on a .map row): the server refuses to copy it. A page you made keys every node by its
+  // place (builder/render/renderPage.tsx), which is not a written key — ⌘D was refused on every layer there (2026-10-10).
+  const keyed = !parsed.file.startsWith("local:") && (hit.fiber as { key?: unknown } | undefined)?.key != null;
   // The nearest annotated elements of the same file around it, read until one lists it (its JSX parent).
   const frame = frameElement(selection.frameId, world);
   let unknown = false;

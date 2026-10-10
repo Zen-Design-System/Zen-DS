@@ -3,6 +3,7 @@
 // server, no disk.
 import assert from "node:assert/strict";
 import { dataFieldEdit, dataRowEdit, isDataFile, originOf } from "./data-source.mjs";
+import { applyOps } from "./jsx-source.mjs";
 
 let passed = 0;
 const test = (name, fn) => {
@@ -437,6 +438,75 @@ test("param: a prop of a component of the file is edited where it is used; `path
   assert.ok(!result.error, result.error);
   assert.match(result.code, /bao: person\('bao', 'Bao Nguyen', 'Staff engineer'\)/);
 });
+
+/* ── pictures (2026-10-10): a factory's spread object, { kind: "picture" } written relative to the data file ───────── */
+{
+  const DATA2 = "src/platform/examples/data.ts";
+  const PAGE2 = "src/platform/examples/pages/faces.tsx";
+  const data2 = [
+    'import photoAva from "../../assets/media/avatar-ava.webp";',
+    "type Person = { id: string; name: string; photo?: string; online?: boolean };",
+    "const person = (id: string, name: string, extra: Partial<Person> = {}): Person => ({ id, name, email: `${id}@x`, ...extra });",
+    "export const people = {",
+    '  ava: person("ava", "Ava Chen", { photo: photoAva, online: true }),',
+    '  bao: person("bao", "Bao Nguyen"),',
+    "};",
+    "",
+  ].join("\n");
+  const page2 = [
+    'import { people } from "../data";',
+    "export function Faces() {",
+    "  return <><Avatar src={people.ava.photo} alt=\"\" /><Avatar src={people.bao.photo} alt=\"\" /><Avatar src={people.ava.email} alt=\"\" /></>;",
+    "}",
+    "",
+  ].join("\n");
+  const read2 = (rel) => (rel === DATA2 ? data2 : null);
+  const at = (needle) => { const index = page2.indexOf(needle); const before = page2.slice(0, index); return `${before.split("\n").length}:${index - before.lastIndexOf("\n") - 1}`; };
+  const picture = { kind: "picture", file: "src/assets/media/avatar-bao.webp" };
+  test("picture: a photo imported as a module in a factory's spread object reads as data the Studio edits", () => {
+    const origin = originOf(page2, PAGE2, at("<Avatar src={people.ava.photo}"), { prop: "src" }, { read: read2 });
+    assert.equal(origin.kind, "data");
+    assert.equal(origin.editable, true, origin.reason);
+    assert.equal(origin.file, DATA2);
+  });
+  test("picture: setDataField { kind: picture } replaces it with new URL(…) relative to data.ts", () => {
+    const result = dataFieldEdit(page2, PAGE2, at("<Avatar src={people.ava.photo}"), "Avatar", { prop: "src", value: picture }, { read: read2 });
+    assert.ok(!result.error, result.error);
+    assert.equal(result.file, DATA2);
+    assert.match(result.code, /ava: person\("ava", "Ava Chen", \{ photo: new URL\("\.\.\/\.\.\/assets\/media\/avatar-bao\.webp", import\.meta\.url\)\.href, online: true \}\)/);
+  });
+  test("picture: a row without the spread object gets one with the field (person(…, { photo }))", () => {
+    const origin = originOf(page2, PAGE2, at("<Avatar src={people.bao.photo}"), { prop: "src" }, { read: read2 });
+    assert.equal(origin.editable, true, origin.reason);
+    const result = dataFieldEdit(page2, PAGE2, at("<Avatar src={people.bao.photo}"), "Avatar", { prop: "src", value: picture }, { read: read2 });
+    assert.ok(!result.error, result.error);
+    assert.match(result.code, /bao: person\("bao", "Bao Nguyen", \{ photo: new URL\("\.\.\/\.\.\/assets\/media\/avatar-bao\.webp", import\.meta\.url\)\.href \}\)/);
+  });
+  test("picture: a field the factory builds itself stays refused", () => {
+    const origin = originOf(page2, PAGE2, at("<Avatar src={people.ava.email}"), { prop: "src" }, { read: read2 });
+    assert.equal(origin.editable, false);
+    assert.match(origin.reason, /builds "email" in its own code/);
+  });
+  test("picture: a written new URL(…) picture reads back as editable and is replaced in place", () => {
+    const written = dataFieldEdit(page2, PAGE2, at("<Avatar src={people.ava.photo}"), "Avatar", { prop: "src", value: picture }, { read: read2 }).code;
+    const readBack = (rel) => (rel === DATA2 ? written : null);
+    const origin = originOf(page2, PAGE2, at("<Avatar src={people.ava.photo}"), { prop: "src" }, { read: readBack });
+    assert.equal(origin.editable, true, origin.reason);
+    const again = dataFieldEdit(page2, PAGE2, at("<Avatar src={people.ava.photo}"), "Avatar", { prop: "src", value: { kind: "picture", file: "src/assets/media/avatar-chi.webp" } }, { read: readBack });
+    assert.ok(!again.error, again.error);
+    assert.match(again.code, /photo: new URL\("\.\.\/\.\.\/assets\/media\/avatar-chi\.webp", import\.meta\.url\)\.href, online: true/);
+    assert.doesNotMatch(again.code, /avatar-bao/);
+  });
+  test("picture: a bad picture value is refused", () => {
+    const result = dataFieldEdit(page2, PAGE2, at("<Avatar src={people.ava.photo}"), "Avatar", { prop: "src", value: { kind: "picture", file: "../etc/passwd.png" } }, { read: read2 });
+    assert.match(result.error, /image file under src/);
+  });
+  test("picture: setProp { kind: picture } on the element writes the expression relative to the page", () => {
+    const result = applyOps(page2, at("<Avatar src={people.bao.photo}"), "Avatar", [{ op: "setProp", name: "src", value: picture }], { file: PAGE2 });
+    assert.ok(!result.error, result.error);
+    assert.match(result.code, /<Avatar src=\{new URL\("\.\.\/\.\.\/\.\.\/assets\/media\/avatar-bao\.webp", import\.meta\.url\)\.href\} alt=""/);
+  });
+}
 
 if (process.exitCode) console.log(`data-source self-test: failures above (${passed} passed)`);
 else console.log(`✓ data-source (originOf · setDataField · row edits) self-test: ${passed} cases`);

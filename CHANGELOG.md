@@ -19,6 +19,13 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- Zen Studio: replace a picture like Figma, everywhere — Avatar, Image, Thumbnail and the App Shell account take a photo from
+  Assets › Photos (click with the layer selected, or drag the photo onto the layer) and from the Inspector's Picture
+  picker, in example and template code as well as on pages you made. A picture bound to a row's data (a Table cell, a
+  `.map` row, a person in `examples/data.ts`, through a factory's `{ …extra }`) changes that row only; one bound to the
+  shared `platformMedia` library becomes the layer's own; a repo file takes the picture as
+  `new URL("<file>", import.meta.url).href` (dev and build), a page you made keeps `zen-media:`. ⌘-click selects the
+  innermost written layer under the pointer even when a row's data passes it in (an Avatar in a ListItem's leading).
 - Table: `defaultSelectedIds` keeps a selection without app state; `editable` (whole table) and `column.edit: "text" | "number" | "select" | "tags" | true`
   put cells in Figma's State=Edit without an editor object (the Table keeps the edit, or `onCellCommit` gets it). Zen Studio: a Data-Row's
   State Default · Selected, Checkbox and Editable, a Cell's State Default · Edit · Selected, written to the page. Harness
@@ -786,6 +793,7 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Zen Studio: ⌘D (Duplicate) works on pages made in the Studio — the renderer's React key was mistaken for a written `key` and every copy was refused.
 - **Zen Studio: a click no longer writes an old field value (2026-10-10):** a text or number field in the Inspector
   could write its previous value back when the selection changed right after the field had been updated (a Sidebar
   section's title went empty, then came back, on a double-click); fields now write only what was typed.

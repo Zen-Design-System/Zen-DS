@@ -630,10 +630,13 @@ function LiteralValue({ value }: { value: Literal }) {
 const namedOptions = (options: string[], names: Readonly<Record<string, string>> | undefined) => (names ? figmaOptions(options, names, matchOption) : { options, labels: undefined });
 
 /** The editor for a value edited at its data (text, number, a choice), showing what it renders now; null: no editor. */
-function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>): ReactNode {
+function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>, component?: string): ReactNode {
   const editor = spec.editor;
   const common = { label, disabled, fallback: undefined };
   switch (editor.kind) {
+    case "photo":
+      // A picture from data (a row's photo): Figma's image picker; the pick is written in that row's data.
+      return <PhotoControl label={label} disabled={disabled} value={typeof live === "string" ? live : undefined} onSet={(next) => onSet(next)} people={component !== "Image"} />;
     case "enum":
       return <EnumControl {...common} {...namedOptions(editor.options, optionLabels)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
     case "number-enum":
@@ -642,7 +645,6 @@ function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boo
       return <NumberControl {...common} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
     case "string":
     case "node":
-    case "photo":
       return typeof live === "string" || typeof live === "number" || live === undefined
         ? <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={live} onSet={onSet} multiline={typeof live === "string" && (live.length > 48 || live.includes("\n"))} />
         : null;
@@ -687,7 +689,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       return <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={literal as string | number | undefined} fallback={fallback === undefined || fallback === null ? (editor.kind === "node" ? "None" : undefined) : String(fallback)} onSet={onSet} autoFocusToken={extra.autoFocusToken} multiline={typeof literal === "string" && (literal.length > 48 || literal.includes("\n"))} />;
     case "photo": {
       const text = typeof literal === "string" ? literal : undefined;
-      return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} textControl={<TextControl {...common} fallback={undefined} value={text} onSet={onSet} />} />;
+      return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} />;
     }
     case "typography":
       return <TypographyControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
@@ -758,7 +760,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
     if (dataEditable(value, boundHint) && spec.editor.kind !== "boolean") {
       // A value the code reads from data (a .map row's item, a data const, examples/data.ts): edited where that data is
       // written (op setDataField, FieldApi.setProp), so the binding stays and every place that shows the data changes.
-      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels);
+      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels, component);
       const note = `From ${dataSourceLabel(value.dataSource, value.dataSource.row)}: an edit changes it everywhere it shows.`;
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }

@@ -22,6 +22,7 @@
 // Docs chrome: JSX inside a function whose leading comment holds "zen-studio-chrome" is never annotated or edited.
 import { posix } from "./posix.mjs";
 import { parse, parseExpression } from "@babel/parser";
+import { isPictureValue, pictureExpression } from "./picture.mjs";
 import MagicString from "magic-string";
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { UNIT, importEdits, pathTo, piece } from "./source-helpers.mjs";
@@ -275,7 +276,7 @@ function attrState(attr, path) {
 /** The expression `code` parses to (an array literal for setStateInit on a list state), or null when it does not parse. */
 function parseList(code) {
   try {
-    return parseExpression(code, { plugins: PLUGINS });
+    return parseExpression(code, { plugins: PLUGINS, sourceType: "module" });
   } catch {
     return null;
   }
@@ -787,9 +788,16 @@ function jsString(value, quote = '"') {
 }
 
 /** name="v" unless the string needs JS escaping, then name={"v"}; true → `name`; false → name={false}; n → name={n}. */
-export function formatAttr(name, value) {
+/** The file applyOps is editing (set for its ops): where a { kind: "picture" } value's relative path starts. */
+let editFile = null;
+
+export function formatAttr(name, value, file = editFile) {
   if (!ATTR_NAME.test(name)) throw new EditError("invalid", `"${name}" is not a JSX attribute name`);
   switch (value?.kind) {
+    case "picture":
+      if (!isPictureValue(value)) throw new EditError("invalid", "A picture value names an image file under src/");
+      if (!file) throw new EditError("invalid", "A picture needs the file it is written in");
+      return `${name}={${pictureExpression(file, value.file)}}`;
     case "string":
       if (typeof value.value !== "string") break;
       return /["\\{}\r\n]/.test(value.value) || ENTITY.test(value.value) || LINE_SEPARATOR.test(value.value) || INVISIBLE.test(value.value) || /[\u0000-\u001f\u007f]/.test(value.value)
@@ -807,7 +815,7 @@ export function formatAttr(name, value) {
       if (!code) break;
       if (LINE_SEPARATOR.test(code)) throw new EditError("invalid", "The expression holds a line separator (U+2028/U+2029); write it as \\u2028");
       try {
-        parseExpression(code, { plugins: PLUGINS });
+        parseExpression(code, { plugins: PLUGINS, sourceType: "module" });
       } catch (error) {
         throw new EditError("invalid", `Not a single expression: ${error.message}`);
       }
@@ -827,6 +835,7 @@ function sameValue(described, value) {
       return described.kind === "expression" && described.value === "false";
     case "number": return described.kind === "expression" && Number(described.value) === value.value && described.value !== "";
     case "expression": return described.kind === "expression" && described.value === String(value.code ?? "").trim();
+    case "picture": return described.kind === "expression" && Boolean(editFile) && isPictureValue(value) && described.value === pictureExpression(editFile, value.file);
     default: return false;
   }
 }
@@ -956,6 +965,9 @@ const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 /** A field value as JS code (setField): strings in `quote` (the one the field was written with), else double quotes. */
 function formatFieldValue(value, quote = '"') {
   switch (value?.kind) {
+    case "picture":
+      if (!isPictureValue(value) || !editFile) throw new EditError("invalid", "A picture value names an image file under src/");
+      return pictureExpression(editFile, value.file);
     case "string":
       if (typeof value.value === "string") return jsString(value.value, quote);
       break;
@@ -970,7 +982,7 @@ function formatFieldValue(value, quote = '"') {
       if (!code) break;
       if (LINE_SEPARATOR.test(code)) throw new EditError("invalid", "The expression holds a line separator (U+2028/U+2029); write it as \\u2028");
       try {
-        parseExpression(code, { plugins: PLUGINS });
+        parseExpression(code, { plugins: PLUGINS, sourceType: "module" });
       } catch (error) {
         throw new EditError("invalid", `Not a single expression: ${error.message}`);
       }
@@ -1732,6 +1744,7 @@ const fail = (code, error) => ({ error, code });
  * non-null value) and setTypography; `file` (the repo-relative path) is where a new typographyStyles import points from.
  */
 export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys: knownKeys, file, componentCss, componentModules, requiredChildren, requiredProps, hash, base, shared = false } = {}) {
+  editFile = file ?? null;
   // Slot ops (slots.mjs) restructure an instance's slot content; each is alone in its request (one undo record).
   const slotOp = Array.isArray(ops) ? ops.find((op) => SLOT_OPS.has(op?.op)) : undefined;
   if (slotOp) {

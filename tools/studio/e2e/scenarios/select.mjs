@@ -191,6 +191,44 @@ export const rows = [
     },
   },
   {
+    id: "SE-36", feature: "Replace a picture like Figma, in example code: Assets › Photos click puts the photo on the selected Avatar (src as the picture's file), a photo dragged onto it swaps it, the Inspector's Picture picks a person; the canvas draws each", wp: "picture 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-row", { frame: 6 });
+      const row = `${ctx.file}:${locOf(await ctx.text(), "inst-row").loc}`;
+      const avatarPoint = () => page.evaluate((src) => { const el = window.__e2e.elementOf(src)?.querySelector(".zen-avatar"); const r = el?.getBoundingClientRect(); return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2, img: el.querySelector("img")?.getAttribute("src") ?? "" } : null; }, row);
+      const point = await until(avatarPoint, { message: "the row's Avatar" });
+      await page.keyboard.down("ControlOrMeta");
+      try { await page.mouse.click(point.x, point.y); } finally { await page.keyboard.up("ControlOrMeta"); }
+      await expectHeading(page, "Avatar", "the Avatar selected");
+      // The picture the fixture's Avatar reads, as the Studio writes it in example code (uploader.tsx → src/assets/media).
+      const pictureOf = (text) => /<Avatar alt="Ava Tran" size="sm" src=\{new URL\("\.\.\/\.\.\/\.\.\/assets\/media\/([^"]+)", import\.meta\.url\)\.href\}/.exec(text)?.[1] ?? null;
+      const failWith = (message) => async (error) => { throw new Error(`${error.message} (${message}) · status: ${(await statusText(page)).slice(-160)}`); };
+      // 1. Click a photo in Assets: the selected Avatar takes it.
+      await openAssetLibrary(page, "Photos");
+      const tiles = page.locator("#studio-left-panel-assets [data-photo]");
+      await tiles.nth(0).click();
+      const first = await until(async () => pictureOf(await ctx.text()), { message: "src as the picture's file after the click" }).catch(failWith("click"));
+      await until(async () => (await avatarPoint())?.img.includes(first), { message: `the canvas draws ${first}` });
+      // 2. Drag another photo onto the Avatar: it swaps (the drag's label names the layer).
+      const tile = await tiles.nth(1).boundingBox();
+      const target = await avatarPoint();
+      await page.mouse.move(tile.x + tile.width / 2, tile.y + tile.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(tile.x + 40, tile.y + 20, { steps: 4 });
+      await page.mouse.move(target.x, target.y, { steps: 25 });
+      await sleep(250);
+      await page.mouse.up();
+      const second = await until(async () => { const now = pictureOf(await ctx.text()); return now && now !== first ? now : null; }, { message: "the dropped photo on the Avatar" }).catch(failWith("drop"));
+      await until(async () => (await avatarPoint())?.img.includes(second), { message: `the canvas draws ${second}` });
+      // 3. The Inspector's Picture: a person from People.
+      await until(async () => (await selectedName(page)).startsWith("Avatar"), { message: "the Avatar still selected" });
+      await page.locator('#studio-right [data-prop="src"] button').first().click();
+      await page.getByRole("option", { name: "Bao", exact: true }).click();
+      await until(async () => pictureOf(await ctx.text()) === "avatar-bao.webp", { message: "Bao's photo from the Inspector" }).catch(failWith("Inspector"));
+      return `click → ${first} · drop → ${second} · Inspector → avatar-bao.webp`;
+    },
+  },
+  {
     id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it, a double-click goes one level in, a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
     async run(ctx) {
       const seed = await ctx.reseed();
@@ -341,8 +379,10 @@ export const rows = [
       await focusFrame(page, 6);
       const row = await at(ctx, "inst-click-row");
       const badge = await at(ctx, "inst-click-badge");
-      // The row's click target covers the Badge: a click selects the ListItem, a double-click goes into the Badge.
-      await clickLoc(page, ctx.file, badge);
+      // The row's click target covers the Badge. ⌘-click is Figma's deepest layer (since 2026-10-10 the innermost written
+      // one, the Badge, even under the row's target), so the row is selected on its own padding; a double-click on the
+      // Badge then goes into it.
+      await clickLoc(page, ctx.file, row, { deep: true, position: { dx: 4, dy: 4 } });
       await expectSelected(page, ctx.file, row);
       await clickLoc(page, ctx.file, badge, { clickCount: 2 });
       await expectSelected(page, ctx.file, badge);

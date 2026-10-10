@@ -564,7 +564,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     // A Table's row or cell selected: the row or cell under the pointer (the level a click keeps, Figma).
     const under = picked.kind === "node" ? deepestAt(picked.element, point.x, point.y) : null;
     const level = picked.kind === "node" ? (deepRef.current ? tableDeep(picked.hit, under) : tablePress(partRef.current, under)) : null;
-    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : targetOf(picked, deepRef.current)) : null);
+    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : deepRef.current ? nestedHitAt(picked.hit, under) ?? picked.hit : targetOf(picked, false)) : null);
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
     variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
@@ -684,8 +684,10 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         const part = partAt(picked, event.clientX, event.clientY);
         if (part && pressDataItem(event.nativeEvent, part, choosePart, () => choose(picked.hit, false))) return;
       }
-      // Figma's click: the outermost layer in the current context; ⌘ / Ctrl the deepest (⇧ adds either one).
-      const target = targetOf(picked, deep);
+      // Figma's click: the outermost layer in the current context; ⌘ / Ctrl the deepest (⇧ adds either one). The deepest
+      // is the innermost written layer under the pointer, even one a row's data passes in (an Avatar built for a
+      // ListItem's leading, whose row covers it on the canvas: nestedHitAt), not only the row itself (2026-10-10).
+      const target = deep ? nestedHitAt(picked.hit, deepestAt(picked.element, event.clientX, event.clientY)) ?? picked.hit : targetOf(picked, false);
       // A press can drag the layer (Figma; edit/drag.ts): inside the selected layer it drags that one, and a click
       // without moving still selects the layer the click picks.
       if (pressLayer(event.nativeEvent, target, () => choose(target, event.shiftKey))) return;

@@ -206,6 +206,23 @@ export const rows = [
     },
   },
   {
+    id: "B-34", feature: "⌘D on a page you made duplicates the layer (the renderer's React key is not a written key); ⌘Z removes the copy", wp: "usability walk 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await insertAsset(page, "Button");
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button" });
+      await sleep(400);
+      await clickNamed(page, id, "Button");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 2, { message: "two Buttons after ⌘D" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(-160)}`); });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button after ⌘Z" });
+      return "⌘D → 2 Buttons · ⌘Z → 1";
+    },
+  },
+  {
     id: "B-04", feature: "Layout on a page: the Stack's gap through the Layout section", wp: "GĐ2 M1",
     async run(ctx) {
       const { page, id } = await newPage(ctx);

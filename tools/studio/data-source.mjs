@@ -25,6 +25,8 @@
 // Refused, with the reason the Inspector shows: .filter / .sort / other calls before the .map, computed keys, spreads,
 // state that the component changes (useState read directly: that is setStateInit's, keep-behaviour rule), values that
 // are not literals at their source.
+import { parseExpression } from "@babel/parser";
+import { isPictureValue, pictureExpression } from "./picture.mjs";
 import { findElement, jsxName, parseLoc, parseSource, walk } from "./jsx-source.mjs";
 import { pathTo } from "./source-helpers.mjs";
 
@@ -47,6 +49,24 @@ const keyName = (key) => (key?.type === "Identifier" ? key.name : key?.type === 
 const isLiteralNode = (node) => node && (node.type === "StringLiteral" || node.type === "NumericLiteral" || node.type === "BooleanLiteral" || node.type === "NullLiteral"
   || (node.type === "TemplateLiteral" && node.expressions.length === 0)
   || (node.type === "UnaryExpression" && node.operator === "-" && node.argument.type === "NumericLiteral"));
+
+/**
+ * `new URL("<file>", import.meta.url).href`: a picture written in example or template code (the Studio's Picture control
+ * and a photo dropped on an Avatar write it: builder/library/media.ts pictureCode). A value like a literal: the Studio
+ * shows it as the picture and replaces it with another.
+ */
+const isPictureNode = (node) => Boolean(node) && node.type === "MemberExpression" && !node.computed && node.property?.name === "href"
+  && node.object?.type === "NewExpression" && node.object.callee?.type === "Identifier" && node.object.callee.name === "URL"
+  && node.object.arguments.length === 2 && node.object.arguments[0].type === "StringLiteral"
+  && node.object.arguments[1].type === "MemberExpression" && node.object.arguments[1].object?.type === "MetaProperty" && node.object.arguments[1].property?.name === "url";
+/** A picture imported as a module (`import photoAva from "…/avatar-ava.webp"`, read as `photoAva`): a value the Studio replaces with another picture. */
+function isPictureImport(mod, node) {
+  if (node?.type !== "Identifier") return false;
+  const binding = bindingOf(mod, node.name, node);
+  return Boolean(binding && binding.kind === "import" && /\.(?:webp|png|jpe?g|gif|svg|avif)$/i.test(binding.source ?? ""));
+}
+/** A literal, or a picture written as code (isPictureNode / isPictureImport): what describe calls editable and setDataField replaces. */
+const isValueNode = (mod, node) => isLiteralNode(node) || isPictureNode(node) || isPictureImport(mod, node);
 
 /* ── module context: one parsed file, and the files it imports ───────────────────────────────────────────────────── */
 
@@ -218,6 +238,14 @@ function follow(mod, expr, path, read, seen = new Set()) {
     const factory = resolveFactory(mod, node.callee.name, node, read);
     const [first, ...rest] = path;
     const param = factory.fields.get(first);
+    if (param === undefined && factory.spread && !factory.computed.has(first)) {
+      // Not a named parameter: the field is in the spread object argument, when the call gives one.
+      const extra = node.arguments[factory.spread.index];
+      if (!extra) refuse(`${node.callee.name}(…) is given no "${first}" here`, "not-found");
+      if (extra.type === "SpreadElement") refuse(`${node.callee.name}(…) gets its arguments from a spread here`);
+      if (unwrap(extra)?.type !== "ObjectExpression") refuse(`${node.callee.name}(…)'s ${factory.spread.name} is computed in the code; edit it there`);
+      return follow(mod, extra, path, read, seen);
+    }
     if (param === undefined) refuse(`${node.callee.name}(…) builds "${first}" in its own code; edit ${node.callee.name} or the data passed to it`);
     const argument = node.arguments[param.index];
     if (!argument) refuse(`${node.callee.name}(…) gets no argument for "${first}" here`);
@@ -247,13 +275,35 @@ function resolveFactory(mod, name, at, read) {
   if (body?.type !== "ObjectExpression") refuse(`${name}(…) does not return an object literal`);
   const params = new Map(fn.params.map((param, index) => [param.type === "AssignmentPattern" ? param.left.name : param.name, index]).filter(([key]) => typeof key === "string"));
   const fields = new Map();
+  // `({ id, name, …, ...extra })`: the fields the caller's `extra` object holds (person(…, { photo, online })) live in
+  // that argument, written per row; a field it lacks is added there (2026-10-10, pictures from the Studio).
+  let spread = null;
+  // Fields the factory builds itself (`email: \`${name}@…\``): computed, never read from the spread object.
+  const computed = new Set();
   for (const property of body.properties) {
+    if (property.type === "SpreadElement") {
+      const target = unwrap(property.argument);
+      if (target?.type === "Identifier" && params.has(target.name)) spread = { index: params.get(target.name), name: target.name };
+      continue;
+    }
     if (property.type !== "ObjectProperty" || property.computed) continue;
     const key = keyName(property.key);
     const value = unwrap(property.value);
     if (key && value?.type === "Identifier" && params.has(value.name)) fields.set(key, { index: params.get(value.name), path: [] });
+    else if (key) computed.add(key);
   }
-  return { owner, fields };
+  return { owner, fields, spread, computed };
+}
+
+/** The object argument a factory call spreads into its rows (`person(…, { photo })`), or null; `missing` when the call stops short of it. */
+function spreadArgumentOf(mod, call, read) {
+  if (call.type !== "CallExpression" || call.callee.type !== "Identifier") return null;
+  const factory = resolveFactory(mod, call.callee.name, call, read);
+  if (!factory.spread) return null;
+  const argument = call.arguments[factory.spread.index];
+  if (!argument) return { call, missing: factory.spread.index === call.arguments.length, name: call.callee.name };
+  const object = unwrap(argument);
+  return object?.type === "ObjectExpression" ? { call, object, name: call.callee.name } : { call, name: call.callee.name, other: true };
 }
 
 const fileName = (rel) => rel.split("/").pop();
@@ -414,9 +464,26 @@ function followAdding(mod, node, path, read) {
     if (!(error instanceof Refusal) || error.code !== "not-found" || !path.length) throw error;
     const parent = follow(mod, node, path.slice(0, -1), read);
     const object = unwrap(parent.node);
+    const key = path[path.length - 1];
+    if (object?.type === "CallExpression") {
+      // A factory row: the field goes in its spread object argument (`person(…, { photo })`), added when the call stops
+      // short of that argument; a row the factory builds entirely is refused as before.
+      const spread = spreadArgumentOf(parent.mod, object, read);
+      if (spread?.object && spread.object.properties.every((property) => property.type === "ObjectProperty")) return { add: { mod: parent.mod, object: spread.object, key } };
+      if (spread?.missing) return { add: { mod: parent.mod, call: spread.call, key } };
+      throw error;
+    }
     if (object?.type !== "ObjectExpression" || object.properties.some((property) => property.type !== "ObjectProperty")) throw error;
-    return { add: { mod: parent.mod, object, key: path[path.length - 1] } };
+    return { add: { mod: parent.mod, object, key } };
   }
+}
+
+/** The text with `{ key: value }` as the call's new last argument (the factory's spread object). */
+function withArgument(text, call, key, value) {
+  const name = /^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key);
+  const last = call.arguments[call.arguments.length - 1];
+  const at = last ? last.end : call.end - 1;
+  return `${text.slice(0, at)}${last ? ", " : ""}{ ${name}: ${value} }${text.slice(at)}`;
 }
 
 /** The text with `key: value` added as the object literal's last field, in its own style (one line, or a line per field). */
@@ -928,7 +995,7 @@ function describeOrigin(mod, element, target, read) {
     try {
       const item = follow(mod, origin.array, [String(origin.offset)], read);
       const found = readFromItem(item.mod, item.node, origin.read, mod, read);
-      return { kind: "row", editable: isLiteralNode(found.node), source: origin.source, path: origin.path, file: found.mod.file, reason: isLiteralNode(found.node) ? undefined : "The row's value is computed in the code" };
+      return { kind: "row", editable: isValueNode(found.mod, found.node), source: origin.source, path: origin.path, file: found.mod.file, reason: isValueNode(found.mod, found.node) ? undefined : "The row's value is computed in the code" };
     } catch (error) {
       if (error instanceof Refusal) return { kind: "row", editable: false, source: origin.source, path: origin.path, reason: error.message };
       throw error;
@@ -943,8 +1010,8 @@ function describeOrigin(mod, element, target, read) {
       // A field the row lacks but can take (a row written in place): editable, the edit adds it.
       if (target.add) return { kind: "cell", editable: isDataFile(target.add.mod.file), source: origin.source, path: origin.path, file: target.add.mod.file };
       const found = target.found;
-      const editable = isLiteralNode(found.node) && isDataFile(found.mod.file);
-      return { kind: "cell", editable, source: origin.source, path: origin.path, file: found.mod.file, reason: editable ? undefined : isLiteralNode(found.node) ? `${found.mod.file} is not a file the Studio edits` : "The row's value is computed in the code" };
+      const editable = isValueNode(found.mod, found.node) && isDataFile(found.mod.file);
+      return { kind: "cell", editable, source: origin.source, path: origin.path, file: found.mod.file, reason: editable ? undefined : isValueNode(found.mod, found.node) ? `${found.mod.file} is not a file the Studio edits` : "The row's value is computed in the code" };
     } catch (error) {
       if (error instanceof Refusal) return { kind: "cell", editable: false, source: origin.source, path: origin.path, reason: error.message };
       throw error;
@@ -952,8 +1019,12 @@ function describeOrigin(mod, element, target, read) {
   }
   if (origin.kind === "data") {
     try {
-      const found = follow(mod, origin.root, origin.path, read);
-      return { kind: "data", editable: isLiteralNode(found.node), source: origin.source, file: found.mod.file, reason: isLiteralNode(found.node) ? undefined : "The value is computed in the code" };
+      // A field the data lacks (`people.bao.photo` with no photo yet) is added where it is written (an object literal, a
+      // factory's spread object): editable, the edit adds it.
+      const target = followAdding(mod, origin.root, origin.path, read);
+      if (target.add) return { kind: "data", editable: isDataFile(target.add.mod.file), source: origin.source, file: target.add.mod.file, reason: isDataFile(target.add.mod.file) ? undefined : `${target.add.mod.file} is not a file the Studio edits` };
+      const found = target.found;
+      return { kind: "data", editable: isValueNode(found.mod, found.node), source: origin.source, file: found.mod.file, reason: isValueNode(found.mod, found.node) ? undefined : "The value is computed in the code" };
     } catch (error) {
       if (error instanceof Refusal) return { kind: "data", editable: false, source: origin.source, reason: error.message };
       throw error;
@@ -967,8 +1038,12 @@ function describeOrigin(mod, element, target, read) {
 /* ── the edit ────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 /** A literal in the source's own quote style. */
-function literalCode(value, previous, text) {
+function literalCode(value, previous, text, file) {
   switch (value?.kind) {
+    case "picture":
+      // A picture by its repo file: written relative to the data file it lands in.
+      if (!isPictureValue(value)) refuse("A picture value names an image file under src/", "invalid");
+      return pictureExpression(file, value.file);
     case "string": {
       if (typeof value.value !== "string") break;
       const quote = previous?.type === "StringLiteral" ? text[previous.start] : previous?.type === "TemplateLiteral" ? "`" : '"';
@@ -990,6 +1065,14 @@ function literalCode(value, previous, text) {
     case "boolean":
       if (typeof value.value === "boolean") return String(value.value);
       break;
+    case "expression": {
+      // A picture as code (isPictureNode): the one expression a data edit writes.
+      const code = typeof value.code === "string" ? value.code.trim() : "";
+      let node = null;
+      try { node = parseExpression(code, { plugins: ["jsx", "typescript"], sourceType: "module" }); } catch { node = null; }
+      if (!isPictureNode(node)) refuse("setDataField takes a string, number or boolean value, or a picture (new URL(…, import.meta.url).href)", "invalid");
+      return code;
+    }
     default:
   }
   refuse("setDataField takes a string, number or boolean value", "invalid");
@@ -1244,7 +1327,9 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
         source = `${origin.source} (${rowName()})`;
         state = row.list.state;
       } else if (origin.kind === "data") {
-        found = follow(mod, origin.root, origin.path, read);
+        const target = followAdding(mod, origin.root, origin.path, read);
+        if (target.add) adding = target.add;
+        else found = target.found;
         source = origin.source;
       } else if (origin.kind === "param") {
         refuse(`${origin.component}'s ${origin.prop} comes from where <${origin.component}> is used; edit it there`);
@@ -1259,13 +1344,13 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
     if (adding) {
       if (!isDataFile(adding.mod.file)) refuse(`${adding.mod.file} is not a file the Studio edits`);
       const text = adding.mod.code;
-      const next = withField(text, adding.object, adding.key, literalCode(op.value, null, text));
+      const next = adding.call ? withArgument(text, adding.call, adding.key, literalCode(op.value, null, text, adding.mod.file)) : withField(text, adding.object, adding.key, literalCode(op.value, null, text, adding.mod.file));
       return { file: adding.mod.file, code: next, source: `${source} (new field)`, changed: next !== text, state };
     }
-    if (!isLiteralNode(found.node)) refuse(`${source} is computed in the code, not written as data`);
+    if (!isValueNode(found.mod, found.node)) refuse(`${source} is computed in the code, not written as data`);
     if (!isDataFile(found.mod.file)) refuse(`${found.mod.file} is not a file the Studio edits`);
     const text = found.mod.code;
-    const replacement = literalCode(sameKind(found.node, op.value, source), found.node, text);
+    const replacement = literalCode(sameKind(found.node, op.value, source), found.node, text, found.mod.file);
     const next = `${text.slice(0, found.node.start)}${replacement}${text.slice(found.node.end)}`;
     return { file: found.mod.file, code: next, source, changed: next !== text, state };
   } catch (error) {

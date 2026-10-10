@@ -1,6 +1,8 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "../../../components/Button";
 import { tableEditorTypeFor } from "../../../components/Table";
+import { pictureCode } from "../builder/library/media";
+import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { ToggleButton } from "../../../components/Toggle";
@@ -476,7 +478,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
           {label === "Icon" && text
             ? <IconControl label={label} value={value} fallback={undefined} disabled={rowsLocked} onSet={(next) => set({ kind: "string", value: next })} />
             : label === "Picture" && text
-              ? <PhotoControl label={label} value={value} disabled={rowsLocked} people={kind === "avatar"} onSet={(next) => set({ kind: "string", value: next })} onClear={value ? () => set({ kind: "string", value: "" }) : undefined} textControl={field} />
+              ? <PhotoControl label={label} value={value} disabled={rowsLocked} people={kind === "avatar"} onSet={(next) => { const code = pictureCode(table?.tableRows?.file ?? parseSrc(selection.src)?.file ?? "", next); if (code) set(code); else inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); }} onClear={value ? () => set({ kind: "string", value: "" }) : undefined} />
               : field}
         </InspectorRow>,
       );
