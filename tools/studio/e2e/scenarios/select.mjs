@@ -73,6 +73,33 @@ export const rows = [
     },
   },
   {
+    id: "SE-33", feature: "A component nested in a Table cell: its props are written where the cell's own component is used (Size at <FixtureAvatar>, Theme in that row's person in data.ts)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const table = `${ctx.file}:${locOf(await ctx.text(), "table").loc}`;
+      // The Avatar in row t-2 (bao): ⌘-click it, Figma's deepest layer.
+      const avatar = async () => {
+        const point = await until(() => page.evaluate((src) => {
+          const tr = [...(window.__e2e.elementOf(src)?.querySelectorAll("tr.zen-table__row") ?? [])].find((row) => row.textContent.includes("Prototype"));
+          const r = tr?.querySelector(".zen-avatar")?.getBoundingClientRect();
+          return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+        }, table), { message: "the Avatar in row t-2" });
+        await page.keyboard.down("ControlOrMeta");
+        try { await page.mouse.click(point.x, point.y); } finally { await page.keyboard.up("ControlOrMeta"); }
+        await expectHeading(page, "Avatar", "the cell's Avatar selected");
+      };
+      await avatar();
+      await pickOption(page, "size", "Small");
+      await until(async () => (await ctx.text()).includes('<FixtureAvatar person={people[row.owner]} size="sm" />'), { message: "size=\"sm\" where <FixtureAvatar> is used" });
+      // The Avatar stays selected across the edit (a ⌘-click on it now would go into its parts, as in Figma).
+      await sleep(600);
+      if (!(await selectedName(page)).startsWith("Avatar")) await avatar();
+      await pickOption(page, "theme", "Red");
+      await until(async () => (await ctx.api.source(ctx.dataFile)).content.includes('bao: person("bao", "Bao Nguyen", "Frontend Engineer", "Engineering", "red",'), { message: "bao's theme in data.ts" });
+      return "size at its use · theme in data.ts";
+    },
+  },
+  {
     id: "SE-32", feature: "A Table column without `cell`: its Cell's Content and Bold are the column's fields (content, bold)", wp: "table 2026-10-10",
     async run(ctx) {
       const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });

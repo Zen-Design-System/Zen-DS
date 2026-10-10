@@ -94,6 +94,9 @@ removed (four unused colour ramps were, see Removed).
   `content`, `bold`, `captionField`, `mediaField`). A cell's text and a Data-Row's fields edit that row's data in
   templates and examples too: the row is found by its key (or its fields) in the data the Table reads, through sorts,
   filters, useMemo, useState and factory calls, and lookups such as `people[row.id].name` write the entry they read.
+  A component nested in a cell (an Avatar, a Badge) edits its own props: a fixed value on the cell's JSX (every row), a
+  prop bound to the row (`theme={row.theme}`, `theme={statusTheme[row.status]}`) in that row's data, and a prop a
+  component of the file passes on (`<PersonAvatar size="sm">`'s Avatar) where that component is used.
 - **Zen Studio: App Shell, Top Navigation and Sidebar row slots (2026-10-10):** a selected App Shell shows Figma's
   Sidebar, Leading-Slots, Center-Slots (Search, Segmented, Tabs), Trailing-Slots, Sections, Side-Panel, Floating-Item
   and Footer as slots (outlined, "+", the Slots section); a Top Navigation's title leading takes an Avatar, a Sidebar

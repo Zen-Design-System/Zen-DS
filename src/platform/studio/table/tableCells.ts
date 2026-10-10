@@ -124,6 +124,22 @@ export function rowFieldsOf(item: unknown): Record<string, string | number | boo
   return Object.keys(out).length ? out : undefined;
 }
 
+/** Where op setDataField finds a Table cell's row: its place, key and plain fields, and the Table's loc in `file`. */
+export type CellDataTarget = { row: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string };
+
+/**
+ * The row an element a column's `cell` writes is drawn for (`host`: one of its DOM nodes, inside the cell), as op
+ * setDataField takes it: a prop bound to the row (an Avatar's `src={row.photo}`, a Badge's
+ * `theme={statusTheme[row.status]}`) is written in that row's data. Null outside a Table cell.
+ */
+export function cellDataTarget(host: Element | null | undefined, file: string | undefined): CellDataTarget | null {
+  const hit = host ? tableCellOf(host) : null;
+  if (!hit) return null;
+  const table = hit.src ? /^(.*):(\d+:\d+)$/.exec(hit.src) : null;
+  const rowFields = rowFieldsOf(hit.item);
+  return { row: hit.row, ...(hit.rowKey !== null ? { rowKey: hit.rowKey } : {}), ...(rowFields ? { rowFields } : {}), ...(table && table[1] === file ? { table: table[2] } : {}) };
+}
+
 /** A row field's value as the Table draws it as text (TableText, a Badge…), or null for anything else. */
 export function fieldText(value: unknown): string | null {
   if (typeof value === "string") return value;

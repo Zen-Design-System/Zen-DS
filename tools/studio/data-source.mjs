@@ -786,6 +786,20 @@ function firstRowItem(mod, table, read) {
   return null;
 }
 
+/** The name a function component is declared with (`function PersonAvatar(…)`, `const Row = (…) =>`), or null. */
+function componentName(mod, fn) {
+  if (fn.type === "FunctionDeclaration") return fn.id && /^[A-Z]/.test(fn.id.name) ? fn.id.name : null;
+  const path = pathTo(mod.ast.program, fn) ?? [];
+  const holder = path[above(path, path.length - 1)];
+  return holder?.type === "VariableDeclarator" && holder.id.type === "Identifier" && /^[A-Z]/.test(holder.id.name) ? holder.id.name : null;
+}
+
+/** A row read with more fields after it (op setDataField `path`: `person={people[row.id]}` then `.theme`). */
+function readWith(read, extra) {
+  if (!extra.length) return read;
+  return read.root ? { ...read, segments: [...read.segments, ...extra], keys: [...read.keys, ...extra.map(() => null)] } : { ...read, path: [...read.path, ...extra] };
+}
+
 /**
  * What feeds the value: a describe-only answer for the Inspector.
  * { kind: "literal" } · { kind: "state", name } · { kind: "row", source, path, offset } · { kind: "data", source, path }
@@ -815,7 +829,14 @@ function classify(mod, element, target) {
   if (binding?.kind === "state" || binding?.kind === "state-value") return { kind: "state", name: chain.root.name };
   if (binding?.kind === "param") {
     const row = mapRowOf(mod, expr);
-    if (!row || row.fn !== binding.fn) return { kind: "expression", reason: `${chain.root.name} is a parameter; its value comes from where the component is used` };
+    if (!row || row.fn !== binding.fn) {
+      // A prop of a component of this file (`function PersonAvatar({ person, size })`): the value comes from where it is
+      // used — the client writes it there (that element's prop, or the data it reads, plus `path`).
+      const component = binding.position === 0 ? componentName(mod, binding.fn) : null;
+      const path = [...binding.path, ...chain.path];
+      if (component && path.length) return { kind: "param", component, prop: path[0], path: path.slice(1), source: `${component} ${path.join(".")}` };
+      return { kind: "expression", reason: `${chain.root.name} is a parameter; its value comes from where the component is used` };
+    }
     if (binding.position !== 0) return { kind: "expression", reason: `${chain.root.name} is the row's index, not data` };
     const source = mod.code.slice(row.array.start, row.array.end);
     return { kind: "row", source: source.length > 40 ? `${source.slice(0, 37)}…` : source, path: [...binding.path, ...chain.path], offset: row.offset, array: row.array };
@@ -902,6 +923,8 @@ function describeOrigin(mod, element, target, read) {
       throw error;
     }
   }
+  // A prop of a component of this file: edited where that component is used (the client finds the use on the canvas).
+  if (origin.kind === "param") return { kind: "param", editable: true, source: origin.source, component: origin.component, prop: origin.prop, path: origin.path };
   return { ...origin, editable: origin.kind === "literal" };
 }
 
@@ -1161,6 +1184,11 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
     } else {
       const target = typeof op.prop === "string" ? { prop: op.prop } : { child: op.child };
       const origin = classify(mod, element, target);
+      // `path`: fields after the value (the use of a component whose prop is read further: `person` then `.theme`).
+      const extra = Array.isArray(op.path) ? op.path : [];
+      if (extra.some((key) => typeof key !== "string" || !key)) refuse("`path` names fields", "invalid");
+      if (origin.read) origin.read = readWith(origin.read, extra);
+      if (origin.path && origin.kind !== "row" && origin.kind !== "cell") origin.path = [...origin.path, ...extra];
       if (origin.kind === "row") {
         if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a .map row needs the row index (`row`)", "invalid");
         const item = follow(mod, origin.array, [String(op.row + origin.offset)], read);
@@ -1176,6 +1204,8 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
       } else if (origin.kind === "data") {
         found = follow(mod, origin.root, origin.path, read);
         source = origin.source;
+      } else if (origin.kind === "param") {
+        refuse(`${origin.component}'s ${origin.prop} comes from where <${origin.component}> is used; edit it there`);
       } else if (origin.kind === "state") {
         refuse(`${origin.name} is state: edit its initial value (the useState initializer) instead`);
       } else if (origin.kind === "literal") {

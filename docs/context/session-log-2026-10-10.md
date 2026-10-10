@@ -111,3 +111,11 @@
 - Tests: data-source selftest 25 (+7 Table cases); E2E DA-08, DA-09, SE-31, SE-32 (fixture TableFixture, frame 10), twice
   4/4; probes on the table example (sorted Table, lookup into data.ts), HR My leaves (leaveKinds lookup) and Admin list
   (factory spread, filtered/paged rows).
+- Follow-up (user via "Lỗi nested properties": "không chỉnh được props avatar hoặc các nested khác trong table cell"):
+  the Inspector sent setDataField without the row for props bound to a cell's row (kind "cell"): DesignPanel and nested
+  instances now pass the cell's row (table/tableCells cellDataTarget). Props a component of the file passes on
+  (`function PersonAvatar({ person, size })`) are kind "param": inspector/callSite.ts writes them where the component is
+  used (the use above the selected fiber): a literal there, or its data with setDataField `path` (`person` → `.theme`).
+  Probes: Admin list An Mai's Avatar Theme → member(…, "red"); Badge Theme → statusTheme.Active; table example Em Pham's
+  Avatar Size → `<PersonAvatar … size="md">`, Theme → people.em in data.ts. Drawn icon cells take the icon picker.
+  data-source selftest 26; E2E SE-33 (fixture FixtureAvatar column).

@@ -6,7 +6,7 @@ import { ToggleButton } from "../../../components/Toggle";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { PartPanel } from "../inspector/PartPanel";
-import { EnumControl, NumberControl, TextControl } from "../inspector/PropField";
+import { EnumControl, IconControl, NumberControl, TextControl } from "../inspector/PropField";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
 import { inspectorStatus } from "../inspector/status";
 import { currentFiber, fiberOf, hostsOf, onSourceUpdate, shortSrc, srcOf, type Fiber } from "../select/picker";
@@ -342,9 +342,14 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
     const fields: Array<[string, string | undefined]> = [["Label", column.field ?? column.id], ["Subtext", column.captionField], [MEDIA.has(kind) ? (kind === "icon" || kind === "dock-icon" ? "Icon" : "Picture") : "", column.mediaField]];
     for (const [label, key] of fields) {
       if (!label || !key) continue;
+      const set = (next: EditValue) => void edit(table, [rowOp(cell, [key], next)], `${header}, row ${cell.row + 1}: ${label}`);
+      // An Icon or Dock Icon cell's icon name: Figma's icon swap.
+      const icon = label === "Icon" && (typeof record[key] === "string" || record[key] === undefined);
       valueRows.push(
         <InspectorRow key={key} label={label} labelTitle={key} name={`value-${key}`}>
-          <ValueField label={label} value={record[key]} disabled={rowsLocked} onSet={(next) => void edit(table, [rowOp(cell, [key], next)], `${header}, row ${cell.row + 1}: ${label}`)} />
+          {icon
+            ? <IconControl label={label} value={typeof record[key] === "string" ? (record[key] as string) : undefined} fallback={undefined} disabled={rowsLocked} onSet={(next) => set({ kind: "string", value: next })} />
+            : <ValueField label={label} value={record[key]} disabled={rowsLocked} onSet={set} />}
         </InspectorRow>,
       );
     }

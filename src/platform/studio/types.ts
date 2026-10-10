@@ -174,12 +174,16 @@ export type SourceAttr = {
  * Where an expression's value is written as data (dev server, tools/studio/data-source.mjs, plan WP-C): a `.map` row of a
  * literal list (`row`: the list is `source`, the field `path`), a Table column cell's row (`cell`: the Table's rows, the
  * row named by its key), a data const or import read by path (`data`), state, a condition or other code; `rows` is a
- * Table's own rows (SourceElement.tableRows). `editable`: op setDataField can write the value there (`file`: where, maybe
- * data.ts); otherwise `reason` says why it stays read-only.
+ * Table's own rows (SourceElement.tableRows); `param` is a prop of a component of the file, written where that component
+ * is used. `editable`: op setDataField can write the value there (`file`: where, maybe data.ts); otherwise `reason`
+ * says why it stays read-only.
  */
 export type DataSource = {
-  kind: "row" | "cell" | "rows" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
+  kind: "row" | "cell" | "rows" | "param" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
   editable: boolean;
+  /** kind "param": a prop of a component of the file (`PersonAvatar`'s `person`, then `path`), written where it is used. */
+  component?: string;
+  prop?: string;
   source?: string;
   path?: string[];
   file?: string;
@@ -277,9 +281,9 @@ export type EditOp =
    * A Table cell (2026-10-10): `row` is the row's place among the Table's rendered rows, `rowKey` its React key
    * (getRowId), `rowFields` its plain fields as rendered (the row is found by them when the code computes its key),
    * `table` the Table's loc (the column may be written apart from it); `field` (on the Table itself) names the row field
-   * a column without `cell` draws.
+   * a column without `cell` draws. `path`: fields after the value (`person={people[row.id]}` then `.theme`).
    */
-  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; value: EditValue }
+  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; path?: string[]; value: EditValue }
   /**
    * One field of the object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item when it is
    * an array literal (`trailing={[{ … }]}`): `value` replaces or appends the field, null removes it (SourceAttr.shape).

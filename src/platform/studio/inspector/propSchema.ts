@@ -286,6 +286,10 @@ export function dataSourceLabel(source: DataSource, row?: number): string {
   const fields = (source.path ?? []).map((key) => `.${key}`).join("");
   // A list written in place of names (`[people.ava, people.bao]`) names the row's item itself.
   const items = source.kind === "row" ? /^\[\s*([\w$.]+(?:\s*,\s*[\w$.]+)*)\s*,?\s*\]$/.exec(source.source ?? "")?.[1].split(/\s*,\s*/) : undefined;
+  // A prop of a component of the file: written where it is used.
+  if (source.kind === "param") return `<${source.component ?? "the component"}>'s ${[source.prop, ...(source.path ?? [])].filter(Boolean).join(".")} where it is used`;
+  // A Table cell's row: the value as the cell reads it, and which row.
+  if (source.kind === "cell") return `${source.source ?? "the row"}${row !== undefined ? ` (row ${row + 1})` : ""}${source.file ? ` in ${source.file.split("/").pop()}` : ""}`;
   const where = source.kind !== "row" ? source.source ?? "data" : items?.[row ?? 0] ? `${items[row ?? 0]}${fields}` : `${source.source ?? "data"}[${row ?? 0}]${fields}`;
   return source.file ? `${where} in ${source.file.split("/").pop()}` : where;
 }

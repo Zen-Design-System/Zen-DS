@@ -18,7 +18,7 @@ import { NumberField } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
 import { Segmented } from "../../../components/Segmented";
-import { Table, TableText } from "../../../components/Table";
+import { Table, TableMedia, TableText } from "../../../components/Table";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { Heading, Text } from "../../../components/Text";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -173,6 +173,11 @@ const tableTasks: Array<{ id: string; title: string; owner: keyof typeof people;
   { id: "t-2", title: "Prototype", owner: "bao", status: "In progress" },
 ];
 
+/** A person's Avatar through a component of the file: its props come from where it is used. */
+function FixtureAvatar({ person, size }: { person: (typeof people)[keyof typeof people]; size: "xs" | "sm" }) {
+  return <Avatar size={size} theme={person.theme} background="subtle" alt="">{person.name.slice(0, 2)}</Avatar>;
+}
+
 function TableFixture() {
   const [rows] = useState(tableTasks);
   const sorted = useMemo(() => [...rows].sort((a, b) => b.title.localeCompare(a.title)), [rows]);
@@ -182,6 +187,7 @@ function TableFixture() {
         { id: "title", header: "Task", cell: (row) => <TableText>{row.title}</TableText> },
         { id: "owner", header: "Owner", cell: (row) => <TableText>{people[row.owner].name}</TableText> },
         { id: "status", header: "Status", field: "status" },
+        { id: "who", header: "Who", cell: (row) => <TableMedia media={<FixtureAvatar person={people[row.owner]} size="xs" />}>{row.owner}</TableMedia> },
       ]} />
     </Stack>
   );

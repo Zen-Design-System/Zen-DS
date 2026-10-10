@@ -17,6 +17,8 @@ import { navigate } from "../shell/navigation";
 import { RemoveAction, SlotsSection } from "../slots";
 import { slotOf } from "../slots/registry";
 import { detachShown, rowOf, useDetachPlan } from "./detach";
+import { cellDataTarget } from "../table/tableCells";
+import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
@@ -385,6 +387,14 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     return row && !("reason" in row) ? row.row : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection.src, selection.instance, instances]);
+  // An element a Table column's `cell` writes: the row of the cell this instance is drawn in (a prop bound to the row,
+  // an Avatar's `src={row.photo}`, is written in that row's data).
+  const cellRow = useMemo(() => {
+    const world = canvasApi.getWorldElement();
+    const hit = world ? findBySrc(world, selection.src)[selection.instance] : null;
+    return cellDataTarget(hit?.hosts[0], parseSrc(selection.src)?.file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection.src, selection.instance, instances]);
   // Row-ness comes from the canvas whenever the server gives no plan (loading or refused), so the label and the Repeats
   // line keep their wording and height when a refusal arrives.
   const rowDetach = detach.state === "ready" ? detach.plan.repeated : mapRow;
@@ -515,19 +525,30 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     // State props show their initial state (useState literal, defaultX) and edit it, so the component keeps toggling.
     valueFor: (name) => {
       const value = overrides[name] ?? (element ? displayValueOf(element.name, element.attributes, name, live) : { state: "unset" });
-      // A .map row's data is edited in this instance's row (the note names it).
+      // A .map row's data is edited in this instance's row, a Table cell's in its cell's row (the note names it).
+      if (value.state === "bound" && value.dataSource?.kind === "cell" && cellRow) return { ...value, dataSource: { ...value.dataSource, row: cellRow.row } };
       return value.state === "bound" && value.dataSource?.kind === "row" && dataRow !== null ? { ...value, dataSource: { ...value.dataSource, row: dataRow } } : value;
     },
     setProp: (name, value) => {
       if (!element) return;
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
       if (dataEditable(current, selection.panelId ? "playground" : undefined)) {
+        // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
+        if (current.dataSource.kind === "param") {
+          const world = canvasApi.getWorldElement();
+          void writeAtUse(world ? findBySrc(world, selection.src)[selection.instance] : null, current.dataSource, toEditValue(value), `${element.name} ${name} → ${display(value)}`);
+          return;
+        }
         // Written where the data is (WP-C): the binding stays, so the optimistic value is the same binding rendering `value`.
         if (current.dataSource.kind === "row" && dataRow === null) {
           inspectorStatus.set("negative", "This list renders in several places on the canvas, so the row to edit is unclear; edit the data in code");
           return;
         }
-        const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : {};
+        if (current.dataSource.kind === "cell" && !cellRow) {
+          inspectorStatus.set("negative", "This value comes from a Table row: select it in its cell on the canvas to edit that row");
+          return;
+        }
+        const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : current.dataSource.kind === "cell" ? cellRow : {};
         void send([{ op: "setDataField", prop: name, ...row, value: toEditValue(value) }], `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: value } });
         return;
       }
@@ -573,7 +594,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         },
       };
     },
-  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow]);
+  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow, cellRow]);
 
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.

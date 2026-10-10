@@ -386,5 +386,31 @@ test("row: a .map row's lookup (people[member.id].name) edits the entry its id n
   assert.match(result.code, /ava: person\("ava", "Ava T\.", "UX Researcher"\)/);
 });
 
+test("param: a prop of a component of the file is edited where it is used; `path` reads further into the data there", () => {
+  const helper = [
+    "import { people } from \"../platform/examples/data\";",
+    "function Pill({ person, size }) {",
+    "  return <Avatar size={size} alt={person.role} />;",
+    "}",
+    "const rows = [{ id: \"r1\", owner: \"bao\" }];",
+    "export function Demo() {",
+    "  return <Table aria-label=\"Owners\" rows={rows} columns={[{ id: \"owner\", header: \"Owner\", cell: (row) => <TableMedia media={<Pill person={people[row.owner]} size=\"sm\" />}>x</TableMedia> }]} />;",
+    "}",
+    "",
+  ].join("\n");
+  const FILE = "src/templates/PillDemo.tsx";
+  const avatar = locOf("<Avatar size={size}", "Avatar", helper);
+  const size = originOf(helper, FILE, avatar, { prop: "size" }, { read: readTables });
+  assert.deepEqual([size.kind, size.editable, size.component, size.prop, size.path], ["param", true, "Pill", "size", []]);
+  const role = originOf(helper, FILE, avatar, { prop: "alt" }, { read: readTables });
+  assert.deepEqual([role.kind, role.prop, role.path], ["param", "person", ["role"]]);
+  assert.match(dataFieldEdit(helper, FILE, avatar, "Avatar", { prop: "alt", value: text("x") }, { read: readTables }).error, /where <Pill> is used/);
+  // The use: person={people[row.owner]} then .role, in the cell's row.
+  const pill = locOf("<Pill person=", "Pill", helper);
+  const result = dataFieldEdit(helper, FILE, pill, "Pill", { prop: "person", path: ["role"], row: 0, rowKey: "r1", value: text("Staff engineer") }, { read: readTables });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /bao: person\('bao', 'Bao Nguyen', 'Staff engineer'\)/);
+});
+
 if (process.exitCode) console.log(`data-source self-test: failures above (${passed} passed)`);
 else console.log(`✓ data-source (originOf · setDataField · row edits) self-test: ${passed} cases`);
