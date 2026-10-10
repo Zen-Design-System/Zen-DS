@@ -13,6 +13,9 @@ import type { EditOp, StateDecl, StudioSelection } from "../../types";
 import type { DropTarget, NodeSelection } from "../arrange";
 import { insertCode } from "../clipboard";
 import { dropTargetAt, publishDragView, type DropContext } from "../drag";
+import { fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf } from "../../select/picker";
+import { withoutPart } from "../../select/parts";
+import { PICTURED, writePicture } from "./picture";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
@@ -73,22 +76,39 @@ export const uploadInsertable = (upload: Upload): Insertable => ({
   refusal: "An uploaded photo goes on a page you made (Pages › New page); example code takes the library's photos",
 });
 
-/** Layers whose picture is their `src` (propSchema.ts PHOTO_PROPS): a photo click gives them that picture. */
-const PICTURED = new Set(["Image", "Avatar", "AppShellAccount"]);
-
-/** The selected Image, Avatar or account of a page you made (a photo click swaps its picture), or null. */
+/**
+ * The selected Image, Avatar, Thumbnail or account (a photo click swaps its picture, in any file: picture.ts), or null.
+ * A part of one selected (the account's own img, Figma's deepest layer under ⌘-click) counts as the layer that holds the picture.
+ */
 export function selectedImage(): NodeSelection | null {
   const selection = studioStore.getState().selection;
-  return selection?.kind === "node" && !selection.part && PICTURED.has(selection.name) && parseSrc(selection.src)?.file.startsWith("local:") ? selection : null;
+  if (selection?.kind !== "node" || !PICTURED.has(selection.name)) return null;
+  return selection.part ? (withoutPart(selection) as NodeSelection) : selection;
 }
 
-/** Gives the selected Image (or Avatar) another picture (one undo step): how a page's missing photo is replaced. */
-async function swapPhoto(selection: NodeSelection, src: string, label: string) {
-  const at = parseSrc(selection.src);
-  if (!at) return;
-  const element = await studioApi.element(at.file, at.loc);
-  if (!element) { fail(`The selected ${selection.name} is no longer there`); return; }
-  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "src", value: { kind: "string", value: src } } as EditOp], hash: element.hash }, `${selection.name} → ${label}`);
+/** Gives the selected Image, Avatar or account another picture (one undo step; a row's picture changes that row only). */
+const swapPhoto = (selection: NodeSelection, src: string, label: string) => writePicture(selection, src, label);
+
+/**
+ * The Image, Avatar or account under the pointer (an Avatar drawn as a part of an account counts as the account), as a
+ * selection a dropped photo goes on, with its box; null over anything else.
+ */
+function picturedAt(x: number, y: number): { selection: NodeSelection; box: DOMRect; hit: ReturnType<typeof hitOf> } | null {
+  const world = canvasApi.getWorldElement();
+  // The drag's own overlay sits on top: the first element under the pointer that is on the canvas (as dropTargetAt).
+  const under = document.elementsFromPoint(x, y).find((element) => world?.contains(element) && element !== world);
+  if (!world || !under) return null;
+  for (let fiber = fiberOf(under); fiber; fiber = fiber.return) {
+    if (typeof fiber.type !== "function" || !PICTURED.has(nameOf(fiber))) continue;
+    const src = srcOf(fiber);
+    if (!src) continue;
+    const hit = hitOf(fiber);
+    const box = hit ? rectOfHosts(hit.hosts) : null;
+    if (!hit || !box) return null;
+    const host = hit.hosts[0];
+    return { hit, box, selection: { kind: "node", src, name: nameOf(fiber), frameId: frameOf(host), panelId: panelOf(host), instance: instanceOf(world, hit) } };
+  }
+  return null;
 }
 
 /** The selected Icon layer (an icon from the library swaps its glyph), or null. */
@@ -180,7 +200,7 @@ export async function dropAsset(item: Insertable, target: DropTarget) {
 
 const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
 
-type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null };
+type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt> };
 let drag: Drag | null = null;
 
 const overCanvas = (x: number, y: number) => {
@@ -202,6 +222,15 @@ function onMove(event: PointerEvent) {
   if (!overCanvas(pointer.x, pointer.y)) {
     current.target = null;
     publishDragView(null);
+    return;
+  }
+  // A photo over an Image, Avatar or account: the drop replaces its picture (Figma drops an image on a layer's fill).
+  current.swap = current.item.photo ? picturedAt(pointer.x, pointer.y) : null;
+  if (current.swap) {
+    current.target = null;
+    current.refusal = null;
+    const { box, selection } = current.swap;
+    publishDragView({ line: null, into: { x: box.x, y: box.y, w: box.width, h: box.height }, pointer, label: `Picture of ${selection.name}`, tone: "info" });
     return;
   }
   const { target, reason } = dropTargetAt(pointer.x, pointer.y, NOTHING);
@@ -235,6 +264,12 @@ function stop(commit: boolean) {
   const swallow = (event: MouseEvent) => { event.stopPropagation(); event.preventDefault(); };
   window.addEventListener("click", swallow, { capture: true, once: true });
   window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 0);
+  if (commit && current.swap && current.item.photo) {
+    const { selection, hit } = current.swap;
+    if (hit) selectHit(hit, canvasApi.getWorldElement());
+    void writePicture(selection, current.item.photo, current.item.label);
+    return;
+  }
   if (commit && current.target && !current.refusal) void dropAsset(current.item, current.target);
 }
 
@@ -252,7 +287,7 @@ export function pressAsset(event: PointerEvent, item: Insertable) {
   if (event.button !== 0 || drag) return;
   if (!canEdit()) { fail("View only — switch to Admin to edit"); return; }
   event.preventDefault();
-  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null };
+  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null };
   window.addEventListener("pointermove", onMove, true);
   window.addEventListener("pointerup", onUp, true);
   window.addEventListener("pointercancel", onCancel, true);

@@ -1,18 +1,19 @@
-import { useContext, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { useContext, useId, useMemo, useRef, useState } from "react";
 import { Avatar } from "../../../../components/Avatar";
 import { Button } from "../../../../components/Button";
 import { Popover, PopoverItem } from "../../../../components/Popover";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { altOf, ASSET_PREFIX, useUploads, type Upload } from "../../builder/assets/uploads";
-import { LIBRARY_PHOTOS, MEDIA_FILES, MEDIA_PREFIX, resolveMedia } from "../../builder/library/media";
+import { LIBRARY_PHOTOS, MEDIA_FILES, MEDIA_PREFIX, pictureValueOf, resolveMedia } from "../../builder/library/media";
 import { InspectorFileContext } from "./hostContext";
 
 /*
  * A picture prop (Avatar / AppShellAccount / Image `src`, propSchema.ts editor kind "photo"): Figma's image fill picker
  * for a page you made. The menu lists this browser's uploads, the people photos (src/assets/media/avatar-*) and the
  * library's photos; a pick writes `src="zen-media:<key>"` or `src="zen-asset:<id>"`, which the page renderer resolves.
- * Example code reads `platformMedia.<path>` (an expression), so outside a page you made the prop stays a text field.
- * User, 2026-10-10: "Avatar không bỏ ảnh vào được".
+ * In example and template code the same pick is written as the picture's file (media.ts pictureCode), so every Avatar,
+ * Image and account picture takes a photo the same way (user, 2026-10-10: "Avatar không bỏ ảnh vào được", "thay hình
+ * vào avatar trong mọi component hệt như các example"); uploads stay on pages you made.
  */
 
 type Choice = { value: string; label: string; src: string };
@@ -47,8 +48,9 @@ function nameOf(value: string, groups: readonly Group[]): string {
 /** A square thumbnail of the picture (Avatar's photo fill, 20px like an icon in the field). */
 const Thumb = ({ src }: { src: string }) => <Avatar size="2xsmall" shape="square" src={src} alt="" />;
 
-export function PhotoControl({ label, value, disabled, onSet, onClear, people = false, textControl }: {
+export function PhotoControl({ label, value: given, disabled, onSet, onClear, people = false }: {
   label: string;
+  /** The picture as written (a zen-media:/zen-asset: value, a `new URL(…)` expression) or as it renders (a URL). */
   value: string | undefined;
   disabled: boolean;
   onSet: (value: string) => void;
@@ -56,8 +58,6 @@ export function PhotoControl({ label, value, disabled, onSet, onClear, people = 
   onClear?: () => void;
   /** An avatar: the people photos lead the menu. */
   people?: boolean;
-  /** The field outside a page you made (PropField's text field). */
-  textControl: ReactNode;
 }) {
   const file = useContext(InspectorFileContext);
   const uploads = useUploads();
@@ -66,8 +66,7 @@ export function PhotoControl({ label, value, disabled, onSet, onClear, people = 
   const anchorRef = useRef<HTMLDivElement>(null);
   const listId = useId();
   const groups = useMemo(() => photoGroups(uploads, people), [uploads, people]);
-  // Example code: `platformMedia.x.src` is an expression a pick cannot write (see the header).
-  if (!file?.startsWith("local:")) return textControl;
+  const value = pictureValueOf(file, given, given);
   const terms = query.trim().toLowerCase();
   const shown = terms ? groups.map((group) => ({ ...group, choices: group.choices.filter((choice) => choice.label.toLowerCase().includes(terms)) })).filter((group) => group.choices.length) : groups;
   const pick = (next: string) => {

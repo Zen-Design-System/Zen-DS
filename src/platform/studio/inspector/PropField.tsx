@@ -41,10 +41,15 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
   const source = value === undefined ? "" : String(value);
   const [draft, setDraft] = useState(source);
   const committed = useRef<string | null>(null);
+  // Only what the user typed is written. Between a new value and the effect that copies it into the draft, a selection
+  // change flushes the drafts (drafts.ts) with the old one: a Sidebar section's Label wrote "" on a double-click on the
+  // canvas (2026-10-10).
+  const edited = useRef(false);
   const ref = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   useEffect(() => {
     setDraft(source);
     committed.current = null;
+    edited.current = false;
   }, [source]);
   useEffect(() => {
     if (!autoFocusToken) return;
@@ -52,9 +57,13 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
     ref.current?.select();
   }, [autoFocusToken]);
   const commit = () => {
-    if (disabled || draft === source || draft === committed.current) return;
+    if (disabled || !edited.current || draft === source || draft === committed.current) return;
     committed.current = draft;
     onSet(numeric && /^-?\d+(\.\d+)?$/.test(draft.trim()) ? Number(draft.trim()) : draft);
+  };
+  const change = (next: string) => {
+    edited.current = true;
+    setDraft(next);
   };
   usePendingDraft(commit);
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -66,23 +75,27 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
       event.stopPropagation();
       setDraft(source);
       committed.current = null;
+      edited.current = false;
     }
   };
   const placeholder = fallback === undefined ? "" : String(fallback);
-  if (multiline) return <TextAreaField ref={ref} aria-label={label} size="sm" value={draft} rows={3} disabled={disabled} placeholder={placeholder} onValueChange={setDraft} onBlur={commit} onKeyDown={onKeyDown} />;
-  return <InputField ref={ref} aria-label={label} size="sm" value={draft} disabled={disabled} placeholder={placeholder} onValueChange={setDraft} onBlur={commit} onKeyDown={onKeyDown} />;
+  if (multiline) return <TextAreaField ref={ref} aria-label={label} size="sm" value={draft} rows={3} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
+  return <InputField ref={ref} aria-label={label} size="sm" value={draft} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
 }
 
 /** A number committed once per value, on Enter, blur or a selection change (as TextControl). */
 export function NumberControl({ label, value, fallback, disabled, onSet }: ControlProps<number>) {
   const [draft, setDraft] = useState<number | null>(value ?? null);
   const committed = useRef<number | null>(null);
+  /** Typed by the user (see TextControl): a stale draft is never written back. */
+  const edited = useRef(false);
   useEffect(() => {
     setDraft(value ?? null);
     committed.current = null;
+    edited.current = false;
   }, [value]);
   const commit = () => {
-    if (disabled || draft === null || draft === value || draft === committed.current) return;
+    if (disabled || !edited.current || draft === null || draft === value || draft === committed.current) return;
     committed.current = draft;
     onSet(draft);
   };
@@ -94,7 +107,7 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
       value={draft}
       placeholder={fallback === undefined ? "" : String(fallback)}
       disabled={disabled}
-      onValueChange={setDraft}
+      onValueChange={(next) => { edited.current = true; setDraft(next); }}
       onBlur={commit}
       onKeyDown={(event) => {
         if (event.key === "Enter") commit();
@@ -103,6 +116,7 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
           event.stopPropagation();
           setDraft(value ?? null);
           committed.current = null;
+          edited.current = false;
         }
       }}
     />
@@ -222,13 +236,16 @@ export function TextAlignControl({ label, value, fallback, disabled, onSet, opti
 function LinesControl({ label, value, disabled, onSet }: { label: string; value: number; disabled: boolean; onSet: (value: number) => void }) {
   const [draft, setDraft] = useState<number | null>(value);
   const committed = useRef<number | null>(null);
+  /** Typed or stepped by the user (see TextControl): a stale draft is never written back. */
+  const edited = useRef(false);
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     setDraft(value);
     committed.current = null;
+    edited.current = false;
   }, [value]);
   const commit = (next: number | null = draft) => {
-    if (disabled || next === null) return;
+    if (disabled || !edited.current || next === null) return;
     const lines = Math.max(1, Math.round(next));
     if (lines === value || lines === committed.current) return;
     committed.current = lines;
@@ -245,6 +262,7 @@ function LinesControl({ label, value, disabled, onSet }: { label: string; value:
       value={draft}
       disabled={disabled}
       onValueChange={(next) => {
+        edited.current = true;
         setDraft(next);
         if (document.activeElement !== ref.current) commit(next);
       }}
@@ -257,6 +275,7 @@ function LinesControl({ label, value, disabled, onSet }: { label: string; value:
           event.stopPropagation();
           setDraft(value);
           committed.current = null;
+          edited.current = false;
         }
       }}
     />
@@ -611,10 +630,13 @@ function LiteralValue({ value }: { value: Literal }) {
 const namedOptions = (options: string[], names: Readonly<Record<string, string>> | undefined) => (names ? figmaOptions(options, names, matchOption) : { options, labels: undefined });
 
 /** The editor for a value edited at its data (text, number, a choice), showing what it renders now; null: no editor. */
-function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>): ReactNode {
+function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>, component?: string): ReactNode {
   const editor = spec.editor;
   const common = { label, disabled, fallback: undefined };
   switch (editor.kind) {
+    case "photo":
+      // A picture from data (a row's photo): Figma's image picker; the pick is written in that row's data.
+      return <PhotoControl label={label} disabled={disabled} value={typeof live === "string" ? live : undefined} onSet={(next) => onSet(next)} people={component !== "Image"} />;
     case "enum":
       return <EnumControl {...common} {...namedOptions(editor.options, optionLabels)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
     case "number-enum":
@@ -623,7 +645,6 @@ function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boo
       return <NumberControl {...common} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
     case "string":
     case "node":
-    case "photo":
       return typeof live === "string" || typeof live === "number" || live === undefined
         ? <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={live} onSet={onSet} multiline={typeof live === "string" && (live.length > 48 || live.includes("\n"))} />
         : null;
@@ -668,7 +689,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       return <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={literal as string | number | undefined} fallback={fallback === undefined || fallback === null ? (editor.kind === "node" ? "None" : undefined) : String(fallback)} onSet={onSet} autoFocusToken={extra.autoFocusToken} multiline={typeof literal === "string" && (literal.length > 48 || literal.includes("\n"))} />;
     case "photo": {
       const text = typeof literal === "string" ? literal : undefined;
-      return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} textControl={<TextControl {...common} fallback={undefined} value={text} onSet={onSet} />} />;
+      return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} />;
     }
     case "typography":
       return <TypographyControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
@@ -739,7 +760,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
     if (dataEditable(value, boundHint) && spec.editor.kind !== "boolean") {
       // A value the code reads from data (a .map row's item, a data const, examples/data.ts): edited where that data is
       // written (op setDataField, FieldApi.setProp), so the binding stays and every place that shows the data changes.
-      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels);
+      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels, component);
       const note = `From ${dataSourceLabel(value.dataSource, value.dataSource.row)}: an edit changes it everywhere it shows.`;
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }

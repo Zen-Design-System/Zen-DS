@@ -47,7 +47,7 @@ const figmaWords: Readonly<Record<string, string>> = {
 function optimisticOf(ops: EditOp[]): Record<string, PropValue> {
   const out: Record<string, PropValue> = {};
   for (const op of ops) {
-    if (op.op === "setProp" && op.value.kind !== "expression") out[op.name] = { state: "literal", value: op.value.value, raw: "" };
+    if (op.op === "setProp" && "value" in op.value) out[op.name] = { state: "literal", value: op.value.value, raw: "" };
     else if (op.op === "removeProp") out[op.name] = { state: "unset" };
   }
   return out;

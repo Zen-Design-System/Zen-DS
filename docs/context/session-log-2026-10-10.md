@@ -282,3 +282,62 @@
   shortcuts in title / aria-keyshortcuts, a ⇧A · ⌫ · ⌘Z line), then "Selected items" (a row selects that item alone).
   The primary item's own part details are hidden while several are selected. E2E SP-10 / B-33 read the header count.
 
+
+## Sections easy to select on the canvas (user: "khó chọn section. chỉ chọn được item bên trong. Muốn chọn section lại phải bấm bên layer") — tier M, session "Lỗi nested properties"
+
+- Double-click drill Sidebar → section → Menu-Item / Section-Title → text: `sectionPartAtPoint` / `rowPartAtPoint`
+  (dataItems.ts, by geometry: the capture layer and `display: contents` hide what is under the pointer), `livePart` for
+  parts the canvas drew anew. A section selected: a click on another section selects it. Escape: inside a row → the row
+  → its section → the Sidebar.
+- Root cause of the flaky row pick: TextControl's stale draft. Between a new source value and the effect that copies it
+  into the draft, a selection change flushed the drafts (drafts.ts) with the old one: `sections[1].label → ""` then
+  back, two real writes, and the title vanished for ~50 ms so the row under the pointer shifted. Text/Number/Lines
+  controls now commit only user-typed drafts (`edited` ref).
+- After a row or title is selected, the next double-click edits its text; nested `sections` text cannot be edited in
+  place (textEdit `sourceOf` → null), so the fallback focus request (moved to inspector/focusContent.ts, out of
+  DesignPanel to avoid a cycle) focuses the row's / title's Label field. The row's root `div` (same box) is skipped.
+- E2E SP-11 (drill, sibling click, Escape, no writes) added to the baseline; SP-09/SP-10 still work. Checked on the
+  user's page copy (AppShell Sidebar): Screen → Sidebar → Section → Menu-Item → button, Escape back, file unchanged.
+
+## Studio usability check against Figma (user: "đánh giá khả dụng lại studio tool so với figma … giống figma 100% … thay hình vào avatar trong mọi component … thử mọi thao tác … build 1 trang dashboard từ blank") — session "Table states"
+
+- Write-up: `docs/research/studio-usability-eval-2026-10-10.md` (two scripted walks on the E2E harness server: replace
+  an Avatar's picture on 5 example pages — 0 of 5 the Figma way; a dashboard from blank — 13/19 operations first time).
+- Bug found and fixed: ⌘D refused on every layer of a page you made ("has a key") — slots/actions.ts read the builder
+  renderer's React key as a written key; now a `local:` file is never keyed on the client (the server still refuses a
+  written key). E2E B-34 (new, in the baseline); B-03, K-03, K-11, K-22 pass.
+- Proposed P0–P3 (picture control everywhere · Figma selection on code pages · design-word copy · wrappers) wait for
+  the user's approval (scope lock).
+
+## Figma usability, round 1: pictures everywhere + ⌘-click deepest (user: "cùng lúc" P0+P1; "đạt được usability như Figma … User phải cảm giác thao tác tự do dễ dàng để design") — tier L, session "Table states"
+
+- Picture, one way for every layer (P0): `edit/assets/picture.ts` writePicture — the Photos click, a photo dropped on
+  the layer (assets.ts picturedAt: the Image/Avatar/Thumbnail/account under the pointer during an asset drag, with the
+  drag's box and "Picture of Avatar") and the Inspector's Picture control (PhotoControl on every file; PropField's
+  dataControl shows it for values from data) all end there. Where the picture is written follows the `src`: data
+  (cell/row/data kinds → setDataField in that row), a component's param (writeAtUse), else the prop; a `platformMedia`
+  binding is never edited in PlatformMedia.tsx (the layer takes its own); an upload stays on pages you made.
+- Value model: `{ kind: "picture", file }` (types.ts EditValue) — the engine writes `new URL("<relative>",
+  import.meta.url).href` from the file the value lands in (tools/studio/picture.mjs, in the engine bundle: engine-iso
+  list); jsx-source formatAttr/formatFieldValue/sameValue and data-source literalCode take it; data-source treats such an
+  expression and a module-imported image (`photo: photoAva`) as values it edits (isPictureNode / isPictureImport);
+  `parseExpression` now runs with sourceType module (import.meta). media.ts: MEDIA_REPO_FILES (each picture's repo
+  file), pictureCode, pictureValueOf (read-back of the expression, the URL it renders with → the picker's name/thumb).
+- Engine: a factory's `...extra` parameter maps the fields the caller's object holds (`person(…, { photo })`) — read,
+  replaced, or added (a call short of the argument gets `{ photo: … }`); a field the factory builds itself stays refused;
+  kind "data" adds a missing field like cells do. Self-tests: data-source 34 (+7 picture/factory), engine-iso 42.
+- Selection (P1 part): ⌘-click (and its hover outline) picks the innermost written layer under the pointer
+  (nestedHitAt), so an Avatar a row's data passes into a ListItem is selectable (was: the ListItem). The repeated-layer
+  heading reads "2 of 17 — a fixed value shows on all 17, a value from the data changes only this one". A fixed picture
+  on a layer drawn for several rows is refused in design words (the helper-built sidebar avatars: 14 rows).
+- Verified (scratch scripts on the harness server): table example — Photos click → data.ts alex photo (`../../assets/…`
+  from data.ts), app-shell account → data.ts through `me.photo`; builder page → zen-media; sidebar rows → ⌘-click
+  Avatar + the shared-picture refusal. E2E SE-36 (fixture Avatar: click → viewer-college, drop → mountain-road-tall,
+  Inspector People › Bao); SE-30…36, B-29, B-33, DA-08/09, K-03/07, SE-01…03 pass; full matrix below.
+- Not done (follow-ups in BACKLOG): per-row pictures through helper functions (`personAvatar(people[x])`), pictures inside
+  list props (AvatarStack items, seenBy), a photo file dropped from the desktop onto a repo page, "This row / All rows"
+  as an explicit control, the design-word pass over every Inspector/status message (P2), wrappers (P3).
+- Verification (round 1): full E2E matrix 221 works · 0 broken (SE-36 new in the baseline; SE-09's first step now
+  selects the row on its padding, since ⌘ reaches the Badge under it); gate `npm run qa -- --isolated --keep-going
+  --files=…` PASS: style, usage, Studio self-tests (the peer's SLOT_OPS fix landed), docs, tsc, Vitest 51 files, audit
+  1512 + 390, dark, behaviour, Studio E2E; table sheets unchanged.

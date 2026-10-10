@@ -47,6 +47,84 @@ export const MEDIA_FILES: ReadonlyMap<string, string> = new Map([
   }),
 ].filter(([key]) => /^[\w.-]+$/.test(key)));
 
+/*
+ * Each picture's file in the repo (`src/assets/media/avatar-ava.webp`, `src/templates/hr/assets/account-photo.jpg`): what
+ * code outside a page you made reads it by (user, 2026-10-10: "thay hình vào avatar trong mọi component hệt như các
+ * example"). Example and template code cannot read `zen-media:` (nothing resolves it there), so a picture is written as
+ * `new URL("<relative file>", import.meta.url).href` — a literal the Studio reads back, that Vite serves in dev and
+ * bundles in a build, with no import to add. Uploads live in this browser only, so they stay on pages you made.
+ */
+const repoPathOf = (globPath: string) => globPath.replace(/^(\.\.\/)+/, "src/");
+export const MEDIA_REPO_FILES: ReadonlyMap<string, string> = new Map([
+  ...Object.entries(mediaFiles).map(([file]): [string, string] => [/([^/]+)\.webp$/.exec(file)![1], repoPathOf(file)]),
+  ...Object.entries(templateFiles).map(([file]): [string, string] => {
+    const [, template, name] = /templates\/([^/]+)\/assets\/([^/]+)$/.exec(file)!;
+    return [`tpl.${template}.${name}`, repoPathOf(file)];
+  }),
+  // The library's photos are named by use (site-college…), not by file: their file is the media entry with the same URL.
+  ...LIBRARY_PHOTOS.flatMap((entry): [string, string][] => {
+    const file = Object.entries(mediaFiles).find(([, src]) => src === entry.photo.src)?.[0];
+    return file ? [[entry.key, repoPathOf(file)]] : [];
+  }),
+]);
+const keyByRepoFile = new Map([...MEDIA_REPO_FILES].map(([key, file]) => [file, key]));
+
+/** `new URL("<relative file>", import.meta.url).href`: a picture written in example or template code. */
+export const PICTURE_EXPRESSION = /^new URL\((["'])((?:\.\.?\/)[^"']+)\1,\s*import\.meta\.url\)\.href$/;
+
+const dirOf = (file: string) => file.split("/").slice(0, -1);
+/** `../../assets/media/x.webp`: `to` from the folder of `from` (both repo paths). */
+function relativePath(from: string, to: string): string {
+  const base = dirOf(from);
+  const target = to.split("/");
+  let shared = 0;
+  while (shared < base.length && shared < target.length - 1 && base[shared] === target[shared]) shared += 1;
+  const up = base.length - shared;
+  return `${up ? "../".repeat(up) : "./"}${target.slice(shared).join("/")}`;
+}
+/** The repo path `rel` (as written in `file`) points at. */
+function resolvePath(file: string, rel: string): string {
+  const parts = dirOf(file);
+  for (const step of rel.split("/")) {
+    if (step === "..") parts.pop();
+    else if (step !== "." && step) parts.push(step);
+  }
+  return parts.join("/");
+}
+
+/**
+ * The value that puts picture `value` (`zen-media:<key>`, `zen-asset:<id>`, or a URL) on an element of `file`: the value
+ * itself on a page you made; in the repo the picture's file as a `new URL(…, import.meta.url).href` expression. Null for
+ * an upload outside a page you made (it lives in this browser only).
+ */
+export function pictureCode(file: string, value: string): { kind: "string"; value: string } | { kind: "picture"; file: string } | null {
+  if (file.startsWith("local:")) return { kind: "string", value };
+  if (value.startsWith(ASSET_PREFIX)) return null;
+  const key = value.startsWith(MEDIA_PREFIX) ? value.slice(MEDIA_PREFIX.length) : mediaValueOf(value).replace(MEDIA_PREFIX, "");
+  const repo = MEDIA_REPO_FILES.get(key);
+  if (!repo) return { kind: "string", value };
+  // The engine writes the expression relative to the file the value lands in (a prop, or a row in data.ts).
+  return { kind: "picture", file: repo };
+}
+
+/** The expression the engine writes for a picture file from code in `file` (shown before the write lands). */
+export const pictureExpression = (file: string, pictureFile: string) => `new URL(${JSON.stringify(relativePath(file, pictureFile))}, import.meta.url).href`;
+
+/**
+ * The picture an element of `file` shows, as a `zen-media:` / `zen-asset:` value the picker knows: from the written
+ * `src` (a value, or a `new URL(…)` expression resolved against the file), else from the URL it renders with.
+ */
+export function pictureValueOf(file: string | null | undefined, written: string | undefined, live: unknown): string | undefined {
+  if (written?.startsWith(MEDIA_PREFIX) || written?.startsWith(ASSET_PREFIX)) return written;
+  const match = written ? PICTURE_EXPRESSION.exec(written.trim()) : null;
+  if (match && file) {
+    const key = keyByRepoFile.get(resolvePath(file, match[2]));
+    if (key) return `${MEDIA_PREFIX}${key}`;
+  }
+  if (typeof live === "string" && live) return mediaValueOf(live);
+  return written ? mediaValueOf(written) : undefined;
+}
+
 const absoluteUrl = (src: string) => { try { return new URL(src, document.baseURI).href; } catch { return src; } };
 const keyBySrc = new Map([...MEDIA_FILES].flatMap(([key, src]) => [[src, key], [absoluteUrl(src), key]]));
 

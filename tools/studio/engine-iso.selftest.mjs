@@ -20,7 +20,7 @@ const check = (label, actual, expected) => {
 };
 
 /** The engine's modules (what the browser bundle imports). */
-export const ENGINE = ["jsx-source", "slots", "arrange", "items", "source-helpers", "detach", "data-source", "shared-code", "posix", "sha1", "dialect"];
+export const ENGINE = ["jsx-source", "slots", "arrange", "items", "source-helpers", "detach", "data-source", "shared-code", "posix", "sha1", "dialect", "picture"];
 for (const name of ENGINE) {
   const text = fs.readFileSync(path.join(here, `${name}.mjs`), "utf8");
   const node = [...text.matchAll(/^\s*import\s[^;]*?from\s+["']((?:node:)?[a-z_]+)["']/gm)].map((match) => match[1]).filter((spec) => spec.startsWith("node:") || ["fs", "path", "crypto", "os", "url", "child_process"].includes(spec));

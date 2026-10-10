@@ -343,7 +343,8 @@ function inheritedBooleans(schema: ApiComponent, depth = 0): string[] {
  * boolean HTML attributes it inherits (disabled, required, readOnly), which Figma shows as boolean properties too.
  */
 /** Props that take a picture (user, 2026-10-10: "Avatar không bỏ ảnh vào được"): a photo picker, not a text field. */
-const PHOTO_PROPS: Readonly<Record<string, string>> = { Avatar: "src", AppShellAccount: "src", Image: "src" };
+/** Components whose `src` is a picture (the Studio's Picture control, a photo click or drop): one list for the Inspector and the assets (edit/assets/picture.ts). */
+export const PHOTO_PROPS: Readonly<Record<string, string>> = { Avatar: "src", AppShellAccount: "src", Image: "src", Thumbnail: "src" };
 
 export function propSpecs(name: string): PropSpec[] {
   const schema = componentSchema(name);

@@ -166,6 +166,75 @@ export function dataGroupOfPart(part: PartHit | null): DataGroupHit | null {
 }
 
 /**
+ * The group (a Sidebar section) `element` sits in, as a part of `owner`: what a double-click on the selected Sidebar
+ * selects first, one level above its rows and title (Figma's frame in the slot; user, 2026-10-10: "khó chọn section. chỉ
+ * chọn được item bên trong"). Null outside the groups its prop draws.
+ */
+export function groupPartAt(owner: FiberHit, element: Element | null): PartHit | null {
+  if (!owner.fiber || !element) return null;
+  const props = currentFiber(owner.fiber).memoizedProps ?? {};
+  for (const slot of dataSlotsOf(owner.name)) {
+    if (!slot.groupParts) continue;
+    const count = Array.isArray(props[slot.prop]) ? (props[slot.prop] as unknown[]).length : 0;
+    const groups = owner.hosts.flatMap((host) => [...host.querySelectorAll(slot.groupParts!.group)]).slice(0, count);
+    const group = groups.find((candidate) => candidate === element || candidate.contains(element));
+    const fiber = group ? fiberOf(group) : null;
+    if (fiber) return partHit(owner, fiber);
+  }
+  return null;
+}
+
+const holdsPoint = (element: Element, x: number, y: number) => {
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+};
+
+/** The groups `owner` draws from a nested slot's prop (its sections), with their slot. */
+function drawnGroups(owner: FiberHit): Array<{ slot: DataSlot; elements: Element[] }> {
+  if (!owner.fiber) return [];
+  const props = currentFiber(owner.fiber).memoizedProps ?? {};
+  return dataSlotsOf(owner.name).filter((slot) => slot.groupParts).map((slot) => {
+    const count = Array.isArray(props[slot.prop]) ? (props[slot.prop] as unknown[]).length : 0;
+    return { slot, elements: owner.hosts.flatMap((host) => [...host.querySelectorAll(slot.groupParts!.group)]).slice(0, count) };
+  });
+}
+
+/** The component that draws `element` as its first DOM node (the outermost), as a part of `owner`; else the element's own. */
+function partOfElement(owner: FiberHit, element: Element): PartHit | null {
+  let found: Fiber | null = fiberOf(element);
+  for (let fiber = found?.return ?? null; fiber && isComponentFiber(fiber); fiber = fiber.return) {
+    if (partHit(owner, fiber)?.element !== element) break;
+    found = fiber;
+  }
+  return found ? partHit(owner, found) : null;
+}
+
+/**
+ * By geometry, not hit-testing (the selection's capture layer and `display: contents` wrappers hide what is under the
+ * pointer): the section of `owner` under (x, y), and inside it the row or the Section-Title there. What a double-click
+ * goes through, Sidebar → section → row (user, 2026-10-10: "khó chọn section").
+ */
+export function sectionPartAtPoint(owner: FiberHit, x: number, y: number): PartHit | null {
+  for (const { elements } of drawnGroups(owner)) {
+    const group = elements.find((element) => holdsPoint(element, x, y));
+    if (group) { const fiber = fiberOf(group); return fiber ? partHit(owner, fiber) : null; }
+  }
+  return null;
+}
+
+export function rowPartAtPoint(owner: FiberHit, x: number, y: number): PartHit | null {
+  for (const { slot, elements } of drawnGroups(owner)) {
+    const group = elements.find((element) => holdsPoint(element, x, y));
+    if (!group) continue;
+    const title = group.querySelector(`:scope > ${slot.groupParts!.title}`);
+    if (title && holdsPoint(title, x, y)) return partOfElement(owner, title);
+    const row = itemParts(owner, slot).find((part) => part && group.contains(part.element) && holdsPoint(part.element, x, y));
+    if (row) return row;
+  }
+  return null;
+}
+
+/**
  * The Section-Title a part sits in (a ⌘-click on a Sidebar section's label): the component that draws the title, as
  * Figma selects the instance, not the text inside it. Null outside a title, or when `part` is the title already.
  */

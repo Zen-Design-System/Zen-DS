@@ -259,6 +259,61 @@ export const rows = [
       }
     },
   },
+  {
+    id: "SP-11", feature: "Admin list page: double-clicks go Sidebar → Section → Menu-Item, a click on another section selects that one, Escape climbs back one level (user: \"khó chọn section. chỉ chọn được item bên trong. Muốn chọn section lại phải bấm bên layer\"); nothing is written on the way", wp: "nested items 2026-10-10",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id: pageId } = await pageFromFrame(ctx, 0, { on: "templates" });
+        const text = async () => (await pageText(page, pageId)) ?? "";
+        const before = await text();
+        await focusScreen(page);
+        const sidebar = page.locator(".studio-frame .zen-sidebar").first();
+        const named = async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).replace(/\s+/g, " ").trim();
+        const note = async () => (await page.locator("#studio-right .studio-inspector__note", { hasText: "Menu-Item" }).first().innerText({ timeout: 1000 }).catch(() => "")).trim();
+        // The row's empty end, off its label (a double-click on the text goes on to edit it).
+        const end = async (label) => {
+          const box = await sidebar.locator(".zen-sidebar__item", { hasText: label }).first().boundingBox();
+          return { x: box.x + box.width - 8, y: box.y + box.height / 2 };
+        };
+        const expect = async (heading, message) => until(async () => (await named()).startsWith(heading), { message }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
+        const steps = [];
+        for (let k = 0; k < 4 && !(await named()).startsWith("Section · in "); k++) {
+          const point = await end("Billing");
+          await page.mouse.dblclick(point.x, point.y);
+          await sleep(500);
+        }
+        await expect("Section · in Body-Content", "a double-click selected the section");
+        if (!/^Admin · /.test(await note())) throw new Error(`not the Admin section: ${await note()}`);
+        steps.push(await note());
+        {
+          const point = await end("Billing");
+          await page.mouse.dblclick(point.x, point.y);
+        }
+        await expect("Menu-Item · in Body-Content", "the next double-click selected the row");
+        steps.push("Menu-Item");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await expect("Section · in Body-Content", "Escape went up to the section");
+        // A section selected: a click on a row of another section selects that section (Figma's siblings).
+        {
+          const point = await end("Home");
+          await page.mouse.click(point.x, point.y);
+        }
+        await until(async () => (await named()).startsWith("Section · in ") && !/^Admin · /.test(await note()), { message: "the click selected the other section" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()} · ${await note()})`); });
+        steps.push(await note());
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await expect("Sidebar", "Escape went up to the Sidebar");
+        steps.push("Sidebar");
+        await sleep(500);
+        if ((await text()) !== before) throw new Error("the page changed while only selecting");
+        return steps.join(" → ");
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
   ...[["SP-02", 4, "Sign in", "desktop"], ["SP-03", 5, "Mobile list", "phone"]].map(([id, frame, name, device]) => ({
     id, feature: `New page from the ${name} template: a ${device} page that renders`, wp: "GĐ3b M1",
     // The first row opens the Templates page, which the server compiles then (about 20 s).

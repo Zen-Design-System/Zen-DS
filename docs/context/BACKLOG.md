@@ -8,6 +8,24 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
+  builds each row's avatar with `personAvatar(people[t.assignee])` (a plain function, not a component), so the engine
+  cannot reach that row's person; a dropped photo is refused ("shared by 14 rows"). Extend kind "param" to helper
+  functions called with data (data-source.mjs classify → the call's argument → the row's data), then the drop changes
+  that person's photo. Pointer: `docs/research/studio-usability-eval-2026-10-10.md` §5.
+- **P1 · Figma usability — pictures inside list props (2026-10-10):** an AvatarStack's `items[i].src`, ChatMessage
+  `seenBy`, Card `image`-like fields: a drop on one face should write that item's field (ObjectProperties already edits
+  the item; the drop needs the item index from the part under the pointer).
+- **P1 · Figma usability — "This row / All rows" as a control (2026-10-10):** the repeated-layer heading says it; a
+  segmented control on the Inspector head would let a designer choose before editing a fixed value (today: Detach).
+- **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
+  browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
+  under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
+- **P2 · Figma usability — design words everywhere (2026-10-10):** one glossary for Inspector rows, notes and the status
+  line ("Picture", "From data: Alex's photo", "Shared by 17 rows", "Can't change here — it comes from code (Show
+  code)"); file:line moves to the Code tab. Pointer: the eval §3 and §5.
+- **P3 · Figma usability — Studio-made wrappers (2026-10-10):** the blank page's body Stack and ⇧A wrap Stacks are
+  layers the designer did not draw; make them transparent to the first click and in Layers.
 - **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar
   (24) and gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
   ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Designer: add

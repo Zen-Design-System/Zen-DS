@@ -18,6 +18,8 @@ import { RemoveAction, SlotsSection } from "../slots";
 import { slotOf } from "../slots/registry";
 import { detachShown, rowOf, useDetachPlan } from "./detach";
 import { cellDataTarget } from "../table/tableCells";
+import { pictureCode, pictureExpression, resolveMedia } from "../builder/library/media";
+import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
 import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import type { FieldApi } from "./fieldApi";
@@ -32,6 +34,7 @@ import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { PositionSection, positionProps } from "../position";
+import { useFocusContentToken } from "./focusContent";
 import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
 import {
@@ -63,34 +66,6 @@ const toEditValue = (value: Literal): EditValue =>
   typeof value === "boolean" ? { kind: "boolean", value } : typeof value === "number" ? { kind: "number", value } : { kind: "string", value };
 
 const display = (value: Literal) => (typeof value === "string" ? `"${value.length > 24 ? `${value.slice(0, 24)}…` : value}"` : String(value));
-
-/* Double-click on canvas text asks the Content field for focus (the panel may mount a moment later). */
-let focusRequestedAt = 0;
-const focusListeners = new Set<() => void>();
-if (typeof window !== "undefined") {
-  const onFocusRequest = () => {
-    focusRequestedAt = Date.now();
-    focusListeners.forEach((listener) => listener());
-  };
-  window.addEventListener("zen-studio:focus-content", onFocusRequest);
-  import.meta.hot?.dispose(() => window.removeEventListener("zen-studio:focus-content", onFocusRequest));
-}
-
-function useFocusContentToken() {
-  const [token, setToken] = useState(() => (Date.now() - focusRequestedAt < 2000 ? Date.now() : 0));
-  useEffect(() => {
-    const listener = () => setToken(Date.now());
-    focusListeners.add(listener);
-    return () => { focusListeners.delete(listener); };
-  }, []);
-  useEffect(() => {
-    if (!token) return undefined;
-    focusRequestedAt = 0;
-    const timer = window.setTimeout(() => setToken(0), 1500);
-    return () => window.clearTimeout(timer);
-  }, [token]);
-  return token;
-}
 
 /** The rendered hit of the selection (for child lookups). */
 function selectedHit(selection: NodeSelection): FiberHit | null {
@@ -315,12 +290,12 @@ async function alreadyApplied(file: string, loc: string, name: string, ops: Edit
     }
     if (op.op === "setStateInit") {
       const state = current.attributes.find((attr) => attr.kind !== "spread" && attr.name === op.name)?.state;
-      return op.value.kind !== "expression" && state?.value === op.value.value;
+      return "value" in op.value && state?.value === op.value.value;
     }
     // A detach, a wrap or a slot op (insert/remove/duplicate/move) changes the structure: never already applied.
     if (op.op !== "setProp") return false;
     const value = valueOf(current.attributes, op.name);
-    const wanted = op.value.kind === "expression" ? literalOf(op.value.code) : op.value.value;
+    const wanted = op.value.kind === "expression" ? literalOf(op.value.code) : op.value.kind === "picture" ? op.value.file : op.value.value;
     return value.state === "literal" && value.value === wanted;
   });
 }
@@ -532,11 +507,20 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     setProp: (name, value) => {
       if (!element) return;
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
-      if (dataEditable(current, selection.panelId ? "playground" : undefined)) {
+      // A picture (Avatar / Image / account `src`): the pick is a zen-media:/zen-asset: value; the file decides how it is
+      // written (a page you made keeps it, the repo takes the picture's file: media.ts pictureCode).
+      const picture = typeof value === "string" && propSpecs(element.name).find((spec) => spec.name === name)?.editor.kind === "photo";
+      const pictureValue = (file: string): EditValue | null => (picture ? pictureCode(file, value as string) : toEditValue(value));
+      const pictureLabel = picture ? `${element.name} ${name} → ${String(value).replace(/^zen-(media|asset):/, "")}` : null;
+      // A picture from the shared library (platformMedia): never edited in PlatformMedia.tsx, the layer takes its own.
+      const fromLibrary = picture && current.state === "bound" && current.dataSource?.file?.endsWith("/PlatformMedia.tsx");
+      if (!fromLibrary && dataEditable(current, selection.panelId ? "playground" : undefined)) {
         // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
         if (current.dataSource.kind === "param") {
           const world = canvasApi.getWorldElement();
-          void writeAtUse(world ? findBySrc(world, selection.src)[selection.instance] : null, current.dataSource, toEditValue(value), `${element.name} ${name} → ${display(value)}`);
+          const next = pictureValue(element.file);
+          if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+          void writeAtUse(world ? findBySrc(world, selection.src)[selection.instance] : null, current.dataSource, next, pictureLabel ?? `${element.name} ${name} → ${display(value)}`);
           return;
         }
         // Written where the data is (WP-C): the binding stays, so the optimistic value is the same binding rendering `value`.
@@ -549,7 +533,17 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
           return;
         }
         const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : current.dataSource.kind === "cell" ? cellRow : {};
-        void send([{ op: "setDataField", prop: name, ...row, value: toEditValue(value) }], `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: value } });
+        const next = pictureValue(current.dataSource.file ?? element.file);
+        if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+        void send([{ op: "setDataField", prop: name, ...row, value: next }], pictureLabel ?? `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: picture ? resolveMedia(value) : value } });
+        return;
+      }
+      if (picture && !element.file.startsWith("local:")) {
+        // In the repo the prop takes the picture's file as an expression (planPropWrite writes literals only).
+        const next = pictureValue(element.file);
+        if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+        const code = next.kind === "picture" ? pictureExpression(element.file, next.file) : next.kind === "expression" ? next.code : JSON.stringify(next.value);
+        void send([{ op: "setProp", name, value: next }], pictureLabel ?? `${element.name} ${name}`, { [name]: { state: "bound", expression: code, raw: `${name}={${code}}`, live: resolveMedia(value), origin: { kind: "bound-value" } as SourceAttr["origin"] } });
         return;
       }
       const plan = planPropWrite(element.name, element.attributes, name, value, live);
@@ -725,7 +719,12 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   };
   // Detach: only for a type the dev server can detach, as an admin, while the server is writable or still connecting.
   const detachOffered = detachShown(element, selection) && role === "admin" && canEdit() && (server.writable || !server.ready);
-  const repeats = instances > 1 ? `${editable ? `${instances}× — edits apply to all ${instances}` : `${instances}×`}${detachOffered && rowDetach ? " · Detach changes only this row" : ""}` : null;
+  // One written layer drawn several times (a .map row, a Table cell): say which one this is and what an edit reaches, in
+  // design words (user, 2026-10-10: Figma's usability) — a fixed value is the layer's, so every row shows it; a value
+  // from the data is this row's.
+  const repeats = instances > 1
+    ? `${selection.instance + 1} of ${instances}${editable ? ` — a fixed value shows on all ${instances}, a value from the data changes only this one` : ""}${detachOffered && rowDetach ? " · Detach makes this row its own" : ""}`
+    : null;
   // Reset all overrides (GĐ4 M1): a Zen instance's design props written as fixed values go back to their defaults in one
   // request, so one ⌘Z brings them all back; the content stays (resetAll.ts).
   const resetSpecs = specs.map((spec) => ({ name: spec.name, editor: spec.editor.kind }));

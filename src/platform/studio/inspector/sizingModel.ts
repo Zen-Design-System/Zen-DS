@@ -169,7 +169,7 @@ export function optimisticOf(ops: EditOp[]): Record<string, PropValue> {
   const out: Record<string, PropValue> = {};
   for (const op of ops) {
     if (op.op === "removeProp") out[op.name] = { state: "unset" };
-    else if (op.op === "setProp" && op.value.kind !== "expression") out[op.name] = { state: "literal", value: op.value.value, raw: "" };
+    else if (op.op === "setProp" && "value" in op.value) out[op.name] = { state: "literal", value: op.value.value, raw: "" };
   }
   return out;
 }
@@ -180,7 +180,7 @@ export function editLabel(component: string, ops: EditOp[]): string {
   return `${component} ${ops.map((op) => {
     if (op.op === "removeProp") return `reset ${op.name}`;
     if (op.op !== "setProp") return op.op;
-    const value = op.value.kind === "expression" ? op.value.code : op.value.value;
+    const value = op.value.kind === "expression" ? op.value.code : op.value.kind === "picture" ? op.value.file : op.value.value;
     return `${op.name} → ${value === "hug" ? "Hug" : value === "fill" ? "Fill" : String(value)}`;
   }).join(", ")}`;
 }
@@ -307,7 +307,7 @@ export function holds(ops: EditOp[], valueOf: (name: string) => PropValue): bool
     if (op.op === "removeProp") return valueOf(op.name).state === "unset";
     if (op.op !== "setProp" || op.value.kind === "expression") return false;
     const value = valueOf(op.name);
-    return value.state === "literal" && value.value === op.value.value;
+    return value.state === "literal" && "value" in op.value && value.value === op.value.value;
   });
 }
 

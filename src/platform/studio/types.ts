@@ -254,7 +254,9 @@ export type EditValue =
   | { kind: "string"; value: string }
   | { kind: "boolean"; value: boolean }
   | { kind: "number"; value: number }
-  | { kind: "expression"; code: string };
+  | { kind: "expression"; code: string }
+  /** A picture by its repo file (`src/assets/media/avatar-ava.webp`): the engine writes `new URL("<relative>", import.meta.url).href` from the file it lands in (tools/studio/picture.mjs). */
+  | { kind: "picture"; file: string };
 
 /**
  * A useState value inserted code reads (`name` and `set` + Name): `initial` is a literal, `type` built-in type words
