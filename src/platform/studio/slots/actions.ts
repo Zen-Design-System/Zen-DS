@@ -18,6 +18,7 @@ import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaptio
 import { itemTitle, type DataSlot } from "./dataSlots";
 import { frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
 import { answeredLoc, isUnknownSlotOp, sendSlotEdit, type InsertChildOp, type ItemEditOp, type SlotEditApplied, type SlotEditOp, type SlotWrap } from "./ops";
+import { freshRow, rowFields, sectionEntries, sectionsCode, titleOf } from "./sectionList";
 import { paletteFor, type PaletteContext, type PaletteHostContext, type PaletteItem } from "./palette";
 import { headingLevelFor, hostPropsOf, insertTargetFor, isClickableHost, type ContentSlot, type HostProps } from "./registry";
 
@@ -1302,6 +1303,85 @@ function selectItemWhenRendered(host: NodeSelection, slot: DataSlot, index: numb
   window.setTimeout(tick, 80);
 }
 
+/**
+ * A nested data slot written back whole (op setItems): Sidebar Body-Content's section titles and rows reordered, merged
+ * and removed as freely as Figma's slot (user, 2026-10-10: "hành vi thiết kế phải tự do như Figma"). `code` null removes
+ * the prop. `select`: the row (its place among the slot's items) to select once it renders.
+ */
+export function rewriteDataSlot(selection: NodeSelection, slot: DataSlot, code: string | null, label: string, select?: number): Promise<boolean> {
+  return exclusive(async () => {
+    const hostSelection = withoutPart(selection) as NodeSelection;
+    const host = await readElement(hostSelection.src, hostSelection.name);
+    if (!host) return false;
+    return runRewrite(hostSelection, host, slot, code, label, select);
+  });
+}
+
+async function runRewrite(hostSelection: NodeSelection, host: SlotSourceElement, slot: DataSlot, code: string | null, label: string, select?: number): Promise<boolean> {
+  {
+    const check = canStructurallyEdit(hostSelection);
+    if (!check.ok) return fail(check.reason);
+    if (!single("Edit")) return false;
+    writing("Updating…");
+    const before = renderedSignature(selectedHit(hostSelection), slot);
+    const isHost = (candidate: StudioSelection | null): candidate is NodeSelection => candidate?.kind === "node" && candidate.name === host.name
+      && candidate.frameId === hostSelection.frameId && candidate.instance === hostSelection.instance && parseSrc(candidate.src)?.file === host.file;
+    const selected = studioStore.getState().selection;
+    if (isHost(selected) && selected.part) {
+      studioStore.setState({ selection: withoutPart(selected) });
+      flushStudioStore();
+    }
+    const response = await write(targetOf(host), { op: "setItems", prop: slot.prop, code }, label);
+    if (!response) return false;
+    const loc = response.file === host.file ? hostLocAfter(response.before, response.after, host.loc, host.name, mapLine) : null;
+    const current = studioStore.getState().selection;
+    if (loc && isHost(current) && `${response.file}:${loc}` !== current.src) {
+      remapSelection(`${response.file}:${loc}`);
+      flushStudioStore();
+    }
+    announce(outcomeOf(label, response));
+    if (select !== undefined) selectItemWhenRendered(hostSelection, slot, select, before);
+    return true;
+  }
+}
+
+/**
+ * A nested slot's group as a frame (dataGroupOfPart): `remove` takes the group with its title and rows, `removeTitle`
+ * only its title (its rows join the group above, as deleting a Section-Title in Figma), `clearRows` its rows, `addRow`
+ * puts a new row at its end. One write of the whole list (op setItems).
+ */
+export function editDataGroup(selection: NodeSelection, slot: DataSlot, group: number, verb: "remove" | "removeTitle" | "clearRows" | "addRow"): Promise<boolean> {
+  return exclusive(async () => {
+    const hostSelection = withoutPart(selection) as NodeSelection;
+    const host = await readElement(hostSelection.src, hostSelection.name);
+    if (!host) return false;
+    const entries = sectionEntries(host, slot);
+    if (!entries) return fail(`${host.name} › ${slot.name}: the code builds ${slot.prop}; edit it there`);
+    const inGroup = (entry: (typeof entries)[number]) => (entry.kind === "title" || entry.kind === "item") && entry.group === group;
+    const title = entries.find((entry) => entry.kind === "title" && entry.group === group);
+    const name = title && title.kind === "title" ? titleOf(title) : `section ${group + 1}`;
+    let next = entries;
+    let label = "";
+    let select: number | undefined;
+    if (verb === "remove") { next = entries.filter((entry) => !inGroup(entry)); label = `Remove ${name} from ${slot.name}`; }
+    else if (verb === "removeTitle") {
+      if (!title) return fail(`${name} has no title to remove`);
+      next = entries.filter((entry) => entry !== title);
+      label = `Remove the title ${name}`;
+    } else if (verb === "clearRows") { next = entries.filter((entry) => !(entry.kind === "item" && entry.group === group)); label = `Remove the rows of ${name}`; }
+    else {
+      const last = entries.reduce((at, entry, index) => (inGroup(entry) ? index : at), -1);
+      const at = last + 1;
+      const ids = new Set(entries.flatMap((entry) => entry.fields.filter((field) => field.key === "id" && field.kind === "string").map((field) => String(field.value))));
+      next = [...entries.slice(0, at), { kind: "item", group, index: -1, fields: freshRow(rowFields(slot.newItem(entries.length).code), ids) }, ...entries.slice(at)];
+      label = `Add ${slot.itemName} to ${name}`;
+      select = next.slice(0, at).filter((entry) => entry.kind === "item").length;
+    }
+    const code = sectionsCode(next, slot);
+    return runRewrite(hostSelection, host, slot, code, label, select);
+  });
+}
+
 /** One item op on the host's data slot; `index`/`to` as the source's array literal holds the items (`group`: `to` = the item it joins). */
 /** `keepHost`: the host stays selected after an add (a Figma presence boolean switched on: its row must stay reachable). */
 /** `all` (remove): every item, the prop with them (the boolean switched off: their useToast() line goes too). */
@@ -1320,6 +1400,26 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
   const source = sourceItems(host, slot);
   if (source.state === "computed") return fail(`${where}: ${computedCaption(slot, source.code, source.via)}`);
   const items = source.state === "items" ? source.items : [];
+  // A nested slot (Sidebar `sections[n].items`): each item's group and place in its list. Ops go to that list (`nest`), a
+  // new item to the last group's end, and a move stays inside its group.
+  const places = source.state === "items" ? source.at : undefined;
+  const nestAt = (flat: number) => (slot.nested && places?.[flat] ? { nest: { index: places[flat].group, key: slot.nested }, inner: places[flat].index } : null);
+  const flatOf = (group: number, inner: number) => (places ?? []).filter((place) => place.group < group).length + inner;
+  if (slot.nested && verb === "add" && !places?.length) return fail(`${where}: add a group with an \`${slot.nested}\` list in the code first`);
+  // Across a group's title (Figma's flat slot): one step in the list of titles and rows, written back whole.
+  if (slot.nested && (verb === "move" || verb === "drop") && places?.[index] && places[to] && places[index].group !== places[to].group) {
+    const entries = sectionEntries(host, slot);
+    const at = entries?.findIndex((entry) => entry.kind === "item" && entry.group === places[index].group && entry.index === places[index].index) ?? -1;
+    if (!entries || at < 0) return fail(`${where} has no item ${index + 1} any more — select it again`);
+    const next = [...entries];
+    const [entry] = next.splice(at, 1);
+    const step = to < index ? at - 1 : at + 1;
+    next.splice(Math.max(0, Math.min(next.length, step)), 0, entry);
+    const response = await write(targetOf(host), { op: "setItems", prop: slot.prop, code: sectionsCode(next, slot) }, `Move ${itemTitle(slot, items[index].fields, index)} in ${where}`);
+    if (!response) return false;
+    announce(outcomeOf(`Moved ${itemTitle(slot, items[index].fields, index)} in ${where}`, response));
+    return true;
+  }
   // Groups as the host is drawn now (TopNavigation: the compact types' Flat actions never share a pill).
   const grouping = slotGroupsAt(selectedHit(hostSelection), slot);
   if (verb === "group" && !grouping) return fail(`${where}: ${slot.groupsOffNote ?? "its items do not group here"}`);
@@ -1341,7 +1441,17 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
 
   let op: ItemEditOp;
   let warning: string | undefined;
-  if (verb === "add") {
+  const lastGroup = places?.length ? places[places.length - 1].group : 0;
+  if (slot.nested) {
+    const from = nestAt(index);
+    const target = nestAt(to);
+    if (verb === "add") op = { op: "insertItem", prop: slot.prop, code: slot.newItem(items.length).code, nest: { index: lastGroup, key: slot.nested } };
+    else if (!from) return fail(`${where} has no item ${index + 1} any more — select it again`);
+    else if (verb === "remove") op = { op: "removeItem", prop: slot.prop, index: from.inner, nest: from.nest };
+    else if (verb === "duplicate") op = { op: "duplicateItem", prop: slot.prop, index: from.inner, nest: from.nest };
+    else if ((verb === "move" || verb === "drop") && target) op = { op: "moveItem", prop: slot.prop, index: from.inner, to: target.inner, nest: from.nest };
+    else return fail(`${where}: its ${slot.itemName}s do not group`);
+  } else if (verb === "add") {
     const item = slot.newItem(items.length);
     op = { op: "insertItem", prop: slot.prop, code: item.code, ...(slot.form === "object" ? { single: true } : slot.form === "list" ? { list: true } : {}), ...(item.requires?.length ? { requires: [...item.requires] } : {}) };
     // A limit warns, it never blocks (Figma): the status says what the slot holds now.
@@ -1384,7 +1494,9 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
       : `Moved ${name} to place ${(response.item?.index ?? to) + 1} in ${where}`;
   announce(outcomeOf(done, response, warning));
   if (verb === "remove") return true;
-  const at = response.item?.prop === slot.prop && Number.isInteger(response.item.index) ? response.item.index : null;
+  const answered = response.item?.prop === slot.prop && Number.isInteger(response.item.index) ? response.item.index : null;
+  // A nested slot answers the place in its group's list: the item's place across the groups.
+  const at = answered === null ? null : slot.nested ? flatOf(verb === "add" ? lastGroup : places?.[index]?.group ?? lastGroup, answered) : answered;
   if (at !== null && !keepHost) selectItemWhenRendered(hostSelection, slot, at, before);
   return true;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
@@ -20,6 +20,7 @@ import {
 } from "./actions";
 import { onlyFrame, shortCode, slotContentOf, type SlotLayer } from "./content";
 import { DataSlotBlock } from "./DataSlotBlock";
+import { SectionedSlotBlock } from "./SectionedSlotBlock";
 import { dataSlotsOf } from "./dataSlots";
 import { slotShowsPlaceholder } from "./dom";
 import { InsertPicker } from "./InsertPicker";
@@ -111,7 +112,12 @@ function LayerItem({ name, src, meta, reason, onSelect, move, onRemove, swap, bu
   const reasonId = useId();
   return (
     <li className="studio-inspector__item-wrap studio-slots__item-wrap" data-layer-src={src} data-reason={reason ? true : undefined}>
-      <button type="button" className="studio-inspector__item" data-component={component || undefined} aria-describedby={reason ? reasonId : undefined} onClick={onSelect}>
+      <button type="button" className="studio-inspector__item" data-component={component || undefined} aria-describedby={reason ? reasonId : undefined} onClick={onSelect}
+        onKeyDown={(event) => {
+        // Delete / Backspace on a focused row removes it, as on the canvas and in Layers (user, 2026-10-10: "xoá nên cho
+        // phép bấm phím xoá trên bàn phím").
+        if ((event.key === "Delete" || event.key === "Backspace") && onRemove && !busy && !event.repeat) { event.preventDefault(); event.stopPropagation(); onRemove(); }
+      }}>
         <span className="studio-inspector__item-icon" aria-hidden="true"><Icon name={component ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
         <span className={`studio-inspector__item-name ${typographyStyles["Body/Small/Medium"]}`}>{name}</span>
         {meta ? <span className={`studio-inspector__item-meta ${typographyStyles["Body/Small/Regular"]}`}>{meta}</span> : null}
@@ -155,6 +161,9 @@ type BlockProps = {
   hostProps: HostProps;
   /** Show the slot's own name (not for a layout primitive's single "Children" block: the section says it). */
   titled: boolean;
+  /** The rows go on under a data slot of the same Figma name (Sidebar Body-Content after its `sections`): no header of
+   *  its own, and nothing while it has no rows. */
+  continued?: boolean;
   /** Add and Remove offered (admin, writable, example or template content). */
   editable: boolean;
   playground: boolean;
@@ -163,7 +172,7 @@ type BlockProps = {
   focused: boolean;
 };
 
-function SlotBlock({ selection, element, slot, hostProps, titled, editable, playground, running, focused }: BlockProps) {
+function SlotBlock({ selection, element, slot, hostProps, titled, editable, playground, running, focused, continued = false }: BlockProps) {
   const busy = running !== null;
   const content = useMemo(() => slotContentOf(element, slot), [element, slot]);
   // Without a draft the server sends no Modified flags: the drafts list tells "matches the saved file" (read again when it changes).
@@ -310,9 +319,10 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
     );
   };
 
+  if (continued && empty) return null;
   return (
-    <div ref={blockRef} className="studio-slots__slot" data-slot={slot.prop} data-empty={empty || undefined}>
-      <div className="studio-slots__head">
+    <div ref={blockRef} className="studio-slots__slot" data-slot={slot.prop} data-empty={empty || undefined} data-continued={continued || undefined}>
+      {continued ? null : <div className="studio-slots__head">
         <span className="studio-slots__icon" aria-hidden="true"><Icon name="icon-grid-dots-blank-line" size={16} /></span>
         {titled ? <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{slot.name}</span> : null}
         {actions.tagged && !playground ? <Badge size="xs" theme="yellow" background="subtle" className="studio-slots__modified">Modified</Badge> : null}
@@ -350,7 +360,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
             trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-dots-horizontal-line" aria-label={`More actions for ${slot.name}`} data-slot-more="" />}
           />
         ) : null}
-      </div>
+      </div>}
       {condition ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{conditionText(condition)}</p> : null}
       {editable && active && content.insertBlock ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{content.insertBlock}</p> : null}
       {/* A slot showing a same-file `const name = <JSX>`: its edits are written there (every place that shows it changes). */}
@@ -378,7 +388,8 @@ export function SlotsSection({ api, selection, element }: SlotsSectionProps) {
   const hostProps = useMemo(() => hostPropsOf(element.attributes), [element.attributes]);
   const slots = slotsOf(element.name);
   // Data slots (TopNavigation's Top-Trailing): Figma slots whose items the code takes as objects (dataSlots.ts).
-  const dataSlots = dataSlotsOf(element.name);
+  // A nested data slot (Sidebar `sections`) shows only where its prop is written: rows written as children have their own.
+  const dataSlots = dataSlotsOf(element.name).filter((slot) => !slot.nested || element.attributes.some((attr) => attr.name === slot.prop));
   if (!slots.length && !dataSlots.length) return null;
   const layout = isLayoutPrimitive(element.name);
   const playground = inPlayground(selection);
@@ -391,7 +402,16 @@ export function SlotsSection({ api, selection, element }: SlotsSectionProps) {
     <InspectorSection title={layout ? "Children" : "Slots"} note={note}>
       <div className="studio-slots__slots">
         {slots.map((slot) => (
+          <Fragment key={slot.prop}>
+          {/* A data slot Figma names like this content slot (Sidebar Body-Content: its `sections` titles and rows, then
+              its children rows) is one slot, as in Figma: one header, the rows in the order the canvas draws them. */}
+          {dataSlots.filter((data) => data.name === slot.name).map((data) => (
+            data.nested || data.grouped
+              ? <SectionedSlotBlock key={data.prop} selection={selection} element={element} slot={data} editable={editable} playground={playground} running={running} />
+              : <DataSlotBlock key={data.prop} selection={selection} element={element} slot={data} editable={editable} playground={playground} running={running} />
+          ))}
           <SlotBlock
+            continued={dataSlots.some((data) => data.name === slot.name)}
             key={slot.prop}
             selection={selection}
             element={element}
@@ -403,9 +423,12 @@ export function SlotsSection({ api, selection, element }: SlotsSectionProps) {
             running={running}
             focused={focusedProp === slot.prop}
           />
+          </Fragment>
         ))}
-        {dataSlots.map((slot) => (
-          <DataSlotBlock key={slot.prop} selection={selection} element={element} slot={slot} editable={editable} playground={playground} running={running} />
+        {dataSlots.filter((data) => !slots.some((slot) => slot.name === data.name)).map((slot) => (
+          slot.nested || slot.grouped
+            ? <SectionedSlotBlock key={slot.prop} selection={selection} element={element} slot={slot} editable={editable} playground={playground} running={running} />
+            : <DataSlotBlock key={slot.prop} selection={selection} element={element} slot={slot} editable={editable} playground={playground} running={running} />
         ))}
       </div>
       {playground && !layout ? (

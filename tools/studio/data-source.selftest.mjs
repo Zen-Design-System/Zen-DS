@@ -377,7 +377,33 @@ test("cell: a column without `cell` draws its field: op setDataField { field } o
   const result = cellEdit("aria-label=\"Projects\"", "Table", { field: ["name"], row: 1, rowKey: "banking", value: text("Banking") });
   assert.ok(!result.error, result.error);
   assert.match(result.code, /\{ id: "banking", name: "Banking", due: "Nov 2" \}/);
-  assert.match(cellEdit("aria-label=\"Projects\"", "Table", { field: ["owner"], row: 0, value: text("x") }).error, /no "owner" field/);
+  // A field the row lacks: added to the row written in place (a picture for a row without one).
+  const added = cellEdit("aria-label=\"Projects\"", "Table", { field: ["photo"], row: 0, rowKey: "loyalty", value: text("zen-media:avatar-ava") });
+  assert.ok(!added.error, added.error);
+  assert.match(added.code, /\{ id: "loyalty", name: "Loyalty app", due: "Oct 14", photo: "zen-media:avatar-ava" \}/);
+  // …never to a factory's object (people.bao is person(…)).
+  assert.match(cellEdit("{people[member.id].name}", "TableMedia", { child: 0, path: ["photo"], row: 0, rowKey: "bao", table: TEAM, value: text("x") }).error ?? "", /builds "photo"|no "photo"|not written|computed/);
+});
+
+test("cell: a field the row lacks is added in the row's own style (a line per field)", () => {
+  const page = [
+    "const rows = [",
+    "  {",
+    "    id: \"a\",",
+    "    name: \"Ava\",",
+    "  },",
+    "];",
+    "export function Demo() {",
+    "  return <Table aria-label=\"People\" rows={rows} columns={[{ id: \"name\", header: \"Name\", cell: (row) => <TableMedia media={<Avatar src={row.photo} alt=\"\" />}>{row.name}</TableMedia> }]} />;",
+    "}",
+    "",
+  ].join("\n");
+  const FILE = "src/templates/AddDemo.tsx";
+  const loc = locOf("<Avatar src={row.photo}", "Avatar", page);
+  assert.equal(originOf(page, FILE, loc, { prop: "src" }, { read: readTables }).editable, true);
+  const result = dataFieldEdit(page, FILE, loc, "Avatar", { prop: "src", row: 0, rowKey: "a", value: text("zen-media:avatar-ava") }, { read: readTables });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /    name: "Ava",\n    photo: "zen-media:avatar-ava",\n  \},/);
 });
 
 test("row: a .map row's lookup (people[member.id].name) edits the entry its id names", () => {

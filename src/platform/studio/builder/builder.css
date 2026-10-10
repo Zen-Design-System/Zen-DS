@@ -33,6 +33,10 @@
 .studio-pages__storage-text { min-width: 0; flex: 1 1 auto; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-pages__item { position: relative; }
 .studio-pages__item > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-md, 20px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
+/* A name renamed in place (RenameField: double-click a row, or Rename): an input in the row's place, framed like the
+   Inspector's fields, with the focus ring the row uses. */
+.studio-pages__row[data-renaming="true"] { cursor: text; background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.studio-pages__rename { min-width: 0; height: var(--zen-element-size-popular-medium, 24px); flex: 1 1 auto; box-sizing: border-box; margin: 0; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-input-background-default, var(--zen-color-background-neutral-flat-default)); color: var(--zen-color-content-neutral-strongest, #111); outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
 .studio-pages__actions { position: absolute; top: 50%; right: var(--zen-spacing-padding-2-xsmall, 4px); display: flex; opacity: 0; transform: translateY(-50%); }
 .studio-pages__item:hover > .studio-pages__actions,
 .studio-pages__item:focus-within > .studio-pages__actions,
@@ -107,7 +111,7 @@
 .studio-pages__item[data-actions="2"] > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + 2 * var(--zen-icon-size-md, 20px) + 2 * var(--zen-spacing-gap-2-xsmall, 4px)); }
 .studio-pages__actions { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-folders { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
-.studio-folder { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-folder { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-folder__row > .studio-pages__name { flex: 1 1 auto; }
 .studio-folder__count { flex: none; }
 /* A folder's pages sit under its name: indented past the chevron. */

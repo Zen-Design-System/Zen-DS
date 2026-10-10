@@ -43,6 +43,35 @@ export type DataSlot = {
   groupsOffNote?: string;
   /** The code of a new item: one object literal (its handler calls toast, so `requires: ["toast"]`). */
   newItem: (count: number) => { code: string; requires?: ("toast")[] };
+  /**
+   * The React key the owner's `.map` gives an item, for owners that pass the item's fields one by one (Tabs: `<TabItem
+   * key={item.id} label={item.label} …>`): the canvas finds the item by it. Unset: the item's `id`.
+   */
+  itemKey?: (item: Record<string, unknown>, index: number) => string | null;
+  /**
+   * What an item's unset fields render, from its place and the owner's props (Breadcrumbs: the first crumb is Master, a
+   * chevron after all but the last), so the Inspector shows them as the canvas draws them, in the default tone.
+   */
+  itemDefaults?: (index: number, count: number, owner: Record<string, unknown>) => Record<string, string | number | boolean>;
+  /**
+   * The items are one level down: each object of `prop` holds its list in this field (Sidebar `sections[n].items`, Figma
+   * Body-Content's Menu-Item instances under their section titles). The Studio counts them in order across the groups;
+   * an edit goes to the group's list (setField `path`, item ops `nest`), and a move stays inside its group.
+   */
+  nested?: string;
+  /**
+   * Items, separators and titled groups in one list (Menu `items`: MenuItemData | MenuSeparatorData | MenuGroupData): the
+   * field that tells them apart, its two values and the group's list. Shown and edited as Figma's flat slot (titles,
+   * rows and dividers move and go freely); what follows a group's title belongs to it.
+   */
+  grouped?: { typeKey: string; group: string; separator: string; list: string };
+  /**
+   * How a nested slot's groups draw (selectors from the owner's root): each group's element, its title and its rows'
+   * container, in the order of `prop` (groups the code writes come before the children's). The canvas parts they match
+   * are the group, its Section-Title and its list: selected, they are removed, renamed and added to like Figma's frames
+   * (user, 2026-10-10: "Tất cả các element trong slot phải xoá và thêm được hết. kể cả các element trong section").
+   */
+  groupParts?: { group: string; title: string; list: string };
 };
 
 /** A Figma Nav-Action: an icon-only action with a working handler (examples never lock interactions). */
@@ -99,6 +128,13 @@ export const DATA_SLOTS: Readonly<Record<string, readonly DataSlot[]>> = {
    * items carry no handler (the owner's onValueChange / onSelect / onNavigate answers), so no toast is needed. */
   Breadcrumbs: [{
     component: "Breadcrumbs", prop: "items", name: "Item-List", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4031:20161" },
+    // Breadcrumbs.tsx: an unset level / emphasis takes master / emphasis, an unset dash follows every crumb but the last.
+    itemDefaults: (index, count, owner) => ({
+      level: index === 0 && owner.master !== false ? "master" : "sub",
+      emphasis: typeof owner.emphasis === "string" ? owner.emphasis : "default",
+      state: "default",
+      dash: index < count - 1,
+    }),
     newItem: (count) => plainItem(count, ["Reports", "Q3", "Summary"]),
   }],
   Tabs: [{
@@ -123,7 +159,30 @@ export const DATA_SLOTS: Readonly<Record<string, readonly DataSlot[]>> = {
   }],
   DescriptionList: [{
     component: "DescriptionList", prop: "items", name: "Items", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "14859:79180" },
+    // DescriptionList.tsx keyOf: its items need no id.
+    itemKey: (item, index) => (item.id != null ? String(item.id) : typeof item.term === "string" ? `${item.term}-${index}` : String(index)),
     newItem: (count) => ({ code: `{ term: "${["Owner", "Due", "Status"][Math.min(count, 2)]}", description: "${["Bao Nguyen", "Oct 14", "In review"][Math.min(count, 2)]}" }` }),
+  }],
+  // Figma Side-Bar Body-Content: Menu-Item instances (Primitives/Side-Bar/Menu-Item/Master 1536:27473: Icon-Src, Label,
+  // Counter, Noti-Dot, Dropdown, Trailing-Action, Theme, State) under section titles. The code holds them as data in
+  // `sections` (rows written as <SidebarMenuItem> children are layers of their own). User, 2026-10-10: "Còn hiện tượng
+  // chưa list chỉnh được props của nested. Ví dụ như sidebar", "không remove được item trong sidebar mẫu".
+  Sidebar: [{
+    component: "Sidebar", prop: "sections", nested: "items", name: "Body-Content", itemName: "Menu-Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4081:15234" },
+    groupParts: { group: ".zen-sidebar__section", title: ".zen-sidebar__section-item", list: ".zen-sidebar__section-items" },
+    newItem: (count) => iconItem(count, [["Invoices", "icon-receipt-line"], ["Reports", "icon-bar-chart-01-line"], ["Settings", "icon-settings-01-line"]]),
+  }],
+  // Menu: a Popover's Item-List (Figma Popover/Default 4031:26126) of items, dividers and titled groups.
+  Menu: [{
+    component: "Menu", prop: "items", name: "Item-List", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4031:26126" },
+    grouped: { typeKey: "type", group: "group", separator: "separator", list: "items" },
+    newItem: (count) => iconItem(count, [["Rename", "icon-edit-02-line"], ["Duplicate", "icon-copy-01-line"], ["Archive", "icon-archive-line"]]),
+  }],
+  // A workspace Sidebar's sub-menu: the same sections as the Sidebar's (Figma Child-Body-Content).
+  SidebarSubMenu: [{
+    component: "SidebarSubMenu", prop: "sections", nested: "items", name: "Child-Body-Content", itemName: "Menu-Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4218:9166" },
+    groupParts: { group: ".zen-sidebar__section", title: ".zen-sidebar__section-item", list: ".zen-sidebar__section-items" },
+    newItem: (count) => iconItem(count, [["Invoices", "icon-receipt-line"], ["Reports", "icon-bar-chart-01-line"], ["Settings", "icon-settings-01-line"]]),
   }],
   Popover: [{
     component: "Popover", prop: "items", name: "Item-List", itemName: "Item", form: "array", max: Number.POSITIVE_INFINITY, figma: { node: "4031:26126" },

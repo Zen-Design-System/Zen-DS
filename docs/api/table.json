@@ -78,8 +78,16 @@
           "name": "selectedIds",
           "type": "string[]",
           "required": false,
-          "default": "[]",
-          "description": "",
+          "default": null,
+          "description": "The selected rows (controlled, with `onSelectionChange`); without it the Table keeps the selection itself.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultSelectedIds",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "The rows selected at first when the selection is not controlled.",
           "deprecated": null
         },
         {
@@ -88,6 +96,22 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Table/Cell/Default State=Edit on every cell that shows a row's value: each column without its own `edit`\n(and without `cell`, checkbox or toggle content) edits in place by its content — text or number by the value, a\nlist of the column's values for badges, tags for lists. The Table keeps the edits, or hands them to `onCellCommit`.",
+          "deprecated": null
+        },
+        {
+          "name": "onCellCommit",
+          "type": "(row: T, columnId: string, value: string | string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "An edit made through a shorthand `edit` or `editable`: the row, the column id and the new value (a tags list for\n tags). Without it the Table applies the edit to the row it draws.",
           "deprecated": null
         },
         {
@@ -296,7 +320,8 @@
     "TableBulkAction": "interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }",
     "TableCellContent": "type TableCellContent = \"text\" | \"avatar\" | \"photo\" | \"icon\" | \"dock-icon\" | \"badge\" | \"tag\" | \"trend\" | \"progress\" | \"checkbox\" | \"toggle\"",
     "TableCellEditor": "type TableCellEditor<T> = | (TableEditorBase<T> & { type?: \"text\" | \"number\"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: \"select\"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, \"validate\"> & { type: \"tags\"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })",
-    "TableColumn": "interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }",
+    "TableCellEditorType": "type TableCellEditorType = \"text\" | \"number\" | \"select\" | \"tags\"",
+    "TableColumn": "interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T> | TableCellEditorType | true; onOpen?: (row: T) => void; openLabel?: ReactNode; }",
     "TableSort": "interface TableSort { columnId: string; direction: TableSortDirection }",
     "TableSortDirection": "type TableSortDirection = \"asc\" | \"desc\""
   }

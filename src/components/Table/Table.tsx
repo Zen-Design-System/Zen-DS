@@ -62,13 +62,19 @@ export interface TableColumn<T> {
   mediaField?: string;
   /** Figma Bold: the label in Body/Base/Bold (text, avatar, photo, icon and dock-icon cells). */
   bold?: boolean;
-  /** Makes the column's cells editable in place (Figma Table/Cell/Default State=Edit · Editabled-Cell). */
-  edit?: TableCellEditor<T>;
+  /** Makes the column's cells editable in place (Figma Table/Cell/Default State=Edit · Editabled-Cell): a full editor
+   *  (`value`, `onCommit`…), or only its type (`"text"`, `"number"`, `"select"`, `"tags"`; `true` is text) — the Table
+   *  then reads and writes the row's `field` itself (select lists the column's values, tags suggest them) and keeps the
+   *  edit, or hands it to the Table's `onCellCommit`. */
+  edit?: TableCellEditor<T> | TableCellEditorType | true;
   /** Figma Open-Button: an XSmall Tertiary "Open" button on the right of the cell while its row is hovered. */
   onOpen?: (row: T) => void;
   /** Label of the Open button (default: the locale's "Open"). */
   openLabel?: ReactNode;
 }
+
+/** The shorthand `edit` of a column: the editor's type alone (`true` on the column means `"text"`). */
+export type TableCellEditorType = "text" | "number" | "select" | "tags";
 
 type TableEditorBase<T> = {
   placeholder?: string;
@@ -121,8 +127,20 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   caption?: ReactNode;
   /** Figma Type=Checkbox header + a checkbox cell per row. */
   selectable?: boolean;
+  /** The selected rows (controlled, with `onSelectionChange`); without it the Table keeps the selection itself. */
   selectedIds?: string[];
+  /** The rows selected at first when the selection is not controlled. */
+  defaultSelectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
+  /**
+   * Figma Table/Cell/Default State=Edit on every cell that shows a row's value: each column without its own `edit`
+   * (and without `cell`, checkbox or toggle content) edits in place by its content — text or number by the value, a
+   * list of the column's values for badges, tags for lists. The Table keeps the edits, or hands them to `onCellCommit`.
+   */
+  editable?: boolean;
+  /** An edit made through a shorthand `edit` or `editable`: the row, the column id and the new value (a tags list for
+   *  tags). Without it the Table applies the edit to the row it draws. */
+  onCellCommit?: (row: T, columnId: string, value: string | string[]) => void;
   /**
    * Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under
    * the table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and
@@ -343,12 +361,23 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  * Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).
  * Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
  */
-export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds = [], onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, className, ...rest }: TableProps<T>) {
+export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, editable: editableProp = false, onCellCommit, className, ...rest }: TableProps<T>) {
   const t = useZenLabels();
-  const rows = rowsProp ?? data ?? [];
+  // Edits made through a shorthand `edit` / `editable` without onCellCommit: the Table's own copy of the changed fields,
+  // by row id, laid over the rows it is given.
+  const [edits, setEdits] = useState<Map<string, Record<string, unknown>>>(() => new Map());
+  const given = rowsProp ?? data ?? [];
+  const rows = edits.size === 0 ? given : given.map((row, index) => {
+    const patch = edits.get(getRowIdProp ? getRowIdProp(row) : defaultRowId(row, index));
+    return patch && row !== null && typeof row === "object" ? { ...row, ...patch } : row;
+  });
   // Without getRowId: each row's `id` field, else its position (one lookup table per render, not a search per row).
   const positions = getRowIdProp ? undefined : new Map(rows.map((row, index) => [row, index]));
   const getRowId = getRowIdProp ?? ((row: T) => defaultRowId(row, positions?.get(row)));
+  // Selection: controlled by selectedIds, else the Table's own (from defaultSelectedIds).
+  const [ownSelected, setOwnSelected] = useState<string[]>(() => defaultSelectedIds ?? []);
+  const selectedIds = selectedIdsProp ?? ownSelected;
+  const changeSelection = (ids: string[]) => { if (selectedIdsProp === undefined) setOwnSelected(ids); onSelectionChange?.(ids); };
   const rootRef = useRef<HTMLDivElement | null>(null);
   const setRoot = useCallback((node: HTMLDivElement | null) => {
     rootRef.current = node;
@@ -357,8 +386,18 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
   }, [ref]);
   const hintId = useId();
   const [editing, setEditing] = useState<(ActiveCell & { initial?: string }) | null>(null);
-  const editableCols = columns.filter((column) => column.edit).map((column) => column.id);
-  const canEdit = (row: T, column: TableColumn<T>) => Boolean(column.edit && !column.edit.disabled?.(row));
+  /** The edit a shorthand editor commits: to onCellCommit, else into the Table's own copy of the row (numbers stay numbers). */
+  const commitShorthand = (row: T, column: TableColumn<T>, field: string, value: string | string[]) => {
+    if (onCellCommit) { onCellCommit(row, column.id, value); return; }
+    const was = (row as Record<string, unknown>)[field];
+    const next = typeof was === "number" && typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value)) ? Number(value) : value;
+    const id = getRowId(row);
+    setEdits((current) => new Map(current).set(id, { ...(current.get(id) ?? {}), [field]: next }));
+  };
+  // Each column's editor: as written, or built from its shorthand type / the Table's `editable` (null: read-only).
+  const editors = new Map(columns.map((column) => [column.id, editorOf(column, rows, editableProp, commitShorthand)]));
+  const editableCols = columns.filter((column) => editors.get(column.id)).map((column) => column.id);
+  const canEdit = (row: T, column: TableColumn<T>) => { const editor = editors.get(column.id); return Boolean(editor && !editor.disabled?.(row)); };
   /** `quiet`: focus returns to the cell after an edit (keyboard users continue from it) without the focus ring;
    * the ring comes back as soon as the user navigates on (arrows / Tab land on another cell). */
   const focusCell = (cell: ActiveCell, quiet = false) => requestAnimationFrame(() => {
@@ -383,7 +422,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
   };
   const onCellKeyDown = (event: KeyboardEvent<HTMLTableCellElement>, cell: ActiveCell, column: TableColumn<T>) => {
     if (event.target !== event.currentTarget) return;
-    const type = column.edit?.type ?? "text";
+    const type = editors.get(column.id)?.type ?? "text";
     const arrows: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
     if (arrows[event.key]) { event.preventDefault(); const next = neighbour(cell, ...arrows[event.key]); if (next) focusCell(next); return; }
     if (event.key === "Enter" || event.key === "F2") { event.preventDefault(); setEditing(cell); return; }
@@ -394,15 +433,15 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
   const selected = new Set(selectedIds);
   const allChecked = ids.length > 0 && ids.every((id) => selected.has(id));
   const someChecked = !allChecked && ids.some((id) => selected.has(id));
-  const toggleAll = () => onSelectionChange?.(allChecked ? selectedIds.filter((id) => !ids.includes(id)) : [...new Set([...selectedIds, ...ids])]);
-  const toggle = (id: string) => onSelectionChange?.(selected.has(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+  const toggleAll = () => changeSelection(allChecked ? selectedIds.filter((id) => !ids.includes(id)) : [...new Set([...selectedIds, ...ids])]);
+  const toggle = (id: string) => changeSelection(selected.has(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
   /* Bulk actions: the bar shows while rows are selected. It leaves with the selection, so when it held the focus (Clear,
      Escape, or an action that clears the selection) Select all rows takes it, where the next selection starts. */
   const hasBulk = selectable && Boolean(bulkActions);
   const selectedCount = selectedIds.length;
   const bulkFocus = useRef(false);
   const focusSelectAll = () => requestAnimationFrame(() => rootRef.current?.querySelector<HTMLInputElement>("thead input[type=checkbox]")?.focus());
-  const clearSelection = () => { bulkFocus.current = false; onSelectionChange?.([]); focusSelectAll(); };
+  const clearSelection = () => { bulkFocus.current = false; changeSelection([]); focusSelectAll(); };
   useEffect(() => {
     if (selectedCount > 0 || !bulkFocus.current) return;
     bulkFocus.current = false;
@@ -480,7 +519,8 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                   const open = column.onOpen ? (
                     <span className="zen-table__open">{/* zen-allow-compact-button: an App Store-style "Open" pill that appears on row hover inside a 52px cell. */}<Button appearance="main" level="tertiary" size="xs" onClick={(event) => { event.stopPropagation(); column.onOpen!(row); }}>{column.openLabel ?? t.open}</Button></span>
                   ) : null;
-                  if (!column.edit) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{cellOf(column, row, index)}{open}</td>;
+                  const editor = editors.get(column.id);
+                  if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{cellOf(column, row, index)}{open}</td>;
                   return (
                     <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-editable={editable ? "true" : "false"} data-editing={isEditing ? "true" : undefined} data-open={open ? "true" : undefined}
                       data-cell={`${id}::${column.id}`} tabIndex={editable && !isEditing ? 0 : undefined} aria-describedby={editable ? hintId : undefined}
@@ -499,7 +539,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                       {isEditing
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
-                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index)}</span><TableCellEditorView editor={column.edit} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index)}</span><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
                         : <>{cellOf(column, row, index)}{open}</>}
@@ -685,6 +725,43 @@ export function TableTags({ children }: { children: ReactNode }) {
 
 /** A row field as text: a string or a number, else nothing. */
 const textOf = (value: unknown) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
+
+/**
+ * The editor type a column takes from the Table's `editable`, by what it draws (Figma Table/Cell/Default State=Edit):
+ * null for a column with its own `cell`, a checkbox or a toggle. A list of values edits as tags, a badge as a select
+ * among the column's values, a number as a number, anything else as text. Zen Studio writes the same type on a column.
+ */
+export function tableEditorTypeFor(column: { cell?: unknown; content?: string; field?: string; id: string }, rows: readonly unknown[]): TableCellEditorType | null {
+  if (column.cell) return null;
+  const content = column.content ?? "text";
+  if (content === "checkbox" || content === "toggle") return null;
+  const field = column.field ?? column.id;
+  const sample = rows.map((row) => (row as Record<string, unknown> | null)?.[field]).find((value) => value !== undefined && value !== null);
+  if (content === "badge" || content === "tag") return Array.isArray(sample) ? "tags" : content === "badge" ? "select" : "text";
+  if (content === "progress") return "number";
+  return typeof sample === "number" ? "number" : "text";
+}
+
+/** A column's editor: as written, else built from its shorthand type or the Table's `editable` over the row's field. */
+function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, commit: (row: T, column: TableColumn<T>, field: string, value: string | string[]) => void): TableCellEditor<T> | null {
+  const edit = column.edit;
+  if (edit && typeof edit === "object") return edit;
+  const type = edit === true ? "text" : edit ?? (tableEditable ? tableEditorTypeFor(column, rows) : null);
+  if (!type) return null;
+  const field = column.field ?? column.id;
+  const read = (row: T) => (row as Record<string, unknown> | null)?.[field];
+  const list = (row: T) => { const value = read(row); return (Array.isArray(value) ? value : value === undefined || value === null || value === "" ? [] : [value]).map(textOf).filter(Boolean); };
+  const label = typeof column.header === "string" ? column.header : column.id;
+  if (type === "tags") {
+    const suggestions = [...new Set(rows.flatMap(list))];
+    return { type, value: list, suggestions, "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
+  }
+  if (type === "select") {
+    const options = [...new Set(rows.flatMap(list))].map((value) => ({ value, label: value }));
+    return { type, value: (row) => textOf(read(row)), options, "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
+  }
+  return { type, value: (row) => textOf(read(row)), "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
+}
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
 
 /** A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. */

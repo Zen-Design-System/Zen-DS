@@ -57,7 +57,7 @@ export type Insertable = {
   state?: readonly StateDecl[];
   /** An icon's name: with an Icon selected, the click swaps that Icon's glyph instead of adding one. */
   icon?: string;
-  /** A photo's source on a builder page: with an Image of a page selected, the click swaps its picture instead. */
+  /** A photo's source on a builder page: with an Image or Avatar of a page selected, the click swaps its picture instead. */
   photo?: string;
 };
 
@@ -73,19 +73,22 @@ export const uploadInsertable = (upload: Upload): Insertable => ({
   refusal: "An uploaded photo goes on a page you made (Pages › New page); example code takes the library's photos",
 });
 
-/** The selected Image of a page you made (a photo click swaps its picture), or null. */
+/** Layers whose picture is their `src` (propSchema.ts PHOTO_PROPS): a photo click gives them that picture. */
+const PICTURED = new Set(["Image", "Avatar", "AppShellAccount"]);
+
+/** The selected Image, Avatar or account of a page you made (a photo click swaps its picture), or null. */
 export function selectedImage(): NodeSelection | null {
   const selection = studioStore.getState().selection;
-  return selection?.kind === "node" && !selection.part && selection.name === "Image" && parseSrc(selection.src)?.file.startsWith("local:") ? selection : null;
+  return selection?.kind === "node" && !selection.part && PICTURED.has(selection.name) && parseSrc(selection.src)?.file.startsWith("local:") ? selection : null;
 }
 
-/** Gives the selected Image another picture (one undo step): how a page's missing photo is replaced. */
+/** Gives the selected Image (or Avatar) another picture (one undo step): how a page's missing photo is replaced. */
 async function swapPhoto(selection: NodeSelection, src: string, label: string) {
   const at = parseSrc(selection.src);
   if (!at) return;
   const element = await studioApi.element(at.file, at.loc);
-  if (!element) { fail("The selected Image is no longer there"); return; }
-  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "src", value: { kind: "string", value: src } } as EditOp], hash: element.hash }, `Image → ${label}`);
+  if (!element) { fail(`The selected ${selection.name} is no longer there`); return; }
+  await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "src", value: { kind: "string", value: src } } as EditOp], hash: element.hash }, `${selection.name} → ${label}`);
 }
 
 /** The selected Icon layer (an icon from the library swaps its glyph), or null. */

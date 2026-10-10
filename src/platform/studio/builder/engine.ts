@@ -30,10 +30,16 @@ export const zenComponents: ReadonlySet<string> = new Set(
 );
 
 let options: Record<string, unknown> | null = null;
-/** applyOps options for a page: component modules (all from the package) and required children / props. */
+/**
+ * applyOps options for a page: component modules (all from the package) and required props. A page you make is designed
+ * as freely as in Figma (user, 2026-10-10: "hành vi tự do này áp dụng cho mọi nơi"): a slot's last child goes and a slot
+ * clears even where the TypeScript type requires children (the component draws an empty slot); a required prop (a Menu's
+ * trigger) still stays, since the component cannot draw without it.
+ */
 export async function engineOptions(): Promise<Record<string, unknown>> {
   if (options) return options;
   const engine = await loadEngine();
-  options = { componentModules: new Map([...zenComponents].map((name) => [name, name])), ...engine.requiredFromApi(api) };
+  const { requiredProps } = engine.requiredFromApi(api);
+  options = { componentModules: new Map([...zenComponents].map((name) => [name, name])), requiredChildren: new Set<string>(), requiredProps };
   return options;
 }

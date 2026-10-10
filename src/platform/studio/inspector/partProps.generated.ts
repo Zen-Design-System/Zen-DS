@@ -37,11 +37,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "disabled": "disabled"
     }
   },
-  "Breadcrumbs": {
-    "BreadcrumbItem": {
-      "emphasis": "emphasis"
-    }
-  },
   "ChartCard": {
     "Card": {
       "surface": "surface",

@@ -255,14 +255,15 @@ export const rows = [
     },
   },
   {
-    id: "B-08", feature: "Rename a page from its row's menu (header title, list, folder)", wp: "GĐ2 M2",
+    id: "B-08", feature: "Rename a page from its row's menu, in place in the list (header title, list, folder)", wp: "GĐ2 M2",
     async run(ctx) {
       const { page, id, name } = await newPage(ctx);
       const renamed = `${name} renamed`;
       await pageAction(page, name, /^Rename/);
-      const dialog = page.getByRole("dialog", { name: "Rename page" });
-      await dialog.getByLabel("Title").fill(renamed);
-      await dialog.getByRole("button", { name: "Rename" }).click();
+      // In place (2026-10-10): the row's name becomes a field, Enter saves.
+      const field = page.locator("#studio-left").getByRole("textbox", { name: "Page name" });
+      await field.fill(renamed);
+      await field.press("Enter");
       await until(async () => (await pageText(page, id))?.startsWith(`// @zen-page {"format":1,"title":${JSON.stringify(renamed)}}`), { message: "the header renamed" });
       await until(async () => listed(page, renamed), { message: "the new name under My pages" });
       await until(async () => (folderText(ctx, id) ?? "").includes(JSON.stringify(renamed)), { message: "the folder's file renamed" });
@@ -665,6 +666,133 @@ export const rows = [
       const spacing = await frame.locator(".studio-builder-screen__content .zen-sidebar__item").first().evaluate((el) => { const style = getComputedStyle(el); return `${style.paddingLeft} ${style.columnGap}`; });
       if (spacing !== "12px 12px") throw new Error(`the row outside a Sidebar has padding/gap ${spacing}`);
       return `Breadcrumbs: ${before} → ${before + 1} items · Header: PageHeader + Search · Menu item outside a Sidebar: ${spacing}`;
+    },
+  },
+  {
+    id: "B-32", feature: "Menu Item-List as Figma's flat slot (user: \"hành vi tự do này áp dụng cho mọi nơi\"): + Separator, + Section title, + an item in that section, its label edited in the Menu's Properties, the separator removed", wp: "nested items 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      const menuItems = async () => {
+        const text = (await pageText(page, id)) ?? "";
+        const at = text.indexOf("<Menu");
+        const list = at < 0 ? "" : text.slice(at).match(/items=\{\[[\s\S]*?\]\}\s*\n?\s*\/?>/)?.[0] ?? "";
+        return [...list.matchAll(/type: "(group|separator)"|label: "([^"]*)"/g)].map((match) => (match[1] ? `<${match[1]}>` : match[2])).join(" ");
+      };
+      await selectStack(page, id);
+      await insertAsset(page, "Menu");
+      await until(async () => (await selectedName(page)) === "Menu", { message: "the Menu selected" });
+      const block = page.locator('#studio-right .studio-slots__slot[data-slot="items"]');
+      const add = async (label) => {
+        await block.getByRole("button", { name: "Add to Item-List" }).click();
+        await page.getByRole("menuitem", { name: label, exact: true }).click();
+      };
+      await add("Separator");
+      await until(async () => /<separator>$/.test(await menuItems()), { message: "a separator at the end" });
+      await add("Section title");
+      const title = page.locator('#studio-right input[aria-label="Section title"]');
+      await title.fill("Danger zone");
+      await title.press("Enter");
+      await until(async () => /<group> Danger zone$/.test(await menuItems()), { message: "the Danger zone group" });
+      await block.getByRole("button", { name: "Add Item to Danger zone" }).click();
+      await until(async () => /<group> Danger zone \w+/.test(await menuItems()), { message: "an item in Danger zone" });
+      const label = page.locator('#studio-right [role="group"] [data-prop="label"] input').last();
+      await label.fill("Delete project");
+      await label.press("Enter");
+      await until(async () => /Danger zone Delete project$/.test(await menuItems()), { message: "the grouped item renamed" });
+      // The Delete key on a focused row removes it, as the trash button does.
+      await block.locator("li", { hasText: "Separator" }).first().locator("button.studio-inspector__item").focus();
+      await page.keyboard.press("Delete");
+      await until(async () => /^Send reminder Download PDF <group> Danger zone Delete project$/.test(await menuItems()), { message: "the separator removed, the rest kept" }).catch(async (error) => { throw new Error(`${error.message} (items: ${await menuItems()})`); });
+      return await menuItems();
+    },
+  },
+  {
+    id: "B-31", feature: "Pages list: a double-click renames a page or a folder in place (user: \"cho phép double click sửa tên folder, project trực tiếp trên list\"); Escape keeps the name", wp: "pages 2026-10-10",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx);
+      await showLeftTab(page, "pages");
+      const field = page.locator("#studio-left input.studio-pages__rename");
+      await page.locator("#studio-left .studio-pages__row", { hasText: name }).first().dblclick();
+      await field.fill(`${name} v2`);
+      await field.press("Enter");
+      await until(async () => (await pageText(page, id))?.includes(JSON.stringify(`${name} v2`)), { message: "the page renamed" });
+      await page.locator("#studio-left .studio-pages__row", { hasText: `${name} v2` }).first().dblclick();
+      await field.fill("Not this");
+      await field.press("Escape");
+      await sleep(300);
+      if (!(await pageText(page, id))?.includes(JSON.stringify(`${name} v2`))) throw new Error("Escape changed the name");
+      await page.locator("#studio-left").getByRole("button", { name: "New folder" }).first().click();
+      const dialog = page.getByRole("dialog", { name: "New folder" });
+      const folder = `Flows ${Date.now().toString(36)}`;
+      await dialog.getByLabel("Name").fill(folder);
+      await dialog.getByRole("button", { name: "Create folder" }).click();
+      const folderRow = page.locator("#studio-left .studio-folder__row", { hasText: folder }).first();
+      await folderRow.dblclick();
+      await field.fill(`${folder} v2`);
+      await field.press("Enter");
+      await until(async () => (await page.locator("#studio-left .studio-folder__row", { hasText: `${folder} v2` }).count()) === 1, { message: "the folder renamed" });
+      // The Delete key (user: "xoá nên cho phép bấm phím xoá trên bàn phím"): a folder asks first, a page goes to Trash.
+      const renamedRow = page.locator("#studio-left .studio-folder__row", { hasText: `${folder} v2` }).first();
+      await renamedRow.focus();
+      await page.keyboard.press("Delete");
+      const ask = page.getByRole("alertdialog", { name: new RegExp(`Delete “${folder} v2”`) });
+      await ask.waitFor({ state: "visible", timeout: 4000 });
+      await ask.getByRole("button", { name: "Cancel" }).click();
+      const pageRow = page.locator("#studio-left .studio-pages__row", { hasText: `${name} v2` }).first();
+      await pageRow.focus();
+      await page.keyboard.press("Delete");
+      await until(async () => (await page.locator("#studio-left .studio-pages__row", { hasText: `${name} v2` }).count()) === 0, { message: "the page moved to Trash by Delete" });
+      return "page renamed in place (Escape keeps it) · folder renamed in place · Delete: the folder asks, the page goes to Trash";
+    },
+  },
+  {
+    id: "B-29", feature: "Nested items: ⌘-click on a crumb or a tab selects that item (user: \"Không chỉnh được props của nested\"); a crumb's own Emphasis / Dash write that crumb (Figma's Item-List instance), a tab's Label its item and its Variant (passed by Tabs) the owner", wp: "nested items 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      const text = async () => (await pageText(page, id)) ?? "";
+      for (const label of ["Breadcrumbs", "Tab bar"]) {
+        await selectStack(page, id);
+        await insertAsset(page, label);
+      }
+      await until(async () => (await frame.locator(".zen-breadcrumbs").count()) === 1 && (await frame.locator('.zen-tabs [role="tab"]').count()) === 2, { message: "a Breadcrumbs and a Tab bar on the Screen" });
+      await focusScreen(page);
+      // ⌘-click selects the owner, a second ⌘-click on the selected owner its item (Figma's deep select).
+      // The item's heading: "Tab · in Item-List of Tabs" (the owner's is "Tabs").
+      const pickItem = async (locator, heading) => {
+        const isItem = async () => (await selectedName(page)).startsWith(`${heading} · in `);
+        for (let k = 0; k < 3 && !(await isItem()); k++) {
+          const box = await locator.boundingBox();
+          if (!box) throw new Error(`no box for the ${heading}`);
+          await page.keyboard.down("ControlOrMeta");
+          await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+          await page.keyboard.up("ControlOrMeta");
+          await sleep(500);
+        }
+        await until(isItem, { message: `the ${heading} selected` }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      };
+      // A crumb: its own Emphasis (that crumb only), and its Dash, on while unset because a crumb follows it.
+      await pickItem(frame.locator(".zen-breadcrumb__label", { hasText: "Projects" }).first(), "Item");
+      await until(() => inspectorRow(page, "emphasis").count(), { message: "Emphasis on the crumb" });
+      await pickOption(page, "emphasis", "medium");
+      await until(async () => /\{ id: "projects", label: "Projects", emphasis: "medium" \}/.test(await text()), { message: 'the crumb { …, emphasis: "medium" } in the page' }).catch(async (error) => { throw new Error(`${error.message} (${(await text()).match(/<Breadcrumbs [^<]*/)?.[0]}; status: ${await statusText(page)})`); });
+      const dash = inspectorRow(page, "dash").getByRole("switch");
+      if ((await dash.getAttribute("aria-checked")) !== "true") throw new Error("Dash reads off on a crumb a chevron follows");
+      await dash.click();
+      await until(async () => /emphasis: "medium", dash: false \}/.test(await text()), { message: "the crumb's dash: false in the page" });
+      await until(async () => (await frame.locator(".zen-breadcrumbs__item").first().locator(".zen-breadcrumbs__separator").count()) === 0, { message: "no chevron after the first crumb" });
+      // A tab: found by its key (Tabs passes the fields one by one), its Label writes the item, Variant writes Tabs.
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await pickItem(frame.locator('.zen-tabs [role="tab"]', { hasText: "Activity" }).first(), "Tab");
+      const label = inspectorRow(page, "label").locator("input").first();
+      await label.fill("History");
+      await label.press("Enter");
+      await until(async () => /\{ id: "activity", label: "History" \}/.test(await text()), { message: '{ id: "activity", label: "History" } in the page' }).catch(async (error) => { throw new Error(`${error.message} (${(await text()).match(/<Tabs [^<]*/)?.[0]}; status: ${await statusText(page)})`); });
+      await pickItem(frame.locator('.zen-tabs [role="tab"]', { hasText: "History" }).first(), "Tab");
+      await pickOption(page, "variant", "Subtle");
+      await until(async () => /<Tabs [^<]*variant="subtle"/.test(await text()), { message: '<Tabs … variant="subtle"> in the page' }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      return "crumb › Emphasis medium + Dash off → that crumb · tab › Label History → its item · tab › Variant Subtle → Tabs variant";
     },
   },
 ];

@@ -17,6 +17,7 @@ import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { Sidebar } from "../../../components/Sidebar";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
@@ -354,6 +355,38 @@ function LongPathExample() {
   );
 }
 
+// ——— 3b. Next level (per-crumb Emphasis and Dash) ——————————————————————————————————————————————————————————————
+/* Each crumb sets its own look, as Figma's Item instances in the Item-List slot do (2026-10-10): the open folder is Medium
+   and keeps its Dash (the chevron after it) while it has folders inside, and the Menu after the chevron goes one level
+   down. Crumbs go back up. */
+function NextLevelExample() {
+  const [folderId, setFolderId] = useState("clients");
+  const [measure, width] = useWidth();
+  const path = pathTo(fileTree, folderId);
+  const folders = childrenOf(fileTree, folderId).filter(isFolder);
+  return (
+    <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
+      {/* One row: the chevron after the open folder stays beside the menu it points to (narrow: the trail collapses). */}
+      <Stack direction="row" gap="xs" align="center">
+        <Breadcrumbs
+          aria-label="Folder path"
+          maxItems={width && width < 400 ? 2 : 3}
+          items={trail(path).map((item, index) => (index === path.length - 1 ? { ...item, emphasis: "medium", dash: folders.length > 0 } : item))}
+          onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }}
+        />
+        {folders.length ? (
+          <Menu
+            aria-label={`Folders in ${path[path.length - 1].name}`}
+            trigger={<Button level="tertiary" size="sm" endIcon="icon-chevron-down-line">{plural(folders.length, "folder")}</Button>}
+            items={folders.map((f) => ({ id: f.id, label: f.name, icon: "icon-folder-line" }))}
+            onSelect={(item) => setFolderId(item.id)}
+          />
+        ) : null}
+      </Stack>
+    </Card>
+  );
+}
+
 // ——— 4. Move to folder ——————————————————————————————————————————————————————————————————————————————————
 function MoveToFolderExample() {
   const { toast } = useToast();
@@ -471,6 +504,38 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 </Breadcrumbs>
 <Heading level={4} textStyle="Heading/Subheading">Q3 critique</Heading>
 <Text textStyle="Body/Small/Regular" tone="base">Updated yesterday at 5:20 pm by Alex Duong</Text>`,
+  },
+  {
+    title: "Next level",
+    description: "Each crumb can set its own Level, Emphasis, State and Dash, like Figma's Item instances in the Item-List slot. The open folder is Medium and keeps its chevron while it has folders inside, and the menu after the chevron opens one of them; the crumbs go back up.",
+    render: () => <NextLevelExample />,
+    code: `const path = pathTo(folderId); // [Files, Clients]
+const folders = subfolders(folderId); // Lumen Bank, Mekong Freight, Phin & Co
+
+{/* One row: the trail, then the menu one level down (gap 8px); a narrow card collapses the trail instead of wrapping */}
+<Stack direction="row" gap="xs" align="center">
+  <Breadcrumbs
+    aria-label="Folder path"
+    maxItems={narrow ? 2 : 3}
+    items={path.map((f, i) => ({
+      id: f.id,
+      label: f.name,
+      href: \`/files/\${f.id}\`,
+      icon: f.isRoot ? "icon-folder-line" : undefined,
+      // The open folder: Medium, and its chevron stays while the menu follows it
+      ...(i === path.length - 1 ? { emphasis: "medium", dash: folders.length > 0 } : {}),
+    }))}
+    onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }}
+  />
+  {folders.length > 0 && (
+    <Menu
+      aria-label={\`Folders in \${path.at(-1).name}\`}
+      trigger={<Button level="tertiary" size="sm" endIcon="icon-chevron-down-line">{plural(folders.length, "folder")}</Button>}
+      items={folders.map((f) => ({ id: f.id, label: f.name, icon: "icon-folder-line" }))}
+      onSelect={(item) => setFolderId(item.id)}
+    />
+  )}
+</Stack>`,
   },
   {
     title: "Move to folder",

@@ -19,7 +19,8 @@ Show where the current page sits in a hierarchy and let users go up.
 | Level | `master` | first item with icon |
 | Collapse | `maxItems` | first + last N, “…” expands |
 | Navigate | `onNavigate` | preventDefault for client routing |
-| Item-List slot | `children: <BreadcrumbItem item={{ id, label, href }} />` | instead of items (Figma Item-List); the level, current page and collapsing stay Breadcrumbs' own |
+| Per crumb | `items[n].level · emphasis · state · dash` | Figma Item/Slot Dash and Item Level / State / Emphasis on one crumb; unset: Breadcrumbs' master / emphasis, a chevron after all but the last |
+| Item-List slot | `children: <BreadcrumbItem item={{ id, label, href }} />` | instead of items (Figma Item-List); the current page and collapsing stay Breadcrumbs' own, a BreadcrumbItem's level / emphasis / state count as its item's |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/breadcrumbs.json`.
@@ -30,9 +31,9 @@ Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `items` | `BreadcrumbItemData[]` | — | The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List). |
-| `children` | `ReactNode` | — | The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing. |
-| `emphasis` | `"default" \| "medium"` | `"default"` |  |
-| `master` | `boolean` | `true` | Show the first item as the Master level (with icon). Default true. |
+| `children` | `ReactNode` | — | The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is not given. Breadcrumbs still sets the current page and collapsing; a BreadcrumbItem's own `level`, `emphasis` and `state` (or its item's) win over Breadcrumbs' defaults. |
+| `emphasis` | `"default" \| "medium"` | `"default"` | Every crumb's Figma Emphasis, unless the crumb sets its own (`items[n].emphasis`). |
+| `master` | `boolean` | `true` | Show the first item as the Master level (with icon), unless a crumb sets its own `level`. Default true. |
 | `maxItems` | `number` | — | Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis shows them all and moves focus to the first crumb it revealed. |
 | `onNavigate` | `(item: BreadcrumbItemData, event: MouseEvent) => void` | — | Called for every non-current item; call `event.preventDefault()` for client-side routing. |
 | `aria-label` | `string` | — | Names the navigation landmark (default "Breadcrumb", from the locale's labels). |
@@ -43,18 +44,20 @@ Figma .Primitives/Breadcrumbs/Item (292:43787): Level × State × Emphasis.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `item` (required) | `{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`"icon-home-03-line"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName \| ReactNode; }` | — |  |
-| `level` | `"master" \| "sub"` | `"sub"` |  |
-| `emphasis` | `"default" \| "medium"` | `"default"` |  |
+| `item` (required) | `{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`"icon-home-03-line"`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName \| ReactNode; /** Figma Item › Level: Master draws the leading icon. Unset: the first crumb is Master while Breadcrumbs' `master` is * on, the others Sub. */ level?: BreadcrumbLevel; /** Figma Item › Emphasis: Medium sets the label in Body/Base/Medium. Unset: Breadcrumbs' `emphasis`. */ emphasis?: BreadcrumbEmphasis; /** Figma Item › State, for a static mockup or matrix (Hover shows Neutral/Flat/Hover); real hover applies anyway. */ state?: "default" \| "hover"; /** Figma Item/Slot › Dash: the chevron after this crumb. Unset: after every crumb but the last. */ dash?: boolean; }` | — |  |
+| `level` | `"master" \| "sub"` | — | Figma Level. Unset: the item's own `level`, else Sub. |
+| `emphasis` | `"default" \| "medium"` | — | Figma Emphasis. Unset: the item's own `emphasis`, else Default. |
 | `current` | `boolean` | `false` |  |
-| `state` | `"default" \| "hover"` | `"default"` | Deterministic Figma State for matrices; real hover applies natively. |
+| `state` | `"default" \| "hover"` | — | Deterministic Figma State for matrices; real hover applies natively. Unset: the item's own `state`. |
 | `onNavigate` | `(item: BreadcrumbItemData, event: MouseEvent) => void` | — |  |
 
 ### Types
 Object shapes the props above refer to.
 
 ```ts
-type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; }
+type BreadcrumbEmphasis = "default" | "medium"
+type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; level?: BreadcrumbLevel; emphasis?: BreadcrumbEmphasis; state?: "default" | "hover"; dash?: boolean; }
+type BreadcrumbLevel = "master" | "sub"
 ```
 
 ## Keyboard

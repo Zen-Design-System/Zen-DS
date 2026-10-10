@@ -132,7 +132,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("requiredFromApi: required props", [requiredProps.get("Dialog")?.has("title"), requiredProps.get("ListItem")?.has("title"), requiredProps.get("ListItem")?.has("leading")], [true, true, false]);
   check("requiredFromApi: junk → empty", [requiredFromApi(null).requiredChildren.size, requiredFromApi({ x: "y" }).requiredProps.size], [0, 0]);
   check("isSlotFile", ["src/platform/examples/pages/card.tsx", "src/templates/hr/HrHomeTemplate.tsx", "src/templates/X.tsx", "src/platform/PlatformExamples.tsx", "src/platform/examples/pages/sub/x.tsx", "src/platform/appLayer/templates.tsx", "src/components/Card/Card.tsx", "src/platform/examples/pages/card.css", "src/templates/X.tsx?raw", null].map(isSlotFile), [true, true, true, false, false, false, false, false, false, false]);
-  check("SLOT_OPS", [...SLOT_OPS], ["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "clearSlot", "resetSlot", "insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem"]);
+  check("SLOT_OPS", [...SLOT_OPS], ["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "clearSlot", "resetSlot", "insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem", "setItems"]);
 }
 
 /* ── insertChild: children ────────────────────────────────────────────────────────────────────────────────────────── */

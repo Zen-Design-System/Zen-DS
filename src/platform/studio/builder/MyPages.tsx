@@ -16,6 +16,7 @@ import { loadEngine, zenComponents } from "./engine";
 import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
 import { idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
+import { RenameField } from "./RenameField";
 import { useFolders } from "./store/folderStore";
 import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
 
@@ -163,9 +164,11 @@ function StorageLine() {
 export function MyPageRow({ item, current, tabIndex, nested = false }: { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean }) {
   const admin = useStudio((state) => state.role === "admin");
   const folders = useFolders();
-  const [dialog, setDialog] = useState<null | "rename" | "history">(null);
+  const [dialog, setDialog] = useState<null | "history">(null);
+  // Rename in place (double-click the row, or Rename…), as Figma renames a layer.
+  const [renaming, setRenaming] = useState(false);
   const items: MenuEntry[] = [
-    { id: "rename", label: "Rename…", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setDialog("rename") },
+    { id: "rename", label: "Rename", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setRenaming(true) },
     { id: "duplicate", label: "Duplicate", icon: "icon-copy-line", disabled: !admin, onSelect: () => void duplicatePage(item.id).then(openLocalPage, fail) },
     { id: "export-code", label: "Export…", icon: "icon-code-02-line", caption: "React code or the design file", onSelect: () => openExport(item.id) },
     { id: "export", label: "Export file", icon: "icon-download-01-line", caption: `${item.id}.zen.tsx`, onSelect: () => void exportPage(item.id).catch(fail) },
@@ -182,38 +185,27 @@ export function MyPageRow({ item, current, tabIndex, nested = false }: { item: P
   ];
   return (
     <li className="studio-pages__item">
-      <button type="button" className="studio-pages__row" data-child={nested ? "true" : undefined} aria-current={current ? "page" : undefined} tabIndex={tabIndex} onClick={() => openLocalPage(item.id)}>
-        <Icon name="icon-file-code-line" size="sm" decorative />
-        <span className={`studio-pages__name ${typographyStyles[current ? "Body/Small/Bold" : "Body/Small/Medium"]}`}>{item.title}</span>
-      </button>
+      {renaming ? (
+        <div className="studio-pages__row" data-child={nested ? "true" : undefined} data-renaming="true">
+          <Icon name="icon-file-code-line" size="sm" decorative />
+          <RenameField value={item.title} label="Page name" onCommit={(name) => renamePage(item.id, name).catch(fail)} onDone={() => setRenaming(false)} />
+        </div>
+      ) : (
+        <button type="button" className="studio-pages__row" data-child={nested ? "true" : undefined} aria-current={current ? "page" : undefined} tabIndex={tabIndex} title={admin ? "Double-click to rename" : undefined}
+          onClick={() => openLocalPage(item.id)} onDoubleClick={() => { if (admin) setRenaming(true); }}
+          onKeyDown={(event) => {
+            // Delete / Backspace moves the page to Trash, where it can be restored.
+            if ((event.key === "Delete" || event.key === "Backspace") && admin && !event.repeat) { event.preventDefault(); leaveIfOpen(item.id); void trashPage(item.id).catch(fail); }
+          }}>
+          <Icon name="icon-file-code-line" size="sm" decorative />
+          <span className={`studio-pages__name ${typographyStyles[current ? "Body/Small/Bold" : "Body/Small/Medium"]}`}>{item.title}</span>
+        </button>
+      )}
       <span className="studio-pages__actions">
         <Menu align="end" aria-label={`${item.title} actions`} items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label={`${item.title} actions`} appearance="flat" level="primary" size="xs" tabIndex={-1} />} />
       </span>
-      {dialog === "rename" ? <RenameDialog page={item} onClose={() => setDialog(null)} /> : null}
       {dialog === "history" ? <HistoryDialog page={item} admin={admin} onClose={() => setDialog(null)} /> : null}
     </li>
-  );
-}
-
-function RenameDialog({ page, onClose }: { page: PageMeta; onClose: () => void }) {
-  const [title, setTitle] = useState(page.title);
-  const [error, setError] = useState<string | null>(null);
-  return (
-    <ModalForm
-      open
-      onOpenChange={(next) => { if (!next) onClose(); }}
-      title="Rename page"
-      description={`The file stays ${page.id}.zen.tsx.`}
-      onSubmit={() => {
-        const name = title.trim();
-        if (!name) { setError("Give the page a title"); return; }
-        void renamePage(page.id, name).then(onClose, fail);
-      }}
-      primaryAction={{ label: "Rename" }}
-      secondaryAction={{ label: "Cancel" }}
-    >
-      <InputField label="Title" size="md" value={title} autoFocus error={Boolean(error)} errorMessage={error ?? undefined} onChange={(event) => { setTitle(event.target.value); if (error) setError(null); }} />
-    </ModalForm>
   );
 }
 

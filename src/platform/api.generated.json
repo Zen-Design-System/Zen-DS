@@ -5484,7 +5484,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing.",
+          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets the current page and collapsing; a BreadcrumbItem's own `level`, `emphasis` and\n `state` (or its item's) win over Breadcrumbs' defaults.",
           "deprecated": null
         },
         {
@@ -5492,7 +5492,7 @@
           "type": "\"default\" | \"medium\"",
           "required": false,
           "default": "\"default\"",
-          "description": "",
+          "description": "Every crumb's Figma Emphasis, unless the crumb sets its own (`items[n].emphasis`).",
           "deprecated": null
         },
         {
@@ -5500,7 +5500,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Show the first item as the Master level (with icon). Default true.",
+          "description": "Show the first item as the Master level (with icon), unless a crumb sets its own `level`. Default true.",
           "deprecated": null
         },
         {
@@ -5543,7 +5543,7 @@
       "props": [
         {
           "name": "item",
-          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName | ReactNode; }",
+          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName | ReactNode; /** Figma Item › Level: Master draws the leading icon. Unset: the first crumb is Master while Breadcrumbs' `master` is * on, the others Sub. */ level?: BreadcrumbLevel; /** Figma Item › Emphasis: Medium sets the label in Body/Base/Medium. Unset: Breadcrumbs' `emphasis`. */ emphasis?: BreadcrumbEmphasis; /** Figma Item › State, for a static mockup or matrix (Hover shows Neutral/Flat/Hover); real hover applies anyway. */ state?: \"default\" | \"hover\"; /** Figma Item/Slot › Dash: the chevron after this crumb. Unset: after every crumb but the last. */ dash?: boolean; }",
           "required": true,
           "default": null,
           "description": "",
@@ -5553,16 +5553,16 @@
           "name": "level",
           "type": "\"master\" | \"sub\"",
           "required": false,
-          "default": "\"sub\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Level. Unset: the item's own `level`, else Sub.",
           "deprecated": null
         },
         {
           "name": "emphasis",
           "type": "\"default\" | \"medium\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Emphasis. Unset: the item's own `emphasis`, else Default.",
           "deprecated": null
         },
         {
@@ -5577,8 +5577,8 @@
           "name": "state",
           "type": "\"default\" | \"hover\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "Deterministic Figma State for matrices; real hover applies natively.",
+          "default": null,
+          "description": "Deterministic Figma State for matrices; real hover applies natively. Unset: the item's own `state`.",
           "deprecated": null
         },
         {
@@ -8045,8 +8045,16 @@
           "name": "selectedIds",
           "type": "string[]",
           "required": false,
-          "default": "[]",
-          "description": "",
+          "default": null,
+          "description": "The selected rows (controlled, with `onSelectionChange`); without it the Table keeps the selection itself.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultSelectedIds",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "The rows selected at first when the selection is not controlled.",
           "deprecated": null
         },
         {
@@ -8055,6 +8063,22 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Table/Cell/Default State=Edit on every cell that shows a row's value: each column without its own `edit`\n(and without `cell`, checkbox or toggle content) edits in place by its content — text or number by the value, a\nlist of the column's values for badges, tags for lists. The Table keeps the edits, or hands them to `onCellCommit`.",
+          "deprecated": null
+        },
+        {
+          "name": "onCellCommit",
+          "type": "(row: T, columnId: string, value: string | string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "An edit made through a shorthand `edit` or `editable`: the row, the column id and the new value (a tags list for\n tags). Without it the Table applies the edit to the row it draws.",
           "deprecated": null
         },
         {

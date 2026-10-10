@@ -1302,11 +1302,11 @@
           "className?: string"
         ],
         "BreadcrumbItem": [
-          "item: { id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`icon-home-03-line`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName|ReactNode; }",
-          "level?: master|sub = sub",
-          "emphasis?: default|medium = default",
+          "item: { id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`icon-home-03-line`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName|ReactNode; /** Figma Item › Level: Ma…",
+          "level?: master|sub",
+          "emphasis?: default|medium",
           "current?: boolean = false",
-          "state?: default|hover = default",
+          "state?: default|hover",
           "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void"
         ]
       },
@@ -2321,8 +2321,11 @@
           "aria-label?: string",
           "caption?: ReactNode",
           "selectable?: boolean = false",
-          "selectedIds?: string[] = []",
+          "selectedIds?: string[]",
+          "defaultSelectedIds?: string[]",
           "onSelectionChange?: (ids: string[]) => void",
+          "editable?: boolean = false",
+          "onCellCommit?: (row: T, columnId: string, value: string|string[]) => void",
           "bulkActions?: TableBulkAction[]|((selectedIds: string[]) => TableBulkAction[])",
           "sort?: TableSort|null",
           "onSortChange?: (sort: TableSort|null) => void",

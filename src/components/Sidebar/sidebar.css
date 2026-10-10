@@ -211,8 +211,10 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__items { width: 100%; gap: 0; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section { gap: 0; }
 /* Figma HR Sidebar-List Expand=No (7373:57684): the rail's groups sit Spacing/Gap/XSmall (8px) apart and each later
-   group opens with a 1px Divider as wide as an item (44px), 2px above its first item. */
-.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section { margin-top: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+   group opens with a 1px Divider as wide as an item (44px). Figma puts it 2px above the group's first item; the user
+   (2026-10-10, "tăng spacing giữa divider với các item dưới") asked for more room, so it sits Spacing/Gap/XSmall below
+   as well, centred between the groups (a selected item's fill no longer touches it). */
+.zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section { margin-top: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__surface .zen-sidebar__section + .zen-sidebar__section::before { width: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-sidebar-item-padding, 12px)); height: 1px; justify-self: center; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); content: ""; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { justify-content: center; gap: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }

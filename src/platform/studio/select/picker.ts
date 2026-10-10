@@ -18,6 +18,8 @@ export type Fiber = {
   tag: number;
   type: unknown;
   elementType: unknown;
+  /** The React key the parent gave it (a .map's item id). */
+  key: string | null;
   return: Fiber | null;
   child: Fiber | null;
   sibling: Fiber | null;

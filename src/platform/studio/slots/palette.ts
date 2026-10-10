@@ -235,6 +235,8 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "pagination", label: "Pagination", group: "Navigation", root: "Pagination", components: ["Pagination"], state: [state("page", "1")], interactive: true, input: false,
     build: () => `<Pagination aria-label="Invoice pages" page={page} onPageChange={setPage} pageCount={5} />`,
+    // A builder page keeps no state: the page shown is fixed (2026-10-10 palette sweep: it was refused on pages you make).
+    builder: () => `<Pagination aria-label="Invoice pages" page={1} pageCount={5} />`,
   },
   {
     id: "stepper", label: "Stepper", group: "Navigation", caption: "Step 2 of 3", root: "Stepper", components: ["Stepper"], interactive: false, input: false,
@@ -373,6 +375,8 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "image", label: "Image", group: "Data display", caption: "4:3 photo", root: "Image", components: ["Image"], requires: MEDIA, interactive: false, input: false,
     build: () => `<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio="4:3" />`,
+    // A page you make takes the library's photo by key (builder/library/media.ts), not platformMedia.
+    builder: () => `<Image src="zen-media:site-cafe" alt="Café table with a coffee" ratio="4:3" />`,
   },
   /* Charts */
   {
@@ -485,6 +489,8 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "date-picker", label: "Calendar", group: "Inputs", caption: "Inline date picker", root: "DatePicker", components: ["DatePicker"], interactive: true, input: true,
     build: () => `<DatePicker aria-label="Due date" today={new Date(2026, 8, 30)} defaultValue={new Date(2026, 9, 14)} />`,
+    // No Date code on a page you make: the calendar opens on this month.
+    builder: () => `<DatePicker aria-label="Due date" />`,
   },
   {
     id: "number-field", label: "Number field", group: "Inputs", root: "NumberField", components: ["NumberField"], interactive: true, input: true,
@@ -515,11 +521,19 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "nps-scale", label: "NPS scale", group: "Inputs", caption: "0 to 10", root: "NpsScale", components: ["NpsScale"], state: [state("score", "null", "number | null")], interactive: true, input: true,
     build: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" value={score} onValueChange={setScore} />`,
+    builder: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" />`,
   },
   {
     id: "color-selector", label: "Colour selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,
     build: () => lines(
       `<ColorSelector aria-label="Project colour" value={color} onValueChange={setColor} colors={[`,
+      `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
+      `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
+      `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
+      `]} />`,
+    ),
+    builder: () => lines(
+      `<ColorSelector aria-label="Project colour" value="var(--zen-color-background-support-blue-solid)" colors={[`,
       `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
       `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
       `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
@@ -532,6 +546,10 @@ export const PALETTE: readonly PaletteItem[] = [
       `<FileUpload label="Kickoff files" multiple accept=".pdf,.png,.jpg,.jpeg"`,
       `  text="Drop files here or choose them" caption="PDF or images. Max size of 100 MB"`,
       `  onFilesAdd={(added) => toast({ title: added.length === 1 ? "1 file added" : \`\${added.length} files added\` })} />`,
+    ),
+    builder: () => lines(
+      `<FileUpload label="Kickoff files" multiple accept=".pdf,.png,.jpg,.jpeg"`,
+      `  text="Drop files here or choose them" caption="PDF or images. Max size of 100 MB" />`,
     ),
   },
   /* Overlays: each comes with the Button that opens it. */
@@ -661,6 +679,13 @@ export const PALETTE: readonly PaletteItem[] = [
       `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
       `]} />`,
     ),
+    builder: () => lines(
+      `<BottomNavigation aria-label="Main" value="home" items={[`,
+      `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
+      `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
+      `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
+      `]} />`,
+    ),
   },
   {
     // Its rows are Body-Content children (Figma Menu-Item instances), so each is a layer of the slot.
@@ -726,10 +751,21 @@ export const PALETTE: readonly PaletteItem[] = [
       `  </ChatMessage>`,
       `</ChatThread>`,
     ),
+    builder: () => lines(
+      `<ChatThread aria-label="Chat with Bao Nguyen">`,
+      `  <ChatMessage side="others" author={{ name: "Bao Nguyen", theme: "indigo" }} time="9:41 AM">`,
+      `    Can you send the rewards flow before Friday?`,
+      `  </ChatMessage>`,
+      `  <ChatMessage side="you" time="9:43 AM">`,
+      `    Sure, it goes out Thursday morning.`,
+      `  </ChatMessage>`,
+      `</ChatThread>`,
+    ),
   },
   {
     id: "chat-composer", label: "Chat composer", group: "Chat", root: "ChatComposer", components: ["ChatComposer"], requires: TOAST, interactive: true, input: false,
     build: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={(text) => toast({ title: "Message sent", children: text })} />`,
+    builder: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={proto.toast({ title: "Message sent" })} />`,
   },
   {
     id: "ai-chat", label: "AI chat", group: "Chat", caption: "Thread and field", root: "Stack", components: ["Stack", "AiChatThread", "AiChatBubble", "AiChatField"], requires: TOAST, interactive: true, input: false,

@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "../../../components/Button";
+import { tableEditorTypeFor } from "../../../components/Table";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { ToggleButton } from "../../../components/Toggle";
@@ -8,12 +9,14 @@ import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { PartPanel } from "../inspector/PartPanel";
 import { EnumControl, IconControl, NumberControl, TextControl } from "../inspector/PropField";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { InspectorFileContext } from "../inspector/controls/hostContext";
+import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
 import { currentFiber, fiberOf, hostsOf, onSourceUpdate, shortSrc, srcOf, type Fiber } from "../select/picker";
 import { selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, ObjectShape, SourceAttr, SourceElement, StudioSelection } from "../types";
-import { bodyRows, fieldText, rowFieldsOf, tableCellOf, TABLE_PARTS, type TableCellHit, type TableColumnInfo } from "./tableCells";
+import { bodyRows, fieldText, rowFieldsOf, tableCellOf, tableData, tableFiberOf, TABLE_PARTS, type TableCellHit, type TableColumnInfo } from "./tableCells";
 
 /*
  * The Inspector of a Table's Data-Row and Cell (user, 2026-10-10: "phải chọn được loại dữ liệu của cell", "giống Figma
@@ -24,6 +27,12 @@ import { bodyRows, fieldText, rowFieldsOf, tableCellOf, TABLE_PARTS, type TableC
  * op setField on `columns`); a column whose `cell` writes the content gets that element swapped (op replaceElement) or
  * its props set. The value is the row's own data (op setDataField, the row found by its key: data-source.mjs). A
  * Data-Row lists its row's fields. Any other part of a Table goes to PartPanel.
+ *
+ * Figma's State (user, 2026-10-10: "Datarow của table thiếu trạng thái select khi có checkbox, chưa cho phép chuyển cột
+ * nào/nguyên dòng thành editable"): a Data-Row's State Default · Selected is the Table's selection as written (the
+ * useState list behind `selectedIds`, else `defaultSelectedIds`; Selected also turns the Checkbox column on), its
+ * Editable is the Table's `editable` (every value cell of every row in State=Edit); a Cell's State Default · Edit ·
+ * Selected writes `edit: "<type>"` on its column (one column of every row, as the code works) or selects its row.
  */
 
 type PartSelection = Extract<StudioSelection, { kind: "node" }>;
@@ -251,6 +260,55 @@ function rowOp(cell: { row: number; rowKey: string | null; item: unknown }, fiel
   return { op: "setDataField", field, row: cell.row, ...(cell.rowKey !== null ? { rowKey: cell.rowKey } : {}), rowFields: rowFieldsOf(cell.item), value };
 }
 
+/* ───────────── The Table's selection and editing as written (Figma Table/Cell/Default State=Selected · State=Edit) ───────────── */
+
+/** A boolean prop of the Table as written: on or off, or the reason it is code the Studio leaves alone. */
+function booleanProp(table: SourceElement | null, name: string): { on: boolean; reason?: string } {
+  const written = attr(table, name);
+  if (!written) return { on: false };
+  if (written.kind === "true") return { on: true };
+  if (written.kind === "expression" && /^(true|false)$/.test((written.value ?? "").trim())) return { on: written.value!.trim() === "true" };
+  return { on: false, reason: `${name}={${written.value ?? "…"}} is code; edit it there` };
+}
+const booleanOps = (name: string, on: boolean): EditOp[] => [on ? { op: "setProp", name, value: { kind: "boolean", value: true } } : { op: "removeProp", name }];
+const listCode = (ids: string[]) => `[${ids.map((id) => JSON.stringify(id)).join(", ")}]`;
+
+/** The rows selected as written — the useState list behind `selectedIds`, else `defaultSelectedIds` — and how the next list is written. */
+function writtenSelection(table: SourceElement | null): { ids: string[]; write: (ids: string[]) => EditOp[] } | { reason: string } {
+  const controlled = attr(table, "selectedIds");
+  if (controlled) {
+    if (controlled.state && Array.isArray(controlled.state.value)) {
+      return { ids: controlled.state.value, write: (ids) => [{ op: "setStateInit", name: "selectedIds", value: { kind: "expression", code: listCode(ids) } }] };
+    }
+    return { reason: `selectedIds={${controlled.value ?? "…"}} is code; edit the selection there` };
+  }
+  const initial = attr(table, "defaultSelectedIds");
+  let ids: string[] = [];
+  if (initial) {
+    try {
+      const parsed: unknown = JSON.parse(initial.value ?? "");
+      if (!Array.isArray(parsed) || !parsed.every((id) => typeof id === "string")) throw new Error("not a list of strings");
+      ids = parsed as string[];
+    } catch {
+      return { reason: `defaultSelectedIds={${initial.value ?? "…"}} is code; edit it there` };
+    }
+  }
+  return { ids, write: (next) => [next.length ? { op: "setProp", name: "defaultSelectedIds", value: { kind: "expression", code: listCode(next) } } : { op: "removeProp", name: "defaultSelectedIds" }] };
+}
+
+/** The ops that select or deselect a row as written: Selected also turns the Checkbox column (`selectable`) on. Null with why when the selection is code. */
+function selectionOps(table: SourceElement | null, rowKey: string | null, on: boolean): EditOp[] | { reason: string } {
+  if (!rowKey) return { reason: "This row has no key (getRowId)" };
+  const selection = writtenSelection(table);
+  if ("reason" in selection) return selection;
+  const next = on ? [...new Set([...selection.ids, rowKey])] : selection.ids.filter((id) => id !== rowKey);
+  const checkbox = booleanProp(table, "selectable");
+  if (on && checkbox.reason) return { reason: checkbox.reason };
+  return [...(on && !checkbox.on ? booleanOps("selectable", true) : []), ...selection.write(next)];
+}
+
+const STATE_LABELS = { default: "Default", selected: "Selected", edit: "Edit" };
+
 /* ───────────── Data-Row ───────────── */
 
 function DataRowPanel({ selection, part }: { selection: PartSelection; part: PartHit }) {
@@ -264,9 +322,30 @@ function DataRowPanel({ selection, part }: { selection: PartSelection; part: Par
   const fields = item && typeof item === "object" ? Object.entries(item as Record<string, unknown>).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)) : [];
   const rows = table?.tableRows;
   const locked = !editable || !rows?.editable;
+  // Figma State of the row's cells (Selected: the Table's selection as written) and the Table's Checkbox and Editable.
+  const live = ((cell?.table ?? tableFiberOf(tr))?.memoizedProps ?? {}) as { selectable?: boolean; editable?: boolean };
+  const selectedNow = tr.dataset.selected === "true";
+  const checkbox = booleanProp(table, "selectable");
+  const rowEditable = booleanProp(table, "editable");
+  const selectionWrite = selectionOps(table, cell?.rowKey ?? null, !selectedNow);
+  const setState = (next: string) => {
+    if ("reason" in selectionWrite || (next === "selected") === selectedNow) return;
+    void edit(table, selectionWrite, `Row ${index + 1}: ${STATE_LABELS[next as keyof typeof STATE_LABELS] ?? next}`);
+  };
   return (
     <div className="studio-inspector__panel">
       <PartHeader selection={selection} title="Data-Row" where={`row ${index + 1} of ${selection.name}`} />
+      <InspectorSection title="Primitives/Table/Data-Row" note="State is this row's; Checkbox and Editable are the Table's (every row).">
+        <InspectorRow label="State" name="row-state" hint={"reason" in selectionWrite ? selectionWrite.reason : undefined}>
+          <EnumControl label="State" value={selectedNow ? "selected" : "default"} fallback="default" disabled={!editable || "reason" in selectionWrite} options={["default", "selected"]} labels={STATE_LABELS} onSet={setState} />
+        </InspectorRow>
+        <InspectorRow label="Checkbox" name="selectable" hint={checkbox.reason ?? "Figma Table/Cell/Header Type=Checkbox: a checkbox column, rows select"}>
+          <ToggleButton aria-label="Checkbox" size="sm" checked={Boolean(live.selectable)} disabled={!editable || Boolean(checkbox.reason)} onCheckedChange={(next) => void edit(table, booleanOps("selectable", next), `${selection.name}: Checkbox ${next ? "on" : "off"}`)} />
+        </InspectorRow>
+        <InspectorRow label="Editable" name="editable" hint={rowEditable.reason ?? "Figma Cell State=Edit on every value cell: text, numbers, badges and tags edit in place"}>
+          <ToggleButton aria-label="Editable" size="sm" checked={Boolean(live.editable)} disabled={!editable || Boolean(rowEditable.reason)} onCheckedChange={(next) => void edit(table, booleanOps("editable", next), `${selection.name}: Editable ${next ? "on" : "off"}`)} />
+        </InspectorRow>
+      </InspectorSection>
       <InspectorSection title="Row data" note={rows && !rows.editable ? rows.reason : rows?.file ? `Written in ${shortSrc(rows.file)}` : undefined}>
         {cell && fields.length ? fields.map(([key, value]) => (
           <InspectorRow key={key} label={key} labelTitle={key} name={`row-${key}`}>
@@ -335,7 +414,51 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
     }
   };
 
+  // The media field: one of the row's fields, or a new one (`photo`, `icon`) the rows take when a value is given.
+  const newMedia = MEDIA.has(kind) && !rowFields.includes(kind === "icon" || kind === "dock-icon" ? "icon" : "photo") ? (kind === "icon" || kind === "dock-icon" ? "icon" : "photo") : null;
+  const mediaFields = [...rowFields, ...(newMedia && column?.mediaField !== newMedia ? [newMedia] : []), ...(column?.mediaField && !rowFields.includes(column.mediaField) && column.mediaField !== newMedia ? [column.mediaField] : [])];
   const rowsLocked = !editable || !table?.tableRows?.editable;
+
+  // Figma State: Selected is the row's selection as written; Edit is `edit: "<type>"` on the column (every row of it).
+  const selectedNow = cell.tr.dataset.selected === "true";
+  const tableEditable = Boolean((cell.table.memoizedProps as { editable?: boolean } | null)?.editable);
+  const cellEditable = cell.td.dataset.editable === "true" || Boolean(column?.edit);
+  const state = selectedNow ? "selected" : cellEditable ? "edit" : "default";
+  const writtenEdit = shape && !("reason" in shape) ? fieldOf(shape.shape, "edit") : undefined;
+  /** The ops that put the column's cells in Edit (on) or back (off), or why the Studio cannot. */
+  const editOps = (on: boolean): EditOp[] | { reason: string } => {
+    if (on === cellEditable) return [];
+    if (!on && tableEditable) return { reason: "Editable is on for the whole Table: turn it off on the Data-Row" };
+    if (!drawn) return { reason: "The column's cells are code (cell): give it edit in the code" };
+    if (!shape || "reason" in shape || !column) return { reason: shape && "reason" in shape ? shape.reason : "The column is not written in the list" };
+    if (writtenEdit && writtenEdit.kind !== "string" && writtenEdit.kind !== "boolean") return { reason: "The column's edit is code; edit it there" };
+    if (on) {
+      const type = tableEditorTypeFor(column, tableData(cell.table).rows);
+      if (!type) return { reason: "A checkbox or toggle cell is a control already" };
+      return [{ op: "setField", name: "columns", index: shape.index, key: "edit", value: { kind: "string", value: type } }];
+    }
+    return [{ op: "setField", name: "columns", index: shape.index, key: "edit", value: null }];
+  };
+  const stateOps = (next: string): EditOp[] | { reason: string } => {
+    const ops: EditOp[] = [];
+    if ((next === "selected") !== selectedNow) {
+      const selection = selectionOps(table, cell.rowKey, next === "selected");
+      if ("reason" in selection) return selection;
+      ops.push(...selection);
+    }
+    if (next !== "selected") {
+      const editing = editOps(next === "edit");
+      if ("reason" in editing) return editing;
+      ops.push(...editing);
+    }
+    return ops;
+  };
+  const stateHint = (["default", "edit", "selected"] as const).map((next) => (next === state ? null : stateOps(next))).find((result) => result && "reason" in result) as { reason: string } | undefined;
+  const setState = (next: string) => {
+    const ops = stateOps(next);
+    if ("reason" in ops) { inspectorStatus.set("negative", ops.reason); return; }
+    if (ops.length) void edit(table, ops, `${header} column, row ${cell.row + 1}: State ${STATE_LABELS[next as keyof typeof STATE_LABELS] ?? next}`);
+  };
   const valueRows: ReactNode[] = [];
   if (drawn && column && cell.item && typeof cell.item === "object") {
     const record = cell.item as Record<string, unknown>;
@@ -343,13 +466,18 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
     for (const [label, key] of fields) {
       if (!label || !key) continue;
       const set = (next: EditValue) => void edit(table, [rowOp(cell, [key], next)], `${header}, row ${cell.row + 1}: ${label}`);
-      // An Icon or Dock Icon cell's icon name: Figma's icon swap.
-      const icon = label === "Icon" && (typeof record[key] === "string" || record[key] === undefined);
+      // An Icon or Dock Icon cell's icon name: Figma's icon swap; an Avatar or Photo cell's picture: its image fill (on a
+      // page you made; example code keeps a text field). A row without the field gets it (data-source.mjs).
+      const text = typeof record[key] === "string" || record[key] === undefined;
+      const value = typeof record[key] === "string" ? (record[key] as string) : undefined;
+      const field = <ValueField label={label} value={record[key]} disabled={rowsLocked} onSet={set} />;
       valueRows.push(
         <InspectorRow key={key} label={label} labelTitle={key} name={`value-${key}`}>
-          {icon
-            ? <IconControl label={label} value={typeof record[key] === "string" ? (record[key] as string) : undefined} fallback={undefined} disabled={rowsLocked} onSet={(next) => set({ kind: "string", value: next })} />
-            : <ValueField label={label} value={record[key]} disabled={rowsLocked} onSet={set} />}
+          {label === "Icon" && text
+            ? <IconControl label={label} value={value} fallback={undefined} disabled={rowsLocked} onSet={(next) => set({ kind: "string", value: next })} />
+            : label === "Picture" && text
+              ? <PhotoControl label={label} value={value} disabled={rowsLocked} people={kind === "avatar"} onSet={(next) => set({ kind: "string", value: next })} onClear={value ? () => set({ kind: "string", value: "" }) : undefined} textControl={field} />
+              : field}
         </InspectorRow>,
       );
     }
@@ -357,6 +485,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   if (!drawn && content) valueRows.push(...writtenValues(content, inner, cell, editable, header));
 
   return (
+    <InspectorFileContext.Provider value={parseSrc(selection.src)?.file ?? null}>
     <div className="studio-inspector__panel">
       <PartHeader selection={selection} title={title} where={where} />
       <InspectorSection title="Table/Cell/Default" note="A column shows one kind of data: Content, Align, Bold and Subtext change every row of this column.">
@@ -367,6 +496,9 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
         </InspectorRow>
         <InspectorRow label="Align" name="align" hint={columnShapeForAlign && "reason" in columnShapeForAlign ? columnShapeForAlign.reason : undefined}>
           <EnumControl label="Align" value={align} fallback="left" disabled={!editable || !columnShapeForAlign || "reason" in columnShapeForAlign} options={["left", "right"]} labels={{ left: "Left", right: "Right" }} onSet={setAlign} />
+        </InspectorRow>
+        <InspectorRow label="State" name="cell-state" hint={stateHint?.reason ?? "Selected: this row (the Table's selection). Edit: this column, every row, edits in place"}>
+          <EnumControl label="State" value={state} fallback="default" disabled={!editable} options={["default", "edit", "selected"]} labels={STATE_LABELS} onSet={setState} />
         </InspectorRow>
         <InspectorRow label="Open-Button" name="onOpen" hint="Its click is code: the column's onOpen">
           <ToggleButton aria-label="Open-Button" size="sm" checked={Boolean(column?.onOpen)} disabled />
@@ -384,7 +516,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
           </InspectorRow>
           {drawn && MEDIA.has(kind) ? (
             <InspectorRow label={kind === "icon" || kind === "dock-icon" ? "Icon field" : "Picture field"} name="mediaField">
-              <EnumControl label="Media field" value={column?.mediaField ?? ""} fallback="" disabled={columnLocked} options={["", ...rowFields]} labels={{ "": "None" }} onSet={(next) => setColumn({ mediaField: next ? { kind: "string", value: next } : null }, next ? `Media from ${next}` : "No media field")} />
+              <EnumControl label="Media field" value={column?.mediaField ?? ""} fallback="" disabled={columnLocked} options={["", ...mediaFields]} labels={{ "": "None", ...(newMedia ? { [newMedia]: `${newMedia} (new)` } : {}) }} onSet={(next) => setColumn({ mediaField: next ? { kind: "string", value: next } : null }, next ? `Media from ${next}` : "No media field")} />
             </InspectorRow>
           ) : null}
         </InspectorSection>
@@ -394,6 +526,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
       </InspectorSection>
       {shape && "reason" in shape ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{shape.reason}</p> : null}
     </div>
+    </InspectorFileContext.Provider>
   );
 }
 

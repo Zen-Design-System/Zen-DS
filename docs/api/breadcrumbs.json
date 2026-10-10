@@ -23,7 +23,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets each crumb's level, current page, separators and collapsing.",
+          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets the current page and collapsing; a BreadcrumbItem's own `level`, `emphasis` and\n `state` (or its item's) win over Breadcrumbs' defaults.",
           "deprecated": null
         },
         {
@@ -31,7 +31,7 @@
           "type": "\"default\" | \"medium\"",
           "required": false,
           "default": "\"default\"",
-          "description": "",
+          "description": "Every crumb's Figma Emphasis, unless the crumb sets its own (`items[n].emphasis`).",
           "deprecated": null
         },
         {
@@ -39,7 +39,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Show the first item as the Master level (with icon). Default true.",
+          "description": "Show the first item as the Master level (with icon), unless a crumb sets its own `level`. Default true.",
           "deprecated": null
         },
         {
@@ -85,7 +85,7 @@
       "props": [
         {
           "name": "item",
-          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName | ReactNode; }",
+          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName | ReactNode; /** Figma Item › Level: Master draws the leading icon. Unset: the first crumb is Master while Breadcrumbs' `master` is * on, the others Sub. */ level?: BreadcrumbLevel; /** Figma Item › Emphasis: Medium sets the label in Body/Base/Medium. Unset: Breadcrumbs' `emphasis`. */ emphasis?: BreadcrumbEmphasis; /** Figma Item › State, for a static mockup or matrix (Hover shows Neutral/Flat/Hover); real hover applies anyway. */ state?: \"default\" | \"hover\"; /** Figma Item/Slot › Dash: the chevron after this crumb. Unset: after every crumb but the last. */ dash?: boolean; }",
           "required": true,
           "default": null,
           "description": "",
@@ -95,16 +95,16 @@
           "name": "level",
           "type": "\"master\" | \"sub\"",
           "required": false,
-          "default": "\"sub\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Level. Unset: the item's own `level`, else Sub.",
           "deprecated": null
         },
         {
           "name": "emphasis",
           "type": "\"default\" | \"medium\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Emphasis. Unset: the item's own `emphasis`, else Default.",
           "deprecated": null
         },
         {
@@ -119,8 +119,8 @@
           "name": "state",
           "type": "\"default\" | \"hover\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "Deterministic Figma State for matrices; real hover applies natively.",
+          "default": null,
+          "description": "Deterministic Figma State for matrices; real hover applies natively. Unset: the item's own `state`.",
           "deprecated": null
         },
         {
@@ -135,6 +135,8 @@
     }
   ],
   "types": {
-    "BreadcrumbItemData": "type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; }"
+    "BreadcrumbEmphasis": "type BreadcrumbEmphasis = \"default\" | \"medium\"",
+    "BreadcrumbItemData": "type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; level?: BreadcrumbLevel; emphasis?: BreadcrumbEmphasis; state?: \"default\" | \"hover\"; dash?: boolean; }",
+    "BreadcrumbLevel": "type BreadcrumbLevel = \"master\" | \"sub\""
   }
 }

@@ -1,16 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
-import { onSourceUpdate } from "../select/picker";
+import { currentFiber, onSourceUpdate } from "../select/picker";
 import { selectPart, withoutPart } from "../select/parts";
 import { canEdit, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 import { computedCaption, dataItemBlock, duplicateShortcut, editDataItem, groupRuns, itemGroup, itemTitle, removeShortcut, renderedItemTitle, slotGroupsAt, sourceItems, useSlotRunning, useSlotServer, type DataItemHit } from "../slots";
+import { editDataGroup } from "../slots/actions";
+import type { DataGroupHit } from "../slots/dataItems";
+import { sectionEntries, titleOf } from "../slots/sectionList";
+import { plural } from "../../../components/Text";
+import { PropField } from "./PropField";
 import { canvasApi } from "../canvas/viewport";
 import type { FieldApi } from "./fieldApi";
 import { ObjectProperties } from "./ObjectProperties";
-import { propSpecs } from "./propSchema";
+import { objectSchemaOf, useApiTypes } from "./objectSchema";
+import { componentSlug, propSpecs } from "./propSchema";
 import { InspectorSection } from "./Section";
 
 /*
@@ -68,8 +74,8 @@ function useOwnerSource(host: NodeSelection): { element: SourceElement | null; a
   return { element, api };
 }
 
-/** The item's own sections: what it is, its actions (move, duplicate, remove) and its fields. */
-export function DataItemSections({ selection, item }: { selection: PartSelection; item: DataItemHit }) {
+/** The item's own sections: what it is, its actions (move, duplicate, remove) and its fields (`children`: the rows after them). */
+export function DataItemSections({ selection, item, children }: { selection: PartSelection; item: DataItemHit; children?: ReactNode }) {
   const host = withoutPart(selection) as NodeSelection;
   const { element, api } = useOwnerSource(host);
   useSlotServer();
@@ -88,6 +94,13 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
   const array = slot.form !== "object";
   const spec = propSpecs(host.name).find((candidate) => candidate.name === slot.prop);
   const attr = element?.attributes.filter((candidate) => candidate.kind === "expression" && candidate.name === slot.prop).at(-1);
+  // A nested slot (Sidebar `sections[n].items`): the item's group list, edited through its own field spec (SidebarItem[]).
+  const types = useApiTypes(slot.nested ? componentSlug(host.name) : null);
+  const place = source?.state === "items" ? source.at?.[index] : undefined;
+  const groupShape = slot.nested && place && attr?.shape?.type === "array" ? attr.shape.items[place.group] : undefined;
+  const listField = groupShape?.type === "object" ? groupShape.fields.find((field) => field.key === slot.nested) : undefined;
+  const listShape = listField?.kind === "expression" ? listField.shape : undefined;
+  const listSpec = slot.nested && spec ? objectSchemaOf(spec.type, types, "array")?.fields.find((field) => field.name === slot.nested) : undefined;
   const act = (verb: "remove" | "duplicate" | "move" | "group" | "ungroup", to = 0) => { void editDataItem(selection, slot, verb, index, to); };
   const count = items.length;
   // Groups (slot.groups, for the owner as drawn now): the run it is in, and its neighbours' names for the buttons. Off (the
@@ -98,6 +111,9 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
   const ignoredGroup = slot.groups && !grouping && shape ? itemGroup(shape.fields) : null;
   const inGroup = Boolean(run && run.group !== null && run.last > run.first);
   const neighbour = (at: number) => (items[at] ? itemTitle(slot, items[at].fields, at) : null);
+  // What its unset fields draw (a crumb's level and chevron come from its place): shown in the default tone.
+  const ownerProps = item.part.owner.fiber ? currentFiber(item.part.owner.fiber).memoizedProps ?? {} : {};
+  const defaults = slot.itemDefaults?.(index, count, ownerProps);
 
   return (
     <>
@@ -133,9 +149,55 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
         )}
       </InspectorSection>
       <InspectorSection title="Properties" note={computed ?? (element && !shape ? "Not found in the source — select it again" : undefined)}>
-        {spec && attr?.shape && shape ? <ObjectProperties component={host.name} props={[{ spec, shape: attr.shape }]} api={api} only={{ prop: slot.prop, index: attr.shape.type === "array" ? index : undefined }} /> : null}
+        {slot.nested
+          ? (listSpec && listShape && place ? <ObjectProperties component={host.name} props={[{ spec: listSpec, shape: listShape }]} api={api} only={{ prop: slot.nested, index: place.index }} within={{ name: slot.prop, index: place.group }} defaults={defaults} /> : null)
+          : spec && attr?.shape && shape ? <ObjectProperties component={host.name} props={[{ spec, shape: attr.shape }]} api={api} only={{ prop: slot.prop, index: attr.shape.type === "array" ? index : undefined }} defaults={defaults} /> : null}
+        {/* The props its owner passes on to every item (PartPanel's PartProperties: a crumb's Emphasis). */}
+        {children}
       </InspectorSection>
     </>
+  );
+}
+
+/**
+ * A nested slot's group as drawn (a Sidebar section, its Section-Title or its rows' container), selected like Figma's
+ * frame in the slot (user, 2026-10-10: "Tất cả các element trong slot phải xoá và thêm được hết", "section title đang
+ * không xoá được"): its title edited (or written, for the untitled top group), a row added at its end, and removed:
+ * the section with its rows, the title alone (its rows join the section above) or the rows.
+ */
+export function DataGroupSections({ selection, hit }: { selection: PartSelection; hit: DataGroupHit }) {
+  const host = withoutPart(selection) as NodeSelection;
+  const { element, api } = useOwnerSource(host);
+  useSlotServer();
+  const running = useSlotRunning();
+  const { slot, group, role } = hit;
+  const entries = element ? sectionEntries(element, slot) : null;
+  const title = entries?.find((entry) => entry.kind === "title" && entry.group === group);
+  const label = title?.fields.find((field) => field.key === "label");
+  const name = title?.kind === "title" ? titleOf(title) : `Section ${group + 1}`;
+  const rows = entries?.filter((entry) => entry.kind === "item" && entry.group === group).length ?? 0;
+  const can = !api.disabled && entries !== null && running === null;
+  const removeVerb = role === "group" ? "remove" : role === "title" ? "removeTitle" : "clearRows";
+  const removeLabel = role === "group" ? `Remove the section ${name}` : role === "title" ? `Remove the title ${name}` : `Remove the rows of ${name}`;
+  return (
+    <InspectorSection title={role === "title" ? "Section-Title" : role === "list" ? "Section rows" : "Section"} note={element && !entries ? `The code builds ${slot.prop}: edit it there` : undefined}>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${name} · ${plural(rows, slot.itemName)} in ${slot.name}`}</p>
+      {role !== "list" ? (
+        <PropField
+          spec={{ name: "label", type: "string", description: "", defaultValue: null, editor: { kind: "string" } }}
+          label="Label"
+          value={label?.kind === "string" ? { state: "literal", value: label.value, raw: "" } : { state: "unset" }}
+          disabled={!can}
+          onSet={(value) => { void api.apply([{ op: "setField", name: slot.prop, index: group, key: "label", value: { kind: "string", value: String(value) } }], `${host.name} ${slot.prop}[${group}].label → "${String(value)}"`); }}
+          onReset={() => { void editDataGroup(selection, slot, group, "removeTitle"); }}
+        />
+      ) : null}
+      <div className="studio-item__actions" role="group" aria-label={`${name} actions`}>
+        {/* zen-allow-accent: the add-to-slot button matches the Slots section's add buttons (user, 2026-10-04) */}
+        <IconButton appearance="flat" level="accent" size="xs" icon="icon-plus-line" aria-label={`Add ${slot.itemName} to ${name}`} disabled={!can} onClick={() => { void editDataGroup(selection, slot, group, "addRow"); }} />
+        <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={removeLabel} disabled={!can || (role === "title" && !title) || (role === "list" && !rows)} onClick={() => { void editDataGroup(selection, slot, group, removeVerb); }} />
+      </div>
+    </InspectorSection>
   );
 }
 

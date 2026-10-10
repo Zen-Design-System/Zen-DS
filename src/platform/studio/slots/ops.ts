@@ -63,22 +63,26 @@ export type ResetSlotOp = { op: "resetSlot"; prop?: string };
  * Adds one object literal at `index` (omitted: last); an absent prop becomes `prop={[code]}` (`single`: `prop={code}`).
  * `list`: the prop takes one object or a list, so one object written there becomes `[object, code]`.
  */
-export type InsertItemOp = { op: "insertItem"; prop: string; code: string; index?: number; single?: boolean; list?: boolean; requires?: "toast"[] };
+export type InsertItemOp = { op: "insertItem"; prop: string; code: string; index?: number; single?: boolean; list?: boolean; requires?: "toast"[]; nest?: ItemNest };
+/** The list is the `key` of the prop's index-th object (Sidebar `sections[n].items`); index / to count in that list. */
+export type ItemNest = { index: number; key: string };
 /** Removes the index-th item (the only one, or an object prop, takes the attribute with it); `all`: every item, the attribute with them. */
-export type RemoveItemOp = { op: "removeItem"; prop: string; index?: number; all?: boolean };
+export type RemoveItemOp = { op: "removeItem"; prop: string; index?: number; all?: boolean; nest?: ItemNest };
 /** A copy of the index-th item right after it (fresh id / value / key strings); `list` as in InsertItemOp. */
-export type DuplicateItemOp = { op: "duplicateItem"; prop: string; index: number; list?: boolean };
+export type DuplicateItemOp = { op: "duplicateItem"; prop: string; index: number; list?: boolean; nest?: ItemNest };
 /**
  * The index-th item goes to position `to`. `regroup` (items with a `group` field): "drop" = a drag (it joins the group it
  * lands inside, keeps its own beside a group-mate, else leaves it), "tidy" = an arrow move; both drop a group left with
  * one item.
  */
-export type MoveItemOp = { op: "moveItem"; prop: string; index: number; to: number; regroup?: "drop" | "tidy" };
+export type MoveItemOp = { op: "moveItem"; prop: string; index: number; to: number; regroup?: "drop" | "tidy"; nest?: ItemNest };
 /** A drop onto the item at `with`: the index-th item moves beside it and both share one `group`. */
 export type GroupItemOp = { op: "groupItem"; prop: string; index: number; with: number };
 /** The index-th item leaves its group (it goes right after the group, its `group` field removed). */
 export type UngroupItemOp = { op: "ungroupItem"; prop: string; index: number };
-export type ItemEditOp = InsertItemOp | RemoveItemOp | DuplicateItemOp | MoveItemOp | GroupItemOp | UngroupItemOp;
+/** The whole list at once (one array literal; null removes the prop): Sidebar Body-Content's titles and rows, edited freely. */
+export type SetItemsOp = { op: "setItems"; prop: string; code: string | null };
+export type ItemEditOp = InsertItemOp | RemoveItemOp | DuplicateItemOp | MoveItemOp | GroupItemOp | UngroupItemOp | SetItemsOp;
 
 /** Swap instance (GĐ4 M2): `code` takes the place of the element the request names; the server requires the hash. */
 export type ReplaceElementOp = { op: "replaceElement"; code: string; state?: StateDecl[] };

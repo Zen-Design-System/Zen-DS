@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- Table: `defaultSelectedIds` keeps a selection without app state; `editable` (whole table) and `column.edit: "text" | "number" | "select" | "tags" | true`
+  put cells in Figma's State=Edit without an editor object (the Table keeps the edit, or `onCellCommit` gets it). Zen Studio: a Data-Row's
+  State Default · Selected, Checkbox and Editable, a Cell's State Default · Edit · Selected, written to the page. Harness
+  `table/interaction-needs-handler` warns only for `selectable` + `selectedIds` without `onSelectionChange`.
 - **Zen Studio: Main component frame, M1 (2026-10-09, spec `docs/research/studio-main-component-spec-2026-10-09.md`):**
   beside the Playground, every Figma component set of the page's components is drawn as Figma lays it out (Button: Main,
   Flat, Overlay, Icon-Main, Icon-Flat, Icon-Overlay — 178 variants; overlay sets on a photo). A click selects a variant,
@@ -96,7 +100,9 @@ removed (four unused colour ramps were, see Removed).
   filters, useMemo, useState and factory calls, and lookups such as `people[row.id].name` write the entry they read.
   A component nested in a cell (an Avatar, a Badge) edits its own props: a fixed value on the cell's JSX (every row), a
   prop bound to the row (`theme={row.theme}`, `theme={statusTheme[row.status]}`) in that row's data, and a prop a
-  component of the file passes on (`<PersonAvatar size="sm">`'s Avatar) where that component is used.
+  component of the file passes on (`<PersonAvatar size="sm">`'s Avatar) where that component is used. A row written in
+  place takes a field it lacks (a picture for a row without one), and on a page you made an Avatar or Photo cell's
+  Picture is the photo picker (a Table row's `zen-media:` picture is drawn).
 - **Zen Studio: App Shell, Top Navigation and Sidebar row slots (2026-10-10):** a selected App Shell shows Figma's
   Sidebar, Leading-Slots, Center-Slots (Search, Segmented, Tabs), Trailing-Slots, Sections, Side-Panel, Floating-Item
   and Footer as slots (outlined, "+", the Slots section); a Top Navigation's title leading takes an Avatar, a Sidebar
@@ -115,6 +121,40 @@ removed (four unused colour ramps were, see Removed).
   (a row of buttons justified to the end is centred, not pushed right), with Padding/XLarge around it; the line under the
   search ("Swap … for the chosen component", where an item lands) lines up with the search's icon, Padding/XSmall above,
   and is no longer cut; a heading is centred by its words, and every item is placed again when the focus moves.
+- **Zen Studio Delete key (2026-10-10):** Delete / Backspace removes a focused row in the Slots section (a layer, a list
+  item, a section title, a separator) as its trash button does; on the Pages list it moves a page to the Trash and asks
+  before deleting a folder.
+- **Zen Studio: slots as free as Figma's (2026-10-10):** a Sidebar's Body-Content is one slot, as in Figma: its section
+  titles and rows in one list (then any row components), where every row moves anywhere (across titles too), goes, or
+  is added at the end or inside a section (its own +); a title removed lets its rows join the section above, and
+  Remove all empties it. On the canvas and in Layers a section, its Section-Title and its rows are selected, renamed,
+  added to and deleted (Delete key). A Menu's Item-List works the same with items, separators and section titles,
+  and a Menu group's items edit in the Menu's Properties. On a page you make a slot's last child goes too, even where
+  the component type asks for children.
+- **Zen Studio: Sidebar rows and every library component editable on pages you make (2026-10-10):** a Sidebar's
+  `sections` rows are Figma's Body-Content Menu-Items: a double-click (or ⌘-click) selects one, its Label, Icon,
+  Counter, Notification dot, Theme, State… edit that row, and it duplicates, moves within its section and is removed
+  like any slot item. A double-click on a selected Breadcrumbs, Tabs or Sidebar reaches the item under the pointer
+  before its text. Pagination, Image, Calendar, NPS scale, Colour selector, File upload, Bottom navigation, Chat thread
+  and Chat composer now insert on a page you make (static versions); a chart's per-series values and a list of numbers
+  edit field by field; an element written in a prop (a Menu's trigger) says to select it instead of "change it in the
+  code". The Pages list renames a page or folder in place on a double-click (Rename in the ⋯ menu too).
+- **Sidebar collapsed rail (2026-10-10):** the divider before a later group of rows sits Spacing/Gap/XSmall above its
+  first row too (Figma draws 2px), so a selected row's fill no longer touches it.
+- **Breadcrumbs per crumb (2026-10-10):** each item takes Figma's Item-List instance properties on its own: `level`
+  (Master / Sub), `emphasis`, `state` (Hover, for mockups) and `dash` (the chevron after it). Unset fields keep the old
+  trail (the first crumb Master while `master` is on, Breadcrumbs' `emphasis`, a chevron after all but the last); a
+  BreadcrumbItem child's own `level` / `emphasis` / `state` now count too. New example "Next level". In Zen Studio a
+  selected crumb shows these rows, with the values the canvas draws when they are unset.
+- **Zen Studio photo picker (2026-10-10):** an Avatar's, account's or Image's Src on a page you made picks a picture
+  (your uploads, people photos, the library) instead of a text field, and a photo clicked in Assets with an Avatar
+  selected becomes its picture instead of a new Image.
+- **Zen Studio nested items (2026-10-10):** a crumb, tab, segment, step, Description List item, Bottom Navigation item
+  or Bottom Sheet action ⌘-clicked on the canvas is selected as that item, with its own fields, move / duplicate /
+  remove and the props its owner passes to every item (a crumb's Emphasis, a tab's Variant, a segment's Level), where
+  only Breadcrumbs and Top Navigation items were found before and the rest were read-only.
+- **Zen Studio Pages list (2026-10-10):** a long page or folder name ends in "…" before its actions, instead of being cut
+  at the panel's edge.
 - **Progressive blur grows linearly (2026-10-10):** the Top Navigation's blurring types and the Floating Bottom
   Navigation now ramp the blur evenly from 0 to the Figma radius (six stacked blurs whose σ² add up), where the five
   equal layers reached most of the blur within the first fifth.

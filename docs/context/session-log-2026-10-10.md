@@ -74,6 +74,13 @@
   lists it). Inspector checked on a page you made: Content / Field / Caption field / Media field / Bold per column.
 - Tests: tests/interaction/table-cell-content.test.tsx (3); compile selftest updated (columns written without cells).
 
+## Pages list: long names end in "…" (user: "Lẽ ra nên cho chữ dài thì có "..." thay vì hiển thị lỗi cắt") — tier XS
+
+- The name already had text-overflow: ellipsis, but `.studio-pages__list` and `.studio-folder` are grids whose implicit
+  track grew to the longest name (grid items' min-width: auto), so the panel cut it instead. Both get
+  `grid-template-columns: minmax(0, 1fr)` (+ min-width 0 on the items). Checked with a 60-character name in the
+  272px panel: it ends in "…" before the ⋯ button.
+
 ## Studio-saved layout edits on 3 example pages and 3 templates, committed (tier XS, session e4bf4af9)
 
 - Found uncommitted since 2026-10-09 by the session watch (no running session owned them; they read as Studio saves):
@@ -82,6 +89,26 @@
   full width, Settings fillChildren), Sign in (card body max 400, centred). User: keep them, then commit.
 - Fixed with them: the Budget alert's code string and description followed the render (wrap + align="center"; "under
   it", not "beside it"). Gate (--files, pages templates · form · slider · visually-hidden): PASS; contact sheets checked.
+
+## Studio: nested items editable (user: "Vẫn lỗi cũ. Không chỉnh được props của nested", "kiểm tra thêm … ở các chỗ khác", "Đừng quên table cell") — tier M, session "Lỗi nested properties"
+
+- Reproduced on an isolated server (copy of .zen-studio/pages/admin-list-team-members.zen.tsx): the Breadcrumbs and
+  AppShell's Nested instances rows all wrote; what failed was the item level. PartPanel skipped the owner's passed-on
+  props for a data-slot item (a crumb's Emphasis read-only under Props), and dataItems.ts found an item only through a
+  prop holding the item object (Breadcrumbs `item`, TopNavigation `action`), so a tab, segment, step, Description List
+  item, Bottom Navigation item and Bottom Sheet action were plain read-only parts ("Edit via the owner's items").
+- Fixed: dataItems.ts also matches the React key the owner's .map gives the item (DataSlot `itemKey`, default `id`;
+  DescriptionList's keyOf), identity first; picker Fiber has `key`. PartPanel: a data item gets the passes after its
+  fields in the same Properties section ("Written to Tabs: variant (every Tab follows)"); a pass named like an item
+  field (Segmented `disabled`) stays the field; a pass whose part value is an object the owner prop does not hold is
+  dropped (TopNavigation trailing actions no longer offer `leading`).
+- Sweep (fixture builder page, ⌘-click each first item, write each row): Breadcrumbs, Tabs, Segmented, Stepper,
+  DescriptionList, TopNavigation trailing, BottomNavigation, BottomSheet: all select as items and write. Table cells:
+  still "part of Table · Read-only"; owned by session "Sửa Table cell" (c8528700: cell value per row, column Content /
+  Bold / Subtext, ⌘-click on cell content), findings sent to it.
+- Tests: E2E B-29 (crumb › Emphasis → Breadcrumbs, tab › Label → its item, tab › Variant → Tabs; baseline works);
+  groups select · structural · data · instance · overlays · builder 104 works / 0 broken. A standalone E2E run I
+  stopped mid-way left StudioSaveFixture.tsx dirty (the known leftover); the next run restored it.
 
 ## Studio: Figma-like operation check, boolean slots, Table rows and cells (user: "1. Các thao tác đã dễ như Figma chưa 2. … bolean … 3. … nested … 4. …", "Tôi vẫn chưa sửa được table cell từ template lẫn example", "phải chọn được loại dữ liệu của cell", "giống Figma 100%") — tier M, session c8528700
 
@@ -119,3 +146,107 @@
   Probes: Admin list An Mai's Avatar Theme → member(…, "red"); Badge Theme → statusTheme.Active; table example Em Pham's
   Avatar Size → `<PersonAvatar … size="md">`, Theme → people.em in data.ts. Drawn icon cells take the icon picker.
   data-source selftest 26; E2E SE-33 (fixture FixtureAvatar column).
+- Pictures in drawn cells (peer's PhotoControl): data-source followAdding/withField add a missing last field to a row
+  written in place (one-line or a line per field; never a factory's object); describe marks such a cell value editable.
+  The page renderer resolves `zen-media:` in prop data (media.ts resolveMediaDeep; compile.mjs already did for export).
+  localApi (pages you made) reports `tableRows` like GET /element, so drawn cells there edit too. Cell panel: Picture →
+  PhotoControl (InspectorFileContext set), media field offers "photo (new)" / "icon (new)". E2E SE-34; selftest 27.
+
+## Breadcrumbs per crumb + Avatar photo picker (user: "breadcrumb vẫn lỗi nested edit - thiếu props nested" → "Mỗi crumb riêng như Figma"; "Avatar không bỏ ảnh vào được") — tier M, session "Lỗi nested properties"
+
+- Figma (contract breadcrumbs.json): Item-List › Primitives/Breadcrumbs/Item/Slot (Dash) › .Primitives/Breadcrumbs/Item
+  (Level, State, Emphasis). The user chose per-crumb (API change) over owner-wide mapping.
+- Breadcrumbs: BreadcrumbItemData `level` · `emphasis` · `state` · `dash` (+ type BreadcrumbLevel); BreadcrumbItem reads
+  its item's when its props are unset; children's level / emphasis / state count. Unset = the old trail. Guideline API
+  row "Per crumb"; docs regenerated; compile API (builder pages accept the fields); part props regenerated (the
+  emphasis pass is now an item field). Example "Next level" (open folder Medium + dash, Menu one level down).
+- Studio: DataSlot `itemDefaults` (Breadcrumbs: level by place and master, emphasis, state, dash after all but the
+  last) → ObjectProperties shows unset item fields as drawn (selected crumb and the owner's Items list); a boolean is
+  left out only when it equals that default (dash off is written).
+- Avatar: propSchema PHOTO_PROPS (Avatar / AppShellAccount / Image `src`) → editor kind "photo" →
+  inspector/controls/PhotoControl.tsx (uploads, people avatar-*, library; zen-media:/zen-asset: values; a text field
+  outside pages you made). assets.ts: a photo click with an Avatar / account selected sets its src. Table cells' nested
+  props (Avatar, Badge… in cells) and the drawn cell Picture (uses PhotoControl) are session "Sửa Table cell"'s.
+- Tests: tests/interaction/breadcrumbs-per-crumb.test.tsx (3); smoke 163; checked on a copy of the user's page (crumb ›
+  Level master / Emphasis medium / State hover / Dash off write that crumb; Avatar › Src › Ava; Assets click on Avatar).
+
+
+## Table states in the Studio + a sweep of the nested-props fixes (user: "Datarow của table thiếu trạng thái select khi có checkbox, chưa cho phép chuyển cột nào/nguyên dòng thành editable", then "một đợt kiểm tra lại toàn diện về các vấn đề đã gặp phải … bất kì đâu, hay component hoặc nested nào") — tier M, session "Table states"
+
+- Figma: Table/Cell/Default State = Default · Hover · Focused · Edit · Selected (1603:23604); Data-Row is a Columns slot
+  (4035:10629). The library had Selected (data-selected, Table-Cell/Background/Selected) and Edit (column.edit) but
+  both needed app state (selectedIds + onSelectionChange; edit.value + onCommit), so the Studio could not write them.
+- Table: `defaultSelectedIds` (the Table keeps the selection when `selectedIds` is not given; onSelectionChange still
+  reports it); `editable` (every value column in State=Edit by its content: text / number by the value, badge → select
+  among the column's values, a list → tags; never cell / checkbox / toggle columns); `column.edit` also takes the type
+  alone (`"text" | "number" | "select" | "tags" | true`): the Table reads and writes the row's field, keeps the edit in its
+  own copy of the row (numbers stay numbers) or hands it to `onCellCommit(row, columnId, value)`. `tableEditorTypeFor`
+  exported (the Studio writes the same type). Harness table/interaction-needs-handler now fires only for `selectable` +
+  `selectedIds` without onSelectionChange (HR templates tint the open row with selectedIds alone: fine).
+- Studio (table/TableCellPanel): Data-Row › Primitives/Table/Data-Row: State Default · Selected (writes the useState list
+  behind `selectedIds` — jsx-source stateLiteral/setStateInit now take a list of strings — else `defaultSelectedIds`;
+  Selected also writes `selectable`), Checkbox (`selectable`), Editable (`editable`). Cell › State Default · Edit ·
+  Selected: Edit writes `edit: "<type>"` on the column (every row, as the code works; a `cell` column or a written
+  editor object says so), Selected selects the row. writePlan narrows a list state (tsc note from session "Giám sát").
+- Tests: tests/interaction/table-states.test.tsx (3); selftest: state list + setStateInit list (3 checks); E2E SE-35
+  (fixture Table: State → Selected writes selectable + defaultSelectedIds and the canvas checks the row; Cell State →
+  Edit writes edit: "text"; Editable writes editable). Docs regenerated (api/table.json, guidelines, compile API).
+- Sweep (scratchpad script over the engine: describeElement + originsOf on every Zen element nested in another, 101
+  annotated files, 6,415 elements, 4,981 nested, 7,078 expression props/children; 65 Tables with rows, 60 editable):
+  no thrown errors; every "not editable" verdict is inherent (computed values, state lists, factories, tuples, hooks)
+  except one misleading message, fixed: a tuple row (side-panel requests) said '"status" is not a row of the list' →
+  now says the row is written as a list and built in the code. Full E2E matrix + `npm test` (597) + gate: see below.
+
+## Sidebar nested rows, double-click into items, library components on pages you make, rename in place, rail divider (user: "chưa list chỉnh được props của nested. Ví dụ như sidebar … phải giống figma", "click nhiều lần còn chưa click vào được", "không remove được item trong sidebar mẫu … các component mẫu khác … phải sửa được", "double click sửa tên folder, project", "tăng spacing giữa divider với các item dưới") — tier L, session "Lỗi nested properties"
+
+- Sidebar `sections[n].items`: DataSlot `nested` (Sidebar › Body-Content, item Menu-Item); the engine reads a list or object
+  in an item one level further (jsx-source shapeOf `shape`), setField takes `path` ([{ key, index? }]), item ops take
+  `nest` { index, key } (items.mjs: removing a group's last row leaves `[]`); client: dataItems flattens rendered/source
+  items (`at` = group + place), actions.ts sends `nest` (a move stays in its group), DataItemSections edits the row through
+  the list's own spec (ObjectProperties `within`), the owner's list shows "N Menu-Items in Body-Content" instead of ƒ, and
+  Slots lists "Body-Content · sections" before the children rows (hidden when `sections` is not written).
+- Double-click: on a selected component, a data-slot item under the pointer comes before its text (SelectionLayer, after
+  the Table drill). Probe on a copy of the user's page: Breadcrumbs → crumb, Sidebar → Menu-Item on the 2nd double-click.
+- Library sweep (scratch script, isolated server: insert each of the 81 palette items on a page you make, per slot select /
+  edit the first row, Remove, ⌘Z): 9 items were refused on pages you make ("keeps state or code") → builder versions
+  (Pagination, Image zen-media:site-cafe, Calendar, NPS scale, Colour selector, File upload, Bottom navigation, Chat
+  thread, Chat composer with proto.toast); StackBarChart `values` (keyed object) and number lists now edit field by
+  field; a JSX prop (Menu trigger, ActionBar summary) reads "<IconButton> · select it on the canvas". All 81 pass but
+  ListBox / ChartCard, which refuse to remove their only content by design.
+- Pages list: RenameField (builder/RenameField.tsx) on a double-click or ⋯ › Rename, for pages and folders (the Rename
+  dialogs are gone; FolderDialog is New folder only). Enter / blur save, Escape keeps.
+- Sidebar rail: the divider before a later group sits Gap/XSmall below as well as above (Figma 2px; user's call).
+- Tests: studio selftest (setField path · shape one level down), items selftest (nest), E2E SP-09 (Admin list Sidebar row:
+  double-click, Counter, Remove), B-31 (rename in place), B-08 updated (menu Rename is in place); baseline recorded.
+
+- Verification: full E2E matrix 212 works + SE-35 new (B-08 broke once while another session was writing
+  builder/RenameField.tsx; alone it passes) and SE-35 recorded in the baseline; `npm test` 51 files / 597 tests; gate
+  `npm run qa -- --isolated --keep-going --files=…` (Bash edits are not recorded by the hook): style, usage, docs, tsc,
+  platform audit 1512 + 390, dark, behaviour all clean, both table sheets opened (no visual change). The one static ✗ is
+  another session's: slots.selftest "SLOT_OPS" expects 16 ops, slots.mjs now has "setItems" (reported to "Giám sát").
+
+## Slots as free as Figma (user: "Figma không phân biệt content section hay content không … tôi không thể xoá hẳn content hoặc content section", "cho phép user add chúng vào từng stack riêng", "hành vi tự do này áp dụng cho mọi nơi", "Tất cả các element trong slot phải xoá và thêm được hết. kể cả các element trong section", "section title đang không xoá được") — tier L, session "Lỗi nested properties"
+
+- One flat list (slots/sectionList.ts): a nested slot (Sidebar `sections`, SidebarSubMenu) or a grouped one (Menu `items`:
+  item / separator / group, DataSlot `grouped`) is read as titles, rows (and separators) in order and written back whole by
+  the new item op `setItems` { prop, code | null } (items.mjs, at the prop's indent; selftests items 23 / SLOT_OPS).
+- Slots: SectionedSlotBlock = one Body-Content (Item-List) block: rows move anywhere, a title row renames on click (RenameField),
+  its + adds a row at the end of its section, its trash merges its rows into the section above; + menu (row · Section title ·
+  Separator for Menu), ⋯ Remove all. The content slot of the same name continues under it without its own header (SlotBlock
+  `continued`). Inspector item moves cross titles too (actions.ts runDataItem → setItems).
+- Section parts (DataSlot `groupParts`, dataItems dataGroupOfPart / groupTitlePartOf): a section, its Section-Title and its
+  rows' container are selectable (⌘-click on a title lands on the Section-Title), DataGroupSections shows Label / + / remove,
+  and Delete removes the section, the title (merge) or the rows (StudioApp, also from a part row in Layers; editDataGroup).
+- ObjectProperties: a union item takes its own schema (objectSchemasOf / schemaFor by a single-literal tag), a one-value tag is
+  hidden, and a list of objects in an item (a Menu group's `items`) edits as its own groups through setField `path`.
+- Pages you make: engineOptions drops requiredChildren (a slot's last child and Clear go; required props stay).
+- Tests: E2E SP-09 extended (⌘-click Admin → Section-Title → Delete), B-32 (Menu: + Separator, + Section title, + item in it,
+  nested label, remove separator); palette selftest reads SidebarSubMenu from Sidebar.tsx; baseline recorded.
+
+## Delete key everywhere (user: "xoá nên cho phép bấm phím xoá trên bàn phím") — tier S, session "Lỗi nested properties"
+
+- The global Delete handler skips Slots rows (they own their keys): ItemRow (DataSlotBlock, used by SectionedSlotBlock) and
+  LayerItem (SlotsSection) now remove their row on Delete / Backspace (not repeated, not while busy). Pages list: a page row
+  → Trash (restorable), a folder row → the delete confirmation (an alertdialog). E2E B-31 (folder asks, page to Trash) and
+  B-32 (a focused Separator row) cover it.
+

@@ -8,7 +8,7 @@ import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTa
 import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
-import { dataItemOfPart } from "../slots/dataItems";
+import { dataItemOfPart, groupTitlePartOf } from "../slots/dataItems";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
 import { ResizeLayer } from "./ResizeLayer";
@@ -519,7 +519,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     // A data-slot item (a TopNavigation action) is the part to land on, not the icon inside it (user, 2026-10-07); a
     // double-click then drills on into it.
     const deep = deepPartAt(picked.hit, target);
-    return dataItemOfPart(deep)?.part ?? deep;
+    // …and a section's title is the Section-Title, not its label inside (a Sidebar section, 2026-10-10).
+    return dataItemOfPart(deep)?.part ?? groupTitlePartOf(deep) ?? deep;
   }, []);
 
   const hoverAt = useCallback(() => {
@@ -766,6 +767,14 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const nested = picked.hit.isComponent ? nestedHitAt(picked.hit, target) : null;
       if (nested) {
         choose(nested, false);
+        studioStore.setState({ inspectorTab: "design" });
+        return;
+      }
+      // A data-slot item under the cursor (a crumb, a tab, a Sidebar row): Figma's nested instance in the slot comes
+      // before its text, which the next double-click edits (user, 2026-10-10: "click nhiều lần còn chưa click vào được").
+      const item = picked.hit.isComponent ? dataItemOfPart(deepPartAt(picked.hit, target)) : null;
+      if (item) {
+        choosePart(item.part);
         studioStore.setState({ inspectorTab: "design" });
         return;
       }

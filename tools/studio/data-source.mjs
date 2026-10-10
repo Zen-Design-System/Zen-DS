@@ -186,7 +186,9 @@ function follow(mod, expr, path, read, seen = new Set()) {
   }
   if (node.type === "ArrayExpression") {
     const index = Number(path[0]);
-    if (!Number.isInteger(index) || index < 0) refuse(`"${path[0]}" is not a row of the list`);
+    // A field name into a list: the item is itself a list (a tuple row such as ["chi", "Annual leave", …] that a map turns
+    // into objects), so the field is built in the code.
+    if (!Number.isInteger(index) || index < 0) refuse(`The row is written as a list, not an object with a "${path[0]}" field: it is built in the code; edit the data there`);
     const item = node.elements[index];
     if (!item) refuse(`The list has no row ${index + 1}`, "not-found");
     if (item.type === "SpreadElement") refuse("The row comes from a spread; edit it where it is written");
@@ -399,6 +401,37 @@ function rowReadOf(mod, chain, depth = 0) {
     keys.push([...keyBinding.path, ...key.path]);
   }
   return fn ? { fn, read: { root: chain.root, segments: chain.segments, keys } } : null;
+}
+
+/**
+ * follow, or — when the last field is missing from an object written in place (a row `{ id, name }` given a `photo`) —
+ * where to add it: { found } or { add: { mod, object, key } }. A factory's object or a spread is never added to.
+ */
+function followAdding(mod, node, path, read) {
+  try {
+    return { found: follow(mod, node, path, read) };
+  } catch (error) {
+    if (!(error instanceof Refusal) || error.code !== "not-found" || !path.length) throw error;
+    const parent = follow(mod, node, path.slice(0, -1), read);
+    const object = unwrap(parent.node);
+    if (object?.type !== "ObjectExpression" || object.properties.some((property) => property.type !== "ObjectProperty")) throw error;
+    return { add: { mod: parent.mod, object, key: path[path.length - 1] } };
+  }
+}
+
+/** The text with `key: value` added as the object literal's last field, in its own style (one line, or a line per field). */
+function withField(text, object, key, value) {
+  const name = /^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key);
+  const last = object.properties[object.properties.length - 1];
+  if (!last) return `${text.slice(0, object.start)}{ ${name}: ${value} }${text.slice(object.end)}`;
+  const tail = text.slice(last.end, object.end - 1);
+  if (tail.includes("\n")) {
+    const indent = text.slice(text.lastIndexOf("\n", last.start - 1) + 1, last.start);
+    const comma = tail.indexOf(",");
+    const at = comma >= 0 ? last.end + comma + 1 : last.end;
+    return `${text.slice(0, at)}${comma >= 0 ? "" : ","}\n${indent}${name}: ${value}${comma >= 0 ? "," : ""}${text.slice(at)}`;
+  }
+  return `${text.slice(0, last.end)}, ${name}: ${value}${text.slice(last.end)}`;
 }
 
 /** The node a row read reaches from the row's item: the item's field, or the lookup keyed by the item's fields. */
@@ -906,7 +939,10 @@ function describeOrigin(mod, element, target, read) {
     try {
       if (!origin.cell.tables.length) refuse("No Table in this file draws this column; edit the data in the code");
       const { list, item } = firstRowItem(mod, origin.cell.tables[0], read);
-      const found = readFromItem(list.mod, item, origin.read, mod, read);
+      const target = origin.read.root ? { found: readFromItem(list.mod, item, origin.read, mod, read) } : followAdding(list.mod, item, origin.read.path, read);
+      // A field the row lacks but can take (a row written in place): editable, the edit adds it.
+      if (target.add) return { kind: "cell", editable: isDataFile(target.add.mod.file), source: origin.source, path: origin.path, file: target.add.mod.file };
+      const found = target.found;
       const editable = isLiteralNode(found.node) && isDataFile(found.mod.file);
       return { kind: "cell", editable, source: origin.source, path: origin.path, file: found.mod.file, reason: editable ? undefined : isLiteralNode(found.node) ? `${found.mod.file} is not a file the Studio edits` : "The row's value is computed in the code" };
     } catch (error) {
@@ -1169,6 +1205,7 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
     const mod = moduleOf(file, code);
     const element = locate(mod, loc, name);
     let found;
+    let adding = null;
     let source;
     // A list the frame starts with (useState(list)): the client starts the frame again to show the edit.
     let state = false;
@@ -1178,7 +1215,9 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
       if (!op.field.length || op.field.some((key) => typeof key !== "string" || !key)) refuse("`field` names the row's field", "invalid");
       if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a Table row needs its place (`row`)", "invalid");
       const row = tableRowItem(mod, element, op, read);
-      found = follow(row.list.mod, row.item, op.field, read);
+      const target = followAdding(row.list.mod, row.item, op.field, read);
+      if (target.add) adding = target.add;
+      else found = target.found;
       source = `${rowName()}.${op.field.join(".")}`;
       state = row.list.state;
     } else {
@@ -1198,7 +1237,10 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
       } else if (origin.kind === "cell") {
         if (!Number.isInteger(op.row) || op.row < 0) refuse("setDataField on a Table cell needs its row (`row`, and its key `rowKey`)", "invalid");
         const row = tableRowItem(mod, pickTable(origin.cell, op.table), op, read);
-        found = readFromItem(row.list.mod, row.item, origin.read, mod, read);
+        // A field the row lacks (`src={row.photo}` on a row with no photo) is added where the row is written in place.
+        const target = origin.read.root ? { found: readFromItem(row.list.mod, row.item, origin.read, mod, read) } : followAdding(row.list.mod, row.item, origin.read.path, read);
+        if (target.add) adding = target.add;
+        else found = target.found;
         source = `${origin.source} (${rowName()})`;
         state = row.list.state;
       } else if (origin.kind === "data") {
@@ -1213,6 +1255,12 @@ export function dataFieldEdit(code, file, loc, name, op, { read = () => null } =
       } else {
         refuse(origin.reason ?? "The value is computed in the code");
       }
+    }
+    if (adding) {
+      if (!isDataFile(adding.mod.file)) refuse(`${adding.mod.file} is not a file the Studio edits`);
+      const text = adding.mod.code;
+      const next = withField(text, adding.object, adding.key, literalCode(op.value, null, text));
+      return { file: adding.mod.file, code: next, source: `${source} (new field)`, changed: next !== text, state };
     }
     if (!isLiteralNode(found.node)) refuse(`${source} is computed in the code, not written as data`);
     if (!isDataFile(found.mod.file)) refuse(`${found.mod.file} is not a file the Studio edits`);

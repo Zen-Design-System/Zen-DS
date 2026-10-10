@@ -54,7 +54,8 @@ const attrOf = (attributes: readonly SourceAttr[], name: string) => attributes.f
 export function displayValueOf(component: string, attributes: SourceAttr[], name: string, live: Record<string, unknown> | undefined): PropValue {
   const value = ownValueOf(attributes, name, live);
   const attr = attrOf(attributes, name);
-  if (value.state === "bound" && attr?.state) return { state: "literal", value: attr.state.value, raw: attr.raw };
+  // A list state (a Table's selectedIds) has no literal editor here: the Table panels write it.
+  if (value.state === "bound" && attr?.state && !Array.isArray(attr.state.value)) return { state: "literal", value: attr.state.value, raw: attr.raw };
   const twin = stateTwinOf(component, name);
   if (twin && value.state === "unset") {
     const twinValue = ownValueOf(attributes, twin, live);

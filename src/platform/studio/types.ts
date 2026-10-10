@@ -151,7 +151,7 @@ export type SourceAttr = {
    * A bare identifier that reads `const [name, setName] = useState(<literal>)` in an enclosing function: its initial state,
    * which op setStateInit edits (the binding, and so the component's behaviour, stays).
    */
-  state?: { name: string; value: string | number | boolean; line: number };
+  state?: { name: string; value: string | number | boolean | string[]; line: number };
   /**
    * What an expression attribute (not a literal, not `state`) reads, from the identifiers at its root (dev server,
    * 2026-10-05): `bound-state` reads a useState value of an enclosing function directly or through a local const
@@ -197,7 +197,8 @@ export type ShapeField =
   | { key: string; kind: "string"; value: string }
   | { key: string; kind: "boolean"; value: boolean }
   | { key: string; kind: "number"; value: number }
-  | { key: string; kind: "expression" | "spread"; value: string };
+  /** `shape`: a list of objects written in the item (Sidebar `sections[n].items`), read one level further. */
+  | { key: string; kind: "expression" | "spread"; value: string; shape?: AttrShape };
 
 export type ObjectShape = { type: "object"; fields: ShapeField[] };
 /** An array item that is not an object literal (a string, an expression, a spread). */
@@ -288,7 +289,8 @@ export type EditOp =
    * One field of the object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item when it is
    * an array literal (`trailing={[{ … }]}`): `value` replaces or appends the field, null removes it (SourceAttr.shape).
    */
-  | { op: "setField"; name: string; index?: number; key: string; value: EditValue | null }
+  /** `path`: on into a list the object holds (`[{ key: "items", index: 2 }]`: Sidebar `sections[1].items[2]`). */
+  | { op: "setField"; name: string; index?: number; path?: Array<{ key: string; index?: number }>; key: string; value: EditValue | null }
   /** Replace the index-th text child (as listed in SourceElement.children). */
   | { op: "setText"; index: number; value: string }
   /** Swap a typographyStyles["from"] key for "to" in the element's className. */

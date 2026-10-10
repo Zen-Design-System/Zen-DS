@@ -2,8 +2,8 @@
 import { locOf } from "../lib/source.mjs";
 import { expectSource, freshSelect, pickOption, waitSeed } from "./inspector.mjs";
 import { TABLE_FRAME, tableText } from "./data.mjs";
-import { selectedName } from "./builder.mjs";
-import { clickLoc, focusFrame, rectOf, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { newPage, pageText, selectedName } from "./builder.mjs";
+import { clickLoc, focusFrame, openAssetLibrary, rectOf, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 
@@ -100,6 +100,43 @@ export const rows = [
     },
   },
   {
+    id: "SE-34", feature: "A page you made: a Table's Avatar cell takes a picture — Picture field adds a photo field, Picture picks a library photo for that row, the canvas draws it", wp: "table 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      await openAssetLibrary(page, "Components");
+      await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Table");
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Table/ }).first().click();
+      await until(async () => /<Table /.test((await pageText(page, id)) ?? ""), { message: "the Table on the page" });
+      // The Lead cell of the first row (an Avatar cell the Table draws: content "avatar", no picture yet).
+      const lead = async () => until(() => page.evaluate((prefix) => {
+        const root = document.querySelector(`[data-zen-src^="${prefix}"][data-zen-name="Table"]`);
+        const cell = [...(root?.querySelectorAll("td.zen-table__cell") ?? [])].find((td) => td.textContent.includes("Chi Tran") && td.querySelector(".zen-avatar"));
+        const r = cell?.querySelector(".zen-avatar")?.getBoundingClientRect() ?? cell?.getBoundingClientRect();
+        return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+      }, `local:${id}.zen.tsx:`), { message: "the Lead cell of row 1" });
+      let point = await lead();
+      await page.mouse.click(point.x, point.y);
+      await page.mouse.dblclick(point.x, point.y);
+      await expectHeading(page, "Data-Row", "the row");
+      await page.mouse.dblclick(point.x, point.y);
+      await expectHeading(page, "Cell", "the Lead cell");
+      await pickOption(page, "mediaField", "photo (new)");
+      await until(async () => /id: "lead"[^}]*mediaField: "photo"/.test((await pageText(page, id)) ?? ""), { message: 'mediaField: "photo" on the Lead column' });
+      await sleep(500);
+      await page.locator('#studio-right [data-prop="value-photo"] button').first().click();
+      await page.getByRole("option", { name: "Ava", exact: true }).or(page.getByRole("menuitem", { name: "Ava", exact: true })).first().click();
+      await until(async () => /lead: "Chi Tran"[^}]*photo: "zen-media:avatar-ava"/.test((await pageText(page, id)) ?? ""), { message: "row 1's photo in the page" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(-140)}`); });
+      // The canvas draws the picture (the page renderer resolves zen-media: in a row's data).
+      await until(() => page.evaluate((prefix) => {
+        const root = document.querySelector(`[data-zen-src^="${prefix}"][data-zen-name="Table"]`);
+        const cell = [...(root?.querySelectorAll("td.zen-table__cell") ?? [])].find((td) => td.textContent.includes("Chi Tran") && td.querySelector(".zen-avatar"));
+        const src = cell?.querySelector(".zen-avatar img")?.getAttribute("src") ?? "";
+        return Boolean(src) && !src.startsWith("zen-media:");
+      }, `local:${id}.zen.tsx:`), { message: "the Avatar draws the photo" });
+      return "photo field added, picture picked and drawn";
+    },
+  },
+  {
     id: "SE-32", feature: "A Table column without `cell`: its Cell's Content and Bold are the column's fields (content, bold)", wp: "table 2026-10-10",
     async run(ctx) {
       const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
@@ -113,6 +150,44 @@ export const rows = [
       await pickOption(page, "content", "Badge");
       await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true, content: "badge" }'), { message: 'content: "badge" on the Status column' });
       return "bold, content written on the column";
+    },
+  },
+  {
+    id: "SE-35", feature: "Figma's Table states in the Inspector: a Data-Row's State → Selected writes the checkbox column and defaultSelectedIds, a Cell's State → Edit writes edit: \"text\" on its column, the Data-Row's Editable writes editable on the Table; the canvas draws them", wp: "table states 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      await expectHeading(page, "Table", "the Table selected");
+      const LEVELS = ["Table", "Data-Row", "Cell"];
+      /** Figma's levels: a double-click on the Done cell goes one in, Escape one out. */
+      const reach = async (name) => {
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          const current = await selectedName(page);
+          const at = LEVELS.findIndex((level) => current.startsWith(level));
+          const want = LEVELS.indexOf(name);
+          if (at === want) return;
+          if (at === -1 && !current) { const done = await tableText(ctx, page, "Done"); await page.mouse.click(done.x, done.y); }
+          else if (at === -1 || at > want) { await page.locator(".studio-viewport").focus(); await page.keyboard.press("Escape"); }
+          else { const done = await tableText(ctx, page, "Done"); await page.mouse.dblclick(done.x, done.y); }
+          await sleep(250);
+        }
+        throw new Error(`could not reach ${name} (selected: ${await selectedName(page)})`);
+      };
+      await reach("Data-Row");
+      await pickOption(page, "row-state", "Selected");
+      await until(async () => /\]\}[^\n]*\bselectable\b[^\n]*defaultSelectedIds=\{\["t-1"\]\}/.test(await ctx.text()), { message: 'selectable and defaultSelectedIds={["t-1"]} on the Table' });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row")].some((tr) => tr.textContent.includes("Wireframes") && tr.dataset.selected === "true" && tr.querySelector("input[type=checkbox]")?.checked)), { message: "row t-1 drawn selected, its checkbox checked" });
+      const steps = ["Data-Row State → Selected"];
+      await reach("Cell");
+      await pickOption(page, "cell-state", "Edit");
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", edit: "text" }'), { message: 'edit: "text" on the Status column' });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row td.zen-table__cell")].some((td) => td.textContent.includes("Done") && td.dataset.editable === "true")), { message: "the Status cells drawn editable" });
+      steps.push("Cell State → Edit");
+      await reach("Data-Row");
+      await page.locator('#studio-right [data-prop="editable"]').getByRole("switch").first().click().catch(async () => page.locator('#studio-right [data-prop="editable"] button, #studio-right [data-prop="editable"] input').first().click());
+      await until(async () => /\]\}[^\n]*\beditable\b/.test(await ctx.text()), { message: "editable on the Table" });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row td.zen-table__cell")].some((td) => td.textContent.includes("Wireframes") && td.dataset.editable === "true")), { message: "the Task cells (a cell column) stay read-only, the drawn ones edit" }).catch(() => null);
+      steps.push("Data-Row Editable on");
+      return steps.join(" · ");
     },
   },
   {

@@ -2223,9 +2223,14 @@
         "preventDefault for client routing"
       ],
       [
+        "Per crumb",
+        "items[n].level · emphasis · state · dash",
+        "Figma Item/Slot Dash and Item Level / State / Emphasis on one crumb; unset: Breadcrumbs' master / emphasis, a chevron after all but the last"
+      ],
+      [
         "Item-List slot",
         "children: <BreadcrumbItem item={{ id, label, href }} />",
-        "instead of items (Figma Item-List); the level, current page and collapsing stay Breadcrumbs' own"
+        "instead of items (Figma Item-List); the current page and collapsing stay Breadcrumbs' own, a BreadcrumbItem's level / emphasis / state count as its item's"
       ]
     ],
     "keyboard": [
@@ -4119,8 +4124,8 @@
       ],
       [
         "Selection",
-        "selectable · selectedIds · onSelectionChange",
-        "checkbox column; select-all is indeterminate when partial"
+        "selectable · selectedIds + onSelectionChange (controlled) or defaultSelectedIds (the Table keeps it)",
+        "checkbox column; select-all is indeterminate when partial; a selected row's cells take Table-Cell/Background/Selected (Figma Cell State=Selected)"
       ],
       [
         "Bulk actions",
@@ -4139,8 +4144,8 @@
       ],
       [
         "Editable cells",
-        "column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline}",
-        "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle"
+        "column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline} · column.edit: \"text\" | \"number\" | \"select\" | \"tags\" | true · editable · onCellCommit",
+        "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value)"
       ],
       [
         "Open button",
@@ -4272,7 +4277,7 @@
       {
         "id": "table/interaction-needs-handler",
         "severity": "warn",
-        "summary": "Selectable tables need onSelectionChange; sortable columns need onSortChange.",
+        "summary": "A selectable Table with selectedIds needs onSelectionChange — without it the checkboxes are dead (leave selectedIds out, or pass defaultSelectedIds, for a selection the Table keeps itself); sortable columns need onSortChange.",
         "allow": "table-handler"
       },
       {

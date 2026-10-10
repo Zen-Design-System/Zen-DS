@@ -9,6 +9,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { announceEditStatus } from "../api";
 import { studioStore, useStudio } from "../store";
 import { MyPageRow } from "./MyPages";
+import { RenameField } from "./RenameField";
 import { createFolder, deleteFolder, renameFolder, type StudioFolder } from "./store/folderStore";
 import { cachedPage, type PageMeta } from "./store/pageStore";
 
@@ -20,23 +21,22 @@ import { cachedPage, type PageMeta } from "./store/pageStore";
 
 const fail = (error: unknown) => announceEditStatus({ kind: "error", message: error instanceof Error ? error.message : String(error), at: Date.now() });
 
-/** New folder or Rename folder: a name, then Create / Rename. */
-export function FolderDialog({ folder, onClose, onCreated }: { folder?: StudioFolder; onClose: () => void; onCreated?: (id: string) => void }) {
-  const [name, setName] = useState(folder?.name ?? "");
+/** New folder: a name, then Create (a folder is renamed in place in the list: RenameField). */
+export function FolderDialog({ onClose, onCreated }: { onClose: () => void; onCreated?: (id: string) => void }) {
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   return (
     <ModalForm
       open
       onOpenChange={(next) => { if (!next) onClose(); }}
-      title={folder ? "Rename folder" : "New folder"}
-      description={folder ? undefined : "Group the pages of one product, flow or client. Kept in this browser."}
+      title="New folder"
+      description="Group the pages of one product, flow or client. Kept in this browser."
       onSubmit={() => {
         const value = name.trim();
         if (!value) { setError("Give the folder a name"); return; }
-        if (folder) void renameFolder(folder.id, value).then(onClose, fail);
-        else void createFolder(value).then((id) => { onCreated?.(id); onClose(); }, fail);
+        void createFolder(value).then((id) => { onCreated?.(id); onClose(); }, fail);
       }}
-      primaryAction={{ label: folder ? "Rename" : "Create folder" }}
+      primaryAction={{ label: "Create folder" }}
       secondaryAction={{ label: "Cancel" }}
     >
       <InputField label="Name" size="md" value={name} placeholder="Checkout flows" autoFocus error={Boolean(error)} errorMessage={error ?? undefined} onChange={(event) => { setName(event.target.value); if (error) setError(null); }} />
@@ -69,22 +69,38 @@ function DeleteFolderDialog({ folder, count, onClose }: { folder: StudioFolder; 
 function FolderGroup({ folder, pages, open, onToggle, onNewPage, tabStop, rowTab }: { folder: StudioFolder; pages: PageMeta[]; open: boolean; onToggle: () => void; onNewPage: () => void; tabStop: PageMeta | null; rowTab: boolean }) {
   const admin = useStudio((state) => state.role === "admin");
   const localPage = useStudio((state) => state.localPage);
-  const [dialog, setDialog] = useState<null | "rename" | "delete">(null);
+  const [dialog, setDialog] = useState<null | "delete">(null);
+  // Rename in place (double-click the row, or Rename), as Figma renames a layer.
+  const [renaming, setRenaming] = useState(false);
   const listId = `studio-folder-${folder.id}`;
   return (
     <li className="studio-folder">
       <div className="studio-pages__item" data-actions="2">
-        <button type="button" className="studio-pages__row studio-folder__row" aria-expanded={open} aria-controls={listId} tabIndex={rowTab ? 0 : -1} onClick={onToggle}>
-          <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="sm" decorative />
-          <Icon name="icon-folder-line" size="sm" decorative />
-          <span className={`studio-pages__name ${typographyStyles["Body/Small/Medium"]}`}>{folder.name}</span>
-          <Text as="span" textStyle="Caption/Regular" tone="light" className="studio-folder__count">{pages.length}</Text>
-        </button>
+        {renaming ? (
+          <div className="studio-pages__row studio-folder__row" data-renaming="true">
+            <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="sm" decorative />
+            <Icon name="icon-folder-line" size="sm" decorative />
+            <RenameField value={folder.name} label="Folder name" onCommit={(name) => renameFolder(folder.id, name).catch(fail)} onDone={() => setRenaming(false)} />
+          </div>
+        ) : (
+          // A double-click (two clicks: open and close again) renames it.
+          <button type="button" className="studio-pages__row studio-folder__row" aria-expanded={open} aria-controls={listId} tabIndex={rowTab ? 0 : -1} title={admin ? "Double-click to rename" : undefined}
+            onClick={onToggle} onDoubleClick={() => { if (admin) setRenaming(true); }}
+            onKeyDown={(event) => {
+              // Delete / Backspace asks before deleting the folder (its pages go to the Trash).
+              if ((event.key === "Delete" || event.key === "Backspace") && admin && !event.repeat) { event.preventDefault(); setDialog("delete"); }
+            }}>
+            <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size="sm" decorative />
+            <Icon name="icon-folder-line" size="sm" decorative />
+            <span className={`studio-pages__name ${typographyStyles["Body/Small/Medium"]}`}>{folder.name}</span>
+            <Text as="span" textStyle="Caption/Regular" tone="light" className="studio-folder__count">{pages.length}</Text>
+          </button>
+        )}
         <span className="studio-pages__actions">
           <IconButton icon="icon-plus-line" aria-label={`New page in ${folder.name}`} appearance="flat" level="primary" size="xs" tabIndex={-1} disabled={!admin} onClick={onNewPage} />
           <Menu align="end" aria-label={`${folder.name} options`} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label={`${folder.name} options`} appearance="flat" level="primary" size="xs" tabIndex={-1} />}
             items={[
-              { id: "rename", label: "Rename…", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setDialog("rename") },
+              { id: "rename", label: "Rename", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setRenaming(true) },
               { type: "separator" },
               { id: "delete", label: "Delete folder…", icon: "icon-trash-line", danger: true, disabled: !admin, onSelect: () => setDialog("delete") },
             ]} />
@@ -97,7 +113,6 @@ function FolderGroup({ folder, pages, open, onToggle, onNewPage, tabStop, rowTab
           </ul>
         ) : <Text as="p" id={listId} textStyle="Caption/Regular" tone="base" className="studio-folder__empty">No pages yet</Text>
       ) : null}
-      {dialog === "rename" ? <FolderDialog folder={folder} onClose={() => setDialog(null)} /> : null}
       {dialog === "delete" ? <DeleteFolderDialog folder={folder} count={pages.length} onClose={() => setDialog(null)} /> : null}
     </li>
   );

@@ -126,8 +126,10 @@ check("BottomSheet type=action renders items instead of children", read("BottomS
 
 // Data slots (dataSlots.ts): the prop is documented, the source passes each item object itself to the part that draws
 // it (the Studio finds an item on the canvas by identity), draws `max` of them, and a new item is valid code.
+// A component written in another's folder (SidebarSubMenu in Sidebar.tsx).
+const SOURCE_OF = { SidebarSubMenu: "Sidebar/Sidebar.tsx" };
 for (const [name, slots] of Object.entries(DATA_SLOTS)) {
-  const tsx = read(`${name}/${name}.tsx`);
+  const tsx = read(SOURCE_OF[name] ?? `${name}/${name}.tsx`);
   for (const slot of slots) {
     const id = `data ${name}.${slot.prop}`;
     check(`${id}: owner`, slot.component, name);
