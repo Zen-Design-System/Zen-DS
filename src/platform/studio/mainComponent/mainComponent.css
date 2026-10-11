@@ -42,3 +42,6 @@
 .studio-mc__drift { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-base, #555); }
 .studio-mc__drift > li { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow-wrap: anywhere; }
 .studio-mc__drift-where { color: var(--zen-color-content-neutral-strongest, #111); }
+/* Figma bindings (BindingDiffDialog): one checkbox per stylesheet change, its Figma variables as the caption. */
+.studio-mc__bindings { display: grid; gap: var(--zen-spacing-gap-small, 12px); margin: 0; padding: 0; list-style: none; max-height: min(50vh, 420px); overflow: auto; }
+.studio-mc__bindings > li { overflow-wrap: anywhere; }

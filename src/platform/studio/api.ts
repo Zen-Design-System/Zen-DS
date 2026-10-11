@@ -123,7 +123,30 @@ function saveResultOf(body: unknown): SaveResult {
 
 const NO_SERVER = "The Zen Studio dev server did not answer";
 
+/** A CSS change that follows a Figma re-binding (tools/studio/binding-diff.mjs). */
+export type BindingProposal = {
+  id: string;
+  file: string;
+  selector: string;
+  media: string;
+  prop: string;
+  value: string;
+  from: string;
+  to: string;
+  status: "ready" | "manual" | "token-missing";
+  ticked: boolean;
+  because: Array<{ set: string; variant: string; layer: string; field: string; from: string; to: string }>;
+};
+export type BindingDiffReply = { ok: true; base: string; changes: number; proposals: BindingProposal[] } | { ok: false; error: string };
+
 export const studioApi = {
+  /** What Figma re-bound since the last commit's contracts, and the stylesheet declarations that follow (read only). */
+  async bindingDiff(): Promise<BindingDiffReply> {
+    const reply = await call<BindingDiffReply>("/binding-diff");
+    if (!reply) return { ok: false, error: NO_SERVER };
+    if (reply.status !== 200 || !reply.body?.ok) return { ok: false, error: errorOf(reply.body, "The binding check failed").error };
+    return reply.body;
+  },
   async ping(): Promise<PingResponse | null> {
     const reply = await call<PingResponse>("/ping");
     if (!reply || reply.status !== 200 || !reply.body?.ok) return null;

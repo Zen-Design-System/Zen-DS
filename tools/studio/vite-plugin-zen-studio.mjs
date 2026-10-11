@@ -51,7 +51,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -239,6 +239,13 @@ export function zenStudio() {
         // Then the Figma check of each saved component stylesheet runs in the background (Main component M3).
         const parity = startParity(saved, prior);
         return send(res, 200, { ok: true, saved, conflicts, harness, parity });
+      }
+      // Figma changed a binding → the CSS proposals (core rebuild Q5(1), tools/studio/binding-diff.mjs): read only, as
+      // GET /source (writes go through POST /css-edit, which checks the token).
+      if (route === "GET /binding-diff") {
+        const { repoBindingDiff } = await import("./binding-diff.mjs");
+        const result = await repoBindingDiff({ base: url.searchParams.get("base") || "HEAD" });
+        return send(res, 200, { ok: true, base: result.base, changes: result.changes.length, proposals: result.proposals });
       }
       if (route === "GET /parity") {
         checkToken(req);
