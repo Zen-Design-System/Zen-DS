@@ -189,6 +189,68 @@ async function stillSelected(page, id, tag, index, after) {
   return want.split(":").slice(-2).join(":");
 }
 
+/**
+ * Core rebuild M8 (plan criterion: the avatar test, 5/5 pages through the design copy): on example page `on`, the first
+ * frame that draws an Avatar becomes a page you made (New page from this frame); there an Avatar is ⌘-clicked and a
+ * photo from Assets put on it — that Avatar shows it, no other layer changes.
+ */
+async function avatarThroughDesign(ctx, on) {
+  const { page } = await ctx.studio({ page: on });
+  const frame = await until(() => page.evaluate(() => {
+    const found = [...document.querySelectorAll('[data-studio-frame^="example:"]')].find((element) => element.querySelector(".zen-avatar"));
+    return found ? found.getAttribute("data-studio-frame").replace("example:", "") : null;
+  }), { timeout: 20000, message: `a frame with an Avatar on ${on}` });
+  const label = page.locator(`.studio-frame-label[data-chrome-key="label:example:${frame}"]`);
+  await label.waitFor({ state: "attached", timeout: 20000 });
+  await label.evaluate((element) => element.click());
+  await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click().catch(() => undefined);
+  const from = page.url();
+  await page.locator("#studio-right").getByRole("button", { name: "New page from this frame" }).click();
+  await until(async () => page.url() !== from && /page=local%3A/.test(page.url()), { timeout: 20000, message: "the design copy opened" });
+  const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+  const before = await until(() => pageText(page, id), { message: "the design copy stored" });
+  await page.locator('[data-studio-frame^="screen:"] .zen-avatar').first().waitFor({ state: "attached", timeout: 20000 });
+  // The Screen in view (⇧2 on its Layers row), then the first Avatar it draws that shows on the canvas.
+  await focusScreen(page);
+  await sleep(400);
+  const index = await until(() => page.evaluate(() => {
+    // Shown: some size, its centre on the canvas between the Studio's side panels and inside the window.
+    const left = document.getElementById("studio-left")?.getBoundingClientRect().right ?? 0;
+    const right = document.getElementById("studio-right")?.getBoundingClientRect().left ?? window.innerWidth;
+    const avatars = [...document.querySelectorAll('[data-studio-frame^="screen:"] .zen-avatar')];
+    // …and on top there: the first element of a frame under its centre (the Studio's overlays left out) is in it.
+    const onTop = (el, x, y) => { const top = document.elementsFromPoint(x, y).find((element) => element.closest("[data-studio-frame]")); return Boolean(top && (el === top || el.contains(top))); };
+    const shown = avatars.findIndex((el) => { const r = el.getBoundingClientRect(); const x = r.left + r.width / 2; const y = r.top + r.height / 2; return r.width >= 4 && r.height >= 4 && x > left && x < right && y > 48 && y < window.innerHeight - 8 && onTop(el, x, y); });
+    return shown >= 0 ? { shown } : null;
+  }), { timeout: 5000, message: "an Avatar in view on the design copy" }).catch(async (error) => {
+    await page.screenshot({ path: `.qa/studio-e2e/nested-avatar-${on}.png` }).catch(() => undefined);
+    const boxes = await page.evaluate(() => `${[...document.querySelectorAll('[data-studio-frame^="screen:"] .zen-avatar')].slice(0, 3).map((el) => { const r = el.getBoundingClientRect(); return `${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)}`; }).join(" | ")}; panels ${Math.round(document.getElementById("studio-left")?.getBoundingClientRect().right ?? -1)}…${Math.round(document.getElementById("studio-right")?.getBoundingClientRect().left ?? -1)}; window ${window.innerWidth}×${window.innerHeight}`);
+    throw new Error(`${error.message} (avatars at ${boxes})`);
+  });
+  const avatar = page.locator('[data-studio-frame^="screen:"] .zen-avatar').nth(index.shown);
+  // ⌘-click (Figma's deep select) until the Inspector names the Avatar.
+  const trail = [];
+  for (let click = 0; click < 4 && !/^Avatar(\s|·|$)/.test(await heading(page)); click++) {
+    const box = await avatar.boundingBox();
+    await page.keyboard.down("ControlOrMeta");
+    try { await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); } finally { await page.keyboard.up("ControlOrMeta"); }
+    await sleep(400);
+    trail.push(await heading(page));
+  }
+  if (!/^Avatar(\s|·|$)/.test(await heading(page))) throw new Error(`⌘-click did not reach the Avatar (${trail.join(" → ")}; the copy writes ${(before.split("\n").find((line) => /<Avatar(Stack)?\b/.test(line)) ?? "no Avatar").trim().slice(0, 220)})`);
+  await openAssetLibrary(page, "Photos");
+  const assets = page.locator("#studio-left-panel-assets");
+  const photo = assets.locator(".studio-assets__photo[data-photo]").first();
+  const key = await photo.getAttribute("data-photo");
+  const count = (text) => (text.match(new RegExp(`zen-media:${key}\\b`, "g")) ?? []).length;
+  await photo.click();
+  const after = await until(async () => { const text = (await pageText(page, id)) ?? ""; return count(text) === count(before) + 1 ? text : null; }, { timeout: 10000, message: `zen-media:${key} on the Avatar` }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+  await until(async () => avatar.evaluate((el, file) => [...el.querySelectorAll("img")].some((img) => img.src.includes(file) && img.complete), key), { timeout: 10000, message: "the photo on the Avatar" });
+  const was = new Set(before.split("\n"));
+  const changed = after.split("\n").filter((line) => !was.has(line)).length;
+  return `${on}: frame ${frame} → ${id} · Avatar ⌘-click · Photos › ${key} (${changed} line${changed === 1 ? "" : "s"} changed)`;
+}
+
 export const rows = [
   {
     id: "NO-01", feature: "Card › Sub-Action (a nested IconButton): ⌘-click it, Level → Danger writes the Card's overrides; one ⌘Z", wp: "fast path A 2026-10-10",
@@ -494,6 +556,12 @@ export const rows = [
       return `Figma frame → page: Text, Card (border), Badges ${tones}, Button`;
     },
   },
+  ...["avatar", "card", "app-shell", "table", "sidebar"].map((on, index) => ({
+    id: `NO-${14 + index}`, feature: `The avatar test through the design copy (core rebuild M8): ${on} › New page from this frame, ⌘-click an Avatar, Assets › Photos puts the photo on that Avatar`, wp: "core rebuild M8 2026-10-11",
+    // A frame of an example page made into a page and rendered, then the edit: more than a row's usual 20 s.
+    timeout: 45000,
+    run: (ctx) => avatarThroughDesign(ctx, on),
+  })),
   {
     id: "NO-07", feature: "Reset all overrides at level 3 (plan criterion 4): the Icon inside Card › Sub-Action takes a tone, stays selected, Reset all overrides takes it away, ⌘Z brings it back", wp: "core rebuild M3 2026-10-11",
     async run(ctx) {

@@ -47,6 +47,13 @@
 @keyframes zen-side-panel-slide-out { to { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
 @keyframes zen-side-panel-nudge-in { from { opacity: 0; transform: translateX(calc(16px * var(--zen-motion-movement, 1))); } }
 @keyframes zen-side-panel-nudge-out { to { opacity: 0; transform: translateX(calc(16px * var(--zen-motion-movement, 1))); } }
+/* In a device or Studio frame (`[data-zen-overlay-root]`): it covers that frame only, clear of its safe areas (as Dialog). */
+.zen-side-panel-overlay[data-contained="true"] {
+  position: absolute;
+  z-index: 5;
+  padding-top: max(var(--zen-spacing-padding-xsmall, 8px), var(--zen-safe-area-top, 0px));
+  padding-bottom: max(var(--zen-spacing-padding-xsmall, 8px), var(--zen-safe-area-bottom, 0px));
+}
 .zen-side-panel-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
 .zen-side-panel[data-type="modal"][data-state="closing"] { animation: zen-side-panel-slide-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
 .zen-side-panel[data-type="standard"] { animation: zen-side-panel-nudge-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }

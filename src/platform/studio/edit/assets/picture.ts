@@ -4,11 +4,13 @@ import { writeAtUse } from "../../inspector/callSite";
 import { rowOf } from "../../inspector/detach";
 import { inspectorStatus } from "../../inspector/status";
 import { findBySrc } from "../../select/picker";
+import { nestedPathOf, selectedPartStore, type PartHit } from "../../select/parts";
+import { overrideOps, overrideTable, withOverride } from "../../inspector/overrides";
 import { cellDataTarget } from "../../table/tableCells";
 import { pictureCode, resolveMedia } from "../../builder/library/media";
 import { PHOTO_PROPS } from "../../inspector/propSchema";
 import { rowScope } from "../../inspector/rowScope";
-import type { EditOp, EditValue } from "../../types";
+import type { EditOp, EditValue, StudioPartRef } from "../../types";
 import type { NodeSelection } from "../arrange";
 
 /*
@@ -25,10 +27,33 @@ export const PICTURED: ReadonlySet<string> = new Set(Object.keys(PHOTO_PROPS));
 
 export const UPLOAD_ONLY_LOCAL = "An uploaded photo stays in this browser: on example code pick a photo from People or the Library";
 
+/**
+ * The picture a component draws as a nested instance (an AvatarStack's Avatar, Figma's nested Avatar/Single) when it
+ * is the selected part on a page you made and its owner holds no picture of its own: that part and its layer path.
+ */
+export function nestedPicture(selection: NodeSelection & { part?: StudioPartRef }): { part: PartHit; path: string } | null {
+  if (!selection.part || PICTURED.has(selection.name) || !parseSrc(selection.src)?.file.startsWith("local:")) return null;
+  const part = selectedPartStore.get();
+  if (!part || part.name !== selection.part.name || !PICTURED.has(part.name)) return null;
+  const path = nestedPathOf(part);
+  return path ? { part, path } : null;
+}
+
 /** Puts `value` (zen-media:/zen-asset:/URL) on the selected layer; false with the reason shown when it cannot. */
 export async function writePicture(selection: NodeSelection, value: string, label: string): Promise<boolean> {
   const at = parseSrc(selection.src);
   if (!at) return false;
+  // A nested picture (core rebuild M8: an AvatarStack's Avatar): its own src, as the owner's instance overrides, the way
+  // Figma overrides one nested instance's image (one undo step; the Inspector's Reset takes it back).
+  const nested = nestedPicture(selection);
+  if (nested) {
+    const owner = await studioApi.element(at.file, at.loc);
+    if (!owner) { inspectorStatus.set("negative", `The ${selection.name} is no longer there`); return false; }
+    const table = overrideTable(nested.part.owner.props?.overrides);
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: owner.name, ops: overrideOps(table, withOverride(table, nested.path, "src", value)), hash: owner.hash }, `${selection.name} › ${nested.path} → ${label}`);
+    if (response.ok) inspectorStatus.set("positive", `${nested.part.name} in ${selection.name} shows ${label}`);
+    return response.ok || (inspectorStatus.set("negative", "error" in response ? response.error : "The picture was not changed"), false);
+  }
   const element = await studioApi.element(at.file, at.loc);
   if (!element) { inspectorStatus.set("negative", `The ${selection.name} is no longer there`); return false; }
   const src = element.attributes.filter((attr) => attr.name === "src").at(-1);

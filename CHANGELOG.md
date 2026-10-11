@@ -43,6 +43,9 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio: `tools/studio/figma-pull.mjs` turns a Figma frame made with the Zen library (read with use_figma) into a
   page you made — components with the properties that differ from their defaults, overridden nested instances as
   `overrides`, auto layout as Stack, text as Text; what has no Zen component is listed (not yet run on the live file).
+- Zen Studio, a design copy (New page from this frame): a photo goes on one avatar of an AvatarStack (that layer's
+  override), and a Table column whose cells draw a person's photo keeps it as an Avatar column; the avatar test passes
+  on the avatar, card, App Shell, table and sidebar pages.
 - QA: the Build-QA gate checks nested layer names against Figma ("Nested layer names (code ↔ Figma)",
   `tools/figma-contract/nested-paths.mjs`): every layer a component's `overrides` reaches is a nested instance of its
   Figma sets. DatePicker's footer button and time picker take Figma's names: `overrides` paths `Actions/Submit` (was
@@ -823,6 +826,10 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in
+  that frame, as Dialog does, instead of covering the whole page.
+- AvatarStack puts its own attributes (`data-*`, `aria-*`, `id`, `className`, `style`, `title`) on the stack instead
+  of on every avatar it draws (a `data-testid` was repeated on each avatar and `className` was lost).
 - Form and ModalForm: a blocked submit focuses the first invalid field even when the handler's errors render a frame or
   two after it returns (they looked once, one frame later, and could miss them; seen as a flaky CI test).
 - Zen Studio: on a page you made, a component's state shows at once — a Data-Row's State → Selected, a Checkbox's

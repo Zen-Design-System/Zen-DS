@@ -331,3 +331,18 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
 - **Kết quả:** 15/15 component có contract khớp Figma; gate `npm run qa` có bước "Nested layer names (code ↔ Figma)"
   khi có file component, contract hay bảng Figma trong phạm vi. 29 component chưa có contract (Card, Dialog, Tabs…)
   nằm ngoài tầm kiểm tra tới khi chụp contract.
+
+### M8 — mở thành bản thiết kế (2026-10-11, nhánh `zen/feat/studio-doc-m8`)
+
+- "New page from this frame" (GĐ3b) đã là "mở thành bản thiết kế": chụp cây đang render thành trang Studio. M8 đo bài
+  avatar qua bản sao đó trên 5 trang (avatar, card, app-shell, table, sidebar): chọn frame có Avatar → New page from
+  this frame → ⌘-click một Avatar → Assets › Photos. Lần đầu 2/5; sửa ở chủ:
+  1. `AvatarStack` đưa thuộc tính của chính nó (data-*, aria-*, className…) xuống từng avatar — chú thích của Studio
+     theo đó nên ⌘-click không tới được Avatar lồng (và `data-testid` lặp trên từng avatar trong app). Giờ chúng ở root.
+  2. `SidePanel` modal portal ra trang kể cả trong frame (`[data-zen-overlay-root]`): màn che phủ cả frame Screen bên
+     cạnh. Giờ mở trong frame như Dialog (`useOverlayHost`, `data-contained`).
+  3. Ảnh cho một Avatar lồng (Avatar của AvatarStack) trên trang Studio: ghi override `src` của layer đó
+     (`picture.ts nestedPicture`), như Figma override ảnh của một instance lồng.
+  4. Bản sao của Table có cột vẽ ô bằng `cell` (avatar người) bỏ mất ảnh: giờ giữ thành cột `content: "avatar"` (hàng
+     có `<id>Photo`, `<id>Caption`) nên đổi ảnh được (`snapshot.ts cellsAsText`).
+- **Kết quả:** 5/5 trang (E2E NO-14…18); starters SP-* vẫn xanh; Vitest `frames-and-stacks` cho hai sửa thư viện.

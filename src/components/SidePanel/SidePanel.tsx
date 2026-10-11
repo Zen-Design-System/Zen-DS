@@ -1,9 +1,8 @@
 import { useContext, useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
 import { usePresence } from "../Motion";
-import { ZenPortal } from "../Portal";
 import { IconButton } from "../Button";
 import { ModalActions, type DialogAction } from "../Dialog";
-import { modalIsOpen, openPopupTrigger, useModal } from "../Dialog/Dialog";
+import { modalIsOpen, openPopupTrigger, useModal, useOverlayHost } from "../Dialog/Dialog";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
 import { InlineOverlayContext, useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
@@ -60,8 +59,14 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const panelRef = useRef<HTMLElement>(null);
   const modal = type === "modal";
   const inline = useContext(InlineOverlayContext);
-  // Modal: the shared Dialog/ModalForm focus trap (autofocus, Tab trap, Escape, scroll lock, focus return).
-  useModal(open && modal, panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close");
+  // Stay mounted while the exit animation plays; focus return / scroll unlock already run when `open` goes false.
+  const { mounted, phase } = usePresence(open, modal ? 200 : 120);
+  // Modal: inside a device frame or a Studio frame (`[data-zen-overlay-root]`) it opens in that frame, as Dialog does;
+  // elsewhere in the page's ZenPortal.
+  const host = useOverlayHost(mounted && modal && !inline);
+  // Modal: the shared Dialog/ModalForm focus trap (autofocus, Tab trap, Escape, scroll lock, focus return), once it is
+  // placed.
+  useModal(open && modal && (inline || host.ready), panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close");
   // Standard (non-modal): Escape closes the docked panel from inside it and from the page beside it (the row that opened
   // it), unless an inner popup or a modal owns the key or the press was in a text field on the page. Closing returns focus
   // to the opener when focus was in the panel (or fell to the body as it closed). Listeners on window, as useModal's, so
@@ -92,8 +97,6 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
       if (opener instanceof HTMLElement && opener.isConnected && (!active || active === document.body || panel?.contains(active))) opener.focus();
     };
   }, [open, closable, onOpenChange]);
-  // Stay mounted while the exit animation plays; focus return / scroll unlock already ran when `open` went false.
-  const { mounted, phase } = usePresence(open, modal ? 200 : 120);
   if (!mounted) return null;
   const closing = phase === "closing";
   const Title = `h${headingLevel}` as const;
@@ -130,6 +133,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   );
   if (!modal) return panel;
   if (typeof document === "undefined") return null;
-  const overlay = <div className="zen-side-panel-overlay" data-state={phase} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{panel}</div>;
-  return inline ? overlay : <ZenPortal>{overlay}</ZenPortal>;
+  const overlay = <div className="zen-side-panel-overlay" data-state={phase} data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{panel}</div>;
+  if (inline) return overlay;
+  return <>{host.anchor}{host.ready ? host.place(overlay) : null}</>;
 }
