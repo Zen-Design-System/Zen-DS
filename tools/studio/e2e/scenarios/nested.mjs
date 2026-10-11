@@ -93,6 +93,29 @@ async function shot(page, row) {
   await page.screenshot({ path: `.qa/studio-e2e/nested-${row}.png` }).catch(() => undefined);
 }
 
+/** The page's document as this browser keeps it (pageStore `doc`, core rebuild M2), or null. */
+const pageDoc = (page, id) => page.evaluate((key) => new Promise((resolve) => {
+  const request = indexedDB.open("zen-studio-builder");
+  request.onsuccess = () => {
+    const get = request.result.transaction("pages").objectStore("pages").get(key);
+    get.onsuccess = () => resolve(get.result?.doc ?? null);
+    get.onerror = () => resolve(null);
+  };
+  request.onerror = () => resolve(null);
+}), id);
+
+/** The ids of a document's elements named `name`, in document order. */
+function idsOf(doc, name) {
+  const out = [];
+  const visit = (node) => {
+    if (node.name === name) out.push(node.id);
+    for (const value of Object.values(node.props ?? {})) if (value?.kind === "element") visit(value.node);
+    for (const child of node.children ?? []) { if (child.kind === "element") visit(child); else if (child.kind === "map") visit(child.node); }
+  };
+  if (doc?.board) visit(doc.board);
+  return out;
+}
+
 const subAction = (id) => `[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Card"] .zen-card__sub-action .zen-button`;
 
 export const rows = [
@@ -165,6 +188,33 @@ export const rows = [
       await until(async () => !/defaultSelectedIds/.test((await pageText(page, id)) ?? ""), { message: "no defaultSelectedIds after ⌘Z" });
       await until(async () => !(await selected()).includes(true), { timeout: 1500, message: "no row drawn selected after ⌘Z, without a reload" }).catch(async (error) => { throw new Error(`${error.message} (rows ${JSON.stringify(await selected())})`); });
       return "Data-Row State → Selected draws row 2 selected at once · ⌘Z draws none";
+    },
+  },
+  {
+    id: "NO-05", feature: "A page you made is a document with stable ids (core rebuild M2): it gets one as it opens (its text unchanged); ⌘D keeps the Card's id and gives the copy a new one; ⌘Z brings the same id back", wp: "core rebuild M2 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      const text = await pageText(page, id);
+      const opened = await until(() => pageDoc(page, id), { message: "the page's document after it opens" });
+      if ((await pageText(page, id)) !== text) throw new Error("opening the page rewrote its text");
+      const [card] = idsOf(opened, "Card");
+      if (!card) throw new Error("no Card in the document");
+      // ⌘-click the Card's padding: the innermost written layer there is the Card itself.
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Card"]`).first().boundingBox();
+      await page.keyboard.down("ControlOrMeta");
+      try { await page.mouse.click(box.x + 6, box.y + box.height / 2); } finally { await page.keyboard.up("ControlOrMeta"); }
+      await until(async () => /^Card(\s|$)/.test(await heading(page)), { message: "the Card selected" }).catch(async (error) => { throw new Error(`${error.message} (Inspector: "${await heading(page)}")`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Card /g)?.length === 2, { message: "two Cards after ⌘D" });
+      const copied = await until(async () => { const doc = await pageDoc(page, id); return idsOf(doc, "Card").length === 2 ? doc : null; }, { message: "two Cards in the document" });
+      const [first, copy] = idsOf(copied, "Card");
+      if (first !== card || copy === card) throw new Error(`ids after ⌘D: ${first}, ${copy} (the Card was ${card})`);
+      await undo(page);
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Card /g)?.length === 1, { message: "one Card after ⌘Z" });
+      const back = await until(async () => { const doc = await pageDoc(page, id); return idsOf(doc, "Card").length === 1 ? doc : null; }, { message: "one Card in the document after ⌘Z" });
+      if (idsOf(back, "Card")[0] !== card) throw new Error(`after ⌘Z the Card is ${idsOf(back, "Card")[0]}, was ${card}`);
+      return `document on open (text unchanged) · ⌘D: ${card} kept, copy ${copy} · ⌘Z: ${card} back`;
     },
   },
 ];

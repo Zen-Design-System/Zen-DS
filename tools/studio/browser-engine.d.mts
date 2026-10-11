@@ -21,3 +21,12 @@ export function boardFrames(tree: unknown): BoardFrame[];
 export function freeFrameId(base: string, taken: Iterable<string>): string;
 export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string }): string;
 export function protoCode(action: string, arg?: string): string;
+/** The builder page as a JSON document (doc.mjs): the dialect's neutral tree with a stable id on every element. */
+export type PageDoc = { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown };
+export const ID_PROP: string;
+export function printPage(doc: PageDoc, options?: { ids?: boolean }): string;
+export function docFromText(text: string, options?: { components?: Set<string>; newId?: () => string }): { doc: PageDoc | null; errors: DialectError[] };
+export function locsOf(doc: PageDoc, text: string, options?: { components?: Set<string> }): { idAt: Map<string, string>; locOf: Map<string, string> };
+export function newDocId(): string;
+export function withoutIds(doc: PageDoc): unknown;
+export function editDoc(doc: PageDoc, text: string, request: { file: string; loc: string; name: string; ops: unknown[] }, deps: { components?: Set<string>; applyOps: typeof applyOps; dataFieldEdit: typeof dataFieldEdit; sha1?: typeof sha1; options?: Record<string, unknown> }): { doc: PageDoc; text: string; answer: Record<string, unknown> } | { error: string; code: string };

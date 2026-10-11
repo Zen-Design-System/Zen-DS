@@ -232,3 +232,21 @@ User chọn A, một máy một tài khoản, làm trên nhánh `zen/feat/nested
   NpsScale, Chat (Message, File, Call, Voice, Composer, AvatarGroup, ConversationItem), AiChat (Field, Block), Voice —
   tổng 64 component. Image và Link không có instance lồng đáng đổi (chỉ icon trạng thái); TopNavigation giữ hành động
   sửa qua dữ liệu (user chốt). Còn: gate `nested-paths` khi chụp đủ contract.
+
+### M2 — lõi tài liệu (2026-10-11, nhánh `zen/feat/studio-doc-engine`)
+
+**Quyết định của user (2026-10-11):** cách 2 — file trang vẫn là `.zen.tsx` (giữ nguyên định dạng người viết), tài liệu
+JSON có ID cố định chạy kèm trong trình duyệt (IndexedDB, `PageRecord.doc`). Bản in chuẩn hoá (JSON là file, TSX sinh ra)
+đã thử và bị bỏ: nó viết lại định dạng mã và làm hỏng file thiết kế trong gói bàn giao (5 hàng E2E). Khi M6 cần nhớ ID
+layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file đi kèm — không cần đổi file sang JSON.
+
+- **Xong:** `tools/studio/doc.mjs` — `docFromText` (cây của dialect + `id` cho mỗi element), `printPage` (in tài liệu ra
+  TSX, có hoặc không có `data-zen-id`), `locsOf` (vị trí ↔ ID trong bất kỳ text nào của trang), `editDoc` (mỗi lệnh chạy
+  hai lần bằng engine cũ: trên text như trước — text và câu trả lời y hệt —, và trên bản in có ID để giữ ID qua di chuyển,
+  bọc, nhân bản; bản sao và element mới nhận ID mới). `localApi` sửa qua `editDoc`; undo/redo trả tài liệu của text đó;
+  mở trang gắn tài liệu mà không ghi lại text (`setPageDoc`).
+- **Kiểm tra:** `doc.selftest.mjs` (85: in ↔ đọc lại, mọi lệnh khớp engine, ID giữ), E2E 225/225 + NO-05 (ID qua ⌘D, ⌘Z).
+- **build-check:** đã sửa cho khớp main (New page, ⌘-click, Assets, Trash; trang component tải engine cho frame Main
+  component) và lỗi Chromium 1243 với thư mục OPFS: 22 ok · 1 bỏ qua · 1 đỏ là ngân sách engine (140 KB; main 151,3 KB
+  trước M2, 153,5 KB sau) — chờ user: nâng ngân sách hay tách engine.
+- **Chưa:** ID mất khi trang sang trình duyệt khác (ghi chú ở trên); chọn layer theo ID là M3.
