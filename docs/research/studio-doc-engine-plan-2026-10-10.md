@@ -298,3 +298,21 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
   class, variant: Badge đỏ của hàng 2, Sub-Action danger) — bằng nhau. Round-trip tài liệu ↔ TSX ở `doc.selftest.mjs`;
   nhập TSX và tab Code có sẵn. So ảnh pixel (visual-diff) thay bằng so cấu trúc layer: cùng thư viện và token thì cùng
   layer, cùng variant là cùng hình.
+
+### M6 — kéo từ Figma (2026-10-11, nhánh `zen/feat/studio-doc-m6`, phần chuyển đổi)
+
+- `tools/studio/figma-pull.mjs`: `figmaReadCode(nodeId)` là đoạn code chạy trong `use_figma` (chỉ đọc) trả frame thành
+  JSON — frame auto layout (gap, padding kèm tên variable, căn hàng), text (chữ, tên text style), mỗi instance Zen (bộ
+  component, property theo tên Figma, chữ đầu tiên, các instance lồng bị override theo đường dẫn layer). `pageFromFigma`
+  biến JSON đó thành trang Studio (in bằng `doc.mjs printPage`): instance → component với các prop khác mặc định của
+  code (tên và lựa chọn qua `figmaProps.generated.ts`; mặc định từ docs/api, không có thì mặc định của Figma), instance
+  lồng bị override → `overrides` theo đường dẫn (`"Sub-Action": { level: "danger" }`), frame auto layout → Stack (gap /
+  padding theo tên variable hoặc px gần nhất), text → Text. Cái không có trong Zen bị bỏ ra và ghi trong `notes`; một
+  layer Figma hiện bằng boolean mà code chỉ vẽ khi có prop (Sub-Action của Card) cũng được ghi.
+  CLI: `node tools/studio/figma-pull.mjs code <nodeId>` (in code cho use_figma), `… page frame.json --out=x.zen.tsx`
+  (rồi Import trong Studio).
+- **Kiểm tra:** `figma-pull.selftest.mjs` 14 (frame mẫu đúng dữ liệu contract: trang hợp lệ, override lồng, Badge đỏ,
+  gap/padding theo variable, ghi chú); E2E NO-13 (trang đó mở trong Studio và vẽ đúng).
+- **Chưa:** đoạn code `use_figma` chưa chạy trên file thật — phiên này không có Figma MCP (đã hỏi user qua Giám sát
+  cách lấy frame); nội dung slot của instance (Card › Content) chưa đọc; bảng Table của Figma chưa map sang Table;
+  diff khi kéo lại chưa làm.

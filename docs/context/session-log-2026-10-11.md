@@ -86,6 +86,16 @@
   writeFile (resolved from the root; `@zen/design-system` pointed at src/index), imports it, renders it beside
   renderPage's canvas render and compares every Zen layer (tag, classes, variant data-attributes): equal.
 
+## Core rebuild M6, converter half: Figma frame JSON → Studio page (branch zen/feat/studio-doc-m6 off 6c8e4bb, tier M)
+
+- No Figma MCP in this session (only zen-ds map_figma_component): asked the user via Giám sát which flow (agent with
+  use_figma, enable it here, or other). Built what every flow needs: `tools/studio/figma-pull.mjs` (read code for
+  use_figma, read-only; converter on FIGMA_PROPS + component-properties.json + docs/api defaults, printed by printPage;
+  CLI). Defaults compare with the code default (docs/api JSON text), scale spellings normalised ("medium" = "md").
+- Card's Sub-Action is `skip` in figma-props.map (needs an object), so an override on it is named in the notes.
+- `figma-pull.selftest.mjs` (14, in studio:selftest; Node 24 imports figmaProps.generated.ts by type stripping); E2E
+  NO-13 (`openNestedPage` takes the Badge count to wait for).
+
 ## PR #12 CI: ModalForm focus after an async submit (zen/feat/nested-overrides a3f5389, merged here; tier S)
 
 - CI failed "waits for an async handler before looking for errors" (Email never focused). Not `overrides`: Form and
