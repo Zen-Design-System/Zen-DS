@@ -196,6 +196,8 @@ for (const mode of modes) {
         if (need.includes("w")) out.w = [want.w, +rect.width.toFixed(2)];
         if (need.includes("pos") || need.includes("x")) out.x = [want.x, +(rect.left - rr.left).toFixed(2)];
         if (need.includes("pos") || need.includes("y")) out.y = [want.y, +(rect.top - rr.top).toFixed(2)];
+        // The end edge, for a FILL layer whose start follows a text-hugging sibling (its x and w vary with the font).
+        if (need.includes("right")) out.right = [want.x + want.w, +(rect.right - rr.left).toFixed(2)];
         if (need.includes("fill")) {
           const expected = want.fill ? colorOf(want.fill) : "rgba(0, 0, 0, 0)";
           const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : entry.fillVia === "caret" ? cs.caretColor : cs.backgroundColor;

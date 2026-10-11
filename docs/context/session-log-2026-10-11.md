@@ -205,3 +205,6 @@ Primitives/Dashboard/Header "Thì build ngay".
 - Gate: actions overflowed at 390 Comfortable (their min-width was max-content) → base size auto, min-width 0, so the
   row wraps them and a line too narrow wraps the buttons; on a phone the Primary comes first (as PageHeader) and the
   navigation example trades the trail for Back. Segmented/Tabs axe "fixed violation" was load flake (3/3 reruns pass).
+- CI (PR #20, Linux): the suite asserted Control-Slots' width, which HUGs the Chip's text ("Filter" renders ~1.2px wider
+  on Linux), and Action-Slots' x/w that follow it. Per chip-normal's rule text-hugging widths are not asserted:
+  Control-Slots checks h/x/y, Action-Slots h/y and its end edge (new `right` check in check.mjs). Suite 64/64.
