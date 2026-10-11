@@ -341,7 +341,27 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
 - **Kiểm tra:** `figma-pull.selftest.mjs` 38 (thêm 20 trên bản đọc thật, kể cả harness không lỗi trên trang đã
   compile); E2E NO-19 (trang mở trong Studio: Sidebar đủ chiều cao với mục đang chọn, Breadcrumbs, Segmented, 5 thẻ
   2 × 3 đúng thứ tự Figma).
-- **Chưa:** diff khi kéo lại; bảng Table của Figma chưa map sang Table.
+- **Chưa (lúc đó):** diff khi kéo lại; bảng Table của Figma chưa map sang Table.
+
+### M6 — kéo lại cùng frame: diff để chọn (2026-10-11, nhánh `zen/feat/studio-figma-pull-diff`)
+
+- ID Figma lưu trên node: mỗi element của trang kéo về có id tài liệu lấy từ layer Figma (`figmaDocId`: "14243:64878" →
+  "f14243-64878"; element do figma-pull thêm có hậu tố: `.screen`, `.place`), header ghi frame
+  (`figma: { file, node }`). Bản in có `data-zen-id` là thứ Studio nhập; chữ của trang không có id, tài liệu thì giữ.
+- Import pages… với một trang kéo về: frame mới → trang mới, tài liệu giữ id, lần kéo này lưu làm base (PageRecord
+  `figma.base`, trong trình duyệt này). Frame đã có trang → hộp **Update from Figma** thay vì trang thứ hai.
+- So ba chiều (`tools/studio/figma-diff.mjs`): base → bản kéo mới là cái Figma đổi (prop, chữ, thêm, bỏ, đổi thứ tự,
+  chuyển cha); chỗ mà Studio cũng đã sửa (trang hiện tại ≠ base) là xung đột, để trống không tick. Không có base
+  (trình duyệt khác): so hai chiều, liệt kê mọi khác biệt, không tick sẵn. Element Studio tự thêm (id không từ Figma)
+  không bao giờ bị đụng.
+- Apply là **một** sửa đổi: tài liệu gộp, Board thay bằng bản gộp (`replaceElement`), một ⌘Z hoàn tác. Engine
+  (`doc.mjs editDoc`): code một op mang `data-zen-id` thì id vào tài liệu, chữ của trang không có (luật chung, có test).
+- **Kiểm tra:** `figma-diff.selftest.mjs` 19 (trên bản đọc thật: Figma đổi tên một heading, đổi theme một Card, đổi size
+  Button, bỏ một thẻ, thêm một thẻ, đổi chỗ hai thẻ; Studio sửa cùng Card và chỗ khác); `doc.selftest.mjs` thêm luật
+  id; E2E NO-20 (nhập trang kéo về, sửa trong Studio, nhập lần kéo sau → hộp liệt kê 6 thay đổi, xung đột không tick,
+  Apply 5 trong một sửa đổi, sửa của Studio còn nguyên, một ⌘Z quay lại). Bản đọc fixture có id từng layer (đọc lại
+  2026-10-11).
+- **Chưa:** bảng Table của Figma (Header / Data-Row với ô trong slot Columns) chưa map sang Table.
 
 ### M7 — kênh override, đợt 2 = gate `nested-paths` (2026-10-11, nhánh `zen/feat/studio-doc-m7`)
 

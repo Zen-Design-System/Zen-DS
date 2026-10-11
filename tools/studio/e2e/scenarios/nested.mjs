@@ -2,7 +2,7 @@
 // Studio, a Zen component the owner draws itself (Card's Sub-Action, the icon inside it, one Table row's Badge) is
 // selected with ⌘-click and changed in the Inspector like Figma's nested instance. The edit is the owner's `overrides`
 // (src/components/_shared/nested.tsx), one ⌘Z.
-import { openAssetLibrary, selectedSrc, sleep, statusText, until } from "../lib/studio.mjs";
+import { openAssetLibrary, openStudioSpace, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { focusScreen, newPage, pageText } from "./builder.mjs";
 import { pickOption } from "./inspector.mjs";
 
@@ -589,6 +589,82 @@ export const rows = [
       if (!(await page.locator(`${scope}[data-zen-name="Icon"]`).count())) throw new Error("no Icon (the icon-zen instance) on the canvas");
       await shot(page, "NO-19");
       return `Figma Overviews → page: Sidebar (current ${current}), Breadcrumbs, Segmented, Cards ${columns}×${rows}: ${order}`;
+    },
+  },
+  {
+    id: "NO-20", feature: "Pull a Figma frame again (core rebuild M6): the pulled page imported and edited in the Studio (the Components card re-themed, the tagline re-aligned), then a later pull imported: Update from Figma lists what Figma changed with the Studio's conflict unticked, Apply lands it in one edit keeping the Studio's edits, one ⌘Z undoes it", wp: "core rebuild M6 2026-10-11",
+    timeout: 45000,
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const { printPage } = await import("../../doc.mjs");
+      const fs = await import("node:fs");
+      const live = JSON.parse(fs.readFileSync(new URL("../../fixtures/figma-overviews.json", import.meta.url), "utf8"));
+      const mapping = await repoMapping();
+      // A frame of its own per run (the rows share a browser): the live read under another node id.
+      const stamp = Date.now().toString(36);
+      const frame = { ...JSON.parse(JSON.stringify(live.frame)), id: `9${Date.now() % 1e6}:1` };
+      const pulled = (read) => printPage(pageFromFigma(read, { mapping }).doc, { ids: true });
+      const find = (read, id) => { const stack = [read]; while (stack.length) { const node = stack.pop(); if (node.id === id) return node; stack.push(...(node.children ?? []), ...(node.slots ?? [])); } throw new Error(`no layer ${id}`); };
+      const { page } = await newPage(ctx, { device: "desktop" });
+      await showLeftTab(page, "pages");
+      await openStudioSpace(page);
+      const id = `figma-pull-${stamp}`;
+      const importFile = (text, name) => page.locator('[data-e2e="import-pages"]').setInputFiles({ name, mimeType: "text/plain", buffer: Buffer.from(text, "utf8") });
+      await importFile(pulled(frame), `${id}.zen.tsx`);
+      await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 15000, message: "the pulled page opened" });
+      const first = (await pageText(page, id)) ?? "";
+      if (/data-zen-id/.test(first) || !/"figma":\{"file":"9nZv4uW2LT21yuHabMTCh1"/.test(first)) throw new Error("the pulled page's text carries ids or no Figma source");
+      // The Studio's edits, as the Inspector sends them.
+      const scope = `[data-zen-src^="local:${id}.zen.tsx:"]`;
+      await until(async () => (await page.locator(`${scope}[data-zen-name="Card"]`).count()) === 5, { timeout: 30000, message: "five Cards" });
+      const srcOf = async (name, text) => page.locator(`${scope}[data-zen-name="${name}"]`).filter({ hasText: text }).first().getAttribute("data-zen-src");
+      const edit = (src, name, prop, value) => page.evaluate(async ({ src: at, name: tag, prop: key, value: next }) => {
+        const api = await import("/src/platform/studio/api.ts");
+        const parsed = api.parseSrc(at);
+        const response = await api.applyEdit({ file: parsed.file, loc: parsed.loc, name: tag, ops: [{ op: "setProp", name: key, value: { kind: "string", value: next } }] }, `${key} → ${next}`);
+        return response.ok ? null : response.error;
+      }, { src, name, prop, value });
+      for (const [name, text, prop, value] of [["Card", "Components", "theme", "flat"], ["Text", "comprehensive set", "align", "start"]]) {
+        const problem = await edit(await srcOf(name, text), name, prop, value);
+        if (problem) throw new Error(`Studio edit ${prop}: ${problem}`);
+      }
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /theme="flat"/.test(text) && /align="start"/.test(text); }, { message: "the Studio's edits written" });
+      const edited = (await pageText(page, id)) ?? "";
+      // The later pull: a heading renamed, the same card re-themed (a conflict), the Button resized, Development gone,
+      // Templates added, Foundation and Components swapped.
+      const later = JSON.parse(JSON.stringify(frame));
+      find(later, "I14243:64889;7063:62204;14240:50460").characters = "Foundations";
+      find(later, "14243:64888").props.Theme = "Border";
+      find(later, "14243:64886").props.Size = "Small";
+      const grid = find(later, "14243:64887");
+      grid.children = grid.children.filter((card) => card.id !== "14243:64892");
+      const templates = JSON.parse(JSON.stringify(find(later, "14243:64891")).replaceAll("14243:64891", "14243:69999").replace('"characters":"Patterns"', '"characters":"Templates"').replace('"text":"Patterns"', '"text":"Templates"'));
+      templates.cell = { col: 3, row: 2, span: 2, rowSpan: 1 };
+      grid.children.push(templates);
+      const [foundation, components] = [find(later, "14243:64889"), find(later, "14243:64888")];
+      [foundation.cell, components.cell] = [components.cell, foundation.cell];
+      await importFile(pulled(later), `${id}-later.zen.tsx`);
+      const dialog = page.getByRole("dialog", { name: "Update from Figma" });
+      await dialog.waitFor({ state: "visible", timeout: 15000 });
+      await until(async () => (await dialog.locator("[data-change]").count()) === 6, { timeout: 15000, message: "six changes listed" }).catch(async (error) => { throw new Error(`${error.message} (${(await dialog.innerText()).replace(/\s+/g, " ").slice(0, 400)})`); });
+      const ticked = await dialog.locator("[data-change]").evaluateAll((items) => items.map((item) => `${item.getAttribute("data-change")}=${item.querySelector("input")?.checked}`));
+      const conflict = ticked.find((entry) => entry.startsWith("prop:f14243-64888:theme"));
+      if (conflict !== "prop:f14243-64888:theme=false" || ticked.filter((entry) => entry.endsWith("=true")).length !== 5) throw new Error(`ticked: ${ticked.join(", ")}`);
+      if (!/Changed in the Studio too/.test(await dialog.innerText())) throw new Error("the conflict is not marked");
+      await shot(page, "NO-20-dialog");
+      await dialog.getByRole("button", { name: "Apply 5 changes" }).click();
+      await dialog.waitFor({ state: "hidden", timeout: 15000 });
+      const after = async () => (await pageText(page, id)) ?? "";
+      await until(async () => /Foundations/.test(await after()), { timeout: 15000, message: "the update written" });
+      const text = await after();
+      const landed = { renamed: /Foundations/.test(text), added: /Templates/.test(text), removed: !/Development/.test(text), resized: /<Button size="small"/.test(text), keptTheme: /theme="flat"/.test(text), keptAlign: /align="start"/.test(text), noIds: !/data-zen-id/.test(text) };
+      if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
+      const cards = await page.locator(`${scope}[data-zen-name="Card"]`).evaluateAll((els) => els.map((el) => el.innerText.trim().split("\n")[0]).join(", "));
+      if (cards !== "Components, Foundations, Patterns, Resources & Tools, Templates") throw new Error(`cards ${cards}`);
+      await shot(page, "NO-20");
+      await undo(page);
+      await until(async () => (await after()) === edited, { timeout: 15000, message: "one ⌘Z: the page as the Studio left it" }).catch(async (error) => { throw new Error(`${error.message} (Development: ${/Development/.test(await after())}, Foundations: ${/Foundations/.test(await after())})`); });
+      return `Update from Figma: 6 changes (theme conflict unticked) → 5 applied in one edit, Studio's theme and align kept, cards ${cards}; ⌘Z back`;
     },
   },
   ...["avatar", "card", "app-shell", "table", "sidebar"].map((on, index) => ({

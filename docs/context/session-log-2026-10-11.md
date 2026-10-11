@@ -146,3 +146,20 @@
   NO-13 still green, baseline updated for NO-19. The E2E probe found Sidebar/Breadcrumbs/Segmented keep data-zen-* off
   their DOM (the picker uses fibers): the row finds them by class.
 - BACKLOG P2 (designer): what Primitives/Dashboard/Header maps to. Open: diff on re-pull, Figma Table → Table.
+
+## Core rebuild M6, re-pull: Update from Figma (branch zen/feat/studio-figma-pull-diff off 87b230a, tier M)
+
+- Figma ids on nodes: the read code returns each layer's id (and the file key); `pageFromFigma` gives every element a
+  document id from its layer (`figmaDocId`) and the header `figma: { file, node }`; the CLI prints with `data-zen-id`.
+  Fixture re-read live with ids (read-only; identical to the previous read apart from the ids).
+- `tools/studio/figma-diff.mjs` (pure): three-way changes base → incoming (prop, text, add, remove, order, move), a
+  conflict where the Studio changed the same spot, two-way when no base; `mergeFigma` applies the chosen ones and never
+  touches the Studio's own elements. Selftest 19 on the live fixture.
+- Engine: an op's code with `data-zen-id` sets those ids in the document and the page text never shows them
+  (`doc.mjs editDoc`, doc selftest +2); `elementText` export.
+- Studio: PageRecord `figma.base`; Import pages… → a pulled page keeps its ids and base; a frame already pulled opens
+  `UpdateFromFigmaDialog` (checkboxes, conflicts unticked, "Changed in the Studio too"); Apply = one `replaceElement` on
+  the Board ("Update from Figma", one ⌘Z), then the pull becomes the base.
+- Checks: E2E NO-20 new (6 changes listed, conflict unticked, 5 applied in one edit, Studio's theme/align kept, cards in
+  Figma's order, ⌘Z back), NO-19 green; build-check 23 ok, engine 154.2 KB gzip (budget 160); tsc clean.
+- Open (M6): Figma Table → Table (Header / Data-Row primitives with cells in Columns slots), next branch.

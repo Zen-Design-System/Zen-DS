@@ -16,6 +16,18 @@ export const REVISION_GAP_MS = 2 * 60 * 1000;
 
 const HEADER = /^(﻿?\/\/ @zen-page )(\{.*\})([ \t]*\r?\n)/;
 
+/** The Figma frame a pulled page came from (the header's `figma`, tools/studio/figma-pull.mjs), or null. */
+export function headerFigma(text: string): { file: string | null; node: string } | null {
+  const match = HEADER.exec(text);
+  if (!match) return null;
+  try {
+    const figma = (JSON.parse(match[2]) as { figma?: { file?: unknown; node?: unknown } }).figma;
+    return figma && typeof figma.node === "string" ? { file: typeof figma.file === "string" ? figma.file : null, node: figma.node } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The header's title (`// @zen-page {"format":1,"title":"…"}` on line 1), or null. */
 export function headerTitle(text: string): string | null {
   const match = HEADER.exec(text);

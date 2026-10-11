@@ -84,6 +84,10 @@
 .studio-new-page__group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; border: 0; }
 .studio-new-page__legend { margin-bottom: var(--zen-spacing-gap-xsmall, 8px); padding: 0; }
 .studio-new-page__templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+/* Update from Figma (UpdateFromFigmaDialog): one checkbox per change, the list scrolling inside the dialog. */
+.zen-dialog.studio-figma-update { width: min(640px, 100%); }
+.studio-figma-update__list { display: grid; min-width: 0; max-height: min(420px, 50vh); margin: 0; padding: 0; overflow: auto; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
+.studio-figma-update__item { min-width: 0; }
 /* Create / Cancel stay at the bottom of the modal while the templates scroll under them (user, 2026-10-09). */
 .zen-dialog.studio-new-page .zen-dialog__actions { position: sticky; z-index: 1; bottom: 0; background: var(--zen-color-background-container); box-shadow: 0 -1px 0 var(--zen-color-border-neutral-pale-default); }
 
