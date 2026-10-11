@@ -57,6 +57,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 
 ### SelectField
@@ -79,6 +80,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `options` | `SelectFieldOption[]` | `[]` |  |
 | `onValueChange` | `(value: string, option: SelectFieldOption) => void` | — | Called with the picked value and its option, next to the native `onChange(event)` (which still runs). |
 | `placeholder` | `string` | — | Shown (Content/Placeholder) while no option is selected, e.g. "Choose a role". With a placeholder and no `value` / `defaultValue`, nothing is preselected; without one the first option is selected, like a native select. |
@@ -109,6 +111,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 | `datePicker` | `boolean` | `true` |  |
 | `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
@@ -146,6 +149,7 @@ Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Bu
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 
 ### TextAreaField
 Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
@@ -169,6 +173,7 @@ Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 
 ### AutocompleteField
 Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an "Add Item" Button/Main XSmall Secondary that opens Popover/Default (Search + "Search and select" label + items) over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
@@ -196,6 +201,7 @@ Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, T
 | `onCreate` | `(label: string) => string \| void` | — | Figma Popover/Manual-Add-New: create a value that isn't in `options`. Add the new option to `options` and return its id; the field then selects it as a Tag. A typed value that matches an option shows no Create row: an option already added as a Tag is listed as selected (disabled) instead. |
 | `createLabel` | `ReactNode` | — |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio; app code sets label / helpText. |
 
 ### RichTextField
 Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall. The field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match Text-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's own history and are disabled while there is nothing to undo or redo; a new `value` from outside (clearing the field after it was posted) starts a new history.
@@ -227,6 +233,7 @@ Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) abov
 | `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 
 ### InputLabel
 Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon, gap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the `<label>` so hovering or focusing it never activates the field.
@@ -414,6 +421,7 @@ type SelectFieldOption = { label: string; value: string; disabled?: boolean; met
 | `input/placeholder-not-label` | warn | Placeholder shows an example or format, never repeats the label. | `zen-allow-placeholder-label: <reason>` |
 | `richtext/value-not-onchange` | error | RichTextField reports content through onValueChange(html, text); it has no onChange(event). | `zen-allow-richtext-onchange: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 | `focus/state-parity` | error | Focus never looks like the state it starts from: a :focus / :focus-visible / :focus-within selector is not listed in the same rule as its resting state (an error field whose focus changed nothing). Give focus its own rule with the ring (WCAG 2.4.7). | `zen-allow-focus-parity: <reason>` |

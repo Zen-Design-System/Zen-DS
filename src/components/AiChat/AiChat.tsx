@@ -9,6 +9,7 @@ import { useLiquidGlass } from "../_shared/liquid-glass";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./ai-chat.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /** Figma AI/Chat-Field Style: Default (Input fill + Effect/Input) · Surface (Surface + Shadow/Bottom/Level-1) · Liquid Glass. */
 export type AiChatFieldStyle = "default" | "surface" | "liquid-glass";
@@ -39,6 +40,9 @@ export interface AiChatFieldProps {
   disabled?: boolean;
   defaultValue?: string;
   className?: string;
+  /** Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio;
+   *  app code sets onAttach / onVoice / onVoiceMode. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -49,8 +53,9 @@ export interface AiChatFieldProps {
  * their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219):
  * `listening` shows Listening… and turns the microphone into Stop.
  */
-export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className }: AiChatFieldProps) {
+export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className, overrides }: AiChatFieldProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   // Dictation (State=Voice) shows Listening… in the prompt; the field's accessible name stays the prompt's own.
   const prompt = placeholderProp ?? t.askAnything;
   const placeholder = listening ? t.listening : prompt;
@@ -74,11 +79,12 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
     input.setSelectionRange(input.value.length, input.value.length);
   };
   const voiceMode = onVoiceMode ?? onVoice;
-  const primary = busy
+  // Figma's one primary slot: Stop while it answers, Send while there is text, else Voice mode.
+  const primary = nest("Submit", busy
     ? <IconButton appearance="main" level="primary" size="md" aria-label={t.stopGenerating} onClick={onStop} icon={<Icon name="icon-stop-solid" />} />
     : typing || !voiceMode
       ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled || !typing} icon={<Icon name="icon-arrow-up-line" />} />
-      : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={voiceMode} icon={<Icon name="icon-recording-02-line" />} />;
+      : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={voiceMode} icon={<Icon name="icon-recording-02-line" />} />);
   return (
     <form ref={glass} className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
       <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={prompt} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
@@ -86,7 +92,7 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}
       {onAttach ? (
         <div className="zen-ai-field__leading">
-          <IconButton appearance="flat" level="primary" size="md" aria-label={t.addFilesAndTools} disabled={disabled} onClick={onAttach} icon={<Icon name="icon-plus-line" />} />
+          {nest("Attach", <IconButton appearance="flat" level="primary" size="md" aria-label={t.addFilesAndTools} disabled={disabled} onClick={onAttach} icon={<Icon name="icon-plus-line" />} />)}
         </div>
       ) : null}
       <div className="zen-ai-field__trailing">
@@ -96,8 +102,8 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
           </button>
         ) : null}
         {listening
-          ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.stopDictation} disabled={disabled} onClick={onStopListening} icon={<Icon name="icon-stop-solid" />} />
-          : onVoice ? <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} /> : null}
+          ? nest("Dictate", <IconButton appearance="flat" level="primary" size="md" aria-label={t.stopDictation} disabled={disabled} onClick={onStopListening} icon={<Icon name="icon-stop-solid" />} />)
+          : onVoice ? nest("Dictate", <IconButton appearance="flat" level="primary" size="md" aria-label={t.dictate} disabled={disabled} onClick={onVoice} icon={<Icon name="icon-microphone-line" />} />) : null}
         {primary}
       </div>
     </form>
@@ -164,7 +170,8 @@ export interface AiChatSuggestion {
 }
 
 /** Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon). */
-export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, suggestions = [], children, className }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. */ headingLevel?: 1 | 2 | 3; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string }) {
+export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, suggestions = [], children, className, overrides }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. */ headingLevel?: 1 | 2 | 3; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string; /** Figma instance overrides of the suggestion chips, by label (`{ "Suggestion[Plan a trip]": { level: "primary" } }`), written by Zen Studio. */ overrides?: NestedOverrides }) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const greeting = greetingProp === undefined ? t.greeting : greetingProp;
   const Greeting = `h${headingLevel}` as const;
@@ -178,7 +185,7 @@ export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, su
         {children}
         {suggestions.length ? (
           <div className="zen-ai-block__suggestions">
-            {suggestions.map((s) => <Chip key={s.label} variant="normal" size="medium" level="secondary" theme={s.icon ? "leading-icon" : "text-only"} leading={s.icon ? renderIcon(s.icon) : undefined} onClick={s.onClick}>{s.label}</Chip>)}
+            {suggestions.map((s) => nest("Suggestion", <Chip key={s.label} variant="normal" size="medium" level="secondary" theme={s.icon ? "leading-icon" : "text-only"} leading={s.icon ? renderIcon(s.icon) : undefined} onClick={s.onClick}>{s.label}</Chip>, s.label))}
           </div>
         ) : null}
       </div>

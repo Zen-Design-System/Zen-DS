@@ -64,6 +64,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 | `href` | `string` | — | Renders the row as a link (Figma Interactive=Yes). |
 | `as` | `"li" \| "div"` | `"li"` | "li" (default, inside `<List>`) or "div" when used on its own. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the row draws for an icon-name `leading`, by layer (`{ Leading: { name: "icon-heart-line" } }`). Written by Zen Studio; app code sets `leading`. Slot content (an Avatar you pass) is edited as itself. |
 
 ### ListBox
 Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill: Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and Footer are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow, pale or border.
@@ -99,6 +100,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 | `name` | `string` | — | Form field name of the switch's checkbox (submitted as "on" while checked). |
 | `as` | `"li" \| "div"` | `"li"` | Root element. Default `li` (inside a List); `div` outside one. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the switch and icon it draws, by layer (`{ "Toggle-Button": { size: "sm" } }`). Written by Zen Studio; app code sets toggleSize / leading. |
 
 ## Keyboard
 | Keys | Action |
@@ -152,6 +154,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 | `list-item/switch-row` | warn | A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch. | `zen-allow-switch-row: <reason>` |
 | `list-item/trailing-button-medium` | warn | Buttons in a List-Item trailing slot are size Medium (md). | `zen-allow-trailing-size: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

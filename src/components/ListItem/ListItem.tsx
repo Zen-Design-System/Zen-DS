@@ -1,6 +1,7 @@
 import type { HTMLAttributes, MouseEvent, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./list-item.css";
 
@@ -56,6 +57,10 @@ export interface ListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title"
   /** "li" (default, inside <List>) or "div" when used on its own. */
   as?: "li" | "div";
   className?: string;
+  /** Figma instance overrides: props of the icon the row draws for an icon-name `leading`, by layer (`{ Leading: { name:
+   *  "icon-heart-line" } }`). Written by Zen Studio; app code sets `leading`. Slot content (an Avatar you pass) is edited
+   *  as itself. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -69,17 +74,18 @@ export interface ListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title"
  * - Interactive=No (neither): no background or states.
  * Never add padding to the row: the layout around the List decides where it sits.
  */
-export function ListItem({ ref, title, titleLines = 1, caption, leading, trailing, children, selected = false, onClick, href, as: Tag = "li", className, ...rest }: ListItemProps) {
+export function ListItem({ ref, title, titleLines = 1, caption, leading, trailing, children, selected = false, onClick, href, as: Tag = "li", className, overrides, ...rest }: ListItemProps) {
+  const nest = useNested(overrides);
   const body = (
     <>
-      {leading ? <span className="zen-list-item__leading">{renderIcon(leading)}</span> : null}
+      {leading ? <span className="zen-list-item__leading">{typeof leading === "string" ? nest("Leading", renderIcon(leading)) : nest.slot(leading)}</span> : null}
       <span className="zen-list-item__contents">
-        {children ?? (
+        {nest.slot(children ?? (
           <>
             <span className={`zen-list-item__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span>
             {caption ? <span className={`zen-list-item__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span> : null}
           </>
-        )}
+        ))}
       </span>
     </>
   );
@@ -94,7 +100,7 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, trailin
           // screen readers, where a row opens or picks something and the selected one is the current item.
           ? <button type="button" className="zen-list-item__wrapper" onClick={onClick} aria-current={selected ? "true" : undefined}>{body}</button>
           : <span className="zen-list-item__wrapper">{body}</span>}
-      {trailing ? <span className="zen-list-item__trailing">{trailing}</span> : null}
+      {trailing ? <span className="zen-list-item__trailing">{nest.slot(trailing)}</span> : null}
     </Tag>
   );
 }

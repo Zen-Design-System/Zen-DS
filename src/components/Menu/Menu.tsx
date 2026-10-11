@@ -28,6 +28,7 @@ import { ZenPortal } from "../Portal";
 import { usePresence } from "../Motion";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./menu.css";
+import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 
 /** One action in a Menu. */
 export type MenuItemData = {
@@ -80,6 +81,10 @@ export interface MenuProps {
   "aria-label"?: string;
   /** Extra class on the floating surface. */
   className?: string;
+  /** Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[delete]": { danger: true }, "Item[duplicate]/Icon": { tone: "accent-base" } }`). Written by Zen Studio;
+   *  app code sets the items. */
+  overrides?: NestedOverrides;
+
 }
 
 type MenuContextValue = { choose: (item: MenuItemData) => void };
@@ -188,7 +193,8 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
  *     items={[{ id: "duplicate", label: "Duplicate" }, { type: "separator" }, { id: "delete", label: "Delete", danger: true }]}
  *     onSelect={(item) => run(item.id)} />
  */
-export function Menu({ trigger, items, children, onSelect, align = "start", open: openProp, defaultOpen = false, onOpenChange, "aria-label": ariaLabel, className }: MenuProps) {
+export function Menu({ trigger, items, children, onSelect, align = "start", open: openProp, defaultOpen = false, onOpenChange, "aria-label": ariaLabel, className, overrides }: MenuProps) {
+  const nest = useNested(overrides);
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const controlled = openProp !== undefined;
   const open = controlled ? openProp : uncontrolledOpen;
@@ -389,7 +395,7 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
         onPointerMove={onListPointerMove}
         onBlur={onListBlur}
       >
-        <MenuContext value={{ choose }}>{items ? renderEntries(items) : children}</MenuContext>
+        <MenuContext value={{ choose }}>{items ? renderEntries(items, nest) : nest.slot(children)}</MenuContext>
       </div>
     </div>
   ) : null;
@@ -402,12 +408,13 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
   );
 }
 
-function renderEntries(entries: MenuEntry[]): ReactNode {
+/** The items of `entries`, each a nested layer `Item[<id>]` (its label when it has no id). */
+function renderEntries(entries: MenuEntry[], nest: Nest): ReactNode {
   return entries.map((entry, index) => {
     if (entry.type === "separator") return <MenuSeparator key={entry.id ?? `separator-${index}`} />;
-    if (entry.type === "group") return <MenuGroup key={entry.id ?? `group-${index}`} label={entry.label}>{renderEntries(entry.items)}</MenuGroup>;
+    if (entry.type === "group") return <MenuGroup key={entry.id ?? `group-${index}`} label={entry.label}>{renderEntries(entry.items, nest)}</MenuGroup>;
     const { type: _type, ...item } = entry;
-    return <MenuItem key={item.id} {...item} />;
+    return nest("Item", <MenuItem key={item.id} {...item} />, item.id ?? item.label);
   });
 }
 
@@ -435,7 +442,8 @@ export interface MenuItemProps {
 /** One action row (role=menuitem) on the Popover/Item primitive. Use it inside `<Menu>` when you compose children. */
 export function MenuItem({ id, label, icon, caption, shortcut, danger = false, disabled = false, onSelect, className }: MenuItemProps) {
   const menu = useContext(MenuContext);
-  const leading = icon === undefined ? undefined : typeof icon === "string" ? <Icon name={icon} size="base" decorative /> : icon;
+  const nest = useNested();
+  const leading = nest("Icon", icon === undefined ? undefined : typeof icon === "string" ? <Icon name={icon} size="base" decorative /> : icon);
   return (
     <PopoverItem
       itemRole="menuitem"

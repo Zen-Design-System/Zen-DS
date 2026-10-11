@@ -59,6 +59,7 @@ Also accepts `OverlayOpenProps`.
 | `inline` | `boolean` | `false` | Render inside the nearest positioned ancestor instead of the viewport (embedded demos). Not needed in a device frame (`[data-zen-overlay-root]`, e.g. a phone preview): a sheet opened there renders in that frame by itself. |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: "danger" }, "Item[delete]/Icon": { tone: "negative-base" } }`). Written by Zen Studio; app code sets the actions / items. |
 
 ### Types
 Object shapes the props above refer to.
@@ -107,6 +108,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 | `bottom-sheet/action-needs-items` | error | An Action bottom sheet lists its actions in `items`. | `zen-allow-sheet-items: <reason>` |
 | `bottom-sheet/choice-uses-list-item` | warn | Picking one value in a sheet (Sort by, a time zone) is a Modal sheet holding a List of ListItem rows with the current one `selected` (the house rule the templates follow), not an Action sheet with `selectedId`: Action items are commands. | `zen-allow-sheet-choice: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `mobile/full-size-controls` | error | On phones components keep their full size: Toggle and ToggleButton are size large, inputs medium or larger; the small sizes are for dense desktop rows, tables and panels. | `zen-allow-mobile-size: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

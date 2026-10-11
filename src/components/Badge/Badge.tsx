@@ -2,6 +2,7 @@ import { type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -40,10 +41,14 @@ export interface BadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, "color
    */
   removeLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the icon the badge draws, by layer (`{ Leading: { name: "icon-check-line" } }`).
+   *  Written by Zen Studio; app code sets `leading`. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Badge (260:4825): Size × Theme × Background, a leading dot or icon, and an optional remove button. */
-export function Badge({ ref, children, size: sizeProp = "md", theme: themeProp, color, background = "solid", leading, leadingIcon = true, remove = false, onRemove, removeLabel, className, ...rest }: BadgeProps) {
+export function Badge({ ref, children, size: sizeProp = "md", theme: themeProp, color, background = "solid", leading, leadingIcon = true, remove = false, onRemove, removeLabel, className, overrides, ...rest }: BadgeProps) {
+  const nest = useNested(overrides);
   const theme = themeProp ?? color ?? "neutral";
   const t = useZenLabels();
   const size = scaleKey(sizeProp, badgeSizes);
@@ -54,8 +59,8 @@ export function Badge({ ref, children, size: sizeProp = "md", theme: themeProp, 
   const removeName = removeLabel ?? (typeof children === "string" || typeof children === "number" ? t.removeItem(String(children)) : t.remove);
   const removeTip = useIconTooltip(remove ? removeName : false);
   return <span {...rest} ref={ref} className={["zen-badge", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background}>
-    {leadingContent ? <span className="zen-badge__leading">{leadingContent}</span> : null}
-    <span className={`zen-badge__text ${textStyle}`}>{children}</span>
+    {leadingContent ? <span className="zen-badge__leading">{nest("Leading", leadingContent)}</span> : null}
+    <span className={`zen-badge__text ${textStyle}`}>{nest.slot(children)}</span>
     {remove ? <button className="zen-badge__remove" type="button" aria-label={removeName} {...removeTip.bind({ onClick: onRemove })}><Icon name="icon-x-circle-solid" decorative />{removeTip.tooltip}</button> : null}
   </span>;
 }

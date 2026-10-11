@@ -142,9 +142,10 @@ export function matchOption(value: string, options: readonly string[]): string {
   return options.find((option) => longToShort(option) === step) ?? value;
 }
 
-/** Props the inspector never edits: children, handlers, styling escape hatches, React internals. */
+/** Props the inspector never edits: children, handlers, styling escape hatches, React internals, and `overrides`
+ *  (written by the nested layers' own Properties, inspector/OverrideProperties.tsx). */
 export function isSkippedProp(name: string) {
-  return name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
+  return name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
 }
 
 export const typographyKeys = Object.keys(typographyStyles);

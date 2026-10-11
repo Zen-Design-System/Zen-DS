@@ -13,6 +13,7 @@ import { ToggleButton } from "../Toggle";
 import { Icon, type IconName } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
+import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./table.css";
@@ -162,6 +163,12 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    */
   onRowClick?: (row: T) => void;
   className?: string;
+  /**
+   * Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer —
+   * `{ "Row[alex]/status/Badge": { theme: "red" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`,
+   * `Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead.
+   */
+  overrides?: NestedOverrides;
 }
 
 type ActiveCell = { row: string; col: string };
@@ -361,8 +368,9 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  * Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).
  * Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
  */
-export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, editable: editableProp = false, onCellCommit, className, ...rest }: TableProps<T>) {
+export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, editable: editableProp = false, onCellCommit, className, overrides, ...rest }: TableProps<T>) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   // Edits made through a shorthand `edit` / `editable` without onCellCommit: the Table's own copy of the changed fields,
   // by row id, laid over the rows it is given.
   const [edits, setEdits] = useState<Map<string, Record<string, unknown>>>(() => new Map());
@@ -466,7 +474,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
           <tr>
             {selectable ? (
               <th scope="col" className="zen-table__header zen-table__select">
-                <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectAllRows}</VisuallyHidden>} checked={allChecked} indeterminate={someChecked} onCheckedChange={toggleAll} />
+                {nest.at("Header")("Checkbox", <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectAllRows}</VisuallyHidden>} checked={allChecked} indeterminate={someChecked} onCheckedChange={toggleAll} />)}
               </th>
             ) : null}
             {columns.map((column) => {
@@ -489,10 +497,11 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
           </tr>
         </thead>
         <tbody>
-          {rows.length === 0 && empty ? <tr><td className="zen-table__empty" colSpan={span}>{empty}</td></tr> : null}
+          {rows.length === 0 && empty ? <tr><td className="zen-table__empty" colSpan={span}>{nest.slot(empty)}</td></tr> : null}
           {rows.map((row, index) => {
             const id = getRowId(row);
             const isSelected = selected.has(id);
+            const rowNest = nest.at("Row", id);
             return (
               <tr key={id} className="zen-table__row" data-selected={isSelected ? "true" : undefined} aria-selected={selectable ? isSelected : undefined}
                 data-clickable={onRowClick ? "true" : undefined} tabIndex={onRowClick ? 0 : undefined}
@@ -509,18 +518,19 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                 } : undefined}>
                 {selectable ? (
                   <td className="zen-table__cell zen-table__select">
-                    <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectRow(index + 1)}</VisuallyHidden>} checked={isSelected} onCheckedChange={() => toggle(id)} />
+                    {rowNest("Checkbox", <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectRow(index + 1)}</VisuallyHidden>} checked={isSelected} onCheckedChange={() => toggle(id)} />)}
                   </td>
                 ) : null}
                 {columns.map((column) => {
                   const cell = { row: id, col: column.id };
+                  const cellNest = rowNest.at(column.id);
                   const editable = canEdit(row, column);
                   const isEditing = editable && editing?.row === id && editing.col === column.id;
                   const open = column.onOpen ? (
-                    <span className="zen-table__open">{/* zen-allow-compact-button: an App Store-style "Open" pill that appears on row hover inside a 52px cell. */}<Button appearance="main" level="tertiary" size="xs" onClick={(event) => { event.stopPropagation(); column.onOpen!(row); }}>{column.openLabel ?? t.open}</Button></span>
+                    <span className="zen-table__open">{/* zen-allow-compact-button: an App Store-style "Open" pill that appears on row hover inside a 52px cell. */}{cellNest("Open", <Button appearance="main" level="tertiary" size="xs" onClick={(event) => { event.stopPropagation(); column.onOpen!(row); }}>{column.openLabel ?? t.open}</Button>)}</span>
                   ) : null;
                   const editor = editors.get(column.id);
-                  if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{cellOf(column, row, index)}{open}</td>;
+                  if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{cellOf(column, row, index, cellNest)}{open}</td>;
                   return (
                     <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-editable={editable ? "true" : "false"} data-editing={isEditing ? "true" : undefined} data-open={open ? "true" : undefined}
                       data-cell={`${id}::${column.id}`} tabIndex={editable && !isEditing ? 0 : undefined} aria-describedby={editable ? hintId : undefined}
@@ -539,10 +549,10 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                       {isEditing
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
-                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index)}</span><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest)}</span><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
-                        : <>{cellOf(column, row, index)}{open}</>}
+                        : <>{cellOf(column, row, index, cellNest)}{open}</>}
                     </td>
                   );
                 })}
@@ -708,6 +718,11 @@ export type TableTrendDirection = "up" | "down" | "neutral";
 /** Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with
  * icon-trend-down-01-line, Neutral grey with icon-minus-line. */
 export function TableTrend({ trend, children }: { trend: TableTrendDirection; children: ReactNode }) {
+  return trendBadge(trend, children);
+}
+
+/** The Badge of a Trend-Cell (TableTrend, and a column's `content: "trend"`, where it is the cell's own layer). */
+function trendBadge(trend: TableTrendDirection, children: ReactNode) {
   const theme = trend === "up" ? "green" : trend === "down" ? "red" : "neutral";
   const icon: IconName = trend === "up" ? "icon-trend-up-01-line" : trend === "down" ? "icon-trend-down-01-line" : "icon-minus-line";
   return <Badge size="medium" theme={theme} background="subtle" leading={<Icon name={icon} decorative />}>{children}</Badge>;
@@ -765,26 +780,29 @@ function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, 
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
 
 /** A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. */
-function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string): ReactNode {
+function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string, nest: Nest): ReactNode {
   if (content === "icon") {
     // Without a picture field, Figma's Basic-Icon-Cell default (icon-face-smile-line).
     const name = (media || "icon-face-smile-line") as IconName;
-    return captioned ? <Icon name={name} size="lg" decorative /> : <Icon name={name} size="base" decorative />;
+    return nest("Icon", captioned ? <Icon name={name} size="lg" decorative /> : <Icon name={name} size="base" decorative />);
   }
   if (content === "dock-icon") {
     const icon = (media || undefined) as IconName | undefined;
-    return captioned ? <DockIcon icon={icon} size="sm" theme="neutral" background="subtle" /> : <DockIcon icon={icon} size="xs" theme="neutral" background="subtle" />;
+    return nest("Dock-Icon", captioned ? <DockIcon icon={icon} size="sm" theme="neutral" background="subtle" /> : <DockIcon icon={icon} size="xs" theme="neutral" background="subtle" />);
   }
   const shape = content === "photo" ? "square" : "circle";
   const picture = { theme: media ? ("photo" as const) : ("neutral" as const), src: media || undefined, children: media ? null : initialsOf(label) };
-  return captioned
+  return nest("Avatar", captioned
     ? <Avatar size="sm" shape={shape} background="subtle" alt="" {...picture} />
-    : <Avatar size="xs" shape={shape} background="subtle" alt="" {...picture} />;
+    : <Avatar size="xs" shape={shape} background="subtle" alt="" {...picture} />);
 }
 
-/** A column's cell from its row: its own `cell`, else its `content` drawn from the row's fields (TableCellContent). */
-function cellOf<T>(column: TableColumn<T>, row: T, index: number): ReactNode {
-  if (column.cell) return column.cell(row, index);
+/**
+ * A column's cell from its row: its own `cell` (the page's content, outside the nested scope), else its `content` drawn
+ * from the row's fields (TableCellContent), each drawn component a nested layer of the cell (`nest`).
+ */
+function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest): ReactNode {
+  if (column.cell) return nest.slot(column.cell(row, index));
   const record = (row ?? {}) as Record<string, unknown>;
   const value = record[column.field ?? column.id];
   const label = textOf(value);
@@ -799,25 +817,25 @@ function cellOf<T>(column: TableColumn<T>, row: T, index: number): ReactNode {
     case "photo":
     case "icon":
     case "dock-icon":
-      return <TableMedia caption={caption} bold={bold} media={cellVisual(content, Boolean(caption), media, label)}>{label}</TableMedia>;
+      return <TableMedia caption={caption} bold={bold} media={cellVisual(content, Boolean(caption), media, label, nest)}>{label}</TableMedia>;
     case "badge":
     case "tag": {
       const items = (Array.isArray(value) ? value : [value]).map(textOf).filter(Boolean);
       return content === "badge"
-        ? <TableBadges>{items.map((item) => <Badge key={item} size="medium" theme="neutral" background="subtle" leadingIcon={false}>{item}</Badge>)}</TableBadges>
-        : <TableTags>{items.map((item) => <Tag key={item}>{item}</Tag>)}</TableTags>;
+        ? <TableBadges>{items.map((item, at) => nest("Badge", <Badge key={item} size="medium" theme="neutral" background="subtle" leadingIcon={false}>{item}</Badge>, items.length > 1 ? at : undefined))}</TableBadges>
+        : <TableTags>{items.map((item, at) => nest("Tag", <Tag key={item}>{item}</Tag>, items.length > 1 ? at : undefined))}</TableTags>;
     }
     case "trend": {
       if (!label) return null;
       const number = Number.parseFloat(label.replace(/[^\d.+-]/g, ""));
-      return <TableTrend trend={label.trim().startsWith("-") || number < 0 ? "down" : number > 0 ? "up" : "neutral"}>{label}</TableTrend>;
+      return nest("Badge", trendBadge(label.trim().startsWith("-") || number < 0 ? "down" : number > 0 ? "up" : "neutral", label));
     }
     case "progress":
-      return <ProgressBar value={Math.max(0, Math.min(100, Number(value) || 0))} label aria-label={name} />;
+      return nest("Progress-Bar", <ProgressBar value={Math.max(0, Math.min(100, Number(value) || 0))} label aria-label={name} />);
     case "checkbox":
-      return <Checkbox defaultChecked={value === true} aria-label={name} />;
+      return nest("Checkbox", <Checkbox defaultChecked={value === true} aria-label={name} />);
     case "toggle":
-      return <ToggleButton size="sm" defaultChecked={value === true} aria-label={name} />;
+      return nest("Toggle-Button", <ToggleButton size="sm" defaultChecked={value === true} aria-label={name} />);
     default:
       return label ? <TableText caption={caption} bold={bold}>{label}</TableText> : null;
   }

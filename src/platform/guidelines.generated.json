@@ -209,6 +209,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "icon/unknown-name",
         "severity": "error",
         "summary": "Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page).",
@@ -387,6 +393,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "copy/plural-count",
@@ -602,6 +614,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -730,6 +748,12 @@
         "severity": "warn",
         "summary": "Search needs a placeholder that says what is searched, or an aria-label.",
         "allow": "unnamed"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -870,6 +894,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -1306,6 +1336,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "copy/plural-count",
         "severity": "warn",
         "summary": "Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`.",
@@ -1409,6 +1445,12 @@
         "allow": "emoji-flag"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "copy/plural-count",
         "severity": "warn",
         "summary": "Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`.",
@@ -1506,6 +1548,12 @@
         "severity": "warn",
         "summary": "Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters.",
         "allow": "emoji-flag"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -1640,6 +1688,12 @@
         "severity": "warn",
         "summary": "Popover/Bulk-Action is a named toolbar (aria-label) of at most 6 Button/Icon-Flat Medium actions — more belongs in a context menu or side panel.",
         "allow": "bulk-action"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -1778,6 +1832,12 @@
         "severity": "warn",
         "summary": "A Sidebar with a subMenu flyout wires onSubMenuClose so Escape and outside presses close it.",
         "allow": "submenu-close"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -1921,6 +1981,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -2179,6 +2245,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -2274,6 +2346,12 @@
     ],
     "file": "docs/guidelines/breadcrumbs.md",
     "rules": [
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
       {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
@@ -2526,6 +2604,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -2653,6 +2737,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -2753,6 +2843,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -2953,6 +3049,12 @@
         "severity": "warn",
         "summary": "Paginate only when there are 3+ pages; otherwise show everything.",
         "allow": "short-pagination"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -3232,6 +3334,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "copy/plural-count",
         "severity": "warn",
         "summary": "Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`.",
@@ -3340,6 +3448,12 @@
         "severity": "warn",
         "summary": "A way out of an empty result (Clear filters, Clear search, Reset) is secondaryAction (Tertiary); primaryAction is the next step (\"Create project\").",
         "allow": "way-out-primary"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "icon/unknown-name",
@@ -3462,6 +3576,12 @@
         "severity": "warn",
         "summary": "Steppers hold 2–7 steps; one step is not a process, more than 7 needs grouping.",
         "allow": "step-count"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "icon/unknown-name",
@@ -3717,6 +3837,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -3907,6 +4033,12 @@
         "allow": "voice-actions"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -4070,6 +4202,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "copy/plural-count",
@@ -4311,6 +4449,12 @@
         "allow": "deprecated"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -4417,6 +4561,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -4616,6 +4766,12 @@
         "allow": "metric-format"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "icon/unknown-name",
         "severity": "error",
         "summary": "Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page).",
@@ -4746,6 +4902,12 @@
         "allow": "noop-replace"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -4846,6 +5008,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "icon/unknown-name",
@@ -5664,6 +5832,12 @@
         "allow": "nav-destinations"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -5813,6 +5987,12 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "mobile/full-size-controls",
@@ -6070,6 +6250,12 @@
         "allow": "hold-delete"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "layout/scroll-anchor-flex-end",
         "severity": "warn",
         "summary": "A scrolling column that anchors content to the bottom uses margin-top:auto on its first child; justify-content:flex-end pushes overflow above the scroll origin where it can't be reached.",
@@ -6181,6 +6367,12 @@
         "allow": "ai-streaming-actions"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -6279,6 +6471,12 @@
         "severity": "error",
         "summary": "Stack-bar charts keep their legend so colour is never the only key.",
         "allow": "chart-legend"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -6823,6 +7021,12 @@
         "allow": "forced-layout"
       },
       {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
+      {
         "id": "interaction/no-noop-handler",
         "severity": "warn",
         "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
@@ -6913,6 +7117,12 @@
         "severity": "error",
         "summary": "PageHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones.",
         "allow": "page-header-primary"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",
@@ -7056,6 +7266,12 @@
     ],
     "file": "docs/guidelines/form.md",
     "rules": [
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
       {
         "id": "form/actions-order",
         "severity": "warn",
@@ -7380,6 +7596,12 @@
     ],
     "file": "docs/guidelines/menu.md",
     "rules": [
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
       {
         "id": "icon/unknown-name",
         "severity": "error",
@@ -7738,6 +7960,12 @@
     ],
     "file": "docs/guidelines/action-bar.md",
     "rules": [
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
+      },
       {
         "id": "action-bar/one-primary",
         "severity": "error",

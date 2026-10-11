@@ -5,6 +5,7 @@ import { renderIcon } from "../_shared/icon";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import "./empty-state.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export interface EmptyStateAction {
   label: ReactNode;
@@ -43,10 +44,14 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   /** Figma CTA Secondary: Button/Main Medium Tertiary, full width. */
   secondaryAction?: EmptyStateAction;
   className?: string;
+  /** Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: "accent" }, "Illustration/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
+   *  app code sets icon / primaryAction / secondaryAction. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon. */
 export function EmptyStateIllustration({ icon = "icon-user-circle-line" }: { icon?: IconName | ReactElement }) {
+  const nest = useNested();
   return (
     <span className="zen-empty-state__illustration" aria-hidden="true">
       <svg viewBox="0 0 240 240" width="240" height="240" className="zen-empty-state__art">
@@ -58,7 +63,7 @@ export function EmptyStateIllustration({ icon = "icon-user-circle-line" }: { ico
         <circle className="zen-empty-state__ring" cx={146} cy={120} r={49} />
         <circle className="zen-empty-state__well" cx={146} cy={120} r={40} />
       </svg>
-      <span className="zen-empty-state__icon">{renderIcon(icon)}</span>
+      <span className="zen-empty-state__icon">{nest("Icon", renderIcon(icon))}</span>
     </span>
   );
 }
@@ -77,9 +82,10 @@ export const EmptyStateCardContext = createContext<EmptyStateHeadingLevel | unde
  * Inside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or
  * outsizes the card title (see `headingLevel`).
  */
-export function EmptyState({ ref, title, headingLevel, compactTitle = false, children, illustration = true, icon, primaryAction, secondaryAction, className, ...rest }: EmptyStateProps) {
+export function EmptyState({ ref, title, headingLevel, compactTitle = false, children, illustration = true, icon, primaryAction, secondaryAction, className, overrides, ...rest }: EmptyStateProps) {
+  const nest = useNested(overrides);
   const cardLevel = useContext(EmptyStateCardContext);
-  const art = illustration === true ? <EmptyStateIllustration icon={icon} /> : illustration || null;
+  const art = illustration === true ? nest("Illustration", <EmptyStateIllustration icon={icon} />) : nest.slot(illustration || null);
   const hasActions = Boolean(primaryAction || secondaryAction);
   const level = headingLevel ?? (cardLevel === undefined ? 3 : (Math.min(cardLevel + 1, 6) as EmptyStateHeadingLevel));
   const titleStyle: TypographyStyleName = compactTitle || cardLevel !== undefined || level >= 4 ? "Body/Extra/Bold" : "Heading/4";
@@ -90,12 +96,12 @@ export function EmptyState({ ref, title, headingLevel, compactTitle = false, chi
       <div className="zen-empty-state__body">
         <div className="zen-empty-state__content">
           <Heading className={`zen-empty-state__title ${typographyStyles[titleStyle]}`}>{title}</Heading>
-          {children ? <p className={`zen-empty-state__caption ${typographyStyles["Body/Base/Regular"]}`}>{children}</p> : null}
+          {children ? <p className={`zen-empty-state__caption ${typographyStyles["Body/Base/Regular"]}`}>{nest.slot(children)}</p> : null}
         </div>
         {hasActions ? (
           <div className="zen-empty-state__actions">
-            {primaryAction ? <Button appearance="main" level={primaryAction.level ?? "primary"} size="md" onClick={primaryAction.onClick}>{primaryAction.label}</Button> : null}
-            {secondaryAction ? <Button appearance="main" level={secondaryAction.level ?? "tertiary"} size="md" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button> : null}
+            {primaryAction ? nest("Primary", <Button appearance="main" level={primaryAction.level ?? "primary"} size="md" onClick={primaryAction.onClick}>{primaryAction.label}</Button>) : null}
+            {secondaryAction ? nest("Secondary", <Button appearance="main" level={secondaryAction.level ?? "tertiary"} size="md" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button>) : null}
           </div>
         ) : null}
       </div>

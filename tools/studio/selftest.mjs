@@ -2709,6 +2709,12 @@ process.stdout.write(resetAll.stdout);
 process.stderr.write(resetAll.stderr);
 if (resetAll.status !== 0) process.exit(1);
 
+// Instance overrides of a nested layer (inspector/overrides.ts: the owner's `overrides` table, its code and ops).
+const overridesTest = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/overrides.selftest.mjs", import.meta.url))], { encoding: "utf8" });
+process.stdout.write(overridesTest.stdout);
+process.stderr.write(overridesTest.stderr);
+if (overridesTest.status !== 0) process.exit(1);
+
 // The object a "+" writes for an unset object prop (inspector/objectStarter.ts) has its own test next to it.
 const objectStarterTest = spawnSync(process.execPath, [fileURLToPath(new URL("../../src/platform/studio/inspector/objectStarter.selftest.mjs", import.meta.url))], { encoding: "utf8" });
 process.stdout.write(objectStarterTest.stdout);

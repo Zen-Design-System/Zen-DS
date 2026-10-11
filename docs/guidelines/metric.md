@@ -51,6 +51,7 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 
 ### MetricCard
 Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding an XLarge Metric and a ⋮ Sub-Action.
@@ -76,16 +77,9 @@ Also accepts `MetricProps`.
 | `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 | `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |
-
-### MetricTrend
-Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral.
-
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `trend` | `"positive" \| "negative" \| "normal"` | `"normal"` |  |
-| `children` (required) | `ReactNode` | — |  |
 
 ### Types
 Object shapes the props above refer to.
@@ -120,6 +114,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `metric/formatted-value` | warn | Metric values are passed pre-formatted with units and separators ("$1,680.68", "2.1%"), never a raw number. | `zen-allow-metric-format: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |

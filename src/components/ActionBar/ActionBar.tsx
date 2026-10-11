@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { Button, type ButtonLevel } from "../Button";
 import "./action-bar.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -60,6 +61,9 @@ export interface ActionBarProps extends HTMLAttributes<HTMLDivElement> {
    * secondaryAction they sit on the side away from the Primary.
    */
   children?: ReactNode;
+  /** Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: "danger" } }`). Written by Zen Studio;
+   *  app code sets primaryAction / secondaryAction. */
+  overrides?: NestedOverrides;
 }
 
 function actionButton(action: ActionBarAction, fallbackLevel: ButtonLevel, size: "md" | "lg") {
@@ -80,9 +84,10 @@ function actionButton(action: ActionBarAction, fallbackLevel: ButtonLevel, size:
  *   <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
  */
 export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(
-  { position = "sticky", direction = "vertical", surface = "default", primaryAction, secondaryAction, summary, children, className, ...rest },
+  { position = "sticky", direction = "vertical", surface = "default", primaryAction, secondaryAction, summary, children, className, overrides, ...rest },
   ref,
 ) {
+  const nest = useNested(overrides);
   const barRef = useRef<HTMLDivElement | null>(null);
   const [spacer, setSpacer] = useState(0);
   const [narrow, setNarrow] = useState(false);
@@ -115,8 +120,8 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
 
   // Phone-width bars keep the Large touch size in both directions; only a wide horizontal bar uses Medium.
   const size = direction === "vertical" || narrow ? "lg" : "md";
-  const primary = primaryAction ? actionButton(primaryAction, "primary", size) : null;
-  const secondary = secondaryAction ? actionButton(secondaryAction, "tertiary", size) : null;
+  const primary = primaryAction ? nest("Primary", actionButton(primaryAction, "primary", size)) : null;
+  const secondary = secondaryAction ? nest("Secondary", actionButton(secondaryAction, "tertiary", size)) : null;
   const named = Boolean(rest["aria-label"] || rest["aria-labelledby"]);
   return (
     <>
@@ -131,9 +136,9 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
         data-narrow={direction === "horizontal" && narrow ? "true" : undefined}
         data-surface={surface}
       >
-        {summary ? <div className="zen-action-bar__summary">{summary}</div> : null}
+        {summary ? <div className="zen-action-bar__summary">{nest.slot(summary)}</div> : null}
         <div className="zen-action-bar__actions">
-          {direction === "vertical" ? <>{primary}{secondary}{children}</> : <>{children}{secondary}{primary}</>}
+          {direction === "vertical" ? <>{primary}{secondary}{nest.slot(children)}</> : <>{nest.slot(children)}{secondary}{primary}</>}
         </div>
       </div>
     </>

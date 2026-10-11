@@ -29,6 +29,9 @@ const FOCUSABLE_TRIGGERS = ["Button", "IconButton", "button", "a", "Chip", "Link
 const interpolatesOutsideExpression = (attrs) => { let depth = 0; for (let i = 0; i < attrs.length; i += 1) { const c = attrs[i]; if (c === "$" && attrs[i + 1] === "{" && depth === 0) return true; if (c === "{") depth += 1; else if (c === "}") depth = Math.max(0, depth - 1); } return false; };
 const opaque = (attrs) => /\{\s*\.\.\.|…/.test(attrs) || interpolatesOutsideExpression(attrs);
 // `has` is strict (used by prohibitions); `present` is lenient (used by requirements).
+/** Components that take `overrides` (src/components/_shared/nested.tsx), and the header of a page Zen Studio made. */
+const OVERRIDE_COMPONENTS = ["ActionBar", "AiChatBlock", "AiChatField", "AiVoiceConversation", "AlertBanner", "AppShell", "AppShellAccount", "AppShellAction", "AutocompleteField", "AvatarStack", "Badge", "BadgeCounter", "BottomNavigation", "BottomSheet", "Breadcrumbs", "Button", "Card", "ChartCard", "ChatAvatarGroup", "ChatCall", "ChatComposer", "ChatConversationItem", "ChatFile", "ChatMessage", "ChatVoice", "Chip", "ChipGroup", "DateField", "DatePicker", "DatePickerSheet", "Dialog", "EmptyState", "FileUpload", "FormField", "FormFieldset", "IconButton", "InlineMessage", "InputField", "ListItem", "Menu", "Metric", "MetricCard", "ModalActions", "ModalForm", "NpsScale", "NumberField", "PageHeader", "Pagination", "Popover", "RichTextField", "Search", "Segmented", "SelectField", "SidePanel", "Sidebar", "SidebarMenuItem", "Stepper", "Table", "Tabs", "Tag", "TextAreaField", "Toast", "ToggleListItem", "VoiceRecorder"];
+const STUDIO_PAGE = /^\uFEFF?\/\/ @zen-page \{/;
 const has = (attrs, name) => new RegExp(`(^|[\\s{])${name}(=|\\s|$|/)`).test(attrs);
 const present = (attrs, name) => has(attrs, name) || opaque(attrs);
 const literal = (attrs, name) => attrs.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`))?.[1];
@@ -1162,6 +1165,9 @@ export const rules = [
   { id: "api/deprecated-prop", components: deprecatedComponents, consumerOnly: true, severity: "warn", allow: "deprecated", guideline: "docs/guidelines/README.md",
     summary: "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
     check: ({ tag, attrs }) => { const map = DEPRECATED[tag] ?? {}; const own = topLevel(attrs); const hit = Object.keys(map).find((prop) => has(own, prop)); return hit && `uses deprecated \`${hit}\` — ${map[hit].replace(/\.$/, "")}.`; } },
+  { id: "api/overrides-studio-only", components: OVERRIDE_COMPONENTS, severity: "error", allow: "overrides", guideline: "docs/guidelines/README.md",
+    summary: "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+    check: ({ attrs, src, file }) => has(topLevel(attrs), "overrides") && !STUDIO_PAGE.test(src) && !/(^|\/)src\/templates\/studio\//.test(file ?? "") && "sets `overrides`, which only Zen Studio writes (on the pages it makes) — set the component's own props, or compose the parts, instead." },
   { id: "icon/unknown-name", components: ["Icon", "IconButton", "Button", "MenuItem", "EmptyState", "Stepper", "DockIcon", "Slider", "Metric", "MetricCard", "SidePanel"], severity: "error", allow: "icon-name", guideline: "docs/guidelines/icon.md",
     summary: "Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page).",
     check: ({ attrs }) => { if (!ICON_NAMES) return null; const bad = literalIconNames(attrs).find((n) => !ICON_NAMES.has(n)); return bad && `uses unknown icon "${bad}" — did you mean ${closestIcons(bad).map((n) => `"${n}"`).join(", ")}?`; } },
@@ -1377,5 +1383,6 @@ export const rules = [
 // CLI only when executed directly (build-guidelines.mjs, cli.mjs, eslint.mjs and the MCP server import the registry).
 // No top-level await: cli.mjs imports this module, which must finish evaluating first.
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {
-  import("./cli.mjs").then(({ main }) => process.exit(main()));
+  // exitCode, not exit(): a piped stdout over 64 KB (the --list registry) is written out before the process ends.
+  import("./cli.mjs").then(({ main }) => { process.exitCode = main(); });
 }

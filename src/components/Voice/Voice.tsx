@@ -8,6 +8,7 @@ import { AiChatBubble } from "../AiChat";
 import { useZenLabels } from "../_shared/zen-context";
 import "./voice.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /*
  * Figma ❖ Voice (15081:1294): purpose-built voice components made of Zen parts, typography styles and semantic
@@ -84,6 +85,9 @@ export type VoiceRecorderProps = {
   /** Throw the take away (Recording, Paused). */
   onDiscard?: () => void;
   className?: string;
+  /** Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: "orange" } }`). Written by Zen Studio;
+   *  app code sets state. */
+  overrides?: NestedOverrides;
 };
 
 /**
@@ -94,8 +98,9 @@ export type VoiceRecorderProps = {
  * the guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and
  * Finish disabled until there is a take), a Border/Neutral/Pale divider and the input details.
  */
-export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className }: VoiceRecorderProps) {
+export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className, overrides }: VoiceRecorderProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const titleId = useId();
   const ready = state === "ready";
   const wave = ready ? FLAT_TAKE : levels ?? SAMPLE_TAKE;
@@ -110,8 +115,8 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
       <div className="zen-voice__header">
         <span id={titleId} className={`zen-voice__title ${typographyStyles["Body/Base/Medium"]}`}>{title ?? t.voiceNewRecording}</span>
         {state === "recording"
-          ? <Badge size="sm" theme="red" background="subtle">{t.voiceRecording}</Badge>
-          : <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>{state === "paused" ? t.voicePaused : t.voiceReady}</Badge>}
+          ? nest("Status", <Badge size="sm" theme="red" background="subtle">{t.voiceRecording}</Badge>)
+          : nest("Status", <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>{state === "paused" ? t.voicePaused : t.voiceReady}</Badge>)}
       </div>
       <div className="zen-voice-recorder__monitor">
         <span className={`zen-voice-recorder__time ${typographyStyles["Heading/Subheading"]}`} role="timer" aria-live="off">{elapsed}</span>
@@ -174,6 +179,9 @@ export type AiVoiceConversationProps = {
   /** The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing. */
   note?: ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: "green" } }`). Written by Zen Studio;
+   *  app code sets state / transcript. */
+  overrides?: NestedOverrides;
 };
 
 /**
@@ -184,8 +192,9 @@ export type AiVoiceConversationProps = {
  * Corner-Radius/Base, Spacing/Padding/Small: the speaker in Label/Small/Medium Neutral/Light over an AI/Chat-Bubble),
  * the actions (Mute · Start talking / Done speaking / Interrupt · End) and the note.
  */
-export function AiVoiceConversation({ state = "ready", name, heading, headingLevel = 3, guidance, speaker, transcript, levels, muted = false, onMutedChange, onStart, onDone, onInterrupt, onEnd, note, className }: AiVoiceConversationProps) {
+export function AiVoiceConversation({ state = "ready", name, heading, headingLevel = 3, guidance, speaker, transcript, levels, muted = false, onMutedChange, onStart, onDone, onInterrupt, onEnd, note, className, overrides }: AiVoiceConversationProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const nameId = useId();
   const ready = state === "ready";
   const bars = levels?.map((level) => level * 96) ?? (state === "responding" ? RESPONDING_LEVELS : LISTENING_LEVELS);
@@ -200,7 +209,7 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
     <div className={["zen-voice", "zen-ai-voice", className].filter(Boolean).join(" ")} role="group" aria-labelledby={nameId} data-state={state}>
       <div className="zen-voice__header">
         <span id={nameId} className={`zen-voice__title ${typographyStyles["Body/Base/Medium"]}`}>{name ?? t.voiceAssistant}</span>
-        <Badge size="sm" theme={ready ? "neutral" : "accent"} background="subtle">{status}</Badge>
+        {nest("Status", <Badge size="sm" theme={ready ? "neutral" : "accent"} background="subtle">{status}</Badge>)}
       </div>
       <div className="zen-ai-voice__presence">
         <span className="zen-ai-voice__signal" aria-hidden="true">
@@ -217,7 +226,7 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
       {transcript ? (
         <div className="zen-ai-voice__context">
           <span className={`zen-ai-voice__speaker ${typographyStyles["Label/Small/Medium"]}`}>{speaker ?? (state === "listening" ? t.voiceYouLive : state === "responding" ? t.voiceAssistantSpoken : t.voiceTrySaying)}</span>
-          <AiChatBubble side="ai">{transcript}</AiChatBubble>
+          {nest("Transcript", <AiChatBubble side="ai">{transcript}</AiChatBubble>)}
         </div>
       ) : null}
       <div className="zen-voice__actions">

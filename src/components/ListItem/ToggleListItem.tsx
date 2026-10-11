@@ -4,6 +4,7 @@ import { ToggleButton, type ToggleSize } from "../Toggle";
 import { renderIcon } from "../_shared/icon";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./list-item.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root row element (`as`). */
 export interface ToggleListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title" | "onChange"> {
@@ -30,6 +31,9 @@ export interface ToggleListItemProps extends Omit<HTMLAttributes<HTMLElement>, "
   /** Root element. Default `li` (inside a List); `div` outside one. */
   as?: "li" | "div";
   className?: string;
+  /** Figma instance overrides: props of the switch and icon it draws, by layer (`{ "Toggle-Button": { size: "sm" } }`). Written by Zen Studio;
+   *  app code sets toggleSize / leading. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -38,20 +42,21 @@ export interface ToggleListItemProps extends Omit<HTMLAttributes<HTMLElement>, "
  * their own tokens — no Figma master of its own yet (backlog batch 6, user 2026-10-07). A press anywhere on the row
  * flips the switch (the row is a <label> around it); the switch keeps the focus ring and Space / Enter (APG Switch).
  */
-export function ToggleListItem({ ref, title, caption, leading, checked, defaultChecked, onCheckedChange, disabled = false, toggleSize = "md", name, as: Tag = "li", className, ...rest }: ToggleListItemProps) {
+export function ToggleListItem({ ref, title, caption, leading, checked, defaultChecked, onCheckedChange, disabled = false, toggleSize = "md", name, as: Tag = "li", className, overrides, ...rest }: ToggleListItemProps) {
+  const nest = useNested(overrides);
   const id = useId();
   const titleId = `${id}-title`;
   const captionId = caption ? `${id}-caption` : undefined;
   return (
     <Tag {...rest} ref={ref as Ref<HTMLDivElement & HTMLLIElement>} className={["zen-list-item", "zen-toggle-list-item", className].filter(Boolean).join(" ")} data-interactive={disabled ? undefined : "true"} data-disabled={disabled ? "true" : undefined}>
       <label className="zen-list-item__wrapper">
-        {leading ? <span className="zen-list-item__leading">{renderIcon(leading)}</span> : null}
+        {leading ? <span className="zen-list-item__leading">{typeof leading === "string" ? nest("Leading", renderIcon(leading)) : nest.slot(leading)}</span> : null}
         <span className="zen-list-item__contents">
           <span id={titleId} className={`zen-list-item__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span>
           {caption ? <span id={captionId} className={`zen-list-item__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span> : null}
         </span>
         <span className="zen-list-item__trailing">
-          <ToggleButton checked={checked} defaultChecked={defaultChecked} onCheckedChange={onCheckedChange} disabled={disabled} size={toggleSize} name={name} aria-labelledby={titleId} aria-describedby={captionId} />
+          {nest("Toggle-Button", <ToggleButton checked={checked} defaultChecked={defaultChecked} onCheckedChange={onCheckedChange} disabled={disabled} size={toggleSize} name={name} aria-labelledby={titleId} aria-describedby={captionId} />)}
         </span>
       </label>
     </Tag>

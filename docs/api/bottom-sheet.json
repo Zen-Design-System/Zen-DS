@@ -185,6 +185,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: \"danger\" }, \"Item[delete]/Icon\": { tone: \"negative-base\" } }`). Written by Zen Studio;\n app code sets the actions / items.",
+          "deprecated": null
         }
       ]
     }

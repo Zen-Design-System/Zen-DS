@@ -213,3 +213,22 @@ ListItem › Avatar) chính là phép thử; không đạt thì dừng.
 
 Tên đường dẫn trong A: tên layer Figma khi contract đã có, nếu không thì tên component (`Button`, `Button[2]`). Gate
 `nested-paths` thêm dần khi chụp contract (§4.3).
+
+### Tiến độ phương án A (2026-10-10)
+
+User chọn A, một máy một tài khoản, làm trên nhánh `zen/feat/nested-overrides` (worktree `Zen-CodeBase/Zen-DS-nested`).
+
+- **Xong:** kênh override `src/components/_shared/nested.tsx` (`useNested` → `nest`, `nest.slot`, `nest.scope`, `nest.at`;
+  bảng ngoài cùng thắng; slot bắt đầu phạm vi mới; không đổi DOM). 40 component có `overrides`: Card, Button, IconButton,
+  Badge, BadgeCounter, AvatarStack, ListItem, ToggleListItem, Table, ActionBar, AlertBanner, Breadcrumbs,
+  BottomNavigation, EmptyState, InlineMessage, PageHeader, Segmented, Tabs, Tag, Toast, Metric, MetricCard, ChartCard,
+  Dialog, ModalForm, ModalActions, SidePanel, ChipGroup, Sidebar, SidebarMenuItem, AppShell, AppShellAction,
+  AppShellAccount, Chip, Pagination, BottomSheet, Stepper, FileUpload, Popover, Menu.
+- **Studio:** ⌘-click vào instance lồng ở mọi cấp, Inspector hiện property Figma của nó, ghi thành `overrides` của owner
+  (một bước undo, Reset all overrides theo layer), chỉ trên trang tự tạo (Q2). Ô của Table có mục "this row".
+- **Harness:** `api/overrides-studio-only`. **Kiểm tra:** Vitest 7 ca mới, E2E NO-01…03 (cấp 2, cấp 3, một hàng Table).
+- **2026-10-11:** thêm Input (InputField, TextAreaField, SelectField, NumberField, DateField, RichTextField,
+  AutocompleteField: Label, Help-Text, Leading, Trailing), DatePicker (+Sheet), Search, Form (FormField, FormFieldset),
+  NpsScale, Chat (Message, File, Call, Voice, Composer, AvatarGroup, ConversationItem), AiChat (Field, Block), Voice —
+  tổng 64 component. Image và Link không có instance lồng đáng đổi (chỉ icon trạng thái); TopNavigation giữ hành động
+  sửa qua dữ liệu (user chốt). Còn: gate `nested-paths` khi chụp đủ contract.

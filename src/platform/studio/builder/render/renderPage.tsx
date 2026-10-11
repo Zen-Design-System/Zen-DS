@@ -86,6 +86,23 @@ function withStandIns(name: string, props: Record<string, unknown>) {
   }
 }
 
+const INITIAL_PROP = /^(default|initial)[A-Z]/;
+
+/** The initial-state props of an element (its own `defaultX` / `initialX`, and those its `overrides` set on nested layers) as one
+ *  string, or "" when it has none. */
+function initialStateOf(props: Record<string, unknown>): string {
+  const initial: Record<string, unknown> = {};
+  for (const [name, value] of Object.entries(props)) if (INITIAL_PROP.test(name)) initial[name] = value;
+  const overrides = props.overrides;
+  if (overrides && typeof overrides === "object") {
+    for (const [path, layer] of Object.entries(overrides as Record<string, unknown>)) {
+      if (!layer || typeof layer !== "object") continue;
+      for (const [name, value] of Object.entries(layer as Record<string, unknown>)) if (INITIAL_PROP.test(name)) initial[`${path}.${name}`] = value;
+    }
+  }
+  return Object.keys(initial).length ? JSON.stringify(initial) : "";
+}
+
 /** One element of the page (`key`: its place among its siblings, or its row in a list). */
 export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   const component = componentOf(node.name);
@@ -95,6 +112,11 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
   // Table row's picture).
   for (const [name, value] of Object.entries(node.props)) props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
   withStandIns(node.name, props);
+  // A component reads its initial state once, when it mounts (Table defaultSelectedIds, Checkbox defaultChecked, a chart's
+  // initialIndex, a nested layer's default in `overrides`): an edit of one starts that component again, so the canvas
+  // shows the new state at once instead of after a reload (user, 2026-10-11).
+  const initial = initialStateOf(props);
+  if (initial) props.key = `${key ?? ""}~${initial}`;
   const children = node.children.flatMap((child, index): ReactNode[] => {
     if (child.kind === "text") return [child.value];
     if (child.kind === "ref") { const value = read(scope[child.root], child.path); return value === undefined || value === null ? [] : [String(value)]; }

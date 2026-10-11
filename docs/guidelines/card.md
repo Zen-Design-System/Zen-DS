@@ -50,6 +50,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick">`.
 | `subAction` | `CardSubAction \| ReactNode` | — | Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮). It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger. |
 | `as` | `"div" \| "article" \| "section" \| "li"` | `"div"` |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Zen components the card draws itself, by layer (`{ "Sub-Action": { level: "primary" } }`, `"Sub-Action/Leading-Icon"` one level deeper). Written by Zen Studio; app code sets `subAction`. |
 
 ### Types
 Object shapes the props above refer to.
@@ -94,6 +95,7 @@ interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick
 | --- | --- | --- | --- |
 | `card/clickable-no-nested-controls` | error | A clickable Card (onClick) is one button: it must not contain buttons, links, inputs or a subAction. | `zen-allow-card-nested-control: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 

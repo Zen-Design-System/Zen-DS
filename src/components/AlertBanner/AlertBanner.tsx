@@ -9,6 +9,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./alert-banner.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const alertBannerThemes = ["default", "info", "positive", "warning", "negative"] as const;
 export const alertBannerSizes = ["medium", "small"] as const;
@@ -44,6 +45,9 @@ export interface AlertBannerProps {
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio;
+   *  app code sets leading / action. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -51,20 +55,21 @@ export interface AlertBannerProps {
  * Medium 56px (padding Small/Large, gap Small, 20px icons) · Small 32px (padding XSmall/Medium, gap XSmall, 16px icons).
  * Warning uses Content/On-Brights; Info/Positive/Negative use Content/On-Colors; Default is Neutral/Solid + Inverse.
  */
-export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className }: AlertBannerProps) {
+export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className, overrides }: AlertBannerProps) {
+  const nest = useNested(overrides);
   const theme: AlertBannerTheme = themeProp ?? toneFromStatus(status) ?? "default";
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.dismiss;
   const size = scaleKey(sizeProp, alertBannerSizes);
-  const leadingNode = leading === true ? <Icon name={themeIcon[theme]} decorative /> : leading ? renderIcon(leading) : null;
+  const leadingNode = nest("Leading", leading === true ? <Icon name={themeIcon[theme]} decorative /> : leading ? renderIcon(leading) : null);
   const urgent = theme === "negative" || theme === "warning";
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
   return (
     <div className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={theme} data-size={size} role={urgent ? "alert" : "status"}>
       {leadingNode ? <span className="zen-alert-banner__icon" aria-hidden="true">{leadingNode}</span> : null}
-      <span className={`zen-alert-banner__message ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}>{children}</span>
+      <span className={`zen-alert-banner__message ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}>{nest.slot(children)}</span>
       {action && size === "medium" ? (
-        <Button className="zen-alert-banner__action" appearance="overlay" level="inverse" size="sm" onClick={action.onClick}>{action.label}</Button>
+        nest("Action", <Button className="zen-alert-banner__action" appearance="overlay" level="inverse" size="sm" onClick={action.onClick}>{action.label}</Button>)
       ) : null}
       {onClose ? (
         <button type="button" className="zen-alert-banner__close" aria-label={closeLabel} {...closeTip.bind({ onClick: onClose })}>

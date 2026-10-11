@@ -323,6 +323,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "labelOptional": "labelOptional",
       "labelTooltip": "labelTooltip",
       "leading": "leading",
+      "overrides": "overrides",
       "required": "required",
       "trailing": "trailing"
     }
@@ -372,6 +373,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "MetricCard": {
     "Card": {
+      "overrides": "overrides",
       "subAction": "subAction",
       "theme": "theme"
     }
@@ -422,7 +424,8 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "FieldShell": {
       "helpIcon": "helpIcon",
       "helpText": "helpText",
-      "helpTheme": "helpTheme"
+      "helpTheme": "helpTheme",
+      "overrides": "overrides"
     },
     "RichTextEditorBar": {
       "theme": "editorBarTheme"
@@ -463,6 +466,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "labelOptional": "labelOptional",
       "labelTooltip": "labelTooltip",
       "leading": "leading",
+      "overrides": "overrides",
       "required": "required",
       "trailing": "trailing"
     },
@@ -564,6 +568,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "labelOptional": "labelOptional",
       "labelTooltip": "labelTooltip",
       "leading": "leading",
+      "overrides": "overrides",
       "required": "required",
       "trailing": "trailing"
     }

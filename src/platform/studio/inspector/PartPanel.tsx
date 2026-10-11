@@ -6,7 +6,8 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { currentFiber, nameOf, onSourceUpdate, shortSrc, type Fiber } from "../select/picker";
-import { selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { OverrideProperties } from "./OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 import { componentGroupsOf } from "./componentGroups";
@@ -197,7 +198,7 @@ function describeNode(element: Element) {
 }
 
 /** The part's sections, read from the canvas now. */
-function PartDetails({ part }: { part: PartHit }) {
+function PartDetails({ part, props: showProps = true }: { part: PartHit; props?: boolean }) {
   const live = currentFiber(part.fiber);
   const element = part.element;
   const props = listedProps(live.memoizedProps ?? {});
@@ -218,7 +219,7 @@ function PartDetails({ part }: { part: PartHit }) {
   const gapsEqual = layout.rowGap && layout.columnGap && layout.rowGap.px === layout.columnGap.px;
   return (
     <>
-      <InspectorSection title={part.isComponent ? "Props" : "Attributes"} note={props.length ? undefined : "None set"}>
+      {showProps ? <InspectorSection title={part.isComponent ? "Props" : "Attributes"} note={props.length ? undefined : "None set"}>
         {props.slice(0, MAX_PROPS).map(([name, value]) => {
           const shown = summarise(value);
           return (
@@ -228,7 +229,7 @@ function PartDetails({ part }: { part: PartHit }) {
           );
         })}
         {props.length > MAX_PROPS ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{props.length - MAX_PROPS} more not shown</p> : null}
-      </InspectorSection>
+      </InspectorSection> : null}
 
       {textNode && style ? (
         <InspectorSection title="Text style" note={textNote ? `${textNote.charAt(0).toUpperCase()}${textNote.slice(1)}` : undefined}>
@@ -300,6 +301,10 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   const passes = resolved && (!item || itemFields)
     ? partPasses(owner, resolved).filter((pass) => !item || (!itemFields?.has(pass.prop) && !holdsItem(pass)))
     : [];
+  // A nested layer the owner draws (Card's Sub-Action, a Table row's Badge): on a page made in the Studio it changes like
+  // Figma's nested instance, written as the owner's instance overrides (OverrideProperties).
+  const layerPath = resolved && !item && !group ? nestedPathOf(resolved) : null;
+  const overridable = Boolean(layerPath) && Boolean(parseSrc(selection.src)?.file.startsWith("local:"));
 
   return (
     <div className="studio-inspector__panel">
@@ -311,7 +316,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
-        {item || group ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`}</p>}
+        {item || group ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
@@ -323,7 +328,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           </Button>
         </div>
         {inside ? <DataItemBanner item={inside} /> : null}
-        {driving.length && !item && !inside && !group ? (
+        {driving.length && !item && !inside && !group && !overridable ? (
           <p className={`studio-inspector__note studio-part__edit ${typographyStyles["Body/Small/Regular"]}`}>
             Edit via the owner&apos;s {driving.map((prop, index) => (
               <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{prop}</span></span>
@@ -338,8 +343,8 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           {resolved && passes.length ? <PartProperties selection={selection} part={resolved} passes={passes} itemName={item.slot.itemName} /> : null}
         </DataItemSections>
       ) : null}
-      {resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
-      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {resolved && overridable && layerPath ? <OverrideProperties selection={selection} part={resolved} path={layerPath} /> : resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
+      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

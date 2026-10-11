@@ -11,6 +11,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./side-panel.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type SidePanelType = "standard" | "modal";
 export type SidePanelSize = "default" | "small";
@@ -37,6 +38,9 @@ export interface SidePanelProps extends OverlayOpenProps {
   /** Accessible name of the close button. Default: the locale's “Close panel”. */
   closeLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets icon / the actions. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -47,7 +51,8 @@ export interface SidePanelProps extends OverlayOpenProps {
  * Header (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close
  * button is pinned to the header's top-right corner; Contents; Modal/Actions footer.
  */
-export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className }: SidePanelProps) {
+export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides }: SidePanelProps) {
+  const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.closePanel;
@@ -109,18 +114,18 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
       tabIndex={modal ? -1 : undefined}
     >
       <header className="zen-side-panel__header">
-        {modal && icon ? <span className="zen-side-panel__icon" aria-hidden="true">{renderIcon(icon)}</span> : null}
+        {modal && icon ? <span className="zen-side-panel__icon" aria-hidden="true">{nest("Icon", renderIcon(icon))}</span> : null}
         <div className="zen-side-panel__heading">
           <Title id={`${id}-title`} className={`zen-side-panel__title ${typographyStyles[modal ? "Heading/4" : "Heading/3"]}`}>{title}</Title>
         </div>
         {description ? <p id={`${id}-desc`} className={`zen-side-panel__description ${typographyStyles["Body/Base/Regular"]}`}>{description}</p> : null}
       </header>
-      {children ? <div className="zen-side-panel__body">{children}</div> : null}
+      {children ? <div className="zen-side-panel__body">{nest.slot(children)}</div> : null}
       {/* Figma: a 20px Wrapper at the header's top-right corner holds the 32px Small Icon-Flat, so the button
           overhangs it by 6px. Standard: Wrapper at Modal-Padding; Modal: inside a 28px Close-Container (padding 4)
           on the icon row. */}
-      <IconButton className="zen-side-panel__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} onClick={() => onOpenChange(false)} icon={<Icon name="icon-x-small-line" />} />
-      {primaryAction || secondaryAction ? <ModalActions className="zen-side-panel__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} onDefault={() => onOpenChange(false)} /> : null}
+      {nest("Close", <IconButton className="zen-side-panel__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} onClick={() => onOpenChange(false)} icon={<Icon name="icon-x-small-line" />} />)}
+      {primaryAction || secondaryAction ? nest("Actions", <ModalActions className="zen-side-panel__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} onDefault={() => onOpenChange(false)} />) : null}
     </aside>
   );
   if (!modal) return panel;

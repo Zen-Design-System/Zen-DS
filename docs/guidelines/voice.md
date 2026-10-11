@@ -50,6 +50,7 @@ Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Su
 | `onFinish` | `() => void` | — | Finish the take (Recording, Paused). |
 | `onDiscard` | `() => void` | — | Throw the take away (Recording, Paused). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: "orange" } }`). Written by Zen Studio; app code sets state. |
 
 ### AiVoiceConversation
 Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a Small Subtle Badge with its dot: Neutral Ready, Accent Listening / Responding), the 96px voice signal (Corner-Radius/Rounded: Background/Surface/Alt with the microphone when ready, Background/Accent/Subtle with 4px Content/Accent/Light bars, Spacing/Gap/2XSmall apart), the status (Heading/Subheading + Body/Small/Regular Neutral/Light), the transcript card (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Small: the speaker in Label/Small/Medium Neutral/Light over an AI/Chat-Bubble), the actions (Mute · Start talking / Done speaking / Interrupt · End) and the note.
@@ -72,6 +73,7 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 | `onEnd` | `() => void` | — | End the conversation (off while Ready). |
 | `note` | `ReactNode` | — | The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: "green" } }`). Written by Zen Studio; app code sets state / transcript. |
 
 ## ✅ Do
 - Put them on a Card or a Surface: the frame itself is transparent (Figma).
@@ -97,6 +99,7 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `voice/actions-wired` | warn | A Voice component shows its main action in every state: wire it (VoiceRecorder onRecord · onPause · onResume; AiVoiceConversation onStart · onDone · onInterrupt), or the big button does nothing. | `zen-allow-voice-actions: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

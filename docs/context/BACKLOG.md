@@ -8,6 +8,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Nested overrides, after fast path A (2026-10-11):** the Figma gate `nested-paths` once contracts are captured
+  (`tools/figma-kit/`); AiChatBubble's action buttons stay without a layer (a Tooltip binds each button directly).
+  Pointer: plan `docs/research/studio-doc-engine-plan-2026-10-10.md` §9.
 - **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
   builds each row's avatar with `personAvatar(people[t.assignee])` (a plain function, not a component), so the engine
   cannot reach that row's person; a dropped photo is refused ("shared by 14 rows"). Extend kind "param" to helper

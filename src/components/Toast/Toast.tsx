@@ -8,6 +8,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./toast.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const toastTypes = ["neutral", "subtle", "info", "positive", "warning", "negative"] as const;
 export type ToastType = (typeof toastTypes)[number];
@@ -51,6 +52,9 @@ export interface ToastProps {
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio;
+   *  app code sets icon / action. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -58,11 +62,12 @@ export interface ToastProps {
  * gap Medium; the Body groups the Title/Caption stack (gap 3XSmall) with the action (gap XSmall).
  * Subtle is the Popover surface with a 1px OUTSIDE Border/Popover/Subtle stroke.
  */
-export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className }: ToastProps) {
+export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides }: ToastProps) {
+  const nest = useNested(overrides);
   const type: ToastType = typeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.dismiss;
-  const leading = icon === true ? <Icon name={typeIcon[type]} decorative /> : icon ? renderIcon(icon) : null;
+  const leading = nest("Leading", icon === true ? <Icon name={typeIcon[type]} decorative /> : icon ? renderIcon(icon) : null);
   const urgent = type === "negative" || type === "warning";
   const button = actionButton[type];
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
@@ -77,9 +82,9 @@ export function Toast({ type: typeProp, status, title, children, icon = true, ac
       <div className="zen-toast__body">
         <div className="zen-toast__content">
           {title ? <span className={`zen-toast__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span> : null}
-          {children ? <span className={`zen-toast__caption ${typographyStyles["Body/Small/Regular"]}`}>{children}</span> : null}
+          {children ? <span className={`zen-toast__caption ${typographyStyles["Body/Small/Regular"]}`}>{nest.slot(children)}</span> : null}
         </div>
-        {action ? <Button className="zen-toast__action" appearance={button.appearance} level={button.level} size="sm" onClick={runAction}>{action.label}</Button> : null}
+        {action ? nest("Action", <Button className="zen-toast__action" appearance={button.appearance} level={button.level} size="sm" onClick={runAction}>{action.label}</Button>) : null}
       </div>
       {onClose ? (
         <button type="button" className="zen-toast__close" aria-label={closeLabel} {...closeTip.bind({ onClick: onClose })}>

@@ -10,6 +10,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export interface ChartPoint { label: string; value: number }
 export interface ChartSeries { id: string; label: string; /** CSS colour; defaults walk the Figma palette (Chart/Sector/Primary · Secondary · Cyan · Violet · Yellow …). */ color?: string }
@@ -190,10 +191,14 @@ export interface ChartCardProps {
   /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the open button and range control it draws, by layer (`{ Open: { level: "secondary" }, "Ranges/Item[week]": { level: "primary" } }`). Written by Zen Studio;
+   *  app code sets onOpen / ranges. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16. */
-export function ChartCard({ title, headingLevel = 3, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", surface, children, className }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", surface, children, className, overrides }: ChartCardProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
   const Title = `h${headingLevel}` as const;
@@ -201,11 +206,11 @@ export function ChartCard({ title, headingLevel = 3, onOpen, openLabel: openLabe
     <Card theme={theme} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div className="zen-chart-card__body">
         <div className="zen-chart-card__header">
-          <Title className={`zen-chart-card__title ${typographyStyles["Heading/Subheading"]}`}>{title}</Title>
-          {onOpen ? <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} /> : null}
+          <Title className={`zen-chart-card__title ${typographyStyles["Heading/Subheading"]}`}>{nest.slot(title)}</Title>
+          {onOpen ? nest("Open", <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} />) : null}
         </div>
-        {ranges?.length ? <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} /> : null}
-        <EmptyStateCardContext.Provider value={headingLevel}>{children}</EmptyStateCardContext.Provider>
+        {ranges?.length ? nest("Ranges", <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} />) : null}
+        <EmptyStateCardContext.Provider value={headingLevel}>{nest.slot(children)}</EmptyStateCardContext.Provider>
       </div>
     </Card>
   );

@@ -71,6 +71,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `onPopoverCreate` | `(value: string) => void` | — | Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags). The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. |
 | `popoverCreateLabel` | `ReactNode` | — |  |
 | `popoverPortal` | `boolean` | `false` | Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in a row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole, visible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: "square" }, Counter: { theme: "accent" } }`). Written by Zen Studio; app code sets photoSrc / leading / counter. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### ChipGroup
@@ -90,6 +91,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`
 | `level` | `"primary" \| "secondary"` | `"primary"` | Chip level. Default primary. |
 | `disabled` | `boolean` | `false` | Every chip does nothing. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the chips it draws, by layer (`{ "Chip[week]": { level: "secondary" } }`). Written by Zen Studio; app code sets the options. |
 
 ### Types
 Object shapes the props above refer to.
@@ -147,6 +149,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount. | `zen-allow-chip-count: <reason>` |
 | `chip/radio-is-chip-group` | warn | Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role="radio" by hand. | `zen-allow-chip-radio: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

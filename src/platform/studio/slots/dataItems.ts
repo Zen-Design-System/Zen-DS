@@ -12,6 +12,8 @@ import { dataSlotsOf, slotGroups, type DataSlot } from "./dataSlots";
  */
 
 const GUARD = 4000;
+// ContextProvider (react-reconciler ReactWorkTags): the fiber of a `<Context value>`.
+const CONTEXT_PROVIDER = 10;
 
 /** The items as the owner renders them now: the array, the one object, or none (a `list` slot takes either). */
 export function renderedItems(slot: DataSlot, props: Record<string, unknown> | null | undefined): unknown[] {
@@ -103,6 +105,8 @@ export function dataItemOfPart(part: PartHit | null): DataItemHit | null {
   try {
     for (let fiber: Fiber | null = currentFiber(part.fiber), guard = 0; fiber && guard < GUARD; fiber = fiber.return, guard++) {
       if (fiber === ownerFiber || fiber === ownerFiber.alternate) break;
+      // A nested layer's scope (_shared/nested.tsx) carries its item's key but is no layer: the item is the one inside.
+      if (fiber.tag === CONTEXT_PROVIDER) continue;
       const src = srcOf(fiber);
       if (src && src !== owner.src) break;
       const component = isComponentFiber(fiber);

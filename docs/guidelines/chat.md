@@ -67,6 +67,7 @@ Figma Chat/Conversation/Bubble (6349:64085): avatar (others) + bubble + reaction
 | `onReact` | `(kind: ChatReactionKind \| undefined) => void` | — |  |
 | `onMoreReactions` | `() => void` | — | Reaction-Bar "+": open a full emoji picker. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio; app code sets author. |
 
 ### ChatComposer
 Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat Neutral/Strongest icons — Mobile Nav-Action/Icon-Flat 44px (icon 24), Desktop Button/Icon-Flat Medium 40px (icon 20). The pill field is Input/Background/Default + Effect/Input with Body/Base/Medium text ("Aa" in Placeholder); State=Focused only adds the Accent caret, the field itself does not change. The trailing quick action becomes Send while typing (same flat style).
@@ -84,6 +85,7 @@ Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat
 | `replyTo` | `ChatReplyTarget` | — | Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send. Setting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type; a composer that mounts with a reply already set does not take focus. |
 | `onCancelReply` | `() => void` | — |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio; app code sets actions / quickAction. |
 
 ### ChatThread
 Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up (more than 48px from the bottom), in which case their position is kept. It pins again whenever the messages change size after the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction row appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.
@@ -110,6 +112,7 @@ Figma Chat/Conversation-List/List-Item (7522:371057 · content 6331:34480), comp
 | `online` | `boolean` | `false` |  |
 | `selected` | `boolean` | — |  |
 | `onClick` | `() => void` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio; app code sets person / group. |
 
 ### ChatComposerReply
 In the composer: the "Replying to …" bar above the field, with × to cancel.
@@ -173,6 +176,7 @@ Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by 
 | `size` | `ReactNode` | — |  |
 | `href` | `string` | — |  |
 | `onOpen` | `() => void` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of its Dock Icon (`{ Icon: { theme: "blue" } }`), written by Zen Studio. |
 
 ### ChatCall
 Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the solid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width Small action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is Bubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button. Without an action (a ringing call, an answered Business call) the text column hugs its lines (min Image-Size/Small 32) instead of Figma's fixed 32px box, so the text keeps the 12px a text bubble keeps below its last line (Padding/XSmall 8 + the row's Padding/2XSmall 4) in every typography mode. With an action the 32px box stays in Figma's 20/16 scale and hugs in the mobile (and Popular) type scale, so the lines never spill toward the action.
@@ -185,6 +189,7 @@ Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4,
 | `detail` | `ReactNode` | — |  |
 | `actionLabel` | `string` | — | The action's text (the locale's Call back / Call again / Send voice message by default). |
 | `onAction` | `() => void` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of its Dock Icon and action (`{ Action: { level: "primary" } }`), written by Zen Studio. |
 
 ### ChatVoice
 Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small, Spacing/Gap/XSmall, Corner-Radius/Large) — Others on Background/Neutral/Subtle (Business: Bubble-Chat-Others-Business), You on Bubble-Chat-You — with a 32px playback row: the Small play / pause control (Others: Button/Icon-Main Surface, Business Tertiary; You: Button/Icon-Overlay Inverse), the waveform (3px bars, Spacing/Gap/3XSmall; the played share full strength, the rest 30%) and the speed in Label/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing and the time. Hover and the reaction pill come from ChatMessage, as on every bubble.
@@ -200,6 +205,7 @@ Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small,
 | `speed` | `number` | `1` | Playback speed (1, 1.5, 2); the "1×" button steps to the next one. Without `onSpeedChange` it is shown, not a button. |
 | `onSpeedChange` | `(speed: number) => void` | — |  |
 | `levels` | _HTML attribute_ | — | The message's sound levels, 0–1 each (Figma draws 34). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: "accent" } }`). Written by Zen Studio; app code sets playing. |
 
 ### ChatPhotos
 Figma Chat/Photo/Grid-Slot (6347:52935): 1 · 2 · 3 · 4+ photos as radius-16 tiles in a 260 (Mobile) / 400 (Desktop) square; the 4th tile shows "+N" (Heading/2 on Background/Overlay). Business wraps the grid in a Surface card (padding 12, radius 24) with the time under it (Figma Chat/Bubble/Photo-*, Domain=Business).
@@ -252,6 +258,7 @@ Figma Chat/Avatar-Group (6340:46191): two overlapping photo avatars on the diago
 | `size` | `"lg" \| "md" \| "sm" \| "large" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `online` | `boolean` | `false` |  |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of its avatars (`{ "Avatar[0]": { theme: "accent" } }`), written by Zen Studio. |
 
 ### Types
 Object shapes the props above refer to.
@@ -332,6 +339,7 @@ interface ChatReplyTarget { id: string; author: string; fromYou?: boolean; kind:
 | `chat/no-locked-interaction` | warn | Every Chat interaction works wherever the component is shown: no no-op handlers, and every message can be held/hovered and reacted to (examples wire it with useChatDemo). | `zen-allow-chat-locked: <reason>` |
 | `chat/reactions-name-people` | warn | Reactions say who reacted (`by`), so pressing the pill can list the people — a bare count hides them. | `zen-allow-chat-reactors: <reason>` |
 | `chat/hold-delete-destructive` | warn | A Delete / Remove / Unsend hold action is marked destructive (Content/Negative/Light). | `zen-allow-hold-delete: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `layout/scroll-anchor-flex-end` | warn | A scrolling column that anchors content to the bottom uses margin-top:auto on its first child; justify-content:flex-end pushes overflow above the scroll origin where it can't be reached. | `zen-allow-flex-end-scroll: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

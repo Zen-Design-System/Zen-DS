@@ -105,6 +105,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the arrows, page items and page-size chip it draws, by layer (`{ Previous: { level: \"secondary\" }, \"Page[3]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "deprecated": null
         }
       ]
     },

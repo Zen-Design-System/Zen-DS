@@ -63,6 +63,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `mainId` | `string` | — | id of `<main>`, the target of the "Skip to content" link. Default: a generated unique id. |
 | `layout` | `"auto" \| "sidebar" \| "drawer"` | `"auto"` | Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests. |
 | `children` | `ReactNode` | — | The page. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio; app code keeps the defaults. |
 
 ### AppShellAction
 Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional Primitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on Color/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right. It forwards its ref and props to the button, so it can be a <Menu trigger>.
@@ -78,6 +79,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `tone` | `"default" \| "active" \| "accent"` | `"default"` | Figma Notification-Dot Theme: `default` Negative (needs attention) · `active` Positive · `accent`. |
 | `appearance` | `"tertiary" \| "flat"` | `"tertiary"` | Figma Theme: `tertiary` (Button/Icon-Main Medium Tertiary, 40px) · `flat` (Button/Icon-Flat Medium Primary: a 20px glyph with a 40px hit area). |
 | `tooltip` | `ReactNode \| false` | — | Tooltip text. Default: `aria-label` (without the count). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / appearance. |
 
 ### AppShellAccount
 The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button. Put it in a Menu for the account actions: `<Menu align="end" trigger={<AppShellAccount name="Ava Chen" src={photo} />} items={…} />`. Keyboard focus shows the Avatar's own focus ring.
@@ -89,6 +91,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `name` (required) | `string` | — | The signed-in person's name: the accessible name (“Account: Ava Chen”), the tooltip and the initials without a photo. |
 | `src` | `string` | — | Photo URL (Figma Avatar/Single Theme=Photo). |
 | `theme` | `Exclude<AvatarTheme, "photo">` | `"neutral"` | Initials colour without a photo. Default neutral. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio; app code sets src / theme. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### Types
@@ -134,6 +137,7 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 | `app-shell/nested` | error | One AppShell per screen: a shell inside another shell repeats the navigation, the top bar and <main>. | `zen-allow-nested-shell: <reason>` |
 | `app-shell/breadcrumbs-once` | warn | Breadcrumbs appear once: in the top bar (header, the HR-Platform pattern) or in the PageHeader, never both. | `zen-allow-breadcrumbs-twice: <reason>` |
 | `app-shell/forced-layout` | warn | An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px); layout="sidebar" or "drawer" is for previews and tests. (App mode only.) | `zen-allow-forced-layout: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

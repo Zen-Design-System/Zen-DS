@@ -7,6 +7,7 @@ import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
 import "./search.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const searchSizes = ["small", "medium"] as const;
 export const searchThemes = ["default", "filter-icon", "filter-dropdown"] as const;
@@ -71,6 +72,9 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
    * ⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot). */
   shortcut?: string;
   onClear?: () => void;
+  /** Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: "accent-base" }, Filter: { label: "Status" } }`). Written by Zen Studio;
+   *  app code sets leading / trailing / theme. */
+  overrides?: NestedOverrides;
 }
 
 export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
@@ -97,6 +101,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     shortcut,
     onClear,
     disabled = false,
+    overrides,
     className,
     placeholder: placeholderProp,
     value,
@@ -107,6 +112,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const placeholder = placeholderProp ?? t.search;
   const filterLabel = filterLabelProp === undefined ? t.filterAll : filterLabelProp;
   const filterActionLabel = filterActionLabelProp ?? t.filter;
@@ -131,7 +137,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   const controlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
   const resolvedState = state;
-  const leadingContent = renderIcon(leading, { size: "sm" }) ?? (iconSearch ? <Icon name="icon-search-medium-line" size="sm" /> : null);
+  const leadingContent = nest("Leading", renderIcon(leading, { size: "sm" }) ?? (iconSearch ? <Icon name="icon-search-medium-line" size="sm" /> : null));
   const currentValue = controlled ? String(value ?? "") : internalValue;
   const hasValue = currentValue.length > 0 || resolvedState === "inputted";
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -159,17 +165,17 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     </button>
   ) : null;
   // Filter affordances reuse Input's Leading/Trailing primitive, so they click, hover and focus like Input slots.
-  const themeTrailing = theme === "filter-icon"
+  const themeTrailing = nest("Filter", theme === "filter-icon"
     ? <InputLeadingTrailing size={size} icon={<Icon name="icon-settings-03-line" decorative />} interactive={filterInteractive} onClick={onFilterClick} aria-label={filterActionLabel} aria-haspopup={filterHasPopup} aria-expanded={filterExpanded} />
     : theme === "filter-dropdown"
       ? <InputLeadingTrailing size={size} label={filterLabel} dropdown interactive={filterInteractive} onClick={onFilterClick}
           options={filterOptions} value={filterValue} onValueChange={onFilterChange} popoverLabel={filterActionLabel} aria-haspopup={filterHasPopup} aria-expanded={filterExpanded}
           aria-label={filterOptions?.length ? undefined : `${filterActionLabel}: ${typeof filterLabel === "string" ? filterLabel : ""}`.replace(/: $/, "")} />
-      : null;
+      : null);
   const shortcutContent = shortcut && !hasValue && !disabled ? (
     <span className="zen-search__shortcut" aria-hidden="true"><Icon name="icon-command-line" decorative /><span>{shortcut.toUpperCase()}</span></span>
   ) : null;
-  const trailingContent = renderIcon(trailing, { size: "sm" }) ?? (clearContent || themeTrailing || shortcutContent ? (
+  const trailingContent = nest("Trailing", renderIcon(trailing, { size: "sm" })) ?? (clearContent || themeTrailing || shortcutContent ? (
     <span className="zen-search__trailing-group">{clearContent}{shortcutContent}{themeTrailing}</span>
   ) : null);
 

@@ -5,6 +5,7 @@ import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels } from "../_shared/zen-context";
 import { DatePicker, type DatePickerRange } from "./DatePicker";
 import "./date-picker.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export interface DatePickerSheetProps extends OverlayOpenProps {
   /** Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). */
@@ -42,6 +43,9 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
   /** Cancel button label (single). Default: the locale's "Cancel". */
   cancelLabel?: ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: "accent" } }`). Written by Zen Studio;
+   *  app code sets applyLabel. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -51,7 +55,8 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
  * ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small
  * apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.
  */
-export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className }: DatePickerSheetProps) {
+export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides }: DatePickerSheetProps) {
+  const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const rangeMode = selectionMode === "range";
@@ -88,7 +93,7 @@ export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenCh
       footer={rangeMode ? (
         <div className="zen-date-picker-sheet__footer">
           <div className="zen-date-picker-sheet__summary">{summary}</div>
-          <Button className="zen-date-picker-sheet__apply" appearance="main" level="primary" size="lg" disabled={!complete} onClick={apply}>{ok}</Button>
+          {nest("Apply", <Button className="zen-date-picker-sheet__apply" appearance="main" level="primary" size="lg" disabled={!complete} onClick={apply}>{ok}</Button>)}
         </div>
       ) : undefined}
     >

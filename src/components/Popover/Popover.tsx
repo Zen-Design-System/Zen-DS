@@ -12,6 +12,7 @@ import { useAnchoredPosition } from "./useAnchoredPosition";
 import { usePresence } from "../Motion";
 import "./popover.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /** Data shape exported by the Popover/Default and Popover/Item component sets. */
 export type PopoverItemData = {
@@ -65,23 +66,24 @@ export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(funct
   { item, label, caption, leading, trailing, selected, disabled, theme, function: itemFunction, state, control = "check", itemRole = "option", onSelect, className, ...buttonProps },
   ref,
 ) {
+  const nest = useNested();
   const resolvedLabel = item?.label ?? label;
   const photoSrc = item?.photoSrc;
   const resolvedCaption = item?.caption ?? caption;
   const explicitTheme = item?.theme ?? theme;
   // Icon names draw at the slot size (Leading Element-Size/Popular/Base 20, Trailing Small 16).
-  const resolvedTrailing = renderIcon(item?.trailing ?? trailing, { size: "sm" });
+  const resolvedTrailing = nest("Trailing", renderIcon(item?.trailing ?? trailing, { size: "sm" }));
   const isSelected = item?.selected ?? selected;
   const isDisabled = item?.disabled ?? disabled;
   const resolvedFunction = item?.function ?? itemFunction ?? "default";
-  const customLeading = renderIcon(item?.leading ?? leading, { size: "base" });
+  const customLeading = nest("Leading", renderIcon(item?.leading ?? leading, { size: "base" }));
   const resolvedTheme = explicitTheme ?? (photoSrc ? "avatar-small" : customLeading ? "icon" : "text-only");
   // Theme=Badge (Function=Default): the Medium Solid Badge *is* the content, carrying the label.
   const badgeContent = resolvedTheme === "badge" && resolvedFunction === "default";
   const resolvedLeading = badgeContent ? null
     : photoSrc && (resolvedTheme === "avatar-small" || resolvedTheme === "avatar-big")
       // Figma .Primitives/Popover/Item/Content (829:20006): Avatar Small = Avatar Size=Small (32px), Avatar Big = Medium (40px).
-      ? <Avatar size={resolvedTheme === "avatar-big" ? "medium" : "small"} theme="photo" background="subtle" src={photoSrc} alt={item?.photoAlt ?? ""} />
+      ? nest("Avatar", <Avatar size={resolvedTheme === "avatar-big" ? "medium" : "small"} theme="photo" background="subtle" src={photoSrc} alt={item?.photoAlt ?? ""} />)
       : photoSrc && (resolvedTheme === "photo-small" || resolvedTheme === "photo-big")
         ? <img src={photoSrc} alt={item?.photoAlt ?? ""} />
         : customLeading;
@@ -111,7 +113,7 @@ export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(funct
       }}
     >
       {resolvedLeading ? <span className="zen-popover__item-leading">{resolvedLeading}</span> : null}
-      {badgeContent ? <span className="zen-popover__item-content zen-popover__item-content--badge"><Badge size="medium" theme={item?.badgeTheme ?? "neutral"} background="solid" leadingIcon={false}>{resolvedLabel}</Badge></span> : null}
+      {badgeContent ? <span className="zen-popover__item-content zen-popover__item-content--badge">{nest("Badge", <Badge size="medium" theme={item?.badgeTheme ?? "neutral"} background="solid" leadingIcon={false}>{resolvedLabel}</Badge>)}</span> : null}
       {!badgeContent && (resolvedLabel || resolvedCaption) ? <span className="zen-popover__item-content">
         <span className={`zen-popover__item-label ${typographyStyles["Body/Base/Medium"]}`}>{resolvedLabel}</span>
         {resolvedCaption ? <span className={`zen-popover__item-caption ${typographyStyles["Body/Small/Regular"]}`}>{resolvedCaption}</span> : null}
@@ -156,6 +158,9 @@ export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   align?: "start" | "end";
   /** Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). */
   multiple?: boolean;
+  /** Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[alex]/Avatar": { shape: "square" }, "Item[draft]/Badge": { theme: "accent" } }`). Written by Zen Studio;
+   *  app code sets the items. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -185,11 +190,13 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     multiple = false,
     className,
     onKeyDown,
+    overrides,
     ...divProps
   },
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const searchPlaceholder = searchPlaceholderProp ?? t.search;
   // `null` is a deliberate "no empty state" (PopoverManualAddNew), so only a missing prop falls back to the label.
   const emptyState = emptyStateProp === undefined ? t.noResults : emptyStateProp;
@@ -327,10 +334,10 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       {label ? <div id={labelId} className={`zen-popover__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div> : null}
       {/* The name belongs to the listbox: the root is a plain container, where aria-label is not allowed. */}
       <div className="zen-popover__items" role="listbox" aria-multiselectable={multiple || undefined} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy ?? (label && !ariaLabel ? labelId : undefined)}>
-        {visibleItems?.map((item) => (
+        {visibleItems?.map((item) => nest("Item", (
           <PopoverItem key={item.id} item={item} control={multiple ? "checkbox" : "check"} onSelect={() => onSelect?.(item)} />
-        ))}
-        {children}
+        ), item.id))}
+        {nest.slot(children)}
         {visibleItems && visibleItems.length === 0 && !children && emptyState ? <div className="zen-popover__empty">{emptyState}</div> : null}
       </div>
     </div>

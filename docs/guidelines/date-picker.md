@@ -65,6 +65,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `aria-label` | `string` | — | Accessible name of the calendar. Default: the locale's "Choose date" ("Choose dates" for the dual calendar). Name an inline calendar after what it sets ("Start date") when a form shows more than one. |
 | `aria-labelledby` | `string` | — | id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Apply": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio; app code sets the actions. |
 
 ### DateField
 | Prop | Type | Default | Description |
@@ -84,6 +85,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
 | `datePicker` | `boolean` | `true` |  |
 | `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
@@ -121,6 +123,7 @@ Also accepts `OverlayOpenProps`.
 | `applyLabel` | `ReactNode` | — | OK button label. Default: the locale's "OK". |
 | `cancelLabel` | `ReactNode` | — | Cancel button label (single). Default: the locale's "Cancel". |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: "accent" } }`). Written by Zen Studio; app code sets applyLabel. |
 
 ### DatePickerItem
 The day primitive from `.Primitives/Date-Picker/Item` (455:33517): Medium 32px on Corner-Radius/Action/Small, Small 24px on Corner-Radius/Action/XSmall. The button paints the In-Range strip, its label span the day. State=Today carries `aria-current="date"` (the calendar sets it on today's day in every state, selected included).
@@ -228,6 +231,7 @@ interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: 
 | `input/needs-label` | error | Every field has a visible label (or an aria-label when the context labels it). | `zen-allow-unlabelled-input: <reason>` |
 | `input/placeholder-not-label` | warn | Placeholder shows an example or format, never repeats the label. | `zen-allow-placeholder-label: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 | `date-picker/actions-need-apply` | warn | A DatePicker with showActions commits in onApply(value, range): picks are a draft that Submit applies and Cancel drops. Without onApply the app never hears what Submit applied. | `zen-allow-date-apply: <reason>` |

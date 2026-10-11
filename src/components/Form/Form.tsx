@@ -29,6 +29,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import { countInvalidFields, focusFirstInvalidField } from "./focus";
 import type { FormSubmitEvent } from "./useFormState";
 import "./form.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const cleanId = (id: string) => id.replace(/:/g, "");
@@ -158,6 +159,9 @@ export interface FormFieldProps extends Omit<HTMLAttributes<HTMLDivElement>, "ch
    * so it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five).
    */
   children: ReactElement;
+  /** Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
+   *  app code sets label / helpText. */
+  overrides?: NestedOverrides;
 }
 
 type ControlProps = { id?: string; "aria-label"?: string; "aria-labelledby"?: string; "aria-describedby"?: string };
@@ -168,9 +172,10 @@ type ControlProps = { id?: string; "aria-label"?: string; "aria-labelledby"?: st
  * while `error` is set, so Form can focus it after a failed submit.
  */
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function FormField(
-  { label, helpText, error, required = false, optional = false, labelTooltip, labelAction, controlId, className, children, ...rest },
+  { label, helpText, error, required = false, optional = false, labelTooltip, labelAction, controlId, className, children, overrides, ...rest },
   ref,
 ) {
+  const nest = useNested(overrides);
   const generated = cleanId(useId());
   const child = Children.only(children) as ReactElement<ControlProps>;
   const id = controlId ?? child.props.id ?? `zen-form-field-${generated}`;
@@ -189,9 +194,9 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function For
   } as ControlProps & Record<string, unknown>);
   return (
     <div {...rest} ref={ref} className={["zen-form-field", className].filter(Boolean).join(" ")} data-zen-invalid={error ? "true" : undefined}>
-      {hasLabel ? <InputLabel id={id} labelId={labelId} optional={optional} tooltip={labelTooltip} action={labelAction}>{label}{required ? <span aria-hidden="true"> *</span> : null}</InputLabel> : null}
+      {hasLabel ? nest("Label", <InputLabel id={id} labelId={labelId} optional={optional} tooltip={labelTooltip} action={labelAction}>{label}{required ? <span aria-hidden="true"> *</span> : null}</InputLabel>) : null}
       {control}
-      {message ? <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error || helpText}</InputHelpText> : null}
+      {message ? nest("Help-Text", <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error || helpText}</InputHelpText>) : null}
     </div>
   );
 });
@@ -225,6 +230,9 @@ export interface FormFieldsetProps extends Omit<FieldsetHTMLAttributes<HTMLField
   optional?: boolean;
   /** The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows. */
   children?: ReactNode;
+  /** Figma instance overrides: props of the help text it draws, by layer (`{ "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
+   *  app code sets helpText. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -232,10 +240,11 @@ export interface FormFieldsetProps extends Omit<FieldsetHTMLAttributes<HTMLField
  * for the whole group. `kind="radio"` makes it a radiogroup. The legend uses the field label style (Body/Small/Regular).
  */
 export const FormFieldset = forwardRef<HTMLFieldSetElement, FormFieldsetProps>(function FormFieldset(
-  { legend, hideLegend = false, kind = "group", direction = "column", gap, helpText, error, required = false, optional = false, className, style, children, ...rest },
+  { legend, hideLegend = false, kind = "group", direction = "column", gap, helpText, error, required = false, optional = false, className, style, children, overrides, ...rest },
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const id = `zen-form-fieldset-${cleanId(useId())}`;
   const messageId = `${id}-message`;
   const message = error || helpText;
@@ -260,8 +269,8 @@ export const FormFieldset = forwardRef<HTMLFieldSetElement, FormFieldsetProps>(f
         {optional ? <span className="zen-form-fieldset__optional"> {t.optional}</span> : null}
         {required ? <span aria-hidden="true"> *</span> : null}
       </legend>
-      <div className="zen-form-fieldset__options" data-direction={direction}>{children}</div>
-      {message ? <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error || helpText}</InputHelpText> : null}
+      <div className="zen-form-fieldset__options" data-direction={direction}>{nest.slot(children)}</div>
+      {message ? nest("Help-Text", <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error || helpText}</InputHelpText>) : null}
     </fieldset>
   );
 });

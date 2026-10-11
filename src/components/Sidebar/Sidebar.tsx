@@ -13,6 +13,7 @@ import { NotificationDot } from "../_shared/notification-dot";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./sidebar.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type SidebarVariant = "basic" | "workspace" | "small-density";
 /** Layer 2 (Surface) of the page it sits on: default = Surface/Default (on a Canvas/Default page), alt = Surface/Alt
@@ -100,6 +101,9 @@ export interface SidebarProps {
   searchCollapsed?: ReactNode;
   onItemClick?: (item: SidebarItem) => void;
   className?: string;
+  /** Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ "Item[inbox]/Badge-Counter": { theme: "accent" }, "Item[team]/Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
+   *  app code sets the sections. */
+  overrides?: NestedOverrides;
   /** Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt
    *  (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. */
   background?: SidebarBackground;
@@ -139,6 +143,9 @@ export interface SidebarSubMenuProps {
 export type SidebarMenuItemProps = Omit<SidebarItem, "children"> & {
   /** Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`. */
   children?: ReactNode | SidebarItem[];
+  /** Figma instance overrides: props of the row it draws, by layer (`{ "Badge-Counter": { theme: "accent" } }`). Written by Zen Studio;
+   *  app code sets counter / icon. */
+  overrides?: NestedOverrides;
 };
 
 export interface SidebarMenuSectionProps {
@@ -309,6 +316,7 @@ function SidebarItemView({
   onItemClick?: (item: SidebarItem) => void;
 }) {
   const { selectedId, linkAs } = useContext(SidebarNavContext);
+  const nest = useNested();
   const hasChildren = Boolean(item.children?.length);
   const isOpen = openItems[item.id] ?? defaultExpanded(item, selectedId);
   const selected = selectedId !== undefined ? item.id === selectedId : (item.selected ?? item.active ?? false);
@@ -343,23 +351,23 @@ function SidebarItemView({
         aria-label={collapsed ? (railCount ? `${item.label}, ${railCount}` : item.label) : undefined}
         {...tooltip.triggerProps}
       >
-        {item.icon ? <span className="zen-sidebar__item-icon">{renderIcon(item.icon, { size: "base" })}{dot ? <NotificationDot className="zen-sidebar__notification-dot" /> : null}</span> : null}
+        {item.icon ? <span className="zen-sidebar__item-icon">{nest("Icon", renderIcon(item.icon, { size: "base" }))}{dot ? <NotificationDot className="zen-sidebar__notification-dot" /> : null}</span> : null}
         <span className="zen-sidebar__item-label">{item.label}</span>
-        {item.counter !== undefined ? <BadgeCounter className="zen-sidebar__counter" size="small" theme="neutral" background="subtle" value={item.counter} /> : null}
+        {item.counter !== undefined ? nest("Badge-Counter", <BadgeCounter className="zen-sidebar__counter" size="small" theme="neutral" background="subtle" value={item.counter} />) : null}
         {dot && !item.icon ? <NotificationDot className="zen-sidebar__notification-dot zen-sidebar__notification-dot--row" /> : null}
         {hasChildren || item.dropdown ? (
           <span className="zen-sidebar__item-dropdown" data-open={isOpen} aria-hidden="true">
             <Icon name="icon-chevron-down-01-line" size="base" />
           </span>
         ) : null}
-        {item.trailingAction ? <span className="zen-sidebar__trailing-action">{item.trailingAction}</span> : null}
+        {item.trailingAction ? <span className="zen-sidebar__trailing-action">{nest.slot(item.trailingAction)}</span> : null}
       </Row>
       {tooltip.position ? (
         <ZenPortal><TooltipSurface aria-hidden="true" className="zen-sidebar__rail-tooltip" style={{ top: tooltip.position.top, left: tooltip.position.left }}>{item.label}</TooltipSurface></ZenPortal>
       ) : null}
       {hasChildren && isOpen && !collapsed ? (
         <div className="zen-sidebar__sub-menu">{item.children!.map((child) => (
-          <SidebarItemView key={child.id} item={child} depth={depth + 1} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />
+          nest("Item", <SidebarItemView key={child.id} item={child} depth={depth + 1} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />, child.id)
         ))}</div>
       ) : null}
     </div>
@@ -379,7 +387,7 @@ const isItemData = (value: unknown): value is SidebarItem[] => Array.isArray(val
   && value.every((entry) => typeof entry === "object" && entry !== null && !isValidElement(entry) && "id" in entry);
 
 /** A slot row's props as the `SidebarItem` the rows render; its nested rows are read the same way. */
-function menuItemOf({ children, slotKey, ...item }: SidebarMenuItemProps & { slotKey?: string }): SidebarItem {
+function menuItemOf({ children, slotKey, overrides: _overrides, ...item }: SidebarMenuItemProps & { slotKey?: string }): SidebarItem {
   const nested = isItemData(children) ? children : slotItems(children as ReactNode, SidebarMenuItem).map(menuItemOf);
   return nested.length ? { ...item, children: nested } : item;
 }
@@ -423,7 +431,8 @@ export function SidebarMenuItem(props: SidebarMenuItemProps) {
   const rows = useContext(SidebarRowsContext);
   // Outside a Sidebar or flyout the row keeps its own open groups.
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
-  return <SidebarItemView item={menuItemOf(props)} depth={0} collapsed={rows?.collapsed ?? false} openItems={rows?.openItems ?? openItems} setOpenItems={rows?.setOpenItems ?? setOpenItems} onItemClick={rows?.onItemClick} />;
+  const nest = useNested(props.overrides);
+  return nest.scope(<SidebarItemView item={menuItemOf(props)} depth={0} collapsed={rows?.collapsed ?? false} openItems={rows?.openItems ?? openItems} setOpenItems={rows?.setOpenItems ?? setOpenItems} onItemClick={rows?.onItemClick} />);
 }
 
 /** A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label +
@@ -455,17 +464,18 @@ function ItemList({ sections, children, collapsed, openItems, setOpenItems, onIt
   setOpenItems: Dispatch<SetStateAction<Record<string, boolean>>>;
   onItemClick?: (item: SidebarItem) => void;
 }) {
+  const nest = useNested();
   return (
     <div className="zen-sidebar__items">
       {sections.map((section, index) => (
         <section className="zen-sidebar__section" key={`${section.label ?? "section"}-${index}`}>
           {section.label ? <SidebarSectionTitle label={section.label} action={section.action} /> : null}
           <div className="zen-sidebar__section-items">
-            {section.items.map((item) => <SidebarItemView key={item.id} item={item} depth={0} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />)}
+            {section.items.map((item) => nest("Item", <SidebarItemView key={item.id} item={item} depth={0} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />, item.id))}
           </div>
         </section>
       ))}
-      {slotBlocks(children, (rows, key) => <section className="zen-sidebar__section" key={key}><div className="zen-sidebar__section-items">{rows}</div></section>)}
+      {slotBlocks(children, (rows, key) => <section className="zen-sidebar__section" key={key}><div className="zen-sidebar__section-items">{nest.slot(rows)}</div></section>)}
     </div>
   );
 }
@@ -488,6 +498,7 @@ function SidebarPanel({ className, brand, brandSlots, sections, children, footer
   onItemClick?: (item: SidebarItem) => void;
 }) {
   const t = useZenLabels();
+  const nest = useNested();
   const footerTooltip = useRailFooterTooltip(collapsed && Boolean(footer));
   return (
     <SidebarRowsContext value={{ collapsed, openItems, setOpenItems, onItemClick }}>
@@ -495,14 +506,14 @@ function SidebarPanel({ className, brand, brandSlots, sections, children, footer
         {/* A custom brand is the expanded header, followed by the collapse control (backlog batch 6, user 2026-10-07); the
             rail shows logoCollapsed in its place. */}
         <div className="zen-sidebar__header">{brand && !(collapsed && brandSlots?.logoCollapsed)
-          ? <>{brand}{onCollapsedChange ? <SidebarCollapseButton collapsed={collapsed} onCollapsedChange={onCollapsedChange} /> : null}</>
+          ? <>{nest.slot(brand)}{onCollapsedChange ? <SidebarCollapseButton collapsed={collapsed} onCollapsedChange={onCollapsedChange} /> : null}</>
           : <DefaultSidebarBrand {...brandSlots} collapsed={collapsed} onCollapsedChange={onCollapsedChange} />}</div>
         {search ? <div className="zen-sidebar__search">{collapsed
           // Figma collapsed rail: Search becomes Button/Icon-Main Small Tertiary; activating it expands the panel.
-          ? searchCollapsed ?? <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={expandRail} />
-          : search}</div> : null}
+          ? nest.slot(searchCollapsed) ?? nest("Search", <IconButton appearance="main" level="tertiary" size="sm" aria-label={t.search} icon={<Icon name="icon-search-medium-line" />} onClick={expandRail} />)
+          : nest.slot(search)}</div> : null}
         <div className="zen-sidebar__body"><ItemList sections={sections} collapsed={collapsed} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</ItemList></div>
-        {footer ? <><div className="zen-sidebar__divider" aria-hidden="true" /><div className="zen-sidebar__footer"><div className="zen-sidebar__footer-content" {...footerTooltip.footerProps}>{footer}</div></div></> : null}
+        {footer ? <><div className="zen-sidebar__divider" aria-hidden="true" /><div className="zen-sidebar__footer"><div className="zen-sidebar__footer-content" {...footerTooltip.footerProps}>{nest.slot(footer)}</div></div></> : null}
         {footerTooltip.position ? (
           <ZenPortal><TooltipSurface aria-hidden="true" className="zen-sidebar__rail-tooltip" style={{ top: footerTooltip.position.top, left: footerTooltip.position.left }}>{footerTooltip.position.label}</TooltipSurface></ZenPortal>
         ) : null}
@@ -541,7 +552,8 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedProp = false, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides }: SidebarProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   // Inside an AppShell (directly or wrapped in an app component) the shell owns the rail unless the Sidebar has its own
   // onCollapsedChange; its drawer always shows the whole navigation with no collapse control.
@@ -572,14 +584,14 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
         {workspaceBar ? <div className="zen-sidebar__workspace-rail">
           <div className="zen-sidebar__workspace-header">{workspaceBrand ?? <span className="zen-sidebar__workspace-default-mark" aria-hidden="true"><Icon name="icon-zen" size="lg" /></span>}</div>
           <div className="zen-sidebar__workspace-body"><div className="zen-sidebar__workspace-items">
-            {workspaceItems.map((item) => <SidebarItemView key={item.id} item={{ ...item, icon: item.icon ?? <span /> }} depth={0} collapsed openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />)}
+            {workspaceItems.map((item) => nest("Workspace", <SidebarItemView key={item.id} item={{ ...item, icon: item.icon ?? <span /> }} depth={0} collapsed openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />, item.id))}
             {workspaceAction ? <div className="zen-sidebar__workspace-action-slot">{workspaceAction}</div> : null}
           </div></div>
           {workspaceFooter ? <div className="zen-sidebar__workspace-footer">{workspaceFooter}</div> : null}
         </div> : null}
         {/* Figma Side-Bar/Master/Workspace has no Expand axis: the panel never collapses, so no collapse control. */}
         <SidebarNavContext value={nav}>
-          <SidebarPanel className="zen-sidebar__workspace-main" brand={brand ?? (workspaceItems.length ? <WorkspaceHeader items={workspaceItems} onSelect={onItemClick} action={headerAction} /> : undefined)} sections={sections} footer={footer} search={search} collapsed={false} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>
+          {nest.scope(<SidebarPanel className="zen-sidebar__workspace-main" brand={brand ?? (workspaceItems.length ? <WorkspaceHeader items={workspaceItems} onSelect={onItemClick} action={headerAction} /> : undefined)} sections={sections} footer={footer} search={search} collapsed={false} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>)}
           {flyout}
         </SidebarNavContext>
       </nav>
@@ -589,7 +601,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   return (
     <nav ref={rootRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={requestedDensity ?? (variant === "small-density" ? "small" : "medium")} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
-        <SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>
+        {nest.scope(<SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>)}
         {flyout}
       </SidebarNavContext>
     </nav>

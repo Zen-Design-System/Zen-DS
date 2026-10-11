@@ -89,6 +89,14 @@
           "default": "1",
           "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already\n has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level.",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets back.",
+          "deprecated": null
         }
       ]
     }
