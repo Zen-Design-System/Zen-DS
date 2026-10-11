@@ -24,6 +24,8 @@ export type TableColumnInfo = {
   bold?: boolean;
   onOpen?: unknown;
   edit?: unknown;
+  /** Figma Actions-Cell's buttons (`content: "actions"`). */
+  actions?: readonly unknown[];
 };
 
 export type TableCellHit = {

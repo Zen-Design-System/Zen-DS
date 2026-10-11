@@ -4253,8 +4253,8 @@
     "api": [
       [
         "Cell content",
-        "columns[] {content, field, captionField, mediaField, bold}",
-        "Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); a `cell` function still wins"
+        "columns[] {content, field, captionField, mediaField, bold, actions}",
+        "Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); actions (Figma Actions-Cell) draws the column's `actions` [{id, icon, label, size, level, onClick(row, index)}] as flat icon buttons named with their row; a `cell` function still wins"
       ],
       [
         "Columns",
@@ -4351,7 +4351,7 @@
       "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
       "Right-align numbers and amounts; keep text left.",
       "Give each row one primary text (bold) and at most one caption.",
-      "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) (harness: table/actions-flat).",
+      "Put row actions in the last column as Button/Icon-Flat Medium: `content: \"actions\"` with the column's `actions` (no cell function), or TableActions with IconButton appearance=\"flat\" level=\"primary\" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).",
       "Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch (\"Archive 3 projects\"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.",
       "Show an Empty State row when filters return nothing.",
       "Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.",

@@ -19,6 +19,16 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- Table: `content: "actions"` with the column's `actions` (`TableRowAction`: icon, label, size, level, onClick) draws
+  Figma's Actions-Cell — flat icon buttons named with their row ("Open, row 3"; label key `rowAction`, en/vi) — without
+  a `cell` function; each button is the row's nested layer `Button`. The Studio offers Actions as a cell Content, and a
+  Figma table pulled into the Studio keeps its Actions column (a row's own icon becomes that row's override).
+- `AiChatBubble` takes `overrides`: its action buttons are nested layers (`Button`, `Button[1]`…), so the Studio edits
+  them like Figma's nested instances; the tooltip under each button stays.
+- Zen Studio speaks design words on pages made in the Studio (core-rebuild criterion 7): the status line, the canvas
+  tag, the Inspector header (now "Show code"), notes and tooltips name no file:line and no code (`{…}`, `<Tag>`, prop,
+  children); the Code tab keeps the line. Example and template pages keep the developer wording.
+
 - `DashboardHeader`: one row of a dashboard page's header, as Figma's Primitives/Dashboard/Header draws it —
   `type="control-bar"` (Search, filter Chips, the result count, the page's actions), `navigation` (Breadcrumbs, then
   notifications and the account), `main` (the page title row: it renders a PageHeader) and `custom`. Inside an AppShell

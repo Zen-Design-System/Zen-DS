@@ -38,6 +38,7 @@ Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padd
 | `thinking` | `boolean` | `false` | AI: the assistant is working and no text has arrived yet — three dots in a looping wave. Also shown when `streaming` has no content yet. |
 | `thinkingLabel` | `string` | — | Accessible name of the thinking indicator (the locale's "Thinking" by default). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there are several). Written by Zen Studio; app code sets `actions`. |
 
 ### AiChatField
 Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219): `listening` shows Listening… and turns the microphone into Stop.

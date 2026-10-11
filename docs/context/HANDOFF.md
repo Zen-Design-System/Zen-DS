@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-07.
+Last updated: 2026-10-12.
 
 ## Read order
 
@@ -99,13 +99,15 @@ Last updated: 2026-10-07.
   Figma (three-way diff against the last pull kept in this browser, conflicts unticked, Apply = one edit/⌘Z);
   `tools/studio/figma-diff.mjs` + selftest 19, E2E NO-20. Table (`zen/feat/studio-figma-pull-table`): a frame of
   Primitives/Table/Data-Row instances is read as one table and becomes `<Table columns rows>` (rows inline, so a re-pull
-  compares them), per-row Badge / Dock-Icon looks as `overrides`; Actions cells left out with a note; fixture
+  compares them), per-row Badge / Dock-Icon looks as `overrides`; Actions cells → a `content: "actions"` column (2026-10-12); fixture
   `figma-table.json` (Demo › Table-Example 14730:78776), E2E NO-21.
   M7 on `zen/feat/studio-doc-m7`: `tools/figma-contract/nested-paths.mjs` in the gate (15/15 components with a contract
   name their nested layers as Figma does; DatePicker Apply → Submit, Time → Time-Picker). M8 on
   `zen/feat/studio-doc-m8`: the avatar test passes 5/5 through the design copy (NO-14…18) after fixes to AvatarStack
   (attributes on its root), SidePanel (modal opens inside a frame), nested pictures and Table cell photos in copies.
-  Open (M6): a Table's Actions column (a page cannot write `cell`).
+  Leftovers done 2026-10-12 (`zen/feat/studio-design-words`, session log): dashboard walk 27/27; design words on pages
+  made in the Studio (criterion 7: `src/platform/studio/words.ts` + `useWords.ts`, Code tab keeps file:line, E2E B-35);
+  Table `content: "actions"` + `actions` (Figma Actions-Cell, pulled in by figma-pull); AiChatBubble `overrides`.
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,

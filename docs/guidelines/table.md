@@ -21,7 +21,7 @@ Rows of structured records that users scan, compare, sort and act on.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Cell content | `columns[] {content, field, captionField, mediaField, bold}` | Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); a `cell` function still wins |
+| Cell content | `columns[] {content, field, captionField, mediaField, bold, actions}` | Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); actions (Figma Actions-Cell) draws the column's `actions` [{id, icon, label, size, level, onClick(row, index)}] as flat icon buttons named with their row; a `cell` function still wins |
 | Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL) |
 | Rows | `rows · getRowId` | fixed Table/Cell/Size, 1px bottom Border/Neutral/Pale; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays 52) |
 | Selection | `selectable · selectedIds + onSelectionChange (controlled) or defaultSelectedIds (the Table keeps it)` | checkbox column; select-all is indeterminate when partial; a selected row's cells take Table-Cell/Background/Selected (Figma Cell State=Selected) |
@@ -115,12 +115,15 @@ Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned 
 Object shapes the props above refer to.
 
 ```ts
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+type ButtonSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge"
 type TableAlign = "left" | "right"
 interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }
-type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle"
+type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle" | "actions"
 type TableCellEditor<T> = | (TableEditorBase<T> & { type?: "text" | "number"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: "select"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })
 type TableCellEditorType = "text" | "number" | "select" | "tags"
-interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T> | TableCellEditorType | true; onOpen?: (row: T) => void; openLabel?: ReactNode; }
+interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; actions?: TableRowAction<T>[]; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T> | TableCellEditorType | true; onOpen?: (row: T) => void; openLabel?: ReactNode; }
+interface TableRowAction<T> { id: string; icon: IconName | ReactElement; label: string; size?: ButtonSize; level?: ButtonLevel; onClick?: (row: T, index: number) => void; }
 interface TableSort { columnId: string; direction: TableSortDirection }
 type TableSortDirection = "asc" | "desc"
 ```
@@ -142,7 +145,7 @@ type TableSortDirection = "asc" | "desc"
 - Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).
 - Right-align numbers and amounts; keep text left.
 - Give each row one primary text (bold) and at most one caption.
-- Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"; a ⋯ Menu trigger for several) (harness: table/actions-flat).
+- Put row actions in the last column as Button/Icon-Flat Medium: `content: "actions"` with the column's `actions` (no cell function), or TableActions with IconButton appearance="flat" level="primary" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).
 - Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch ("Archive 3 projects"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.
 - Show an Empty State row when filters return nothing.
 - Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.

@@ -24,7 +24,8 @@ export function NestedInstanceGroup({ item, nested, element, api }: { item: Nest
   const where = `${propLabel(item.prop, element.name)}${twins.length > 1 ? ` · ${twins.indexOf(item) + 1}` : ""}`;
   // JSX written outside the owner (a const, a helper, a local component, another file): an edit changes it there, for
   // every element it renders.
-  const shared = item.elsewhere ? `${fileName(item.file)}:${item.loc.split(":")[0]}${item.count > 1 ? ` · ${item.count} on canvas` : ""}` : null;
+  // A page made in the Studio names no file: "Shared · 3 on canvas".
+  const shared = !item.elsewhere ? null : item.file.startsWith("local:") ? `a shared layer${item.count > 1 ? ` · ${item.count} on canvas` : ""}` : `${fileName(item.file)}:${item.loc.split(":")[0]}${item.count > 1 ? ` · ${item.count} on canvas` : ""}`;
   return (
     // Its scale fields name this instance on the spacing hover bus (not the selection that lists it).
     <InspectorSrcContext value={item.src}>

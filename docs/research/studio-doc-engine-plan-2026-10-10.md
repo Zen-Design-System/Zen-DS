@@ -415,3 +415,20 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
   4. Bản sao của Table có cột vẽ ô bằng `cell` (avatar người) bỏ mất ảnh: giờ giữ thành cột `content: "avatar"` (hàng
      có `<id>Photo`, `<id>Caption`) nên đổi ảnh được (`snapshot.ts cellsAsText`).
 - **Kết quả:** 5/5 trang (E2E NO-14…18); starters SP-* vẫn xanh; Vitest `frames-and-stacks` cho hai sửa thư viện.
+
+### Phần còn lại (2026-10-12, nhánh `zen/feat/studio-design-words`)
+
+- **Bài dashboard (điều kiện xong của M4):** chạy lại script 2026-10-10 trên server E2E: 27/27 bước, không bị từ chối.
+  Hai bước "?" lần trước là lỗi của script (tiêu đề chọn nhiều giờ là "3 layers"; ba thẻ cùng nhãn nên không thấy thứ tự
+  đổi); với nhãn khác nhau, kéo thả và phím → đều đổi thứ tự.
+- **Tiêu chí 7 (không còn câu nói bằng code trên trang Studio):** `src/platform/studio/words.ts` (bảng thuật ngữ:
+  layer, layers inside, property, list, From data: person › photo, set in code…) và `useWords.ts` (chỉ bật trên trang
+  Studio). Thanh trạng thái, nhãn trên canvas, đầu Inspector ("Show code"), ghi chú, tooltip không còn file:line,
+  `{…}`, `<Tag>`, prop, children; tab Code giữ số dòng. Trang example / template giữ cách nói cho dev. Kiểm tra:
+  `words.selftest.mjs` (487 câu trong source), E2E B-35.
+- **Cột Actions của bảng Figma (M6):** Table có `content: "actions"` + `actions` (Actions-Cell: IconButton flat, layer
+  `Button` từng hàng); figma-pull đưa Actions-Cell thành cột đó, icon riêng của một hàng thành override của hàng đó;
+  Studio cho chọn Content = Actions. NO-21: 6 cột, 9 nút "Open, row N".
+- **AiChatBubble:** có `overrides`; các nút hành động là layer `Button[i]`, tooltip vẫn chạy (Vitest).
+- Còn lại: các mục chờ designer trong BACKLOG (Date field Leading-Icon, contract Input có layer ẩn, 29 component chưa
+  có contract); Q4 / Q5 (tuỳ chọn) chờ user duyệt.

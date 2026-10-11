@@ -31,6 +31,8 @@ export type ZenLabels = {
   // Tables
   selectAllRows: string;
   selectRow: (row: number) => string;
+  /** Names a row's action button in a Table Actions-Cell ("Edit, row 3"); the visible tooltip is the action alone. */
+  rowAction: (action: string, row: number) => string;
   /** Count on a table's bulk-action bar ("3 selected"). */
   rowsSelected: (count: number) => string;
   /** Names a table's bulk-action bar (a toolbar). */
@@ -311,6 +313,7 @@ const en: ZenLabels = {
   searchAndSelect: "Search and select",
   selectAllRows: "Select all rows",
   selectRow: (row) => `Select row ${row}`,
+  rowAction: (action, row) => `${action}, row ${row}`,
   rowsSelected: (count) => `${enNumber.format(count)} selected`,
   selectedRowActions: (count) => `Actions for ${enNumber.format(count)} selected ${count === 1 ? "row" : "rows"}`,
   clearSelection: "Clear selection",
@@ -537,6 +540,7 @@ const vi: ZenLabels = {
   searchAndSelect: "Tìm và chọn",
   selectAllRows: "Chọn tất cả các hàng",
   selectRow: (row) => `Chọn hàng ${row}`,
+  rowAction: (action, row) => `${action}, hàng ${row}`,
   rowsSelected: (count) => `Đã chọn ${viNumber.format(count)}`,
   selectedRowActions: (count) => `Thao tác cho ${viNumber.format(count)} hàng đã chọn`,
   clearSelection: "Bỏ chọn",

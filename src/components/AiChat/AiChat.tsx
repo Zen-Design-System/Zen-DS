@@ -132,14 +132,18 @@ export interface AiChatBubbleProps {
   /** Accessible name of the thinking indicator (the locale's "Thinking" by default). */
   thinkingLabel?: string;
   className?: string;
+  /** Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there
+   *  are several). Written by Zen Studio; app code sets `actions`. */
+  overrides?: NestedOverrides;
 }
 
 /**
  * Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padding 12/16, right-aligned, max 560);
  * AI = plain Body/Extra/Regular text across the column. Both use Body/Extra/Regular; actions appear under the bubble on hover.
  */
-export function AiChatBubble({ side, children, actions = [], version, streaming = false, thinking = false, thinkingLabel: thinkingLabelProp, className }: AiChatBubbleProps) {
+export function AiChatBubble({ side, children, actions = [], version, streaming = false, thinking = false, thinkingLabel: thinkingLabelProp, className, overrides }: AiChatBubbleProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const thinkingLabel = thinkingLabelProp ?? t.thinking;
   const empty = children === undefined || children === null || children === false || children === "";
   const dots = side === "ai" && (thinking || (streaming && empty));
@@ -147,12 +151,13 @@ export function AiChatBubble({ side, children, actions = [], version, streaming 
     <div className={["zen-ai-bubble", className].filter(Boolean).join(" ")} data-side={side} data-streaming={streaming && !dots ? "true" : undefined} data-thinking={dots ? "true" : undefined} aria-busy={streaming || dots || undefined}>
       {dots
         ? <span className="zen-ai-thinking" role="status" aria-label={thinkingLabel}><i /><i /><i /></span>
-        : <div className={`zen-ai-bubble__content ${typographyStyles["Body/Extra/Regular"]}`}>{children}</div>}
+        : <div className={`zen-ai-bubble__content ${typographyStyles["Body/Extra/Regular"]}`}>{nest.slot(children)}</div>}
       {actions.length || version ? (
         <div className="zen-ai-bubble__actions">
-          {actions.map((action) => (
+          {actions.map((action, index) => (
+            // The Tooltip's hover and focus live on its anchor, so the nested layer inside it keeps the tooltip.
             <Tooltip key={action.label} content={action.label} placement="bottom">
-              <IconButton appearance="flat" level="primary" size="sm" aria-label={action.label} aria-pressed={action.pressed} onClick={action.onClick} icon={renderIcon(action.icon)} />
+              {nest("Button", <IconButton appearance="flat" level="primary" size="sm" aria-label={action.label} aria-pressed={action.pressed} onClick={action.onClick} icon={renderIcon(action.icon)} />, actions.length > 1 ? index : undefined) as ReactElement}
             </Tooltip>
           ))}
           {version ? <span className={`zen-ai-bubble__version ${typographyStyles["Body/Small/Regular"]}`}>{version}</span> : null}

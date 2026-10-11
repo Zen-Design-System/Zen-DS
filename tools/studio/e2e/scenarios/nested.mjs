@@ -592,7 +592,7 @@ export const rows = [
     },
   },
   {
-    id: "NO-21", feature: "A Figma Table pulled in (core rebuild M6: Table-Example 14730:78776, Data-Row instances, fixtures/figma-table.json) is a Table on the page: its five columns with their headers and widths, its nine rows, each row's Badge theme (Pending yellow, Rejected red) and emoji Dock-Icon from Figma", wp: "core rebuild M6 2026-10-11",
+    id: "NO-21", feature: "A Figma Table pulled in (core rebuild M6: Table-Example 14730:78776, Data-Row instances, fixtures/figma-table.json) is a Table on the page: its six columns with their headers and widths (the Actions-Cell an actions column: an Open button per row, named with its row), its nine rows, each row's Badge theme (Pending yellow, Rejected red) and emoji Dock-Icon from Figma", wp: "core rebuild M6 2026-10-11",
     async run(ctx) {
       const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
       const fs = await import("node:fs");
@@ -603,7 +603,7 @@ export const rows = [
       const grid = page.locator(`${scope}[data-zen-name="Screen"]`).first().locator(".zen-table__table").first();
       await grid.waitFor({ state: "attached", timeout: 15000 });
       const headers = await grid.locator("thead th").evaluateAll((cells) => cells.map((cell) => cell.textContent.trim()));
-      if (headers.join("|") !== "Type|Submit On|From - to|Total|Status") throw new Error(`headers ${headers.join("|")}`);
+      if (headers.join("|") !== "Type|Submit On|From - to|Total|Status|") throw new Error(`headers ${headers.join("|")}`);
       const rows = await grid.locator("tbody tr").count();
       if (rows !== 9) throw new Error(`${rows} rows`);
       const tones = await grid.locator("tbody .zen-badge").evaluateAll((badges) => badges.map((badge) => `${badge.textContent.trim()}:${badge.getAttribute("data-tone")}`));
@@ -611,8 +611,11 @@ export const rows = [
       const emoji = (await grid.locator("tbody tr").first().locator(".zen-dock-icon__emoji").first().textContent({ timeout: 5000 }).catch(() => "")).trim();
       if (emoji !== "🏝️") throw new Error(`the first row's Dock-Icon shows "${emoji}"`);
       const width = await grid.locator("thead th").nth(1).evaluate((cell) => Math.round(cell.getBoundingClientRect().width));
+      // Figma's Actions-Cell: one icon button per row, its accessible name the action and the row.
+      const actions = await grid.locator("tbody tr td:last-child button.zen-icon-button, tbody tr td:last-child button").evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-label")));
+      if (actions.length !== 9 || actions[2] !== "Open, row 3") throw new Error(`action buttons ${actions.length}: ${actions.slice(0, 3).join(", ")}`);
       await shot(page, "NO-21");
-      return `Figma Table → Table: ${headers.length} columns (${headers.join(", ")}), ${rows} rows, badges ${tones.slice(0, 3).join(", ")}, emoji ${emoji}, Submit On ${width}px`;
+      return `Figma Table → Table: ${headers.length} columns (${headers.join(", ")}), ${rows} rows, badges ${tones.slice(0, 3).join(", ")}, emoji ${emoji}, Submit On ${width}px, ${actions.length} "${actions[0]}"…`;
     },
   },
   {

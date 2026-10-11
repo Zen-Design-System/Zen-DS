@@ -14,7 +14,8 @@ import { InspectorRow, InspectorSection } from "../inspector/Section";
 import { InspectorFileContext } from "../inspector/controls/hostContext";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
-import { currentFiber, fiberOf, hostsOf, onSourceUpdate, shortSrc, srcOf, type Fiber } from "../select/picker";
+import { currentFiber, fiberOf, hostsOf, onSourceUpdate, shortSrc, srcMeta, srcOf, type Fiber } from "../select/picker";
+import { useWords } from "../useWords";
 import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { OverrideProperties } from "../inspector/OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
@@ -41,7 +42,9 @@ import { bodyRows, fieldText, rowFieldsOf, tableCellOf, tableData, tableFiberOf,
 type PartSelection = Extract<StudioSelection, { kind: "node" }>;
 
 /** Figma Table/Cell/Default › Content: the primitive cells (Table.tsx TableCellContent), by Figma's names. */
-const CONTENTS = ["text", "avatar", "photo", "icon", "dock-icon", "badge", "tag", "trend", "progress", "checkbox", "toggle"] as const;
+const CONTENTS = ["text", "avatar", "photo", "icon", "dock-icon", "badge", "tag", "trend", "progress", "checkbox", "toggle", "actions"] as const;
+/** Figma Actions-Cell's default button (docs/figma-contracts/table-cells.json): what "Actions" starts a column with. */
+const DEFAULT_ACTIONS = '[{ id: "more", icon: "icon-dots-vertical-line", label: "More actions" }]';
 type Content = (typeof CONTENTS)[number];
 const CONTENT_LABELS: Record<string, string> = {
   text: "Text", avatar: "Avatar", photo: "Photo", icon: "Icon", "dock-icon": "Dock Icon", badge: "Badge", tag: "Tag", trend: "Trend",
@@ -241,8 +244,8 @@ function PartHeader({ selection, title, where }: { selection: PartSelection; tit
           Select {selection.name}
         </Button>
         {/* zen-allow-compact-button: the Table's file:line reference, as on an element's Design tab */}
-        <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={`Show ${shortSrc(selection.src)} in the Code tab`} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
-          {shortSrc(selection.src)}
+        <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={srcMeta(selection.src) ? `Show ${srcMeta(selection.src)} in the Code tab` : "Show in the Code tab"} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
+          {srcMeta(selection.src) || "Show code"}
         </Button>
       </div>
     </header>
@@ -349,7 +352,7 @@ function DataRowPanel({ selection, part }: { selection: PartSelection; part: Par
           <ToggleButton aria-label="Editable" size="sm" checked={Boolean(live.editable)} disabled={!editable || Boolean(rowEditable.reason)} onCheckedChange={(next) => void edit(table, booleanOps("editable", next), `${selection.name}: Editable ${next ? "on" : "off"}`)} />
         </InspectorRow>
       </InspectorSection>
-      <InspectorSection title="Row data" note={rows && !rows.editable ? rows.reason : rows?.file ? `Written in ${shortSrc(rows.file)}` : undefined}>
+      <InspectorSection title="Row data" note={rows && !rows.editable ? rows.reason : rows?.file && srcMeta(rows.file) ? `Written in ${shortSrc(rows.file)}` : undefined}>
         {cell && fields.length ? fields.map(([key, value]) => (
           <InspectorRow key={key} label={key} labelTitle={key} name={`row-${key}`}>
             <ValueField label={key} value={value} disabled={locked} onSet={(next) => void edit(table, [rowOp(cell, [key], next)], `Row ${index + 1}: ${key}`)} />
@@ -364,6 +367,7 @@ function DataRowPanel({ selection, part }: { selection: PartSelection; part: Par
 
 function CellPanel({ selection, part, cell }: { selection: PartSelection; part: PartHit; cell: TableCellHit }) {
   const table = useElement(selection.src);
+  const say = useWords();
   const editable = useEditable();
   const column = cell.columnDef;
   const header = headerText(column);
@@ -387,7 +391,9 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   };
   const setContent = (next: string) => {
     if (drawn) {
-      setColumn({ content: next === "text" ? null : { kind: "string", value: next } }, `Content → ${CONTENT_LABELS[next] ?? next}`);
+      // Actions starts with Figma's default button; leaving it drops the column's buttons.
+      const actions = next === "actions" ? (column?.actions?.length ? undefined : { kind: "expression" as const, code: DEFAULT_ACTIONS }) : column?.actions ? null : undefined;
+      setColumn({ content: next === "text" ? null : { kind: "string", value: next }, ...(actions === undefined ? {} : { actions }) }, `Content → ${CONTENT_LABELS[next] ?? next}`);
       return;
     }
     if (!content || !CONTENTS.includes(next as Content)) return;
@@ -497,9 +503,9 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
       {rowLayer ? <OverrideProperties selection={selection} part={part} path={rowLayer} title={`${part.name} · this row`} note={`Changes row ${cell.row + 1} only; the column's Content, Align and Bold below change every row.`} /> : null}
       <InspectorSection title="Table/Cell/Default" note="A column shows one kind of data: Content, Align, Bold and Subtext change every row of this column.">
         <InspectorRow label="Content" name="content">
-          {kind === "actions" || kind === "custom"
+          {!drawn && (kind === "actions" || kind === "custom")
             ? <span className={typographyStyles["Body/Small/Regular"]}>{CONTENT_LABELS[kind]}</span>
-            : <EnumControl label="Content" value={kind} fallback="text" disabled={columnLocked} options={[...CONTENTS]} labels={CONTENT_LABELS} onSet={setContent} />}
+            : <EnumControl label="Content" value={kind} fallback="text" disabled={columnLocked} options={drawn ? [...CONTENTS] : CONTENTS.filter((option) => option !== "actions")} labels={CONTENT_LABELS} onSet={setContent} />}
         </InspectorRow>
         <InspectorRow label="Align" name="align" hint={columnShapeForAlign && "reason" in columnShapeForAlign ? columnShapeForAlign.reason : undefined}>
           <EnumControl label="Align" value={align} fallback="left" disabled={!editable || !columnShapeForAlign || "reason" in columnShapeForAlign} options={["left", "right"]} labels={{ left: "Left", right: "Right" }} onSet={setAlign} />
@@ -531,7 +537,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
       <InspectorSection title={`Value · row ${cell.row + 1}`} note={drawn && table?.tableRows && !table.tableRows.editable ? table.tableRows.reason : undefined}>
         {valueRows.length ? valueRows : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>This cell shows no value the row writes as data</p>}
       </InspectorSection>
-      {shape && "reason" in shape ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{shape.reason}</p> : null}
+      {shape && "reason" in shape ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(shape.reason)}</p> : null}
     </div>
     </InspectorFileContext.Provider>
   );

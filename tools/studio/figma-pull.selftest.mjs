@@ -121,11 +121,19 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   const page = pulled.text;
   check("table: the page is valid dialect", validateDialect(page), []);
   ok("table: Figma's Data-Rows are one Table, a column per header cell (content, Sort, a fixed width or Fill, Bold)",
-    page.includes('columns={[{ id: "type", header: "Type", content: "dock-icon", bold: true }, { id: "submit-on", header: "Submit On", sortable: true, width: "140px" }, { id: "from-to", header: "From - to", width: "234px" }, { id: "total", header: "Total", width: "104px", bold: true }, { id: "status", header: "Status", sortable: true, width: "198px", content: "badge" }]} rows={[{ id: "row-1", type: "Annual Leave", "submit-on": "Mar 2, 2026", "from-to": "Mar 12 - Mar 13, 2026", total: "2 days", status: "Pending" }, '));
+    page.includes('columns={[{ id: "type", header: "Type", content: "dock-icon", bold: true }, { id: "submit-on", header: "Submit On", sortable: true, width: "140px" }, { id: "from-to", header: "From - to", width: "234px" }, { id: "total", header: "Total", width: "104px", bold: true }, { id: "status", header: "Status", sortable: true, width: "198px", content: "badge" }, { id: "actions", header: "", align: "right", width: "72px", content: "actions", actions: [{ id: "open", icon: "icon-chevron-right-line-small", label: "Open", size: "small" }] }]} rows={[{ id: "row-1", type: "Annual Leave", "submit-on": "Mar 2, 2026", "from-to": "Mar 12 - Mar 13, 2026", total: "2 days", status: "Pending" }, '));
   check("table: nine rows, written in the Table (a later pull compares them as its prop)", (page.match(/\{ id: "row-\d+"/g) ?? []).length, 9);
   ok("table: a row's yellow Badge with its dot is that row's override", page.includes('"Row[row-1]/status/Badge": { theme: "yellow", leadingIcon: true }') && page.includes('"Row[row-3]/status/Badge": { theme: "red", leadingIcon: true }'));
   ok("table: an emoji Dock-Icon at Medium is an override, and its emoji is not the row's label", page.includes('"Row[row-1]/type/Dock-Icon": { size: "md", theme: "emoji", background: "solid", emoji: "🏝️" }') && !/type: "🏝/.test(page));
-  check("table: the Actions column (no Table content in code) is left out with a note", pulled.notes.filter((note) => note.includes("column 6 (Actions-Cell")).length, 1);
+  check("table: the Actions-Cell is an actions column (its icon button, named by its icon), with no note", pulled.notes.filter((note) => note.includes("Actions-Cell")).length, 0);
+  // A row whose Actions-Cell swaps another icon in: that row's override of its Button, the column keeps the first row's.
+  const swapped = structuredClone(table.frame);
+  const findTable = (node) => (node?.type === "TABLE" ? node : (node?.children ?? []).map(findTable).find(Boolean));
+  const rows = findTable(swapped).rows;
+  const actionsAt = rows[0].cells.findIndex((cell) => cell.kind === "Actions-Cell");
+  rows[2].cells[actionsAt].parts[0].props["Leading-Icon-Src"] = "icon-trash-line";
+  const swappedPage = pageFromFigma(swapped, { mapping }).text;
+  ok("table: a row's own action icon is that row's override of its Button", swappedPage.includes('"Row[row-3]/actions/Button": { icon: "icon-trash-line" }') && !swappedPage.includes('"Row[row-1]/actions/Button"'));
   ok("table: a Search takes its text as its placeholder", page.includes('<Search placeholder="Search" />'));
   check("table: the compiled page has no usage-harness errors", checkSource(compileReact(page, { file: "table.zen.tsx" }).code, "TableExample.tsx").filter((finding) => finding.severity === "error").map((finding) => finding.rule), []);
 }

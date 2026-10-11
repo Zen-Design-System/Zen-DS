@@ -2,7 +2,7 @@ import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useSt
 import { ZenPortal } from "../Portal";
 import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
-import { Button, IconButton } from "../Button";
+import { Button, IconButton, type ButtonLevel, type ButtonSize } from "../Button";
 import { Checkbox } from "../Checkbox";
 import { DockIcon } from "../DockIcon";
 import { Menu, type MenuEntry } from "../Menu";
@@ -29,7 +29,25 @@ export interface TableSort { columnId: string; direction: TableSortDirection }
  * — Text-Cell, Avatar-Cell, Photo-Cell, Basic-Icon-Cell, Dock-Icon-Cell, Badge-Cell, Tag-Cell, Trend-Cell,
  * Progress-Cell, Control-Cell (Checkbox, Toggle).
  */
-export type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle";
+export type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle" | "actions";
+
+/**
+ * One button of a column's Figma Actions-Cell (`content: "actions"`): a Button/Icon-Flat (IconButton, flat appearance)
+ * for every row, the row's nested layer `Row[<id>]/<column>/Button` (`[i]` when there are several).
+ */
+export interface TableRowAction<T> {
+  id: string;
+  /** Figma Leading-Icon-Src: an icon name or an icon element. */
+  icon: IconName | ReactElement;
+  /** The button's accessible name and tooltip ("Edit", "Delete", "More actions"); the row's first column is added for screen readers. */
+  label: string;
+  /** Figma Size (default `md`, Medium). */
+  size?: ButtonSize;
+  /** Figma Level (default `primary`). */
+  level?: ButtonLevel;
+  /** Runs with the row and its index. */
+  onClick?: (row: T, index: number) => void;
+}
 
 export interface TableColumn<T> {
   id: string;
@@ -53,8 +71,10 @@ export interface TableColumn<T> {
   /** Figma Content of the column's cells when there is no `cell` (default `text`): the row's `field` as a Text cell, an
    *  Avatar or Photo (picture from `mediaField`, else initials), an Icon or Dock Icon (icon name from `mediaField`), Badges
    *  or Tags (a string or a list of strings), a Trend (the sign of the value: up, down, flat), a Progress bar (0–100), or
-   *  a Checkbox or Toggle (on when the value is true). */
+   *  a Checkbox or Toggle (on when the value is true), or the column's `actions` as icon buttons (Figma Actions-Cell). */
   content?: TableCellContent;
+  /** Figma Actions-Cell's buttons when `content` is `actions`, the same for every row (a row's own icon or level: `overrides`). */
+  actions?: TableRowAction<T>[];
   /** The row field the cell draws (default: the column's id). */
   field?: string;
   /** Figma Subtext: a second line under the label, from this row field (text, avatar, photo, icon and dock-icon cells). */
@@ -749,7 +769,7 @@ const textOf = (value: unknown) => (typeof value === "string" || typeof value ==
 export function tableEditorTypeFor(column: { cell?: unknown; content?: string; field?: string; id: string }, rows: readonly unknown[]): TableCellEditorType | null {
   if (column.cell) return null;
   const content = column.content ?? "text";
-  if (content === "checkbox" || content === "toggle") return null;
+  if (content === "checkbox" || content === "toggle" || content === "actions") return null;
   const field = column.field ?? column.id;
   const sample = rows.map((row) => (row as Record<string, unknown> | null)?.[field]).find((value) => value !== undefined && value !== null);
   if (content === "badge" || content === "tag") return Array.isArray(sample) ? "tags" : content === "badge" ? "select" : "text";
@@ -836,9 +856,26 @@ function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest): R
       return nest("Checkbox", <Checkbox defaultChecked={value === true} aria-label={name} />);
     case "toggle":
       return nest("Toggle-Button", <ToggleButton size="sm" defaultChecked={value === true} aria-label={name} />);
+    case "actions":
+      return column.actions?.length ? <RowActions actions={column.actions} row={row} index={index} nest={nest} /> : null;
     default:
       return label ? <TableText caption={caption} bold={bold}>{label}</TableText> : null;
   }
+}
+
+/**
+ * A column's `actions` drawn as Figma's Actions-Cell: Button/Icon-Flat Medium Primary (IconButton, flat) in a row of
+ * gap XSmall at the cell's end; each is the row's nested layer "Button" (`Button[i]` for several), named with its row.
+ */
+function RowActions<T>({ actions, row, index, nest }: { actions: TableRowAction<T>[]; row: T; index: number; nest: Nest }) {
+  const t = useZenLabels();
+  return (
+    <TableActions>
+      {actions.map((action, at) => nest("Button", (
+        <IconButton key={action.id} appearance="flat" level={action.level ?? "primary"} size={action.size ?? "md"} icon={action.icon} aria-label={t.rowAction(action.label, index + 1)} tooltip={action.label} onClick={action.onClick ? () => action.onClick?.(row, index) : undefined} />
+      ), actions.length > 1 ? at : undefined))}
+    </TableActions>
+  );
 }
 
 /** Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned to the cell's end. */

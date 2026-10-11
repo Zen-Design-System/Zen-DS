@@ -6,6 +6,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { currentFiber, nameOf, onSourceUpdate, shortSrc, type Fiber } from "../select/picker";
+import { useWords } from "../useWords";
 import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { OverrideProperties } from "./OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
@@ -275,6 +276,9 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   const name = part?.name ?? selection.part?.name ?? "Part";
   const owner = selection.name;
   const at = shortSrc(selection.src);
+  // On a page made in the Studio the notes speak design words and the code link names no file (plan criterion 7).
+  const say = useWords();
+  const shownAt = say(at);
   const resolved = part && part.owner.src === selection.src && part.element.isConnected ? part : null;
   const ownerProps = resolved?.owner.fiber ? currentFiber(resolved.owner.fiber).memoizedProps ?? {} : {};
   const text = resolved?.element.textContent?.trim() ?? "";
@@ -316,23 +320,23 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
-        {item || group ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`}</p>}
+        {item || group ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
             Select {owner}
           </Button>
           {/* zen-allow-compact-button: the owner's file:line reference, as on an element's Design tab */}
-          <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={`Show ${at} in the Code tab`} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
-            {at}
+          <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={shownAt ? `Show ${shownAt} in the Code tab` : "Show in the Code tab"} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
+            {shownAt || "Show code"}
           </Button>
         </div>
         {inside ? <DataItemBanner item={inside} /> : null}
         {driving.length && !item && !inside && !group && !overridable ? (
           <p className={`studio-inspector__note studio-part__edit ${typographyStyles["Body/Small/Regular"]}`}>
             Edit via the owner&apos;s {driving.map((prop, index) => (
-              <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{prop}</span></span>
-            ))} (Playground properties or source)
+              <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{say(prop)}</span></span>
+            ))} {say("(Playground properties or source)")}
           </p>
         ) : null}
       </header>
