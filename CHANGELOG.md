@@ -42,7 +42,10 @@ removed (four unused colour ramps were, see Removed).
   of a fixed-choice prop is typed as that prop), and draws what the canvas draws (new browser test).
 - Zen Studio: `tools/studio/figma-pull.mjs` turns a Figma frame made with the Zen library (read with use_figma) into a
   page you made — components with the properties that differ from their defaults, overridden nested instances as
-  `overrides`, auto layout as Stack, text as Text; what has no Zen component is listed (not yet run on the live file).
+  `overrides`, auto layout as Stack, text as Text; what has no Zen component is listed. Run on the live file: a slot's
+  layers become the component's content, data (Sidebar sections, Breadcrumbs and Segmented items, the selected item) or
+  a node prop (Sidebar brand and footer); Fill container, grid placement, text alignment and absolute layers carry over,
+  and icon-only buttons get an aria-label.
 - Zen Studio, a design copy (New page from this frame): a photo goes on one avatar of an AvatarStack (that layer's
   override), and a Table column whose cells draw a person's photo keeps it as an Avatar column; the avatar test passes
   on the avatar, card, App Shell, table and sidebar pages.

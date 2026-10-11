@@ -313,9 +313,35 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
   (rồi Import trong Studio).
 - **Kiểm tra:** `figma-pull.selftest.mjs` 14 (frame mẫu đúng dữ liệu contract: trang hợp lệ, override lồng, Badge đỏ,
   gap/padding theo variable, ghi chú); E2E NO-13 (trang đó mở trong Studio và vẽ đúng).
-- **Chưa:** đoạn code `use_figma` chưa chạy trên file thật — phiên này không có Figma MCP (đã hỏi user qua Giám sát
-  cách lấy frame); nội dung slot của instance (Card › Content) chưa đọc; bảng Table của Figma chưa map sang Table;
-  diff khi kéo lại chưa làm.
+- **Chưa (lúc đó):** đoạn code `use_figma` chưa chạy trên file thật; nội dung slot chưa đọc.
+
+### M6 — đọc thật trên file Figma (2026-10-11, nhánh `zen/feat/studio-figma-pull-live`)
+
+- Đọc frame Overviews 14243:64878 của file `9nZv4uW2LT21yuHabMTCh1` qua `use_figma` (chỉ đọc). Câu trả lời giới hạn
+  20 KB và bị cắt khi có nhiều ký tự ngoài ASCII, nên JSON được thoát `\uXXXX` và chia phần (`PART i/n`, 12 000 ký tự);
+  `joinParts` ghép lại. Bản đọc lưu ở `tools/studio/fixtures/figma-overviews.json`.
+- Sửa theo những gì frame thật cho thấy:
+  - Slot của instance: lớp trong slot thành nội dung (Card › Content), dữ liệu (`DATA_SLOTS`: Sidebar `sections` theo
+    từng frame với Section-Title làm nhãn, Breadcrumbs `items`, Segmented `options`; Select = Yes → `selectedId` /
+    `defaultValue`), hoặc prop dạng node (Sidebar Header-Content → `brand`, Footer-Content → `footer` với
+    `<SidebarMenuItem>`).
+  - Instance không có component Zen nhưng có slot (Dashboard/Header): giữ nội dung slot trong Stack theo bố cục của
+    frame chứa chúng (BACKLOG: hỏi designer nên map sang gì). Instance là icon (icon-zen) → `<Icon>`. Hình vẽ (vector,
+    shape) bỏ ra, gộp một ghi chú.
+  - Bố cục:
+    - Fill container → `width` / `height="fill"`; hàng có mọi lớp Fill theo chiều cao → `align="stretch"` (Stack hàng
+      mặc định căn giữa); Figma MIN trong hàng → `align="start"`.
+    - Frame không gap → `gap="none"` (Stack mặc định md); padding theo X/Y.
+    - Grid 8 cột với thẻ span 2 → Grid 2 cột, lớp xếp theo vị trí Figma đặt (hàng rồi cột), không theo thứ tự panel Layers.
+  - Chữ: căn chữ (`align`); line break mềm U+2028 thành khoảng trắng.
+  - Lớp Ignore auto layout → `position="absolute"` với constraint và inset theo bước Spacing/Padding (Text được bọc
+    trong Stack).
+  - IconButton không tên → `aria-label` theo tên layer, không có thì theo icon (harness `icon-button/needs-name`).
+  - Breadcrumbs (chỉ có slot) tìm được qua `DATA_SLOTS`.
+- **Kiểm tra:** `figma-pull.selftest.mjs` 38 (thêm 20 trên bản đọc thật, kể cả harness không lỗi trên trang đã
+  compile); E2E NO-19 (trang mở trong Studio: Sidebar đủ chiều cao với mục đang chọn, Breadcrumbs, Segmented, 5 thẻ
+  2 × 3 đúng thứ tự Figma).
+- **Chưa:** diff khi kéo lại; bảng Table của Figma chưa map sang Table.
 
 ### M7 — kênh override, đợt 2 = gate `nested-paths` (2026-10-11, nhánh `zen/feat/studio-doc-m7`)
 

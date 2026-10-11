@@ -14,6 +14,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (Chip/Advanced has a Badge with Remove), and where the multi-select count is (no captured variant); Figma's Date field
   calls its leading icon Leading-Icon, the other fields Leading. Pointer: `ALLOWED` in
   `tools/figma-contract/nested-paths.mjs`.
+- **P2 · Figma pull, question for the designer (M6 live read, 2026-10-11):** `Primitives/Dashboard/Header` (4122:33402,
+  Type Navigation / Main) has no Zen component; PageHeader covers part of Type=Main. Which code should it map to? Until
+  then figma-pull keeps its slots' content in Stacks. Pointer: `tools/studio/figma-pull.mjs` (unmapped instance with slots).
 - **P2 · Re-capture the Input contract with hidden layers (M7, 2026-10-11):** Input/Textarea/Select Leading and Trailing
   are hidden in every captured variant (contracts skip invisible instances); a figma-kit re-capture (needs Figma access)
   lets `nested-paths` check them instead of allowing them.
