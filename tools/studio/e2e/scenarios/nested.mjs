@@ -2,7 +2,7 @@
 // Studio, a Zen component the owner draws itself (Card's Sub-Action, the icon inside it, one Table row's Badge) is
 // selected with ⌘-click and changed in the Inspector like Figma's nested instance. The edit is the owner's `overrides`
 // (src/components/_shared/nested.tsx), one ⌘Z.
-import { selectedSrc, sleep, until } from "../lib/studio.mjs";
+import { openAssetLibrary, selectedSrc, sleep, statusText, until } from "../lib/studio.mjs";
 import { focusScreen, newPage, pageText } from "./builder.mjs";
 import { pickOption } from "./inspector.mjs";
 
@@ -34,15 +34,46 @@ export default function Page() {
 }
 `;
 
+/** A list (a `.map` of the mock rows) of Badges with a fixed theme (core rebuild M4). */
+const LIST_PAGE = `// @zen-page {"format":1,"title":"Row list"}
+import { Board, Screen, proto } from "@zen/design-system/builder";
+import { Avatar, Badge, Stack } from "@zen/design-system";
+
+export const mock = {
+  people: [
+    { id: "alex", name: "Alex Duong" },
+    { id: "binh", name: "Binh Tran" },
+    { id: "chi", name: "Chi Le" },
+  ],
+};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Row list" device="desktop">
+        <Stack gap="md" padding="xl">
+          <Stack direction="row" gap="md">
+            {mock.people.map((person) => <Badge theme="neutral">{person.name}</Badge>)}
+          </Stack>
+          <Stack direction="row" gap="md">
+            {mock.people.map((person) => <Avatar size="md" src="" alt={person.name} />)}
+          </Stack>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** A Studio page holding a Card with its Sub-Action and a Table of three people; returns the page and its id. */
-async function openNestedPage(ctx) {
+async function openNestedPage(ctx, text = PAGE) {
   const { page } = await newPage(ctx, { device: "desktop" });
   // The app's own page store (same module, served by Vite): the page as the Studio would keep it.
-  const id = await page.evaluate(async (text) => (await import("/src/platform/studio/builder/store/pageStore.ts")).importPage(text, null), PAGE);
+  const id = await page.evaluate(async (source) => (await import("/src/platform/studio/builder/store/pageStore.ts")).importPage(source, null), text);
   const url = new URL(page.url());
   url.searchParams.set("page", `local:${id}`);
   await page.goto(url.href, { waitUntil: "domcontentloaded" });
-  await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Table"] tbody .zen-badge`).count()) === 3, { timeout: 30000, message: "the page's Card and Table on the canvas" });
+  await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-badge, [data-zen-src^="local:${id}.zen.tsx:"].zen-badge`).count()) >= 3, { timeout: 30000, message: "the page's Badges on the canvas" });
   await focusScreen(page);
   await sleep(300);
   return { page, id };
@@ -364,6 +395,84 @@ export const rows = [
       await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after ⌘Z" });
       await shot(page, "NO-09");
       return "Card › Parts › IconButton · Sub-Action → Level Danger as the Card's override · ⌘Z";
+    },
+  },
+  {
+    id: "NO-10", feature: "One row of a list edits on its own (core rebuild M4, plan criterion 3): Row 2 › Theme → Red makes that Badge red only (the rows get a theme field, the Badge reads it); All 3 rows › Green paints every one; ⌘Z back to the row's own", wp: "core rebuild M4 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx, LIST_PAGE);
+      const badges = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Badge"]`);
+      const tones = async () => badges.evaluateAll((els) => els.map((el) => el.getAttribute("data-tone")).join(","));
+      const box = await badges.nth(1).boundingBox();
+      await page.keyboard.down("ControlOrMeta");
+      try { await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); } finally { await page.keyboard.up("ControlOrMeta"); }
+      await until(async () => /^Badge(\s|$)/.test(await heading(page)), { message: "the second Badge selected" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
+      const scope = page.locator("#studio-right").getByRole("group", { name: "Changes go to" });
+      await until(() => scope.count(), { message: 'the "Changes go to" choice (Row 2 · All 3 rows)' });
+      await pick(page, "theme", "Red");
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /<Badge theme=\{person\.theme\}>/.test(text) && /id: "binh", name: "Binh Tran", theme: "red"/.test(text) && /id: "alex", name: "Alex Duong", theme: "neutral"/.test(text); }, { message: "binh's theme red in the data, the Badge reading person.theme" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Badge[^>]*>/)?.[0]}; status: ${await statusText(page)})`); });
+      await until(async () => (await tones()) === "neutral,red,neutral", { message: "only the second Badge red" }).catch(async (error) => { throw new Error(`${error.message} (tones ${await tones()})`); });
+      const steps = ["Row 2 › Red: neutral,red,neutral"];
+      await scope.getByRole("button", { name: /^All 3 rows/ }).click();
+      await pick(page, "theme", "Green");
+      await until(async () => /<Badge theme="green">/.test((await pageText(page, id)) ?? ""), { message: 'theme="green" on the Badge for all rows' });
+      await until(async () => (await tones()) === "green,green,green", { message: "every Badge green" }).catch(async (error) => { throw new Error(`${error.message} (tones ${await tones()})`); });
+      steps.push("All 3 rows › Green: green,green,green");
+      await undo(page);
+      await until(async () => (await tones()) === "neutral,red,neutral", { message: "⌘Z: the row's own red again" }).catch(async (error) => { throw new Error(`${error.message} (tones ${await tones()})`); });
+      steps.push("⌘Z → neutral,red,neutral");
+      await shot(page, "NO-10");
+      return steps.join(" · ");
+    },
+  },
+  {
+    id: "NO-11", feature: "A photo for one row of a list (core rebuild M4, Figma's replace image on one instance): the second Avatar selected, Assets › Photos › a photo shows on that Avatar only (the rows get a src field); one ⌘Z", wp: "core rebuild M4 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx, LIST_PAGE);
+      // An Avatar carries no data-zen-src of its own (the Studio finds it through React): found by its class.
+      const avatars = page.locator('[data-studio-frame="screen:screen-1"] .zen-avatar');
+      await until(async () => (await avatars.count()) === 3, { message: "three Avatars on the canvas" });
+      const photos = async () => avatars.evaluateAll((els) => els.map((el) => (el.querySelector("img") ? "photo" : "none")).join(","));
+      const box = await avatars.nth(1).boundingBox();
+      await page.keyboard.down("ControlOrMeta");
+      try { await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); } finally { await page.keyboard.up("ControlOrMeta"); }
+      await until(async () => /^Avatar(\s|$)/.test(await heading(page)), { message: "the second Avatar selected" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
+      await openAssetLibrary(page, "Photos");
+      const assets = page.locator("#studio-left-panel-assets");
+      await assets.getByLabel("Search photos").fill("coffee");
+      await sleep(200);
+      await assets.locator(".studio-assets__photo[data-photo]").first().click();
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /<Avatar size="md" src=\{person\.src\}/.test(text) && /id: "binh", name: "Binh Tran", src: "zen-media:[^"]+"/.test(text) && /id: "alex", name: "Alex Duong", src: ""/.test(text); }, { message: "binh's photo in the data, the Avatar reading person.src" }).catch(async (error) => { throw new Error(`${error.message} (${((await pageText(page, id)) ?? "").match(/<Avatar[^>]*>/)?.[0]}; status: ${await statusText(page)})`); });
+      await until(async () => (await photos()) === "none,photo,none", { message: "the photo on the second Avatar only" }).catch(async (error) => { throw new Error(`${error.message} (${await photos()})`); });
+      await undo(page);
+      await until(async () => (await photos()) === "none,none,none", { message: "⌘Z: no photo" }).catch(async (error) => { throw new Error(`${error.message} (${await photos()})`); });
+      await shot(page, "NO-11");
+      return "row 2 Avatar ← photo (none,photo,none) · ⌘Z → none,none,none";
+    },
+  },
+  {
+    id: "NO-12", feature: "Drag a card past another on a page you made (the dashboard walk's unverified step): the Card dragged below the Table lands there and stays selected (by id); one ⌘Z puts it back, still selected", wp: "core rebuild M4 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      await selectWritten(page, id, "Card", 6, 30);
+      const box = (name) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).first().boundingBox();
+      const card = await box("Card");
+      const table = await box("Table");
+      // Pressed in the selected Card (its centre, as a drag in Figma), moved in steps past the Table's bottom edge, dropped.
+      const from = { x: card.x + card.width / 2, y: card.y + card.height / 2 };
+      const to = { x: table.x + table.width / 2, y: table.y + table.height + 4 };
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      for (let step = 1; step <= 14; step += 1) await page.mouse.move(from.x + ((to.x - from.x) * step) / 14, from.y + ((to.y - from.y) * step) / 14);
+      await sleep(150);
+      await page.mouse.up();
+      const below = async () => { const text = (await pageText(page, id)) ?? ""; return text.indexOf("<Card ") > text.indexOf("<Table "); };
+      await until(below, { message: "the Card below the Table after the drag" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      const steps = [`dragged · ${await stillSelected(page, id, "Card", 0, "the drag")}`];
+      await undo(page);
+      await until(async () => !(await below()), { message: "the Card above the Table after ⌘Z" });
+      steps.push(`⌘Z · ${await stillSelected(page, id, "Card", 0, "⌘Z of the drag")}`);
+      return steps.join(" · ");
     },
   },
   {

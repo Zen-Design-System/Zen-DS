@@ -508,5 +508,56 @@ test("param: a prop of a component of the file is edited where it is used; `path
   });
 }
 
+// setRowProp (core rebuild M4): one row of a list takes its own value for a fixed prop, as one instance in Figma.
+{
+  const ROWS = "local:rows.zen.tsx";
+  const rows = [
+    "export const mock = {",
+    "  people: [",
+    "    { id: \"alex\", name: \"Alex Duong\" },",
+    "    { id: \"binh\", name: \"Binh Tran\", size: \"lg\" },",
+    "    { id: \"chi\", name: \"Chi Le\" },",
+    "  ],",
+    "};",
+    "export default function Page() {",
+    "  return (",
+    "    <List>",
+    "      {mock.people.map((person) => <ListItem title={person.name} leading={<Avatar size=\"sm\" src=\"\" />} />)}",
+    "    </List>",
+    "  );",
+    "}",
+    "",
+  ].join("\n");
+  const at = (text, snippet) => {
+    const offset = text.indexOf(snippet);
+    const before = text.slice(0, offset);
+    return `${before.split("\n").length}:${offset - (before.lastIndexOf("\n") + 1)}`;
+  };
+  const avatar = at(rows, "<Avatar");
+  const item = at(rows, "<ListItem");
+  test("setRowProp: a fixed prop becomes each row's field, the chosen row takes the new value, the element reads it", () => {
+    const result = dataFieldEdit(rows, ROWS, avatar, "Avatar", { op: "setRowProp", name: "size", row: 2, value: { kind: "string", value: "xl" } });
+    assert.ok(!result.error, result.error);
+    // binh already has a `size` (another meaning): the new field is size2; every row keeps "sm", chi takes "xl".
+    assert.equal(result.field, "size2");
+    assert.match(result.code, /\{ id: "alex", name: "Alex Duong", size2: "sm" \}/);
+    assert.match(result.code, /\{ id: "binh", name: "Binh Tran", size: "lg", size2: "sm" \}/);
+    assert.match(result.code, /\{ id: "chi", name: "Chi Le", size2: "xl" \}/);
+    assert.match(result.code, /<Avatar size=\{person\.size2\} src="" \/>/);
+  });
+  test("setRowProp: an unset prop is set on the chosen row only (the others keep the component's default)", () => {
+    const result = dataFieldEdit(rows, ROWS, item, "ListItem", { op: "setRowProp", name: "description", row: 0, value: { kind: "string", value: "On leave" } });
+    assert.ok(!result.error, result.error);
+    assert.match(result.code, /\{ id: "alex", name: "Alex Duong", description: "On leave" \}/);
+    assert.match(result.code, /\{ id: "chi", name: "Chi Le" \}/);
+    assert.match(result.code, /<ListItem description=\{person\.description\} title=\{person\.name\}/);
+  });
+  test("setRowProp: refused for a prop read from the data, an element outside a list, and a missing row", () => {
+    assert.match(dataFieldEdit(rows, ROWS, item, "ListItem", { op: "setRowProp", name: "title", row: 0, value: { kind: "string", value: "x" } }).error, /not a fixed value/);
+    assert.match(dataFieldEdit(rows, ROWS, at(rows, "<List>"), "List", { op: "setRowProp", name: "gap", row: 0, value: { kind: "string", value: "md" } }).error, /not drawn by a list/);
+    assert.equal(dataFieldEdit(rows, ROWS, avatar, "Avatar", { op: "setRowProp", name: "size", row: 7, value: { kind: "string", value: "xl" } }).code, "not-found");
+  });
+}
+
 if (process.exitCode) console.log(`data-source self-test: failures above (${passed} passed)`);
 else console.log(`✓ data-source (originOf · setDataField · row edits) self-test: ${passed} cases`);

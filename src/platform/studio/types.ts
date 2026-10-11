@@ -290,6 +290,8 @@ export type EditOp =
    * a column without `cell` draws. `path`: fields after the value (`person={people[row.id]}` then `.theme`).
    */
   | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; path?: string[]; value: EditValue }
+  /** A fixed prop of an element a `.map` draws, made that row's own (core rebuild M4): the rows get a field, the element reads it. */
+  | { op: "setRowProp"; name: string; row: number; value: EditValue }
   /**
    * One field of the object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item when it is
    * an array literal (`trailing={[{ … }]}`): `value` replaces or appends the field, null removes it (SourceAttr.shape).

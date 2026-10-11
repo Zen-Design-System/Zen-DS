@@ -1283,7 +1283,69 @@ export function dataRowEdit(code, file, loc, name, op, { read = () => null } = {
   }
 }
 
+/**
+ * "This row only" for a fixed prop of an element a `.map` draws (core rebuild M4, plan criterion 3: one row of a list is
+ * edited on its own, as one instance in Figma): the prop becomes a field of the rows — every row keeps the value the
+ * prop had (none when it had none: the component's default), row `op.row` takes `op.value` — and the element reads it
+ * (`size={person.size}`). One text edit, so one undo step. Only rows written as { … } objects in the same file (a page
+ * you made keeps its mock data there); a prop already read from the row is that row's field (setDataField).
+ */
+function rowPropEdit(code, file, loc, name, op, read) {
+  const mod = moduleOf(file, code);
+  const element = locate(mod, loc, name);
+  if (typeof op.name !== "string" || !/^[A-Za-z_$][\w$-]*$/.test(op.name)) refuse("setRowProp names the prop (`name`)", "invalid");
+  if (!Number.isInteger(op.row) || op.row < 0) refuse("setRowProp needs the row (`row`)", "invalid");
+  const row = mapRowOf(mod, element);
+  if (!row) refuse(`<${name}> is not drawn by a list (.map), so it has no rows of its own`, "invalid");
+  const param = row.fn.params[0];
+  if (param?.type !== "Identifier") refuse("The list's rows are taken apart ({ … }) in the code; name the row to edit one row");
+  const list = listOf(mod, row.array, read);
+  if (list.mod.file !== mod.file) refuse("The rows are written in another file; edit them there");
+  const items = list.node.elements.map((item) => unwrap(item));
+  const index = op.row + row.offset;
+  if (!items[index]) refuse(`The list has no row ${op.row + 1}`, "not-found");
+  if (items.some((item) => item?.type !== "ObjectExpression" || item.properties.some((prop) => prop.type !== "ObjectProperty"))) refuse("The rows are not all written as { … } objects; edit the data in the code");
+  const attr = element.openingElement.attributes.find((a) => a.type === "JSXAttribute" && jsxName(a.name) === op.name);
+  // What the other rows keep: the value written now, or nothing (the prop unset draws the component's default).
+  let kept = null;
+  if (attr) {
+    const expression = attr.value?.type === "JSXExpressionContainer" ? unwrap(attr.value.expression) : null;
+    if (!attr.value) kept = "true";
+    else if (attr.value.type === "StringLiteral") kept = JSON.stringify(attr.value.value);
+    else if (expression && isLiteralNode(expression)) kept = mod.code.slice(expression.start, expression.end);
+    else refuse(`${op.name} is not a fixed value here (it is computed, or read from the data); edit it as it is`, "invalid");
+  }
+  // The field takes the prop's name, unless a row already has a field by that name.
+  const taken = new Set(items.flatMap((item) => item.properties.map((prop) => keyName(prop.key))));
+  const base = op.name.replace(/-(\w)/g, (_, char) => char.toUpperCase());
+  let field = base;
+  for (let count = 2; taken.has(field); count += 1) field = `${base}${count}`;
+  const edits = [];
+  items.forEach((item, at) => {
+    const value = at === index ? literalCode(op.value, null, mod.code, file) : kept;
+    if (value !== null) edits.push({ at: item.start, apply: (text) => withField(text, item, field, value) });
+  });
+  const binding = `${op.name}={${param.name}.${field}}`;
+  if (attr) edits.push({ at: attr.start, apply: (text) => `${text.slice(0, attr.start)}${binding}${text.slice(attr.end)}` });
+  else {
+    const at = element.openingElement.name.end;
+    edits.push({ at, apply: (text) => `${text.slice(0, at)} ${binding}${text.slice(at)}` });
+  }
+  // From the end of the file back: each edit leaves the places before it where they were.
+  let next = mod.code;
+  for (const edit of edits.sort((a, b) => b.at - a.at)) next = edit.apply(next);
+  return { file, code: next, source: `row ${op.row + 1}: ${field}`, changed: next !== mod.code, field };
+}
+
 export function dataFieldEdit(code, file, loc, name, op, { read = () => null } = {}) {
+  if (op?.op === "setRowProp") {
+    try {
+      return rowPropEdit(code, file, loc, name, op, read);
+    } catch (error) {
+      if (error instanceof Refusal) return { error: error.message, code: error.code };
+      throw error;
+    }
+  }
   try {
     const mod = moduleOf(file, code);
     const element = locate(mod, loc, name);

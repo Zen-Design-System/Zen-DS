@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
+import { Segmented } from "../../../components/Segmented";
+import { rowScope as rowScopeStore, useRowScope } from "./rowScope";
 import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { pageLabels } from "../../PlatformApp";
@@ -12,7 +14,7 @@ import { studioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, SourceAttr, SourceElement, StudioNodeRef } from "../types";
 import { childHits, findBySrc, isTransparentName, onSourceUpdate, rectOf, selectHit, selectionInstances, type FiberHit } from "../select/picker";
-import { noteEditTarget } from "../select/remap";
+import { noteEditTarget, sameSelectedElement } from "../select/remap";
 import { navigate } from "../shell/navigation";
 import { RemoveAction, SlotsSection } from "../slots";
 import { slotOf } from "../slots/registry";
@@ -342,6 +344,15 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const [element, setElement] = useState<SourceElement | null | undefined>(undefined);
   const [overrides, setOverrides] = useState<Record<string, PropValue>>({});
   const [version, setVersion] = useState(0);
+  // A row of a list on a page you made (core rebuild M4, plan criterion 3): a change goes to this row only, as one
+  // instance in Figma, unless "All rows" is chosen (rowScope.ts; another layer starts on "row" again).
+  const rowScope = useRowScope();
+  const scoped = useRef(selection);
+  useEffect(() => {
+    // The same layer moved by a write keeps the choice; another layer (another row included) starts on "row".
+    if (!sameSelectedElement(scoped.current, selection)) rowScopeStore.set("row");
+    scoped.current = selection;
+  }, [selection]);
   const refetch = useCallback(() => setVersion((value) => value + 1), []);
   const info = useSyncExternalStore(selectionInstances.subscribe, selectionInstances.get, selectionInstances.get);
   const instances = info.src === selection.src ? info.count : 0;
@@ -507,6 +518,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     setProp: (name, value) => {
       if (!element) return;
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
+      // A .map row on a page you made: "This row" makes a fixed value this row's own (op setRowProp: the rows get a
+      // field, the element reads it); "All rows" writes the value on the layer, a binding to the row's field included.
+      const rowScoped = element.file.startsWith("local:") && instances > 1 && dataRow !== null;
+      const allRows = rowScoped && rowScope === "all" && current.state === "bound" && current.dataSource?.kind === "row";
+      if (rowScoped && rowScope === "row" && current.state !== "bound") {
+        const next = toEditValue(value);
+        if (!next) return;
+        void send([{ op: "setRowProp", name, row: dataRow, value: next }], `${element.name} ${name} → ${display(value)} (row ${dataRow + 1})`, { [name]: { state: "literal", value, raw: "" } });
+        return;
+      }
       // A picture (Avatar / Image / account `src`): the pick is a zen-media:/zen-asset: value; the file decides how it is
       // written (a page you made keeps it, the repo takes the picture's file: media.ts pictureCode).
       const picture = typeof value === "string" && propSpecs(element.name).find((spec) => spec.name === name)?.editor.kind === "photo";
@@ -514,7 +535,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       const pictureLabel = picture ? `${element.name} ${name} → ${String(value).replace(/^zen-(media|asset):/, "")}` : null;
       // A picture from the shared library (platformMedia): never edited in PlatformMedia.tsx, the layer takes its own.
       const fromLibrary = picture && current.state === "bound" && current.dataSource?.file?.endsWith("/PlatformMedia.tsx");
-      if (!fromLibrary && dataEditable(current, selection.panelId ? "playground" : undefined)) {
+      if (!fromLibrary && !allRows && dataEditable(current, selection.panelId ? "playground" : undefined)) {
         // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
         if (current.dataSource.kind === "param") {
           const world = canvasApi.getWorldElement();
@@ -588,7 +609,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         },
       };
     },
-  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow, cellRow]);
+  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow, cellRow, rowScope]);
 
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.
@@ -814,6 +835,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
             <RemoveAction compact selection={selection} element={element} editable={editable} />
           </span>
         </div>
+        {element?.file.startsWith("local:") && editable && instances > 1 && dataRow !== null ? (
+          <Segmented
+            aria-label="Changes go to"
+            size="sm"
+            fullWidth
+            value={rowScope}
+            onValueChange={(next) => rowScopeStore.set(next === "all" ? "all" : "row")}
+            options={[{ id: "row", label: `Row ${dataRow + 1}` }, { id: "all", label: `All ${instances} rows` }]}
+          />
+        ) : null}
         <p className={`studio-inspector__meta-row ${typographyStyles["Body/Small/Regular"]}`}>
           <span>{kindLabel(kind)}</span>
           {docsPage ? (

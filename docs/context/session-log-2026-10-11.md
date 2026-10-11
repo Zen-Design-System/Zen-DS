@@ -61,6 +61,19 @@
   canvas redraws. `flatten` emits each row id once. Gate PASS (E2E 230/230).
 - Engine budget: the user chose 160 KB gzip (via Giám sát) over splitting the engine; `build-check.mjs` ENGINE_BUDGET_KB.
 
+## Core rebuild M4: one row of a list edits on its own (branch zen/feat/studio-doc-m4 off 76c7683, tier L)
+
+- Giám sát opened PR #13 (studio-doc-engine at 76c7683) and asked that nothing more land there; M4 is on its own branch.
+- `data-source.mjs rowPropEdit` (op `setRowProp`, dispatched from `dataFieldEdit`; `doc.mjs editDoc` runs it like
+  setDataField): a fixed prop of a `.map` element becomes a row field (other rows keep the old value, none when unset;
+  the field is the prop's name unless a row already uses it: `size2`) and the element reads `{person.field}`; refuses
+  data-bound props, elements outside a list, rows not written as objects in the same file.
+- `DesignPanel`: "Changes go to · Row N · All N rows" (Segmented) on a page you made when the layer is a .map row;
+  setProp sends setRowProp for a fixed value on "Row", and on "All rows" writes a bound prop as a literal. The scope is
+  `inspector/rowScope.ts` (shared with `edit/assets/picture.ts`, whose photo drop/pick goes to that row only), reset
+  when another layer is selected (`sameSelectedElement`, so a remapped selection keeps it).
+- Rows NO-10, NO-11, NO-12 (drag a card past the Table; the first try pressed the Card's padding, which starts no drag).
+
 ## PR #12 CI: ModalForm focus after an async submit (zen/feat/nested-overrides a3f5389, merged here; tier S)
 
 - CI failed "waits for an async handler before looking for errors" (Email never focused). Not `overrides`: Form and

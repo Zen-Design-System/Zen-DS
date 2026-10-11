@@ -179,6 +179,20 @@ both("moveTo another parent", "Badge", 0, (loc) => [{ op: "moveTo", parent: loc(
   check("setDataField: accepted", [direct.error ?? null, through.error ?? null], [null, null]);
   if (!direct.error && !through.error) check("setDataField: same page as the engine's", withoutIds(through.doc), tree(direct.code));
 }
+{
+  // M4: one row of a .map takes its own value for a fixed prop (setRowProp); the page stays valid, ids stay.
+  const row = byName(start, "ListItem");
+  const loc = locIn(start, startText, row);
+  const op = { op: "setRowProp", name: "description", row: 1, value: { kind: "string", value: "Away today" } };
+  const direct = dataFieldEdit(startText, FILE, loc, "ListItem", op);
+  const through = editDoc(start, startText, { file: FILE, loc, name: "ListItem", ops: [op] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) });
+  check("setRowProp: accepted", [direct.error ?? null, through.error ?? null], [null, null]);
+  if (!direct.error && !through.error) {
+    check("setRowProp: same page as the data edit's", withoutIds(through.doc), tree(direct.code));
+    check("setRowProp: the row's field and the binding are written", [/name: "Binh \\"B\\" Tran"[^}]*description: "Away today"/.test(through.text), /<ListItem description=\{person\.description\}/.test(through.text)], [true, true]);
+    check("setRowProp: ids followed the edit", [through.ids, byName(through.doc, "ListItem").id], [true, row.id]);
+  }
+}
 check("a loc with nothing there is refused, as the engine refuses it", editDoc(start, startText, { file: FILE, loc: "999:0", name: "Button", ops: [{ op: "removeElement" }] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) }).code, "not-found");
 
 if (failures.length) {
