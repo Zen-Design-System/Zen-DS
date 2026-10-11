@@ -112,6 +112,23 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("live: the compiled page has no usage-harness errors", checkSource(compiled, "Overviews.tsx").filter((finding) => finding.severity === "error").map((finding) => `${finding.rule}: ${finding.message}`), []);
 }
 
+// The live Table (2026-10-11): Table-Example 14730:78776 on the Demo page, a frame of Primitives/Table/Data-Row instances
+// (a header row of Table/Cell/Header, nine rows of Table/Cell/Default holding Dock-Icon, Text, Badge and Actions cells).
+{
+  const table = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(table.frame, { mapping });
+  const page = pulled.text;
+  check("table: the page is valid dialect", validateDialect(page), []);
+  ok("table: Figma's Data-Rows are one Table, a column per header cell (content, Sort, a fixed width or Fill, Bold)",
+    page.includes('columns={[{ id: "type", header: "Type", content: "dock-icon", bold: true }, { id: "submit-on", header: "Submit On", sortable: true, width: "140px" }, { id: "from-to", header: "From - to", width: "234px" }, { id: "total", header: "Total", width: "104px", bold: true }, { id: "status", header: "Status", sortable: true, width: "198px", content: "badge" }]} rows={[{ id: "row-1", type: "Annual Leave", "submit-on": "Mar 2, 2026", "from-to": "Mar 12 - Mar 13, 2026", total: "2 days", status: "Pending" }, '));
+  check("table: nine rows, written in the Table (a later pull compares them as its prop)", (page.match(/\{ id: "row-\d+"/g) ?? []).length, 9);
+  ok("table: a row's yellow Badge with its dot is that row's override", page.includes('"Row[row-1]/status/Badge": { theme: "yellow", leadingIcon: true }') && page.includes('"Row[row-3]/status/Badge": { theme: "red", leadingIcon: true }'));
+  ok("table: an emoji Dock-Icon at Medium is an override, and its emoji is not the row's label", page.includes('"Row[row-1]/type/Dock-Icon": { size: "md", theme: "emoji", background: "solid", emoji: "🏝️" }') && !/type: "🏝/.test(page));
+  check("table: the Actions column (no Table content in code) is left out with a note", pulled.notes.filter((note) => note.includes("column 6 (Actions-Cell")).length, 1);
+  ok("table: a Search takes its text as its placeholder", page.includes('<Search placeholder="Search" />'));
+  check("table: the compiled page has no usage-harness errors", checkSource(compileReact(page, { file: "table.zen.tsx" }).code, "TableExample.tsx").filter((finding) => finding.severity === "error").map((finding) => finding.rule), []);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

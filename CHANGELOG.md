@@ -49,6 +49,10 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio: importing a later pull of a Figma frame you already pulled opens Update from Figma — what changed in Figma
   since the last pull, one checkbox each, with the spots you also edited in the Studio left unticked — and Apply updates
   the page in one step (one ⌘Z), keeping your own edits and layers.
+- Zen Studio: a Figma table (its Data-Row instances) pulled into a page becomes a Table — its columns with their
+  headers, sorting, widths, bold and cell content, its rows, and each row's badge colours and emoji icons as in Figma; a
+  later pull updates its rows too. A column of action buttons is left out and noted. A Search keeps its text as its
+  placeholder.
 - Zen Studio, a design copy (New page from this frame): a photo goes on one avatar of an AvatarStack (that layer's
   override), and a Table column whose cells draw a person's photo keeps it as an Avatar column; the avatar test passes
   on the avatar, card, App Shell, table and sidebar pages.

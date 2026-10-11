@@ -129,7 +129,9 @@ export function figmaChanges({ base, current, incoming }) {
       if (canon(from) === canon(to)) continue;
       const mine = here.node.props[name];
       if (canon(mine) === canon(to)) continue;
-      add({ kind: "prop", id, name, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(from), label: `${describeNode(after.node)} · ${name}: ${showValue(from)} → ${showValue(to)}` });
+      // A list of the same length (a Table's rows) says it changed; the rest say from → to.
+      const what = from?.kind === "array" && to?.kind === "array" && from.items.length === to.items.length ? "changed" : `${showValue(from)} → ${showValue(to)}`;
+      add({ kind: "prop", id, name, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(from), label: `${describeNode(after.node)} · ${name}: ${what}` });
     }
     // Text.
     const fromText = textOf(before.node);

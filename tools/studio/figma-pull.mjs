@@ -148,11 +148,53 @@ const placed = (out, child, parent) => {
   if (child.layoutSizingVertical === "FILL") out.fillH = true;
   return out;
 };
+// A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
+// Table/Cell/Header cells is the header; each other cell gives its content primitive (Text-Cell, Badge-Cell…), its texts,
+// its width (or Fill) and alignment, and the Zen instances it draws (a Badge, a Dock-Icon, with the text in each).
+const readTable = async (node, rows, root) => {
+  const out = { type: "TABLE", id: node.id, name: node.name, ...frameOf(node, root), header: null, rows: [] };
+  for (const row of rows) {
+    const slot = row.findOne((n) => n.type === "SLOT");
+    const cells = [];
+    let header = false;
+    for (const cell of (slot ? slot.children : []).filter((child) => child.visible)) {
+      const set = await setOf(cell);
+      const props = await propsOf(cell);
+      const base = { id: cell.id, w: Math.round(cell.width), ...(cell.layoutSizingHorizontal === "FILL" ? { fill: true } : {}), ...(props.Align && props.Align !== "Left" ? { align: props.Align } : {}) };
+      if (set && set.name.endsWith("Table/Cell/Header")) {
+        header = true;
+        const named = Object.entries(props).find(([key, value]) => key.endsWith("Label") && typeof value === "string");
+        const swap = Object.entries(props).find(([key]) => key.endsWith("-Src"));
+        cells.push({ ...base, label: props.Label === false ? "" : named ? named[1] : firstText(cell) || "", ...(props.Type === "Sort" ? { sort: true } : {}), ...(props.Icon === true && swap ? { icon: swap[1] } : {}) });
+        continue;
+      }
+      let kind = null;
+      let kindProps = {};
+      const parts = [];
+      for (const inner of cell.findAll((n) => n.type === "INSTANCE" && n.visible)) {
+        const innerSet = await setOf(inner);
+        if (!innerSet || /^(icon|ic)-/.test(innerSet.name)) continue;
+        if (innerSet.name.startsWith("Primitives/Table/Cell/")) { if (!kind) { kind = innerSet.name.split("/").pop(); kindProps = await propsOf(inner); } continue; }
+        const text = firstText(inner);
+        parts.push({ id: inner.id, set: innerSet, props: await propsOf(inner), ...(text !== null ? { text } : {}) });
+      }
+      cells.push({ ...base, kind, props: kindProps, ...(props["Open-Button"] === true ? { open: true } : {}), texts: cell.findAll((t) => t.type === "TEXT" && t.visible).map((t) => t.characters), ...(parts.length ? { parts } : {}) });
+    }
+    if (header && !out.header) out.header = cells;
+    else out.rows.push({ id: row.id, cells });
+  }
+  return out;
+};
+// The frame read: its file (a pulled page remembers where it came from) and its size (the page's device).
+const frameOf = (node, root) => (root ? { ...(typeof figma.fileKey === "string" ? { file: figma.fileKey } : {}), width: Math.round(node.width), height: Math.round(node.height) } : {});
 const readFrame = async (node, root = false) => {
   if (DRAWING.has(node.type)) return { type: node.type, name: node.name };
-  // Its size only for the frame read (the page's device).
-  // The frame read: its file (a pulled page remembers where it came from) and its size (the page's device).
-  const out = { type: node.type, id: node.id, name: node.name, ...(root ? { ...(typeof figma.fileKey === "string" ? { file: figma.fileKey } : {}), width: Math.round(node.width), height: Math.round(node.height) } : {}), children: [] };
+  const visible = (node.children || []).filter((child) => child.visible);
+  if (visible.length && visible.every((child) => child.type === "INSTANCE")) {
+    const sets = await Promise.all(visible.map(setOf));
+    if (sets.every((set) => set && set.name === "Primitives/Table/Data-Row")) return readTable(node, visible, root);
+  }
+  const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
   const layout = await layoutOf(node);
   if (layout) out.layout = layout;
   for (const child of node.children || []) {
@@ -313,9 +355,11 @@ function instanceProps(item, set, mapping, notes, where) {
     if (codeDefault !== undefined ? !sameValue(set.setValue, codeDefault) : set.setValue !== set.setDefault) props[set.setProp] = literal(set.setValue);
   }
   // The label: a text property no entry maps, or the instance's first text, when the component takes children.
-  if (!defaults || defaults.has("children")) {
-    const label = Object.entries(item.props ?? {}).find(([name, value]) => !used.has(name) && TEXT_PROPS.test(name) && typeof value === "string")?.[1] ?? item.text;
-    if (typeof label === "string" && label.trim()) props.children = literal(label);
+  // A field (Search, an input) takes it as its placeholder.
+  const label = Object.entries(item.props ?? {}).find(([name, value]) => !used.has(name) && TEXT_PROPS.test(name) && typeof value === "string")?.[1] ?? item.text;
+  if (typeof label === "string" && label.trim()) {
+    if (!defaults || defaults.has("children")) props.children = literal(label);
+    else if (defaults.has("placeholder")) props.placeholder = literal(label);
   }
   return props;
 }
@@ -328,6 +372,108 @@ const ROW_ELEMENTS = { "Primitives/Side-Bar/Menu-Item/Master": "SidebarMenuItem"
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
 /** An item's icon field where it is not `icon` (SegmentedOption `leading`). */
 const ITEM_ICON = { Segmented: "leading" };
+/* ── tables ──────────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** Figma's cell primitives (Primitives/Table/Cell/…) → the code Table's column `content` (Table.tsx TableCellContent). */
+const CELL_CONTENT = { "Text-Cell": "text", "Editabled-Cell": "text", "Dock-Icon-Cell": "dock-icon", "Basic-Icon-Cell": "icon", "Avatar-Cell": "avatar", "Photo-Cell": "photo", "Badge-Cell": "badge", "Tag-Cell": "tag", "Trend-Cell": "trend", "Progress-Cell": "progress" };
+/** Cells that draw a picture beside their label (its text is the picture's: an emoji, not the label). */
+const MEDIA_CONTENT = new Set(["avatar", "photo", "icon", "dock-icon"]);
+/**
+ * What the code's Table draws in its cells (Table.tsx cellOf / cellVisual): the layer name its `overrides` use and the
+ * props it gives the component. A Figma instance that differs (a yellow Badge, an emoji Dock-Icon) is written as that
+ * row's override.
+ */
+const TABLE_DRAWS = {
+  Badge: { layer: "Badge", props: { size: "medium", theme: "neutral", background: "subtle", leadingIcon: false } },
+  DockIcon: { layer: "Dock-Icon", props: { size: "xs", theme: "neutral", background: "subtle" } },
+};
+
+/**
+ * Figma's Table (a frame of Primitives/Table/Data-Row instances, read by figmaReadCode as one TABLE) → the code's
+ * <Table>: a column per header cell (its label, Sort, Align, a fixed width or Fill; its content from the first row's cell
+ * primitive, Bold and Subtext from it), the rows written in the Table (as a design copy writes them: a later pull of the
+ * frame compares them as the Table's prop, figma-diff.mjs), and each row's Zen instances that differ from
+ * what the Table draws as `overrides` by layer ("Row[row-1]/status/Badge"). A cell the Table has no content for (Actions,
+ * a Radio) leaves its column out, with a note.
+ */
+function tableElement(node, ctx) {
+  const { mapping, notes } = ctx;
+  const where = `Table "${node.name}"`;
+  const header = node.header ?? [];
+  const sample = node.rows[0]?.cells ?? [];
+  const ids = new Set();
+  const columns = [];
+  for (let index = 0; index < Math.max(header.length, sample.length); index += 1) {
+    const head = header[index] ?? {};
+    const cell = sample[index] ?? {};
+    const content = cell.kind === "Control-Cell" ? { Checkbox: "checkbox", Toggle: "toggle" }[cell.props?.Type] ?? null : cell.kind ? CELL_CONTENT[cell.kind] ?? null : "text";
+    const named = head.label ? `the “${head.label}” column` : `column ${index + 1}`;
+    if (!content) { notes.push(`${where}: ${named} (${cell.kind}${cell.props?.Type ? ` ${cell.props.Type}` : ""}) has no Table content in code: left out`); continue; }
+    const id = uniqueId(slug(head.label || `column ${index + 1}`), ids);
+    const fields = { id: literal(id), header: literal(head.label ?? "") };
+    if (head.sort) fields.sortable = literal(true);
+    if ((cell.align ?? head.align) === "Right") fields.align = literal("right");
+    if (!(cell.fill ?? head.fill) && (cell.w ?? head.w)) fields.width = literal(`${cell.w ?? head.w}px`);
+    if (content !== "text") fields.content = literal(content);
+    if (cell.props?.Bold === "Yes") fields.bold = literal(true);
+    const caption = cell.props?.Subtext === "Yes" || cell.props?.Caption === true;
+    if (caption) fields.captionField = literal(`${id}Caption`);
+    if (head.icon) {
+      if (isZenIcon(head.icon, mapping)) fields.icon = literal(head.icon);
+      else notes.push(`${where}: ${named}'s header icon "${head.icon}" is not a Zen icon (left out)`);
+    }
+    columns.push({ index, id, content, caption, fields });
+  }
+  // The rows: each cell's value under its column's id.
+  const overrides = {};
+  const rows = node.rows.map((row, at) => {
+    const rowId = `row-${at + 1}`;
+    const record = { id: rowId };
+    for (const column of columns) {
+      const cell = row.cells[column.index];
+      if (!cell) continue;
+      const parts = cell.parts ?? [];
+      const own = new Set(parts.map((part) => part.text).filter((text) => typeof text === "string"));
+      const texts = (cell.texts ?? []).map((text) => text.replace(/\u2028/g, " "));
+      if (column.content === "badge" || column.content === "tag") {
+        const items = parts.filter((part) => /^(Badge|Tag)\b/.test(part.set?.name ?? "")).map((part) => part.props?.Text ?? part.text ?? "");
+        record[column.id] = items.length === 1 ? items[0] : items.length ? items : texts[0] ?? "";
+      } else if (column.content === "progress") {
+        record[column.id] = Number.parseFloat(texts[0] ?? "") || 0;
+      } else if (column.content === "checkbox" || column.content === "toggle") {
+        record[column.id] = parts.some((part) => part.props?.State === "Checked" || part.props?.Checked === true || part.props?.Select === "Yes");
+      } else {
+        // A picture's own text (an emoji Dock-Icon's) is not the label.
+        const shown = MEDIA_CONTENT.has(column.content) ? texts.filter((text) => !own.has(text)) : texts;
+        record[column.id] = shown[0] ?? "";
+        if (column.caption && shown[1]) record[`${column.id}Caption`] = shown[1];
+      }
+      // The Zen instances the cell draws, where Figma's differ from the Table's: that row's overrides.
+      const drawn = parts.map((part) => ({ part, set: mapping.sets.get(part.set?.id) ?? mapping.sets.get(part.set?.name) })).filter(({ set }) => set && TABLE_DRAWS[set.code]);
+      drawn.forEach(({ part, set }, index) => {
+        const draws = TABLE_DRAWS[set.code];
+        const figma = instanceProps(part, set, mapping, notes, `${where} › ${column.id}`);
+        const defaults = mapping.apiProps[set.code];
+        const fields = {};
+        for (const [prop, value] of Object.entries(draws.props)) {
+          const mine = figma[prop]?.value ?? defaults?.get(prop);
+          if (mine !== undefined && !sameValue(mine, value)) fields[prop] = literal(mine);
+        }
+        for (const [prop, value] of Object.entries(figma)) if (!(prop in draws.props) && prop !== "children") fields[prop] = value;
+        // An emoji Dock-Icon draws its emoji (the instance's text), not an icon.
+        if (fields.theme?.value === "emoji") { delete fields.icon; if (part.text) fields.emoji = literal(part.text); }
+        if (Object.keys(fields).length) overrides[`Row[${rowId}]/${column.id}/${draws.layer}${drawn.length > 1 ? `[${index}]` : ""}`] = { kind: "object", fields };
+      });
+    }
+    return record;
+  });
+  // Its accessible name: the frame's, unless Figma's default ("Table-Rows" reads as "Table rows").
+  const label = node.name.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  const props = { "aria-label": literal(label.charAt(0).toUpperCase() + label.slice(1).toLowerCase()), columns: { kind: "array", items: columns.map((column) => ({ kind: "object", fields: column.fields })) }, rows: { kind: "array", items: rows.map((row) => ({ kind: "object", fields: Object.fromEntries(Object.entries(row).map(([name, value]) => [name, Array.isArray(value) ? { kind: "array", items: value.map(literal) } : literal(value)])) })) } };
+  if (Object.keys(overrides).length) props.overrides = { kind: "object", fields: overrides };
+  return { kind: "element", name: "Table", props, children: [] };
+}
+
 /** Icon-only controls the harness wants named (icon-button/needs-name): they get an aria-label. */
 const NEEDS_NAME = new Set(["IconButton"]);
 /** The elements that take Figma's resizing (width / height fill), src/components/Layout/sizing.ts. */
@@ -460,6 +606,7 @@ function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
   if (DRAWINGS.has(node.type)) { ctx.drawings.push(node.name); return null; }
+  if (node.type === "TABLE") return tableElement(node, ctx);
   if (node.type === "TEXT") {
     const props = {};
     if (node.textStyle) {

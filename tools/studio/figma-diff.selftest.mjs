@@ -25,13 +25,13 @@ const mapping = await repoMapping();
 // A pulled page as the Studio keeps it: imported from its print with ids (docFromText takes them).
 const pageDoc = (frame) => docFromText(printPage(pageFromFigma(frame, { mapping }).doc, { ids: true })).doc;
 
-/** A layer of the frame JSON by its Figma id (frames, instance slots and their layers). */
+/** A layer of the frame JSON by its Figma id (frames, instance slots and their layers, a table's rows, cells and parts). */
 function layer(frame, id) {
   const stack = [frame];
   while (stack.length) {
     const node = stack.pop();
     if (node.id === id) return node;
-    stack.push(...(node.children ?? []), ...(node.slots ?? []));
+    for (const key of ["children", "slots", "rows", "cells", "parts", "header"]) if (Array.isArray(node[key])) stack.push(...node[key]);
   }
   throw new Error(`no layer ${id}`);
 }
@@ -116,6 +116,24 @@ check("ticking the conflict too gives Figma's theme", element(mergeFigma(current
   ok("two ways: not three", !two.threeWay && two.changes.every((change) => !change.conflict));
   ok("two ways: the Studio's own restyle shows as a difference to choose", two.changes.some((change) => change.key === "prop:f14243-64885:textStyle"));
   ok("two ways: the Studio's added line is never removed", !two.changes.some((change) => change.id === "nmine1"));
+}
+
+// A pulled Table (fixtures/figma-table.json) whose second row Figma rejected: its rows and that row's Badge change.
+{
+  const table = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table.json", import.meta.url), "utf8"));
+  const tableBase = pageDoc(table.frame);
+  const next = JSON.parse(JSON.stringify(table.frame));
+  const badge = layer(next, "I14730:78854;4035:10637;14730:78848;4081:18370;14730:78847;4035:11662;14730:78846");
+  Object.assign(badge.props, { Text: "Rejected", Theme: "Red" });
+  badge.text = "Rejected";
+  const tableCell = layer(next, "I14730:78854;4035:10637;14730:78848");
+  tableCell.texts = ["Rejected"];
+  const tableNext = pageDoc(next);
+  const found = figmaChanges({ base: tableBase, current: tableBase, incoming: tableNext });
+  check("a table re-pulled: its rows and the row's Badge override change", found.changes.map((change) => change.key).sort(), ["prop:f14730-78798:overrides", "prop:f14730-78798:rows"]);
+  check("a list of the same length is labelled as changed", found.changes.find((change) => change.name === "rows").label, "Table “Table rows” · rows: changed");
+  const updated = element(mergeFigma(tableBase, tableNext, found.changes).doc, "f14730-78798");
+  check("merged: row 2 rejected, its Badge red", [updated.props.rows.items[1].fields.status.value, updated.props.overrides.fields["Row[row-2]/status/Badge"].fields.theme.value], ["Rejected", "red"]);
 }
 
 if (failures.length) {

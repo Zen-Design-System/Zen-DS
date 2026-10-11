@@ -592,6 +592,30 @@ export const rows = [
     },
   },
   {
+    id: "NO-21", feature: "A Figma Table pulled in (core rebuild M6: Table-Example 14730:78776, Data-Row instances, fixtures/figma-table.json) is a Table on the page: its five columns with their headers and widths, its nine rows, each row's Badge theme (Pending yellow, Rejected red) and emoji Dock-Icon from Figma", wp: "core rebuild M6 2026-10-11",
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const fs = await import("node:fs");
+      const table = JSON.parse(fs.readFileSync(new URL("../../fixtures/figma-table.json", import.meta.url), "utf8"));
+      const { text } = pageFromFigma(table.frame, { mapping: await repoMapping() });
+      const { page, id } = await openNestedPage(ctx, text, { badges: 9 });
+      const scope = `[data-zen-src^="local:${id}.zen.tsx:"]`;
+      const grid = page.locator(`${scope}[data-zen-name="Screen"]`).first().locator(".zen-table__table").first();
+      await grid.waitFor({ state: "attached", timeout: 15000 });
+      const headers = await grid.locator("thead th").evaluateAll((cells) => cells.map((cell) => cell.textContent.trim()));
+      if (headers.join("|") !== "Type|Submit On|From - to|Total|Status") throw new Error(`headers ${headers.join("|")}`);
+      const rows = await grid.locator("tbody tr").count();
+      if (rows !== 9) throw new Error(`${rows} rows`);
+      const tones = await grid.locator("tbody .zen-badge").evaluateAll((badges) => badges.map((badge) => `${badge.textContent.trim()}:${badge.getAttribute("data-tone")}`));
+      if (tones[0] !== "Pending:yellow" || tones[2] !== "Rejected:red" || tones[1] !== "Approved:green") throw new Error(`badges ${tones.slice(0, 3).join(", ")}`);
+      const emoji = (await grid.locator("tbody tr").first().locator(".zen-dock-icon__emoji").first().textContent({ timeout: 5000 }).catch(() => "")).trim();
+      if (emoji !== "🏝️") throw new Error(`the first row's Dock-Icon shows "${emoji}"`);
+      const width = await grid.locator("thead th").nth(1).evaluate((cell) => Math.round(cell.getBoundingClientRect().width));
+      await shot(page, "NO-21");
+      return `Figma Table → Table: ${headers.length} columns (${headers.join(", ")}), ${rows} rows, badges ${tones.slice(0, 3).join(", ")}, emoji ${emoji}, Submit On ${width}px`;
+    },
+  },
+  {
     id: "NO-20", feature: "Pull a Figma frame again (core rebuild M6): the pulled page imported and edited in the Studio (the Components card re-themed, the tagline re-aligned), then a later pull imported: Update from Figma lists what Figma changed with the Studio's conflict unticked, Apply lands it in one edit keeping the Studio's edits, one ⌘Z undoes it", wp: "core rebuild M6 2026-10-11",
     timeout: 45000,
     async run(ctx) {
