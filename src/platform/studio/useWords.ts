@@ -1,22 +1,15 @@
-import { studioStore, useStudio } from "./store";
 import { designWords } from "./words";
 
 /*
- * Design words where they are read (plan criterion 7, ./words.ts): a page made in the Studio speaks to a designer;
- * example and template pages keep the developer wording (file:line, `{expression}`), which their users read in code.
+ * Design words where a designer reads (plan criterion 7, ./words.ts), on every page since 2026-10-12 (the user: example
+ * and template pages too). The one switch: a component calls `useWords()` (or `speak` outside React) and shows `say(text)`;
+ * file:line lives on the Code tab.
  */
 
-const asWritten = (text: string) => text;
-
-/** True while the canvas shows a page made in the Studio. */
-export function useStudioPage(): boolean {
-  return useStudio((state) => Boolean(state.localPage));
-}
-
-/** `say(text)`: the text in design words while the canvas shows a page made in the Studio, else as written. */
+/** `say(text)`: the text in design words. */
 export function useWords(): (text: string) => string {
-  return useStudioPage() ? designWords : asWritten;
+  return designWords;
 }
 
 /** `useWords` outside React (status lines set from event handlers). */
-export const speak = (text: string) => (studioStore.getState().localPage ? designWords(text) : text);
+export const speak = designWords;

@@ -4,7 +4,7 @@ import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { onSourceUpdate, selectionInstances, srcMeta } from "../select/picker";
+import { onSourceUpdate, selectionInstances } from "../select/picker";
 import { useWords } from "../useWords";
 import { selectLayers, useExtraSelection, type ExtraLayer } from "../select/multiSelection";
 import { useSlotServer } from "../slots/actions";
@@ -77,7 +77,6 @@ export function SelectionActions() {
               icon={<Icon name={/^[A-Z]/.test(layer.name) ? "icon-cube-line" : "icon-code-02-line"} size={16} />}
               component={/^[A-Z]/.test(layer.name)}
               name={layer.name}
-              meta={srcMeta(layer.src) || undefined}
               onClick={() => selectLayers(layer, [])}
             />
           ))}

@@ -18,6 +18,12 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
 
+### Changed
+- Zen Studio speaks design words on example and template pages too (the user, 2026-10-12): the Inspector header reads
+  "Show code" and the canvas tag shows no file:line on every page; a status line keeps the file's name without its
+  line ("Draft · uploader.tsx · ⌘S to save"). A Date field's `Leading` layer matches Figma (its `Leading-Icon` is the
+  calendar inside Trailing): no Figma rename is needed.
+
 ### Added
 - Table: `content: "actions"` with the column's `actions` (`TableRowAction`: icon, label, size, level, onClick) draws
   Figma's Actions-Cell — flat icon buttons named with their row ("Open, row 3"; label key `rowAction`, en/vi) — without

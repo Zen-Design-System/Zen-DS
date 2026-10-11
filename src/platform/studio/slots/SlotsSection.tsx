@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { useStudioPage, useWords } from "../useWords";
+import { useWords } from "../useWords";
 import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
@@ -153,7 +153,6 @@ function StaticItem({ icon, value, reason }: { icon: "icon-type-01-line" | "icon
   );
 }
 
-const lineOf = (loc: string) => `Line ${loc.split(":")[0]}`;
 
 type BlockProps = {
   selection: NodeSelection;
@@ -174,9 +173,8 @@ type BlockProps = {
 };
 
 function SlotBlock({ selection, element, slot, hostProps, titled, editable, playground, running, focused, continued = false }: BlockProps) {
-  // A page made in the Studio: values from code and refusals in design words, no line numbers (plan criterion 7).
+  // Values from code and refusals in design words, no line numbers (plan criterion 7).
   const say = useWords();
-  const studioPage = useStudioPage();
   const busy = running !== null;
   const content = useMemo(() => slotContentOf(element, slot), [element, slot]);
   // Without a draft the server sends no Modified flags: the drafts list tells "matches the saved file" (read again when it changes).
@@ -304,7 +302,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
     if (layer.kind === "expression") return <StaticItem key={`x${index}`} icon="icon-code-02-line" value={say(`{${shortCode(layer.code, 40)}}`)} reason={layer.reason && say(layer.reason)} />;
     const src = located[index];
     if (!src) return <StaticItem key={`e${index}`} icon="icon-cube-line" value={layer.name} reason="Not on the canvas right now" />;
-    const meta = layer.via === "map" ? "Each row" : layer.via === "and" || layer.via === "ternary" ? "On a condition" : layer.loc && !studioPage ? lineOf(layer.loc) : undefined;
+    const meta = layer.via === "map" ? "Each row" : layer.via === "and" || layer.via === "ternary" ? "On a condition" : undefined;
     const writable = editable && !playground;
     const target = { name: layer.name, src };
     return (

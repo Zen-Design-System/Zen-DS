@@ -276,9 +276,8 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   const name = part?.name ?? selection.part?.name ?? "Part";
   const owner = selection.name;
   const at = shortSrc(selection.src);
-  // On a page made in the Studio the notes speak design words and the code link names no file (plan criterion 7).
+  // The notes speak design words and the code link names no file (plan criterion 7).
   const say = useWords();
-  const shownAt = say(at);
   const resolved = part && part.owner.src === selection.src && part.element.isConnected ? part : null;
   const ownerProps = resolved?.owner.fiber ? currentFiber(resolved.owner.fiber).memoizedProps ?? {} : {};
   const text = resolved?.element.textContent?.trim() ?? "";
@@ -327,8 +326,8 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
             Select {owner}
           </Button>
           {/* zen-allow-compact-button: the owner's file:line reference, as on an element's Design tab */}
-          <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={shownAt ? `Show ${shownAt} in the Code tab` : "Show in the Code tab"} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
-            {shownAt || "Show code"}
+          <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label="Show in the Code tab" onClick={() => studioStore.setState({ inspectorTab: "code" })}>
+            Show code
           </Button>
         </div>
         {inside ? <DataItemBanner item={inside} /> : null}

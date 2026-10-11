@@ -1,6 +1,7 @@
 // Inspector rows: every kind of property control writes the source it says, one undo step at a time.
 import { element, locOf } from "../lib/source.mjs";
 import { clickLoc, focusFrame, inspectorRow, rectOf, sleep, statusText, until } from "../lib/studio.mjs";
+import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const read = async (ctx, id, index = 0, file = ctx.file) => element((await ctx.api.source(file)).content, file, id, index);
@@ -25,14 +26,15 @@ export async function freshSelect(ctx, id, { frame = 0, file = ctx.file, reload 
   return page;
 }
 
-/** Waits until the Inspector shows file:loc read from the source ("Used in <file>:<line>", nothing still loading). */
+/** Waits until the Inspector reads file:loc (its header's data-inspector-src, same file and line) and nothing is still loading. */
 export async function waitInspector(page, file, loc) {
   const where = `${file.split("/").pop()}:${loc.split(":")[0]}`;
-  await until(async () => {
-    // "Used in" renders the file and ":<line>" as two elements: join them before comparing.
-    const text = (await page.locator("#studio-right").innerText()).replace(/\s+:/g, ":");
-    return text.includes(where) && !/Reading the source/i.test(text);
-  }, { message: `the Inspector to show ${where}` });
+  await until(async () => page.evaluate(([wantFile, wantLine]) => {
+    const panel = document.querySelector("#studio-right");
+    const src = panel?.querySelector("[data-inspector-src]")?.getAttribute("data-inspector-src") ?? "";
+    const match = /^(.*):(\d+):\d+$/.exec(src);
+    return Boolean(match && match[1] === wantFile && match[2] === wantLine && !/Reading the source/i.test(panel?.textContent ?? ""));
+  }, [file, loc.split(":")[0]]), { message: `the Inspector to show ${where}` });
   await sleep(150);
 }
 
@@ -64,6 +66,29 @@ export async function expectSource(ctx, id, check, message, { index = 0, file = 
 }
 
 export const rows = [
+  {
+    id: "I-31", feature: "Design words on an example page too (plan criterion 7, the user 2026-10-12): after an edit the status line names the file without its line, the canvas tag and the Inspector header (\"Show code\") no file:line, notes and tooltips no code", wp: "design words 2026-10-12",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      await pickOption(page, "level", "Secondary");
+      await expectSource(ctx, "btn-a", (el) => el.attr("level") === "secondary", "level=secondary in the source");
+      await until(async () => /\b(?:Saved|Draft)\b/.test(await statusText(page)), { message: "the edit's Saved / Draft line" }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 160)})`); });
+      const seen = await page.evaluate(() => {
+        const texts = (selector) => [...document.querySelectorAll(selector)].map((el) => el.textContent ?? "");
+        return {
+          status: texts(".studio-inspector__status-text, .studio-inspector__status-details li"),
+          tag: texts('.studio-selection__outline[data-kind="selected"] .studio-selection__tag'),
+          header: texts("#studio-right .studio-inspector__src"),
+          notes: texts("#studio-right .studio-inspector__note, #studio-right .studio-inspector__row-hint"),
+          tips: [...document.querySelectorAll("#studio-right [title]")].map((el) => el.getAttribute("title") ?? ""),
+        };
+      });
+      const found = Object.entries(seen).flatMap(([where, list]) => list.flatMap((text) => codeWordsIn(text).map((word) => `${where}: ${word} in "${text.slice(0, 90)}"`)));
+      if (found.length) throw new Error(`code words on an example page: ${found.slice(0, 6).join(" · ")}`);
+      if (seen.header.join() !== "Show code") throw new Error(`header "${seen.header.join(" | ")}"`);
+      return `status "${seen.status[0]}" · tag "${seen.tag[0]}" · header "Show code" · ${seen.notes.length} notes, ${seen.tips.length} tips clean`;
+    },
+  },
   {
     id: "I-01", feature: "Variant (enum) select writes the prop", wp: "GĐ0",
     async run(ctx) {

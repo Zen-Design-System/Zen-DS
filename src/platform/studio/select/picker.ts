@@ -456,11 +456,6 @@ export function shortSrc(src: string): string {
   return match ? `${match[1]}:${match[2]}` : src;
 }
 
-/** `shortSrc` where a designer reads it: nothing for a layer of a page made in the Studio (its Code tab shows the line). */
-export function srcMeta(src: string): string {
-  return src.startsWith("local:") ? "" : shortSrc(src);
-}
-
 /* ───────────── Selection shared by the overlay, the Layers panel and the inspector ───────────── */
 
 /* The resolved selection, shared with the inspector (instance count) without another fiber walk. */

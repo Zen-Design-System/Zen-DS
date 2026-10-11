@@ -29,3 +29,18 @@
   children through `nest.slot`.
 - Docs: guideline Table (Cell content, row actions), docs/api regenerated (table, ai-chat, provider labels),
   compile-api.generated.mjs.
+
+## Design words everywhere; Date field's Leading-Icon read in Figma (session "Kiểm tra tiến độ plan", branch zen/feat/design-words-everywhere, tier M)
+
+- PR #22 merged (9207125) after CI. User: "trong figma không thấy chỗ nào để leading-icon"; design words on example and
+  template pages too: OK; Q4 and Q5: OK.
+- Date field, read live (`use_figma`, read-only, `skipInvisibleInstanceChildren = false`): `Field › Container ›
+  Leading` (hidden) and `Trailing` (the calendar; its own icon layer is the Leading-Trailing primitive's `Leading-Icon`).
+  The M7 note "Figma names it Leading-Icon" was a misread: the code's `Leading`/`Trailing` match; nested-paths' DateField
+  reason now says hidden (like the other fields); the designer item left BACKLOG.
+- `useWords` / `speak` always speak design words; words.ts keeps a repo file's name and drops its line (`LINE_REF`), drops a
+  Studio page's file (`PAGE_REF`). Inspector header, part and cell links read "Show code" everywhere (copy-location stays
+  for repo files); canvas tag, Layers tooltips, multi-selection list and slot rows show no line; nested shared label
+  names the file. `data-inspector-src` on the Inspector header: E2E `waitInspector` reads it (was the "file:line" text).
+  E2E I-31 (new): an edit on the uploader example — status "Draft · uploader.tsx · ⌘S to save", tag "Button", header
+  "Show code", tooltips clean.

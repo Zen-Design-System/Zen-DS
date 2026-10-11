@@ -21,6 +21,8 @@ const check = (label, actual, expected) => {
 const cases = [
   ["Saved in this browser · local:untitled-page.zen.tsx:26", "Saved in this browser"],
   ["Saved · local:untitled-page.zen.tsx:25 · ⌘Z to undo", "Saved · ⌘Z to undo"],
+  ["Saved · button.tsx:84 · ⌘Z to undo", "Saved · button.tsx · ⌘Z to undo"],
+  ["Set by AppShellAccount at src/platform/examples/pages/app-shell.tsx:140:6", "Set by AppShellAccount at app-shell.tsx"],
   ["<Menu> has no children to drop into; drop beside it instead.", "Menu can't hold layers; drop beside it instead."],
   ["MetricCard has a key; a copy would repeat it — edit it in the code", "MetricCard is drawn once per row of a list; a copy would repeat that row — edit it in the code"],
   ["Bound to {me.photo}. An edit sets a fixed value; Restore brings the binding back", "From data: me › photo. An edit sets a fixed value; Restore brings the data link back"],
