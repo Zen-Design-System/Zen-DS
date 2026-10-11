@@ -52,3 +52,14 @@
   `pageFromFigma`, same JSON), `figma-steps.mjs` (shared steps), `nested-layers-build.mjs` → `nestedLayers.generated.ts`
   (nested-paths now records each nest() layer's component), `figma-push-cli.mjs`. Selftest 18 (round trips); both in
   studio:selftest. P2 items are noted on push (Overviews: Sidebar / DashboardHeader slots, absolute layers).
+
+## Figma push P1: plugin Import from Studio + Studio Export › Figma (session "Kiểm tra tiến độ plan", tier L)
+
+- Plugin (~/Documents/zen-ds-figma-plugin-main, not a repo before): tarball backup, `git init` local (user's choice),
+  .gitignore skips backups/ dist/ dist-web/; snapshot 9daf48a, feature 53d42d2 (studio-import.js, code.js handler, UI
+  Import › Import from Studio, tests/studio-import.test.js, bundle-behavior stub). The Age of Emerald session works in
+  the same folder (docs/luc-thach-3d, src/ui/emerald-*, tests, ios): told, nothing of theirs touched.
+- Studio: Export › Figma (figmaExport.ts), figma-map.mjs split from figma-pull (isomorphic), figmaPackage + stable keys
+  (page doc printed with ids; CLI counts), .d.mts for figma-map / figma-push, E2E HO-09 (first id HO-08 was taken).
+- Read-only check against the live file (use_figma): sets, property names, Spacing variables, text styles, icons all
+  present; found Sidebar writing other sets' properties → fixed (write only the chosen set's, selftest 21).

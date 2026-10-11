@@ -135,3 +135,22 @@ Mỗi mốc: selftest + E2E (nhóm mới `push`, PU-xx), `npm run qa`, CHANGELOG
 - Kiểm tra: `figma-push.selftest.mjs` 18 (vòng tròn Team kéo → đẩy → kéo giống hệt chữ; trang tự viết giống cấu trúc;
   set, property, variable, nested, Grid, slot, id). Trang Overviews thật: đẩy được, ghi chú Sidebar sections/brand/footer,
   DashboardHeader slots và 2 layer tuyệt đối (P2).
+
+### P1 (2026-10-12, nhánh `zen/feat/figma-push`; plugin: git local `~/Documents/zen-ds-figma-plugin-main` 53d42d2)
+
+- **Plugin Zen:** `src/plugin/studio-import.js` (`createStudioImporter(figma).plan / .place`, bundle.js ghép trước
+  code.js), message `studio-import-plan` / `studio-import-place` (không licence), Import › Import from Studio (chọn
+  `.figma.json`; xoá layer thì hỏi trước). Đặt frame trên trang "Studio exports": auto layout gắn variable Spacing, text
+  style theo tên, instance theo set id (icon swap tìm component theo tên), override lồng theo đường dẫn layer
+  (`layerKey`), nhãn (property Label/Text/Title/Content hoặc layer chữ đầu), nội dung slot. Mỗi layer giữ `key` (id
+  tài liệu Studio) trong shared plugin data `zenstudio`, frame giữ id trang: import lại cập nhật đúng chỗ, không cần
+  dán kết quả về Studio. Test `tests/studio-import.test.js` (mock Plugin API: đặt mới, cập nhật tại chỗ, xoá 1, ghi chú
+  component thiếu); `npm test` của plugin xanh; `npm run build` (dist sao lưu trước).
+- **Studio:** Export › tab **Figma** (`builder/export/figmaExport.ts`: mapping dựng trong trình duyệt, in tài liệu của
+  trang kèm id nên key không đổi giữa các lần tải) → `<id>.figma.json`. `figma-map.mjs` (mapping, isomorphic) tách khỏi
+  figma-pull; `figmaPackage`; CLI đánh key theo thứ tự khi trang không có id. E2E HO-09.
+- **Đối chiếu chỉ đọc với file thật** (`use_figma`): gói Overviews — 6/6 set, mọi tên property, 11/11 variable Spacing,
+  4/4 text style, icon là component local ở trang "🍑 Iconography". Bắt được và sửa: component nhiều set (Sidebar) ghi
+  property của set khác → giờ chỉ ghi property set đó có (selftest 21).
+- **Còn cho P1 "xong khi":** user chạy plugin trong Figma: Studio › Export › Figma › Download; plugin › Import › Import
+  from Studio; kéo frame về (`figma-pull`) khớp; import lại sau khi sửa trang → cập nhật tại chỗ.

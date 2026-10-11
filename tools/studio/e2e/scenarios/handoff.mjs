@@ -66,6 +66,32 @@ export default function Page() {
 }
 `;
 
+/** A page for Export › Figma: a flat Button with its icon, a row, a Card holding text (figma-push.selftest's Projects). */
+const FIGMA_PAGE = `// @zen-page {"format":1,"title":"Projects"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Button, Card, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Projects" device="desktop">
+        <Stack padding="xl" gap="lg">
+          <Text textStyle="Heading/3">Projects</Text>
+          <Stack direction="row" justify="between">
+            <Button appearance="flat" startIcon="icon-plus-line">New project</Button>
+          </Stack>
+          <Card theme="flat">
+            <Text>Loyalty app</Text>
+          </Card>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** Imports a page (HTML_PAGE unless given; Pages › Import) and opens it once `frame` is on the canvas; returns its id. */
 async function importHtmlPage(page, text = HTML_PAGE, frame = "overlay:invite") {
   const id = `html-check-${Date.now().toString(36)}`;
@@ -149,6 +175,40 @@ async function openExport(page) {
 const clipboard = (page) => page.evaluate(() => navigator.clipboard.readText());
 
 export const rows = [
+  {
+    id: "HO-09", feature: "Export › Figma (core rebuild Q4): the page as the .figma.json the Zen plugin's Import from Studio places — format zen-studio-figma, the page's id, a frame of library instances (Button/Flat by its appearance, gap bound to its Spacing variable); its keys stay the same from one download to the next", wp: "figma push P1 2026-10-12",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, FIGMA_PAGE, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloadOnce = async () => {
+        const downloading = page.waitForEvent("download");
+        await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+        const download = await downloading;
+        return { name: download.suggestedFilename(), pkg: JSON.parse(fs.readFileSync(await download.path(), "utf8")) };
+      };
+      const first = await downloadOnce();
+      const second = await downloadOnce();
+      const { pkg } = first;
+      const keys = (node) => [node.key, ...(node.children ?? []).flatMap(keys), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(keys))];
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      const button = nodes(pkg.frame).find((node) => node.text === "New project");
+      const problems = [
+        pkg.format !== "zen-studio-figma" && `format ${pkg.format}`,
+        pkg.page?.id !== id && `page id ${pkg.page?.id}`,
+        pkg.frame.name !== "Projects" && `frame ${pkg.frame.name}`,
+        button?.set?.name !== "Button/Flat" && `button set ${button?.set?.name}`,
+        pkg.frame.layout?.gapVar !== "Spacing/Gap/Large" && `gap ${pkg.frame.layout?.gapVar}`,
+        !keys(pkg.frame).every(Boolean) && "a node without a key",
+        JSON.stringify(keys(pkg.frame)) !== JSON.stringify(keys(second.pkg.frame)) && "the keys changed between downloads",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.keyboard.press("Escape");
+      return `${first.name}: ${nodes(pkg.frame).length} layers, Button/Flat, gap Spacing/Gap/Large, keys stable`;
+    },
+  },
   {
     id: "HO-01", feature: "Export a page as React: the component's code, Copy; the Design file tab shows the page itself", wp: "GĐ5 M1",
     async run(ctx) {

@@ -21,6 +21,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -240,46 +241,7 @@ export function joinParts(texts) {
 
 /* ── mapping data ───────────────────────────────────────────────────────────────────────────────────────────────── */
 
-/**
- * The Figma → code mapping from the repo's data: `figmaProps` (inspector/figmaProps.generated.ts FIGMA_PROPS), `contract`
- * (docs/figma-contracts/component-properties.json: each set's id, name and property defaults) and `apiProps` (component
- * → Map of its code props to their code default, from docs/api). Sets are found by id and by name. `dataSlots` (slots/dataSlots.ts
- * DATA_SLOTS): the Figma slots whose items the code takes as data (Sidebar sections, Breadcrumbs items).
- */
-export function figmaMapping({ figmaProps, contract, apiProps = {}, textStyles = null, iconNames = null, dataSlots = {} }) {
-  const contractSets = new Map();
-  for (const page of contract.pages ?? []) for (const set of page.sets ?? []) { contractSets.set(set.id, set); contractSets.set(set.name, set); }
-  const sets = new Map();
-  // Each entry keeps its set's id, name and slots: figma-push.mjs writes an instance of it.
-  const register = (set, entry) => {
-    if (!set) return;
-    const full = { id: set.id, name: set.name, slots: (set.props ?? []).filter((prop) => prop.type === "SLOT").map((prop) => prop.name), ...entry };
-    sets.set(set.id, full);
-    sets.set(set.name, full);
-  };
-  const defaultsOf = (set) => Object.fromEntries((set?.props ?? []).map((prop) => [prop.name, prop.default]));
-  for (const [code, props] of Object.entries(figmaProps)) {
-    const own = props.own.filter((item) => item.type !== "SET");
-    const choice = props.own.find((item) => item.type === "SET");
-    if (choice) {
-      const first = Object.values(choice.options ?? {})[0];
-      for (const [name, value] of Object.entries(choice.options ?? {})) {
-        const set = contractSets.get(name);
-        register(set ?? { id: name, name }, { code, own, toggles: props.toggles, defaults: defaultsOf(set), setProp: choice.prop, setValue: value, setDefault: first });
-      }
-    }
-    const set = contractSets.get(props.figma);
-    register(set ?? { id: props.figma, name: props.figma }, { code, own, toggles: props.toggles, defaults: defaultsOf(set) });
-  }
-  // A set whose only property is its data slot (Breadcrumbs: Item-List, a one-option Size) has no FIGMA_PROPS entry.
-  for (const [code, slots] of Object.entries(dataSlots)) {
-    for (const slot of slots) {
-      const set = slot.figma && contractSets.get(slot.figma.node);
-      if (set && !sets.has(set.id)) register(set, { code, own: [], toggles: [], defaults: defaultsOf(set) });
-    }
-  }
-  return { sets, apiProps, textStyles: textStyles ? new Set(textStyles) : null, iconNames: iconNames ? new Set(iconNames) : null, dataSlots };
-}
+export { figmaMapping, apiPropsOf } from "./figma-map.mjs";
 
 /* ── converting ─────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -959,17 +921,7 @@ export function figmaDocId(figmaId, part) {
 export async function repoMapping(root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")) {
   const { FIGMA_PROPS } = await import(pathToFileURL(path.join(root, "src/platform/studio/inspector/figmaProps.generated.ts")).href);
   const contract = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/component-properties.json"), "utf8"));
-  const apiProps = {};
-  for (const file of fs.readdirSync(path.join(root, "docs/api")).filter((name) => name.endsWith(".json"))) {
-    const doc = JSON.parse(fs.readFileSync(path.join(root, "docs/api", file), "utf8"));
-    for (const component of doc.components ?? []) {
-      apiProps[component.name] = new Map((component.props ?? []).map((prop) => {
-        let value;
-        try { value = prop.default === null || prop.default === undefined ? undefined : JSON.parse(prop.default); } catch { value = undefined; }
-        return [prop.name, value];
-      }));
-    }
-  }
+  const apiProps = apiPropsOf(fs.readdirSync(path.join(root, "docs/api")).filter((name) => name.endsWith(".json")).flatMap((file) => JSON.parse(fs.readFileSync(path.join(root, "docs/api", file), "utf8")).components ?? []));
   const { typographyStyles } = await import(pathToFileURL(path.join(root, "src/tokens/typography.generated.ts")).href).catch(() => ({ typographyStyles: null }));
   const iconSource = fs.readFileSync(path.join(root, "src/icons/generated/names.ts"), "utf8");
   const iconNames = [...new Set([...iconSource.matchAll(/"((?:icon|ic)-[a-z0-9-]+)"/g)].map((match) => match[1]))];

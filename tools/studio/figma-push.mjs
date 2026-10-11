@@ -3,7 +3,8 @@
 // the same — the round trip is the test (figma-push.selftest.mjs). Isomorphic: no Node imports; the caller passes the
 // mapping (figma-pull.mjs repoMapping / figmaMapping) and the nested layers (inspector/nestedLayers.generated.ts).
 //
-//   figmaFromPage(text, { mapping, nestedLayers }) → { frame, notes }
+//   figmaFromPage(text, { mapping, nestedLayers }) → { frame, notes }    every node keyed by its element's document id
+//   figmaPackage(text, { mapping, nestedLayers, page: { id, title } }) → { pkg, notes }   the file the plugin imports
 //
 // P0 covers frames (Stack, Grid), text and instances (variant, boolean, text and icon properties, the label, slot
 // content, `overrides` as nested instances, an icon-only control's name). Data slots, node slots, Table, Dashboard
@@ -44,9 +45,14 @@ function figmaProps(entry, code, mapping, notes, where, only = null) {
   const props = {};
   const defaults = mapping.apiProps[entry.code];
   const valueOf = (prop) => (prop in code ? code[prop] : only ? undefined : defaults?.get(prop));
+  // A component that is several Figma sets (Sidebar: Basic, Workspace, Small-Density) maps the properties of them all:
+  // write only those this set has (its contract's property names), when the contract knows the set.
+  const known = entry.defaults && Object.keys(entry.defaults).length ? new Set(Object.keys(entry.defaults)) : null;
+  const ownedBySet = (name) => !known || known.has(name);
   const swaps = new Map();
   for (const item of entry.own) {
     if (only && !only.has(item.prop)) continue;
+    if (!ownedBySet(item.label ?? item.prop)) continue;
     const value = valueOf(item.prop);
     if (value === undefined) continue;
     const name = item.label ?? item.prop;
@@ -60,6 +66,7 @@ function figmaProps(entry, code, mapping, notes, where, only = null) {
   }
   for (const toggle of entry.toggles ?? []) {
     if (only && !only.has(toggle.prop)) continue;
+    if (!ownedBySet(toggle.label)) continue;
     const value = valueOf(toggle.prop);
     const swap = swaps.get(toggle.prop);
     if (swap || typeof toggle.on !== "string" || toggle.on === "slot") props[toggle.label] = value !== undefined && value !== false && value !== null;
@@ -84,16 +91,27 @@ function codeProps(element) {
   return Object.fromEntries(Object.entries(element.props).filter(([, value]) => value.kind === "literal").map(([name, value]) => [name, value.value]));
 }
 
-export function figmaFromPage(text, { mapping, nestedLayers = {} }) {
+/**
+ * `text`: print the page with its ids (doc.mjs printPage(doc, { ids: true })) so the keys stay the same from one export to
+ * the next; an element without one takes `newId()` (doc.mjs's random id by default, a counter in the CLI).
+ */
+export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) {
   const notes = [];
-  const { doc, errors } = docFromText(text);
+  const { doc, errors } = docFromText(text, newId ? { newId } : {});
   if (!doc) return { frame: null, notes: errors.map((error) => error.message) };
   const byCode = setsByCode(mapping);
   const screen = doc.board.children.find((child) => child.kind === "element" && child.name === "Screen");
   if (!screen) return { frame: null, notes: ["the page has no Screen"] };
   if (doc.board.children.filter((child) => child.kind === "element").length > 1) notes.push("only the first Screen is pushed (P0)");
 
+  // Each node carries its element's document id (`key`): the plugin keeps it on the layer, so importing the page again
+  // updates the same layers (Zen plugin src/plugin/studio-import.js).
   const convert = (element, parent) => {
+    const node = convertElement(element, parent);
+    if (node && element.id) node.key = element.id;
+    return node;
+  };
+  const convertElement = (element, parent) => {
     if (element.kind !== "element") return null;
     const id = figmaIdOf(element.id);
     const code = codeProps(element);
@@ -183,7 +201,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {} }) {
   const content = screen.children.find((child) => child.kind === "element");
   const root = content && content.name === "Stack" ? frameNode(content, codeProps(content), figmaIdOf(content.id)) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: content ? [convert(content, null)].filter(Boolean) : [] };
   for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device"].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed (P0)`);
+  if (content?.id && root.type === "FRAME") root.key = content.id;
   const frame = { ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop, ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}) };
   if (doc.header?.figma?.node) frame.id = doc.header.figma.node;
   return { frame, notes };
+}
+
+/** The file the Zen plugin's Import from Studio reads: `{ format: "zen-studio-figma", version: 1, page, frame }`. */
+export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId } = {}) {
+  const { frame, notes } = figmaFromPage(text, { mapping, nestedLayers, newId });
+  if (!frame) return { pkg: null, notes };
+  return { pkg: { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame }, notes };
 }

@@ -4,7 +4,7 @@
 // back — and by what the JSON says (sets, Figma property names, variables, nested instances).
 // Run: node tools/studio/figma-push.selftest.mjs
 import { validateDialect } from "./dialect.mjs";
-import { docFromText } from "./doc.mjs";
+import { docFromText, printPage } from "./doc.mjs";
 import { figmaFromPage, figmaIdOf } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
@@ -107,10 +107,29 @@ export default function Page() {
   check("Projects: an Icon is an instance of the icon component", find(frame, (node) => node.name === "icon-star-01-line")?.set, { id: null, name: "icon-star-01-line" });
 }
 
-// 3. Ids: an element pulled from Figma keeps its Figma id (an update goes to the same layer); one the pull added has none.
+// 3. Keys: every node carries its element's document id; printed with its ids, a page gives the same keys every export.
+{
+  const { doc } = docFromText(PAGE);
+  const withIds = printPage(doc, { ids: true });
+  const keys = (frame) => { const out = []; const walk = (node) => { out.push(node.key); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame); return out; };
+  const first = keys(push(withIds).frame);
+  check("keys: one per node, the same on a second export", { all: first.every(Boolean), same: JSON.stringify(keys(push(withIds).frame)) === JSON.stringify(first) }, { all: true, same: true });
+  let n = 0;
+  const counted = keys(figmaFromPage(PAGE, { mapping, nestedLayers: NESTED_LAYERS, newId: () => `k${++n}` }).frame);
+  ok("keys: a page without ids takes the caller's ids (the CLI counts)", counted.every((key) => /^k\d+$/.test(key)));
+}
+
+// 4. Ids: an element pulled from Figma keeps its Figma id (an update goes to the same layer); one the pull added has none.
 check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:64878")), figmaIdOf(figmaDocId("I14730:78830;4035:10637")), figmaIdOf("f14243-64878.place"), figmaIdOf("k3x9")], ["14243:64878", "I14730:78830;4035:10637", undefined, undefined]);
 
-// 4. What P0 does not write yet is named, never dropped silently.
+// 5. A component that is several Figma sets writes only what its set has (Sidebar Basic has no Workspace-bar).
+{
+  const sidebar = PAGE.replace('<Text textStyle="Heading/3" align="center">Projects</Text>', '<Text textStyle="Heading/3" align="center">Projects</Text>\n          <Sidebar aria-label="Workspace" />').replace("import { Button, Card, Grid, Icon, IconButton, Stack, Text }", "import { Button, Card, Grid, Icon, IconButton, Sidebar, Stack, Text }");
+  const node = find(push(sidebar).frame, (item) => item.set?.name?.startsWith("Side-Bar/"));
+  check("Sidebar: the Basic set, without the other sets' properties", { set: node?.set.name, workspace: "Workspace-bar" in (node?.props ?? {}), background: "Master-Background" in (node?.props ?? {}) }, { set: "Side-Bar/Master/Basic", workspace: false, background: false });
+}
+
+// 6. What P0 does not write yet is named, never dropped silently.
 {
   const { notes } = push(PAGE.replace('<Card theme="flat">\n              <Text>Loyalty app</Text>', '<Card theme="flat" subAction={{ label: "More" }}>\n              <Text>Loyalty app</Text>'));
   ok("a data prop (subAction) is named as not written", notes.some((note) => /subAction is data/.test(note)));
