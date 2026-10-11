@@ -34,6 +34,9 @@ removed (four unused colour ramps were, see Removed).
   come and go or it moves (each layer keeps an id beside the page); a double-click goes one nested instance deeper at a
   time, as in Figma (Card › Sub-Action › Icon; a Table row's Badge), and Layers names nested instances by their Figma
   layer name.
+- Zen Studio, pages you made: one row of a list is edited on its own, like one instance in Figma — a layer a list draws
+  shows "Changes go to · Row N · All rows"; a change goes to that row (the rows get a field, the layer reads it), "All
+  rows" changes every row. A photo picked or dropped on one row's Avatar goes to that row too.
 - QA: `studio:build-check` engine budget 160 KB gzip (was 140; the user's choice over splitting the engine), and the
   check matches today's Studio again (it had hung for hours).
 - Zen Studio: replace a picture like Figma, everywhere — Avatar, Image, Thumbnail and the App Shell account take a photo from

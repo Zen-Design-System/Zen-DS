@@ -270,7 +270,8 @@ function translateOp(op, map) {
  */
 export function editDoc(doc, text, request, { components, applyOps, dataFieldEdit, sha1, options = {}, newId = newDocId }) {
   const run = (code, loc, ops) => {
-    if (ops.length === 1 && ops[0]?.op === "setDataField") {
+    // A data edit (one row's field; setRowProp: a fixed prop made that row's own) is the data module's.
+    if (ops.length === 1 && (ops[0]?.op === "setDataField" || ops[0]?.op === "setRowProp")) {
       const result = dataFieldEdit(code, request.file, loc, request.name, ops[0]);
       if (!("error" in result) && result.file !== request.file) return { error: "A page's data lives in the page itself", code: "forbidden" };
       return result;

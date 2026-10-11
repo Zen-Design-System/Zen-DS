@@ -86,7 +86,9 @@ Last updated: 2026-10-07.
   M2 pushed (c670fc5). M3 (same branch): the selection follows its element by id through edits, undo and redo
   (`locs` on each write, `remap.ts mapSrc`; `api.ts writeInFlight`), double-click goes into nested instances one level at
   a time (`parts.ts outerNestedAt`/`drillNested`), Layers names nested instances by their Figma layer; E2E NO-06…09.
-  Next: M4 design operations (plan §5).
+  PR #13 (M2+M3, 76c7683) open by Giám sát. M4 on `zen/feat/studio-doc-m4`: one row of a list edits on its own
+  ("Changes go to · Row N · All rows", op `setRowProp`; a photo for one row's Avatar too); E2E NO-10…12.
+  Next: M5 code export (plan §5).
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

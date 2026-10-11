@@ -7,6 +7,7 @@ import { findBySrc } from "../../select/picker";
 import { cellDataTarget } from "../../table/tableCells";
 import { pictureCode, resolveMedia } from "../../builder/library/media";
 import { PHOTO_PROPS } from "../../inspector/propSchema";
+import { rowScope } from "../../inspector/rowScope";
 import type { EditOp, EditValue } from "../../types";
 import type { NodeSelection } from "../arrange";
 
@@ -66,6 +67,16 @@ export async function writePicture(selection: NodeSelection, value: string, labe
   // One written layer drawn for several rows (a helper builds each row's avatar): a fixed picture would show on all of
   // them, which no one drops a photo for. Say so instead of changing every row (Figma overrides one instance).
   const renders = world ? findBySrc(world, selection.src).length : 1;
+  // A page you made: a picture on one row of a list (a .map) is that row's own, as one instance in Figma (op setRowProp:
+  // the rows get a field, the layer reads it), unless the Design panel says "All rows".
+  if (renders > 1 && at.file.startsWith("local:") && src?.kind !== "expression" && rowScope.get() === "row") {
+    const found = rowOf(selection);
+    if (found && !("reason" in found)) {
+      const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setRowProp", name: "src", row: found.row, value: next }], hash: element.hash }, `${selection.name} → ${label} (row ${found.row + 1})`);
+      if (response.ok && typeof shown === "string") inspectorStatus.set("positive", `${selection.name} in row ${found.row + 1} shows ${label}`);
+      return say(response.ok, "error" in response ? response.error : undefined);
+    }
+  }
   if (renders > 1 && src?.kind === "expression") return say(false, `This picture is shared by ${renders} rows (it comes from the code, not from each row's data), so one row cannot take its own. Change the person's photo in the data, or edit the code.`);
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "src", value: next } as EditOp], hash: element.hash }, `${selection.name} → ${label}`);
   if (response.ok && typeof shown === "string") inspectorStatus.set("positive", `${selection.name} shows ${label}`);

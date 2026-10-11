@@ -269,3 +269,17 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
   cho 9 lệnh); E2E NO-06 (Table vẫn được chọn qua ⌘D/⌘Z/⌘⇧Z của Card phía trên, Card di chuyển ↓ qua ⌘Z/⌘⇧Z, đổi tab),
   NO-07 (cấp 3, Reset all, ⌘Z), NO-08 (double-click tới cấp 4–5), NO-09 (Layers). B-22 (⇧A chọn Stack mới) giữ xanh:
   `wrapSelection` đọc lần ghi kèm `locs` như remap.
+
+### M4 — thao tác thiết kế (2026-10-11, nhánh `zen/feat/studio-doc-m4`)
+
+- **Một hàng sửa riêng (tiêu chí 3):** chọn một instance do `.map` vẽ trên trang Studio, Inspector hiện "Changes go to:
+  Row N · All N rows". Mặc định là hàng đó, như sửa một instance trong Figma: lệnh mới `setRowProp`
+  (`data-source.mjs rowPropEdit`) biến giá trị cố định thành field của từng hàng — các hàng khác giữ giá trị cũ, hàng
+  được chọn nhận giá trị mới — và layer đọc field đó (`theme={person.theme}`), một lần sửa, một bước undo. "All rows" là
+  lựa chọn rõ ràng: ghi giá trị lên layer (kể cả thay binding). Ảnh thả/chọn cho Avatar của một hàng cũng chỉ vào hàng
+  đó (`edit/assets/picture.ts`). Lựa chọn ở `inspector/rowScope.ts`, về "Row" khi chọn layer khác.
+- **Các thao tác còn lại** (chèn từ Assets, ⇧A, ⌘D, kéo thả, resize, sửa text, prototype) đã có hàng E2E trên trang
+  Studio; bước "kéo một card qua card khác" mà bài dashboard chưa kiểm được giờ là NO-12 (Card giữ được chọn theo ID,
+  ⌘Z). Engine tài liệu đã là mặc định của trang Studio từ M2. Bài dashboard thủ công chưa chạy lại.
+- **Kiểm tra:** data-source selftest 37 (+3 `setRowProp`), doc selftest 116 (`editDoc` chạy `setRowProp`, ID giữ); E2E
+  NO-10 (Row 2 › Red chỉ hàng đó; All rows › Green mọi hàng; ⌘Z), NO-11 (ảnh cho một Avatar trong list), NO-12.
