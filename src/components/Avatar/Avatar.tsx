@@ -82,11 +82,17 @@ export interface AvatarStackProps extends Omit<AvatarProps, "children" | "alt" |
   overrides?: NestedOverrides;
 }
 
+/** The stack's own attributes (data-*, aria-*, id, className, style, title) go on its root, not on every avatar. */
+const STACK_ROOT_PROP = /^(?:data-|aria-)|^(?:id|className|style|title)$/;
+
 /** Figma Avatar/Stack: 1–5 avatars, first on top, no overflow chip (`showMore` is an opt-in extension). */
-export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp = "md", overrides, ...props }: AvatarStackProps) {
+export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp = "md", overrides, ...rest }: AvatarStackProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, avatarSizes);
   const visible = items.slice(0, max);
   const remaining = items.length - visible.length;
-  return <span className="zen-avatar-stack" data-size={size}>{visible.map((item, index) => nest("Avatar", <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />, index))}{showMore && remaining > 0 ? nest("More", <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar>) : null}</span>;
+  const root: Record<string, unknown> = {};
+  const props: Record<string, unknown> = {};
+  for (const [name, value] of Object.entries(rest)) (STACK_ROOT_PROP.test(name) ? root : props)[name] = value;
+  return <span {...root} className={["zen-avatar-stack", root.className].filter(Boolean).join(" ")} data-size={size}>{visible.map((item, index) => nest("Avatar", <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />, index))}{showMore && remaining > 0 ? nest("More", <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar>) : null}</span>;
 }

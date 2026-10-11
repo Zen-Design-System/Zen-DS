@@ -233,10 +233,23 @@ function drawnText(value: unknown, depth = 0): string[] {
   return ["title", "label", "children", "caption", "description"].flatMap((key) => drawnText(props[key], depth + 1));
 }
 
+/** The first library photo a drawn cell holds in its props (an Avatar's src, a PersonAvatar's person.photo), or null. */
+function drawnPhoto(value: unknown, depth = 0): string | null {
+  if (depth > 6 || value === null || value === undefined) return null;
+  if (typeof value === "string") { const media = libraryMedia(value); return media.startsWith("zen-media:") ? media : null; }
+  if (Array.isArray(value)) { for (const item of value) { const found = drawnPhoto(item, depth + 1); if (found) return found; } return null; }
+  if (isValidElement(value)) return drawnPhoto(value.props, depth + 1);
+  if (typeof value === "object") { for (const field of Object.values(value as Record<string, unknown>)) { const found = drawnPhoto(field, depth + 1); if (found) return found; } }
+  return null;
+}
+
 /**
  * A Table whose columns draw their cells with `cell` functions (a page cannot hold one): each such column's cells are
  * drawn here once per row and their text written in the row under the column's id, which the page's column shows
- * (compile.mjs cellStandIn). A photo or a badge in a cell is not kept, only its words ("Bao Nguyen · bao@phin.co").
+ * (compile.mjs cellStandIn). A cell that holds a library photo (a person's avatar) keeps it too (core rebuild M8, the
+ * avatar test through the design copy): the row takes `<id>Photo` (and `<id>Caption` for its second line) and the
+ * column draws an Avatar cell from them (`content: "avatar"`), so the photo can be changed on the page. A badge in a
+ * cell is not kept, only its words ("Bao Nguyen · bao@phin.co").
  */
 function cellsAsText(props: Record<string, unknown>, out: Array<[string, SnapValue]>, ctx: Context) {
   const columns = Array.isArray(props.columns) ? props.columns : null;
@@ -249,6 +262,8 @@ function cellsAsText(props: Record<string, unknown>, out: Array<[string, SnapVal
     const id = column && typeof column === "object" ? (column as { id?: unknown }).id : undefined;
     if (typeof cell !== "function" || typeof id !== "string") continue;
     let written = 0;
+    let photos = 0;
+    let captions = 0;
     rawRows.forEach((raw, index) => {
       const item = rows[index];
       if (!item || item.kind !== "object" || !raw || typeof raw !== "object") return;
@@ -256,12 +271,29 @@ function cellsAsText(props: Record<string, unknown>, out: Array<[string, SnapVal
       if (own && own[1].kind === "literal" && typeof own[1].value === "string") return;
       let drawn: unknown;
       try { drawn = (cell as (row: unknown, at: number) => unknown)(raw, index); } catch { return; }
-      const text = drawnText(drawn).join(" · ");
-      if (!text) return;
-      item.fields = [...item.fields.filter(([key]) => key !== id), [id, literal(text)]];
+      const parts = drawnText(drawn);
+      if (!parts.length) return;
+      const photo = drawnPhoto(drawn);
+      const cellFields: Array<[string, SnapValue]> = photo
+        ? [[id, literal(parts[0])], [`${id}Photo`, literal(photo)], ...(parts.length > 1 ? [[`${id}Caption`, literal(parts.slice(1).join(" · "))] as [string, SnapValue]] : [])]
+        : [[id, literal(parts.join(" · "))]];
+      const names = new Set(cellFields.map(([key]) => key));
+      item.fields = [...item.fields.filter(([key]) => !names.has(key)), ...cellFields];
       written += 1;
+      if (photo) photos += 1;
+      if (photo && parts.length > 1) captions += 1;
     });
-    if (written) note(ctx, `Table column "${id}": what its cells draw is kept as their text (photos and badges left out)`);
+    if (photos) {
+      // The column draws an Avatar cell from the row's photo, name and caption.
+      const columnsEntry = out.find(([key]) => key === "columns");
+      const entry = columnsEntry?.[1].kind === "array" ? columnsEntry[1].items.find((value) => value.kind === "object" && value.fields.some(([key, field]) => key === "id" && field.kind === "literal" && field.value === id)) : undefined;
+      if (entry?.kind === "object") {
+        const extra: Array<[string, SnapValue]> = [["content", literal("avatar")], ["mediaField", literal(`${id}Photo`)], ...(captions ? [["captionField", literal(`${id}Caption`)] as [string, SnapValue]] : [])];
+        const extraNames = new Set(extra.map(([key]) => key));
+        entry.fields = [...entry.fields.filter(([key]) => !extraNames.has(key)), ...extra];
+      }
+      note(ctx, `Table column "${id}": its cells' photos are kept as an Avatar column (badges left out)`);
+    } else if (written) note(ctx, `Table column "${id}": what its cells draw is kept as their text (photos and badges left out)`);
   }
 }
 

@@ -106,6 +106,19 @@
   (Chip Counter / Multi-Count, Date field Leading-Icon), Input re-capture; archived "This row / All rows" (done in M4)
   and the old nested-paths item.
 
+## Core rebuild M8: the avatar test through the design copy (branch zen/feat/studio-doc-m8 off 33387e3, tier M)
+
+- Rows NO-14…18 (one per eval page): first frame with an Avatar → New page from this frame → ⇧2 on the Screen → the
+  first Avatar shown and on top → ⌘-click until "Avatar" → Assets › Photos; the photo key appears once more. My own row
+  slips on the way: `until` treats index 0 as not yet; `.studio-viewport`'s box is not the canvas; elementFromPoint
+  hits the selection overlay.
+- Real ones, fixed at the owner: AvatarStack spread its rest props on every Avatar (Studio's data-zen-src made each
+  Avatar look like the stack; probe on :5185 showed "AvatarStack · part of AvatarStack"); SidePanel modal ignored
+  `[data-zen-overlay-root]` (its scrim covered the Screen frame of the copy, screenshot); a nested Avatar part (an
+  AvatarStack's) on a local page takes a photo as the owner's `overrides` (`picture.ts nestedPicture`, `assets.ts
+  selectedImage`); a Table column drawn by `cell` with a library photo becomes an avatar column in the copy.
+- 5/5, starters SP-01…11 green; `tests/interaction/frames-and-stacks.test.tsx` (3).
+
 ## PR #12 CI: ModalForm focus after an async submit (zen/feat/nested-overrides a3f5389, merged here; tier S)
 
 - CI failed "waits for an async handler before looking for errors" (Email never focused). Not `overrides`: Form and

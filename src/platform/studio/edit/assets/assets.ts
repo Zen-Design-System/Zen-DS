@@ -15,7 +15,7 @@ import { insertCode } from "../clipboard";
 import { dropTargetAt, publishDragView, type DropContext } from "../drag";
 import { fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf } from "../../select/picker";
 import { withoutPart } from "../../select/parts";
-import { PICTURED, writePicture } from "./picture";
+import { nestedPicture, PICTURED, writePicture } from "./picture";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
@@ -82,7 +82,10 @@ export const uploadInsertable = (upload: Upload): Insertable => ({
  */
 export function selectedImage(): NodeSelection | null {
   const selection = studioStore.getState().selection;
-  if (selection?.kind !== "node" || !PICTURED.has(selection.name)) return null;
+  if (selection?.kind !== "node") return null;
+  // A picture the selected layer draws as a nested instance (an AvatarStack's Avatar) on a page you made: that one.
+  if (nestedPicture(selection)) return selection;
+  if (!PICTURED.has(selection.name)) return null;
   return selection.part ? (withoutPart(selection) as NodeSelection) : selection;
 }
 
