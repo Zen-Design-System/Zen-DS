@@ -29,4 +29,8 @@ export function docFromText(text: string, options?: { components?: Set<string>; 
 export function locsOf(doc: PageDoc, text: string, options?: { components?: Set<string> }): { idAt: Map<string, string>; locOf: Map<string, string> };
 export function newDocId(): string;
 export function withoutIds(doc: PageDoc): unknown;
-export function editDoc(doc: PageDoc, text: string, request: { file: string; loc: string; name: string; ops: unknown[] }, deps: { components?: Set<string>; applyOps: typeof applyOps; dataFieldEdit: typeof dataFieldEdit; sha1?: typeof sha1; options?: Record<string, unknown> }): { doc: PageDoc; text: string; answer: Record<string, unknown> } | { error: string; code: string };
+/** Where each element of the first text is in the second, by id: "line:col" → "line:col", null when gone; null overall
+ *  when no id carried over. */
+export type LocMap = Record<string, string | null>;
+export function locMap(before: PageDoc, beforeText: string, after: PageDoc, afterText: string, options?: { components?: Set<string> }): LocMap | null;
+export function editDoc(doc: PageDoc, text: string, request: { file: string; loc: string; name: string; ops: unknown[] }, deps: { components?: Set<string>; applyOps: typeof applyOps; dataFieldEdit: typeof dataFieldEdit; sha1?: typeof sha1; options?: Record<string, unknown> }): { doc: PageDoc; text: string; answer: Record<string, unknown>; ids: boolean; locs: LocMap | null } | { error: string; code: string };

@@ -15,6 +15,9 @@ import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
  * and its text is that document's print. An edit runs on the document (editDoc: the same engine, on a print that carries
  * each element's id), so every element keeps its id across edits; undo and redo bring back the document of the text they
  * put back. A page gets its document when it opens (ensurePageDoc).
+ *
+ * M3: an edit, undo and redo answer with `locs`, where each element is in the new text by its id, so the selection
+ * follows its element exactly (select/remap.ts mapSrc) instead of guessing from a text diff.
  */
 
 /** The documents of the texts this session wrote, by the text's hash: undo and redo put a text back with its ids. */
@@ -119,17 +122,20 @@ export async function localEdit(request: EditRequest): Promise<EditResponse> {
     await putPage(id, after, { doc: result.doc });
   }
   const extras = Object.fromEntries(EXTRAS.filter((key) => result.answer[key] !== undefined).map((key) => [key, result.answer[key]]));
-  return { ok: true, file: request.file, hash: engine.sha1(after), hashBefore, before, after, changed: engine.changedRange(before, after), draft: false, ...extras } as EditResponse;
+  const locs = result.locs ? { locs: result.locs } : {};
+  return { ok: true, file: request.file, hash: engine.sha1(after), hashBefore, before, after, changed: engine.changedRange(before, after), draft: false, ...extras, ...locs } as EditResponse;
 }
 
 /** As POST /write (undo / redo put a whole text back): refused when the page changed since it was read. */
 export async function localWrite(request: WriteRequest): Promise<WriteResponse> {
-  const page = await pageText(request.file);
-  if (!page) return { ok: false, code: "invalid", error: `${request.file} is not a page in this browser` };
+  const id = pageIdOf(request.file);
+  const page = id ? await getPage(id) : null;
+  if (!id || !page) return { ok: false, code: "invalid", error: `${request.file} is not a page in this browser` };
   const engine = await loadEngine();
   if (engine.sha1(page.text) !== request.expectHash) return { ok: false, code: "stale", error: `${request.file} changed since this edit; not overwritten` };
   // The text's document when this session wrote it (its ids come back); else the page gets one when it opens again.
   const doc = documents.get(engine.sha1(request.content));
-  if (request.content !== page.text) await putPage(page.id, request.content, doc ? { doc } : {});
-  return { ok: true, hash: engine.sha1(request.content), draft: false };
+  if (request.content !== page.text) await putPage(id, request.content, doc ? { doc } : {});
+  const locs = doc && page.doc ? engine.locMap(page.doc, page.text, doc, request.content, { components: new Set(zenComponents) }) : null;
+  return { ok: true, hash: engine.sha1(request.content), draft: false, ...(locs ? { locs } : {}) };
 }

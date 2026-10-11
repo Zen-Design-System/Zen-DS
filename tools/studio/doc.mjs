@@ -214,6 +214,26 @@ export function locsOf(doc, text, { components } = {}) {
   return { idAt, locOf };
 }
 
+/**
+ * Where each element of `before` (shown as `beforeText`) is in `after` (shown as `afterText`), told by its id (core rebuild
+ * M3: the selection follows its element through edits, undo and redo, exactly): { "line:col": "line:col" }, null for an
+ * element that is gone. Two documents whose ids do not carry over (a page read again) map nothing.
+ */
+export function locMap(before, beforeText, after, afterText, { components } = {}) {
+  return mapLocs(locsOf(before, beforeText, { components }), locsOf(after, afterText, { components }));
+}
+
+function mapLocs(from, to) {
+  const map = {};
+  let kept = 0;
+  for (const [loc, id] of from.idAt) {
+    const next = to.locOf.get(id) ?? null;
+    map[loc] = next;
+    if (next) kept += 1;
+  }
+  return kept ? map : null;
+}
+
 /* ── edit ───────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 /** An op with its element locs (written for `from`) moved to `to` by `map` (the ops that name other elements). */
@@ -244,8 +264,9 @@ function translateOp(op, map) {
  * new text and the answer exactly as before the document (the person's formatting stays), and on the print with ids,
  * which gives the new document with every element's id. The two give the same page (doc.selftest.mjs); should they not
  * (an op this cannot follow), the page keeps working and its elements take new ids (`ids: false`).
- * Returns { doc, text, answer, ids } (answer: the engine's extras), or { error, code }. `sha1`: the engine's, to give
- * hash-checked ops the hash of the text they run on.
+ * Returns { doc, text, answer, ids, locs } (answer: the engine's extras; locs: where each element of `text` is in the new
+ * text, as locMap, null without ids), or { error, code }. `sha1`: the engine's, to give hash-checked ops the hash of the
+ * text they run on.
  */
 export function editDoc(doc, text, request, { components, applyOps, dataFieldEdit, sha1, options = {}, newId = newDocId }) {
   const run = (code, loc, ops) => {
@@ -262,6 +283,7 @@ export function editDoc(doc, text, request, { components, applyOps, dataFieldEdi
   const after = docFromText(shown.code, { components, newId });
   if (!after.doc || after.errors.length) return { error: `Not written: the page would break (line ${after.errors[0]?.line ?? 1}: ${after.errors[0]?.message ?? "no board"})`, code: "invalid" };
   let next = null;
+  let locs = null;
   const view = locsOf(doc, text, { components });
   const engineText = printPage(doc, { ids: true });
   const engineView = locsOf(doc, engineText, { components });
@@ -274,8 +296,9 @@ export function editDoc(doc, text, request, { components, applyOps, dataFieldEdi
       if (read && JSON.stringify(withoutIds(read)) === JSON.stringify(withoutIds(after.doc))) next = read;
     }
   }
+  if (next) locs = mapLocs(view, locsOf(next, shown.code, { components }));
   const answer = Object.fromEntries(Object.entries(shown).filter(([name]) => name !== "code" && name !== "changed"));
-  return { doc: next ?? after.doc, text: shown.code, answer, ids: Boolean(next) };
+  return { doc: next ?? after.doc, text: shown.code, answer, ids: Boolean(next), locs };
 }
 
 /** The document without its ids (two documents of the same page compare equal). */

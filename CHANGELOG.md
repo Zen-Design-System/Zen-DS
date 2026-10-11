@@ -30,6 +30,12 @@ removed (four unused colour ramps were, see Removed).
   any depth (a Card's Sub-Action, the icon inside it, one Table row's Badge), and the Inspector shows that instance's
   Figma properties; an edit changes this instance only (one undo step), with Reset all overrides per layer. A Table cell's
   component gets a "this row" section above the column's settings.
+- Zen Studio, pages you made: the selection stays on its layer through edits, undo and redo, also when layers above it
+  come and go or it moves (each layer keeps an id beside the page); a double-click goes one nested instance deeper at a
+  time, as in Figma (Card › Sub-Action › Icon; a Table row's Badge), and Layers names nested instances by their Figma
+  layer name.
+- QA: `studio:build-check` engine budget 160 KB gzip (was 140; the user's choice over splitting the engine), and the
+  check matches today's Studio again (it had hung for hours).
 - Zen Studio: replace a picture like Figma, everywhere — Avatar, Image, Thumbnail and the App Shell account take a photo from
   Assets › Photos (click with the layer selected, or drag the photo onto the layer) and from the Inspector's Picture
   picker, in example and template code as well as on pages you made. A picture bound to a row's data (a Table cell, a

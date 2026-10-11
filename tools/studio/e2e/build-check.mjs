@@ -24,8 +24,9 @@ const outDir = path.join(root, "node_modules/.cache/zen-studio/build-check/dist"
 const args = process.argv.slice(2);
 const has = (name) => args.includes(`--${name}`);
 /** The engine chunk's budget (gzip KB). The spec said 130 on a guess of the parser's size; the user set 140 on
- *  2026-10-06 after M4 measured it (parser 77 + engine 58). Over it fails the check. */
-const ENGINE_BUDGET_KB = 140;
+ *  2026-10-06 after M4 measured it (parser 77 + engine 58), then 160 on 2026-10-11 after nested overrides + core rebuild
+ *  M2 reached 153.5 (rather than splitting the engine). Over it fails the check. */
+const ENGINE_BUDGET_KB = 160;
 const FOLDER = "linked-pages";
 
 const steps = [];

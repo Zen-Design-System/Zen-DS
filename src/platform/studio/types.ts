@@ -86,7 +86,10 @@ export type StudioEditRecord = {
 };
 
 /** A source write the Studio made (an edit, undo or redo), with the whole file before and after it. */
-export type StudioWrite = { file: string; before: string; after: string; kind: "edit" | "undo" | "redo" };
+/** `locs` (a page kept in this browser, core rebuild M3): where each element of `before` is in `after`, told by its id
+ *  ("line:col" → "line:col", null when it is gone), so a selection follows its element exactly. */
+export type StudioWrite = { file: string; before: string; after: string; kind: "edit" | "undo" | "redo"; locs?: LocMap };
+export type LocMap = Record<string, string | null>;
 
 export type StudioState = {
   page: PlatformPage;
@@ -407,14 +410,14 @@ export type StudioSnippetSync = { synced: boolean; reason?: string };
  * without drafts, or a draft that matched the disk again and was dropped).
  */
 export type EditResponse =
-  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string; locs?: Record<string, string> }; moved?: { loc: string; locs?: Record<string, string> }; removed?: true; cleared?: true; reset?: true; draft?: boolean }
+  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string; locs?: Record<string, string> }; moved?: { loc: string; locs?: Record<string, string> }; removed?: true; cleared?: true; reset?: true; draft?: boolean; locs?: LocMap }
   | { ok: false; code: "stale" | "not-found" | "forbidden" | "invalid"; error: string }
   /** A structural edit in shared code waits for the person's yes: `uses` files import it (`users`: the first few). */
   | { ok: false; code: "confirm"; error: string; uses?: number; users?: string[] };
 
 /** `expectHash` is checked against the effective text; the content goes into the draft (`draft: true`), as /edit. */
 export type WriteRequest = { file: string; content: string; expectHash: string };
-export type WriteResponse = { ok: true; hash: string; draft?: boolean } | { ok: false; code: "stale" | "forbidden" | "invalid"; error: string };
+export type WriteResponse = { ok: true; hash: string; draft?: boolean; locs?: LocMap } | { ok: false; code: "stale" | "forbidden" | "invalid"; error: string };
 
 /**
  * `token` is null when the page was not opened on a loopback host (then the Studio is read-only). `drafts`: this server

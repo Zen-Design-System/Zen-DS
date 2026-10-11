@@ -1,4 +1,4 @@
-import { deepPartAt, partChain, partForElement, type PartHit } from "../select/parts";
+import { deepPartAt, drillNested, partChain, partForElement, type PartHit } from "../select/parts";
 import { fiberOf, hitOf, srcOf, type FiberHit } from "../select/picker";
 import { TABLE_PARTS, tableFiberOf } from "./tableCells";
 
@@ -71,9 +71,13 @@ export function tableDrill(selected: FiberHit | null, part: PartHit | null, targ
     const drawn = drawnContent(part, target);
     return drawn ? { part: drawn } : null;
   }
-  // The content the Table draws in a cell (Text-Cell, Badge…): its text is the next level, as a text layer in Figma.
+  // The content the Table draws in a cell (Text-Cell, Badge-Cell…): a nested instance in it under the pointer is the
+  // next level (Badge-Cell › Badge, as Figma lists it; its props are that row's overrides), then the text, as a text
+  // layer in Figma.
   const cell = part.element.closest("td.zen-table__cell:not(.zen-table__select)");
-  return cell && part.name !== TABLE_PARTS.headerCell && ownTable(part.owner, cell) ? { edit: true } : null;
+  if (!cell || part.name === TABLE_PARTS.headerCell || !ownTable(part.owner, cell)) return null;
+  const deeper = drillNested(part.owner, target, part);
+  return deeper ? { part: deeper } : { edit: true };
 }
 
 /**

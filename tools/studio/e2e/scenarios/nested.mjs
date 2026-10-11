@@ -2,7 +2,7 @@
 // Studio, a Zen component the owner draws itself (Card's Sub-Action, the icon inside it, one Table row's Badge) is
 // selected with ⌘-click and changed in the Inspector like Figma's nested instance. The edit is the owner's `overrides`
 // (src/components/_shared/nested.tsx), one ⌘Z.
-import { sleep, until } from "../lib/studio.mjs";
+import { selectedSrc, sleep, until } from "../lib/studio.mjs";
 import { focusScreen, newPage, pageText } from "./builder.mjs";
 import { pickOption } from "./inspector.mjs";
 
@@ -118,6 +118,46 @@ function idsOf(doc, name) {
 
 const subAction = (id) => `[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Card"] .zen-card__sub-action .zen-button`;
 
+/** Where the n-th <tag of the page's text starts ("line:col", as data-zen-src writes it), or null. */
+function tagLoc(text, tag, index = 0) {
+  const lines = (text ?? "").split("\n");
+  let seen = 0;
+  for (let line = 0; line < lines.length; line++) {
+    const column = lines[line].search(new RegExp(`<${tag}[\\s>/]`));
+    if (column >= 0 && seen++ === index) return `${line + 1}:${column}`;
+  }
+  return null;
+}
+
+/** ⌘-clicks the written element `name` at (dx, dy) from its box's top-left until the Inspector names it. */
+async function selectWritten(page, id, name, dx, dy) {
+  const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).first().boundingBox();
+  if (!box) throw new Error(`<${name}> has no box on the canvas`);
+  await page.keyboard.down("ControlOrMeta");
+  try { await page.mouse.click(box.x + dx, box.y + dy); } finally { await page.keyboard.up("ControlOrMeta"); }
+  await until(async () => new RegExp(`^${name}(\\s|$)`).test(await heading(page)), { message: `the ${name} selected` }).catch(async (error) => { throw new Error(`${error.message} (Inspector: "${await heading(page)}")`); });
+}
+
+/** Double-clicks (x, y) until the Inspector names `name` (each double-click goes one layer deeper there, as in Figma). */
+async function drill(page, x, y, name) {
+  for (let click = 0; click < 3; click++) {
+    await page.mouse.dblclick(x, y);
+    await sleep(400);
+    if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
+  }
+  throw new Error(`double-click did not reach ${name} (Inspector: "${await heading(page)}")`);
+}
+
+/** Waits until the selection is the n-th <tag of the page's current text (the same element, at its new place). */
+async function stillSelected(page, id, tag, index, after) {
+  let want = null;
+  await until(async () => {
+    want = `local:${id}.zen.tsx:${tagLoc(await pageText(page, id), tag, index)}`;
+    return (await selectedSrc(page))[0] === want && new RegExp(`^${tag}(\\s|$)`).test(await heading(page));
+  }, { message: `the ${tag} still selected after ${after}` }).catch(async (error) => { throw new Error(`${error.message} (selected ${(await selectedSrc(page)).join(", ") || "nothing"}, want ${want}; Inspector "${await heading(page)}")`); });
+  return want.split(":").slice(-2).join(":");
+}
+
 export const rows = [
   {
     id: "NO-01", feature: "Card › Sub-Action (a nested IconButton): ⌘-click it, Level → Danger writes the Card's overrides; one ⌘Z", wp: "fast path A 2026-10-10",
@@ -215,6 +255,133 @@ export const rows = [
       const back = await until(async () => { const doc = await pageDoc(page, id); return idsOf(doc, "Card").length === 1 ? doc : null; }, { message: "one Card in the document after ⌘Z" });
       if (idsOf(back, "Card")[0] !== card) throw new Error(`after ⌘Z the Card is ${idsOf(back, "Card")[0]}, was ${card}`);
       return `document on open (text unchanged) · ⌘D: ${card} kept, copy ${copy} · ⌘Z: ${card} back`;
+    },
+  },
+  {
+    id: "NO-06", feature: "The selection follows its element by id (core rebuild M3, plan criterion 2): the Table stays selected while ⌘Z / ⌘⇧Z take the Card copied above it away and back; the Card moved below the Table (↓) stays selected through ⌘Z and ⌘⇧Z; a tab switch keeps it", wp: "core rebuild M3 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      await until(() => pageDoc(page, id), { message: "the page's document after it opens" });
+      const cards = async () => ((await pageText(page, id)) ?? "").match(/<Card /g)?.length ?? 0;
+      // A copy of the Card above the Table, then the Table selected (⌘-click its header's corner).
+      await selectWritten(page, id, "Card", 6, 30);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => (await cards()) === 2, { message: "two Cards after ⌘D" });
+      await selectWritten(page, id, "Table", 4, 4);
+      const steps = [`Table ${await stillSelected(page, id, "Table", 0, "selecting it")}`];
+      await undo(page);
+      await until(async () => (await cards()) === 1, { message: "one Card after ⌘Z" });
+      steps.push(`⌘Z ${await stillSelected(page, id, "Table", 0, "⌘Z")}`);
+      await page.keyboard.press("ControlOrMeta+Shift+KeyZ");
+      await until(async () => (await cards()) === 2, { message: "two Cards after ⌘⇧Z" });
+      steps.push(`⌘⇧Z ${await stillSelected(page, id, "Table", 0, "⌘⇧Z")}`);
+      await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+      await sleep(300);
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      steps.push(`tabs ${await stillSelected(page, id, "Table", 0, "Prototype and back to Design")}`);
+      // Back to one Card; ↓ moves it below the Table (Figma's reorder in auto layout), the selection with it.
+      await undo(page);
+      await until(async () => (await cards()) === 1, { message: "one Card again" });
+      await selectWritten(page, id, "Card", 6, 30);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ArrowDown");
+      const below = async () => { const text = (await pageText(page, id)) ?? ""; return text.indexOf("<Card ") > text.indexOf("<Table "); };
+      await until(below, { message: "the Card below the Table after ↓" });
+      steps.push(`↓ ${await stillSelected(page, id, "Card", 0, "↓")}`);
+      await undo(page);
+      await until(async () => !(await below()), { message: "the Card above the Table after ⌘Z" });
+      steps.push(`⌘Z ${await stillSelected(page, id, "Card", 0, "⌘Z of the move")}`);
+      await page.keyboard.press("ControlOrMeta+Shift+KeyZ");
+      await until(below, { message: "the Card below the Table after ⌘⇧Z" });
+      steps.push(`⌘⇧Z ${await stillSelected(page, id, "Card", 0, "⌘⇧Z of the move")}`);
+      return steps.join(" · ");
+    },
+  },
+  {
+    id: "NO-08", feature: "Double-click goes into nested instances like Figma (plan criterion 1): Table → Data-Row → Cell → row 3's Badge (level 4), Theme → Red writes Row[chi]/status/Badge; Card → Sub-Action → its Icon (level 3), Tone writes Sub-Action/Leading-Icon; one ⌘Z each", wp: "core rebuild M3 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      const steps = [];
+      await selectWritten(page, id, "Table", 4, 4);
+      const badge = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Table"] tbody .zen-badge`).nth(2).boundingBox();
+      const bx = badge.x + badge.width / 2;
+      const by = badge.y + badge.height / 2;
+      for (const name of ["Data-Row", "Cell", "Badge"]) await drill(page, bx, by, name);
+      steps.push("Table → Data-Row → Cell → Badge");
+      await pick(page, "theme", "Red");
+      await until(async () => /"Row\[chi\]\/status\/Badge": \{ theme: "red" \}/.test((await pageText(page, id)) ?? ""), { message: '"Row[chi]/status/Badge": { theme: "red" } in the page' });
+      await undo(page);
+      await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after ⌘Z" });
+      steps.push("Red, ⌘Z");
+      await page.locator(".studio-viewport").focus();
+      for (let i = 0; i < 4; i++) await page.keyboard.press("Escape");
+      await selectWritten(page, id, "Card", 6, 30);
+      const icon = await page.locator(`${subAction(id)} [data-icon]`).first().boundingBox();
+      const ix = icon.x + icon.width / 2;
+      const iy = icon.y + icon.height / 2;
+      for (const name of ["IconButton", "Icon"]) await drill(page, ix, iy, name);
+      steps.push("Card → IconButton → Icon");
+      await pick(page, "tone", /^accent-base\b/);
+      await until(async () => /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/.test((await pageText(page, id)) ?? ""), { message: "the Icon's tone in the page" });
+      await undo(page);
+      await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after the second ⌘Z" });
+      steps.push("accent-base, ⌘Z");
+      await shot(page, "NO-08");
+      return steps.join(" · ");
+    },
+  },
+  {
+    id: "NO-09", feature: "Layers lists a nested instance under its owner's Parts with its Figma layer name (IconButton · Sub-Action); its row selects it and the Inspector edits it as the Card's override; one ⌘Z", wp: "core rebuild M3 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      await selectWritten(page, id, "Card", 6, 30);
+      await page.locator("#studio-left").getByRole("tab", { name: "Layers" }).click().catch(() => undefined);
+      const tree = page.locator(".studio-layers__tree");
+      const open = async (row, what) => {
+        await until(() => row.count(), { message: what });
+        if ((await row.first().getAttribute("aria-expanded")) === "false") await row.first().locator(".studio-layers__chevron").click();
+      };
+      await open(tree.locator('[role="treeitem"][aria-selected="true"]'), "the Card's Layers row");
+      const card = await tree.locator('[role="treeitem"][aria-selected="true"]').first().getAttribute("data-layer-id");
+      await open(tree.locator(`[role="treeitem"][data-layer-id="${card}/parts"]`), "the Card's Parts row");
+      // The Card's inner frames open one level at a time (as a component's frames in Figma's Layers) until the IconButton shows.
+      const row = tree.locator('[role="treeitem"][data-kind="part"]', { hasText: "IconButton" }).first();
+      for (let round = 0; round < 6 && !(await row.count()); round++) {
+        const closed = tree.locator(`[role="treeitem"][data-layer-id^="${card}/part:"][aria-expanded="false"]`);
+        for (let index = (await closed.count()) - 1; index >= 0; index--) await closed.nth(index).locator(".studio-layers__chevron").click();
+        await sleep(200);
+      }
+      await until(() => row.count(), { message: "an IconButton row under Parts" });
+      const caption = (await row.locator(".studio-layers__hint").innerText().catch(() => "")).trim();
+      if (caption !== "Sub-Action") throw new Error(`the IconButton row's caption is "${caption}", not its layer name Sub-Action`);
+      await row.scrollIntoViewIfNeeded();
+      await row.click();
+      await until(async () => /^IconButton(\s|·|$)/.test(await heading(page)), { message: "the IconButton selected from Layers" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
+      await pick(page, "level", "Danger");
+      await until(async () => /"Sub-Action": \{ level: "danger" \}/.test((await pageText(page, id)) ?? ""), { message: 'the "Sub-Action" override in the page' });
+      await undo(page);
+      await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after ⌘Z" });
+      await shot(page, "NO-09");
+      return "Card › Parts › IconButton · Sub-Action → Level Danger as the Card's override · ⌘Z";
+    },
+  },
+  {
+    id: "NO-07", feature: "Reset all overrides at level 3 (plan criterion 4): the Icon inside Card › Sub-Action takes a tone, stays selected, Reset all overrides takes it away, ⌘Z brings it back", wp: "core rebuild M3 2026-10-11",
+    async run(ctx) {
+      const { page, id } = await openNestedPage(ctx);
+      await deepSelect(page, `${subAction(id)} [data-icon]`, "Icon");
+      await pick(page, "tone", /^accent-base\b/);
+      const written = /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/;
+      await until(async () => written.test((await pageText(page, id)) ?? ""), { message: "the Icon's tone in the page" });
+      await until(async () => /^Icon(\s|·|$)/.test(await heading(page)), { message: "the Icon still selected after the edit" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
+      await page.locator("#studio-right").getByRole("button", { name: "Reset all overrides" }).first().click();
+      await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after Reset all" });
+      await until(async () => /^Icon(\s|·|$)/.test(await heading(page)), { message: "the Icon still selected after Reset all" });
+      await undo(page);
+      await until(async () => written.test((await pageText(page, id)) ?? ""), { message: "the tone back after ⌘Z" });
+      await shot(page, "NO-07");
+      return "Icon tone → accent-base (selected after the edit) · Reset all → none (still selected) · ⌘Z → back";
     },
   },
 ];

@@ -41,3 +41,22 @@
   any page load killed the browser: the template/export steps run in a second context and the "reconnects after a reload"
   step runs last, reported as skipped when the browser dies. Result: 22 ok · 1 skipped · 1 failed — the engine budget
   (140 KB set by the user; 151.3 KB on main before M2, 153.5 with it): raise it or split the engine, asked via Giám sát.
+- Committed c670fc5 (M2 files only, staged from the M3 tree by reversing the M3 edits), pushed, Giám sát told.
+
+## Core rebuild M3: selection by id, double-click into nested instances (same branch, tier L)
+
+- `doc.mjs`: `editDoc` returns `locs` (old loc → new loc by id, null when gone), `locMap(before, text, after, text)` for
+  undo/redo; `localApi` answers edit and write with them; `api.ts` puts them on the StudioWrite; `remap.ts mapSrc` uses
+  them before the text diff. Probe on :5185: ⌘⇧Z of a ⌘D above the selected Table dropped the selection — a builder page
+  re-renders as it saves (pageStore notify) before the write is emitted, so SelectionLayer saw a Card at the Table's old
+  loc and dropped it. Fix: `api.ts inFlight`/`writeInFlight` around sendEdit and undo/redo; `awaitingWriteRender` honours it.
+- Full E2E then 227/228: B-22 (⇧A on one Text) lost the new Stack — `wrapSelection` rebuilt the write without `locs`, so
+  its check disagreed with the remap. Fixed (passes `response.locs`).
+- Double-click: from a component the outermost nested instance under the pointer (`parts.ts outerNestedAt`), from a part
+  the next nested instance (`drillNested`); a Table's drawn cell content goes to its nested instance before text edit.
+  Layers: a nested-instance part row shows its Figma layer name as caption.
+- Rows: NO-06 (selection follows by id), NO-07 (level-3 Reset all), NO-08 (double-click to row 3's Badge and to the
+  Sub-Action's Icon), NO-09 (Layers › Parts › IconButton · Sub-Action). doc selftest 112.
+- Layers logged a React duplicate key (`…/part:0.1:TabItem`) after B-29's tab label edit: a part listed twice while the
+  canvas redraws. `flatten` emits each row id once. Gate PASS (E2E 230/230).
+- Engine budget: the user chose 160 KB gzip (via Giám sát) over splitting the engine; `build-check.mjs` ENGINE_BUDGET_KB.

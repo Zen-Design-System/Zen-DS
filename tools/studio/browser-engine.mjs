@@ -6,4 +6,4 @@ export { applyOps, changedRange, describeElement, sha1 } from "./jsx-source.mjs"
 export { describeSlots, withSlots, requiredFromApi } from "./slots.mjs";
 export { dataFieldEdit, originsOf } from "./data-source.mjs";
 export { boardFrames, frameCode, freeFrameId, newPageText, pageHeader, parsePage, protoCode, validateDialect } from "./dialect.mjs";
-export { ID_PROP, docFromText, editDoc, locsOf, newDocId, printPage, withoutIds } from "./doc.mjs";
+export { ID_PROP, docFromText, editDoc, locMap, locsOf, newDocId, printPage, withoutIds } from "./doc.mjs";

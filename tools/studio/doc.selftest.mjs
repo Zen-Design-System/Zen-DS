@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // The builder page document (doc.mjs, core rebuild M2): a print reads back as the same page, and an edit through the
 // document gives the same page as the engine on the text (the engine is the oracle) while every element keeps its id —
-// across a setProp, a move, a wrap and a copy (the copy takes a new one). Run: node tools/studio/doc.selftest.mjs
+// across a setProp, a move, a wrap and a copy (the copy takes a new one). M3: each edit, and its undo, says where every
+// element went (locs / locMap), so a selection follows its element. Run: node tools/studio/doc.selftest.mjs
 import fs from "node:fs";
 import { dataFieldEdit } from "./data-source.mjs";
 import { newPageText, parsePage } from "./dialect.mjs";
-import { docFromText, editDoc, locsOf, printPage, withoutIds } from "./doc.mjs";
+import { docFromText, editDoc, locMap, locsOf, printPage, withoutIds } from "./doc.mjs";
 import { applyOps, sha1 } from "./jsx-source.mjs";
 
 const failures = [];
@@ -94,6 +95,21 @@ const nodes = (doc) => {
 };
 const byName = (doc, name, index = 0) => nodes(doc).filter((node) => node.name === name)[index];
 const locIn = (doc, text, node) => locsOf(doc, text).locOf.get(node.id);
+/** What starts at "line:col" (1-based line, 0-based column) of `text`. */
+const textAt = (text, loc) => { const [line, column] = loc.split(":").map(Number); return text.split("\n")[line - 1]?.slice(column) ?? ""; };
+
+/** M3: the edit's locs send each element of the old text to the same element in the new one (its own tag there), the
+ *  removed ones to null; locMap the other way (undo) sends each one back where it was. */
+function followed(label, through) {
+  const kept = nodes(start).filter((node) => nodes(through.doc).some((other) => other.id === node.id));
+  const gone = nodes(start).filter((node) => !kept.includes(node));
+  const wrong = kept.filter((node) => { const next = through.locs?.[locIn(start, startText, node)]; return !next || !textAt(through.text, next).startsWith(`<${node.name}`) || next !== locIn(through.doc, through.text, node); });
+  check(`${label}: locs send every kept element to its own tag in the new text`, wrong.map((node) => node.name), []);
+  check(`${label}: locs send the removed ones to null`, gone.map((node) => through.locs?.[locIn(start, startText, node)] ?? null), gone.map(() => null));
+  const back = locMap(through.doc, through.text, start, startText);
+  const lost = kept.filter((node) => back?.[locIn(through.doc, through.text, node)] !== locIn(start, startText, node));
+  check(`${label}: locMap (undo) sends each one back where it was`, lost.map((node) => node.name), []);
+}
 
 /** The same request on the text (engine) and on the document; the pages must match. */
 function both(label, name, index, ops) {
@@ -108,6 +124,7 @@ function both(label, name, index, ops) {
   check(`${label}: same page as the engine's`, withoutIds(through.doc), tree(direct.code));
   check(`${label}: the text is the engine's own (the person's formatting stays)`, through.text, direct.code);
   check(`${label}: ids followed the edit`, through.ids, true);
+  followed(label, through);
   return { through, direct };
 }
 
