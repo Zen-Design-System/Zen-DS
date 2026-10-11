@@ -91,12 +91,15 @@ Last updated: 2026-10-07.
   M5 on `zen/feat/studio-doc-m5`: the export of a page with overrides and a row's own values passes the harness (app
   mode) and tsc, and draws what the canvas draws (`tests/interaction/studio-export-parity.test.tsx`).
   M6 (converter half) on `zen/feat/studio-doc-m6`: `tools/studio/figma-pull.mjs` (use_figma read code + JSON → page with
-  overrides; CLI), selftest 14, E2E NO-13. The live read waits for the user's answer on Figma access (asked via Giám sát).
+  overrides; CLI), selftest 14, E2E NO-13. Live read (2026-10-11, `zen/feat/studio-figma-pull-live`): Overviews
+  14243:64878 read through use_figma (read-only, paged) and converted — slots (Card content, Sidebar brand/sections/
+  footer, Breadcrumbs/Segmented items), Fill container, grid placement, text alignment, absolute layers; fixture
+  `tools/studio/fixtures/figma-overviews.json`, selftest 38, E2E NO-19.
   M7 on `zen/feat/studio-doc-m7`: `tools/figma-contract/nested-paths.mjs` in the gate (15/15 components with a contract
   name their nested layers as Figma does; DatePicker Apply → Submit, Time → Time-Picker). M8 on
   `zen/feat/studio-doc-m8`: the avatar test passes 5/5 through the design copy (NO-14…18) after fixes to AvatarStack
   (attributes on its root), SidePanel (modal opens inside a frame), nested pictures and Table cell photos in copies.
-  Open: the live Figma read (M6) once the user turns the Figma MCP on in this session.
+  Open (M6): diff when a frame is pulled again; Figma's Dashboard/Header has no Zen component (BACKLOG, designer).
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

@@ -125,3 +125,24 @@
   ModalForm looked for aria-invalid once, one animation frame after the handler; React renders its setErrors in a task
   of its own, which a frame can precede. `Form/focus.ts afterErrorsRender` looks again on the next frames (6 at most);
   both use it. New test (errors render 30 ms after the handler resolves) fails on the old code every time, passes now.
+
+## Core rebuild M6, live read: Overviews 14243:64878 through use_figma (branch zen/feat/studio-figma-pull-live off 9ca1073, tier M)
+
+- Figma connector on (user); read-only `use_figma` on `9nZv4uW2LT21yuHabMTCh1`. Answers cap at 20 KB and were cut short
+  with non-ASCII text: the read code escapes to ASCII and pages (`PART i/n`, 12 000 chars); `joinParts` joins them.
+- What the real frame showed, fixed in `figma-pull.mjs`:
+  - slots read (layout, Fill) and converted by owner: children, DATA_SLOTS data (Sidebar sections with section titles,
+    Breadcrumbs, Segmented; Select → selectedId / defaultValue), or a node prop (Sidebar brand, footer of SidebarMenuItem);
+  - Breadcrumbs found through its data slot's set (no FIGMA_PROPS entry);
+  - unmapped instance with slots (Dashboard/Header) → its slots in Stacks, laid out as their frame; icon instance → Icon;
+    drawings left out with one note; ids scoped per component;
+  - row Stacks centre by default and Stack's gap defaults to md: Fill rows → `align="stretch"`, Figma MIN → `start`, no
+    gap → `none`; Fill container → width/height fill; padding X/Y;
+  - 8-column grid of span-2 cards → `columns={2}`, cards in Figma's placement order (the layers panel had them swapped);
+  - text alignment, U+2028 → space; Ignore auto layout → position absolute + constraints + insets (Text wrapped);
+  - IconButton aria-label from its layer name or icon (harness errors were icon-button/needs-name).
+- Checks: selftest 38 (20 on the live fixture `tools/studio/fixtures/figma-overviews.json`, incl. usage harness 0 errors
+  on the compiled page); E2E NO-19 new (Sidebar full height, current item, Breadcrumbs, Segmented, Cards 2×3 in order),
+  NO-13 still green, baseline updated for NO-19. The E2E probe found Sidebar/Breadcrumbs/Segmented keep data-zen-* off
+  their DOM (the picker uses fibers): the row finds them by class.
+- BACKLOG P2 (designer): what Primitives/Dashboard/Header maps to. Open: diff on re-pull, Figma Table → Table.

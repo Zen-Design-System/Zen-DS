@@ -556,6 +556,41 @@ export const rows = [
       return `Figma frame → page: Text, Card (border), Badges ${tones}, Button`;
     },
   },
+  {
+    id: "NO-19", feature: "The live Figma read (core rebuild M6: Overviews 14243:64878 read through use_figma, fixtures/figma-overviews.json) opens as a page: the Sidebar's sections, selected item and footer, the Breadcrumbs, the Segmented and the five Cards two to a row in Figma's order", wp: "core rebuild M6 2026-10-11",
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const fs = await import("node:fs");
+      const live = JSON.parse(fs.readFileSync(new URL("../../fixtures/figma-overviews.json", import.meta.url), "utf8"));
+      const { text } = pageFromFigma(live.frame, { mapping: await repoMapping() });
+      const { page, id } = await openNestedPage(ctx, text, { badges: 0 });
+      const scope = `[data-zen-src^="local:${id}.zen.tsx:"]`;
+      const cards = page.locator(`${scope}[data-zen-name="Card"]`);
+      await until(async () => (await cards.count()) === 5, { timeout: 30000, message: "five Cards from Figma" });
+      const placed = await cards.evaluateAll((els) => els.map((el) => { const box = el.getBoundingClientRect(); return { x: Math.round(box.x), y: Math.round(box.y), title: el.innerText.trim().split("\n")[0] }; }));
+      const order = placed.map((card) => card.title).join(", ");
+      if (order !== "Foundation, Components, Patterns, Resources & Tools, Development") throw new Error(`Cards in order ${order}`);
+      const columns = new Set(placed.map((card) => card.x)).size;
+      const rows = new Set(placed.map((card) => card.y)).size;
+      if (columns !== 2 || rows !== 3) throw new Error(`Cards in ${columns} columns, ${rows} rows`);
+      // Sidebar, Breadcrumbs and Segmented keep data-zen-* off their DOM (the picker finds them by fiber): found by class
+      // inside the page's Screen.
+      const screen = page.locator(`${scope}[data-zen-name="Screen"]`).first();
+      const sidebar = screen.locator(".zen-sidebar").first();
+      if (!(await sidebar.count())) throw new Error("no Sidebar on the canvas");
+      const sidebarText = await sidebar.innerText();
+      for (const label of ["Installation", "Foundation", "Typography", "Components", "Avatar", "Download Figma", "Feedback"]) if (!sidebarText.includes(label)) throw new Error(`no "${label}" in the Sidebar`);
+      const current = (await sidebar.locator('[aria-current="page"]').first().innerText().catch(() => "")).trim();
+      if (current !== "Overviews") throw new Error(`the Sidebar's current item is "${current}"`);
+      // Figma's Sidebar fills the frame's height: the page's top row stretches it (a row Stack would centre it).
+      const heights = await sidebar.evaluate((el) => [el.getBoundingClientRect().height, el.parentElement.parentElement.getBoundingClientRect().height].map(Math.round));
+      if (Math.abs(heights[0] - heights[1]) > 2) throw new Error(`the Sidebar is ${heights[0]} px tall in a ${heights[1]} px row`);
+      for (const part of [".zen-breadcrumbs", ".zen-segmented"]) if (!(await screen.locator(part).count())) throw new Error(`no ${part} on the canvas`);
+      if (!(await page.locator(`${scope}[data-zen-name="Icon"]`).count())) throw new Error("no Icon (the icon-zen instance) on the canvas");
+      await shot(page, "NO-19");
+      return `Figma Overviews → page: Sidebar (current ${current}), Breadcrumbs, Segmented, Cards ${columns}×${rows}: ${order}`;
+    },
+  },
   ...["avatar", "card", "app-shell", "table", "sidebar"].map((on, index) => ({
     id: `NO-${14 + index}`, feature: `The avatar test through the design copy (core rebuild M8): ${on} › New page from this frame, ⌘-click an Avatar, Assets › Photos puts the photo on that Avatar`, wp: "core rebuild M8 2026-10-11",
     // A frame of an example page made into a page and rendered, then the edit: more than a row's usual 20 s.
