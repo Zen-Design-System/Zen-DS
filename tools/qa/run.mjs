@@ -317,6 +317,14 @@ addJob(async () => {
     }
   }
 });
+// Nested layer names (core rebuild M7): every nest() layer name a component gives `overrides` is a nested instance of its
+// Figma sets (tools/figma-contract/nested-paths.mjs), for component files, the contracts or the Figma mapping in scope.
+addJob(async () => {
+  const relevant = ALL || compFolders.size > 0 || [...files, ...aux].some((f) => /^(tools\/figma-contract\/|docs\/figma-contracts\/)|figmaProps\.generated\.ts$|^tools\/studio\/figma-pull\.mjs$/.test(f));
+  if (QUICK || !relevant) { step("static", "Nested layer names (code ↔ Figma)", "skip", QUICK ? "quick run" : "no component, contract or Figma-mapping files in scope"); return; }
+  const r = await runAsync(process.execPath, ["tools/figma-contract/nested-paths.mjs", "--check"], 120000);
+  step("static", "Nested layer names (code ↔ Figma)", r.code === 0 ? "pass" : "fail", r.out.trim().split("\n").at(-1)?.slice(0, 160) ?? "", r.code === 0 ? [] : tail(r.out, /✗|not in Figma|stale/));
+});
 // Browser tests (S5d): Vitest on the tests related to the edited component files; the full suite for tests/**, _shared, --all.
 if (!QUICK && fs.existsSync(path.join(root, "node_modules/.bin/vitest"))) addJob(async () => {
   const name = "Browser tests (Vitest: smoke + axe baseline + interactions)";

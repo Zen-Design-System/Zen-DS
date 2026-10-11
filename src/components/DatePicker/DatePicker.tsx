@@ -166,7 +166,7 @@ export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLab
   return (
     <footer className="zen-date-picker__actions">
       {action === "dual" ? nest("Cancel", <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button>) : null}
-      {nest("Apply", <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>)}
+      {nest("Submit", <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>)}
     </footer>
   );
 }
@@ -631,7 +631,7 @@ export interface DatePickerProps {
   /** id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. */
   "aria-labelledby"?: string;
   className?: string;
-  /** Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Apply": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Submit": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio;
    *  app code sets the actions. */
   overrides?: NestedOverrides;
 }
@@ -938,7 +938,7 @@ export function DatePicker({
                   </div>
                 ))}
               </div>
-              {timePicker ? <><Divider />{nest("Time", <DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} />)}</> : null}
+              {timePicker ? <><Divider />{nest("Time-Picker", <DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} />)}</> : null}
               {/* Inline there is nothing to close: the actions are live only while there is a draft to apply or drop. */}
               {showActions ? nest("Actions", <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} />) : null}
             </>

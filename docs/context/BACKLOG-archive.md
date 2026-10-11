@@ -2,6 +2,14 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-11 (core rebuild M4, M7)
+
+- Done 2026-10-11 (M4, "Changes go to · Row N · All rows"): **P1 · Figma usability — "This row / All rows" as a control (2026-10-10):** the repeated-layer heading says it; a
+  segmented control on the Inspector head would let a designer choose before editing a fixed value (today: Detach).
+- Done 2026-10-11 (M7, `tools/figma-contract/nested-paths.mjs` in the gate; AiChatBubble kept open): **P2 · Nested overrides, after fast path A (2026-10-11):** the Figma gate `nested-paths` once contracts are captured
+  (`tools/figma-kit/`); AiChatBubble's action buttons stay without a layer (a Tooltip binds each button directly).
+  Pointer: plan `docs/research/studio-doc-engine-plan-2026-10-10.md` §9.
+
 ## Archived 2026-10-07 (backlog cleanup, session "Session continuation check")
 
   - Done (user "Có", 2026-10-05): the overlay placeholders follow Content/Placeholder to alpha 9 (live Figma had it).

@@ -66,14 +66,14 @@ export default function Page() {
 `;
 
 /** A Studio page holding a Card with its Sub-Action and a Table of three people; returns the page and its id. */
-async function openNestedPage(ctx, text = PAGE) {
+async function openNestedPage(ctx, text = PAGE, { badges = 3 } = {}) {
   const { page } = await newPage(ctx, { device: "desktop" });
   // The app's own page store (same module, served by Vite): the page as the Studio would keep it.
   const id = await page.evaluate(async (source) => (await import("/src/platform/studio/builder/store/pageStore.ts")).importPage(source, null), text);
   const url = new URL(page.url());
   url.searchParams.set("page", `local:${id}`);
   await page.goto(url.href, { waitUntil: "domcontentloaded" });
-  await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-badge, [data-zen-src^="local:${id}.zen.tsx:"].zen-badge`).count()) >= 3, { timeout: 30000, message: "the page's Badges on the canvas" });
+  await until(async () => (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"] .zen-badge, [data-zen-src^="local:${id}.zen.tsx:"].zen-badge`).count()) >= badges, { timeout: 30000, message: "the page's Badges on the canvas" });
   await focusScreen(page);
   await sleep(300);
   return { page, id };
@@ -473,6 +473,25 @@ export const rows = [
       await until(async () => !(await below()), { message: "the Card above the Table after ⌘Z" });
       steps.push(`⌘Z · ${await stillSelected(page, id, "Card", 0, "⌘Z of the drag")}`);
       return steps.join(" · ");
+    },
+  },
+  {
+    id: "NO-13", feature: "A Figma frame pulled in (core rebuild M6, figma-pull.mjs on the selftest's frame JSON) opens as a page you made: the title, the Card, the Badges (one red, from Figma's Theme) and the Button render", wp: "core rebuild M6 2026-10-11",
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const fs = await import("node:fs");
+      const source = fs.readFileSync(new URL("../../figma-pull.selftest.mjs", import.meta.url), "utf8");
+      const frame = JSON.parse(JSON.stringify(eval(`(${/const FRAME = (\{[\s\S]*?\n\});/.exec(source)[1]})`)));
+      const { text } = pageFromFigma(frame, { mapping: await repoMapping() });
+      const { page, id } = await openNestedPage(ctx, text, { badges: 2 });
+      const scope = `[data-zen-src^="local:${id}.zen.tsx:"]`;
+      const badges = page.locator(`${scope}[data-zen-name="Badge"]`);
+      await until(async () => (await badges.count()) === 2, { message: "two Badges from Figma" });
+      const tones = await badges.evaluateAll((els) => els.map((el) => el.getAttribute("data-tone")).join(","));
+      if (tones !== "neutral,red") throw new Error(`Badge tones ${tones}`);
+      for (const name of ["Card", "Button", "Text"]) if (!(await page.locator(`${scope}[data-zen-name="${name}"]`).count())) throw new Error(`no ${name} on the canvas`);
+      await shot(page, "NO-13");
+      return `Figma frame → page: Text, Card (border), Badges ${tones}, Button`;
     },
   },
   {

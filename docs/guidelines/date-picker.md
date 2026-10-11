@@ -65,7 +65,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `aria-label` | `string` | — | Accessible name of the calendar. Default: the locale's "Choose date" ("Choose dates" for the dual calendar). Name an inline calendar after what it sets ("Start date") when a form shows more than one. |
 | `aria-labelledby` | `string` | — | id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Apply": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio; app code sets the actions. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Submit": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio; app code sets the actions. |
 
 ### DateField
 | Prop | Type | Default | Description |

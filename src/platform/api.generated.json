@@ -4482,7 +4482,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ \"Actions/Apply\": { level: \"accent\" }, \"Header[0]/Previous\": { appearance: \"flat\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "description": "Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ \"Actions/Submit\": { level: \"accent\" }, \"Header[0]/Previous\": { appearance: \"flat\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
         }
       ]

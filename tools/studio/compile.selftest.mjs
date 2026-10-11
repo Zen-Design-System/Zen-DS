@@ -122,8 +122,27 @@ ok("known fields: an option's own data is left out", requiredCode.includes('opti
 ok("stand-ins: a required handler", requiredCode.includes('<AiChatField placeholder="Ask" onSubmit={() => {}} />'));
 check("stand-ins: listed for the developer", required.handlers, ["<TopNavigation> searchAction.onClick: not in the design (a stand-in does nothing)", "<AiChatField> onSubmit: not in the design (a stand-in does nothing)"]);
 
+// Core rebuild M5: what the Studio writes on a page you made — a nested instance's overrides (M1/M3) and a row's own
+// value (op setRowProp, M4: the rows carry the field, the layer reads it) — exports as app code that type-checks.
+const crew = compileReact(page("Crew", "Avatar, Badge, Card, Stack, Text", [
+  '<Screen id="crew" title="Crew" device="desktop">',
+  '  <Stack gap="md" padding="xl">',
+  '    <Card subAction={{ label: "More", onClick: proto.toast("More") }} overrides={{ "Sub-Action": { level: "danger" }, "Sub-Action/Leading-Icon": { tone: "accent-base" } }}>',
+  '      <Text textStyle="Heading/3">Crew</Text>',
+  "    </Card>",
+  "    {mock.people.map((person) => <Badge theme={person.theme}>{person.name}</Badge>)}",
+  '    {mock.people.map((person) => <Avatar size="md" src={person.src} alt={person.name} />)}',
+  "  </Stack>",
+  "</Screen>",
+], '{ people: [{ id: "alex", name: "Alex Duong", theme: "neutral", src: "" }, { id: "binh", name: "Binh Tran", theme: "red", src: "zen-media:site-cafe" }] }'), { file: "crew.zen.tsx" });
+check("studio page: compiles", crew.error ?? null, null);
+const crewCode = crew.code ?? "";
+ok("studio page: the overrides are written as they are", crewCode.includes('overrides={{ "Sub-Action": { level: "danger" }, "Sub-Action/Leading-Icon": { tone: "accent-base" } }}'));
+ok("studio page: a row's own value reads its field", /<Badge\s+key=\{index\}\s+theme=\{person\.theme\}/.test(crewCode));
+ok("studio page: that field is typed as the prop (string literals), the rest stay string", crewCode.includes('theme: NonNullable<ComponentProps<typeof Badge>["theme"]>;') && crewCode.includes("name: string;") && crewCode.includes('import type { ComponentProps } from "react";'));
+
 // The outputs as app code: the usage harness (consumer mode) and TypeScript with the repo's settings.
-const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode };
+const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode };
 {
   const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
   const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);

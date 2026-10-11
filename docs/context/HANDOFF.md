@@ -88,7 +88,12 @@ Last updated: 2026-10-07.
   a time (`parts.ts outerNestedAt`/`drillNested`), Layers names nested instances by their Figma layer; E2E NO-06…09.
   PR #13 (M2+M3, 76c7683) open by Giám sát. M4 on `zen/feat/studio-doc-m4`: one row of a list edits on its own
   ("Changes go to · Row N · All rows", op `setRowProp`; a photo for one row's Avatar too); E2E NO-10…12.
-  Next: M5 code export (plan §5).
+  M5 on `zen/feat/studio-doc-m5`: the export of a page with overrides and a row's own values passes the harness (app
+  mode) and tsc, and draws what the canvas draws (`tests/interaction/studio-export-parity.test.tsx`).
+  M6 (converter half) on `zen/feat/studio-doc-m6`: `tools/studio/figma-pull.mjs` (use_figma read code + JSON → page with
+  overrides; CLI), selftest 14, E2E NO-13. The live read waits for the user's answer on Figma access (asked via Giám sát).
+  M7 on `zen/feat/studio-doc-m7`: `tools/figma-contract/nested-paths.mjs` in the gate (15/15 components with a contract
+  name their nested layers as Figma does; DatePicker Apply → Submit, Time → Time-Picker). Next: M8 Open as design.
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview
