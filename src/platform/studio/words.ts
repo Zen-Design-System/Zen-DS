@@ -1,9 +1,10 @@
 /*
- * Design words (core-rebuild plan criterion 7, docs/research/studio-doc-engine-plan-2026-10-10.md §3): on a page made in
- * the Studio, nothing a designer reads speaks code — no file:line, no `<Tag>`, no `{expression}`, no prop / children /
- * JSX / .map. The engine's refusals and the Inspector's notes keep their developer wording for example and template
- * pages (and the selftests that pin them); `designWords` rewrites them on the way to the screen of a Studio page
- * (`useWords` / `speak` in ./useWords.ts). The file and line of a layer live on the Code tab.
+ * Design words (core-rebuild plan criterion 7, docs/research/studio-doc-engine-plan-2026-10-10.md §3): nothing a
+ * designer reads in the Studio speaks code — no line numbers, no `<Tag>`, no `{expression}`, no prop / children / JSX /
+ * .map. Pages made in the Studio since 2026-10-12, example and template pages too since the user's go the same day. The
+ * engine's refusals and the Inspector's notes keep their developer wording in the source (and in the selftests that pin
+ * them); `designWords` rewrites them on the way to the screen (`useWords` / `speak` in ./useWords.ts). A repo file keeps
+ * its name (where an edit landed), a Studio page's file goes; the line lives on the Code tab.
  *
  * Glossary (Figma's words): layer (element, JSX), layers inside (children), property (prop, attribute), fixed value
  * (literal), list (.map, array), from data: person › photo (a bound `{person.photo}`), set in code (any other expression),
@@ -86,8 +87,10 @@ const WORDS: Array<[RegExp, string]> = [
   [/\bbindings?\b/g, "data link"],
 ];
 
-/** A file reference with a line ("button.tsx:84", "local:untitled-page.zen.tsx:26:4") or a Studio page's own file. */
-const FILE_REF = /(?:\b(?:in|at|from|to) )?(?:local:[\w@./-]+(?::\d+)*|[\w@./-]+\.(?:tsx|ts|jsx|js|mjs|css)(?::\d+)+)/g;
+/** A Studio page's own file ("local:untitled-page.zen.tsx:26"): the page has a name, the file is not shown. */
+const PAGE_REF = /(?:\b(?:in|at|from|to) )?local:[\w@./-]+(?::\d+)*/g;
+/** A repo file with its line ("data.ts:84:6"): the file name stays (where an edit landed), the line goes to the Code tab. */
+const LINE_REF = /\b([\w@./-]+\.(?:tsx|ts|jsx|js|mjs|css))(?::\d+)+/g;
 
 /** A list drawn in code: `rows.map(…)`, `.map`, "the .map callback" — a list, as Figma has none of it. */
 const LISTS: Array<[RegExp, string]> = [
@@ -131,7 +134,7 @@ export function designWords(text: string): string {
   out = out.replace(/\b([A-Za-z_$][\w$.]*)\((?:…|\.\.\.)?\)/g, "$1");
   // File references: the Code tab shows where a layer is ("is no longer at x.tsx:26" → "is no longer there").
   out = out.replace(/\bno longer at (?:local:[\w@./-]+|[\w@./-]+\.(?:tsx|ts|jsx|js|mjs|css))(?::\d+)*/g, "no longer there");
-  out = out.replace(FILE_REF, "").replace(/\bat \d+:\d+(?::\d+)?\b/g, "here");
+  out = out.replace(PAGE_REF, "").replace(LINE_REF, (_, file: string) => file.split("/").pop() ?? file).replace(/\bat \d+:\d+(?::\d+)?\b/g, "here");
   // The page file's header line names its format; a designer reads "the page header" alone.
   out = out.replace(/:?\s*\/\/ @zen-page \{[^{}]*\}/g, "");
   // A spread: {...rest} → shared properties.

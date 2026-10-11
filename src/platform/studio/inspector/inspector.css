@@ -45,8 +45,6 @@
 .studio-inspector__row-control > .studio-inspector__src.zen-button { min-width: 0; flex: 0 1 auto; }
 /* "PlatformExamples.tsx:1134": the file name truncates, ":<line>" always stays visible. */
 .studio-inspector__src > .zen-button__label { display: flex; min-width: 0; }
-.studio-inspector__src-file { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.studio-inspector__src-line { flex: 0 0 auto; white-space: nowrap; }
 /* Detach instance: a full-width button with what happens (or why it is blocked for now) in visible text under it. */
 .studio-inspector__detach { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-inspector__detach-button.zen-button { width: 100%; }

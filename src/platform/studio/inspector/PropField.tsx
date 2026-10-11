@@ -1,5 +1,5 @@
 import { useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { useStudioPage, useWords } from "../useWords";
+import { useWords } from "../useWords";
 import { Button, IconButton } from "../../../components/Button";
 import { InputField, NumberField, SelectField, TextAreaField } from "../../../components/Input";
 import { Popover, PopoverItem } from "../../../components/Popover";
@@ -611,7 +611,7 @@ function StaticField({ text, code = false, placeholder = false, title }: { text:
 
 /** A bound expression shown read-only ("{level}"): in a field's frame, the expression in the code font. */
 export function BoundValue({ expression, hint }: { expression: string; hint?: string }) {
-  // A page made in the Studio reads "data: person › theme" (or "a value set in code"), not the expression.
+  // Design words: "data: person › theme" (or "a value set in code"), not the expression.
   const say = useWords();
   const said = say(`{${expression}}`);
   if (said !== `{${expression}}`) return <StaticField text={said} title={hint ? `${said} — ${say(hint)}` : said} />;
@@ -624,8 +624,8 @@ const DESIGN_KINDS: Readonly<Record<string, string>> = { null: "None", "ƒ()": "
 /** A value the inspector shows but does not edit (an object, an element, a function): its kind in a field's frame. */
 function ValueChip({ value }: { value: unknown }) {
   const text = value === undefined ? "Not set" : value === null ? "null" : typeof value === "function" ? "ƒ()" : Array.isArray(value) ? "[…]" : typeof value === "object" ? "{…}" : String(value);
-  // A page made in the Studio names the kind in design words (an action, a list, a group of values).
-  const said = useStudioPage() ? DESIGN_KINDS[text] : undefined;
+  // The kind in design words (an action, a list, a group of values).
+  const said = DESIGN_KINDS[text];
   if (said) return <StaticField text={said} />;
   return <StaticField text={text} code={text !== "Not set"} placeholder={text === "Not set"} />;
 }

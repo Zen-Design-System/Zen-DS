@@ -726,8 +726,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const kind = nodeKind(name);
   const slug = kind === "zen" || kind === "primitive" ? componentSlug(name) : null;
   const docsPage = slug && slug in pageLabels && slug !== currentPage ? (slug as PlatformPage) : null;
-  const where = `${fileName(file)}:${line}`;
-  // A page made in the Studio names no file: the link reads "Show code" (the Code tab has the line; plan criterion 7).
+  // The link names no file: "Show code" (the Code tab has the line; plan criterion 7). A Studio page's own file is no
+  // location worth copying.
   const studioPage = file.startsWith("local:");
   const showInCode = () => {
     studioStore.setState({ inspectorTab: "code" });
@@ -796,8 +796,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     <InspectorSrcContext value={selection.src}>
     <div ref={panelRef} className="studio-inspector__panel">
       {/* Header (Design panel UI3, user 2026-10-06): the name with its count and the Detach / Remove icons on one row, then
-          the kind with its Docs link, then where it is written. Every line in Body/Small. */}
-      <header className="studio-inspector__head-block">
+          the kind with its Docs link, then where it is written. Every line in Body/Small. `data-inspector-src`: the
+          layer the panel reads (file:line:col), for tools; the screen says "Show code". */}
+      <header className="studio-inspector__head-block" data-inspector-src={selection.src}>
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           {/* Cut to one line: its full name on hover. */}
@@ -865,16 +866,10 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
               size="xs"
               startIcon="icon-file-code-line"
               className="studio-inspector__src"
-              aria-label={studioPage ? "Show in the Code tab" : `Show ${where} in the Code tab`}
+              aria-label="Show in the Code tab"
               onClick={showInCode}
             >
-              {/* A long file name truncates; ":<line>" always stays visible. */}
-              {studioPage ? "Show code" : (
-                <>
-                  <span className="studio-inspector__src-file">{fileName(file)}</span>
-                  <span className="studio-inspector__src-line">{`:${line}`}</span>
-                </>
-              )}
+              Show code
             </Button>
             {studioPage ? null : <IconButton icon="icon-copy-line" aria-label="Copy source location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the source location")} />}
           </div>
@@ -894,7 +889,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element === undefined ? <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Reading the source…</p> : null}
       {element === null ? (
         <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>
-          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : studioPage ? "This layer is no longer there — select it again." : `${fileName(file)}:${line} has no element there any more — select it again.`}
+          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : "This layer is no longer there — select it again."}
         </p>
       ) : null}
 

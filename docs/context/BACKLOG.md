@@ -8,11 +8,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
-- **P2 · Nested layer names (M7, 2026-10-11):** Date field — the user chose (2026-10-11) to rename Figma's Date field
-  leading icon from Leading-Icon to Leading like the other fields; the code stays `Leading`. **Waiting on the Figma rename
-  (designer)**; then `nested-paths` flags the DateField `ALLOWED` entry as stale and it goes. Pointer: `ALLOWED` in
-  `tools/figma-contract/nested-paths.mjs`.
-- **P2 · Re-capture the Input contract with hidden layers (M7, 2026-10-11):** Input/Textarea/Select Leading and Trailing
+- **P2 · Re-capture the Input contract with hidden layers (M7, 2026-10-11):** Input/Textarea/Select/Date Leading and Trailing
   are hidden in every captured variant (contracts skip invisible instances); a figma-kit re-capture (needs Figma access)
   lets `nested-paths` check them instead of allowing them.
 - **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
@@ -27,11 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
   browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
-- **P3 · Design words on example and template pages too? (question for the user, 2026-10-12):** pages made in the
-  Studio speak design words since 2026-10-12 (plan criterion 7: `src/platform/studio/words.ts`, `useWords`, E2E B-35);
-  example and template pages keep the developer wording (file:line, `{expression}`), which their code readers use.
-  Turning it on there is one switch in `useWords.ts` plus the E2E rows that read those messages. Pointer: session log
-  2026-10-12.
 - **P3 · Figma usability — Studio-made wrappers (2026-10-10):** the blank page's body Stack and ⇧A wrap Stacks are
   layers the designer did not draw; make them transparent to the first click and in Layers.
 - **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar

@@ -105,8 +105,8 @@ Last updated: 2026-10-12.
   name their nested layers as Figma does; DatePicker Apply → Submit, Time → Time-Picker). M8 on
   `zen/feat/studio-doc-m8`: the avatar test passes 5/5 through the design copy (NO-14…18) after fixes to AvatarStack
   (attributes on its root), SidePanel (modal opens inside a frame), nested pictures and Table cell photos in copies.
-  Leftovers done 2026-10-12 (`zen/feat/studio-design-words`, session log): dashboard walk 27/27; design words on pages
-  made in the Studio (criterion 7: `src/platform/studio/words.ts` + `useWords.ts`, Code tab keeps file:line, E2E B-35);
+  Leftovers done 2026-10-12 (`zen/feat/studio-design-words`, session log): dashboard walk 27/27; design words on every
+  page (criterion 7: `src/platform/studio/words.ts` + `useWords.ts`, Code tab keeps the line, E2E B-35 and I-31);
   Table `content: "actions"` + `actions` (Figma Actions-Cell, pulled in by figma-pull); AiChatBubble `overrides`.
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders

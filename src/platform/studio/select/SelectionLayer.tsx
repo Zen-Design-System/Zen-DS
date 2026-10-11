@@ -4,7 +4,7 @@ import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
-import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, srcMeta, type FiberHit } from "./picker";
+import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
 import { chainHas, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
@@ -175,7 +175,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       const group = owner ? dataGroupOfPart(hit as PartHit) : null;
       if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
-      return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : srcMeta(hit.src) };
+      return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : "" };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;

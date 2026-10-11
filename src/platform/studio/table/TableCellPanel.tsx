@@ -14,7 +14,7 @@ import { InspectorRow, InspectorSection } from "../inspector/Section";
 import { InspectorFileContext } from "../inspector/controls/hostContext";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
-import { currentFiber, fiberOf, hostsOf, onSourceUpdate, shortSrc, srcMeta, srcOf, type Fiber } from "../select/picker";
+import { currentFiber, fiberOf, hostsOf, onSourceUpdate, srcOf, type Fiber } from "../select/picker";
 import { useWords } from "../useWords";
 import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { OverrideProperties } from "../inspector/OverrideProperties";
@@ -244,8 +244,8 @@ function PartHeader({ selection, title, where }: { selection: PartSelection; tit
           Select {selection.name}
         </Button>
         {/* zen-allow-compact-button: the Table's file:line reference, as on an element's Design tab */}
-        <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={srcMeta(selection.src) ? `Show ${srcMeta(selection.src)} in the Code tab` : "Show in the Code tab"} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
-          {srcMeta(selection.src) || "Show code"}
+        <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label="Show in the Code tab" onClick={() => studioStore.setState({ inspectorTab: "code" })}>
+          Show code
         </Button>
       </div>
     </header>
@@ -352,7 +352,7 @@ function DataRowPanel({ selection, part }: { selection: PartSelection; part: Par
           <ToggleButton aria-label="Editable" size="sm" checked={Boolean(live.editable)} disabled={!editable || Boolean(rowEditable.reason)} onCheckedChange={(next) => void edit(table, booleanOps("editable", next), `${selection.name}: Editable ${next ? "on" : "off"}`)} />
         </InspectorRow>
       </InspectorSection>
-      <InspectorSection title="Row data" note={rows && !rows.editable ? rows.reason : rows?.file && srcMeta(rows.file) ? `Written in ${shortSrc(rows.file)}` : undefined}>
+      <InspectorSection title="Row data" note={rows && !rows.editable ? rows.reason : undefined}>
         {cell && fields.length ? fields.map(([key, value]) => (
           <InspectorRow key={key} label={key} labelTitle={key} name={`row-${key}`}>
             <ValueField label={key} value={value} disabled={locked} onSet={(next) => void edit(table, [rowOp(cell, [key], next)], `Row ${index + 1}: ${key}`)} />

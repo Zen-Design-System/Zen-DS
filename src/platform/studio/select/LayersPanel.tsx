@@ -17,7 +17,7 @@ import { dataItemRootOf, itemParts, renderedItemTitle } from "../slots/dataItems
 import { itemSelection, useItemSelection } from "../slots/itemSelection";
 import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
-import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcMeta, srcOf, type Fiber, type FiberHit } from "./picker";
+import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, nestedPathOf, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
 import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
 import { isTableHit } from "../table/tableSelect";
@@ -548,8 +548,8 @@ function rowTitle(node: LayerNode) {
   if (node.kind === "panel") return node.frameId === MAIN_FRAME ? node.name : `Playground panel: ${node.name}`;
   if (node.kind === "variant") return `${node.variant?.component ?? ""} · ${node.variant?.set ?? ""}${node.meta ? ` · .${node.meta}` : ""}`;
   if (node.kind === "slot") return `${node.name}: a slot of ${node.owner?.name ?? "the component"}${node.children.length ? "" : " (empty)"}`;
-  if (node.wrap) return srcMeta(node.src ?? "") ? `${shortSrc(node.src ?? "")} · in a Stack that sets its size (${shortSrc(node.wrap)})` : "In a Stack that sets its size";
-  return node.src ? srcMeta(node.src) || undefined : undefined;
+  // No file:line (plan criterion 7): the Code tab shows where a layer is written.
+  return node.wrap ? "In a Stack that sets its size" : undefined;
 }
 
 function readShowAll() {
