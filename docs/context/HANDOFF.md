@@ -111,7 +111,8 @@ Last updated: 2026-10-07.
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,
   platform page with 5 examples, 4 harness rules, Studio palette item and Figma props; figma-pull maps it (a custom
   Header-Text cover → type custom; Action-Item → AppShellAction). Manifest: `docs/platform-json-audit.md` › DashboardHeader.
-  Chip counter naming waits on the user (Figma has no "Counter" layer, see BACKLOG); Date field waits on the Figma rename.
+  Chip's counters follow Figma's layer names (`Badge`, `Badge-Counter`; the user's choice B, branch
+  `zen/fix/chip-figma-names`); Date field waits on the Figma rename.
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

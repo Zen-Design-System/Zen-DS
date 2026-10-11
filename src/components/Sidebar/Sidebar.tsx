@@ -24,18 +24,28 @@ export type SidebarItemState = "default" | "hover" | "focus" | "disabled";
 export type SidebarItemTheme = "neutral" | "accent";
 
 export type SidebarItem = {
+  /** Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it. */
   id: string;
+  /** Figma Label: one or two words. The collapsed rail shows it as the row's tooltip and name. */
   label: string;
   /** Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail). */
   icon?: IconName | ReactNode;
+  /** Same as `selected` (`selected` wins when both are set). */
   active?: boolean;
+  /** The current row (Figma Select=Yes, aria-current). The Sidebar's `selectedId` wins over it; a selected child opens
+   *  its parent group. */
   selected?: boolean;
+  /** Figma State=Disabled: not focusable, never a link. */
   disabled?: boolean;
+  /** Deterministic Figma State for matrices; real hover and focus apply natively. `disabled` wins. */
   state?: SidebarItemState;
   /** Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is
    *  Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text). */
   theme?: SidebarItemTheme;
+  /** Figma Dropdown: a chevron after the label, and the row toggles its group open (`aria-expanded`). Rows with
+   *  `children` show it anyway. */
   dropdown?: boolean;
+  /** @deprecated No effect: a nested row is indented by its level (`children`). */
   indent?: boolean;
   /** Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows
    *  the Notification-Dot instead and joins the row's name ("Approvals, 3"). */
@@ -432,7 +442,8 @@ export function SidebarMenuItem(props: SidebarMenuItemProps) {
   // Outside a Sidebar or flyout the row keeps its own open groups.
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const nest = useNested(props.overrides);
-  return nest.scope(<SidebarItemView item={menuItemOf(props)} depth={0} collapsed={rows?.collapsed ?? false} openItems={rows?.openItems ?? openItems} setOpenItems={rows?.setOpenItems ?? setOpenItems} onItemClick={rows?.onItemClick} />);
+  // Returned as JSX, not the bare call, so the props docs (react-docgen) see a component.
+  return <>{nest.scope(<SidebarItemView item={menuItemOf(props)} depth={0} collapsed={rows?.collapsed ?? false} openItems={rows?.openItems ?? openItems} setOpenItems={rows?.setOpenItems ?? setOpenItems} onItemClick={rows?.onItemClick} />)}</>;
 }
 
 /** A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label +

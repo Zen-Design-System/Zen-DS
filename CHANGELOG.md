@@ -842,6 +842,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
+  component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in
   that frame, as Dialog does, instead of covering the whole page.
 - AvatarStack puts its own attributes (`data-*`, `aria-*`, `id`, `className`, `style`, `title`) on the stack instead
@@ -1205,6 +1207,8 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- Chip's `overrides` layer names follow the Figma layers (the user's choice, 2026-10-11): the Advanced count is
+  `Badge` (was `Counter`) and the multi-select count is `Badge-Counter` (was `Multi-Count`). Unreleased API.
 - **Zen Studio: slot props are switches, the Page header and the Screen header take real content (2026-10-10):** a
   component's prop that is a content slot shows in Properties as a switch (Figma's boolean), never as a text field, so
   PageHeader › Breadcrumbs on puts a real `<Breadcrumbs>` (its Item-List adds items) instead of a text label; a slot that

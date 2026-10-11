@@ -71,7 +71,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `onPopoverCreate` | `(value: string) => void` | — | Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags). The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. |
 | `popoverCreateLabel` | `ReactNode` | — |  |
 | `popoverPortal` | `boolean` | `false` | Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in a row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole, visible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet. |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: "square" }, Counter: { theme: "accent" } }`). Written by Zen Studio; app code sets photoSrc / leading / counter. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: "square" }, Badge: { theme: "accent" } }`). Written by Zen Studio; app code sets photoSrc / leading / counter. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### ChipGroup

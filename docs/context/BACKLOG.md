@@ -12,14 +12,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   each button directly). Pointer: plan `docs/research/studio-doc-engine-plan-2026-10-10.md` §9.
 - **P2 · Nested layer names (M7, 2026-10-11):** Date field — the user chose (2026-10-11) to rename Figma's Date field
   leading icon from Leading-Icon to Leading like the other fields; the code stays `Leading`. **Waiting on the Figma rename
-  (designer)**; then `nested-paths` flags the DateField `ALLOWED` entry as stale and it goes. Chip's counter: the user
-  chose "Counter" (not Chip/Advanced's Badge); Figma has no layer of that name yet (Advanced's hidden "Badge", .Chip/
-  Trailing Multiple's "Badge-Counter") — how to name it is with the user (via Giám sát). Pointer: `ALLOWED` in
+  (designer)**; then `nested-paths` flags the DateField `ALLOWED` entry as stale and it goes. Pointer: `ALLOWED` in
   `tools/figma-contract/nested-paths.mjs`.
-- **P3 · `palette.selftest.mjs` is in no gate and fails on main (found 2026-10-11):** "SidebarMenuItem.trailingAction: the
-  prop is in api.generated.json" — SidebarMenuItem is in `tagsFor` but react-docgen leaves it out of docs/api (its props are
-  `Omit<SidebarItem, "children"> & {…}`), so the Studio palette's Sidebar footer slot has no props entry. Fix in
-  `scripts/build-api.mjs`, then add the selftest to `studio:selftest`. Pointer: `src/platform/studio/slots/palette.selftest.mjs:96`.
 - **P2 · Re-capture the Input contract with hidden layers (M7, 2026-10-11):** Input/Textarea/Select Leading and Trailing
   are hidden in every captured variant (contracts skip invisible instances); a figma-kit re-capture (needs Figma access)
   lets `nested-paths` check them instead of allowing them.
