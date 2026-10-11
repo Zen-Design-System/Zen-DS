@@ -19,3 +19,5 @@ tools/figma-contract/.out/
 
 # Studio selftests write their temporary samples here (always deleted; the repo tsconfig excludes it).
 src/platform/examples/drafts/
+# The Studio export parity test writes the exported page here while it runs (always deleted).
+tests/interaction/.export-parity.tsx

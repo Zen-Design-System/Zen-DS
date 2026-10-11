@@ -15,7 +15,7 @@
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
 import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
-import { objectFields, requiredFunctions, standInKind } from "./standins.mjs";
+import { literalProp, objectFields, requiredFunctions, standInKind } from "./standins.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -34,27 +34,33 @@ export function componentName(title) {
   return /^[A-Za-z]/.test(name) ? name : `Studio${name}`;
 }
 
-/** A TypeScript type for a JSON-like value (lists: the union of their items' shapes, fields missing in some optional). */
-function typeOf(value, indent) {
+/**
+ * A TypeScript type for a JSON-like value (lists: the union of their items' shapes, fields missing in some optional).
+ * `typed`: data paths ("people.[].theme") read into a prop that takes string literals only, typed as that prop.
+ */
+function typeOf(value, indent, typed = new Map(), path = []) {
   if (value === null) return "null";
   if (Array.isArray(value)) {
     if (!value.length) return "unknown[]";
     const objects = value.filter((item) => item && typeof item === "object" && !Array.isArray(item));
-    if (objects.length === value.length) return `Array<${objectType(objects, indent)}>`;
-    const types = [...new Set(value.map((item) => typeOf(item, indent)))];
+    if (objects.length === value.length) return `Array<${objectType(objects, indent, typed, [...path, "[]"])}>`;
+    const types = [...new Set(value.map((item) => typeOf(item, indent, typed, [...path, "[]"])))];
     return types.length === 1 ? `${types[0]}[]` : `Array<${types.join(" | ")}>`;
   }
-  if (typeof value === "object") return objectType([value], indent);
+  if (typeof value === "object") return objectType([value], indent, typed, path);
   return typeof value === "number" ? "number" : typeof value === "boolean" ? "boolean" : "string";
 }
 
-function objectType(objects, indent) {
+function objectType(objects, indent, typed = new Map(), path = []) {
   const keys = [...new Set(objects.flatMap((object) => Object.keys(object)))];
   if (!keys.length) return "Record<string, never>";
   const inner = indent + UNIT;
   const fields = keys.map((key) => {
     const present = objects.filter((object) => key in object);
-    const types = [...new Set(present.map((object) => typeOf(object[key], inner)))];
+    let types = [...new Set(present.map((object) => typeOf(object[key], inner, typed, [...path, key])))];
+    // A row's own value of a literal prop (core rebuild M4: `theme={person.theme}`) is typed as the prop, not string.
+    const use = typed.get([...path, key].join("."));
+    if (use && types.length === 1 && types[0] === "string") types = [`NonNullable<ComponentProps<typeof ${use.component}>[${json(use.prop)}]>`];
     return `${inner}${IDENTIFIER.test(key) ? key : json(key)}${present.length < objects.length ? "?" : ""}: ${types.join(" | ")};`;
   });
   return `{\n${fields.join("\n")}\n${indent}}`;
@@ -81,7 +87,8 @@ function dataLiteral(value, indent) {
  */
 function createContext(mediaFile, mock) {
   // `frame`: the Screen or Overlay being compiled ("screen:people", "overlay:invite"), for `actions`.
-  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], actions: [], frame: null, mediaFile, mock };
+  // `rows`: the .map rows being compiled (their item name and data path); `typed`: data read into literal props.
+  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], actions: [], frame: null, mediaFile, mock, rows: [], typed: new Map() };
 }
 
 /** The file a photo has in the export's assets/: a library photo is a .webp named after its key; an upload keeps its name. */
@@ -95,6 +102,13 @@ const mediaName = (ctx, key, kind) => {
   }
   return ctx.media.get(id).name;
 };
+
+/** The data path a ref reads ("people.[].theme" for `person.theme` in `mock.people.map`), or null. */
+function dataPath(ref, ctx) {
+  if (ref.root === "mock") return ref.path;
+  const row = [...ctx.rows].reverse().find((entry) => entry.item === ref.root);
+  return row ? [...row.path, ...ref.path] : null;
+}
 
 /** A ref (`mock.a.b`, `item.c`) as code: mock reads the `data` prop. */
 const refCode = (value) => [value.root === "mock" ? "data" : value.root, ...value.path.map((key) => (IDENTIFIER.test(key) ? `.${key}` : `[${json(key)}]`))].join("");
@@ -152,7 +166,10 @@ function childCode(child, ctx, indent) {
   if (child.kind === "ref") return `{${refCode(child)}}`;
   if (child.kind === "map") {
     const inner = indent + UNIT;
+    const list = dataPath(child.source, ctx);
+    if (list) ctx.rows.push({ item: child.item, path: [...list, "[]"] });
     const row = elementCode(child.node, ctx, inner, [["key", "index"]]);
+    if (list) ctx.rows.pop();
     return `{${refCode(child.source)}.map((${child.item}, index) => (\n${inner}${row}\n${indent}))}`;
   }
   return elementCode(child, ctx, indent);
@@ -213,6 +230,10 @@ function knownFieldsOnly(node) {
 function elementCode(node, ctx, indent, extra = []) {
   ctx.components.add(node.name.split(".")[0]);
   const inner = indent + UNIT;
+  for (const [name, value] of Object.entries(node.props)) {
+    const path = value.kind === "ref" && literalProp(node.name, name) ? dataPath(value, ctx) : null;
+    if (path) ctx.typed.set(path.join("."), { component: node.name, prop: name });
+  }
   const props = [
     ...extra.map(([name, code]) => `${name}={${code}}`),
     ...Object.entries(withStandIns(knownFieldsOnly(node), ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
@@ -319,14 +340,16 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   const mockType = `${name}Mock`;
   const lines = [];
   lines.push(`// Generated by Zen Studio from ${file ?? `${name}.zen.tsx`}. Edit the design, then export again.`);
-  if (usesState) lines.push(`import { useState } from "react";`);
+  const typesProps = hasMock && ctx.typed.size > 0;
+  if (usesState) lines.push(`import { useState${typesProps ? ", type ComponentProps" : ""} } from "react";`);
+  else if (typesProps) lines.push(`import type { ComponentProps } from "react";`);
   const zen = [...ctx.components, ...(ctx.uses.has("toast") ? ["useToast"] : [])].sort((a, b) => a.localeCompare(b));
   lines.push(`import { ${zen.join(", ")} } from "@zen/design-system";`);
   for (const entry of ctx.media.values()) lines.push(`import ${entry.name} from "./assets/${entry.file}";`);
   lines.push("");
   if (hasMock) {
     lines.push(`/** The design's sample data: replace it with the app's. */`);
-    lines.push(`export type ${mockType} = ${typeOf(page.mock, "")};`);
+    lines.push(`export type ${mockType} = ${typeOf(page.mock, "", ctx.typed)};`);
     lines.push(`export const mock: ${mockType} = ${dataLiteral(page.mock, "")};`);
     lines.push("");
   }
@@ -390,7 +413,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     handlers: [...new Set(ctx.handlers)],
     actions: ctx.actions,
     components: [...ctx.components].sort((a, b) => a.localeCompare(b)),
-    dataType: hasMock ? `export type ${mockType} = ${typeOf(page.mock, "")};` : null,
+    dataType: hasMock ? `export type ${mockType} = ${typeOf(page.mock, "", ctx.typed)};` : null,
     media: [...ctx.media.values()],
   };
 }

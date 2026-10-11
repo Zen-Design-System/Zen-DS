@@ -123,8 +123,22 @@ function knownFields(type, types) {
   return [...names];
 }
 
+/** Whether a prop takes string literals only (`"sm" | "md"`, an alias to such a union; undefined / null allowed). */
+function literalUnion(type, types, seen = new Set()) {
+  const alternatives = splitTop(type.replace(/^\|/, ""), "|").filter((alternative) => !/^(undefined|null)$/.test(alternative));
+  return alternatives.length > 0 && alternatives.every((alternative) => {
+    if (/^"[^"]*"$|^'[^']*'$/.test(alternative)) return true;
+    const name = /^[A-Z]\w*$/.exec(alternative)?.[0];
+    if (!name || seen.has(name) || !types[name]) return false;
+    seen.add(name);
+    const alias = /^(?:export\s+)?type\s+\w+\s*=\s*([\s\S]+?);?\s*$/.exec(types[name]);
+    return Boolean(alias) && literalUnion(alias[1], types, seen);
+  });
+}
+
 const result = {};
 const known = {};
+const literals = {};
 for (const file of fs.readdirSync(SOURCE).filter((name) => name.endsWith(".json")).sort()) {
   const doc = JSON.parse(fs.readFileSync(path.join(SOURCE, file), "utf8"));
   const types = doc.types ?? {};
@@ -139,6 +153,7 @@ for (const file of fs.readdirSync(SOURCE).filter((name) => name.endsWith(".json"
       if (inside) fields[prop.name] = inside;
       const names = knownFields(prop.type, types);
       if (names) (known[component.name] ??= {})[prop.name] = names;
+      if (literalUnion(prop.type, types)) (literals[component.name] ??= []).push(prop.name);
     }
     if (Object.keys(props).length || Object.keys(fields).length) result[component.name] = { ...(Object.keys(props).length ? { props } : {}), ...(Object.keys(fields).length ? { fields } : {}) };
   }
@@ -158,6 +173,12 @@ export const REQUIRED_FUNCTIONS = ${JSON.stringify(result, null, 2)};
  * TypeScript refuses unknown fields in a literal.
  */
 export const OBJECT_FIELDS = ${JSON.stringify(known)};
+
+/**
+ * Per Zen component: the props that take string literals only (Badge \`theme\`, \`size\`). A row's value read into one
+ * (core rebuild M4 \`theme={person.theme}\`) is typed as that prop in the exported data type, so the export type-checks.
+ */
+export const LITERAL_PROPS = ${JSON.stringify(literals)};
 `;
 
 if (process.argv.includes("--check")) {
