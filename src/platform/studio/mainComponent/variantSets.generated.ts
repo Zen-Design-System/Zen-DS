@@ -921,6 +921,46 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "DashboardHeader": [
+    {
+      "name": "Primitives/Dashboard/Header",
+      "figma": "4122:33402",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "type",
+          "label": "Type",
+          "names": [
+            "Navigation",
+            "Main",
+            "Control-Bar",
+            "Custom"
+          ],
+          "values": [
+            "navigation",
+            "main",
+            "control-bar",
+            "custom"
+          ],
+          "default": "control-bar"
+        }
+      ],
+      "toggles": [
+        {
+          "prop": "subheading",
+          "label": "Subheading",
+          "on": "96 results",
+          "default": false
+        },
+        {
+          "prop": "childTitle",
+          "label": "Child-Heading",
+          "on": "2026",
+          "default": false
+        }
+      ]
+    }
+  ],
   "Card": [
     {
       "name": "Card",

@@ -92,6 +92,8 @@ const readInstance = async (instance) => {
         out.slots.push(slot);
         continue;
       }
+      // Its own texts (not a slot's, not a nested instance's): Dashboard/Header's Subheading count.
+      if (child.type === "TEXT" && !trail.length) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters }); }
       const next = child.type === "INSTANCE" ? [...trail, layerKey(child.name)] : trail;
       if (child.type === "INSTANCE" && changed.has(child.id)) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
       await walk(child, next);
@@ -102,7 +104,12 @@ const readInstance = async (instance) => {
   if (!out.nested.length) delete out.nested;
   if (!out.slots.length) delete out.slots;
   else { const layout = await layoutOf(instance); if (layout) out.layout = layout; }
-  if (out.text === null) delete out.text;
+  // A text-less instance (an icon button, Dashboard/Header's Action-Item): the icon it draws, by the icon's own name.
+  if (out.text === null) {
+    delete out.text;
+    const glyph = instance.findOne((n) => n.type === "INSTANCE" && n.visible && /^(icon|ic)-/.test(n.name));
+    if (glyph) out.icon = glyph.name;
+  }
   return out;
 };
 const read = async (node) => {
@@ -341,7 +348,7 @@ function instanceProps(item, set, mapping, notes, where) {
     }
     if (value === set.defaults[toggle.label]) continue;
     if (typeof toggle.on === "string" && toggle.on !== "slot") props[toggle.prop] = literal(toggle.on);
-    else notes.push(`${where}: ${toggle.label} on needs content the design does not carry (${toggle.prop})`);
+    else if (!(toggle.on === "slot" && item.slots?.length)) notes.push(`${where}: ${toggle.label} on needs content the design does not carry (${toggle.prop})`);
   }
   // A swap no toggle governs: written when it differs from Figma's default.
   for (const [prop, swap] of swaps) {
@@ -365,7 +372,10 @@ function instanceProps(item, set, mapping, notes, where) {
 }
 
 /** Figma slots a component takes as a node prop, not as its children (Sidebar: Header-Content, Footer-Content). */
-const SLOT_PROPS = { Sidebar: { "Header-Content": "brand", "Footer-Content": "footer" } };
+const SLOT_PROPS = {
+  Sidebar: { "Header-Content": "brand", "Footer-Content": "footer" },
+  DashboardHeader: { "Leading-Slots": "leading", "Center-Slots": "center", "Trailing-Slots": "trailing", "Control-Slots": "controls", "Action-Slots": "actions" },
+};
 /** Primitive rows that stand as code elements where the code takes nodes (Sidebar footer: `<SidebarMenuItem>`). */
 const ROW_ELEMENTS = { "Primitives/Side-Bar/Menu-Item/Master": "SidebarMenuItem" };
 /** The prop that names a data slot's selected item (Figma's Select = Yes on the item). */
@@ -472,6 +482,85 @@ function tableElement(node, ctx) {
   const props = { "aria-label": literal(label.charAt(0).toUpperCase() + label.slice(1).toLowerCase()), columns: { kind: "array", items: columns.map((column) => ({ kind: "object", fields: column.fields })) }, rows: { kind: "array", items: rows.map((row) => ({ kind: "object", fields: Object.fromEntries(Object.entries(row).map(([name, value]) => [name, Array.isArray(value) ? { kind: "array", items: value.map(literal) } : literal(value)])) })) } };
   if (Object.keys(overrides).length) props.overrides = { kind: "object", fields: overrides };
   return { kind: "element", name: "Table", props, children: [] };
+}
+
+/* ── Dashboard/Header ──────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** Components whose Figma rows carry a padding the component does not draw (Header/Dashboard pads each row). */
+const PADDED = new Set(["DashboardHeader"]);
+
+/** The element in a Stack with the row's padding (one step, or X and Y). */
+function padded(element, node, ctx) {
+  const [top = 0, right = 0, bottom = 0, left = 0] = node.layout.padding;
+  if (top !== bottom || left !== right) ctx.notes.push(`${element.name} "${node.name}": padding ${[top, right, bottom, left].join("/")} differs by side; the Stack around it takes ${Math.max(top, bottom)} above and below, ${Math.max(left, right)} at the sides`);
+  const step = (px) => spacingStep(null, px, PADDING_PX);
+  const props = top === bottom && left === right && top === left ? { padding: literal(step(top)) } : { paddingX: literal(step(Math.max(left, right))), paddingY: literal(step(Math.max(top, bottom))) };
+  return { kind: "element", ...(node.id ? { id: figmaDocId(node.id, "pad") } : {}), name: "Stack", props, children: [element] };
+}
+
+/** Every text layer in a slot's layers, with its layer name (a text layer named after its words has none). */
+const slotTexts = (nodes) => nodes.flatMap((node) => (node.type === "TEXT" ? [node] : slotTexts(node.children ?? [])));
+
+/**
+ * What a Primitives/Dashboard/Header row holds outside its slot props (DashboardHeader): Type=Main's Header-Text
+ * (title, Child-Heading, SubHeading), Control-Bar's Search and its Subheading count. The texts replace the toggles'
+ * stand-ins. Returns the slots it took.
+ */
+function dashboardHeaderParts(node, props, ctx) {
+  const handled = new Set();
+  const type = props.type?.value ?? "control-bar";
+  delete props.subheading;
+  delete props.childTitle;
+  if (type === "main") {
+    const headerText = (node.slots ?? []).find((slot) => slot.name === "Header-Text");
+    // Header-Text with layers of its own (a cover instead of Heading-Wrapper and SubHeading): a custom row keeps them all.
+    const own = (headerText?.children ?? []).filter((child) => !(child.name === "Heading-Wrapper" || (child.type === "TEXT" && child.name === "SubHeading")));
+    if (own.length) {
+      props.type = literal("custom");
+      ctx.notes.push(`DashboardHeader "${node.name}": its Header-Text holds layers of its own (${own.map((child) => child.name ?? child.type).join(", ")}), so the row is type="custom" with every slot's content`);
+      return { handled, children: true };
+    }
+    if (headerText) {
+      handled.add("Header-Text");
+      const texts = slotTexts(headerText.children ?? []);
+      const named = (name) => texts.find((text) => text.name === name)?.characters;
+      const title = texts.find((text) => text.name !== "Child" && text.name !== "SubHeading")?.characters;
+      if (title) props.title = literal(title.replace(/\u2028/g, " "));
+      if (node.props?.["Child-Heading"] === true && named("Child")) props.childTitle = literal(named("Child"));
+      if (node.props?.Subheading === true && named("SubHeading")) props.subheading = literal(named("SubHeading"));
+    }
+  }
+  if (type === "control-bar") {
+    // Search: Search/Default Medium, its placeholder the text an override gave it.
+    if (node.props?.Search !== false) {
+      const placeholder = (node.nested ?? []).find((nested) => nested.path === "Search")?.text ?? "Search";
+      props.search = { kind: "element", node: { kind: "element", ...(node.id ? { id: figmaDocId(node.id, "search") } : {}), name: "Search", props: { size: literal("md"), placeholder: literal(placeholder) }, children: [] } };
+    }
+    const count = (node.texts ?? []).find((text) => text.name === "Subheading")?.characters;
+    if (node.props?.Subheading === true && count) props.subheading = literal(count);
+  }
+  return { handled, children: type === "custom" };
+}
+
+/** A known glyph's name for an icon-only action. */
+const ACTION_NAMES = { bell: "Notifications", "message-chat-circle": "Messages", settings: "Settings", "help-circle": "Help", mail: "Inbox" };
+
+/**
+ * Primitives/Dashboard/Header/Action-Item (12280:19532) → AppShellAction: its icon (the glyph it draws), Theme Flat →
+ * `appearance="flat"`, Notification with Noti-type Dot → `dot`, Number → `count` (the dot's number).
+ */
+function actionItem(node, ctx) {
+  const icon = node.icon && isZenIcon(node.icon, ctx.mapping) ? node.icon : "icon-bell-01-line";
+  if (!node.icon || icon !== node.icon) ctx.notes.push(`AppShellAction "${node.name}": the Action-Item's icon was not read (${node.icon ?? "none"}): it draws ${icon}`);
+  const word = icon.replace(/^(icon|ic)-/, "").replace(/(-\d+)?-(line|solid|duotone)$/, "");
+  const props = { icon: literal(icon), "aria-label": literal(node.name && !node.name.includes("/") ? node.name : ACTION_NAMES[word] ?? iconWords(icon)) };
+  if (node.props?.Theme === "Flat") props.appearance = literal("flat");
+  if (node.props?.Notification !== false) {
+    const count = Number.parseInt(node.text ?? "", 10);
+    if (node.props?.["Noti-type"] === "Number" && count > 0) props.count = literal(count);
+    else props.dot = literal(true);
+  }
+  return { kind: "element", name: "AppShellAction", props, children: [] };
 }
 
 /** Icon-only controls the harness wants named (icon-button/needs-name): they get an aria-label. */
@@ -622,6 +711,7 @@ function convertNode(node, ctx) {
   if (node.type === "INSTANCE") {
     const setName = node.set?.name ?? "";
     if (ROW_ELEMENTS[setName]) return { kind: "element", name: ROW_ELEMENTS[setName], props: itemFields(node, ctx, { where: ROW_ELEMENTS[setName] }), children: [] };
+    if (setName === "Primitives/Dashboard/Header/Action-Item") return actionItem(node, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -662,6 +752,7 @@ function convertNode(node, ctx) {
       if (!named && icon) notes.push(`${where}: its aria-label "${iconWords(icon)}" comes from its icon (Figma has no name for it)`);
     }
     const takesChildren = !mapping.apiProps[set.code] || mapping.apiProps[set.code].has("children");
+    const { handled, children: slotsAreChildren } = set.code === "DashboardHeader" ? dashboardHeaderParts(node, props, ctx) : { handled: new Set(), children: false };
     // Each slot: a data prop (Sidebar sections), a node prop (Sidebar footer) or the children (Card › Content). With
     // slots, the label text is theirs, not the instance's.
     const dataSlots = mapping.dataSlots?.[set.code] ?? [];
@@ -671,6 +762,8 @@ function convertNode(node, ctx) {
     const outerIds = ctx.ids;
     ctx.ids = new Set();
     for (const slot of node.slots ?? []) {
+      if (handled.has(slot.name)) continue;
+      if (slotsAreChildren) { slotted.push(slot); continue; }
       const dataSlot = dataSlots.find((candidate) => candidate.name === slot.name);
       if (dataSlot) {
         const { value, selected } = dataSlotValue(slot, dataSlot, ctx, where);
@@ -703,7 +796,10 @@ function convertNode(node, ctx) {
     for (const layer of new Set((node.nested ?? []).map((nested) => nested.path.split("/")[0]))) {
       if (node.props?.[layer] === true && !set.toggles?.some((toggle) => toggle.label === layer)) notes.push(`${where}: ${layer} shows in Figma; set it on the ${set.code} in the Studio (its overrides apply once it is there)`);
     }
-    return { kind: "element", name: set.code, props, children };
+    const element = { kind: "element", name: set.code, props, children };
+    // A row Figma pads (Header/Dashboard's Sections pad each Primitives/Dashboard/Header): a Stack takes its padding, as
+    // an AppShell's sections would.
+    return PADDED.has(set.code) && node.layout?.padding?.some(Boolean) ? padded(element, node, ctx) : element;
   }
   // A grid's layers in the order Figma places them (row by row), which the layers panel need not follow.
   const layers = node.layout?.mode === "GRID" ? [...(node.children ?? [])].sort((a, b) => (a.cell?.row ?? 0) - (b.cell?.row ?? 0) || (a.cell?.col ?? 0) - (b.cell?.col ?? 0)) : node.children ?? [];

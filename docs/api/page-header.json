@@ -19,6 +19,14 @@
           "deprecated": null
         },
         {
+          "name": "childTitle",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Child-Heading (Primitives/Dashboard/Header Type=Main, 4122:33399): a second title after the title, in the title's\ntype and Content/Neutral/Light, Spacing/Gap/XSmall after it — where the page is inside its parent (\"Members\" ›\n\"Design team\"). Part of the heading, so the page's title reads both.",
+          "deprecated": null
+        },
+        {
           "name": "description",
           "type": "ReactNode",
           "required": false,

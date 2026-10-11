@@ -130,6 +130,28 @@ export const FIGMA_PROPS = {
       Size: { prop: "size", values: { "Max-Fixed": "max" } },
     },
   },
+  // Figma ◇ Master-Layout Primitives/Dashboard/Header (4122:33402, read 2026-10-11): one row per Type, each boolean shows
+  // its slot. Type=Main renders PageHeader (title, childTitle, subheading as its description, actions, trailing).
+  DashboardHeader: {
+    sets: { "Primitives/Dashboard/Header": null },
+    props: {
+      Type: "type",
+      Search: { toggle: "search", on: "slot" },
+      Controls: { toggle: "controls", on: "slot" },
+      Subheading: { toggle: "subheading", on: "96 results" },
+      Actions: { toggle: "actions", on: "slot" },
+      "Nav-Center-Block": { toggle: "center", on: "slot" },
+      "Nav-Trailing-Block": { toggle: "trailing", on: "slot" },
+      "Child-Heading": { toggle: "childTitle", on: "2026" },
+      "Leading-Slots": skip("content slot (Slots section)"),
+      "Center-Slots": skip("content slot (Slots section)"),
+      "Trailing-Slots": skip("content slot (Slots section)"),
+      "Control-Slots": skip("content slot (Slots section)"),
+      "Action-Slots": skip("content slot (Slots section)"),
+      "Custome-Elements": skip("the row's children (Slots section)"),
+      "Header-Text": skip("the title text (title prop)"),
+    },
+  },
   Card: {
     sets: { Card: null },
     props: { Content: skip("content slot (Slots section)"), "Sub-Action": skip("a sub-action object or node (Object properties)"), Theme: "theme", Spacing: "spacing", Active: { prop: "active", bool: true } },

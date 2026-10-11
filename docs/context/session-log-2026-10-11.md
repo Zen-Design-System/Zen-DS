@@ -179,3 +179,32 @@
 - Checks: figma-pull selftest 46 (+8), figma-diff selftest 22 (+3: a row's status changed → rows + its Badge override),
   E2E NO-21 new (5 headers, 9 rows, badges yellow/green/red, emoji), NO-19/20 green.
 - Open: a Table's Actions column (a page cannot write `cell`).
+
+## DashboardHeader + the designer questions (branch zen/feat/dashboard-header off 0298c03, tier L)
+
+The user's answers via Giám sát: Chip "Dùng counter (Không phải advanced chip)", Date field rename in Figma, and
+Primitives/Dashboard/Header "Thì build ngay".
+- Chip (read-only): Figma has no "Counter" layer — Chip/Normal none; Chip/Advanced's Counter boolean shows a hidden layer
+  named "Badge"; the multi-select count is .Chip/Trailing Multiple's "Badge-Counter". Asked Giám sát (options A: rename in
+  Figma, B: code follows Figma's names); code and ALLOWED unchanged until the answer. Date field: BACKLOG line → waiting
+  on the Figma rename; ALLOWED reason updated.
+- DashboardHeader: manifest (page, set, nested owners) in `docs/platform-json-audit.md`; contract captured through
+  `mcp-capture` by a helper agent (1 chunk) → `docs/figma-contracts/dashboard-header.json`; suite
+  `suites/dashboard-header.mjs` 68/68 (4 types × 2 modes). Type=Main renders PageHeader (`childTitle` added, Child-Heading
+  Light); Main's SubHeading stays Neutral/Base in PageHeader (Light is 3.8:1 on Canvas, recorded as a decision).
+- Definition of done: component files + export; platform app-layer page (playground with Type and each boolean, 5
+  examples: control bar over a table, navigation bar, rows in an AppShell, custom row, narrow column); Do/Don't visuals;
+  guideline entry + `tagsFor`; harness rules `dashboard-header/props-of-type`, `one-primary`, `main-needs-title`,
+  `filters-are-chips` with fixtures (usage selftest 177); props docs generated; Studio palette item, synonyms, Figma props
+  map (component-properties.json gains ◇ Master-Layout), generated Studio tables refreshed.
+- figma-pull: DashboardHeader slots → leading/center/trailing/controls/actions; Main Header-Text → title/childTitle/
+  subheading; a non-standard Header-Text (Overviews' cover) → type custom with all slots as children; Control-Bar Search
+  and Subheading text; Action-Item → AppShellAction; the row padding → a Stack around it. Selftest 47.
+- Found: `palette.selftest.mjs` runs in no gate and already fails on main (SidebarMenuItem missing from docs/api) →
+  BACKLOG P3.
+- Gate: actions overflowed at 390 Comfortable (their min-width was max-content) → base size auto, min-width 0, so the
+  row wraps them and a line too narrow wraps the buttons; on a phone the Primary comes first (as PageHeader) and the
+  navigation example trades the trail for Back. Segmented/Tabs axe "fixed violation" was load flake (3/3 reruns pass).
+- CI (PR #20, Linux): the suite asserted Control-Slots' width, which HUGs the Chip's text ("Filter" renders ~1.2px wider
+  on Linux), and Action-Slots' x/w that follow it. Per chip-normal's rule text-hugging widths are not asserted:
+  Control-Slots checks h/x/y, Action-Slots h/y and its end edge (new `right` check in check.mjs). Suite 64/64.

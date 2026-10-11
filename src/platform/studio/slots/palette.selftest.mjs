@@ -318,7 +318,7 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Colour selector, File upload)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
-  "Page: The card is one click target, so it holds no controls or fields (Page header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",
+  "Page: The card is one click target, so it holds no controls or fields (Page header, Dashboard header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",
   "Chat: The card is one click target, so it holds no controls or fields (Chat thread, Chat composer, AI chat, Voice recorder)",
 ]);
 check("Stack in a clickable Card: controls warned", fitting(paletteFor(ctxFor("Stack", "children", { ancestors: ["Card"], clickableAncestor: "Card" }))).filter((id) => paletteItem(id).interactive || paletteItem(id).input).length, 0);

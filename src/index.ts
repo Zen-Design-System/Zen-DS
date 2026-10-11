@@ -3,6 +3,7 @@ export * from "./components/Layout";
 export * from "./components/Text";
 export * from "./components/AppShell";
 export * from "./components/PageHeader";
+export * from "./components/DashboardHeader";
 export * from "./components/Form";
 export * from "./components/Button";
 export * from "./components/Chip";

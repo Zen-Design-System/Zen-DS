@@ -93,8 +93,9 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("live: Breadcrumbs' Item-List is its items, ids its own (not the Sidebar's)", page.includes('<Breadcrumbs items={[{ id: "overviews", label: "Overviews" }]} />'));
   ok("live: icon-only Segments: an empty label, the icon as leading, an aria-label from it; Select = Yes the defaultValue",
     page.includes('<Segmented options={[{ id: "sun", label: "", leading: "icon-sun-solid", "aria-label": "Sun" }, { id: "moon", label: "", leading: "icon-moon-01-solid", "aria-label": "Moon" }]} defaultValue="sun" />'));
-  ok("live: the header's Leading and Trailing slots sit side by side, Trailing filling and to the end",
-    /<Stack direction="row">\s*<Stack direction="row">[\s\S]*?<Breadcrumbs[\s\S]*?<Stack direction="row" gap="sm" justify="end" width="fill">\s*<Stack direction="row" gap="xs">\s*<Segmented/.test(page));
+  ok("live: Dashboard/Header Type=Navigation is a DashboardHeader: Leading-Slots its leading, Trailing-Slots its trailing, the row's padding a Stack around it",
+    /<Stack paddingX="xl" paddingY="xl">\s*<DashboardHeader type="navigation" leading=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} \/><\/Stack>\} trailing=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
+  ok("live: a Type=Main row whose Header-Text holds a cover of its own is a custom row that keeps it", /<DashboardHeader type="custom">[\s\S]*?ZEN DESIGN SYSTEM[\s\S]*?<\/DashboardHeader>/.test(page) && notesWith("its Header-Text holds layers of its own (_Cover)") === 1);
   ok("live: span-2 cards on 8 columns, 2 to a row: a Grid of 2 columns", page.includes("<Grid columns={2} width=\"fill\">"));
   check("live: the cards in Figma's placement order (row by row), not the layers panel's",
     [...page.matchAll(/<Text textStyle="Heading\/4">(?:\{")?([^<"]+)/g)].map((match) => match[1]), ["Foundation", "Components", "Patterns", "Resources & Tools", "Development"]);
@@ -105,8 +106,8 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("live: text alignment: the tagline centred, a right-aligned text at the end", page.includes('<Text textStyle="Display/3" align="center">') && page.includes('<Text textStyle="All-Caps/M-BOLD" align="end" width="fill">2026</Text>'));
   ok("live: Ignore auto layout: a frame takes position absolute with its constraints (Floating-Actions, bottom right, flush)", /<Stack direction="row" gap="lg" padding="xl" align="start" position="absolute" constraintX="right" constraintY="bottom">/.test(page));
   ok("live: an absolute text is wrapped in a Stack that takes its constraints and insets (32 px = 2xl)", /<Stack position="absolute" constraintX="right" constraintY="top" insetRight="2xl" insetTop="2xl">\s*<Text textStyle="All-Caps\/M-BOLD" align="end">kaiz<\/Text>/.test(page));
-  check("live: the drawings, the header Zen has no component for, the grid and the off-step gap are noted",
-    [notesWith("3 drawings"), notesWith("(Primitives/Dashboard/Header) has no Zen component"), notesWith('Grid "Frame 2"'), notesWith("gap 337 px")], [1, 2, 1, 1]);
+  check("live: the drawings, the grid and the off-step gap are noted; Dashboard/Header is no longer unmapped",
+    [notesWith("3 drawings"), notesWith("(Primitives/Dashboard/Header) has no Zen component"), notesWith('Grid "Frame 2"'), notesWith("gap 337 px")], [1, 0, 1, 1]);
   ok("live: no empty Stack is left where a drawing was", !/<Stack[^>]*\/>/.test(page));
   const compiled = compileReact(page, { file: "overviews.zen.tsx" }).code;
   check("live: the compiled page has no usage-harness errors", checkSource(compiled, "Overviews.tsx").filter((finding) => finding.severity === "error").map((finding) => `${finding.rule}: ${finding.message}`), []);

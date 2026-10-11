@@ -50,6 +50,14 @@ export const Bad = () => <>
   <Popover items={items} label="Assignee" onSelect={pick} />
   {/* expect: page-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
   <PageHeader title="Members" actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
+  {/* expect: dashboard-header/props-of-type */}
+  <DashboardHeader type="navigation" leading={<Breadcrumbs items={crumbs} onNavigate={go} />} search={<Search placeholder="Search leave requests" />} />
+  {/* expect: dashboard-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
+  <DashboardHeader actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={submitLeave}>Submit leave</Button></>} />
+  {/* expect: dashboard-header/main-needs-title */}
+  <DashboardHeader type="main" actions={<Button level="primary" onClick={submitLeave}>Submit leave</Button>} />
+  {/* expect: dashboard-header/filters-are-chips */}
+  <DashboardHeader search={<Search placeholder="Search leave requests" />} controls={<Button level="tertiary" onClick={openStatus}>Status</Button>} />
   {/* expect: app-shell/primary-in-top-bar */}
   <AppShell sidebar={nav} headerActions={<Button level="primary" onClick={invite}>Invite member</Button>}><Container>{page}</Container></AppShell>
   {/* expect: app-shell/nested */}

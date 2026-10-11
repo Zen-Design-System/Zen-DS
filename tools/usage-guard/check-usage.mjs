@@ -734,6 +734,27 @@ export const rules = [
   { id: "page-header/one-primary", components: ["PageHeader"], severity: "error", allow: "page-header-primary", guideline: "docs/guidelines/page-header.md",
     summary: "PageHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones.",
     check: ({ attrs }) => { const actions = expr(attrs, "actions") ?? ""; const primaries = (actions.match(/level="primary"/g) ?? []).length; return primaries > 1 ? `has ${primaries} Primary buttons in actions — keep one Primary; the rest are Tertiary.` : null; } },
+  // Dashboard Header (2026-10-11, Figma Primitives/Dashboard/Header 4122:33402): each Type draws its own slots.
+  { id: "dashboard-header/props-of-type", components: ["DashboardHeader"], severity: "error", allow: "dashboard-header-type", guideline: "docs/guidelines/dashboard-header.md",
+    summary: "A DashboardHeader draws only its type's slots: control-bar search · controls · subheading · actions; navigation leading · center · trailing; main title · childTitle · subheading · actions · trailing; custom its children.",
+    check: ({ attrs }) => {
+      const type = literal(attrs, "type") ?? (has(attrs, "type") ? null : "control-bar");
+      if (!type) return null;
+      const drawn = { "control-bar": ["search", "controls", "subheading", "actions"], navigation: ["leading", "center", "trailing"], main: ["title", "childTitle", "subheading", "actions", "trailing", "headingLevel"], custom: [] }[type];
+      if (!drawn) return null;
+      const slots = ["search", "controls", "subheading", "actions", "leading", "center", "trailing", "title", "childTitle", "headingLevel"];
+      const unused = slots.filter((name) => has(topLevel(attrs), name) && !drawn.includes(name));
+      return unused.length ? `sets ${unused.map((name) => `\`${name}\``).join(", ")}, which a type="${type}" row does not draw — move ${unused.length > 1 ? "them" : "it"} to the row type that does, or change \`type\`.` : null;
+    } },
+  { id: "dashboard-header/one-primary", components: ["DashboardHeader"], severity: "error", allow: "dashboard-header-primary", guideline: "docs/guidelines/dashboard-header.md",
+    summary: "DashboardHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones.",
+    check: ({ attrs }) => { const actions = expr(attrs, "actions") ?? ""; const primaries = (actions.match(/level="primary"/g) ?? []).length; return primaries > 1 ? `has ${primaries} Primary buttons in actions — keep one Primary; the rest are Tertiary.` : null; } },
+  { id: "dashboard-header/main-needs-title", components: ["DashboardHeader"], severity: "error", allow: "dashboard-header-title", guideline: "docs/guidelines/dashboard-header.md",
+    summary: "A type=\"main\" DashboardHeader is the page title row: it needs a title (the page's h1).",
+    check: ({ attrs }) => (literal(attrs, "type") === "main" && !has(topLevel(attrs), "title") ? "is type=\"main\" without a title — give it the page's title (its h1), or use another type." : null) },
+  { id: "dashboard-header/filters-are-chips", components: ["DashboardHeader"], severity: "warn", allow: "dashboard-header-filter-button", guideline: "docs/guidelines/dashboard-header.md",
+    summary: "Filters in a DashboardHeader's controls are Chip variant=\"advanced\" (each opens its own Popover), not Buttons.",
+    check: ({ attrs }) => (/<(Button|IconButton)\b/.test(expr(attrs, "controls") ?? "") ? "puts a Button in controls — filters are Chip variant=\"advanced\"; page actions go in actions." : null) },
   // App Shell (2026-09-29, researched against Carbon, Material 3, Atlassian, Polaris and the Figma HR-Platform pattern).
   { id: "app-shell/primary-in-top-bar", components: ["AppShell"], severity: "warn", allow: "top-bar-primary", guideline: "docs/guidelines/app-shell.md",
     summary: "The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions.",

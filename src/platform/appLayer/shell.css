@@ -12,3 +12,5 @@
 /* Without a top bar the page starts Margin-Comfortable from the top, level with the Sidebar's inset surface. */
 .zen-app-shell:not(:has(.zen-app-shell__header)) .pash-page { padding-top: var(--zen-margin-comfortable, 24px); }
 .pash-page-header-stage { width: 100%; }
+/* A Dashboard Header row padded as AppShell sections pad it (Spacing/Padding/Small × Margin-Comfortable). */
+.pash-dashboard-header-stage { width: 100%; box-sizing: border-box; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }

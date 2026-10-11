@@ -29,7 +29,7 @@ const ALLOWED = {
   InputField: { Leading: "hidden in every captured variant (contracts skip invisible instances): re-capture with tools/figma-kit", Trailing: "hidden in every captured variant: re-capture with tools/figma-kit" },
   TextAreaField: { Leading: "hidden in every captured variant: re-capture with tools/figma-kit", Trailing: "hidden in every captured variant: re-capture with tools/figma-kit" },
   SelectField: { Leading: "hidden in every captured variant: re-capture with tools/figma-kit" },
-  DateField: { Leading: "BACKLOG (designer): Figma's Date field names it Leading-Icon, the other fields Leading" },
+  DateField: { Leading: "waiting on the Figma rename (designer, the user's choice 2026-10-11): Figma's Date field names it Leading-Icon, the other fields Leading" },
   Search: { Filter: "Figma draws it as Search/Filter-Icon or Search/Filter-Dropdown by Theme: one code layer for both" },
   Segmented: { "Badge-Counter": "inside Item (Primitives/Segmented/Item-N), whose layers the contract does not capture", Leading: "inside Item, whose layers the contract does not capture" },
   Sidebar: { "Badge-Counter": "inside Item (Primitives/Side-Bar/Menu-Item), whose layers the contract does not capture" },
