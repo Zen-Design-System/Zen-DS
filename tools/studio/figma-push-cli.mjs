@@ -4,6 +4,7 @@
 //
 //   node tools/studio/figma-push-cli.mjs <page.zen.tsx> [--out=<page.figma.json>]   notes go to stderr
 import fs from "node:fs";
+import path from "node:path";
 import { figmaPackage } from "./figma-push.mjs";
 import { repoMapping } from "./figma-pull.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
@@ -22,6 +23,14 @@ const { pkg, notes } = figmaPackage(fs.readFileSync(file, "utf8"), { mapping: aw
 if (!pkg) {
   for (const note of notes) console.error(`error: ${note}`);
   process.exit(1);
+}
+// Pictures: a file of the repo (a path from the page's folder or the repo root) goes in; an upload or library key
+// (zen-asset:, zen-media:) lives in the Studio's browser — export from the Studio to carry it.
+for (const src of Object.keys(pkg.images ?? {})) {
+  const candidates = [path.resolve(path.dirname(file), src), path.resolve(src.replace(/^\//, ""))];
+  const found = /^zen-(asset|media):/.test(src) ? null : candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
+  if (found) pkg.images[src] = fs.readFileSync(found).toString("base64");
+  else notes.push(`the picture ${src} is not a repo file: export the page from the Studio to carry it`);
 }
 const json = `${JSON.stringify(pkg, null, 2)}\n`;
 if (out) fs.writeFileSync(out, json);

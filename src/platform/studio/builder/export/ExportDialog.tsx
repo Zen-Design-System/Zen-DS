@@ -135,8 +135,8 @@ export function ExportDialog() {
   useEffect(() => {
     if (tab !== "figma" || !shown || (figma && figma.id === shown.id && figma.text === shown.design)) return undefined;
     let alive = true;
-    void loadFigma().then(({ exportFigma }) => {
-      if (alive) setFigma({ id: shown.id, text: shown.design, result: exportFigma({ id: shown.id, title: shown.title, text: shown.design, doc: shown.doc }) });
+    void loadFigma().then(({ exportFigma }) => exportFigma({ id: shown.id, title: shown.title, text: shown.design, doc: shown.doc })).then((result) => {
+      if (alive) setFigma({ id: shown.id, text: shown.design, result });
     }, (error: unknown) => { if (alive) setFigma({ id: shown.id, text: shown.design, result: { error: error instanceof Error ? error.message : String(error) } }); });
     return () => { alive = false; };
   }, [tab, shown, figma]);

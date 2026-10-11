@@ -5,7 +5,8 @@
 // Run: node tools/studio/figma-push.selftest.mjs
 import { validateDialect } from "./dialect.mjs";
 import { docFromText, printPage } from "./doc.mjs";
-import { figmaFromPage, figmaIdOf } from "./figma-push.mjs";
+import fs from "node:fs";
+import { figmaFromPage, figmaIdOf, figmaPackage } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
@@ -129,7 +130,46 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
   check("Sidebar: the Basic set, without the other sets' properties", { set: node?.set.name, workspace: "Workspace-bar" in (node?.props ?? {}), background: "Master-Background" in (node?.props ?? {}) }, { set: "Side-Bar/Master/Basic", workspace: false, background: false });
 }
 
-// 6. What P0 does not write yet is named, never dropped silently.
+// 6. P2: data slots, node slots, a Table as Figma draws it, absolute layers, pictures (each keyed for the next import).
+{
+  const table = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table.json", import.meta.url), "utf8")).frame, { mapping }).text;
+  const { frame, notes } = push(table);
+  check("Table page: nothing left out", notes, []);
+  const rows = find(frame, (node) => node.children?.some((child) => child.set?.name === "Primitives/Table/Data-Row"))?.children ?? [];
+  check("Table: a header row and nine rows of Data-Row", rows.map((row) => row.set.name === "Primitives/Table/Data-Row").filter(Boolean).length, 10);
+  const header = rows[0].slots[0].children;
+  check("Table: header cells by column (label, Sort, width or Fill)", header.slice(0, 3).map((cell) => [cell.props["✏️ Label"], cell.props.Type, cell.fixedWidth ?? (cell.fillW ? "fill" : null)]), [["Type", "None", "fill"], ["Submit On", "Sort", 140], ["From - to", "None", 234]]);
+  const first = rows[1].slots[0].children.map((cell) => cell.slots[0].children[0]);
+  check("Table: a row's content cells (Dock-Icon, Text, Badge, Actions)", first.map((cell) => cell.set.name.split("/").pop()), ["Dock-Icon-Cell", "Text-Cell", "Text-Cell", "Text-Cell", "Badge-Cell", "Actions-Cell"]);
+  check("Table: row 1's yellow Badge with its dot (its override)", first[4].slots[0].children[0].props.Theme + " " + first[4].slots[0].children[0].props["Leading-Icon"] + " " + first[4].slots[0].children[0].text, "Yellow true Pending");
+  check("Table: a media cell's label in its nested Text-Cell, the emoji Dock-Icon of row 1 (nested override)", first[0].nested?.map((nested) => [nested.path, nested.textList?.[0] ?? nested.props.Theme]), [["Text-Cell", "Annual Leave"], ["Dock-Icon", "Emoji"]]);
+  check("Table: the Open action, its icon, Small", [first[5].slots[0].children[0].props["Leading-Icon-Src"], first[5].slots[0].children[0].props.Size], ["icon-chevron-right-line-small", "Small"]);
+  const keys = []; const walk = (node) => { keys.push(node.key); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  check("Table: every layer keyed, no key twice", { all: keys.every(Boolean), unique: new Set(keys).size === keys.length }, { all: true, unique: true });
+}
+{
+  const overviews = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-overviews.json", import.meta.url), "utf8")).frame, { mapping }).text;
+  const { frame, notes } = push(overviews);
+  check("Overviews: nothing left out", notes, []);
+  const sidebar = find(frame, (node) => node.set?.name === "Side-Bar/Master/Basic");
+  check("Overviews: the Sidebar's slots (brand, sections, footer)", sidebar?.slots?.map((slot) => slot.name), ["Header-Content", "Body-Content", "Footer-Content"]);
+  const body = sidebar.slots.find((slot) => slot.name === "Body-Content").children;
+  const selected = body.flatMap((section) => section.children).find((item) => item.props?.Select === "Yes");
+  ok("Overviews: sections as frames, the selected Menu-Item says Select Yes", body.every((section) => section.type === "FRAME") && selected?.set.name === "Primitives/Side-Bar/Menu-Item/Master");
+  const header = find(frame, (node) => node.set?.name === "Primitives/Dashboard/Header");
+  ok("Overviews: a Dashboard header's slots and texts", header?.slots?.length > 0);
+  check("Overviews: Breadcrumbs items in their Item-List slot", find(frame, (node) => node.set?.name === "Breadcrumbs")?.slots?.[0]?.children.every((item) => item.set.name === "Primitives/Breadcrumbs/Item/Slot"), true);
+  const absolutes = []; const collect = (node) => { if (node.absolute) absolutes.push(node.absolute); (node.children ?? []).forEach(collect); (node.slots ?? []).forEach((slot) => slot.children.forEach(collect)); }; collect(frame);
+  check("Overviews: layers outside the auto layout keep their constraints and insets (top right 32, Floating-Actions bottom right)", absolutes.map((box) => [box.cx, box.cy, box.right, box.top]), [["MAX", "MIN", 32, 32], ["MAX", "MAX", 0, 0]]);
+}
+{
+  const pictured = PAGE.replace('<Icon name="icon-star-01-line" />', '<Avatar src="zen-media:abc123" alt="Alex" />').replace("import { Button, Card, Grid, Icon, IconButton, Stack, Text }", "import { Avatar, Button, Card, Grid, Icon, IconButton, Stack, Text }");
+  const { pkg } = figmaPackage(pictured, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "p" } });
+  const avatar = find(pkg.frame, (node) => node.image);
+  check("a picture: the Avatar names it, Theme Photo, and the package lists it for the caller to fill", { image: avatar?.image, theme: avatar?.props.Theme, images: pkg.images }, { image: "zen-media:abc123", theme: "Photo", images: { "zen-media:abc123": null } });
+}
+
+// 7. What is not written yet is named, never dropped silently.
 {
   const { notes } = push(PAGE.replace('<Card theme="flat">\n              <Text>Loyalty app</Text>', '<Card theme="flat" subAction={{ label: "More" }}>\n              <Text>Loyalty app</Text>'));
   ok("a data prop (subAction) is named as not written", notes.some((note) => /subAction is data/.test(note)));

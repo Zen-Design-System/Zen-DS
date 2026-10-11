@@ -5,6 +5,7 @@ export type FigmaMapping = {
   textStyles: Set<string> | null;
   iconNames: Set<string> | null;
   dataSlots: Record<string, unknown>;
+  contractSets: Map<string, { id: string; name: string; props?: Array<{ name: string; type: string; default?: unknown }> }>;
 };
 export function figmaMapping(data: {
   figmaProps: Readonly<Record<string, unknown>>;

@@ -39,7 +39,9 @@ export function figmaMapping({ figmaProps, contract, apiProps = {}, textStyles =
       if (set && !sets.has(set.id)) register(set, { code, own: [], toggles: [], defaults: defaultsOf(set) });
     }
   }
-  return { sets, apiProps, textStyles: textStyles ? new Set(textStyles) : null, iconNames: iconNames ? new Set(iconNames) : null, dataSlots };
+  // contractSets: every captured set by id and name (its props with types and defaults), for sets no code component
+  // stands for (the items and cells figma-push draws).
+  return { sets, apiProps, textStyles: textStyles ? new Set(textStyles) : null, iconNames: iconNames ? new Set(iconNames) : null, dataSlots, contractSets };
 }
 
 /** docs/api components (`{ name, props: [{ name, default }] }`, default as JSON text) → component → Map of prop → code default. */
