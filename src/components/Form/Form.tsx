@@ -26,7 +26,7 @@ import { VisuallyHidden } from "../VisuallyHidden";
 import { gapValue, paddingValue, type ZenPadding } from "../_shared/scale";
 import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
-import { countInvalidFields, focusFirstInvalidField } from "./focus";
+import { afterErrorsRender, focusFirstInvalidField } from "./focus";
 import type { FormSubmitEvent } from "./useFormState";
 import "./form.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
@@ -109,8 +109,7 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(function Form(
     }
     await onSubmit?.(event);
     // After the handler's state updates have rendered, read the errors from the DOM.
-    requestAnimationFrame(() => {
-      const count = countInvalidFields(element);
+    afterErrorsRender(element, (count) => {
       if (!count) { setAnnouncement(""); return; }
       focusFirstInvalidField(element);
       announce(invalidMessage(count));

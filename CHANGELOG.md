@@ -810,6 +810,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Form and ModalForm: a blocked submit focuses the first invalid field even when the handler's errors render a frame or
+  two after it returns (they looked once, one frame later, and could miss them; seen as a flaky CI test).
 - Zen Studio: on a page you made, a component's state shows at once — a Data-Row's State → Selected, a Checkbox's
   default, a Tab's default value, any `defaultX`/`initialX` (also inside `overrides`) — instead of after a page reload.
 - Usage harness: `zen-usage --list` (and `check-usage.mjs`) no longer cuts its JSON off at 64 KB when piped; the process

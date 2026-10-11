@@ -60,3 +60,10 @@
 - Layers logged a React duplicate key (`…/part:0.1:TabItem`) after B-29's tab label edit: a part listed twice while the
   canvas redraws. `flatten` emits each row id once. Gate PASS (E2E 230/230).
 - Engine budget: the user chose 160 KB gzip (via Giám sát) over splitting the engine; `build-check.mjs` ENGINE_BUDGET_KB.
+
+## PR #12 CI: ModalForm focus after an async submit (zen/feat/nested-overrides a3f5389, merged here; tier S)
+
+- CI failed "waits for an async handler before looking for errors" (Email never focused). Not `overrides`: Form and
+  ModalForm looked for aria-invalid once, one animation frame after the handler; React renders its setErrors in a task
+  of its own, which a frame can precede. `Form/focus.ts afterErrorsRender` looks again on the next frames (6 at most);
+  both use it. New test (errors render 30 ms after the handler resolves) fails on the old code every time, passes now.
