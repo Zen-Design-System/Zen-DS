@@ -25,6 +25,7 @@ export function protoCode(action: string, arg?: string): string;
 export type PageDoc = { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown };
 export const ID_PROP: string;
 export function printPage(doc: PageDoc, options?: { ids?: boolean }): string;
+export function elementText(node: unknown, options?: { ids?: boolean }): string;
 export function docFromText(text: string, options?: { components?: Set<string>; newId?: () => string }): { doc: PageDoc | null; errors: DialectError[] };
 export function locsOf(doc: PageDoc, text: string, options?: { components?: Set<string> }): { idAt: Map<string, string>; locOf: Map<string, string> };
 export function newDocId(): string;

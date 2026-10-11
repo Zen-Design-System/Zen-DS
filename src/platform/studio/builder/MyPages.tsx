@@ -17,6 +17,8 @@ import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
 import { idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
 import { RenameField } from "./RenameField";
+import { importPulled, pulledPageOf, readPulled } from "./figmaUpdate";
+import { UpdateFromFigmaDialog, type FigmaUpdate } from "./UpdateFromFigmaDialog";
 import { useFolders } from "./store/folderStore";
 import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
 
@@ -65,6 +67,8 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
   const storageTip = useIconTooltip(storageText(storage), { placement: "bottom" });
   const trash = useTrash();
   const [trashOpen, setTrashOpen] = useState(false);
+  // Frames pulled before, imported again: one Update from Figma at a time.
+  const [figmaUpdates, setFigmaUpdates] = useState<FigmaUpdate[]>([]);
   const input = useRef<HTMLInputElement>(null);
 
   const importFiles = async (files: File[]) => {
@@ -72,6 +76,7 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
     const engine = await loadEngine();
     const opened: string[] = [];
     const refused: string[] = [];
+    const updates: FigmaUpdate[] = [];
     // A handoff package (.zip, GĐ5 M4) brings its design file and the uploaded photos it uses (assets/<id>).
     const entries: Array<{ name: string; text: string; assets: Map<string, Uint8Array> }> = [];
     for (const file of files) {
@@ -95,12 +100,23 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
         const data = entry.assets.get(id);
         if (data) await putAsset(id, new Blob([data as Uint8Array<ArrayBuffer>]));
       }
+      // A page pulled from Figma (tools/studio/figma-pull.mjs): a frame already pulled here updates its page, a new one
+      // becomes a page that keeps its layers' ids for the next pull.
+      const pulled = await readPulled(entry.text);
+      if (pulled) {
+        const existing = await pulledPageOf(pulled);
+        if (existing) updates.push({ pageId: existing, title: (await getPage(existing))?.title ?? existing, incoming: pulled.doc });
+        else opened.push(await importPulled(pulled, idFromFileName(entry.name)));
+        continue;
+      }
       opened.push(await importPage(entry.text, idFromFileName(entry.name)));
     }
-    if (opened.length === 1) openLocalPage(opened[0]);
+    if (opened.length === 1 && !updates.length) openLocalPage(opened[0]);
+    if (updates.length) setFigmaUpdates((queued) => [...queued, ...updates]);
     if (refused.length) say("error", `Not imported: ${refused.join("; ")}`);
-    else say("saved", `Imported ${opened.length} page${opened.length === 1 ? "" : "s"}`);
+    else if (opened.length || !updates.length) say("saved", `Imported ${opened.length} page${opened.length === 1 ? "" : "s"}`);
   };
+  const nextFigmaUpdate = () => setFigmaUpdates((queued) => queued.slice(1));
 
   const items: MenuEntry[] = [
     { id: "import", label: "Import pages…", icon: "icon-upload-01-line", disabled: !admin, onSelect: () => input.current?.click() },
@@ -132,6 +148,19 @@ export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNew
         void importFiles(files).catch(fail);
       }} />
       <TrashDialog open={trashOpen} onOpenChange={setTrashOpen} pages={trash} admin={admin} />
+      {figmaUpdates[0] ? (
+        <UpdateFromFigmaDialog
+          key={figmaUpdates[0].pageId}
+          update={figmaUpdates[0]}
+          onClose={nextFigmaUpdate}
+          onApplied={(applied, skipped) => {
+            const page = figmaUpdates[0];
+            say("saved", applied ? `Updated “${page.title}” from Figma: ${applied} change${applied === 1 ? "" : "s"}${skipped.length ? ` (${skipped.length} not applied: their layers are gone from the page)` : ""}` : `“${page.title}” matches Figma`);
+            openLocalPage(page.pageId);
+            nextFigmaUpdate();
+          }}
+        />
+      ) : null}
     </>
   );
 }

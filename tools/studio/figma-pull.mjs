@@ -9,10 +9,13 @@
 // - pageFromFigma(frame, { title, mapping }): that JSON → the page's TSX (dialect format 1, printed by doc.mjs). An
 //   instance becomes its component with the properties that differ from the set's defaults (figmaProps.generated.ts maps
 //   names and options), its overridden nested instances become `overrides`, an auto-layout frame a Stack, a text layer a
-//   Text. What has no Zen mapping is left out and named in `notes`.
+//   Text. What has no Zen mapping is left out and named in `notes`. Every element's document id comes from its Figma
+//   layer and the header names the frame, so Import pages… in the Studio keeps them, and importing a later pull of the
+//   same frame opens Update from Figma (figma-diff.mjs) instead of making a second page.
 //
 //   node tools/studio/figma-pull.mjs code <nodeId> [--part=N]   print the use_figma code for that frame (part N, from 0)
-//   node tools/studio/figma-pull.mjs page <part files…> [--title=…] [--out=<file.zen.tsx>]   use_figma's answers → page
+//   node tools/studio/figma-pull.mjs page <part files…> [--title=…] [--file=<key>] [--out=<file.zen.tsx>] [--no-ids]
+//                                                              use_figma's answers → the page to import
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -69,7 +72,7 @@ const COMPOSITION = /^(Patterns|Header|Templates?|Layouts?|Screens?)\\//;
 const readInstance = async (instance) => {
   const set = await setOf(instance);
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
-  const out = { type: "INSTANCE", name: instance.name, set, props: await propsOf(instance), text: firstText(instance), nested: [], slots: [] };
+  const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), text: firstText(instance), nested: [], slots: [] };
   const changed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.some((f) => f === "componentProperties" || f === "characters")).map((o) => o.id));
   const walk = async (node, trail) => {
     for (const child of node.children || []) {
@@ -79,12 +82,12 @@ const readInstance = async (instance) => {
         const children = [];
         for (const inner of child.children || []) { const read_ = await read(inner); if (read_) children.push(placed(read_, inner, child)); }
         const layout = await layoutOf(child);
-        const slot = placed({ name: child.name, ...(layout ? { layout } : {}), children }, child, node);
+        const slot = placed({ id: child.id, name: child.name, ...(layout ? { layout } : {}), children }, child, node);
         // Slots side by side in a frame of the instance (Dashboard/Header's Leading and Trailing): that frame's layout.
         if (node !== instance) {
           slot.parent = node.name;
           out.rows = out.rows || {};
-          if (!(node.name in out.rows)) out.rows[node.name] = await layoutOf(node);
+          if (!(node.name in out.rows)) { out.rows[node.name] = await layoutOf(node); out.rowIds = out.rowIds || {}; out.rowIds[node.name] = node.id; }
         }
         out.slots.push(slot);
         continue;
@@ -108,7 +111,7 @@ const read = async (node) => {
     const style = typeof node.textStyleId === "string" && node.textStyleId ? await figma.getStyleByIdAsync(node.textStyleId) : null;
     // The layer's name only when it is not its text (Figma names a text layer after its words).
     const align = node.textAlignHorizontal && node.textAlignHorizontal !== "LEFT" ? { align: node.textAlignHorizontal } : {};
-    return { type: "TEXT", ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align };
+    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align };
   }
   if (node.type === "INSTANCE") return readInstance(node);
   return readFrame(node);
@@ -148,7 +151,8 @@ const placed = (out, child, parent) => {
 const readFrame = async (node, root = false) => {
   if (DRAWING.has(node.type)) return { type: node.type, name: node.name };
   // Its size only for the frame read (the page's device).
-  const out = { type: node.type, name: node.name, ...(root ? { width: Math.round(node.width), height: Math.round(node.height) } : {}), children: [] };
+  // The frame read: its file (a pulled page remembers where it came from) and its size (the page's device).
+  const out = { type: node.type, id: node.id, name: node.name, ...(root ? { ...(typeof figma.fileKey === "string" ? { file: figma.fileKey } : {}), width: Math.round(node.width), height: Math.round(node.height) } : {}), children: [] };
   const layout = await layoutOf(node);
   if (layout) out.layout = layout;
   for (const child of node.children || []) {
@@ -409,6 +413,7 @@ function slotContent(slot, ctx) {
   const nodes = (slot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
   if (nodes.length <= 1) return nodes[0] ?? null;
   const element = frameElement({ name: slot.name, layout: slot.layout }, nodes, ctx);
+  if (slot.id) element.id = figmaDocId(slot.id);
   SOURCE.set(element, slot);
   return element;
 }
@@ -417,6 +422,7 @@ function slotContent(slot, ctx) {
 const SOURCE = new WeakMap();
 function convert(node, ctx) {
   let element = convertNode(node, ctx);
+  if (element && !element.id && node.id) element.id = figmaDocId(node.id);
   if (element && node.absolute) element = positioned(element, node, ctx);
   if (element && !SOURCE.has(element)) SOURCE.set(element, node);
   return element;
@@ -447,7 +453,7 @@ function positioned(element, node, ctx) {
     Object.assign(element.props, props);
     return element;
   }
-  return { kind: "element", name: "Stack", props, children: [element] };
+  return { kind: "element", ...(node.id ? { id: figmaDocId(node.id, "place") } : {}), name: "Stack", props, children: [element] };
 }
 
 function convertNode(node, ctx) {
@@ -480,12 +486,18 @@ function convertNode(node, ctx) {
         const content = (slot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
         if (!content.length) continue;
         const element = frameElement({ name: slot.name, layout: slot.layout }, content, ctx);
+        if (slot.id) element.id = figmaDocId(slot.id);
         SOURCE.set(element, slot);
         const row = slot.parent && node.rows?.[slot.parent] ? slot.parent : null;
         if (row && groups.at(-1)?.row === row) groups.at(-1).items.push(element);
         else groups.push({ row, items: [element] });
       }
-      const held = groups.map(({ row, items }) => (row ? frameElement({ name: row, layout: node.rows[row] }, items, ctx) : items)).flat();
+      const held = groups.map(({ row, items }) => {
+        if (!row) return items;
+        const frame = frameElement({ name: row, layout: node.rows[row] }, items, ctx);
+        if (node.rowIds?.[row]) frame.id = figmaDocId(node.rowIds[row]);
+        return frame;
+      }).flat();
       if (held.length) {
         notes.push(`"${node.name}" (${setName}) has no Zen component: what its ${node.slots.map((slot) => slot.name).join(", ")} slots hold is kept in a Stack, its own layers are left out`);
         return frameElement({ name: node.name, layout: node.layout }, held, ctx);
@@ -618,14 +630,37 @@ function frameElement(node, children, ctx) {
 const deviceOf = (width) => (typeof width === "number" && width <= 480 ? "phone" : typeof width === "number" && width <= 1100 ? "tablet" : "desktop");
 
 /** The frame (figmaReadCode's JSON) as a page: { text, notes }. The frame's own layout is the screen's Stack. */
-export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapping }) {
+/**
+ * The frame (figmaReadCode's JSON) as a page: { text, notes, doc }. The frame's own layout is the screen's Stack. Every
+ * element's document id comes from its Figma layer (figmaDocId), and the header names the frame (`figma: { file, node }`):
+ * a pulled page imported again finds its page and its layers (figma-diff.mjs). `text` is the plain page; the print with
+ * ids, `printPage(doc, { ids: true })`, is what the Studio imports. `file`: the Figma file key when the read has none.
+ */
+export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapping, file = null }) {
   const ctx = { mapping, notes: [], ids: new Set(), drawings: [] };
   const root = convert(frame, ctx);
   if (ctx.drawings.length) ctx.notes.push(`${ctx.drawings.length} drawings (vectors, shapes: ${[...new Set(ctx.drawings)].join(", ")}) are left out: a page has no layer for them`);
-  const content = root ? (root.name === "Stack" ? root : { kind: "element", name: "Stack", props: {}, children: [root] }) : null;
-  const screen = { kind: "element", name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)) }, children: content ? [content] : [] };
-  const doc = { header: { format: 1, title }, mock: {}, board: { kind: "element", name: "Board", props: {}, children: [screen] } };
-  return { text: printPage(doc), notes: ctx.notes };
+  const own = (part) => (frame?.id ? figmaDocId(frame.id, part) : undefined);
+  const content = root ? (root.name === "Stack" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
+  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)) }, children: content ? [content] : [] };
+  const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
+  // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
+  const walk = (node) => {
+    node.children.forEach((child, index) => { if (child.kind === "element") { child.id ??= `${node.id}.${index}`; walk(child); } });
+    for (const [name, value] of Object.entries(node.props)) if (value.kind === "element") { value.node.id ??= `${node.id}.${name}`; walk(value.node); }
+  };
+  walk(board);
+  const source = frame?.id ? { figma: { file: frame.file ?? file, node: frame.id } } : {};
+  const doc = { header: { format: 1, title, ...source }, mock: {}, board };
+  return { text: printPage(doc), notes: ctx.notes, doc };
+}
+
+/**
+ * A Figma layer's id as a page element's document id: "14243:64878" → "f14243-64878", an instance's inner layer
+ * "I1:2;3:4" → "fI1-2_3-4"; `part` for an element the layer adds (its Screen, the Stack that places it).
+ */
+export function figmaDocId(figmaId, part) {
+  return `f${String(figmaId).replace(/:/g, "-").replace(/;/g, "_")}${part ? `.${part}` : ""}`;
 }
 
 /* ── CLI ────────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -660,12 +695,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     // Each use_figma answer saved to a file: one file, or one per part.
     const files = process.argv.slice(3).filter((item) => !item.startsWith("--"));
     const frame = joinParts(files.map((file) => fs.readFileSync(file, "utf8").replace(/\r?\n$/, "")));
-    const { text, notes } = pageFromFigma(frame, { title: option("title"), mapping: await repoMapping() });
+    const { doc, notes } = pageFromFigma(frame, { title: option("title"), mapping: await repoMapping(), file: option("file") ?? null });
+    // With each element's Figma id (data-zen-id): Import in the Studio keeps them, and a later pull updates the page.
+    const text = printPage(doc, { ids: !process.argv.includes("--no-ids") });
     if (option("out")) fs.writeFileSync(option("out"), text);
     else process.stdout.write(text);
     for (const note of notes) console.error(`note: ${note}`);
   } else {
-    console.error("usage: figma-pull.mjs code <nodeId> | page <frame.json> [--title=…] [--out=<file.zen.tsx>]");
+    console.error("usage: figma-pull.mjs code <nodeId> | page <part files…> [--title=…] [--file=<figma file key>] [--out=<file.zen.tsx>] [--no-ids]");
     process.exit(1);
   }
 }

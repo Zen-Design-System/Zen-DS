@@ -194,6 +194,14 @@ both("moveTo another parent", "Badge", 0, (loc) => [{ op: "moveTo", parent: loc(
   }
 }
 check("a loc with nothing there is refused, as the engine refuses it", editDoc(start, startText, { file: FILE, loc: "999:0", name: "Button", ops: [{ op: "removeElement" }] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) }).code, "not-found");
+// M6 (a Figma update): code an op brings with data-zen-id sets those ids in the document, and the page's text never shows them.
+{
+  const button = byName(start, "Button");
+  const code = '<Stack gap="sm" data-zen-id="fpull-1"><Text data-zen-id="fpull-2">From Figma</Text></Stack>';
+  const through = editDoc(start, startText, { file: FILE, loc: locIn(start, startText, button), name: "Button", ops: [{ op: "replaceElement", code }] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) });
+  check("code with ids: the text has none", [typeof through.text === "string", /data-zen-id/.test(through.text ?? ""), /<Stack gap="sm">\s*<Text>From Figma<\/Text>\s*<\/Stack>/.test(through.text ?? "")], [true, false, true]);
+  check("code with ids: the document takes them", [through.ids, nodes(through.doc).filter((node) => node.id.startsWith("fpull-")).map((node) => `${node.name}#${node.id}`)], [true, ["Stack#fpull-1", "Text#fpull-2"]]);
+}
 
 if (failures.length) {
   console.error(`doc selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

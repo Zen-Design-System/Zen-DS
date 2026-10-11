@@ -7,6 +7,7 @@
 // Isomorphic (browser and Node, no Node imports).
 //
 //   printPage(doc, { ids }) → text                       the page as TSX; `ids`: with data-zen-id on every element
+//   elementText(node, { ids }) → text                    one element as JSX (a Figma update replaces the Board with it)
 //   docFromText(text, { components, newId }) → { doc, errors }
 //   locsOf(doc, text, { components }) → { idAt, locOf }  where each element of `doc` sits in `text` (any text of that page)
 //   editDoc(doc, text, request, { applyOps, dataFieldEdit, sha1, options }) → { doc, text, answer, ids } | { error, code }
@@ -14,6 +15,7 @@
 import { parsePage } from "./dialect.mjs";
 
 export const ID_PROP = "data-zen-id";
+const ID_ATTRIBUTE = / data-zen-id="[^"]*"/g;
 const PACKAGE = "@zen/design-system";
 const BUILDER_PACKAGE = "@zen/design-system/builder";
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay"]);
@@ -172,6 +174,11 @@ function elementsOf(root) {
   return out;
 }
 
+/** One element of a document as JSX, at no indent (`ids`: with data-zen-id on every element, so an edit keeps them). */
+export function elementText(node, { ids = false } = {}) {
+  return elementCode(node, "", { ids });
+}
+
 /** The parse tree as a document: every element takes its data-zen-id (once; a repeat is a copy) or a new id; no locs. */
 export function docFromText(text, { components, newId = newDocId } = {}) {
   const tree = parsePage(text, { components });
@@ -279,7 +286,10 @@ export function editDoc(doc, text, request, { components, applyOps, dataFieldEdi
     // The ops that check the file's hash check the text they run on.
     return applyOps(code, loc, request.name, ops, options.hash && sha1 ? { ...options, hash: sha1(code) } : options);
   };
-  const shown = run(text, request.loc, request.ops);
+  // Code an op brings may carry its elements' ids (data-zen-id: a Figma update keeps its layers' ids): they go to the
+  // document through the engine's print below, never into the page's text.
+  const plain = request.ops.map((op) => (typeof op?.code === "string" && op.code.includes(ID_PROP) ? { ...op, code: op.code.replace(ID_ATTRIBUTE, "") } : op));
+  const shown = run(text, request.loc, plain);
   if (typeof shown.error === "string") return { error: shown.error, code: shown.code };
   const after = docFromText(shown.code, { components, newId });
   if (!after.doc || after.errors.length) return { error: `Not written: the page would break (line ${after.errors[0]?.line ?? 1}: ${after.errors[0]?.message ?? "no board"})`, code: "invalid" };

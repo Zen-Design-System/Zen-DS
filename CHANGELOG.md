@@ -46,6 +46,9 @@ removed (four unused colour ramps were, see Removed).
   layers become the component's content, data (Sidebar sections, Breadcrumbs and Segmented items, the selected item) or
   a node prop (Sidebar brand and footer); Fill container, grid placement, text alignment and absolute layers carry over,
   and icon-only buttons get an aria-label.
+- Zen Studio: importing a later pull of a Figma frame you already pulled opens Update from Figma — what changed in Figma
+  since the last pull, one checkbox each, with the spots you also edited in the Studio left unticked — and Apply updates
+  the page in one step (one ⌘Z), keeping your own edits and layers.
 - Zen Studio, a design copy (New page from this frame): a photo goes on one avatar of an AvatarStack (that layer's
   override), and a Table column whose cells draw a person's photo keeps it as an Avatar column; the avatar test passes
   on the avatar, card, App Shell, table and sidebar pages.
