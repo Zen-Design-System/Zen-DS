@@ -7,7 +7,7 @@ import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
 import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels } from "../_shared/zen-context";
-import { countInvalidFields, focusFirstInvalidField } from "../Form/focus";
+import { afterErrorsRender, focusFirstInvalidField } from "../Form/focus";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./dialog.css";
@@ -372,8 +372,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
     // attention (Form's helpers, same rule as Form). A valid submit that closes the modal finds nothing invalid (or the
     // form is inert or gone) and leaves focus alone.
     void Promise.resolve(onSubmit?.(event)).then(() => {
-      requestAnimationFrame(() => {
-        const count = form.isConnected && !form.closest("[inert]") ? countInvalidFields(form) : 0;
+      afterErrorsRender(form, (count) => {
         if (!count) { setAnnouncement(""); return; }
         focusFirstInvalidField(form);
         announce(invalidMessage(count));

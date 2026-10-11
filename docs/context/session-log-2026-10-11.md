@@ -21,3 +21,10 @@
   actions (a Tooltip clones its child button; a scope between them would drop its handlers).
 - Tests: nested-overrides 9 (Input family, DatePicker footer, Chat avatar added); full Vitest 610 (608 at fcc1c37 + 2);
   Studio self-tests pass; generated docs, keywords and part props rebuilt.
+
+## PR #12 CI: ModalForm focus after an async submit (same branch, tier S)
+
+- CI failed "waits for an async handler before looking for errors" (Email never focused). Not `overrides`: Form and
+  ModalForm looked for aria-invalid once, one animation frame after the handler; React renders its setErrors in a task
+  of its own, which a frame can precede. `Form/focus.ts afterErrorsRender` looks again on the next frames (6 at most);
+  both use it. New test (errors render 30 ms after the handler resolves) fails on the old code every time, passes now.

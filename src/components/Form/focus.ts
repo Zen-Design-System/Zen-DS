@@ -67,3 +67,23 @@ export function focusFirstInvalidField(root: ParentNode | null | undefined): HTM
   }
   return null;
 }
+
+/**
+ * After a submit handler (awaited): calls `done` with the number of invalid fields in `form` once the handler's errors
+ * have rendered. React renders a state update in a task of its own, which the next animation frame can come before, so
+ * a look that finds nothing tries again on the following frames (`frames` in all) before it settles on 0. A form that
+ * is gone or inert (a valid submit closed the modal) counts 0 at once. Returns a cancel function.
+ */
+export function afterErrorsRender(form: HTMLElement, done: (count: number) => void, frames = 6): () => void {
+  let handle = 0;
+  let left = frames;
+  const look = () => {
+    const live = form.isConnected && !form.closest("[inert]");
+    const count = live ? countInvalidFields(form) : 0;
+    left -= 1;
+    if (count || !live || left <= 0) done(count);
+    else handle = requestAnimationFrame(look);
+  };
+  handle = requestAnimationFrame(look);
+  return () => cancelAnimationFrame(handle);
+}
