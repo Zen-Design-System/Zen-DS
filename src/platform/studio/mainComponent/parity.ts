@@ -7,6 +7,8 @@ import { announceEditStatus } from "../api";
  */
 
 export type ParityRow = { suite: string; modes: string[]; variant: Readonly<Record<string, string>>; layer: string; prop: string; figma: string; code: string };
+/** The Figma re-binding a save's token changes need (tools/studio/rebind.mjs): the Zen plugin's Import from Studio applies it. */
+export type RebindPackage = { format: "zen-studio-rebind"; version: 1; component: string; file: string; changes: Array<{ set: { id: string; name: string }; variant: string; layer: string; field: string; from: string; to: string }> };
 export type ParityReport = {
   id: string;
   file: string;
@@ -19,6 +21,8 @@ export type ParityReport = {
   rows?: ParityRow[];
   more?: number;
   errors?: string[];
+  rebind?: RebindPackage | null;
+  rebindNotes?: string[];
   kept: boolean;
   reverted: boolean;
 };
@@ -38,9 +42,15 @@ export const parityStore = {
   },
   /** Closed without an answer: the save stays, the status line says it is undecided. */
   dismiss(id: string) {
+    const offFigma = Boolean(open?.id === id && (open.failures || open.errors?.length));
     dismissed.add(id);
     if (open?.id === id) { open = null; emit(); }
-    announceEditStatus({ kind: "warning", message: `The save stays off Figma (not logged): run its suite again after a fix`, at: Date.now() });
+    announceEditStatus({ kind: "warning", message: offFigma ? `The save stays off Figma (not logged): run its suite again after a fix` : "Figma keeps the old bindings: save the component again to download the re-binding", at: Date.now() });
+  },
+  /** Answered without a server step (the re-binding downloaded): the dialog closes. */
+  settle(id: string) {
+    dismissed.add(id);
+    if (open?.id === id) { open = null; emit(); }
   },
 };
 
@@ -54,7 +64,8 @@ export function receiveParity(report: ParityReport) {
   else if (report.kept) announceEditStatus({ kind: "warning", message: `${name} stays off Figma: logged in the backlog`, at: Date.now() });
   else if (!report.suites) announceEditStatus({ kind: "saved", message: `${name} saved (no Figma contract for it)`, at: Date.now() });
   else if (!report.failures && !report.errors?.length) announceEditStatus({ kind: "saved", message: `${name} matches Figma (${report.total ?? 0} checks)`, at: Date.now() });
-  const asking = Boolean(report.failures || report.errors?.length) && !report.kept && !report.reverted && !dismissed.has(report.id);
+  // Off Figma, or matching but Figma still binds the variables the code left: the dialog asks (and offers the re-binding).
+  const asking = Boolean(report.failures || report.errors?.length || report.rebind?.changes.length) && !report.kept && !report.reverted && !dismissed.has(report.id);
   if (asking) open = report;
   else if (open?.id === report.id) open = null;
   emit();

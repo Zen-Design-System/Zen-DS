@@ -63,3 +63,16 @@
   (page doc printed with ids; CLI counts), .d.mts for figma-map / figma-push, E2E HO-09 (first id HO-08 was taken).
 - Read-only check against the live file (use_figma): sets, property names, Spacing variables, text styles, icons all
   present; found Sidebar writing other sets' properties → fixed (write only the chosen set's, selftest 21).
+
+## Figma push P2–P4 (Q4 rest, Q5) (session "Kiểm tra tiến độ plan", the user: "tiếp xong hết tôi thử 1 lần")
+
+- P2 figma-push: data slots, node slots, SidebarMenuItem / AppShellAction, Dashboard header texts + Search, Table as
+  Figma's Data-Rows and cells, absolute layers, pictures; keys for generated layers. Plugin 3b984fc: textList / texts
+  (nested too), swapIcon, image, fixedWidth, absolute, slots replace their sample content. Two read-only checks of the
+  live file: sets / properties / slots / text layers all present; a media cell's label is in its nested Text-Cell
+  (fixed: the push writes it there, not on the cell). Overviews and Table pages push with no notes.
+- P3 binding-diff.mjs + Figma bindings dialog (Main component), GET /binding-diff (read only: the token header
+  `call()` does not send was refused first — E2E MC-08 caught it, also a cold-start timeout: timeout 40 s).
+- P4 rebind.mjs in the save's Figma check job, ParityDialog Download for Figma, plugin 173e97f rebind (licensed).
+- Selftests: figma-push 36, binding-diff 8, rebind 5 (all in studio:selftest); plugin npm test green; dist rebuilt
+  (backups/pre-studio-rebind-dist-20261012.tgz before).

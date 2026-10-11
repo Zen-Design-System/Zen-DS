@@ -154,3 +154,37 @@ Mỗi mốc: selftest + E2E (nhóm mới `push`, PU-xx), `npm run qa`, CHANGELOG
   property của set khác → giờ chỉ ghi property set đó có (selftest 21).
 - **Còn cho P1 "xong khi":** user chạy plugin trong Figma: Studio › Export › Figma › Download; plugin › Import › Import
   from Studio; kéo frame về (`figma-pull`) khớp; import lại sau khi sửa trang → cập nhật tại chỗ.
+
+### P2 (2026-10-12, cùng nhánh; plugin 3b984fc)
+
+- `figma-push`: data slot thành instance item (Sidebar sections → frame Section-Title + Menu-Item, Select = Yes cho mục
+  đang chọn; Breadcrumbs Item/Slot; Segmented Item), node slot (Sidebar brand / footer, các hàng của Dashboard header),
+  SidebarMenuItem và AppShellAction (Action-Item: hoán glyph, số đếm), chữ của Dashboard header (Heading Text, Child,
+  SubHeading / Subheading) và Search, **Table như Figma vẽ** (frame các Data-Row: ô Header có nhãn, Sort, Align; ô
+  Default giữ ô nội dung theo cột — Text, Dock-Icon, Avatar, Photo, Icon, Badge, Tag, Trend, Progress, Control, Actions;
+  rộng cố định hoặc Fill; override theo hàng), layer tuyệt đối (constraint, inset), ảnh (gói `images`, Studio đọc
+  upload / URL, CLI đọc file repo). Toggle bật khi prop có giá trị. Mọi layer push tự vẽ đều có key (key cha + vị trí).
+- Plugin: `textList` / `texts` (cả trong override lồng: nhãn của ô có hình nằm trong Text-Cell lồng), `swapIcon`,
+  `image` (`base64Decode` + `createImage`), `fixedWidth`, `absolute`; slot thay toàn bộ nội dung mẫu.
+- Đối chiếu chỉ đọc với file thật: mọi set, property, slot và layer chữ mà gói Overviews / Table dùng đều có.
+- Selftest figma-push 36; trang Overviews và Table thật đẩy lên không còn ghi chú.
+
+### P3 — Q5(1) Figma đổi binding → CSS (2026-10-12)
+
+- `tools/studio/binding-diff.mjs` (+ selftest 8): so contract hiện tại với commit cuối theo layer (`bv`, biến của
+  paint); với mỗi đổi binding, đề xuất khai báo CSS đang đọc biến cũ (tên CSS; thuộc tính field điều khiển hoặc biến
+  của component; giá trị variant trong selector khi nhiều chỗ cùng đọc, cỡ dài/ngắn) đọc biến mới — ready + tick khi
+  chắc, manual khi giá trị ghép, token-missing khi biến mới chưa có token. CLI `--json`, `--apply`.
+- Studio: `GET /binding-diff`, nút "Check Figma bindings" trong panel Main component, hộp **Figma bindings** (tên
+  variable Figma, layer, số variant), Apply ghi bản nháp qua css-edit. E2E MC-08.
+
+### P4 — Q5(2) Save Main component → rebind lên Figma (2026-10-12; plugin 173e97f)
+
+- `tools/studio/rebind.mjs` (+ selftest 5): CSS trước / sau một lần Save → khai báo đổi token → các layer field trong
+  contract của component đang gắn biến cũ ở các variant selector phủ → gói `zen-studio-rebind` (tên Figma của token mới
+  từ tokens/source). Lấy ngay trong job Figma check của lần Save.
+- Studio: ParityDialog có **Download for Figma** (cả khi bản lưu vẽ đúng như Figma nhưng Figma còn gắn biến cũ).
+- Plugin: Import from Studio nhận re-binding (licence, hỏi trước): `setBoundVariable`, hoặc `setBoundVariableForPaint`
+  cho fill / stroke; thiếu set / variant / layer / biến thì ghi chú.
+- **Còn lại: user thử một lần trong Figma** (Q4: export trang → import, import lại; Q5: Check Figma bindings sau một lần
+  chụp lại contract; Save một sửa token trong Main component → Download for Figma → import).

@@ -520,7 +520,7 @@ export function zenStudio() {
   /** What the Studio is told about a check (its first rows; the rest are counted). */
   function parityReport(job) {
     const result = job.result;
-    return { id: job.id, file: job.file, suites: job.suites.length, status: result ? "done" : "running", ...(result ? { total: result.total, failures: result.failures, variants: new Set(result.rows.map((row) => `${row.suite}|${JSON.stringify(row.variant)}`)).size, rows: result.rows.slice(0, PARITY_ROWS), more: Math.max(0, result.rows.length - PARITY_ROWS), errors: result.errors } : {}), kept: job.kept ?? false, reverted: job.reverted ?? false };
+    return { id: job.id, file: job.file, suites: job.suites.length, status: result ? "done" : "running", ...(result ? { total: result.total, failures: result.failures, variants: new Set(result.rows.map((row) => `${row.suite}|${JSON.stringify(row.variant)}`)).size, rows: result.rows.slice(0, PARITY_ROWS), more: Math.max(0, result.rows.length - PARITY_ROWS), errors: result.errors, rebind: job.rebind?.pkg ?? null, rebindNotes: job.rebind?.notes ?? [] } : {}), kept: job.kept ?? false, reverted: job.reverted ?? false };
   }
 
   const announceParity = (job) => devServer?.ws?.send({ type: "custom", event: "zen-studio:parity", data: parityReport(job) });
@@ -535,8 +535,12 @@ export function zenStudio() {
       started.push({ id: job.id, file: job.file, suites: job.suites.length });
       // A component without a contract suite has nothing to compare: done at once.
       const run = job.suites.length ? runSuites(root, job.suites) : Promise.resolve({ total: 0, failures: 0, rows: [], errors: [] });
+      // Beside the check: the Figma re-binding the save's token changes need (core rebuild Q5(2), tools/studio/rebind.mjs).
+      const rebound = Promise.all([import("./rebind.mjs"), readDisk(entry.file)])
+        .then(([{ repoRebind }, after]) => (after === null ? { pkg: null, notes: [] } : repoRebind({ root, file: entry.file, before: job.prior, after })))
+        .catch((error) => ({ pkg: null, notes: [`The Figma re-binding could not be read: ${error.message}`] }));
       announceParity(job);
-      void run.then((result) => { job.result = result; announceParity(job); });
+      void Promise.all([run, rebound]).then(([result, rebind]) => { job.result = result; job.rebind = rebind; announceParity(job); });
     }
     return started;
   }
