@@ -2401,7 +2401,7 @@
         "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
         "Right-align numbers and amounts; keep text left.",
         "Give each row one primary text (bold) and at most one caption.",
-        "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) (harness: table/actions-flat).",
+        "Put row actions in the last column as Button/Icon-Flat Medium: `content: \"actions\"` with the column's `actions` (no cell function), or TableActions with IconButton appearance=\"flat\" level=\"primary\" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).",
         "Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch (\"Archive 3 projects\"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.",
         "Show an Empty State row when filters return nothing.",
         "Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.",
@@ -3407,7 +3407,8 @@
           "streaming?: boolean = false",
           "thinking?: boolean = false",
           "thinkingLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AiChatField": [
           "onSubmit: (text: string) => void",

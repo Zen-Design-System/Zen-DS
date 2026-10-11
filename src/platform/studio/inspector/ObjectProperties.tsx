@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useWords } from "../useWords";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { plural } from "../../../components/Text";
@@ -113,6 +114,7 @@ export function ObjectProperties({ component, props, api, only, selection, defau
   /** The field that takes the focus when `token` changes (a double-click on the item's text, focusContent.ts). */
   focus?: { field: string; token: number };
 }) {
+  const say = useWords();
   const types = useApiTypes(componentSlug(component));
   const [overrides, setOverrides] = useState<Record<string, PropValue>>({});
   // The element read again (its shapes changed): what it holds now replaces the optimistic values.
@@ -225,7 +227,7 @@ export function ObjectProperties({ component, props, api, only, selection, defau
               const rows = written?.kind === "expression" && written.shape?.type === "array" ? written.shape.items.length : null;
               return (
                 <p key={field.name} className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>
-                  {rows === null ? `${propLabel(field.name)}: written in the code` : `${plural(rows, nested.itemName)} in ${nested.name}: select one on the canvas or in Slots to edit it`}
+                  {say(rows === null ? `${propLabel(field.name)}: written in the code` : `${plural(rows, nested.itemName)} in ${nested.name}: select one on the canvas or in Slots to edit it`)}
                 </p>
               );
             }

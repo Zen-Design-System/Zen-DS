@@ -5,6 +5,8 @@
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { overridesAt } from "../../src/components/_shared/nested";
+import { userEvent } from "vitest/browser";
+import { AiChatBubble } from "../../src/components/AiChat";
 import { AvatarStack } from "../../src/components/Avatar";
 import { Badge } from "../../src/components/Badge";
 import { Card } from "../../src/components/Card";
@@ -111,6 +113,31 @@ describe("nested overrides", () => {
     const apply = Array.from(screen.container.querySelectorAll(".zen-date-picker__actions .zen-button")).at(-1);
     expect(apply?.getAttribute("data-level")).toBe("accent");
     expect(screen.container.querySelector(".zen-chat-message .zen-avatar")?.getAttribute("data-tone")).toBe("red");
+  });
+
+  it("reaches a Table actions column's button in one row (Figma Actions-Cell)", async () => {
+    const actionColumns = [...columns, { id: "actions", header: "", content: "actions" as const, actions: [{ id: "open", icon: "icon-chevron-right-line" as const, label: "Open" }] }];
+    const screen = await render(<Table aria-label="People" columns={actionColumns} rows={people} getRowId={(row) => row.id} overrides={{ "Row[chi]/actions/Button": { level: "danger", icon: "icon-trash-line" } }} />);
+    const buttons = Array.from(screen.container.querySelectorAll("tbody td:last-child .zen-button"));
+    expect(buttons.map((button) => button.getAttribute("aria-label"))).toEqual(["Open, row 1", "Open, row 2", "Open, row 3"]);
+    expect(buttons.map((button) => button.getAttribute("data-level"))).toEqual(["primary", "primary", "danger"]);
+    expect(buttons[2].querySelector("[data-icon]")?.getAttribute("data-icon")).toBe("icon-trash-line");
+  });
+
+  it("reaches an AI chat bubble's second action and keeps its tooltip", async () => {
+    const screen = await render(
+      <AiChatBubble side="ai" actions={[{ icon: "icon-copy-line", label: "Copy" }, { icon: "icon-thumbs-up-line", label: "Like" }]} overrides={{ "Button[1]": { level: "danger" } }}>
+        <Badge leading="icon-check-line">Done</Badge>
+      </AiChatBubble>,
+    );
+    const [copy, like] = Array.from(screen.container.querySelectorAll(".zen-ai-bubble__actions .zen-button"));
+    expect([copy.getAttribute("data-level"), like.getAttribute("data-level")]).toEqual(["primary", "danger"]);
+    // Slot content keeps its own props.
+    expect(screen.container.querySelector(".zen-badge [data-icon]")?.getAttribute("data-icon")).toBe("icon-check-line");
+    await userEvent.tab();
+    await userEvent.tab();
+    await expect.poll(() => document.querySelector('.zen-tooltip--floating[role="tooltip"]')?.textContent).toBe("Like");
+    expect(like.getAttribute("aria-describedby")).toBe(document.querySelector('.zen-tooltip--floating[role="tooltip"]')?.id);
   });
 
   it("renders the same DOM without overrides", async () => {

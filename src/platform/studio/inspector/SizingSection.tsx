@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
+import { useWords } from "../useWords";
 import { Button } from "../../../components/Button";
 import { Divider } from "../../../components/Divider";
 import { Icon } from "../../../components/Icon";
@@ -420,7 +421,7 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
   const locked = !view.editable;
   const shown = pending !== null ? String(pending) : draft ?? view.text;
   const isDefault = pending === null && draft === null && !view.written;
-  const why = axisTooltip(view, parent, limits);
+  const why = useWords()(axisTooltip(view, parent, limits));
   // On the field, not the input: a text input matches :focus-visible on every click, and the hint would cover the row
   // above while typing. Hover shows it after 1s; assistive tech reads it as the input's description.
   const [onHandle, setOnHandle] = useState(false);
@@ -631,7 +632,8 @@ function LimitField({ prop, value, live, prefill, disabled, focusAt, onWrite }: 
   const resting = locked ? (fed !== null ? String(fed) : "") : written !== null ? String(written) : value.state === "unset" && prefill !== null && focusAt ? String(prefill) : "";
   const shown = pending !== null ? String(pending) : draft ?? resting;
   const isDefault = pending === null && draft === null && written === null;
-  const tip = useIconTooltip(locked ? (value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`) : false);
+  const say = useWords();
+  const tip = useIconTooltip(locked ? say(value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`) : false);
 
   useEffect(() => {
     if (!focusAt) return undefined;
@@ -723,7 +725,8 @@ function LimitField({ prop, value, live, prefill, disabled, focusAt, onWrite }: 
 
 /** A bound or spread value: the live value, read-only (never editable here), with where it comes from. */
 function ReadOnlyValue({ label, text, value }: { label: string; text: string; value: Extract<PropValue, { state: "bound" | "spread" }> }) {
-  const tip = useIconTooltip(value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`);
+  const say = useWords();
+  const tip = useIconTooltip(say(value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`));
   return (
     <div className="studio-sizing__field">
       <InputField

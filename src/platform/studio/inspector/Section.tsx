@@ -2,6 +2,7 @@ import { createContext, useContext, useId, type ReactNode } from "react";
 import { Heading } from "../../../components/Text";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { useWords } from "../useWords";
 
 /** Inside a section on Figma's field grid: its plain rows (InspectorRow, PropField) put the label above as well. */
 const FieldGridContext = createContext(false);
@@ -13,13 +14,14 @@ const FieldGridContext = createContext(false);
  */
 export function InspectorSection({ title, actions, children, note, className, fieldGrid = false }: { title: ReactNode; actions?: ReactNode; children: ReactNode; note?: ReactNode; className?: string; fieldGrid?: boolean }) {
   const id = useId();
+  const say = useWords();
   return (
     <section className={["studio-inspector__section", className].filter(Boolean).join(" ")} aria-labelledby={id} data-field-grid={fieldGrid || undefined}>
       <div className="studio-inspector__section-head">
         <Heading id={id} level={3} textStyle="Body/Small/Bold">{title}</Heading>
         {actions ? <div className="studio-inspector__section-actions">{actions}</div> : null}
       </div>
-      {note ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{note}</p> : null}
+      {note ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{typeof note === "string" ? say(note) : note}</p> : null}
       <div className="studio-inspector__section-body"><FieldGridContext.Provider value={fieldGrid}>{children}</FieldGridContext.Provider></div>
     </section>
   );
@@ -36,15 +38,16 @@ export function InspectorSection({ title, actions, children, note, className, fi
  */
 export function InspectorRow({ label, children, action, hint, isDefault, name, labelTitle, compact, bound }: { label: ReactNode; children: ReactNode; action?: ReactNode; hint?: ReactNode; isDefault?: boolean; name?: string; labelTitle?: string; compact?: boolean; bound?: RowBinding }) {
   const stacked = useContext(FieldGridContext) && !compact;
+  const say = useWords();
   return (
     <div className="studio-inspector__row" data-default={isDefault || undefined} data-prop={name} data-compact={compact || undefined} data-bound={bound ? "true" : undefined} data-action={action ? "true" : undefined} data-stacked={stacked || undefined}>
-      <span className={`studio-inspector__row-label ${typographyStyles[stacked ? "Caption/Regular" : "Body/Small/Regular"]}`} title={labelTitle}>
+      <span className={`studio-inspector__row-label ${typographyStyles[stacked ? "Caption/Regular" : "Body/Small/Regular"]}`} title={labelTitle && say(labelTitle)}>
         {label}
         {bound ? <BoundMark binding={bound} /> : null}
       </span>
       <div className="studio-inspector__row-control">{children}</div>
       {action ? <div className="studio-inspector__row-action">{action}</div> : null}
-      {hint ? <p className={`studio-inspector__row-hint ${typographyStyles["Body/Small/Regular"]}`}>{hint}</p> : null}
+      {hint ? <p className={`studio-inspector__row-hint ${typographyStyles["Body/Small/Regular"]}`}>{typeof hint === "string" ? say(hint) : hint}</p> : null}
     </div>
   );
 }
@@ -76,7 +79,7 @@ export type RowBinding = { expression: string; note: string };
 
 /** ƒ after a label: the value is bound to code. Hover names the expression; screen readers hear it with the label. */
 export function BoundMark({ binding }: { binding: RowBinding }) {
-  const text = `Bound to {${binding.expression}}. ${binding.note}`;
+  const text = useWords()(`Bound to {${binding.expression}}. ${binding.note}`);
   return (
     <span className={`studio-inspector__bound-mark ${typographyStyles["Body/Small/Medium"]}`} title={text}>
       <span aria-hidden="true">ƒ</span>

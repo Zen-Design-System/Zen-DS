@@ -1,4 +1,5 @@
 import { useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useStudioPage, useWords } from "../useWords";
 import { Button, IconButton } from "../../../components/Button";
 import { InputField, NumberField, SelectField, TextAreaField } from "../../../components/Input";
 import { Popover, PopoverItem } from "../../../components/Popover";
@@ -610,12 +611,22 @@ function StaticField({ text, code = false, placeholder = false, title }: { text:
 
 /** A bound expression shown read-only ("{level}"): in a field's frame, the expression in the code font. */
 export function BoundValue({ expression, hint }: { expression: string; hint?: string }) {
+  // A page made in the Studio reads "data: person › theme" (or "a value set in code"), not the expression.
+  const say = useWords();
+  const said = say(`{${expression}}`);
+  if (said !== `{${expression}}`) return <StaticField text={said} title={hint ? `${said} — ${say(hint)}` : said} />;
   return <StaticField text={`{${expression}}`} code title={hint ? `${expression} — ${hint}` : expression} />;
 }
+
+/** ValueChip's kinds on a page made in the Studio. */
+const DESIGN_KINDS: Readonly<Record<string, string>> = { null: "None", "ƒ()": "Action", "[…]": "List", "{…}": "Group of values" };
 
 /** A value the inspector shows but does not edit (an object, an element, a function): its kind in a field's frame. */
 function ValueChip({ value }: { value: unknown }) {
   const text = value === undefined ? "Not set" : value === null ? "null" : typeof value === "function" ? "ƒ()" : Array.isArray(value) ? "[…]" : typeof value === "object" ? "{…}" : String(value);
+  // A page made in the Studio names the kind in design words (an action, a list, a group of values).
+  const said = useStudioPage() ? DESIGN_KINDS[text] : undefined;
+  if (said) return <StaticField text={said} />;
   return <StaticField text={text} code={text !== "Not set"} placeholder={text === "Not set"} />;
 }
 
@@ -747,6 +758,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   /** A note under an editable row (why a value shows no effect yet); never hides or locks the control. */
   hint?: string;
 }) {
+  const say = useWords();
   // The label's tooltip: the whole label (it may truncate) and the prop's own name.
   // Only when it adds something: "Theme" for theme needs no "Theme · theme".
   const labelTitle = label.toLowerCase() === spec.name.toLowerCase() ? undefined : `${label} · ${spec.name}`;
@@ -784,7 +796,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
     const note = boundHint ?? (value.origin?.kind === "bound-state" ? "It reads state: change it in the code." : "Change it in the code.");
     return (
       <InspectorRow {...row} bound={{ expression: value.expression, note }}>
-        {live !== undefined && typeof live !== "boolean" ? <StaticField text={String(live)} title={`{${value.expression}}`} /> : <BoundValue expression={value.expression} hint={boundHint} />}
+        {live !== undefined && typeof live !== "boolean" ? <StaticField text={String(live)} title={say(`{${value.expression}}`)} /> : <BoundValue expression={value.expression} hint={boundHint} />}
       </InspectorRow>
     );
   }

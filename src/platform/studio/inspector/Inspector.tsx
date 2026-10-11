@@ -19,6 +19,7 @@ import { TablePartPanel } from "../table/TableCellPanel";
 import { SelectionActions } from "./SelectionActions";
 import { editGate } from "../gate";
 import { fileName, saveShortcut, undoShortcut, useInspectorStatus } from "./status";
+import { useWords } from "../useWords";
 import "./inspector.css";
 import { VariantPanel } from "../mainComponent/VariantPanel";
 import { variantKey } from "../mainComponent/model";
@@ -43,6 +44,8 @@ function StatusLine() {
   const localPage = useStudio((state) => state.localPage);
   const server = useStudioServer();
   const drafts = useStudioDrafts();
+  // A page made in the Studio: the line speaks design words (no file:line, no code; plan criterion 7).
+  const say = useWords();
   const editable = canEdit() && role === "admin" && server.writable;
   const drafting = server.drafts || drafts.available;
   let tone: "neutral" | "positive" | "negative" | "warning" = "neutral";
@@ -70,6 +73,8 @@ function StatusLine() {
     text = editable ? (localPage ? "Changes save at once" : drafting ? `Edits stay drafts until you save (${saveShortcut})` : "Changes save to the source file at once")
       : gate.ok ? "Connecting to the Studio dev server…" : `${gate.short}${role === "viewer" ? shown : ""}`;
   }
+  text = say(text);
+  details = details.map(say);
   const icon = tone === "positive" ? "icon-check-line" : tone === "negative" ? "icon-alert-circle-line" : tone === "warning" ? "icon-alert-triangle-line" : editable ? "icon-edit-02-line" : "icon-eye-line";
   return (
     <div className={`studio-inspector__status ${typographyStyles["Body/Small/Regular"]}`} data-tone={tone} data-details={details.length ? "true" : undefined} role="status" aria-live="polite">

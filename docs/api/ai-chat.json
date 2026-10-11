@@ -73,6 +73,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there\n are several). Written by Zen Studio; app code sets `actions`.",
+          "deprecated": null
         }
       ]
     },

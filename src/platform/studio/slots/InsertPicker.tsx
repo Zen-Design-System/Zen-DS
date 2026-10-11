@@ -1,4 +1,5 @@
 import { useId, useMemo, useState, type RefObject } from "react";
+import { useWords } from "../useWords";
 import { Popover, PopoverItem } from "../../../components/Popover";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { SourceElement, StudioSelection } from "../types";
@@ -56,6 +57,7 @@ export type InsertPickerProps = {
 
 /** The searchable, grouped list of palette items for one slot. */
 export function InsertPicker({ open, onOpenChange, anchorRef, selection, element, slot, onPicked }: InsertPickerProps) {
+  const say = useWords();
   const [query, setQuery] = useState("");
   const listId = useId();
   // Read when it opens: the palette depends on the components around the host on the canvas (click targets, phones).
@@ -121,8 +123,8 @@ export function InsertPicker({ open, onOpenChange, anchorRef, selection, element
                 label={item.label}
                 caption={warning ? warning.short : item.caption}
                 // The caption is one line: the full reason is the item's description.
-                title={warning?.reason}
-                aria-description={warning ? `Not recommended here: ${warning.reason}` : undefined}
+                title={warning ? say(warning.reason) : undefined}
+                aria-description={warning ? `Not recommended here: ${say(warning.reason)}` : undefined}
                 onSelect={() => pick(item)}
               />
             );

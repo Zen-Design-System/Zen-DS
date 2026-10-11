@@ -5,6 +5,7 @@ import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
 import { inspectorRow, openAssetLibrary, openStudioSpace, selectAt, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption, scaleStep } from "./inspector.mjs";
+import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 
 /** The page's text as the browser keeps it (IndexedDB "zen-studio-builder"). */
 export const pageText = (page, id) => page.evaluate((key) => new Promise((resolve) => {
@@ -220,6 +221,44 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button after ⌘Z" });
       return "⌘D → 2 Buttons · ⌘Z → 1";
+    },
+  },
+  {
+    id: "B-35", feature: "Design words on a page you made (plan criterion 7): the status line, the canvas tag, the Inspector header, its notes and tooltips name no file:line and no code ({…}, <Tag>, prop, children); a refusal too", wp: "design words 2026-10-12",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await selectStack(page, id);
+      await insertAsset(page, "Button");
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button" });
+      await sleep(400);
+      await clickNamed(page, id, "Button");
+      const read = () => page.evaluate(() => {
+        const texts = (selector) => [...document.querySelectorAll(selector)].map((el) => el.textContent ?? "");
+        return {
+          status: texts(".studio-inspector__status-text, .studio-inspector__status-details li"),
+          tag: texts('.studio-selection__outline[data-kind="selected"] .studio-selection__tag'),
+          header: texts("#studio-right .studio-inspector__src"),
+          notes: texts("#studio-right .studio-inspector__note, #studio-right .studio-inspector__row-hint"),
+          tips: [...document.querySelectorAll("#studio-right [title]")].map((el) => el.getAttribute("title") ?? ""),
+        };
+      });
+      const findings = (seen) => Object.entries(seen).flatMap(([where, list]) => list.flatMap((text) => codeWordsIn(text).map((word) => `${where}: ${word} in "${text.slice(0, 90)}"`)));
+      await until(async () => (await read()).header.join() === "Show code", { message: 'the Inspector header reads "Show code"' }).catch(async (error) => { throw new Error(`${error.message} (header: ${(await read()).header.join(" | ")})`); });
+      // The edit's own line: "Saved in this browser · ⌘Z to undo"-like, never the page's file and line.
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 2, { message: "two Buttons after ⌘D" });
+      await until(async () => /Duplicated|Saved/.test(await statusText(page)), { message: "the duplicate's line in the status" });
+      const afterEdit = await read();
+      const found = findings(afterEdit);
+      if (found.length) throw new Error(`code words on a Studio page: ${found.slice(0, 6).join(" · ")}`);
+      // A refusal (an item that keeps state) speaks design words too.
+      await selectStack(page, id);
+      await insertAsset(page, "Tabs");
+      await until(async () => /keeps state or code/.test(await statusText(page)), { message: "the refusal in the status" });
+      const refused = findings({ status: [await statusText(page)] });
+      if (refused.length) throw new Error(`code words in the refusal: ${refused.join(" · ")}`);
+      return `header "Show code" · status "${afterEdit.status[0]?.slice(0, 40)}" · tag "${afterEdit.tag[0]}" · ${afterEdit.notes.length} notes, ${afterEdit.tips.length} tips clean`;
     },
   },
   {

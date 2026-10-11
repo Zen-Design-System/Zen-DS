@@ -727,6 +727,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const slug = kind === "zen" || kind === "primitive" ? componentSlug(name) : null;
   const docsPage = slug && slug in pageLabels && slug !== currentPage ? (slug as PlatformPage) : null;
   const where = `${fileName(file)}:${line}`;
+  // A page made in the Studio names no file: the link reads "Show code" (the Code tab has the line; plan criterion 7).
+  const studioPage = file.startsWith("local:");
   const showInCode = () => {
     studioStore.setState({ inspectorTab: "code" });
     // The Design panel unmounts: move focus to the Code tab instead of letting it fall to <body>.
@@ -863,14 +865,18 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
               size="xs"
               startIcon="icon-file-code-line"
               className="studio-inspector__src"
-              aria-label={`Show ${where} in the Code tab`}
+              aria-label={studioPage ? "Show in the Code tab" : `Show ${where} in the Code tab`}
               onClick={showInCode}
             >
               {/* A long file name truncates; ":<line>" always stays visible. */}
-              <span className="studio-inspector__src-file">{fileName(file)}</span>
-              <span className="studio-inspector__src-line">{`:${line}`}</span>
+              {studioPage ? "Show code" : (
+                <>
+                  <span className="studio-inspector__src-file">{fileName(file)}</span>
+                  <span className="studio-inspector__src-line">{`:${line}`}</span>
+                </>
+              )}
             </Button>
-            <IconButton icon="icon-copy-line" aria-label="Copy source location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the source location")} />
+            {studioPage ? null : <IconButton icon="icon-copy-line" aria-label="Copy source location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the source location")} />}
           </div>
         ) : null}
       </header>
@@ -888,7 +894,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element === undefined ? <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Reading the source…</p> : null}
       {element === null ? (
         <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>
-          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : `${fileName(file)}:${line} has no element there any more — select it again.`}
+          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : studioPage ? "This layer is no longer there — select it again." : `${fileName(file)}:${line} has no element there any more — select it again.`}
         </p>
       ) : null}
 

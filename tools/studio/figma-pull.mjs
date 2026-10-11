@@ -385,7 +385,7 @@ const ITEM_ICON = { Segmented: "leading" };
 /* ── tables ──────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 /** Figma's cell primitives (Primitives/Table/Cell/…) → the code Table's column `content` (Table.tsx TableCellContent). */
-const CELL_CONTENT = { "Text-Cell": "text", "Editabled-Cell": "text", "Dock-Icon-Cell": "dock-icon", "Basic-Icon-Cell": "icon", "Avatar-Cell": "avatar", "Photo-Cell": "photo", "Badge-Cell": "badge", "Tag-Cell": "tag", "Trend-Cell": "trend", "Progress-Cell": "progress" };
+const CELL_CONTENT = { "Actions-Cell": "actions", "Text-Cell": "text", "Editabled-Cell": "text", "Dock-Icon-Cell": "dock-icon", "Basic-Icon-Cell": "icon", "Avatar-Cell": "avatar", "Photo-Cell": "photo", "Badge-Cell": "badge", "Tag-Cell": "tag", "Trend-Cell": "trend", "Progress-Cell": "progress" };
 /** Cells that draw a picture beside their label (its text is the picture's: an emoji, not the label). */
 const MEDIA_CONTENT = new Set(["avatar", "photo", "icon", "dock-icon"]);
 /**
@@ -395,16 +395,44 @@ const MEDIA_CONTENT = new Set(["avatar", "photo", "icon", "dock-icon"]);
  */
 const TABLE_DRAWS = {
   Badge: { layer: "Badge", props: { size: "medium", theme: "neutral", background: "subtle", leadingIcon: false } },
+  IconButton: { layer: "Button", props: { size: "md", level: "primary", appearance: "flat" } },
   DockIcon: { layer: "Dock-Icon", props: { size: "xs", theme: "neutral", background: "subtle" } },
 };
+
+/** Figma Actions-Cell's default button icon (docs/figma-contracts/table-cells.json). */
+const ACTION_ICON = "icon-dots-vertical-line";
+/** An icon-only row action's name, by its icon: what the button does, not what it draws. */
+const ACTION_WORDS = [[/chevron-right|arrow-right|arrow-up-right|link-external/, "Open"], [/dots-(?:vertical|horizontal)|more/, "More actions"], [/edit|pencil/, "Edit"], [/trash|delete/, "Delete"], [/eye/, "View"], [/download/, "Download"], [/copy/, "Copy"], [/share/, "Share"], [/plus/, "Add"]];
+const actionLabel = (icon) => ACTION_WORDS.find(([pattern]) => pattern.test(icon))?.[1] ?? iconWords(icon);
+
+/**
+ * An Actions-Cell's buttons (Button/Icon-Flat instances in its Actions slot) as the column's `actions`: icon (Figma's
+ * default when not swapped), a name from the icon, and size / level where they differ from what the Table draws.
+ */
+function cellActions(cell, mapping, notes, where) {
+  const ids = new Set();
+  return (cell.parts ?? []).flatMap((part) => {
+    const set = mapping.sets.get(part.set?.id) ?? mapping.sets.get(part.set?.name);
+    if (set?.code !== "IconButton") return [];
+    const figma = instanceProps(part, set, mapping, notes, where);
+    const icon = typeof figma.icon?.value === "string" ? figma.icon.value : ACTION_ICON;
+    const label = actionLabel(icon);
+    const fields = { id: literal(uniqueId(slug(label), ids)), icon: literal(icon), label: literal(label) };
+    for (const prop of ["size", "level"]) {
+      if (figma[prop] && !sameValue(figma[prop].value, TABLE_DRAWS.IconButton.props[prop])) fields[prop] = figma[prop];
+    }
+    return [{ fields }];
+  });
+}
 
 /**
  * Figma's Table (a frame of Primitives/Table/Data-Row instances, read by figmaReadCode as one TABLE) → the code's
  * <Table>: a column per header cell (its label, Sort, Align, a fixed width or Fill; its content from the first row's cell
  * primitive, Bold and Subtext from it), the rows written in the Table (as a design copy writes them: a later pull of the
  * frame compares them as the Table's prop, figma-diff.mjs), and each row's Zen instances that differ from
- * what the Table draws as `overrides` by layer ("Row[row-1]/status/Badge"). A cell the Table has no content for (Actions,
- * a Radio) leaves its column out, with a note.
+ * what the Table draws as `overrides` by layer ("Row[row-1]/status/Badge"). An Actions-Cell becomes `content: "actions"`
+ * with the first row's buttons as the column's `actions` (cellActions). A cell the Table has no content for (a Radio)
+ * leaves its column out, with a note.
  */
 function tableElement(node, ctx) {
   const { mapping, notes } = ctx;
@@ -419,12 +447,16 @@ function tableElement(node, ctx) {
     const content = cell.kind === "Control-Cell" ? { Checkbox: "checkbox", Toggle: "toggle" }[cell.props?.Type] ?? null : cell.kind ? CELL_CONTENT[cell.kind] ?? null : "text";
     const named = head.label ? `the “${head.label}” column` : `column ${index + 1}`;
     if (!content) { notes.push(`${where}: ${named} (${cell.kind}${cell.props?.Type ? ` ${cell.props.Type}` : ""}) has no Table content in code: left out`); continue; }
-    const id = uniqueId(slug(head.label || `column ${index + 1}`), ids);
+    // Actions-Cell: its icon buttons become the column's `actions` (the first row's; another row's own icon is an override).
+    const actions = content === "actions" ? cellActions(cell, mapping, notes, `${where} › ${named}`) : null;
+    if (actions && !actions.length) { notes.push(`${where}: ${named} (Actions-Cell) holds no icon button: left out`); continue; }
+    const id = uniqueId(slug(head.label || (actions ? "actions" : `column ${index + 1}`)), ids);
     const fields = { id: literal(id), header: literal(head.label ?? "") };
     if (head.sort) fields.sortable = literal(true);
     if ((cell.align ?? head.align) === "Right") fields.align = literal("right");
     if (!(cell.fill ?? head.fill) && (cell.w ?? head.w)) fields.width = literal(`${cell.w ?? head.w}px`);
     if (content !== "text") fields.content = literal(content);
+    if (actions) fields.actions = { kind: "array", items: actions.map((action) => ({ kind: "object", fields: action.fields })) };
     if (cell.props?.Bold === "Yes") fields.bold = literal(true);
     const caption = cell.props?.Subtext === "Yes" || cell.props?.Caption === true;
     if (caption) fields.captionField = literal(`${id}Caption`);
@@ -432,7 +464,7 @@ function tableElement(node, ctx) {
       if (isZenIcon(head.icon, mapping)) fields.icon = literal(head.icon);
       else notes.push(`${where}: ${named}'s header icon "${head.icon}" is not a Zen icon (left out)`);
     }
-    columns.push({ index, id, content, caption, fields });
+    columns.push({ index, id, content, caption, fields, actions });
   }
   // The rows: each cell's value under its column's id.
   const overrides = {};
@@ -445,6 +477,20 @@ function tableElement(node, ctx) {
       const parts = cell.parts ?? [];
       const own = new Set(parts.map((part) => part.text).filter((text) => typeof text === "string"));
       const texts = (cell.texts ?? []).map((text) => text.replace(/\u2028/g, " "));
+      if (column.actions) {
+        const mine = cellActions(cell, mapping, [], `${where} › ${column.id}`);
+        mine.forEach((action, index) => {
+          const shared = column.actions[index]?.fields ?? {};
+          const fields = {};
+          for (const prop of ["icon", "size", "level"]) {
+            const value = action.fields[prop]?.value ?? (prop === "icon" ? undefined : TABLE_DRAWS.IconButton.props[prop]);
+            const columnValue = shared[prop]?.value ?? (prop === "icon" ? undefined : TABLE_DRAWS.IconButton.props[prop]);
+            if (value !== undefined && !sameValue(value, columnValue)) fields[prop] = literal(value);
+          }
+          if (Object.keys(fields).length) overrides[`Row[${rowId}]/${column.id}/${TABLE_DRAWS.IconButton.layer}${column.actions.length > 1 ? `[${index}]` : ""}`] = { kind: "object", fields };
+        });
+        continue;
+      }
       if (column.content === "badge" || column.content === "tag") {
         const items = parts.filter((part) => /^(Badge|Tag)\b/.test(part.set?.name ?? "")).map((part) => part.props?.Text ?? part.text ?? "");
         record[column.id] = items.length === 1 ? items[0] : items.length ? items : texts[0] ?? "";
@@ -459,7 +505,7 @@ function tableElement(node, ctx) {
         if (column.caption && shown[1]) record[`${column.id}Caption`] = shown[1];
       }
       // The Zen instances the cell draws, where Figma's differ from the Table's: that row's overrides.
-      const drawn = parts.map((part) => ({ part, set: mapping.sets.get(part.set?.id) ?? mapping.sets.get(part.set?.name) })).filter(({ set }) => set && TABLE_DRAWS[set.code]);
+      const drawn = parts.map((part) => ({ part, set: mapping.sets.get(part.set?.id) ?? mapping.sets.get(part.set?.name) })).filter(({ set }) => set && set.code !== "IconButton" && TABLE_DRAWS[set.code]);
       drawn.forEach(({ part, set }, index) => {
         const draws = TABLE_DRAWS[set.code];
         const figma = instanceProps(part, set, mapping, notes, `${where} › ${column.id}`);
