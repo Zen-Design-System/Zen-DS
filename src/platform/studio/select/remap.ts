@@ -1,4 +1,4 @@
-import { parseSrc, subscribeStudioWrites } from "../api";
+import { parseSrc, subscribeStudioWrites, writeInFlight } from "../api";
 import { changedBlockOf, mapLine } from "../code/diff";
 import { studioStore } from "../store";
 import type { StudioPartRef, StudioSelection, StudioWrite } from "../types";
@@ -62,10 +62,14 @@ export function noteEditTarget(src: string): () => void {
 }
 
 /** `file:line:col` after a write to its file: the new location, the same one when the element was the edit target,
- * or null when its line changed for another reason (the canvas then reads the element's new location after the re-render). */
+ * or null when its line changed for another reason (the canvas then reads the element's new location after the re-render).
+ * A page kept in this browser tells where each element went by its id (`write.locs`, core rebuild M3): exact, null when
+ * the element is gone. */
 export function mapSrc(src: string, write: StudioWrite): string | null {
   const parsed = parseSrc(src);
   if (!parsed || parsed.file !== write.file) return src;
+  const own = write.locs?.[`${parsed.line}:${parsed.column}`];
+  if (own !== undefined) return own === null ? null : `${parsed.file}:${own}`;
   if (write.kind === "edit" && editing.has(src)) return src;
   const line = mapLine(write.before, write.after, parsed.line);
   if (line !== null) return `${parsed.file}:${line}:${parsed.column}`;
@@ -136,8 +140,9 @@ function mapOnChangedLine(before: string, after: string, line: number, column: n
 /* Waiting for the re-render that follows a write: until then the canvas still shows the old annotations, so a
  * mismatch between the stored location and the DOM is expected, not a reason to drop the selection. */
 let awaitingRender = 0;
-/** True for a short while after the Studio wrote a file, until Vite re-rendered it. */
-export const awaitingWriteRender = () => performance.now() < awaitingRender;
+/** True while a Studio write is on its way (a page kept in this browser re-renders before its answer), and for a short
+ *  while after the Studio wrote a file, until Vite re-rendered it. */
+export const awaitingWriteRender = () => writeInFlight() || performance.now() < awaitingRender;
 /** Called after Vite applied an update. */
 export function writeRendered() {
   awaitingRender = 0;

@@ -77,8 +77,16 @@ Last updated: 2026-10-07.
   plan `docs/research/studio-doc-engine-plan-2026-10-10.md`; the user chose fast path A (§9). Library `overrides` +
   `_shared/nested.tsx` (`useNested`/`nest`) on 64 components; Studio edits any nested instance on pages you made as the
   owner's overrides (`inspector/OverrideProperties.tsx`, `select/parts.ts nestedPathOf`); harness
-  `api/overrides-studio-only`; E2E NO-01…03. Remaining A components and the doc-engine path B: plan §9 and BACKLOG.
-  Don't add nested-edit tracers: add `nest()` to the component instead.
+  `api/overrides-studio-only`; E2E NO-01…04. Don't add nested-edit tracers: add `nest()` to the component instead.
+- **Zen Studio core rebuild M2 (2026-10-11, branch `zen/feat/studio-doc-engine` on top of the above):** a builder page
+  keeps its `.zen.tsx` text as written and a JSON document with stable element ids beside it in IndexedDB
+  (`tools/studio/doc.mjs`, `PageRecord.doc`; the user's choice "cách 2"); `localApi` edits through `editDoc` (the engine
+  twice: shown text + id print). `studio:build-check` fixed (out of date with main + a Chromium OPFS crash): only the
+  engine budget is now 160 KB gzip (the user's choice, 2026-10-11; 153.6 measured), so build-check is green.
+  M2 pushed (c670fc5). M3 (same branch): the selection follows its element by id through edits, undo and redo
+  (`locs` on each write, `remap.ts mapSrc`; `api.ts writeInFlight`), double-click goes into nested instances one level at
+  a time (`parts.ts outerNestedAt`/`drillNested`), Layers names nested instances by their Figma layer; E2E NO-06…09.
+  Next: M4 design operations (plan §5).
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

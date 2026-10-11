@@ -232,3 +232,40 @@ User chọn A, một máy một tài khoản, làm trên nhánh `zen/feat/nested
   NpsScale, Chat (Message, File, Call, Voice, Composer, AvatarGroup, ConversationItem), AiChat (Field, Block), Voice —
   tổng 64 component. Image và Link không có instance lồng đáng đổi (chỉ icon trạng thái); TopNavigation giữ hành động
   sửa qua dữ liệu (user chốt). Còn: gate `nested-paths` khi chụp đủ contract.
+
+### M2 — lõi tài liệu (2026-10-11, nhánh `zen/feat/studio-doc-engine`)
+
+**Quyết định của user (2026-10-11):** cách 2 — file trang vẫn là `.zen.tsx` (giữ nguyên định dạng người viết), tài liệu
+JSON có ID cố định chạy kèm trong trình duyệt (IndexedDB, `PageRecord.doc`). Bản in chuẩn hoá (JSON là file, TSX sinh ra)
+đã thử và bị bỏ: nó viết lại định dạng mã và làm hỏng file thiết kế trong gói bàn giao (5 hàng E2E). Khi M6 cần nhớ ID
+layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file đi kèm — không cần đổi file sang JSON.
+
+- **Xong:** `tools/studio/doc.mjs` — `docFromText` (cây của dialect + `id` cho mỗi element), `printPage` (in tài liệu ra
+  TSX, có hoặc không có `data-zen-id`), `locsOf` (vị trí ↔ ID trong bất kỳ text nào của trang), `editDoc` (mỗi lệnh chạy
+  hai lần bằng engine cũ: trên text như trước — text và câu trả lời y hệt —, và trên bản in có ID để giữ ID qua di chuyển,
+  bọc, nhân bản; bản sao và element mới nhận ID mới). `localApi` sửa qua `editDoc`; undo/redo trả tài liệu của text đó;
+  mở trang gắn tài liệu mà không ghi lại text (`setPageDoc`).
+- **Kiểm tra:** `doc.selftest.mjs` (85: in ↔ đọc lại, mọi lệnh khớp engine, ID giữ), E2E 225/225 + NO-05 (ID qua ⌘D, ⌘Z).
+- **build-check:** đã sửa cho khớp main (New page, ⌘-click, Assets, Trash; trang component tải engine cho frame Main
+  component) và lỗi Chromium 1243 với thư mục OPFS: 22 ok · 1 bỏ qua · 1 đỏ là ngân sách engine (140 KB; main 151,3 KB
+  trước M2, 153,5 KB sau). User chọn nâng lên 160 KB (2026-10-11), không tách engine.
+- **Chưa:** ID mất khi trang sang trình duyệt khác (ghi chú ở trên); chọn layer theo ID là M3.
+
+### M3 — chọn, Layers, Inspector (2026-10-11, cùng nhánh)
+
+- **Chọn theo ID (tiêu chí 2):** mỗi lần sửa, undo, redo trên trang Studio trả `locs` — mỗi element của text cũ nằm ở đâu
+  trong text mới, theo ID (`doc.mjs` `editDoc` / `locMap`). `select/remap.ts mapSrc` dùng nó trước khi đoán bằng diff text,
+  nên selection theo đúng element khi có element chèn/bỏ phía trên, khi di chuyển, và khi undo/redo của chúng. Trang Studio
+  vẽ lại ngay lúc lưu (trước khi câu trả lời về): `api.ts writeInFlight` giữ selection cho tới khi lần ghi được báo, thay
+  vì bỏ nó vì "chỗ đó giờ là element khác".
+- **Double-click vào instance lồng (tiêu chí 1):** từ component, double-click lấy instance lồng ngoài cùng dưới con trỏ
+  (Card › Sub-Action), lần sau vào tiếp (› Leading-Icon), như Figma; ô Table: Cell › Badge-Cell › Badge (hàng đó) rồi mới
+  sửa chữ (`parts.ts outerNestedAt` / `drillNested`, `table/tableSelect.ts`).
+- **Layers:** part là instance lồng hiện tên layer Figma bên cạnh ("IconButton · Sub-Action"); bấm row chọn nó và Inspector
+  sửa nó như override của chủ.
+- **Reset (tiêu chí 4):** Reset từng property và Reset all overrides ở mọi cấp (đã có từ đường nhanh A); E2E NO-07.
+- **`docFieldApi` không cần** với cách 2: Inspector vẫn gửi EditOp như trước, `editDoc` chạy nó trên tài liệu.
+- **Kiểm tra:** `doc.selftest.mjs` 112 (thêm: `locs` đưa mỗi element tới đúng thẻ của nó, `locMap` đưa về chỗ cũ khi undo,
+  cho 9 lệnh); E2E NO-06 (Table vẫn được chọn qua ⌘D/⌘Z/⌘⇧Z của Card phía trên, Card di chuyển ↓ qua ⌘Z/⌘⇧Z, đổi tab),
+  NO-07 (cấp 3, Reset all, ⌘Z), NO-08 (double-click tới cấp 4–5), NO-09 (Layers). B-22 (⇧A chọn Stack mới) giữ xanh:
+  `wrapSelection` đọc lần ghi kèm `locs` như remap.

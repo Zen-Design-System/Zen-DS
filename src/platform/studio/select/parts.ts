@@ -128,6 +128,21 @@ export function drillPart(owner: FiberHit, element: Element | null, from: PartHi
   return index > 0 ? chain[index - 1] : null;
 }
 
+/** Double-click on a component: one level in, Figma's way — the outermost nested instance under the cursor (Card ›
+ *  Sub-Action, not the Icon inside it), or null when it draws none there. */
+export function outerNestedAt(owner: FiberHit, element: Element | null): PartHit | null {
+  const chain = partChain(owner, element);
+  for (let index = chain.length - 1; index >= 0; index--) if (!wrapsOwner(chain[index]) && nestedPathOf(chain[index]) !== null) return chain[index];
+  return null;
+}
+
+/** Double-click on a selected part: the next nested instance towards the cursor (Sub-Action › Leading-Icon), or null. */
+export function drillNested(owner: FiberHit, element: Element | null, from: PartHit): PartHit | null {
+  let deeper = drillPart(owner, element, from);
+  while (deeper && nestedPathOf(deeper) === null) deeper = drillPart(owner, element, deeper);
+  return deeper;
+}
+
 /** Whether `part` is one of the parts under the cursor (a click inside the selected part keeps it). */
 export function chainHas(owner: FiberHit, element: Element | null, part: PartHit): boolean {
   return partChain(owner, element).some((candidate) => samePart(candidate, part));

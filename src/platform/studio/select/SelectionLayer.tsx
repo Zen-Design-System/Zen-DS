@@ -5,7 +5,7 @@ import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, shortSrc, type FiberHit } from "./picker";
-import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { chainHas, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
 import { dataGroupOfPart, dataItemOfPart, dataItemRootOf, groupPartAt, groupTitlePartOf, itemParts, rowPartAtPoint, sectionPartAtPoint } from "../slots/dataItems";
@@ -820,7 +820,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         const live = livePart(picked.hit, current);
         const unit = live && (dataItemRootOf(live) || dataGroupOfPart(live)?.role === "title") ? live : null;
         if (unit && tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
-        let deeper = drillPart(picked.hit, target, current);
+        // The next nested instance in it first (Sub-Action › Leading-Icon, as Figma goes one level in), else its parts.
+        let deeper = drillNested(picked.hit, target, current) ?? drillPart(picked.hit, target, current);
         // Its root node draws the same box: one level more (Figma has no such step).
         if (unit && deeper && deeper.element === unit.element) deeper = drillPart(picked.hit, target, deeper) ?? deeper;
         if (deeper) choosePart(deeper);
@@ -851,7 +852,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       }
       // Text the selected element writes itself (a text child or a string prop): edit it in place, Figma-like.
       if (tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
-      const part = picked.hit.isComponent ? deepPartAt(picked.hit, target) : null;
+      // One level in: the outermost nested instance under the pointer (Card › Sub-Action), else the deepest part.
+      const part = picked.hit.isComponent ? outerNestedAt(picked.hit, target) ?? deepPartAt(picked.hit, target) : null;
       if (part) {
         choosePart(part);
         return;

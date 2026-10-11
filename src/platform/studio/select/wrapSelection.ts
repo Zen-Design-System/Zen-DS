@@ -307,7 +307,9 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
   // Still the selection the wrap started from (it moved with the write, or the write dropped it): select the container,
   // as Figma does; a selection made meanwhile elsewhere stays. Synchronously (no request in between): Vite may reload
   // the page as soon as it sees the write.
-  const wrapped = (src: string) => layers.some((layer) => layer.src === src || mapSrc(layer.src, { file: response.file, before: response.before, after: response.after, kind: "edit" }) === src);
+  // The write as the selection remap read it (with the page's id map: where each layer went, exactly).
+  const write = { file: response.file, before: response.before, after: response.after, kind: "edit" as const, ...(response.locs ? { locs: response.locs } : {}) };
+  const wrapped = (src: string) => layers.some((layer) => layer.src === src || mapSrc(layer.src, write) === src);
   const fromWrapped = startedFrom?.kind === "node" && wrapped(startedFrom.src);
   if ((primary?.kind === "node" && wrapped(primary.src)) || (fromWrapped && (primary === null || primary === startedFrom))) {
     expectRender(wrapper, before, () => undefined);

@@ -117,11 +117,13 @@ describe("useModal: Escape goes to the innermost open thing", () => {
 });
 
 describe("ModalForm: a blocked submit focuses the first invalid field", () => {
-  function EditMember({ delay = 0 }: { delay?: number }) {
+  function EditMember({ delay = 0, late = 0 }: { delay?: number; late?: number }) {
     const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
     const validate = (event: FormEvent<HTMLFormElement>) => {
       const data = new FormData(event.currentTarget);
       const next = { name: data.get("name") ? undefined : "Enter a name.", email: String(data.get("email")).includes("@") ? undefined : "Enter an email address, like ava@example.com." };
+      // `late`: the handler is done at once and its errors render a moment after (a frame or two), as a slow render does.
+      if (late) { setTimeout(() => setErrors(next), late); return Promise.resolve(); }
       if (!delay) { setErrors(next); return undefined; }
       return new Promise<void>((resolve) => { setTimeout(() => { setErrors(next); resolve(); }, delay); });
     };
@@ -143,6 +145,12 @@ describe("ModalForm: a blocked submit focuses the first invalid field", () => {
 
   it("waits for an async handler before looking for errors", async () => {
     const screen = await render(<ZenProvider><EditMember delay={50} /></ZenProvider>);
+    await screen.getByRole("button", { name: "Save" }).click();
+    await expect.element(screen.getByLabelText("Email")).toHaveFocus();
+  });
+
+  it("still focuses the field when its error renders a frame or two after the handler is done", async () => {
+    const screen = await render(<ZenProvider><EditMember late={30} /></ZenProvider>);
     await screen.getByRole("button", { name: "Save" }).click();
     await expect.element(screen.getByLabelText("Email")).toHaveFocus();
   });

@@ -18,7 +18,7 @@ import { itemSelection, useItemSelection } from "../slots/itemSelection";
 import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
-import { classHint, elementAt, isComponentFiber, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
+import { classHint, elementAt, isComponentFiber, nestedPathOf, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
 import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
 import { isTableHit } from "../table/tableSelect";
 import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
@@ -426,6 +426,9 @@ function partsFolderOf(node: LayerNode): LayerNode {
 
 const partKey = (path: number[], name: string) => `${path.join(".")}:${name}`;
 
+/** A nested instance's Figma layer name ("Sub-Action", "Leading-Icon"), the last step of its path, shown beside it. */
+const layerNameOf = (part: PartHit) => nestedPathOf(part)?.split("/").pop()?.replace(/\[[^\]]*\]$/, "") || undefined;
+
 /** The rows under a node; a "Parts" folder or part computes its parts the first time it is asked. */
 function childrenOf(node: LayerNode, byId: Map<string, LayerNode>): LayerNode[] {
   if (node.kind === "node") return node.hasParts ? [partsFolderOf(node), ...node.children] : node.children;
@@ -443,7 +446,7 @@ function childrenOf(node: LayerNode, byId: Map<string, LayerNode>): LayerNode[] 
     const child: LayerNode = {
       id, kind: "part", name: hit.name, src: owner.src, frameId: owner.frameId, isComponent: hit.isComponent, instance: owner.instance, count: 0,
       depth: node.depth + 1, children: [], fiber: hit.fiber, frame: owner.frame, parent: node, owner, part: hit,
-      meta: hit.isComponent ? undefined : classHint(hit.element) ?? undefined, lazy: true,
+      meta: hit.isComponent ? layerNameOf(hit) : classHint(hit.element) ?? undefined, lazy: true,
     };
     byId.set(id, child);
     return child;
@@ -466,9 +469,14 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
       for (let current: LayerNode | null = node; current && !matches.has(current); current = current.parent) matches.add(current);
     }
   }
+  // One row per layer: a part listed both as a data-slot item and under Parts (the same owner, place and name, while the
+  // canvas redraws after an item edit) shows once — React needs the rows' keys unique.
+  const emitted = new Set<string>();
   const walk = (nodes: LayerNode[]) => {
     for (const node of nodes) {
       if (needle && !matches.has(node)) continue;
+      if (emitted.has(node.id)) continue;
+      emitted.add(node.id);
       if (rows.length >= MAX_ROWS) { hidden += 1; continue; }
       // A part row looks one level ahead (its own parts) to know whether it opens.
       const children = node.kind === "part" || isOpen(node) || needle ? childrenOf(node, tree.byId) : node.kind === "node" && node.hasParts ? [partsFolderOf(node)] : node.children;

@@ -52,6 +52,7 @@ import { Toolbar } from "./shell/Toolbar";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
+import { ensurePageDoc } from "./builder/localApi";
 import "./studio.css";
 
 /** An open overlay owns Escape (it closes first): a popover, menu, listbox, dialog, or an expanded combobox/trigger. */
@@ -116,6 +117,11 @@ function useRouting() {
     const play = new URLSearchParams(window.location.search).get("play");
     if (play !== null && studioStore.getState().localPage && !isPlaying(studioStore.getState().presenting)) startPlay(play || null);
   }, []);
+  // A builder page is a document (core rebuild M2): an older page, an import or a restored version gets one as it opens,
+  // before anything on it is selected.
+  useEffect(() => {
+    if (localPage) void ensurePageDoc(localPage);
+  }, [localPage]);
   useEffect(() => {
     const url = new URL(window.location.href);
     // A builder page kept in this browser: ?page=local:<id> (Studio builder GĐ2).

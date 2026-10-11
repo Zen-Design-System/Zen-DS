@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { headerTitle, withHeaderOs, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
  * Builder pages kept in the browser (Studio builder GĐ2; spec docs/research/studio-builder-pages-spec-2026-10-06.md §3
@@ -28,8 +29,13 @@ export type PageRecord = {
   folder?: string;
   /** The mirror this copy last matched, and the hash of the text both held. */
   sync?: { mirror: string; hash: string };
+  /**
+   * The page as a document (tools/studio/doc.mjs, core rebuild M2): the source of truth whenever it is here, and `text`
+   * is its print. A text written without one (an import, a restored version, a new page) gets one when the page opens.
+   */
+  doc?: PageDoc;
 };
-export type PageMeta = Omit<PageRecord, "text" | "sync">;
+export type PageMeta = Omit<PageRecord, "text" | "sync" | "doc">;
 export type Revision = { key: number; page: string; text: string; at: number; reason: RevisionReason };
 
 /** A folder that keeps a copy of every page (mirrors.ts). */
@@ -121,7 +127,7 @@ export function run<T>(storeName: string, mode: IDBTransactionMode, work: (store
 const readRecord = (id: string) => run<PageRecord | undefined>(PAGES, "readonly", (store) => store.get(id) as IDBRequest<PageRecord | undefined>).then((record) => record ?? null);
 const writeRecord = (record: PageRecord) => run(PAGES, "readwrite", (store) => store.put(record));
 const isLive = (record: PageRecord) => record.trashedAt === undefined;
-const metaOf = ({ text: _text, sync: _sync, ...meta }: PageRecord): PageMeta => meta;
+const metaOf = ({ text: _text, sync: _sync, doc: _doc, ...meta }: PageRecord): PageMeta => meta;
 
 /** Whether pages survive a reload (IndexedDB works here). */
 export const pagesPersist = () => persistent;
@@ -187,10 +193,24 @@ export async function restoreRevision(page: string, key: number): Promise<void> 
 /* ── writes ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Writes a page's text (its title comes from the header line). `reason` decides whether the previous text is kept as a
- * revision (pageModel.keepsRevision); a connected mirror gets the new text.
+ * Gives a page its document (builder/localApi.ts ensurePageDoc) without writing its text: the page is not edited by
+ * opening it (no revision, no new "edited" time, nothing to the mirror). Refused when the text changed meanwhile.
  */
-export async function putPage(id: string, text: string, { title, reason = "edit", folder }: { title?: string; reason?: RevisionReason; folder?: string | null } = {}): Promise<PageRecord> {
+export async function setPageDoc(id: string, text: string, doc: PageDoc): Promise<boolean> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || record.text !== text || record.doc) return false;
+  const next: PageRecord = { ...record, doc };
+  cache.set(id, next);
+  await writeRecord(next);
+  return true;
+}
+
+/**
+ * Writes a page's text (its title comes from the header line). `reason` decides whether the previous text is kept as a
+ * revision (pageModel.keepsRevision); a connected mirror gets the new text. `doc`: the document `text` is the print of
+ * (builder/localApi.ts); without it the page has none until it opens again.
+ */
+export async function putPage(id: string, text: string, { title, reason = "edit", folder, doc }: { title?: string; reason?: RevisionReason; folder?: string | null; doc?: PageDoc } = {}): Promise<PageRecord> {
   if (!isPageId(id)) throw new Error(`Bad page id ${JSON.stringify(id)}`);
   const now = Date.now();
   const previous = cache.get(id) ?? (await readRecord(id));
@@ -201,6 +221,7 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
     createdAt: previous?.createdAt ?? now,
     updatedAt: now,
     ...(previous?.sync ? { sync: previous.sync } : {}),
+    ...(doc ? { doc } : {}),
   };
   // A write keeps the page in its folder unless `folder` moves it (null: out of every folder).
   const nextFolder = folder === undefined ? previous?.folder : folder ?? undefined;
