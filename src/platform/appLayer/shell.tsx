@@ -4,11 +4,15 @@ import { AppShell, AppShellAccount, AppShellAction } from "../../components/AppS
 import { Avatar, type AvatarTheme } from "../../components/Avatar";
 import { Badge } from "../../components/Badge";
 import { Breadcrumbs } from "../../components/Breadcrumbs";
+import { Chip } from "../../components/Chip";
+import { DashboardHeader } from "../../components/DashboardHeader";
 import { Button, IconButton } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
 import { Container, Stack } from "../../components/Layout";
 import { Menu, type MenuEntry } from "../../components/Menu";
 import { PageHeader } from "../../components/PageHeader";
+import { Search } from "../../components/Search";
+import { Segmented } from "../../components/Segmented";
 import { SidePanel } from "../../components/SidePanel";
 import { Sidebar, type SidebarSection } from "../../components/Sidebar";
 import { Table, TableMedia, TableText } from "../../components/Table";
@@ -231,6 +235,68 @@ function PageHeaderPlayground() {
   );
 }
 
+type DashboardRow = "control-bar" | "navigation" | "main" | "custom";
+const dashboardRows = [option("control-bar", "Control-Bar"), option("navigation", "Navigation"), option("main", "Main"), option("custom", "Custom")];
+
+/** Dashboard Header playground: Figma's Type and each type's booleans (Search, Controls, Subheading, Actions,
+ *  Nav-Center-Block, Nav-Trailing-Block, Child-Heading), on the row as the sections of an AppShell pad it. */
+function DashboardHeaderPlayground() {
+  const [type, setType] = useState<DashboardRow>("control-bar");
+  const [search, setSearch] = useState(true);
+  const [controls, setControls] = useState(true);
+  const [subheading, setSubheading] = useState(false);
+  const [actions, setActions] = useState(true);
+  const [center, setCenter] = useState(false);
+  const [trailing, setTrailing] = useState(true);
+  const [childTitle, setChildTitle] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [ran, setRan] = useState<string | null>(null);
+  const actionButtons = <><Button level="tertiary" onClick={() => setRan("“Export report” pressed · onClick ran")}>Export report</Button><Button level="primary" onClick={() => setRan("“Submit leave” pressed · onClick ran")}>Submit leave</Button></>;
+  const statusChip = (
+    <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status" popoverItems={["Pending", "Approved", "Declined"].map((id) => ({ id, label: id, selected: status === id }))}
+      onPopoverSelect={(item) => setStatus(status === item.id ? null : item.id)} onClearSelection={() => setStatus(null)}>{status ?? "Status"}</Chip>
+  );
+  const icons = <><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={8} onClick={() => setRan("Notifications pressed · onClick ran")} /><Avatar size="md" alt="Alex Duong" theme="indigo">AD</Avatar></>;
+  const toggles = type === "control-bar"
+    ? <><PlaygroundToggle label="Search" selected={search} onChange={setSearch} /><PlaygroundToggle label="Controls" selected={controls} onChange={setControls} /><PlaygroundToggle label="Subheading" selected={subheading} onChange={setSubheading} /><PlaygroundToggle label="Actions" selected={actions} onChange={setActions} /></>
+    : type === "navigation"
+      ? <><PlaygroundToggle label="Nav-Center-Block" selected={center} onChange={setCenter} /><PlaygroundToggle label="Nav-Trailing-Block" selected={trailing} onChange={setTrailing} /></>
+      : type === "main"
+        ? <><PlaygroundToggle label="Child-Heading" selected={childTitle} onChange={setChildTitle} /><PlaygroundToggle label="Subheading" selected={subheading} onChange={setSubheading} /><PlaygroundToggle label="Actions" selected={actions} onChange={setActions} /><PlaygroundToggle label="Nav-Trailing-Block" selected={trailing} onChange={setTrailing} /></>
+        : null;
+  const code = type === "control-bar"
+    ? `<DashboardHeader${search ? `\n  search={<Search size="md" placeholder="Search leave requests" onValueChange={setQuery} />}` : ""}${controls ? "\n  controls={<Chip variant=\"advanced\" dropdown popoverLabel=\"Status\" popoverItems={statuses} onPopoverSelect={pick}>Status</Chip>}" : ""}${subheading ? "\n  subheading=\"96 results\"" : ""}${actions ? "\n  actions={<><Button level=\"tertiary\" onClick={exportCsv}>Export report</Button><Button level=\"primary\" onClick={submitLeave}>Submit leave</Button></>}" : ""}\n/>`
+    : type === "navigation"
+      ? `<DashboardHeader\n  type="navigation"\n  leading={<Breadcrumbs items={trail} onNavigate={go} />}${center ? "\n  center={<Search size=\"md\" placeholder=\"Search Đìzai Studio\" />}" : ""}${trailing ? "\n  trailing={<><AppShellAction icon=\"icon-bell-01-line\" aria-label=\"Notifications\" count={8} onClick={openInbox} /><Avatar size=\"md\" alt=\"Alex Duong\">AD</Avatar></>}" : ""}\n/>`
+      : type === "main"
+        ? `<DashboardHeader\n  type="main"\n  title="My leaves"${childTitle ? "\n  childTitle=\"2026\"" : ""}${subheading ? "\n  subheading=\"12 days left this year.\"" : ""}${actions ? "\n  actions={<><Button level=\"tertiary\" onClick={exportCsv}>Export report</Button><Button level=\"primary\" onClick={submitLeave}>Submit leave</Button></>}" : ""}${trailing ? "\n  trailing={<AppShellAction icon=\"icon-bell-01-line\" aria-label=\"Notifications\" count={8} onClick={openInbox} />}" : ""}\n/>`
+        : `<DashboardHeader type="custom">\n  <Segmented aria-label="Reporting period" options={periods} value={period} onValueChange={setPeriod} />\n  <Text textStyle="Body/Base/Medium">Sep 1 – Sep 30, 2026</Text>\n</DashboardHeader>`;
+  return (
+    <Panel
+      title="Dashboard Header"
+      previewClassName="pash-preview"
+      controls={<>
+        <PlaygroundFilterChip label="Type" value={type} onChange={(value) => setType((String(value) || "control-bar") as DashboardRow)} options={dashboardRows} />
+        {toggles}
+      </>}
+      code={`import { DashboardHeader } from "@zen/design-system";\n\n${code}`}
+    >
+      <div className="pash-dashboard-header-stage">
+        {type === "control-bar" ? (
+          <DashboardHeader search={search ? <Search size="md" placeholder="Search leave requests" /> : undefined} controls={controls ? statusChip : undefined} subheading={subheading ? "96 results" : undefined} actions={actions ? actionButtons : undefined} />
+        ) : type === "navigation" ? (
+          <DashboardHeader type="navigation" leading={<Breadcrumbs items={[{ id: "home", label: "Home" }, { id: "leaves", label: "My leaves" }]} onNavigate={(_item, event) => event.preventDefault()} />} center={center ? <Search size="md" placeholder="Search Đìzai Studio" /> : undefined} trailing={trailing ? icons : undefined} />
+        ) : type === "main" ? (
+          <DashboardHeader type="main" title="My leaves" childTitle={childTitle ? "2026" : undefined} subheading={subheading ? "12 days left this year." : undefined} actions={actions ? actionButtons : undefined} trailing={trailing ? <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={8} onClick={() => setRan("Notifications pressed · onClick ran")} /> : undefined} />
+        ) : (
+          <DashboardHeader type="custom"><Segmented aria-label="Reporting period" options={[{ id: "week", label: "Week" }, { id: "month", label: "Month" }]} defaultValue="month" /><Text textStyle="Body/Base/Medium">Sep 1 – Sep 30, 2026</Text></DashboardHeader>
+        )}
+      </div>
+      {ran ? <Text as="p" textStyle="Body/Small/Regular" tone="light" role="status">{ran}</Text> : null}
+    </Panel>
+  );
+}
+
 export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotUpdate(import.meta.hot, "pages", {
   "app-shell": {
     label: "App Shell",
@@ -245,6 +311,13 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotU
     title: "Page Header",
     description: "The top of an app page: breadcrumbs or Back, the h1 title with meta and actions, a description and section tabs.",
     playground: PageHeaderPlayground,
+  },
+  "dashboard-header": {
+    label: "Dashboard Header",
+    eyebrow: "Components / Dashboard Header",
+    title: "Dashboard Header",
+    description: "One row of a dashboard page's header (Figma ◇ Master-Layout Primitives/Dashboard/Header): a control bar with Search, filters, the result count and the page's actions; a navigation bar; the page title row; or your own row. Inside an AppShell the rows go in sections.",
+    playground: DashboardHeaderPlayground,
   },
 });
 

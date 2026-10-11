@@ -15,6 +15,12 @@ export interface PageHeaderBack {
 export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   /** The page title (an h1 by default: one per page). */
   title: ReactNode;
+  /**
+   * Figma Child-Heading (Primitives/Dashboard/Header Type=Main, 4122:33399): a second title after the title, in the title's
+   * type and Content/Neutral/Light, Spacing/Gap/XSmall after it — where the page is inside its parent ("Members" ›
+   * "Design team"). Part of the heading, so the page's title reads both.
+   */
+  childTitle?: ReactNode;
   /** One or two sentences under the title. */
   description?: ReactNode;
   /** Above the title: <Breadcrumbs> for nested pages. */
@@ -48,7 +54,7 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
  *     actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
  */
 export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function PageHeader(
-  { title, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, overrides, ...rest },
+  { title, childTitle, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, overrides, ...rest },
   ref,
 ) {
   const nest = useNested(overrides);
@@ -63,7 +69,10 @@ export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function Page
       <div className="zen-page-header__row">
         <div className="zen-page-header__titles">
           {/* h1 = Heading/1 (Figma ◇ Master-Layout page title), h2 = Heading/4 (the house ladder's h2, backlog batch 6). */}
-          <Heading level={headingLevel} textStyle={headingLevel === 1 ? "Heading/1" : "Heading/4"}>{title}</Heading>
+          <Heading level={headingLevel} textStyle={headingLevel === 1 ? "Heading/1" : "Heading/4"}>
+            {title}
+            {childTitle ? <span className="zen-page-header__child">{childTitle}</span> : null}
+          </Heading>
           {meta ? <div className="zen-page-header__meta">{meta}</div> : null}
         </div>
         {actions || trailing ? (

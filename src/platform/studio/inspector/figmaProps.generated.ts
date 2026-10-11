@@ -501,6 +501,59 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "DashboardHeader": {
+    "figma": "4122:33402",
+    "own": [
+      {
+        "prop": "type",
+        "label": "Type",
+        "type": "VARIANT",
+        "options": {
+          "Navigation": "navigation",
+          "Main": "main",
+          "Control-Bar": "control-bar",
+          "Custom": "custom"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Actions",
+        "prop": "actions",
+        "on": "slot"
+      },
+      {
+        "label": "Nav-Trailing-Block",
+        "prop": "trailing",
+        "on": "slot"
+      },
+      {
+        "label": "Controls",
+        "prop": "controls",
+        "on": "slot"
+      },
+      {
+        "label": "Search",
+        "prop": "search",
+        "on": "slot"
+      },
+      {
+        "label": "Subheading",
+        "prop": "subheading",
+        "on": "96 results"
+      },
+      {
+        "label": "Nav-Center-Block",
+        "prop": "center",
+        "on": "slot"
+      },
+      {
+        "label": "Child-Heading",
+        "prop": "childTitle",
+        "on": "2026"
+      }
+    ]
+  },
   "Card": {
     "figma": "6643:51021",
     "own": [

@@ -113,7 +113,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
-  BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
+  BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
   AiChatField: "AiChat", VoiceRecorder: "Voice", AiVoiceConversation: "Voice",
@@ -659,6 +659,15 @@ export const PALETTE: readonly PaletteItem[] = [
     // An example page keeps its one h1: the inserted header is an h2 (PageHeader takes 1 or 2).
     build: () => lines(
       `<PageHeader title="Projects" headingLevel={2} description="12 active · 3 due this week"`,
+      `  actions={<Button level="primary" onClick={() => toast({ title: "Project created" })}>New project</Button>} />`,
+    ),
+  },
+  {
+    id: "dashboard-header", label: "Dashboard header", group: "Page", caption: "Search, filters and actions", root: "DashboardHeader", components: ["DashboardHeader", "Search", "Chip", "Button"], requires: TOAST, interactive: true, input: false,
+    // Figma Primitives/Dashboard/Header Type=Control-Bar (its default): Search, a filter Chip, the page's action.
+    build: () => lines(
+      `<DashboardHeader search={<Search size="md" placeholder="Search projects" />}`,
+      `  controls={<Chip variant="advanced" dropdown popoverItems={[{ id: "active", label: "Active" }, { id: "archived", label: "Archived" }]}>Status</Chip>}`,
       `  actions={<Button level="primary" onClick={() => toast({ title: "Project created" })}>New project</Button>} />`,
     ),
   },

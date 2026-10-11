@@ -19,6 +19,12 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Added
+- `DashboardHeader`: one row of a dashboard page's header, as Figma's Primitives/Dashboard/Header draws it —
+  `type="control-bar"` (Search, filter Chips, the result count, the page's actions), `navigation` (Breadcrumbs, then
+  notifications and the account), `main` (the page title row: it renders a PageHeader) and `custom`. Inside an AppShell
+  the rows go in `sections`. Harness: `dashboard-header/props-of-type`, `one-primary`, `main-needs-title`,
+  `filters-are-chips`. A Figma Dashboard/Header pulled into Zen Studio becomes this component.
+- `PageHeader` `childTitle`: a second title after the title in Content/Neutral/Light (Figma Child-Heading).
 - Figma instance overrides in the library: 64 components that draw other Zen components inside themselves (Card,
   Button, Badge, Table, Sidebar, AppShell, Dialog, Menu, Popover, Tabs, Segmented, MetricCard, ChartCard, the Input
   fields' Label / Help-Text / Leading / Trailing, DatePicker, Search, Form, Chat, AiChat, Voice…) take

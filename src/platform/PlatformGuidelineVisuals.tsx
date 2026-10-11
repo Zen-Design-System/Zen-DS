@@ -9,6 +9,7 @@ import { Breadcrumbs } from "../components/Breadcrumbs";
 import { Button, IconButton } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { Chip } from "../components/Chip";
+import { DashboardHeader } from "../components/DashboardHeader";
 import { ChipGroup } from "../components/ChipGroup";
 import { Icon } from "../components/Icon";
 import { InputField } from "../components/Input";
@@ -136,6 +137,12 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><InputField label="Workspace ID" disabled value="zen-7f3k2" /></div>, caption: "Disabled text is faint, skipped by Tab and can't be copied: a value to read is Read-only." } },
     { do: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Enter a full address, like name@company.com" /></div>, caption: "Errors say how to fix the value." },
       dont: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Invalid input" /></div>, caption: "A generic error leaves users guessing." } },
+  ],
+  "dashboard-header": [
+    { do: { preview: <div className="pgv-wide"><DashboardHeader search={<Search size="md" placeholder="Search leave requests" />} controls={<Chip variant="advanced" dropdown>Status</Chip>} actions={<Button level="primary" size="sm">Submit leave</Button>} /></div>, caption: "Filters are Chips beside the Search; the page's action sits at the end." },
+      dont: { preview: <div className="pgv-wide"><DashboardHeader search={<Search size="md" placeholder="Search leave requests" />} controls={<Button level="tertiary" size="sm" endIcon="icon-chevron-down-line">Status</Button>} actions={<Button level="primary" size="sm">Submit leave</Button>} /></div>, caption: "A Button as a filter reads as an action." } },
+    { do: { preview: <div className="pgv-wide"><DashboardHeader subheading="96 results" actions={<><Button level="tertiary" size="sm">Export report</Button><Button level="primary" size="sm">Submit leave</Button></>} /></div>, caption: "One Primary, after the Tertiary actions." },
+      dont: { preview: <div className="pgv-wide"><DashboardHeader subheading="96 results" actions={<><Button level="primary" size="sm">Export report</Button><Button level="primary" size="sm">Submit leave</Button></>} /></div>, caption: "Two Primaries leave no main action." } },
   ],
   search: [
     { do: { preview: <div className="pgv-field"><Search placeholder="Search components" /></div>, caption: "Say what is being searched." },

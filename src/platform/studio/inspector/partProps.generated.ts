@@ -190,6 +190,17 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "size": "size"
     }
   },
+  "DashboardHeader": {
+    "PageHeader": {
+      "actions": "actions",
+      "childTitle": "childTitle",
+      "description": "subheading",
+      "headingLevel": "headingLevel",
+      "overrides": "overrides",
+      "title": "title",
+      "trailing": "trailing"
+    }
+  },
   "DateField": {
     "DatePicker": {
       "maxDate": "maxDate",

@@ -205,7 +205,8 @@ export function qualityChecks({ scopeSel, regionSel }) {
     // Visual headings: a Heading/* or Subheading line that is not a heading and not a value.
     for (const b of content) {
       if (b.level || !b.st.name || !/^heading-(1|3|4|subheading)$/.test(b.st.name) || NUMERIC.test(b.text) || (/\d/.test(b.text) && b.text.length < 12)) continue;
-      if (b.el.closest(".zen-top-nav, .zen-sidebar, .zen-bottom-nav, [class*='logo'], [class*='brand'], .zen-metric, .zen-stat")) continue;
+      // Values styled as Subheading: a metric, a stat, a Dashboard Header's result count ("96 results").
+      if (b.el.closest(".zen-top-nav, .zen-sidebar, .zen-bottom-nav, [class*='logo'], [class*='brand'], .zen-metric, .zen-stat, .zen-dashboard-header__subheading")) continue;
       push("rhythm", `${label(b.el)}: "${b.text.slice(0, 24)}" is styled ${b.st.name} but is not a heading — titles are <Heading level> so the outline matches what people see`);
     }
     // The Outline readout (.pth-outline, Typography › Content hierarchy) is platform annotation, not the example.

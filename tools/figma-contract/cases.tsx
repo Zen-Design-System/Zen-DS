@@ -8,6 +8,10 @@ import { Popover, PopoverItem, PopoverManualAddNew, PopoverBunkAction, PopoverBu
 import { Avatar } from "../../src/components/Avatar";
 import { Badge } from "../../src/components/Badge";
 import { Button, IconButton } from "../../src/components/Button";
+import { AppShellAction } from "../../src/components/AppShell";
+import { Breadcrumbs } from "../../src/components/Breadcrumbs";
+import { DashboardHeader } from "../../src/components/DashboardHeader";
+import { Search } from "../../src/components/Search";
 
 type Props = Record<string, any>;
 const photo = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#c8a"/></svg>');
@@ -75,6 +79,21 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
     <Button {...p} startIcon={withIcons ? <Icon name="icon-plus-line" decorative /> : undefined} endIcon={withIcons ? <Icon name="icon-plus-line" decorative /> : undefined}>{label}</Button>
   ),
   iconButton: (p) => <IconButton {...p} aria-label="Add" tooltip={false} icon={<Icon name="icon-plus-line" decorative />} />,
+  // Figma Primitives/Dashboard/Header fills a 1232px frame with each Type's default content: Control-Bar Search + a
+  // Filter Chip/Advanced + Tertiary and Primary "Button"; Navigation Breadcrumbs "Master" + Action-Item + Avatar; Main
+  // "Heading Text" + the two buttons + Action-Item + Avatar; Custom empty.
+  dashboardHeader: ({ type }) => {
+    const buttons = <><Button level="tertiary">Button</Button><Button level="primary">Button</Button></>;
+    const trailing = <><AppShellAction icon="icon-bell-01-solid" aria-label="Notifications" dot tooltip={false} /><Avatar size="md" theme="photo" background="subtle" src={photo} alt="" /></>;
+    return (
+      <div style={{ width: 1232 }}>
+        {type === "control-bar" ? <DashboardHeader search={<Search size="md" placeholder="Search" />} controls={<Chip variant="advanced" dropdown>Filter</Chip>} actions={buttons} />
+          : type === "navigation" ? <DashboardHeader type="navigation" leading={<Breadcrumbs items={[{ id: "master", label: "Master" }]} />} trailing={trailing} />
+          : type === "main" ? <DashboardHeader type="main" title="Heading Text" actions={buttons} trailing={trailing} />
+          : <DashboardHeader type="custom" />}
+      </div>
+    );
+  },
   // Stateful demos used by interactions.mjs (behaviour, not visuals).
   interactive: () => <InteractiveDemo />,
 };
