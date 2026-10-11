@@ -18,6 +18,23 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
 
+/* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * The name an `overrides` path uses for a Figma layer. A layer named after its component (an instance nobody renamed)
+ * holds slashes, which a path cannot: a private primitive (".Primitives/Date-Picker/Time-Picker",
+ * "Primitives/Segmented/Item-1") is known by its last part without a "-N" count ("Time-Picker", "Item"), a library
+ * component ("Avatar/Single", "Search/Default") by its first ("Avatar", "Search"). Any other name is itself.
+ * (Copied into figmaReadCode, which runs in Figma; tools/figma-contract/nested-paths.mjs checks the code by it.)
+ */
+export function layerKey(name) {
+  const text = String(name ?? "");
+  if (!text.includes("/")) return text;
+  const parts = text.replace(/^\./, "").split("/").filter(Boolean);
+  if (parts[0] === "Primitives") return parts[parts.length - 1].replace(/-\d+$/, "");
+  return parts[0];
+}
+
 /* ── reading in Figma (use_figma) ───────────────────────────────────────────────────────────────────────────────── */
 
 /** The use_figma code that returns the frame `nodeId` as JSON (read-only: it changes nothing in the file). */
@@ -25,6 +42,7 @@ export function figmaReadCode(nodeId) {
   return `
 // Zen Studio · figma-pull: reads frame ${JSON.stringify(nodeId)} as JSON (read-only).
 figma.skipInvisibleInstanceChildren = false;
+const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
 const setOf = async (instance) => {
   const main = await instance.getMainComponentAsync();
@@ -48,7 +66,7 @@ const readInstance = async (instance) => {
   const walk = async (node, trail) => {
     for (const child of node.children || []) {
       if (!child.visible) continue;
-      const next = child.type === "INSTANCE" ? [...trail, child.name] : trail;
+      const next = child.type === "INSTANCE" ? [...trail, layerKey(child.name)] : trail;
       if (child.type === "INSTANCE" && changed.has(child.id)) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
       await walk(child, next);
     }

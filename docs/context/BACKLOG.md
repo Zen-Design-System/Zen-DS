@@ -8,9 +8,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
-- **P2 · Nested overrides, after fast path A (2026-10-11):** the Figma gate `nested-paths` once contracts are captured
-  (`tools/figma-kit/`); AiChatBubble's action buttons stay without a layer (a Tooltip binds each button directly).
-  Pointer: plan `docs/research/studio-doc-engine-plan-2026-10-10.md` §9.
+- **P2 · Nested overrides, after M7 (2026-10-11):** AiChatBubble's action buttons stay without a layer (a Tooltip binds
+  each button directly). Pointer: plan `docs/research/studio-doc-engine-plan-2026-10-10.md` §9.
+- **P2 · Nested layer names, questions for the designer (M7, 2026-10-11):** which Figma layer Chip's counter is
+  (Chip/Advanced has a Badge with Remove), and where the multi-select count is (no captured variant); Figma's Date field
+  calls its leading icon Leading-Icon, the other fields Leading. Pointer: `ALLOWED` in
+  `tools/figma-contract/nested-paths.mjs`.
+- **P2 · Re-capture the Input contract with hidden layers (M7, 2026-10-11):** Input/Textarea/Select Leading and Trailing
+  are hidden in every captured variant (contracts skip invisible instances); a figma-kit re-capture (needs Figma access)
+  lets `nested-paths` check them instead of allowing them.
 - **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
   builds each row's avatar with `personAvatar(people[t.assignee])` (a plain function, not a component), so the engine
   cannot reach that row's person; a dropped photo is refused ("shared by 14 rows"). Extend kind "param" to helper
@@ -19,8 +25,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Figma usability — pictures inside list props (2026-10-10):** an AvatarStack's `items[i].src`, ChatMessage
   `seenBy`, Card `image`-like fields: a drop on one face should write that item's field (ObjectProperties already edits
   the item; the drop needs the item index from the part under the pointer).
-- **P1 · Figma usability — "This row / All rows" as a control (2026-10-10):** the repeated-layer heading says it; a
-  segmented control on the Inspector head would let a designer choose before editing a fixed value (today: Detach).
 - **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
   browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.

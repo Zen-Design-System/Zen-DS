@@ -316,3 +316,18 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
 - **Chưa:** đoạn code `use_figma` chưa chạy trên file thật — phiên này không có Figma MCP (đã hỏi user qua Giám sát
   cách lấy frame); nội dung slot của instance (Card › Content) chưa đọc; bảng Table của Figma chưa map sang Table;
   diff khi kéo lại chưa làm.
+
+### M7 — kênh override, đợt 2 = gate `nested-paths` (2026-10-11, nhánh `zen/feat/studio-doc-m7`)
+
+- 64 component cha đã có `overrides` từ đường nhanh A; M7 còn lại là gate. `tools/figma-contract/nested-paths.mjs` đọc
+  tên layer mỗi component đưa cho `nest()` (hàm của nó và helper cùng file nó vẽ) và so với instance lồng trong bộ Figma
+  của nó (`docs/figma-contracts`, tìm qua `figmaProps.generated.ts`). Instance chưa đổi tên mang tên component có "/"
+  ("Avatar/Single", ".Primitives/Date-Picker/Time-Picker"): đường dẫn không chứa "/" được, nên dùng `layerKey` (primitive
+  → phần cuối bỏ "-N", component thư viện → phần đầu); `figma-pull` đọc đường dẫn bằng cùng hàm.
+- Sửa theo Figma: DatePicker `Apply` → `Submit`, `Time` → `Time-Picker` (đường dẫn `overrides` đổi; chưa phát hành).
+  Cho phép có lý do (`ALLOWED`): layer nằm trong primitive chưa chụp (Item của Segmented, Sidebar), layer ẩn chưa chụp
+  (Leading/Trailing của Input), Filter của Search (hai biến thể Figma, một layer code); câu hỏi cho designer vào BACKLOG
+  (Counter / Multi-Count của Chip, Leading-Icon của Date field). Mục ALLOWED không còn đúng làm gate đỏ.
+- **Kết quả:** 15/15 component có contract khớp Figma; gate `npm run qa` có bước "Nested layer names (code ↔ Figma)"
+  khi có file component, contract hay bảng Figma trong phạm vi. 29 component chưa có contract (Card, Dialog, Tabs…)
+  nằm ngoài tầm kiểm tra tới khi chụp contract.

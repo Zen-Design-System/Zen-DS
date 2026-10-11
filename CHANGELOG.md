@@ -43,6 +43,10 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio: `tools/studio/figma-pull.mjs` turns a Figma frame made with the Zen library (read with use_figma) into a
   page you made — components with the properties that differ from their defaults, overridden nested instances as
   `overrides`, auto layout as Stack, text as Text; what has no Zen component is listed (not yet run on the live file).
+- QA: the Build-QA gate checks nested layer names against Figma ("Nested layer names (code ↔ Figma)",
+  `tools/figma-contract/nested-paths.mjs`): every layer a component's `overrides` reaches is a nested instance of its
+  Figma sets. DatePicker's footer button and time picker take Figma's names: `overrides` paths `Actions/Submit` (was
+  `Actions/Apply`) and `Time-Picker` (was `Time`).
 - QA: `studio:build-check` engine budget 160 KB gzip (was 140; the user's choice over splitting the engine), and the
   check matches today's Studio again (it had hung for hours).
 - Zen Studio: replace a picture like Figma, everywhere — Avatar, Image, Thumbnail and the App Shell account take a photo from

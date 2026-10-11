@@ -96,6 +96,16 @@
 - `figma-pull.selftest.mjs` (14, in studio:selftest; Node 24 imports figmaProps.generated.ts by type stripping); E2E
   NO-13 (`openNestedPage` takes the Badge count to wait for).
 
+## Core rebuild M7: nested-paths gate (branch zen/feat/studio-doc-m7 off dcb4792, tier M)
+
+- `tools/figma-contract/nested-paths.mjs` (+ `--check`): per component (Babel parse; nest()/nest.at() names in its
+  function and same-file helpers it renders) vs its contract sets' layers; a contract with no nested instance (Popover)
+  is not judged. First run 5/17; after `layerKey` (figma-pull.mjs, also used by its read code) 14/15; DatePicker
+  renamed Apply → Submit, Time → Time-Picker (JSDoc example, docs regenerated, nested-overrides test) → 15/15.
+- `ALLOWED` with reasons; stale entries fail the check. Gate step in `tools/qa/run.mjs`. BACKLOG: designer questions
+  (Chip Counter / Multi-Count, Date field Leading-Icon), Input re-capture; archived "This row / All rows" (done in M4)
+  and the old nested-paths item.
+
 ## PR #12 CI: ModalForm focus after an async submit (zen/feat/nested-overrides a3f5389, merged here; tier S)
 
 - CI failed "waits for an async handler before looking for errors" (Email never focused). Not `overrides`: Form and

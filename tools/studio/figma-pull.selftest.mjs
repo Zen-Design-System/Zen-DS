@@ -5,7 +5,8 @@
 // has no Zen mapping is named. The read code itself runs only in Figma (use_figma); here it must at least parse.
 // Run: node tools/studio/figma-pull.selftest.mjs
 import { validateDialect } from "./dialect.mjs";
-import { figmaReadCode, pageFromFigma, repoMapping } from "./figma-pull.mjs";
+import { figmaReadCode, layerKey, pageFromFigma, repoMapping } from "./figma-pull.mjs";
+import { nestedPaths } from "../figma-contract/nested-paths.mjs";
 
 let passed = 0;
 const failures = [];
@@ -59,6 +60,16 @@ ok("a Badge size Medium matches the code default md: left out", !/<Badge size=/.
 check("a layer Figma shows that the code draws only from a prop (Card Sub-Action) is named", notes.filter((note) => note.includes("Sub-Action shows in Figma")).length, 1);
 check("nothing else needs a note", notes.filter((note) => !note.includes("Logo") && !note.includes("Sub-Action shows")), []);
 check("what has no Zen component is named", notes.filter((note) => note.includes("Logo")).length, 1);
+// M7: one name for a layer named after its component (paths cannot hold "/"), the same in Figma's read and the check.
+check("layerKey: a primitive by its last part, a library component by its first, other names as they are",
+  ["Avatar/Single", "Search/Default", ".Primitives/Date-Picker/Time-Picker", "Primitives/Segmented/Item-1", "Sub-Action"].map(layerKey),
+  ["Avatar", "Search", "Time-Picker", "Item", "Sub-Action"]);
+ok("the read code names nested layers by layerKey", figmaReadCode("1:2").includes("layerKey(child.name)"));
+{
+  const rows = await nestedPaths();
+  check("nested-paths: every component with a contract names its layers as Figma does", rows.filter((row) => row.covered && row.missing.length).map((row) => `${row.component}: ${row.missing.join(", ")}`), []);
+  ok("nested-paths: DatePicker's action and time layers are Figma's Submit and Time-Picker", (() => { const row = rows.find((entry) => entry.component === "DatePicker"); return row?.names.includes("Submit") && row.names.includes("Time-Picker"); })());
+}
 ok("the read code for use_figma parses as an async function body", (() => { try { new Function(`return (async () => {${figmaReadCode("1:2")}})`); return true; } catch { return false; } })());
 
 if (failures.length) {

@@ -102,7 +102,7 @@ describe("nested overrides", () => {
   it("reaches a DatePicker's footer button and a Chat message's avatar", async () => {
     const screen = await render(
       <>
-        <DatePicker aria-label="Due date" defaultValue={new Date(2026, 9, 12)} today={new Date(2026, 9, 11)} showActions overrides={{ "Actions/Apply": { level: "accent" } }} />
+        <DatePicker aria-label="Due date" defaultValue={new Date(2026, 9, 12)} today={new Date(2026, 9, 11)} showActions overrides={{ "Actions/Submit": { level: "accent" } }} />
         <ChatThread aria-label="Thread">
           <ChatMessage side="others" author={{ name: "Ava Chen" }} time="9:41" overrides={{ Avatar: { theme: "red" } }}>Hi</ChatMessage>
         </ChatThread>
