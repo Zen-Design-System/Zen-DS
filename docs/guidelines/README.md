@@ -20,7 +20,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Tag](tag.md) | `removable/needs-handler`, `flag/no-emoji-flag`, `api/overrides-studio-only`, `copy/plural-count`, `interaction/no-noop-handler` |
 | [Avatar & Avatar Stack](avatar.md) | `avatar/needs-alt`, `avatar/solid-initials-contrast`, `flag/no-emoji-flag`, `api/overrides-studio-only`, `interaction/no-noop-handler` |
 | [Popover](popover.md) | `popover/controlled-close`, `popover/explicit-open`, `popover/bulk-action-limit`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/action-without-handler`, `focus/selected-fill-only` |
-| [Sidebar](sidebar.md) | `sidebar/submenu-close`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
+| [Sidebar](sidebar.md) | `sidebar/submenu-close`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `interaction/action-without-handler` |
 | [Date Picker](date-picker.md) | `input/needs-label`, `input/placeholder-not-label`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler`, `date-picker/actions-need-apply` |
 | [Tooltip](tooltip.md) | `tooltip/focusable-trigger`, `tooltip/short`, `tooltip/no-interactive-content`, `tooltip/disabled-trigger`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Tabs](tabs.md) | `tabs/needs-label`, `tabs/item-count`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |

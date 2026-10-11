@@ -271,7 +271,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: \"square\" }, Counter: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading / counter.",
+          "description": "Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: \"square\" }, Badge: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading / counter.",
           "deprecated": null
         },
         {

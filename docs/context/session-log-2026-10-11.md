@@ -208,3 +208,17 @@ Primitives/Dashboard/Header "Thì build ngay".
 - CI (PR #20, Linux): the suite asserted Control-Slots' width, which HUGs the Chip's text ("Filter" renders ~1.2px wider
   on Linux), and Action-Slots' x/w that follow it. Per chip-normal's rule text-hugging widths are not asserted:
   Control-Slots checks h/x/y, Action-Slots h/y and its end edge (new `right` check in check.mjs). Suite 64/64.
+  Committed f425c5d + 888f600; PR #20 merged (ec23bf9).
+
+## Chip layer names + palette selftest (branch zen/fix/chip-figma-names off f425c5d, tier S)
+
+- Chip: the user chose B (via Giám sát): the code follows Figma's names — `nest("Counter")` → `Badge` (Chip/Advanced's
+  Counter boolean shows the layer "Badge"), `nest("Multi-Count")` → `Badge-Counter` (.Chip/Trailing Multiple). ALLOWED:
+  Counter and Multi-Count gone; `Badge-Counter` keeps a factual entry (it is inside .Chip/Trailing 333:82245, whose
+  layers the Chip contract does not capture; suites/chip-trailing.mjs checks it), like Segmented's and Sidebar's.
+  Tried counting private sets' layers in nested-paths instead: it also matched DateField's `Leading` to Field-Only's
+  hidden slot and would hide the pending Figma rename, so reverted. BACKLOG line closed (Date field part stays).
+- palette.selftest (BACKLOG P3, failing on main): SidebarMenuItem returned `nest.scope(…)`, not JSX, so react-docgen
+  did not see a component and docs/api lacked it. Returned as a fragment; SidebarItem fields documented (`indent`, read
+  nowhere, deprecated). Palette selftest 1691 pass, now part of `studio:selftest`; compile-api and library keywords
+  regenerated.

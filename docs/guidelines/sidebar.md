@@ -62,6 +62,28 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `subMenuLabel` | `string` | — | Accessible name of the flyout panel. Default: the locale's “Sub menu”. |
 | `onSubMenuClose` | `(event: KeyboardEvent \| globalThis.PointerEvent) => void` | — | Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it. |
 
+### SidebarMenuItem
+Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children), Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMenu`. It reads the Sidebar's selection (`selectedId`), rail and `onItemClick`, exactly like a `sections` entry with the same fields.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode \| SidebarItem[]` | — | Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the row it draws, by layer (`{ "Badge-Counter": { theme: "accent" } }`). Written by Zen Studio; app code sets counter / icon. |
+| `id` (required) | `string` | — | Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it. |
+| `label` (required) | `string` | — | Figma Label: one or two words. The collapsed rail shows it as the row's tooltip and name. |
+| `icon` | `IconName \| ReactNode` | — | Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail). |
+| `active` | `boolean` | — | Same as `selected` (`selected` wins when both are set). |
+| `selected` | `boolean` | — | The current row (Figma Select=Yes, aria-current). The Sidebar's `selectedId` wins over it; a selected child opens its parent group. |
+| `disabled` | `boolean` | — | Figma State=Disabled: not focusable, never a link. |
+| `state` | `"default" \| "hover" \| "focus" \| "disabled"` | — | Deterministic Figma State for matrices; real hover and focus apply natively. `disabled` wins. |
+| `theme` | `"neutral" \| "accent"` | — | Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text). |
+| `dropdown` | `boolean` | — | Figma Dropdown: a chevron after the label, and the row toggles its group open (`aria-expanded`). Rows with `children` show it anyway. |
+| `indent` | `boolean` | — | **Deprecated:** No effect: a nested row is indented by its level (`children`).  |
+| `counter` | `ReactNode` | — | Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows the Notification-Dot instead and joins the row's name ("Approvals, 3"). |
+| `notificationDot` | `boolean` | — | Figma Primitives/Notification-Dot on the icon. |
+| `trailingAction` | `ReactNode` | — | Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row itself is the button or link. |
+| `href` | `string` | — | Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls `onItemClick`. Disabled items stay buttons. |
+
 ### SidebarMenuSection
 A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label + Item-List). The collapsed rail hides the title and opens later groups with a divider, as for `sections`.
 
@@ -138,6 +160,7 @@ type SidebarSection = { label?: string; action?: ReactNode; items: SidebarItem[]
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `sidebar/submenu-close` | warn | A Sidebar with a subMenu flyout wires onSubMenuClose so Escape and outside presses close it. | `zen-allow-submenu-close: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

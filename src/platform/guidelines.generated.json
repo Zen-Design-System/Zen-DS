@@ -1834,6 +1834,12 @@
         "allow": "submenu-close"
       },
       {
+        "id": "api/deprecated-prop",
+        "severity": "warn",
+        "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
+        "allow": "deprecated"
+      },
+      {
         "id": "api/overrides-studio-only",
         "severity": "error",
         "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",

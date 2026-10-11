@@ -22,10 +22,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
  * reviewer can check in the Figma file.
  */
 const ALLOWED = {
-  Chip: {
-    Counter: "BACKLOG (designer): which Figma layer Chip's counter is (Chip/Advanced has a Badge with Remove, no counter)",
-    "Multi-Count": "BACKLOG (designer): the multi-select count is in no captured Chip variant",
-  },
+  Chip: { "Badge-Counter": "inside .Chip/Trailing (333:82245, Select Type=Multiple), whose layers the Chip contract does not capture; suites/chip-trailing.mjs checks it" },
   InputField: { Leading: "hidden in every captured variant (contracts skip invisible instances): re-capture with tools/figma-kit", Trailing: "hidden in every captured variant: re-capture with tools/figma-kit" },
   TextAreaField: { Leading: "hidden in every captured variant: re-capture with tools/figma-kit", Trailing: "hidden in every captured variant: re-capture with tools/figma-kit" },
   SelectField: { Leading: "hidden in every captured variant: re-capture with tools/figma-kit" },

@@ -955,7 +955,7 @@
       "file": "docs/guidelines/sidebar.md",
       "apiFile": "docs/api/sidebar.json",
       "figma": "Patterns/Sidebar (page 1536:27287)",
-      "import": "import { Sidebar, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
+      "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen/design-system\";",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "use": [
         "App shells with 5+ destinations."
@@ -997,6 +997,24 @@
           "subMenuLabel?: string",
           "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void"
         ],
+        "SidebarMenuItem": [
+          "children?: ReactNode|SidebarItem[]",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "id: string",
+          "label: string",
+          "icon?: IconName|ReactNode",
+          "active?: boolean",
+          "selected?: boolean",
+          "disabled?: boolean",
+          "state?: default|hover|focus|disabled",
+          "theme?: neutral|accent",
+          "dropdown?: boolean",
+          "indent?: boolean (deprecated)",
+          "counter?: ReactNode",
+          "notificationDot?: boolean",
+          "trailingAction?: ReactNode",
+          "href?: string"
+        ],
         "SidebarMenuSection": [
           "label?: string",
           "action?: ReactNode",
@@ -1032,6 +1050,7 @@
       ],
       "rules": [
         "sidebar/submenu-close",
+        "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
