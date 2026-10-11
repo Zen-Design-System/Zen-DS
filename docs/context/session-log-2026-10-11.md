@@ -163,3 +163,19 @@
 - Checks: E2E NO-20 new (6 changes listed, conflict unticked, 5 applied in one edit, Studio's theme/align kept, cards in
   Figma's order, ⌘Z back), NO-19 green; build-check 23 ok, engine 154.2 KB gzip (budget 160); tsc clean.
 - Open (M6): Figma Table → Table (Header / Data-Row primitives with cells in Columns slots), next branch.
+
+## Core rebuild M6, Figma Table → Table (branch zen/feat/studio-figma-pull-table off 44576b0, tier M)
+
+- Read-only research: Figma has no Table component; tables are frames of `Primitives/Table/Data-Row` instances (a row of
+  `Table/Cell/Header`, then rows of `Table/Cell/Default` each holding a cell primitive). Demo › Table-Example
+  14730:78776 read live; fixture `tools/studio/fixtures/figma-table.json`.
+- Read code: a frame of Data-Rows comes back as one compact `TABLE` (header cells: label, Sort, Align, icon, width /
+  Fill; data cells: primitive, texts, width / Fill, Align, the Zen instances inside with their text).
+- Converter `tableElement`: columns (header, sortable, align, fixed width, content from the first row's primitive, bold,
+  captionField), rows inline in the Table (first in mock — a re-pull then missed row changes because mock sits outside
+  the Board; fixed in this change, as design copies write rows), per-row `overrides` where Figma's Badge / Dock-Icon
+  differ from what the Table draws (theme + dot; emoji, Medium, solid). Actions-Cell column left out with a note. A
+  Search takes its text as `placeholder` (harness search/needs-name).
+- Checks: figma-pull selftest 46 (+8), figma-diff selftest 22 (+3: a row's status changed → rows + its Badge override),
+  E2E NO-21 new (5 headers, 9 rows, badges yellow/green/red, emoji), NO-19/20 green.
+- Open: a Table's Actions column (a page cannot write `cell`).

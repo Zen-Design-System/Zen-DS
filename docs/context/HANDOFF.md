@@ -97,12 +97,16 @@ Last updated: 2026-10-07.
   `tools/studio/fixtures/figma-overviews.json`, selftest 38, E2E NO-19. Re-pull (`zen/feat/studio-figma-pull-diff`):
   pulled elements keep Figma-derived document ids, the header names the frame; importing a later pull opens Update from
   Figma (three-way diff against the last pull kept in this browser, conflicts unticked, Apply = one edit/⌘Z);
-  `tools/studio/figma-diff.mjs` + selftest 19, E2E NO-20.
+  `tools/studio/figma-diff.mjs` + selftest 19, E2E NO-20. Table (`zen/feat/studio-figma-pull-table`): a frame of
+  Primitives/Table/Data-Row instances is read as one table and becomes `<Table columns rows>` (rows inline, so a re-pull
+  compares them), per-row Badge / Dock-Icon looks as `overrides`; Actions cells left out with a note; fixture
+  `figma-table.json` (Demo › Table-Example 14730:78776), E2E NO-21.
   M7 on `zen/feat/studio-doc-m7`: `tools/figma-contract/nested-paths.mjs` in the gate (15/15 components with a contract
   name their nested layers as Figma does; DatePicker Apply → Submit, Time → Time-Picker). M8 on
   `zen/feat/studio-doc-m8`: the avatar test passes 5/5 through the design copy (NO-14…18) after fixes to AvatarStack
   (attributes on its root), SidePanel (modal opens inside a frame), nested pictures and Table cell photos in copies.
-  Open (M6): Figma Table → Table; Figma's Dashboard/Header has no Zen component (BACKLOG, designer).
+  Open (M6): a Table's Actions column (a page cannot write `cell`); Figma's Dashboard/Header has no Zen component
+  (BACKLOG, designer).
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

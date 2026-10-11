@@ -361,7 +361,30 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
   id; E2E NO-20 (nhập trang kéo về, sửa trong Studio, nhập lần kéo sau → hộp liệt kê 6 thay đổi, xung đột không tick,
   Apply 5 trong một sửa đổi, sửa của Studio còn nguyên, một ⌘Z quay lại). Bản đọc fixture có id từng layer (đọc lại
   2026-10-11).
-- **Chưa:** bảng Table của Figma (Header / Data-Row với ô trong slot Columns) chưa map sang Table.
+- **Chưa (lúc đó):** bảng Table của Figma chưa map sang Table.
+
+### M6 — bảng Table của Figma thành Table (2026-10-11, nhánh `zen/feat/studio-figma-pull-table`)
+
+- Figma không có component Table: bảng là một frame gồm các instance `Primitives/Table/Data-Row`, mỗi hàng có slot
+  Columns chứa ô. Hàng ô `Table/Cell/Header` là header; các hàng khác là `Table/Cell/Default`, mỗi ô giữ một primitive
+  (Text-Cell, Dock-Icon-Cell, Badge-Cell, Actions-Cell…). Đọc thật frame Table-Example 14730:78776 (trang Demo).
+- Đoạn code đọc nhận ra frame toàn Data-Row và trả gọn một `TABLE`: ô header (nhãn, Sort, Align, icon, rộng / Fill),
+  ô dữ liệu (primitive, chữ, rộng / Fill, Align, các instance Zen trong ô với chữ của từng cái) — thay vì đọc từng ô
+  như instance thường (nhỏ hơn nhiều lần).
+- Chuyển đổi: `<Table columns rows>` — mỗi ô header một cột (`header`, `sortable`, `align`, `width` khi FIXED, không
+  có khi Fill; `content` theo primitive của hàng đầu: dock-icon, badge, tag, trend, progress, checkbox, toggle…;
+  `bold`, `captionField` theo Bold / Subtext). Các hàng viết ngay trong Table (như bản sao thiết kế viết): kéo lại
+  frame thì `figma-diff` so chúng như một prop của Table ("rows: changed") và Apply thay được — để trong mock thì lần
+  kéo sau bỏ sót (mock nằm ngoài Board). Instance trong ô khác với cái Table tự vẽ (Badge vàng có chấm, Dock-Icon
+  emoji cỡ Medium) thành `overrides` theo hàng: `"Row[row-1]/status/Badge": { theme: "yellow", leadingIcon: true }`.
+  Chữ của hình (emoji) không vào nhãn.
+- Cột không có content trong code (Actions-Cell: nút cần `cell` mà trang chưa viết được; Radio) bỏ ra kèm ghi chú.
+  Thêm: field (Search) lấy chữ của nó làm `placeholder`.
+- **Kiểm tra:** `figma-pull.selftest.mjs` 46 (thêm 8 trên fixture `figma-table.json`: cột, 9 hàng, override Badge /
+  Dock-Icon, ghi chú Actions, harness không lỗi); `figma-diff.selftest.mjs` 22 (thêm: Figma đổi trạng thái một hàng
+  → đổi `rows` và override Badge của hàng đó, gộp đúng); E2E NO-21 (trang mở trong Studio: 5 cột đúng header, 9 hàng,
+  Badge Pending vàng / Approved xanh / Rejected đỏ, emoji 🏝️ ở Dock-Icon).
+- **Chưa:** cột Actions (cần cách viết `cell` cho trang).
 
 ### M7 — kênh override, đợt 2 = gate `nested-paths` (2026-10-11, nhánh `zen/feat/studio-doc-m7`)
 
