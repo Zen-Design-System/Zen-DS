@@ -116,3 +116,22 @@ Mỗi mốc: selftest + E2E (nhóm mới `push`, PU-xx), `npm run qa`, CHANGELOG
 | C | Đưa thư mục plugin vào git (repo local, không push) trước khi sửa | Có |
 
 **User chốt 2026-10-12:** A plugin Zen · B Import from Studio tự do, rebind theo licence · C git local.
+
+## 7. Tiến độ
+
+### P0 (2026-10-12, nhánh `zen/feat/figma-push`)
+
+- `tools/studio/figma-push.mjs` `figmaFromPage` (isomorphic): Stack / Grid → FRAME auto layout (gap, padding theo tên
+  variable `Spacing/Gap/…`, `Spacing/Padding/…`; căn, justify, wrap, Fill), Text → TEXT + text style, component → INSTANCE
+  (set theo `appearance` khi có nhiều set, mọi property map được theo tên Figma: variant, boolean, text, icon swap kèm
+  toggle; nhãn; con vào slot đầu của set; tên layer = aria-label), `overrides` → `nested` (component của từng layer:
+  `inspector/nestedLayers.generated.ts`, sinh bởi `tools/studio/nested-layers-build.mjs` từ các lời gọi `nest()`), Icon →
+  instance của icon. ID tài liệu `f…` → ID Figma (`figmaIdOf`). Phần P2 (data slot, node slot, Table, layer tuyệt đối)
+  được ghi chú, không bỏ im lặng.
+- `tools/studio/figma-steps.mjs`: bước Spacing và `sameValue` dùng chung hai chiều; `figmaMapping` giữ id, tên và slot
+  của set.
+- CLI `tools/studio/figma-push-cli.mjs <page.zen.tsx> --out=<page.figma.json>` (gói `{ format: "zen-studio-figma",
+  version: 1, frame }`).
+- Kiểm tra: `figma-push.selftest.mjs` 18 (vòng tròn Team kéo → đẩy → kéo giống hệt chữ; trang tự viết giống cấu trúc;
+  set, property, variable, nested, Grid, slot, id). Trang Overviews thật: đẩy được, ghi chú Sidebar sections/brand/footer,
+  DashboardHeader slots và 2 layer tuyệt đối (P2).

@@ -20,6 +20,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
+import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -249,7 +250,13 @@ export function figmaMapping({ figmaProps, contract, apiProps = {}, textStyles =
   const contractSets = new Map();
   for (const page of contract.pages ?? []) for (const set of page.sets ?? []) { contractSets.set(set.id, set); contractSets.set(set.name, set); }
   const sets = new Map();
-  const register = (set, entry) => { if (set) { sets.set(set.id, entry); sets.set(set.name, entry); } };
+  // Each entry keeps its set's id, name and slots: figma-push.mjs writes an instance of it.
+  const register = (set, entry) => {
+    if (!set) return;
+    const full = { id: set.id, name: set.name, slots: (set.props ?? []).filter((prop) => prop.type === "SLOT").map((prop) => prop.name), ...entry };
+    sets.set(set.id, full);
+    sets.set(set.name, full);
+  };
   const defaultsOf = (set) => Object.fromEntries((set?.props ?? []).map((prop) => [prop.name, prop.default]));
   for (const [code, props] of Object.entries(figmaProps)) {
     const own = props.own.filter((item) => item.type !== "SET");
@@ -278,10 +285,6 @@ export function figmaMapping({ figmaProps, contract, apiProps = {}, textStyles =
 
 const literal = (value) => ({ kind: "literal", value });
 const TEXT_PROPS = /^(Label|Text|Title|Content)$/;
-/** Spacing/Gap and Spacing/Padding in px (src/components/_shared/scale.ts), for a value bound to no variable. */
-const GAP_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"], [16, "md"], [24, "lg"], [32, "xl"], [40, "2xl"], [48, "3xl"], [64, "giant"], [88, "xgiant"], [144, "2xgiant"]];
-const PADDING_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"], [16, "md"], [20, "lg"], [24, "xl"], [32, "2xl"], [40, "3xl"], [48, "4xl"]];
-const LONG_TO_SHORT = { "3-xsmall": "3xs", "3xsmall": "3xs", "2-xsmall": "2xs", "2xsmall": "2xs", xsmall: "xs", small: "sm", medium: "md", large: "lg", xlarge: "xl", "2-xlarge": "2xl", "2xlarge": "2xl", "3-xlarge": "3xl", "3xlarge": "3xl", "4-xlarge": "4xl", "4xlarge": "4xl" };
 
 /** A spacing step: from its variable's name ("Spacing/Gap/Medium" → md) or the nearest step to the px value. */
 function spacingStep(variable, px, table) {
@@ -297,8 +300,6 @@ function spacingStep(variable, px, table) {
 /** A Zen icon name: in the icon set (src/icons/generated/names.ts: icon-…, and the ic-… brand marks), else by its prefix. */
 const isZenIcon = (name, mapping) => (mapping.iconNames ? mapping.iconNames.has(name) : /^(icon|ic)-[a-z0-9-]+$/.test(name));
 
-/** "medium" and "md" are one step; other values compare as they are. */
-const sameValue = (a, b) => a === b || (typeof a === "string" && typeof b === "string" && (LONG_TO_SHORT[a] ?? a) === (LONG_TO_SHORT[b] ?? b));
 
 /**
  * The code props of an instance (or a nested one) that differ from the component's code default (docs/api; the Figma

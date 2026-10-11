@@ -44,3 +44,11 @@
   names the file. `data-inspector-src` on the Inspector header: E2E `waitInspector` reads it (was the "file:line" text).
   E2E I-31 (new): an edit on the uploader example — status "Draft · uploader.tsx · ⌘S to save", tag "Button", header
   "Show code", tooltips clean.
+
+## Figma push P0 (Q4) (session "Kiểm tra tiến độ plan", branch zen/feat/figma-push, tier M)
+
+- Spec `docs/research/studio-figma-push-spec-2026-10-12.md`; the user chose the Zen plugin, Import free / rebind
+  licensed, the plugin folder in local git. P0 (repo only): `figma-push.mjs` `figmaFromPage` (the inverse of
+  `pageFromFigma`, same JSON), `figma-steps.mjs` (shared steps), `nested-layers-build.mjs` → `nestedLayers.generated.ts`
+  (nested-paths now records each nest() layer's component), `figma-push-cli.mjs`. Selftest 18 (round trips); both in
+  studio:selftest. P2 items are noted on push (Overviews: Sidebar / DashboardHeader slots, absolute layers).
