@@ -891,6 +891,13 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
+  Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
+  caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column
+  (each badge's colour and dot), TableActions an actions column; a page's own initials are kept where the Table's
+  would differ, and screen-reader text is not a cell's words. Before, only a photo was kept and everything else
+  became its text ("An Mai · an.mai@dizai.studio"), so the page and its Figma export lost the initials, colours,
+  badges and row menus.
 - AppShell's top bar is 72px on desktop again, as Figma's Navigation row: Margin-Comfortable above and at the sides,
   Spacing/Padding/XSmall below (it was 64px, 12px above and below, since 2026-10-09). The user's call: follow Figma.
 - AppShell: on a narrow top bar a centred Search (`headerCenter`) no longer runs under the actions; it stops a
