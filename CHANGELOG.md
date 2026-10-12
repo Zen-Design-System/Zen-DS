@@ -907,6 +907,22 @@ removed (four unused colour ramps were, see Removed).
   trigger, List / Container / Form… as frames of their layers. A Sidebar's rows go in Body-Content with the selected
   one marked, a Dashboard header turns on the blocks whose slots hold content, and Export › Figma says why when nothing
   on a page can go to Figma rather than downloading an empty frame.
+- Zen Studio → Figma: the Dashboard imports as it looks in the Studio (tried in the live Zen file). A Grid whose
+  columns fit the width is an even Figma grid of as many columns as fit the page (a wrapping row where the width is not
+  known), a Grid of N columns is Figma's grid with rows that hug; MetricCard is a
+  Card around Figma's metric with its label, value, trend, icon and action; ChartCard a Card around Figma's line or
+  stacked-bar chart with its title and ranges; ListItem keeps its title, caption and leading Avatar or Dock Icon;
+  ListBox its header row; a Sidebar without a footer loses Figma's sample rows; the page is Canvas; Text takes its
+  default style and its tone; Search its placeholder; Chip its leading icon; plain icon names their Figma cut. The Zen
+  plugin (Import from Studio) no longer clips the frame's height, never moves a slot's content to another slot,
+  binds row gaps, minimum widths and colours, and takes on/off for a Yes/No variant.
+- Zen Studio → Figma: the other templates import as they look too (Invoice, HR Home, Admin list, Settings, Sign in,
+  the mobile pages, tried in the live Zen file). Fit-grid columns split evenly (the Dashboard's bottom row came out
+  592 / 544, now 568 / 568) and read back as `minColumnWidth`; Breadcrumbs draw their chevrons; InlineMessage shows its
+  close button only with `onClose`; a collapsed Sidebar is Figma's rail (Expand=No, icon-only rows, its mark in the
+  header, a divider between groups) and reads back collapsed with its labels; a ListBox is as tall as its rows instead
+  of clipping them at Figma's sample height; a full-width Segmented splits its row (its items overlapped). The Zen
+  plugin hugs a slot or a named layer and fills a slot when the page asks.
 - `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
   component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in

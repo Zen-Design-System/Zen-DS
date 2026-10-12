@@ -179,3 +179,59 @@
 - Also committed "Lỗi UI"'s finished export work (user OK): plugin 2d222ab (index only, "Kết nối file Figma
   Pokeslide"'s Table last-row hunks left uncommitted at their request) and PR #26's branch (their hunks stripped).
 
+## Studio → Figma: the Dashboard tried in the live Zen file, then fixed (session "Lỗi UI", tier M)
+
+- User: the imported Dashboard was broken (metrics stacked with "Metric Title / $1,680.68", table cells overlapping,
+  huge Avatars, Button/Label/Title/Caption defaults) and asked for the feature to be tested, not only the mock.
+- Test bed: the plugin's own `createStudioImporter` run through the Figma MCP (`use_figma`, ~46 KB per call: esbuild-
+  minified importer + the package) in the Zen file 9nZv4uW2LT21yuHabMTCh1, on a page "Studio exports — QA" (left there
+  with the final frame 15258:3 for the user to look at; delete it when done). The user's own import was in another
+  file whose components differ (the same package placed far better in the Zen file): file to be named by the user.
+- Causes found by the live run: the root frame's height clipped (`resize()` fixes both axes); Grid columns written as
+  null for `repeat(auto-fit, …)` and Figma's grid starting as 2 × 2 Flex rows in a 100 px frame (cells overlapping);
+  MetricCard label/value/trend/icon/action, ListItem title/caption/leading, ListBox header, ChartCard never written;
+  Card's ⋮ Sub-Action on by default; List-Box Header/Footer are Yes/No variants; `icon-chevron-right-line` is
+  `…-medium` in Figma (icons/generated/aliases.ts); hiding a layer before filling slots made its slot unreachable
+  (skipInvisibleInstanceChildren) and the importer then emptied the first slot (the Sidebar brand vanished).
+- Fixed, push (`figma-push.mjs`): fit columns → wrapping row, Fill + minWidth, row gap, cards Fill height (frames hug);
+  N columns → GRID with rows and sizes; MetricCard / ChartCard → Card (no Sub-Action) around Metric-Inline / Chart
+  (Line, Stack-Bar; texts, Segmented items from `ranges`, hidden parts); ListItem texts + leading Avatar/Dock Icon
+  swap; ListBox header/footer and Sidebar brand framed in their slot; Sidebar without footer; AppShell Canvas fill;
+  Text default style + tone variable; Search placeholder; Chip leading icon; icon cuts. Pull: Body/Base/Regular left
+  out, a wrap of fill+minWidth cells reads back as Grid minColumnWidth.
+- Fixed, plugin (`~/Documents/zen-ds-figma-plugin-main/src/plugin/studio-import.js`): root hugs its height; GRID rows
+  Hug and sizes; wrap row gap bound; minWidth; colour fills by variable (text and frame); Yes/No variant from a
+  boolean; nested `set` swap and `swapIcon`; `hide` after slots; a named slot never falls back to another of several;
+  an INSTANCE_SWAP equal to the current icon skipped. dist rebuilt (backup `backups/pre-studio-dashboard-20261012-2044-dist.tgz`).
+- Checks: live import of the Dashboard export with no notes, compared with the template at 1440 (screens in the
+  report); figma-push selftest 52 → 67 (section 9, Dashboard parts, Grid round trip); figma-pull 48, figma-diff,
+  parity, engine-iso, slots pass; plugin `npm test` passes (studio-import section 6 with invisible-children skipping);
+  the Studio's own `exportFigma` in the browser gives 130 layers.
+- Left: chart data is Figma's sample (titles and ranges are the page's); `rangesFullWidth={false}` still draws a full
+  Segmented track; Overlays and Chip popovers are not pushed.
+
+### Same session, later: every template imported live (user: "test nhiều case và nhiều thiết kế hơn"; "lỗi header sidebar")
+
+- Live in the QA page, one template per `use_figma` call (three at once timed out), packages squeezed (repeated
+  substrings → `~Xy` tokens, quotes → `^`) and the stashed importer patched at run time for new fields. Frames:
+  Dashboard 15279:3, Invoice 15280:3, HR Home 15287:3, Admin list 15290:3, plus earlier mobile detail/list, Sign in,
+  Settings.
+- Fixed, push: chart Segmented takes its Level/Size and hugs (`rangesFullWidth`); Sidebar brand kept in one frame;
+  forms (fields' Label/Text/Message, Toggle, FileUpload, Divider in a row, fillChildren, Text in a column fills, clip,
+  maxWidth); DescriptionList / Tabs / vertical Stepper items; ListItem trailing + custom contents; InlineMessage
+  texts/action and Close only with `onClose`; Breadcrumbs Dash + Level; fit grids counted for the width each frame
+  fills (Screen, AppShell less the Sidebar 240 or rail 84, Container gutter + maxWidth, tracks) → even GRID, cells keep
+  minW (peer "Studio export/import Figma frame" measured 592/544 vs 568/568); collapsed Sidebar → rail (Expand=No,
+  rows `hugLayers` Element, mark in header, Divider between groups); ListBox `hugLayers` Container-Slot + Body-Slot
+  hugH; full-width Segmented slot fillW. Pull: GRID cells' minWidth → minColumnWidth; rail → `collapsed` with labels
+  (layer names) and group titles (frame names), Divider rows skipped.
+- Fixed, plugin: slot hugH / fillW, `hugLayers` [{ name, w, h }] after the slots (tests + dist rebuilt; the peer
+  a493ce's strokeBottom change is in the same file).
+- Checks: figma-push selftest 67 → 101 (sections 10–11: forms, widths, rail, round trips), figma-pull 48, figma-diff,
+  parity, binding-diff; plugin `npm test`; every frame measured in Figma (Dashboard 568/568, 4 × 276).
+- Found, not fixed yet (figma-push.mjs was with peer a493ce): `minmax(0, 320px)` tracks become Flex 1 instead of
+  Fixed 320 (Admin list, HR tasks, Leave types, My leaves, Empty states); a `selectable` Table loses its checkbox
+  column silently; an array cell value (assignees) writes "" where the Table renders its items.
+- Left (data, not push): several Studio template pages hold flattened data (Admin list rows 2–10 "name · email" on
+  one line, empty-state rows with no fields, booleans in cells); TopNavigation, Thumbnail, ActionBar have no Figma
+  set; Sidebar search not drawn; Description List set has a duplicate variant in Figma (designer).
