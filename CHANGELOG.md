@@ -242,6 +242,9 @@ removed (four unused colour ramps were, see Removed).
 - Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
   and Max width on the instance): a card can fill its column up to a readable width and centre itself without a
   className. Unset, they render nothing new. The push to Figma writes them on the instance and a pull reads them back.
+- Figma → tokens by pull request: the Zen Figma plugin's Export › **Push to GitHub** opens a draft on
+  `zen/tokens/figma-sync-*` with the merged `tokens/source` files, and the new **Figma token sync** workflow commits the
+  generated sources to it and starts CI (`ci.yml` now also runs on `workflow_dispatch`).
 - Zen Studio → Figma (core rebuild Q4): Export › **Figma** downloads a page as `<page>.figma.json`; in the Zen Figma
   plugin, Import › **Import from Studio** places it on the page "Studio exports" as a frame of library instances
   (variants, nested overrides, slot content, auto layout bound to the Spacing variables, text styles), and importing it

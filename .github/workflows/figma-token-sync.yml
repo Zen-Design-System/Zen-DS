@@ -1,0 +1,49 @@
+name: Figma token sync
+
+# The Zen Figma plugin (Export › Push to GitHub) pushes zen/tokens/figma-sync-<date>-<time> branches that change only
+# the token sources (tokens/source/figma/*.json, tokens/source/figma.collections.json). This workflow commits what the
+# builds write from them, the files CI checks under "Generated sources are committed and up to date", then starts CI on
+# the new head. A push made with GITHUB_TOKEN starts no workflow, so the commit does not loop back here and CI is started
+# with workflow_dispatch. When nothing needs regenerating, the pull request's own CI run stands.
+
+on:
+  push:
+    branches: ["zen/tokens/figma-sync-**"]
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: figma-token-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    name: Regenerate token and style sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build tokens, styles and icons
+        run: npm run tokens:build && npm run styles:build && npm run icons:build
+      - run: npm run tokens:check
+      - name: Commit the generated sources and start CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add -- src/styles src/tokens src/icons platforms
+          if git diff --cached --quiet; then
+            echo "The generated sources already match the token sources."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "tokens: regenerate the generated sources from the Figma sync"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          gh workflow run ci.yml --ref "${GITHUB_REF_NAME}"

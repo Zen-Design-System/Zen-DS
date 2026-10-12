@@ -401,3 +401,14 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
 - 2026-10-13 (the user): donut slices 4px round corners (code: rounded sector paths, sweep mask; Figma: Slice booleans
   flattened, cornerRadius → Corner-Radius/XSmall); Multi-Line legend/Tooltip dots = Background/Accent/Solid and
   Background/Neutral/Solid (their Figma edit); the phone example drops its Chart Card (one main chart on a phone).
+
+## Figma token sync workflow for the plugin's Push to GitHub (session "Kết nối GitHub cho Zen Figma", branch zen/feat/figma-sync-workflow-20261012, tier S)
+- The Zen plugin (its own repo, commit bda391f) got Export › Push to GitHub: a draft PR on `zen/tokens/figma-sync-*`
+  that merges the Figma variables into `tokens/source/figma/*.json` by the token-sync rules (format, repo-only Studio
+  modes, value changes by default, additions/removals picked per group so VT/Chat/Ananas stay out, tokens:check rules
+  before push) and updates `figma.collections.json` by text.
+- New `.github/workflows/figma-token-sync.yml`: on those branches, tokens/styles/icons build + tokens:check, commit
+  the generated sources, `gh workflow run ci.yml` (a GITHUB_TOKEN push starts no CI); `ci.yml` gains `workflow_dispatch`.
+- Checked locally on a worktree: a plugin-written corner-radius.json → tokens:check 11/11 clean, the build changed 7
+  files, all under the CI paths, and the generated-sources diff is clean after staging. Not run on GitHub yet.
+- skills/zen-token-sync: a paragraph on plugin PRs (steps 1–4 done; run qa, report, CHANGELOG, session log).
