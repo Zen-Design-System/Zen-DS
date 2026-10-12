@@ -497,6 +497,98 @@ export default function Page() {
   ok("round trip: the rail comes back a collapsed Sidebar, its rows' labels and its groups' titles kept, no Divider row", /<Sidebar[^>]*\bcollapsed\b/.test(back) && /label: "Modules"/.test(back) && /label: "People"/.test(back) && !/Divider/.test(back.slice(back.indexOf("<Sidebar"), back.indexOf("/>", back.indexOf("<Sidebar")))));
 }
 
+// 13. A Table inside a surface (a Card, a Box with a surface or a border) drops its last row's bottom rule, as table.css
+//     does (user rule, 2026-10-12): `strokeBottom: 0` on that row's cells, which the importer applies to the weight only.
+//     A Table on the page canvas, or in a plain Box, keeps it.
+const SURFACE_TABLES = `// @zen-page {"format":1,"title":"Surfaces"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Box, Card, Container, Stack, Table } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Surfaces" device="desktop">
+        <Container>
+          <Stack gap="lg">
+            <Table aria-label="Plain" columns={[{ id: "name", header: "Name" }]} rows={[{ id: "a", name: "A" }, { id: "b", name: "B" }]} />
+            <Card><Table aria-label="In card" columns={[{ id: "name", header: "Name" }]} rows={[{ id: "a", name: "A" }, { id: "b", name: "B" }]} /></Card>
+            <Box border="pale" padding="md"><Table aria-label="In box" columns={[{ id: "name", header: "Name" }]} rows={[{ id: "a", name: "A" }, { id: "b", name: "B" }]} /></Box>
+            <Box padding="md"><Table aria-label="In plain box" columns={[{ id: "name", header: "Name" }]} rows={[{ id: "a", name: "A" }, { id: "b", name: "B" }]} /></Box>
+          </Stack>
+        </Container>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame } = push(SURFACE_TABLES);
+  const edges = (label) => {
+    const table = find(frame, (node) => node.type === "FRAME" && node.name === label);
+    return table ? table.children.slice(1).map((row) => row.slots[0].children.map((cell) => cell.strokeBottom ?? null)) : "no table";
+  };
+  check("a page Table keeps every row's bottom rule", edges("Plain"), [[null], [null]]);
+  check("a Table in a Card: its last row's cells have no bottom rule", edges("In card"), [[null], [0]]);
+  check("a Table in a Box with a border: the same", edges("In box"), [[null], [0]]);
+  check("a Table in a plain Box keeps it", edges("In plain box"), [[null], [null]]);
+}
+
+// 14. Templates compared with the Studio sheets (2026-10-12): tracks with a px maximum, a selectable and sorted Table,
+//     a table Avatar cell's own Avatar, Form's gap, the account's Subtle Avatar.
+const MEMBERS = `// @zen-page {"format":1,"title":"Team"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { AppShell, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Team" device="desktop">
+        <AppShell headerActions={<AppShellAccount name="Linh Hoang" theme="yellow" />}>
+          <Stack gap="lg">
+            <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr auto" }} gap="sm"><Search aria-label="Search" placeholder="Search" /><Text>Filters</Text><Text>View</Text></Grid>
+            <Table aria-label="Members" selectable sort={{ columnId: "member", direction: "asc" }} rows={[{ id: "a", member: "An Mai", email: "an.mai@dizai.studio", role: "Member" }, { id: "b", member: "Bao Nguyen", email: "bao@dizai.studio", role: "Admin" }]} columns={[{ id: "member", header: "Member", sortable: true, content: "avatar", captionField: "email" }, { id: "role", header: "Role", width: "120px", sortable: true }]} overrides={{ "Row[a]/member/Avatar": { children: "MA" }, "Row[b]/member/Avatar": { theme: "green" } }} />
+            <Form><InputField label="Name" placeholder="Name" /><InputField label="Email" placeholder="Email" /></Form>
+          </Stack>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame } = push(MEMBERS);
+  const grid = find(frame, (node) => node.name === "Grid");
+  check("a track with a px maximum (minmax(0, 320px)) is Fixed at it; 1fr Flex; auto Hug", grid.layout.grid.sizes, [{ type: "FIXED", value: 320 }, { type: "FLEX", value: 1 }, { type: "HUG" }]);
+  const table = find(frame, (node) => node.name === "Members");
+  const [head, ...rows] = table.children;
+  check("selectable: a 48px checkbox column first (header Type=Checkbox, a Control-Cell checkbox per row)", [head.slots[0].children[0].props.Type, head.slots[0].children[0].fixedWidth, rows.map((row) => [row.slots[0].children[0].fixedWidth, row.slots[0].children[0].slots[0].children[0].props.Type])], ["Checkbox", 48, [[48, "Checkbox"], [48, "Checkbox"]]]);
+  check("the sorted column's header shows its direction, the other sortable one keeps ↕", head.slots[0].children.slice(1).map((cell) => /^icon-arrow-up-line/.test(cell.nested?.[0]?.set?.name ?? "") || (cell.nested?.[0] ?? null)), [true, null]);
+  const avatars = rows.map((row) => row.slots[0].children[1].slots[0].children[0].nested.find((part) => part.path === "Avatar"));
+  check("an avatar cell's Avatar: Small over its Subtext, Subtle, initials on Neutral (the page's own when its override has them), the row's override (Bao: Green)", avatars.map((avatar) => [avatar.props.Size, avatar.props.Background, avatar.props.Theme, avatar.text]), [["Small", "Subtle", "Neutral", "MA"], ["Small", "Subtle", "Green", "BN"]]);
+  check("Form: its fields Gap/Large apart (Form.tsx's default)", find(frame, (node) => node.name === "Form")?.layout.gap, 24);
+  check("AppShellAccount: a Subtle Avatar, as AppShell.tsx draws it", find(frame, (node) => node.name === "Linh Hoang")?.props.Background, "Subtle");
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: the checkbox column is not a column of the Table", !/id: "select"/.test(back));
+}
+{
+  // HR Home's hero (2026-10-12): AiChatBlock was a bare frame of its field (no greeting, no chips, Figma's model shown).
+  const HERO = MEMBERS.replace(/<Stack gap="lg">[\s\S]*<\/Stack>\n        <\/AppShell>/, `<Stack gap="lg"><AiChatBlock headingLevel={1} greeting="Good morning, Alex. How can I help?" suggestions={[{ label: "Request time off", icon: "icon-calendar-plus-line" }, { label: "Open my tasks" }]}><Box><AiChatField fieldStyle="surface" placeholder="Ask Zen AI" /></Box></AiChatBlock></Stack>
+        </AppShell>`).replace("import { AppShell,", "import { AiChatBlock, AiChatField, Box, AppShell,");
+  const { frame, notes } = push(HERO);
+  const wrap = find(frame, (node) => node.type === "FRAME" && node.name === "AiChatBlock");
+  const block = wrap?.children[0];
+  check("AiChatBlock: Figma's AI/Chat-Block/Pale, centred up to 800 in a frame of its name", [block?.set?.name, wrap?.layout.counter, block?.fillW, block?.maxW], ["AI/Chat-Block/Pale", "CENTER", true, 800]);
+  check("AiChatBlock: the greeting in Say-Hi, the field's Style / placeholder / no model on its AI/Chat-Field", [block.texts, block.nested[0].path, block.nested[0].props.Style, block.nested[0].props.Model, block.nested[0].texts], [{ "How can I help you today?": "Good morning, Alex. How can I help?" }, "AI", "Surface", false, { Text: "Ask Zen AI" }]);
+  check("AiChatBlock: suggestions as Chip/Normal in Suggestions (Leading-Icon with its Icon-Src, else Text-Only)", block.slots[0].children[0].children.map((chip) => [chip.set.name, chip.text, chip.props.Theme, chip.props["Icon-Src"] ?? null]), [["Chip/Normal", "Request time off", "Leading-Icon", "icon-calendar-plus-line"], ["Chip/Normal", "Open my tasks", "Text-Only", null]]);
+  ok("AiChatBlock: no note of a frame drawn for it", !notes.some((note) => /AiChatBlock: no Figma component/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: AiChatBlock comes back with its greeting, suggestions and field (no wrapper Stack)", /<AiChatBlock[^>]*greeting="Good morning, Alex\. How can I help\?"/.test(back) && back.includes('{ label: "Request time off", icon: "icon-calendar-plus-line" }') && /<AiChatField[^>]*fieldStyle="surface"/.test(back) && !/<Stack[^>]*align="center"[^>]*>\s*<AiChatBlock/.test(back));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
