@@ -19,6 +19,19 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
+  and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
+- Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
+  Top-Navigation/Mobile (its Type, the parts the page shows, the titles, the leading action, each row's actions as
+  Nav-Slot/Action in the Button its Type draws, the control bar), ColorSelector as Color-Selector swatches bound to the
+  colour variables, Tabs written with TabItem children (and tab badges), InputConditions as Input-Conditions (the items'
+  labels), UploaderFileItem as File-Item (state, name, size, caption, error, progress), DatePickerSheet as
+  Date-Picker/Mobile, and chat: ChatThread as Chat/Section/Conversation runs, a ChatMessage's author, reactions pill and
+  read list, FileIcon as icon-media-file and Flag as Flag, and an Icon's size (its Element-Size/Popular variable; every
+  icon was 20px). Each comes back from Figma the same (pull), and a phone Screen's top and bottom navigation come back
+  as its chrome. Fixed on the way: a Segmented's selected item and fullWidth, a Tab-Item read as "True", a
+  Condition-Item's label, a Metric's label, value, trend and default icon (Figma hid it), MetricCard read back as a Card,
+  and a chat message's text read from the avatar.
 - Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
   In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
   as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
