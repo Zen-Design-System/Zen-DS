@@ -148,13 +148,19 @@ const DRAWING = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLY
 // A child that fills its auto-layout parent on an axis (Figma's Fill container), or one placed outside the auto layout
 // (Ignore auto layout): its constraints and its box in the parent's.
 const placed = (out, child, parent) => {
-  if (!("layoutMode" in parent) || parent.layoutMode === "NONE" || parent.layoutMode === "GRID") return out;
+  if (!("layoutMode" in parent) || parent.layoutMode === "NONE") return out;
+  // A grid cell keeps its minimum width (figma-push: columns that fit, counted for the page's width).
+  if (parent.layoutMode === "GRID") {
+    if (child.minWidth) out.minW = child.minWidth;
+    return out;
+  }
   if (child.layoutPositioning === "ABSOLUTE") {
     out.absolute = { x: Math.round(child.x), y: Math.round(child.y), w: Math.round(child.width), h: Math.round(child.height), pw: Math.round(parent.width), ph: Math.round(parent.height), cx: child.constraints.horizontal, cy: child.constraints.vertical };
     return out;
   }
   if (child.layoutSizingHorizontal === "FILL") out.fillW = true;
   if (child.layoutSizingVertical === "FILL") out.fillH = true;
+  if (child.minWidth) out.minW = child.minWidth;
   return out;
 };
 // A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
@@ -624,12 +630,13 @@ const isSelected = (item) => ["Select", "Selected", "Active"].some((name) => ite
  * the id of the item Figma shows selected. A nested slot (Sidebar `sections[n].items`): each frame a section, its
  * Section-Title's text the label, its other rows the list.
  */
-function dataSlotValue(slot, dataSlot, ctx, where) {
+function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
   const labelKey = /\btitle:/.test(dataSlot.newItem(0).code) ? "title" : "label";
   const iconKey = ITEM_ICON[dataSlot.component] ?? "icon";
   let selected = null;
   const toItem = (item) => {
-    const fields = itemFields(item, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
+    const shown = rail ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
+    const fields = itemFields(shown, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
     if (isSelected(item)) selected ??= fields.id.value;
     return { kind: "object", fields };
   };
@@ -640,13 +647,15 @@ function dataSlotValue(slot, dataSlot, ctx, where) {
     if (child.type === "INSTANCE") {
       if (!groups.at(-1)?.loose) groups.push({ loose: true, rows: [] });
       groups.at(-1).rows.push(child);
-    } else groups.push({ rows: rowsOf(child.children ?? []) });
+    } else groups.push({ rows: rowsOf(child.children ?? []), name: child.name ?? "" });
   }
-  const sections = groups.map(({ rows }) => {
+  const sections = groups.map(({ rows, name }) => {
     const title = rows.find((row) => /Section-Title$/.test(row.set?.name ?? ""));
     const fields = {};
     if (title) fields.label = literal(title.text ?? "");
-    fields[dataSlot.nested] = { kind: "array", items: rows.filter((row) => row !== title).map(toItem) };
+    else if (rail && /^Section (?!\d+$)(.+)$/.test(name ?? "")) fields.label = literal(name.slice(8));
+    // A Divider between groups is not a row.
+    fields[dataSlot.nested] = { kind: "array", items: rows.filter((row) => row !== title && !/(^|\/)Divider$/.test(row.set?.name ?? row.name ?? "")).map(toItem) };
     return { kind: "object", fields };
   });
   return { value: { kind: "array", items: sections }, selected };
@@ -707,7 +716,8 @@ function convertNode(node, ctx) {
   if (node.type === "TABLE") return tableElement(node, ctx);
   if (node.type === "TEXT") {
     const props = {};
-    if (node.textStyle) {
+    // Body/Base/Regular is Text's default (Text.tsx): the push writes it for Figma, the page leaves it out.
+    if (node.textStyle && node.textStyle !== "Body/Base/Regular") {
       if (!mapping.textStyles || mapping.textStyles.has(node.textStyle)) props.textStyle = literal(node.textStyle);
       else notes.push(`Text "${node.name ?? node.characters}": text style "${node.textStyle}" is not a Zen text style`);
     }
@@ -770,12 +780,20 @@ function convertNode(node, ctx) {
     // Item ids are the component's own (its rows and its footer share them, as selectedId does).
     const outerIds = ctx.ids;
     ctx.ids = new Set();
+    // Figma's rail (Side-Bar Expand=No) is a collapsed Sidebar: its rows hide their labels (their layer names keep them),
+    // its groups lose their titles (their frames' names keep them) and a Divider opens each later group (figma-push
+    // sidebarRail, the other way).
+    const rail = set.code === "Sidebar" && node.props?.Expand === "No";
+    if (rail) props.collapsed = literal(true);
+    // IconButton's level has no static default: the one Button.tsx resolves (Main Tertiary, Flat Primary, Overlay
+    // Accent) is left out (figma-push writes it, the other way).
+    if (set.code === "IconButton" && props.level?.kind === "literal" && props.level.value === ({ flat: "primary", overlay: "accent" }[props.appearance?.value] ?? "tertiary")) delete props.level;
     for (const slot of node.slots ?? []) {
       if (handled.has(slot.name)) continue;
       if (slotsAreChildren) { slotted.push(slot); continue; }
       const dataSlot = dataSlots.find((candidate) => candidate.name === slot.name);
       if (dataSlot) {
-        const { value, selected } = dataSlotValue(slot, dataSlot, ctx, where);
+        const { value, selected } = dataSlotValue(slot, dataSlot, ctx, where, rail);
         props[dataSlot.prop] = value;
         if (selected && SELECTED_PROP[set.code]) props[SELECTED_PROP[set.code]] = literal(selected);
         continue;
@@ -822,6 +840,15 @@ function convertNode(node, ctx) {
 function frameElement(node, children, ctx) {
   const props = {};
   const layout = node.layout;
+  // A wrapping row whose layers all fill it, or a grid whose cells all keep, the same minimum width: a Grid of columns
+  // that fit (figma-push draws one so, a grid where it knows the page's width; minColumnWidth).
+  const cells = children.map((child) => SOURCE.get(child));
+  const sameMin = cells.length && cells.every((cell) => cell?.minW && cell.minW === cells[0].minW);
+  const fitMin = sameMin && ((layout?.mode === "HORIZONTAL" && layout.wrap && cells.every((cell) => cell.fillW)) || layout?.mode === "GRID") ? cells[0].minW : null;
+  if (fitMin) {
+    const gap = spacingStep(layout.gapVar, layout.gap ?? 0, GAP_PX);
+    return { kind: "element", name: "Grid", props: { ...(fitMin !== 240 ? { minColumnWidth: literal(fitMin) } : {}), ...(gap !== "md" ? { gap: literal(gap) } : {}) }, children };
+  }
   const grid = layout?.mode === "GRID";
   if (grid) {
     // Layers that each span several of Figma's columns (8 columns, 2 each): the Grid takes the columns they fill a row with.

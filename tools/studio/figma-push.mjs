@@ -15,6 +15,8 @@
 import { docFromText } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
+import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
+import { iconAliases } from "../../src/icons/generated/aliases.ts";
 
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
@@ -32,7 +34,22 @@ const SETS = {
   dataRow: { id: "4035:10629", name: "Primitives/Table/Data-Row" },
   headerCell: { id: "1604:12968", name: "Table/Cell/Header" },
   defaultCell: { id: "1603:23604", name: "Table/Cell/Default" },
+  // ❖ Chart: each chart is a whole card (header Label, Icon-Main, Segmented, the drawing), no properties.
+  lineChart: { id: "6643:63324", name: "Chart/Line-Chart" },
+  stackBarChart: { id: "6643:73471", name: "Chart/Stack-Bar-Chart" },
+  // Data items drawn as their primitive (Term / Value, a tab's Text, a step's title and number).
+  descriptionItem: { id: "14859:78890", name: ".Primitives/Description-List/Item" },
+  tabItem: { id: "1576:2090", name: "Primitives/Tab-Item" },
+  stepVertical: { id: "4034:11389", name: ".Primitives/Stepper/Step-Vertical" },
 };
+/** Form fields drawn as Figma's Input/…-Field: the label in Label, the value (else the placeholder) in Text, help in Message. */
+const FIELDS = new Set(["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"]);
+/** A data value as the text it shows (a string or number; anything else draws nothing). */
+const textValue = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
+/** A ChartCard's chart (its child) → the Figma chart card that draws that kind. */
+const CHART_SETS = { LineChart: SETS.lineChart, StackBarChart: SETS.stackBarChart };
+/** MetricCard trend.direction → Figma .Primitives/Metrics/Metric-Trend's Trend option. */
+const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal", neutral: "Normal" };
 /** A Table column's content cell (Figma Table/Cell/Default › Content) by the column's `content`. */
 const CELL_SETS = {
   text: { id: "1603:3247", name: "Primitives/Table/Cell/Text-Cell" },
@@ -58,7 +75,17 @@ const DATA_ITEMS = {
 const SLOT_OF_PROP = {
   Sidebar: { brand: "Header-Content", footer: "Footer-Content" },
   DashboardHeader: { leading: "Leading-Slots", center: "Center-Slots", trailing: "Trailing-Slots", controls: "Control-Slots", actions: "Action-Slots" },
+  ListBox: { header: "Header-Slot", footer: "Footer-Slot" },
 };
+/**
+ * Node props whose layers go in their slot as one frame: a ListBox header row keeps its row (title left, action right),
+ * a Sidebar brand its logo beside its name (Figma's Header-Content spreads its layers apart).
+ */
+const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]) };
+/** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
+const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]) };
+/** What the page holds but does not show: screen-reader text. */
+const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /** The slot a component's children go in, where it is not the set's first. */
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
@@ -82,6 +109,12 @@ const WRAPPER_LAYOUT = {
 const PAGE_HEADER_PROPS = { title: "title", childTitle: "childTitle", description: "subheading", actions: "actions", trailing: "trailing" };
 /** AppShell's rows (app-shell.css): the top bar and each section pad Padding/Small above and below, Margin-Comfortable on the sides. */
 const SHELL_ROW_PADDING = [12, 24, 12, 24];
+/** Container's content width by maxWidth (layout.css .zen-container[data-width]). */
+const CONTAINER_MAX = { sm: 640, md: 960, lg: 1280, xl: 1440 };
+/** Sidebar's width open (sidebar.css --zen-sidebar-width; Figma's Side-Bar measures the same) and as the collapsed rail
+ *  (basic: min-width 84px, Figma's Expand=No; small-density: 20px + 4 × Padding/XSmall). */
+const SIDEBAR_WIDTH = 240;
+const SIDEBAR_RAIL_WIDTH = { basic: 84, "small-density": 52 };
 /** Margin-Comfortable: Container's gutter (layout.css) and the floating action's inset (app-shell.css). */
 const MARGIN_COMFORTABLE = 24;
 
@@ -109,6 +142,15 @@ const plain = (value) => {
   return undefined;
 };
 const textOf = (element) => element.children.filter((child) => child.kind === "text").map((child) => child.value).join("");
+/** All the words a Text shows, its inline Links and spans included ("New to Zen? Create an account"). */
+const deepText = (element) => element.children.map((child) => (child.kind === "text" ? child.value : child.kind === "element" ? deepText(child) : "")).join("");
+/** A data field given as layers (`description: <Stack>…</Stack>`): the words they show, on one line. */
+const layerWords = (value) => {
+  if (value?.kind !== "element") return "";
+  // Each Text (or Heading) is a line of its own: lines join with a space, a Text's inline words stay together.
+  const lines = (element) => (["Text", "Heading"].includes(element.name) ? [deepText(element)] : element.children.flatMap((child) => (child.kind === "text" ? [child.value] : child.kind === "element" ? lines(child) : [])));
+  return lines(value.node).join(" ").replace(/\s+/g, " ").trim();
+};
 
 /** The mapping's sets by code component (several for a component that is several Figma sets: Button's appearance). */
 function setsByCode(mapping) {
@@ -142,7 +184,8 @@ function figmaProps(entry, code, mapping, notes, where, only = null, filled = nu
       if (option) props[name] = option;
       else notes.push(`${where}: ${item.prop}="${value}" has no Figma option in ${name}`);
     } else if (item.type === "BOOLEAN") props[name] = Boolean(value);
-    else if (item.type === "TEXT" && typeof value === "string") props[name] = value;
+    // A text property shows a number as its digits (a Badge-Counter's value 3).
+    else if (item.type === "TEXT" && (typeof value === "string" || typeof value === "number")) props[name] = String(value);
     else if (item.type === "INSTANCE_SWAP" && typeof value === "string") swaps.set(item.prop, { name, icon: value });
   }
   for (const toggle of entry.toggles ?? []) {
@@ -183,6 +226,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const byCode = setsByCode(mapping);
   const screen = doc.board.children.find((child) => child.kind === "element" && child.name === "Screen");
   if (!screen) return { frame: null, notes: ["the page has no Screen"] };
+  const device = literalOf(screen.props.device) ?? "desktop";
+  const frameWidth = DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop;
   const boardElements = doc.board.children.filter((child) => child.kind === "element");
   if (boardElements.filter((child) => child.name === "Screen").length > 1) notes.push("only the first Screen is pushed");
   const overlays = boardElements.filter((child) => child.name === "Overlay").length;
@@ -211,24 +256,32 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
 
   const convertElement = (element, parent) => {
     if (element.kind !== "element") return null;
+    // Not on screen: screen-reader text, a tab's panel while another tab is selected.
+    if (NOT_DRAWN.has(element.name) || (element.name === "TabPanel" && literalOf(element.props.hidden) === true)) return null;
     const id = figmaIdOf(element.id);
     const code = codeProps(element);
     let node;
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
     else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
-      const textStyle = code.textStyle ?? (element.name === "Heading" ? HEADING_STYLE[code.level ?? 2] : undefined);
-      node = { type: "TEXT", ...(id ? { id } : {}), characters: textOf(element), ...(textStyle ? { textStyle } : {}), ...(align ? { align } : {}) };
+      // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.
+      const textStyle = code.textStyle ?? (element.name === "Heading" ? HEADING_STYLE[code.level ?? 2] : "Body/Base/Regular");
+      const fill = contentToneToken(code.tone ?? "strongest");
+      node = { type: "TEXT", ...(id ? { id } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}) };
     } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {} };
     else if (element.name === "SidebarMenuItem") node = itemNode(SETS.menuItem, code, { id });
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id);
-    else if (element.name === "AppShell") node = appShellNode(element, code, id);
+    else if (element.name === "AppShell") node = appShellNode(element, code, id, parent);
     else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
+    else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_SETS[child.name])) node = chartCardNode(element, code, id);
+    else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
+    // Metric is MetricCard's content without its Card: the same Metric-Inline set and parts.
+    else if (element.name === "Metric") node = instanceNode({ ...element, name: "MetricCard" }, code, id);
     // A Menu draws its trigger on the page; its items open in a popover.
     else if (element.name === "Menu" && element.props.trigger?.kind === "element") node = convertElement(element.props.trigger.node, parent);
-    else node = instanceNode(element, code, id);
+    else node = instanceNode(element, code, id, parent);
     if (node && code.position === "absolute") node.absolute = absoluteOf(code);
     return node;
   };
@@ -242,13 +295,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   }
 
   /** A data item (or a Sidebar row) as its primitive: Label / Icon shown, Icon-Src, Select, the label text (itemFields, the other way). */
-  function itemNode(set, fields, { id, key, selected = false, labelKey = "label", iconKey = "icon" } = {}) {
+  function itemNode(set, fields, { id, key, selected = false, labelKey = "label", iconKey = "icon", look = {} } = {}) {
     const label = typeof fields[labelKey] === "string" ? fields[labelKey] : typeof fields.children === "string" ? fields.children : "";
     const icon = typeof fields[iconKey] === "string" ? fields[iconKey] : null;
-    const props = onlyOwn(set, { Label: label !== "", Icon: Boolean(icon), ...(icon ? { "Icon-Src": icon } : {}), Select: selected ? "Yes" : "No" });
+    const props = onlyOwn(set, { Label: label !== "", Icon: Boolean(icon), ...(icon ? { "Icon-Src": icon } : {}), Select: selected ? "Yes" : "No", ...look });
     const name = typeof fields["aria-label"] === "string" ? fields["aria-label"] : label || set.name;
     return { type: "INSTANCE", ...(id ? { id } : {}), ...(key ? { key } : {}), name, set, props, ...(label ? { text: label } : {}) };
   }
+
+  /** A Segmented's Level and Size on its items (Segmented.tsx: secondary, md), as Figma's item options. */
+  const segmentLook = (code) => ({ Level: code.level === "primary" ? "Primary" : "Secondary", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium" });
 
   /** AppShellAction as Figma's Dashboard Header Action-Item: Theme Flat, its notification dot or number, the glyph it draws. */
   function actionItemNode(code, id) {
@@ -262,7 +318,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * the layers in its node props, then its children, in its CSS layout (WRAPPER_LAYOUT; Container's gutter). One with
    * text and no layers (a Link) is its text; one with neither is left out.
    */
-  function wrapperNode(element, code, id, where) {
+  function wrapperNode(element, code, id, where, parent = null) {
     const layers = [
       ...Object.values(element.props).filter((value) => value.kind === "element").map((value) => value.node),
       ...element.children.filter((child) => child.kind === "element"),
@@ -274,7 +330,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     }
     const shape = WRAPPER_LAYOUT[element.name] ?? {};
     const gutter = element.name === "Container" && code.gutter !== false ? { paddingX: "xl" } : {};
-    const frame = layers.length ? frameNode(elementOf("Stack", {}, layers), { gap: "none", ...shape, ...gutter }, id) : null;
+    // Container's content stops at its maxWidth (layout.css: lg 1280 by default; full has none).
+    const contentMax = element.name === "Container" ? CONTAINER_MAX[code.maxWidth ?? "lg"] : undefined;
+    const frame = layers.length ? frameNode(elementOf("Stack", {}, layers), { gap: "none", ...shape, ...gutter, ...(contentMax ? { contentMax } : {}) }, id, parent) : null;
     if (!frame?.children.length) {
       notes.push(`${where}: no Figma set for ${element.name} (left out)`);
       return null;
@@ -299,7 +357,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
    * Center-Slots, `headerActions` in Trailing-Slots), the `sections` rows, the page (`children`) and the `footer`, the
    * floating action pinned bottom right; the docked `aside` last.
    */
-  function appShellNode(element, code, id) {
+  function appShellNode(element, code, id, parent = null) {
     const sidebar = layerOf(element, "sidebar");
     const overrides = plain(element.props.overrides) ?? {};
     const hasTopBar = ["header", "headerCenter", "headerActions"].some((prop) => layerOf(element, prop));
@@ -315,9 +373,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       center: element.props.headerCenter?.kind === "element" ? element.props.headerCenter : null,
       trailing: element.props.headerActions?.kind === "element" ? element.props.headerActions : null,
     }), { type: "navigation" }) : null;
-    const stretch = { direction: "column", stretch: true };
-    const filling = (layers) => layers.map((layer) => convert(layer, stretch)).filter(Boolean).map((node) => (node.absolute ? node : { ...node, fillW: true }));
-    const sections = filling(layersOf(element, "sections"));
+    // The column's width: the shell's less the open Sidebar (another sidebar, a collapsed one or an aside: unknown).
+    const aside = layerOf(element, "aside") ? convert(layerOf(element, "aside"), { direction: "row", stretch: true }) : null;
+    const sideWidth = !sidebar ? 0 : sidebarWidth(sidebar, collapsed);
+    const columnWidth = typeof parent?.width === "number" && sideWidth !== null && !aside ? parent.width - sideWidth : null;
+    const filling = (layers, width = columnWidth) => layers.map((layer) => convert(layer, { direction: "column", stretch: true, width })).filter(Boolean).map((node) => (node.absolute ? node : { ...node, fillW: true }));
+    const stretch = { direction: "column", stretch: true, width: columnWidth };
+    const sections = filling(layersOf(element, "sections"), columnWidth === null ? null : columnWidth - SHELL_ROW_PADDING[1] - SHELL_ROW_PADDING[3]);
     const floating = layerOf(element, "floatingAction") ? convert(layerOf(element, "floatingAction"), stretch) : null;
     const column = shellFrame("Column", "VERTICAL", [
       topBar && shellFrame("Header", "VERTICAL", [{ ...topBar, fillW: true }], { layout: { mode: "VERTICAL", gap: 0, padding: SHELL_ROW_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
@@ -327,11 +389,43 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...filling(layersOf(element, "footer")),
       floating && { ...floating, absolute: { cx: "MAX", cy: "MAX", left: 0, right: MARGIN_COMFORTABLE, top: 0, bottom: MARGIN_COMFORTABLE } },
     ], { fillW: true });
-    const aside = layerOf(element, "aside") ? convert(layerOf(element, "aside"), { direction: "row", stretch: true }) : null;
-    const row = [sidebar ? convert(sidebar, { direction: "row", stretch: true }) : null, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
+    // A Sidebar the AppShell collapses (defaultSidebarCollapsed) is drawn as the rail too.
+    const shellSidebar = sidebar?.name === "Sidebar" && collapsed && literalOf(sidebar.props.collapsed) === undefined ? { ...sidebar, props: { ...sidebar.props, collapsed: literal(true) } } : sidebar;
+    const row = [shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true }) : null, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
     const banner = layersOf(element, "banner");
-    if (!banner.length) return shellFrame("AppShell", "HORIZONTAL", row, id ? { id } : {});
-    return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], id ? { id } : {});
+    // The page is Canvas (app-shell.css; canvas="alt" | "flat" the other two).
+    const canvas = { fill: `Background/Canvas/${{ alt: "Alt", flat: "Flat" }[code.canvas] ?? "Default"}` };
+    if (!banner.length) return shellFrame("AppShell", "HORIZONTAL", row, { ...(id ? { id } : {}), ...canvas });
+    return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], { ...(id ? { id } : {}), ...canvas });
+  }
+
+  /**
+   * ChartCard as Chart.tsx draws it: a Card (its theme) holding Figma's chart of that kind (❖ Chart: header Label,
+   * Icon-Main, Segmented, the drawing), the title in its Label, `ranges` as the Segmented's items (hidden without), the
+   * open button only with `onOpen`. Figma draws its own sample data.
+   */
+  function chartCardNode(element, code, id) {
+    const chart = element.children.find((child) => child.kind === "element" && CHART_SETS[child.name]);
+    const set = CHART_SETS[chart.name];
+    const title = typeof code.title === "string" ? code.title : "";
+    const ranges = Array.isArray(plain(element.props.ranges)) ? plain(element.props.ranges) : [];
+    const hide = [...(ranges.length ? [] : ["Segmented"]), ...(element.props.onOpen ? [] : ["Button/Icon-Main"])];
+    // The range switch (Chart.tsx: a Segmented, secondary md) fills the card and splits it, or hugs its items
+    // (rangesFullWidth={false}): then the chart's Segmented and its Item-List hug too.
+    const full = code.rangesFullWidth !== false;
+    const items = ranges.map((range) => ({ ...itemNode(SETS.segment, range ?? {}, { selected: range?.id !== undefined && range.id === (code.range ?? ranges[0]?.id), look: segmentLook({}) }), ...(full ? { fillW: true } : {}) }));
+    notes.push(`${chart.name}: Figma's ${set.name} draws its own sample data`);
+    const drawing = { type: "INSTANCE", name: set.name, set, props: {}, ...(title ? { texts: { Label: title } } : {}), ...(hide.length ? { hide } : {}), ...(items.length && !full ? { nested: [{ path: "Segmented", hugW: true }] } : {}), ...(items.length ? { slots: [{ name: "Item-List", children: items, ...(full ? {} : { hugW: true }) }] } : {}), fillW: true };
+    return cardAround(drawing, code.theme ?? "flat", id, title || "ChartCard");
+  }
+
+  /** A layer in a Card of `theme` (MetricCard and ChartCard are a Card around their content: Figma Metric-Card, Chart-Card). */
+  function cardAround(content, theme, id, name) {
+    if (!content) return null;
+    const card = entryFor("Card", { theme }, byCode, mapping);
+    if (!card) return { ...content, ...(id ? { id } : {}) };
+    const set = { id: card.id, name: card.name };
+    return { type: "INSTANCE", ...(id ? { id } : {}), name, set, props: { ...figmaProps(card, { theme }, mapping, notes, name, new Set(["theme"])), ...onlyOwn(set, { "Sub-Action": false }) }, slots: [{ name: "Content", children: [{ ...content, fillW: true }] }] };
   }
 
   /** AppShellAccount: the Avatar it draws (Avatar/Single Circle Medium), its photo or the name's initials. */
@@ -370,34 +464,137 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return { fillW: code.width === "fill" || (!row && parent?.stretch), fillH: code.height === "fill" || (row && parent?.stretch) };
   };
 
-  function frameNode(element, code, id) {
+  /** A frame's width in px where the push knows it: a width of its own, else its parent's when it fills it; maxWidth caps it. */
+  const widthIn = (code, parent, filling) => {
+    const px = (value) => (/^\d+(\.\d+)?(px)?$/.test(String(value ?? "")) ? Number.parseFloat(String(value)) : null);
+    const width = px(code.width) ?? (filling && typeof parent?.width === "number" ? parent.width : null);
+    const max = px(code.maxWidth);
+    return width !== null && max !== null ? Math.min(width, max) : width;
+  };
+  /** A Zen Sidebar's width, open or as the rail (another sidebar, a workspace one or one of its own width: unknown). */
+  const sidebarWidth = (sidebar, collapsed) => {
+    const variant = literalOf(sidebar.props.variant) ?? "basic";
+    if (sidebar.name !== "Sidebar" || variant === "workspace" || sidebar.props.width !== undefined) return null;
+    return collapsed ? SIDEBAR_RAIL_WIDTH[variant] ?? null : SIDEBAR_WIDTH;
+  };
+  /** Each grid column's width (Figma's tracks: Fixed px, Flex shares what is left after the gaps); unknown without a width. */
+  const trackWidths = (columns, inner, gap) => {
+    if (inner === null) return null;
+    const tracks = columns.sizes ?? Array.from({ length: columns.count }, () => ({ type: "FLEX", value: 1 }));
+    const fixed = tracks.reduce((sum, track) => sum + (track.type === "FIXED" ? track.value : 0), 0);
+    const flex = tracks.reduce((sum, track) => sum + (track.type === "FLEX" ? track.value : 0), 0);
+    const free = Math.max(0, inner - (tracks.length - 1) * gap - fixed);
+    return tracks.map((track) => (track.type === "FIXED" ? track.value : track.type === "FLEX" && flex ? (free * track.value) / flex : null));
+  };
+
+  /** A track list's top-level tracks ("minmax(0, 1fr) 320px" → two). */
+  const splitTracks = (text) => {
+    const tracks = [];
+    let depth = 0, current = "";
+    for (const char of text) {
+      if (char === "(") depth++;
+      if (char === ")") depth--;
+      if (/\s/.test(char) && depth === 0) { if (current) tracks.push(current); current = ""; } else current += char;
+    }
+    return current ? [...tracks, current] : tracks;
+  };
+  /** A track as Figma's grid track: fr → Flex, px → Fixed, minmax(…, n fr) → Flex n, auto → Hug. */
+  const trackSize = (track) => {
+    const fr = /([\d.]+)fr\)?$/.exec(track);
+    if (fr) return { type: "FLEX", value: Number(fr[1]) };
+    const px = /^([\d.]+)px$/.exec(track);
+    if (px) return { type: "FIXED", value: Number(px[1]) };
+    return track === "auto" ? { type: "HUG" } : { type: "FLEX", value: 1 };
+  };
+  /**
+   * A Grid's columns in this Screen's frame (Layout.tsx Grid; the breakpoint is the Screen's device): `{ count, sizes }`
+   * for a column count or a track list, `{ min }` for columns that fit as many as the width allows (no columns:
+   * minColumnWidth; repeat(auto-fit | auto-fill, minmax(min(100%, Npx), 1fr))).
+   */
+  function gridColumns(element, code) {
+    const value = plain(element.props.columns);
+    const order = { phone: ["mobile", "tablet", "desktop"], tablet: ["tablet", "desktop", "mobile"] }[device] ?? ["desktop", "tablet", "mobile"];
+    const tracks = value && typeof value === "object" ? order.map((name) => value[name]).find((item) => item !== undefined) : value;
+    // layout.css data-mode="fill": auto-fill keeps a row's empty columns; auto-fit lets the cells take them.
+    if (tracks === undefined || tracks === null) return { min: Number.parseFloat(String(code.minColumnWidth ?? 240)) || 240, mode: "fill" };
+    if (typeof tracks === "number") return { count: Math.max(1, Math.round(tracks)) };
+    const text = String(tracks).trim();
+    const fit = /^repeat\(\s*auto-(fit|fill)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)px\s*\)?\s*,\s*[\d.]*fr\s*\)\s*\)$/.exec(text);
+    if (fit) return { min: Number(fit[2]), mode: fit[1] };
+    const repeat = /^repeat\(\s*(\d+)\s*,/.exec(text);
+    if (repeat) return { count: Number(repeat[1]) };
+    const list = splitTracks(text);
+    return { count: Math.max(1, list.length), sizes: list.map(trackSize) };
+  }
+
+  function frameNode(element, code, id, parent = null) {
     const grid = element.name === "Grid";
     const row = code.direction === "row";
-    const layout = { mode: grid ? "GRID" : row ? "HORIZONTAL" : "VERTICAL" };
     const gap = code.gap ?? "md";
-    layout.gap = pxOf(gap, GAP_PX) ?? 0;
-    if (short(gap) !== "none" && STEP_NAMES[short(gap)]) layout.gapVar = `Spacing/Gap/${STEP_NAMES[short(gap)]}`;
+    const gapPx = pxOf(gap, GAP_PX) ?? 0;
     const pad = (step) => pxOf(step ?? "none", PADDING_PX) ?? 0;
     const x = pad(code.paddingX ?? code.padding);
     const y = pad(code.paddingY ?? code.padding);
+    // The width inside it, where the push knows it (a page's frames fill the Screen; an instance's slot is unknown).
+    const self = widthIn(code, parent, parent?.cell || fills(element, parent).fillW);
+    const inner = self === null ? null : Math.min(Math.max(0, self - 2 * x), code.contentMax ?? Infinity);
+    // Columns that fit (CSS auto-fill / auto-fit) are as many as that width takes, an even Figma grid; with no width
+    // known, a wrapping row whose cells fill it, no narrower than the minimum. A column count is Figma's grid.
+    let columns = grid ? gridColumns(element, code) : null;
+    if (columns?.min && inner !== null) {
+      const fitting = Math.max(1, Math.floor((inner + gapPx) / (columns.min + gapPx)));
+      const cells = element.children.filter((child) => child.kind === "element").length;
+      const count = columns.mode === "fit" ? Math.max(1, Math.min(fitting, cells)) : fitting;
+      columns = { count, sizes: Array.from({ length: count }, () => ({ type: "FLEX", value: 1 })), min: columns.min, even: true };
+    }
+    const fit = Boolean(columns?.min) && !columns.even;
+    const layout = { mode: grid && !fit ? "GRID" : row || fit ? "HORIZONTAL" : "VERTICAL" };
+    layout.gap = gapPx;
+    if (short(gap) !== "none" && STEP_NAMES[short(gap)]) layout.gapVar = `Spacing/Gap/${STEP_NAMES[short(gap)]}`;
+    // Between wrapped rows (and grid rows): rowGap, else the gap (CSS gap is both).
+    const rowGap = code.rowGap ?? gap;
+    if (grid || code.wrap) {
+      layout.rowGap = pxOf(rowGap, GAP_PX) ?? 0;
+      if (short(rowGap) !== "none" && STEP_NAMES[short(rowGap)]) layout.rowGapVar = `Spacing/Gap/${STEP_NAMES[short(rowGap)]}`;
+    }
     layout.padding = [y, x, y, x];
     if (code.padding && !code.paddingX && !code.paddingY && short(code.padding) !== "none") layout.paddingVar = `Spacing/Padding/${STEP_NAMES[short(code.padding)]}`;
-    if (grid) layout.grid = { columns: Number(code.columns ?? 1) };
     const align = code.align ?? (row ? "center" : "stretch");
     if (!grid) {
       layout.counter = { start: "MIN", center: "CENTER", end: "MAX", baseline: "BASELINE" }[align] ?? "MIN";
       layout.primary = { center: "CENTER", end: "MAX", between: "SPACE_BETWEEN" }[code.justify] ?? "MIN";
       if (code.wrap) layout.wrap = true;
-    }
-    const context = { direction: row ? "row" : "column", stretch: !grid && align === "stretch" };
+    } else if (fit) Object.assign(layout, { counter: "MIN", primary: "MIN", wrap: true });
+    // What a child fills: a column's width inside the padding, a grid cell its column's share; a row's is unknown.
+    const context = { direction: row ? "row" : "column", stretch: !grid && align === "stretch", width: grid || row ? null : inner };
+    const cellWidths = grid && !fit ? trackWidths(columns, inner, gapPx) : null;
+    let cellIndex = 0;
     const children = element.children.map((child) => {
-      const node = convert(child, context);
-      if (!node || grid || node.absolute) return node;
+      const node = convert(child, grid && child.kind === "element" ? { ...context, cell: true, width: cellWidths?.[cellIndex++ % columns.count] ?? null } : context);
+      if (!node || node.absolute) return node;
+      // A grid's cells fill their column; Grid's default align (stretch) makes a row's cards as tall as its tallest (a
+      // frame cell hugs: Fill inside Fill leaves Figma a height it cannot settle). Columns that fit keep their minimum on
+      // each cell (figma-pull reads them back as minColumnWidth).
+      if (grid) return { ...node, fillW: true, ...(align === "stretch" && node.type === "INSTANCE" ? { fillH: true } : {}), ...(columns.min ? { minW: Math.min(columns.min, frameWidth - 32) } : {}) };
       const { fillW, fillH } = fills(child, context);
-      return { ...node, ...(fillW ? { fillW: true } : {}), ...(fillH ? { fillH: true } : {}) };
+      // fillChildren (layout.css): in a row every child without its own width takes an equal share; in a column only
+      // when the column has a height of its own (else they keep their content height).
+      const own = codeProps(child);
+      const shareW = code.fillChildren === true && row && own.width === undefined;
+      const shareH = code.fillChildren === true && !row && code.height !== undefined && own.height === undefined;
+      // A text in a column wraps at the column's width whatever the Stack aligns (CSS), where Figma's Hug runs on: it
+      // fills. A Divider between layers of a row takes the room they leave (divider.css).
+      const wide = fillW || shareW || (node.type === "TEXT" && !row) || (row && child.name === "Divider");
+      return { ...node, ...(wide ? { fillW: true } : {}), ...(fillH || shareH ? { fillH: true } : {}) };
     }).filter(Boolean);
-    if (grid) children.forEach((child, index) => { child.cell = { col: index % layout.grid.columns, row: Math.floor(index / layout.grid.columns), span: 1 }; });
-    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children };
+    if (grid && !fit) {
+      layout.grid = { columns: columns.count, rows: Math.max(1, Math.ceil(children.length / columns.count)), ...(columns.sizes ? { sizes: columns.sizes } : {}) };
+      children.forEach((child, index) => { child.cell = { col: index % columns.count, row: Math.floor(index / columns.count), span: 1 }; });
+    }
+    // maxWidth (a number of px, or "400px"): the frame fills up to it (a sign-in form in its centred row).
+    const maxW = Number.parseFloat(String(code.maxWidth ?? "")) || null;
+    // Only a frame with `clip` (Box, Stack or Grid) cuts what overflows it: the importer clips that frame alone.
+    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(code.clip === true ? { clip: true } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */
@@ -408,14 +605,58 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   }
 
   /** A data slot's items as instances of its item set; a nested slot (Sidebar sections) a frame per group, its title first. */
-  function dataSlotChildren(owner, dataSlot, value, code) {
+  /**
+   * Data items Figma draws as a primitive with texts and options of its own: DescriptionList's Term / Value (its Layout
+   * and Divider on each item: Figma's list set carries a duplicate variant), Tabs' Tab-Items (the selected one, their
+   * Style and Size), a vertical Stepper's steps (number, title, caption; Passed before `current`, Focused at it).
+   */
+  const ITEM_BUILDERS = {
+    // A description given as layers (an address on two lines) gives its words.
+    DescriptionList: { items: (list, code, raw) => list.map((item, index) => ({ type: "INSTANCE", name: textValue(item?.term) || "Item", set: SETS.descriptionItem, fillW: true,
+      props: { Layout: code.layout === "stacked" ? "Stacked" : "Inline", Divider: code.divider ? "Yes" : "No", Emphasis: item?.emphasis ? "Yes" : "No", Action: Boolean(item?.action), Term: textValue(item?.term) || layerWords(raw?.items?.[index]?.fields?.term), Value: textValue(item?.description) || layerWords(raw?.items?.[index]?.fields?.description) } })) },
+    Tabs: { items: (list, code) => {
+      const selected = code.value ?? code.defaultValue ?? list[0]?.id;
+      return list.map((item) => ({ type: "INSTANCE", name: textValue(item?.label) || "Tab", set: SETS.tabItem, ...(textValue(item?.label) ? { text: textValue(item.label) } : {}), ...(code.fullWidth ? { fillW: true } : {}),
+        props: { Style: code.variant === "subtle" ? "Subtle" : "Indicator", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium", Select: item?.id === selected ? "Yes" : "No", Label: textValue(item?.label) ? "True" : "False", Icon: typeof item?.icon === "string" ? "True" : "False", ...(typeof item?.icon === "string" ? { "Icon-Src": item.icon } : {}), Badge: item?.badge !== undefined && item?.badge !== null && item?.badge !== false } }));
+    } },
+    Stepper: { steps: (list, code) => {
+      if (code.orientation !== "vertical") return null;
+      const current = Number(code.current ?? 0);
+      return list.map((step, index) => {
+        const caption = textValue(step?.caption);
+        const state = step?.error ? "Error" : index < current ? "Passed" : index === current ? "Focused" : "Default";
+        // A passed or failed step draws a mark, not its number.
+        return { type: "INSTANCE", name: textValue(step?.title) || `Step ${index + 1}`, set: SETS.stepVertical, fillW: true,
+          props: { Position: index === 0 ? "First" : index === list.length - 1 ? "Last" : "Middle", State: state, Caption: Boolean(caption) },
+          texts: { ...(state === "Passed" || state === "Error" ? {} : { Label: String(index + 1) }), "Step Title": textValue(step?.title), ...(caption ? { Caption: caption } : {}) } };
+      });
+    } },
+  };
+
+  function dataSlotChildren(owner, dataSlot, value, code, raw) {
+    const build = ITEM_BUILDERS[owner]?.[dataSlot.prop];
+    if (build) return build(Array.isArray(value) ? value : [], code, raw);
     const items = DATA_ITEMS[owner]?.[dataSlot.prop];
     if (!items) return null;
     const labelKey = /\btitle:/.test(dataSlot.newItem(0).code) ? "title" : "label";
     const iconKey = ITEM_ICON[owner] ?? "icon";
     const selectedId = code[SELECTED_PROP[owner]];
-    const item = (fields) => itemNode(items.item, fields ?? {}, { selected: fields?.id !== undefined && fields.id === selectedId, labelKey, iconKey });
+    // A Segmented's items take its Level and Size (Figma's item starts Small Primary); they split a full-width one.
+    const look = owner === "Segmented" ? segmentLook(code) : {};
+    const fill = owner === "Segmented" && code.fullWidth === true ? { fillW: true } : {};
+    const item = (fields) => ({ ...itemNode(items.item, fields ?? {}, { selected: fields?.id !== undefined && fields.id === selectedId, labelKey, iconKey, look }), ...fill });
     const list = Array.isArray(value) ? value : [];
+    // A crumb draws its chevron as the slot's Dash (all but the last) and its look on the Item inside (Breadcrumbs.tsx:
+    // the first crumb is Master while `master` is on, Emphasis from the crumb or the trail).
+    if (owner === "Breadcrumbs") return list.map((fields, index) => {
+      const node = item(fields);
+      const level = fields?.level ?? (code.master !== false && index === 0 ? "master" : "sub");
+      const emphasis = fields?.emphasis ?? code.emphasis ?? "default";
+      node.props = { ...node.props, Dash: index < list.length - 1 };
+      node.nested = [{ path: "Item", props: { Level: level === "master" ? "Master" : "Sub", Emphasis: emphasis === "medium" ? "Medium" : "Default", ...(fields?.state === "hover" ? { State: "Hover" } : {}) },
+        ...(level === "master" && typeof fields?.icon === "string" ? { swapIcon: fields.icon } : {}) }];
+      return node;
+    });
     if (!dataSlot.nested) return list.map(item);
     return list.map((section, index) => ({
       type: "FRAME", name: section?.label ? `Section ${section.label}` : `Section ${index + 1}`,
@@ -425,6 +666,39 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
         ...(Array.isArray(section?.[dataSlot.nested]) ? section[dataSlot.nested] : []).map((fields) => ({ ...item(fields), fillW: true })),
       ],
     }));
+  }
+
+  /**
+   * A collapsed Sidebar as Figma's rail (Side-Bar Expand=No; Sidebar.tsx collapsed): its mark alone in the header
+   * (logoCollapsed, else the brand's first layer), each row its icon without its label, the groups' titles gone and a
+   * Divider opening each later group.
+   */
+  function sidebarRail(element, node, slots) {
+    Object.assign(node.props, onlyOwn(node.set, { Expand: "No" }));
+    const brand = element.props.brand?.kind === "element" ? element.props.brand.node : null;
+    const mark = element.props.logoCollapsed?.kind === "element" ? element.props.logoCollapsed.node
+      : brand?.name === "Stack" ? brand.children.find((child) => child.kind === "element") ?? null : brand;
+    const markNode = mark ? convert(mark, { direction: "column", stretch: false }) : null;
+    const header = slots.find((slot) => slot.name === "Header-Content");
+    if (header) header.children = markNode ? [markNode] : [];
+    else if (markNode) slots.unshift({ name: "Header-Content", children: [markNode] });
+    // A row of the rail is its icon: as wide as it (Figma's 44; its Element fills the open row), its label left in its
+    // layer's name (no text to write).
+    const iconOnly = (layer) => {
+      if (layer?.set?.id !== SETS.menuItem.id) return layer;
+      const { text, fillW, ...row } = layer;
+      return { ...row, props: { ...layer.props, Label: false }, hugW: true, hugLayers: [{ name: "Element", w: true }] };
+    };
+    for (const slot of slots) {
+      if (slot.name === "Header-Content") continue;
+      let group = 0;
+      slot.children = slot.children.map((layer) => {
+        if (layer.type !== "FRAME" || !layer.name.startsWith("Section")) return iconOnly(layer);
+        const divider = group++ > 0 ? instanceNode(elementOf("Divider", {}), {}) : null;
+        const rows = layer.children.filter((child) => child.set?.id !== SETS.sectionTitle.id).map(iconOnly);
+        return { ...layer, children: [...(divider ? [{ ...divider, fillW: true }] : []), ...rows] };
+      });
+    }
   }
 
   /** The Dashboard header's texts (Type Main: title, Child, SubHeading; Control-Bar: its count) and Search (dashboardHeaderParts, the other way). */
@@ -519,10 +793,79 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return { type: "FRAME", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : "Table", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ type: "INSTANCE", name: "Header", set: SETS.dataRow, props: {}, fillW: true, slots: [{ name: "Columns", children: header }] }, ...rowNodes] };
   }
 
-  function instanceNode(element, code, id) {
+  /**
+   * MetricCard in Figma's Metric-Inline layers: Label and Metric-Number, the Trend badge (its Trend option and label),
+   * the Metric-Icon Dock Icon (icon, theme, background), the action's Icon-Main glyph; each part shown only when set.
+   */
+  function metricParts(element, code, node, where) {
+    const texts = {};
+    if (typeof code.label === "string") texts.Label = code.label;
+    if (typeof code.value === "string" || typeof code.value === "number") texts["Metric-Number"] = String(code.value);
+    if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
+    const trend = plain(element.props.trend);
+    const action = layerOf(element, "action");
+    Object.assign(node.props, onlyOwn(node.set, { "Metric-Title": Boolean(texts.Label), Trend: Boolean(trend), "Dock-Icon": typeof code.icon === "string", Action: Boolean(action) }));
+    const nested = [];
+    if (trend && typeof trend === "object") nested.push({ path: "Trend", props: TREND_OPTION[trend.direction] ? { Trend: TREND_OPTION[trend.direction] } : {}, ...(typeof trend.label === "string" ? { textList: [trend.label] } : {}) });
+    const dock = typeof code.icon === "string" ? entryFor("DockIcon", {}, byCode, mapping) : null;
+    if (dock) {
+      const fields = { icon: code.icon, ...(code.iconTheme ? { theme: code.iconTheme } : {}), ...(code.iconBackground ? { background: code.iconBackground } : {}) };
+      nested.push({ path: "Metric-Icon", props: figmaProps(dock, fields, mapping, notes, `${where} › Metric-Icon`, new Set(Object.keys(fields))) });
+    }
+    const actionIcon = action?.name === "IconButton" ? literalOf(action.props.icon) : undefined;
+    const button = typeof actionIcon === "string" ? entryFor("IconButton", { appearance: "main" }, byCode, mapping) : null;
+    // The action is the Metric's "Button/Icon-Main" instance (layerKey "Button").
+    if (button) nested.push({ path: "Button", props: figmaProps(button, { icon: actionIcon }, mapping, notes, `${where} › Button`, new Set(["icon"])) });
+    else if (action) notes.push(`${where}: action ${action.name} has no place in Figma's Metric (its Icon-Main)`);
+    if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
+  }
+
+  /** ListItem in Figma's List-Item layers: Title and Subtitle (hidden without a caption), its leading Avatar (or the Dock Icon it swaps to), Selected. */
+  /**
+   * A form field in Figma's Input/…-Field layers: its label in Label, what it shows in Text (its value, a SelectField's
+   * option label, else the placeholder; a value is State Inputted), its help or error in Message.
+   */
+  function fieldParts(element, code, node) {
+    let shown = [code.value, code.defaultValue].find((value) => (typeof value === "string" && value !== "") || typeof value === "number");
+    if (shown !== undefined && element.name === "SelectField") {
+      const option = (Array.isArray(plain(element.props.options)) ? plain(element.props.options) : []).find((item) => String(item?.value) === String(shown));
+      if (option && textValue(option.label)) shown = option.label;
+    }
+    const help = [code.errorMessage, code.helpText].find((text) => typeof text === "string" && text);
+    const texts = {
+      ...(typeof code.label === "string" ? { Label: code.label } : {}),
+      // Neither value nor placeholder: the field is empty (not Figma's sample "Placeholder").
+      Text: shown !== undefined ? String(shown) : typeof code.placeholder === "string" ? code.placeholder : "",
+      ...(help ? { Message: help } : {}),
+    };
+    if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
+    if (shown !== undefined && (node.props.State ?? "Default") === "Default") Object.assign(node.props, onlyOwn(node.set, { State: "Inputted" }));
+  }
+
+  function listItemParts(element, code, node, where, slots) {
+    const texts = {};
+    if (typeof code.title === "string") texts.Title = code.title;
+    if (typeof code.caption === "string") texts.Subtitle = code.caption;
+    else if (layerOf(element, "caption")) texts.Subtitle = deepText(layerOf(element, "caption"));
+    if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
+    // Without a caption Subtitle hides (its own content replaces both when it has children).
+    if (texts.Title && !texts.Subtitle && !element.children.some((child) => child.kind === "element")) node.hide = [...(node.hide ?? []), "Subtitle"];
+    if (code.selected === true) Object.assign(node.props, onlyOwn(node.set, { State: "Selected" }));
+    // Its trailing layer (a Badge, a price, an IconButton) in the Trailing primitive's Actions slot.
+    const trailing = layerOf(element, "trailing");
+    const after = trailing ? convert(trailing, { direction: "row", stretch: false }) : null;
+    if (after) slots.push({ name: "Actions", children: [after] });
+    const leading = layerOf(element, "leading");
+    if (!leading) return;
+    const lead = convert(leading, { direction: "row", stretch: false });
+    if (lead?.type === "INSTANCE" && lead.set?.id) (node.nested ??= []).push({ path: "Avatar", set: lead.set, props: lead.props, ...(lead.text ? { text: lead.text } : {}), ...(lead.swapIcon ? { swapIcon: lead.swapIcon } : {}) });
+    else notes.push(`${where}: leading ${leading.name} has no place in Figma's List-Item (its Avatar)`);
+  }
+
+  function instanceNode(element, code, id, parent = null) {
     const where = `${element.name}${id ? ` (${id})` : ""}`;
     const entry = entryFor(element.name, code, byCode, mapping);
-    if (!entry) return wrapperNode(element, code, id, where);
+    if (!entry) return wrapperNode(element, code, id, where, parent);
     const filled = new Set(Object.entries(element.props).filter(([name, value]) => name !== "overrides" && ["element", "array", "object"].includes(value.kind)).map(([name]) => name));
     const props = figmaProps(entry, code, mapping, notes, where, null, filled);
     const node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : entry.name, set: { id: entry.id, name: entry.name }, props };
@@ -534,21 +877,88 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     for (const [name, value] of Object.entries(element.props)) {
       const dataSlot = dataSlots.find((slot) => slot.prop === name);
       if (dataSlot && (value.kind === "array" || value.kind === "object")) {
-        const children = dataSlotChildren(element.name, dataSlot, plain(value), code);
-        if (children) slots.push({ name: dataSlot.name, children });
+        const children = dataSlotChildren(element.name, dataSlot, plain(value), code, value);
+        // Segmented hugs its items unless fullWidth (Segmented.tsx): its Item-List slot hugs with it.
+        // A Segmented's items hug, or split a full-width one: its Item-List slot fills it then (Figma's slot hugs).
+        if (children) slots.push({ name: dataSlot.name, children, ...(element.name === "Segmented" ? (code.fullWidth === true ? { fillW: true } : { hugW: true }) : {}) });
         else notes.push(`${where}: ${name} (${dataSlot.name}) has no item set yet: not written`);
         continue;
       }
-      if (slotProps[name] && value.kind === "element") { slots.push({ name: slotProps[name], children: slotLayers(value) }); continue; }
+      if (slotProps[name] && value.kind === "element") {
+        const framed = FRAMED_SLOT_PROPS[element.name]?.has(name) ? [convert(value.node, { direction: "column", stretch: true })].filter(Boolean).map((layer) => ({ ...layer, fillW: true })) : null;
+        slots.push({ name: slotProps[name], children: framed ?? slotLayers(value) });
+        continue;
+      }
       if (name === "search" && element.name === "DashboardHeader") continue;
+      if (name === "logoCollapsed" && element.name === "Sidebar") continue;
+      if (DRAWN_PARTS[element.name]?.has(name)) continue;
       if (value.kind === "array" || (value.kind === "object" && name !== "overrides")) notes.push(`${where}: ${name} is data with no Figma slot: not written`);
       if (value.kind === "element") notes.push(`${where}: ${name} holds layers with no Figma slot: not written`);
     }
     if (element.name === "DashboardHeader") dashboardHeaderParts(element, code, node);
+    if (element.name === "MetricCard") metricParts(element, code, node, where);
+    // ListBox is as tall as its rows (Figma's List-Box starts at its sample's fixed height, in its Container-Slot frame
+    // and its Body-Slot too).
+    if (element.name === "ListBox") {
+      node.hugH = true;
+      node.hugLayers = [{ name: "Container-Slot", h: true }];
+    }
+    // Segmented is as wide as its items (inline, max-content) unless fullWidth: it never stretches with its column.
+    if (element.name === "Segmented") node[code.fullWidth === true ? "fillW" : "hugW"] = true;
+    // Card's ⋮ Sub-Action shows by default in Figma; the page shows it only with `subAction`.
+    if (element.name === "Card") Object.assign(node.props, onlyOwn(node.set, { "Sub-Action": Boolean(element.props.subAction) }));
+    if (element.name === "ListItem") listItemParts(element, code, node, where, slots);
+    if (FIELDS.has(element.name)) fieldParts(element, code, node);
+    // Progress: its label (a string, else the percentage) in Text; the bar's fill step by its value (Progress-Bar).
+    if (element.name === "ProgressBar" || element.name === "ProgressCircle") {
+      const value = Math.max(0, Math.min(100, Number(code.value) || 0));
+      const label = typeof code.label === "string" ? code.label : code.label ? `${Math.round(value)}%` : null;
+      Object.assign(node.props, onlyOwn(node.set, { ...(label ? { Text: label } : {}), ...(element.name === "ProgressBar" ? { Progress: value <= 0 ? "None" : value < 40 ? "Low" : value < 70 ? "Medium" : value < 100 ? "Good" : "Done" } : {}) }));
+    }
+    if (element.name === "AiChatField" && typeof code.placeholder === "string") node.texts = { ...(node.texts ?? {}), Text: code.placeholder };
+    // Toggle: its label and caption (Subtext hidden without one).
+    if (element.name === "Toggle") {
+      const texts = { ...(typeof code.label === "string" ? { Label: code.label } : {}), ...(typeof code.caption === "string" ? { Subtext: code.caption } : {}) };
+      if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
+      if (texts.Label && !texts.Subtext) node.hide = [...(node.hide ?? []), "Subtext"];
+    }
+    if (element.name === "FileUpload") {
+      const texts = Object.fromEntries([["Label", code.label], ["Message", code.helpText], ["Text", code.text], ["Internal Caption", code.caption]].filter(([, text]) => typeof text === "string" && text));
+      if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
+    }
+    // InlineMessage: its title in Title, its words in Caption (not the first text layer), its action's label.
+    if (element.name === "InlineMessage") {
+      const words = deepText(element).trim();
+      node.texts = { ...(node.texts ?? {}), ...(typeof code.title === "string" ? { Title: code.title } : {}), ...(words ? { Caption: words } : {}) };
+      delete node.text;
+      const action = plain(element.props.action);
+      if (action && typeof action === "object" && typeof action.label === "string") (node.nested ??= []).push({ path: "Action", props: {}, text: action.label });
+      // Its close button shows only with onClose (Figma's Close starts on).
+      node.props.Close = element.props.onClose !== undefined;
+    }
+    // IconButton without a level takes the one Button.tsx resolves (no static default, so none was written and Figma
+    // showed its Primary): Tertiary on Main, Primary on Flat, Accent on Overlay.
+    if (element.name === "IconButton" && code.level === undefined && code.variant === undefined) {
+      Object.assign(node.props, onlyOwn(node.set, { Level: { flat: "Primary", overlay: "Accent" }[code.appearance] ?? "Tertiary" }));
+    }
+    if (element.name === "Search") {
+      const shown = [code.value, code.defaultValue, code.placeholder].find((text) => typeof text === "string" && text);
+      if (shown) node.texts = { ...(node.texts ?? {}), Text: shown };
+    }
+    // Chip/Advanced draws a leading icon as Theme Leading-Icon (no Icon-Src property): its Leading glyph swapped.
+    if (element.name === "Chip" && typeof code.leading === "string" && ownProps(node.set)?.has("Theme")) {
+      delete node.props["Icon-Src"];
+      node.props.Theme = "Leading-Icon";
+      node.swapIcon = code.leading;
+    }
+    // A Sidebar without a footer: Figma's sample footer rows go, and the footer's divider and padding with them.
+    const noFooter = element.name === "Sidebar" && !element.props.footer && entry.slots?.includes("Footer-Content");
+    if (noFooter) node.hide = [...(node.hide ?? []), "Divider", "Footer-Container"];
     if (PICTURED.has(element.name) && typeof code.src === "string" && code.src) {
       node.image = code.src;
       images.add(code.src);
-      if (element.name === "Avatar") node.props.Theme = "Photo";
+      // A photo Avatar only comes with a Subtle background in Figma (Theme=Photo, Background=Solid is no variant).
+      if (element.name === "Avatar") Object.assign(node.props, { Theme: "Photo", ...("Background" in node.props ? { Background: "Subtle" } : {}) });
     }
     const layers = element.children.filter((child) => child.kind === "element");
     if (layers.length) {
@@ -557,12 +967,23 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const name = (own && (!entry.slots || entry.slots.includes(own)) ? own : null) ?? (entry.slots ?? []).find((slot) => !taken.has(slot)) ?? "Content";
       // A row the component marks selected (Sidebar selectedId → its SidebarMenuItem's Select Yes).
       const selected = SELECTED_PROP[element.name] ? code[SELECTED_PROP[element.name]] : undefined;
-      slots.push({ name, children: layers.map((child) => {
+      const content = layers.map((child) => {
         const layer = convert(child, { direction: "column", stretch: true });
         if (layer?.props && "Select" in layer.props && selected !== undefined && literalOf(child.props.id) === selected) layer.props.Select = "Yes";
-        return layer;
-      }).filter(Boolean) });
+        // A component's content column stretches its blocks (a Card's Stack, a ListBox's List) and wraps its texts:
+        // frames and texts fill the slot.
+        return (layer?.type === "FRAME" || layer?.type === "TEXT") && !layer.absolute ? { ...layer, fillW: true } : layer;
+      }).filter(Boolean);
+      // A ListItem's own content is a column (list-item.css .zen-list-item__contents, Gap/3XSmall); Figma's Contents
+      // slot lays its layers in a row: one column frame holds them.
+      const column = element.name === "ListItem" && content.length > 1
+        ? [{ type: "FRAME", name: "Contents", layout: { mode: "VERTICAL", gap: 2, gapVar: "Spacing/Gap/3XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: content, fillW: true }]
+        : content;
+      slots.push({ name, children: column });
     }
+    if (noFooter) slots.push({ name: "Footer-Content", children: [] });
+    if (element.name === "Sidebar" && literalOf(element.props.collapsed) === true && (code.variant ?? "basic") !== "workspace") sidebarRail(element, node, slots);
+    if (element.name === "ListBox") for (const slot of slots) if (slot.name === "Body-Slot") slot.hugH = true;
     if (slots.length) node.slots = slots;
     const overrides = element.props.overrides;
     if (overrides?.kind === "object") {
@@ -583,7 +1004,6 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   }
 
   const title = literalOf(screen.props.title) ?? doc.header?.title ?? "Studio page";
-  const device = literalOf(screen.props.device) ?? "desktop";
   // The Screen's app frame (screen-chrome.mjs; builder runtime Screen): the desktop layout's Sidebar and Page header, the
   // mobile layout's Top and Bottom navigation, around the page. The other layout's parts wait for a device change.
   const active = screenLayout(device, literalOf(screen.props.layout));
@@ -594,7 +1014,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });
-  const page = rootStack ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true })).filter(Boolean).map(filled);
+  // The page's width: the frame's, less the desktop layout's Sidebar (an open Zen Sidebar; any other: unknown).
+  const chromeSidebar = chrome && active === "desktop" ? chromeOf("sidebar") : null;
+  const chromeSide = chromeSidebar ? sidebarWidth(chromeSidebar, literalOf(chromeSidebar.props.collapsed) === true) : 0;
+  const pageWidth = chromeSide === null ? null : frameWidth - chromeSide;
+  const page = rootStack ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true, width: pageWidth })).filter(Boolean).map(filled);
   const column = (name, children, extra = {}) => ({ type: "FRAME", name, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: children.filter(Boolean), ...extra });
   const part = (prop, parent) => (chromeOf(prop) ? convert(chromeOf(prop), parent) : null);
   let body = page;
@@ -610,7 +1034,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   } else if (chrome) {
     body = [part("topNavigation", { direction: "column", stretch: true }), column("Content", page, { fillW: true }), part("bottomNavigation", { direction: "column", stretch: true })].filter(Boolean).map(filled);
   }
-  const root = rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id)) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
+  const root = rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id), { direction: "column", stretch: true, width: frameWidth }) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
   for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
   // The frame is keyed by the Stack it draws, else by the Screen (its layers keep their own keys).
   if (rootStack && layers[0].id) root.key = layers[0].id;
@@ -626,6 +1050,18 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     (node.slots ?? []).forEach((slot) => slot.children.forEach((child, index) => keyed(child, node.key, `${slot.name}.${index}`)));
   };
   keyed(frame, "page", 0);
+  // An icon the code names plainly ("icon-chevron-right-line") is a cut in Figma ("…-medium", icons/generated/aliases.ts).
+  const figmaIcon = (value) => (typeof value === "string" && iconAliases[value]) || value;
+  const cutIcons = (node) => {
+    if (node.swapIcon) node.swapIcon = figmaIcon(node.swapIcon);
+    // An Icon placed on its own is the icon component, found by name.
+    if (node.set && !node.set.id && node.set.name) node.set = { ...node.set, name: figmaIcon(node.set.name) };
+    for (const props of [node.props, ...(node.nested ?? []).map((nested) => nested.props)]) for (const name of Object.keys(props ?? {})) props[name] = figmaIcon(props[name]);
+    for (const nested of node.nested ?? []) if (nested.swapIcon) nested.swapIcon = figmaIcon(nested.swapIcon);
+    (node.children ?? []).forEach(cutIcons);
+    (node.slots ?? []).forEach((slot) => slot.children.forEach(cutIcons));
+  };
+  cutIcons(frame);
   // The same note for several layers (a MetricCard's trend on four cards) once, with its count.
   const counted = new Map();
   for (const note of notes) counted.set(note, (counted.get(note) ?? 0) + 1);
