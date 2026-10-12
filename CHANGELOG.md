@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
+  In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
+  as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
+  frames no longer clip by default, so a card's shadow shows past its frame's edge as in the Studio.
 - AppShell is built from the Zen components Figma's ◇ Master-Layout uses: its top bar is a DashboardHeader
   type="navigation" (Figma's Dashboard header Type=Navigation, its Leading-, Center- and Trailing-Slots), next to the
   Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API unchanged; the swap alone left 93 of

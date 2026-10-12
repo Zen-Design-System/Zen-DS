@@ -147,3 +147,15 @@
   Padding/XSmall below, as the Master-Layout's Navigation row; the 2026-10-09 change to 12/12 reverted, the templates'
   paddingY sm kept: PageHeader 8 + 12 below the bar, as Figma's Main row). Push draws the Header frame the same.
 
+## Clip content on every frame, as in Figma (tier S/M)
+
+- User: Figma still clips (cuts shadows) where the Studio does not; "nên thêm bật tắt clipping trong studio … giống
+  figma". Cause: the Zen plugin never set clipsContent, and createFrame clips by default.
+- Session "Lỗi UI" (holding the push and plugin files): studio-import.js sets clipsContent = spec.clip === true on
+  every frame build (the page frame keeps clipping); figma-push frameNode writes clip for any frame with `clip`.
+- Here (branch zen/feat/studio-clip-content, on top of P2): Stack and Grid take `clip` like Box (data-clip,
+  effects.css `:is(.zen-box, .zen-stack, .zen-grid)[data-clip="true"] { overflow: clip }`); the Studio's Clip content
+  checkbox shows for Stack, Grid and Box (propSchema isLayoutProp, LayoutSection); figma-pull reads clipsContent
+  (figmaReadCode, not on the page frame) into `clip`. Docs rebuilt.
+- Checks: effects selftest 64, pull selftest 49, Studio self-tests, E2E L-10 + new L-12 (baseline), tsc.
+

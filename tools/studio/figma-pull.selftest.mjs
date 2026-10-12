@@ -137,6 +137,15 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("table: the compiled page has no usage-harness errors", checkSource(compileReact(page, { file: "table.zen.tsx" }).code, "TableExample.tsx").filter((finding) => finding.severity === "error").map((finding) => finding.rule), []);
 }
 
+// Clip content (2026-10-12, "giống figma"): a frame that clips is a Stack with clip; the page frame's own clipping (the
+// screen's) is not read (figmaReadCode leaves it off the root).
+{
+  const frame = { type: "FRAME", name: "Clip", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [{ type: "FRAME", name: "Strip", clip: true, layout: { mode: "HORIZONTAL", gap: 8, padding: [0, 0, 0, 0] }, children: [{ type: "TEXT", name: "A", characters: "A" }, { type: "TEXT", name: "B", characters: "B" }] }] };
+  const page = pageFromFigma(frame, { mapping }).text;
+  ok("Clip content: a clipping frame is a Stack with clip, the page's Stack has none", /<Stack direction="row" gap="xs" align="start" clip>/.test(page) && /<Screen[^>]*>\s*<Stack>/.test(page));
+  ok("Clip content: figmaReadCode reads clipsContent, never on the page frame", /if \(!root && node\.clipsContent === true\) out\.clip = true;/.test(figmaReadCode("1:2")));
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

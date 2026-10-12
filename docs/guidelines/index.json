@@ -3572,6 +3572,7 @@
           "align?: start|center|end|stretch|baseline",
           "justify?: start|center|end|between|around",
           "wrap?: boolean = false",
+          "clip?: boolean = false",
           "fillChildren?: boolean = false",
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
@@ -3602,7 +3603,8 @@
           "align?: start|center|end|stretch",
           "padding?: none|ZenScaleInput|4xl",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "clip?: boolean = false"
         ],
         "Box": [
           "width?: hug|fill|number",
