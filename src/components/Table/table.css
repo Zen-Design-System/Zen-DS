@@ -55,6 +55,11 @@
 .zen-table__checkbox { width: auto; }
 .zen-table__checkbox .zen-checkbox__content { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .zen-table__empty { padding: var(--zen-spacing-padding-2-xlarge, 32px) var(--zen-spacing-padding-medium, 16px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* A table inside a surface (Card, ChartCard, MetricCard, an Accordion panel, SidePanel, Dialog/ModalForm, BottomSheet,
+   Popover, ListBox, a Box with a surface or border): the surface edge closes the table, so the last row drops its
+   bottom rule (user rule, 2026-10-12; in Figma the last row's cells take a 0 bottom stroke weight). A page table on
+   the canvas keeps it. */
+:is(.zen-card, .zen-chart-card, .zen-metric-card, .zen-accordion__panel, .zen-side-panel, .zen-dialog, .zen-modal-form, .zen-bottom-sheet, .zen-popover, .zen-list-box, .zen-box:is([data-surface], [data-border])) .zen-table__table > tbody > tr:last-child > :is(.zen-table__cell, .zen-table__empty) { border-bottom: 0; }
 
 /* Cell primitives. */
 .zen-table-text { display: inline-flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); vertical-align: middle; }
