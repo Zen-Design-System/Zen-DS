@@ -231,7 +231,8 @@ const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__foot
  * type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,
  * `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually
  * DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar
- * pads Spacing/Padding/Small above and below and Margin-Comfortable at the sides around a Button/Size/Medium row.
+ * pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on
+ * desktop, as Figma's Navigation row).
  *
  *   <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>
  *     <Container><PageHeader title="Team members" /> …</Container>

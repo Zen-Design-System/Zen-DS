@@ -24,13 +24,14 @@
 .zen-app-shell__column { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
 
 /* Top bar = Figma Primitives/Dashboard/Header Type=Navigation (4122:33400) as a row of Header/Dashboard (4122:34662, the
-   rows of its Sections slot): the header pads it (Spacing/Padding/Small above and below, Margin-Comfortable at the
-   sides) and the bar is the DashboardHeader itself, a Button/Size/Medium row (64px on desktop): Leading-Slots (toggle
+   rows of its Sections slot): the header pads it as Figma pads that row (Margin-Comfortable above and at the sides,
+   Spacing/Padding/XSmall below: 72px on desktop, the user's call 2026-10-12 "theo Figma") and the bar is the
+   DashboardHeader itself, a Button/Size/Medium row: Leading-Slots (toggle
    + content), the Center-Slots (up to 400px, centred) and the Trailing-Slots (the actions, Spacing/Gap/Small apart) are
    Spacing/Gap/Medium apart; the toggle sits Spacing/Gap/Medium before the Breadcrumbs and Spacing/Gap/Large before a
    Search. */
 /* zen-allow-canvas-layer: the sticky top bar continues the page Canvas so content scrolls under it. */
-.zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); min-width: 0; box-sizing: border-box; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); background: var(--zen-app-shell-canvas); }
+.zen-app-shell__header { position: sticky; z-index: 20; top: var(--zen-app-shell-top); min-width: 0; box-sizing: border-box; padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-app-shell-canvas); }
 .zen-app-shell__bar > .zen-dashboard-header__leading:has(> .zen-app-shell__header-content > .zen-search) { gap: var(--zen-spacing-gap-large, 24px); }
 /* Without a Center-Slots block there is nothing to keep centred: the content takes what the actions leave (Figma draws
    both halves FILL; content that fits in half looks the same), so long Breadcrumbs stay on the row. */

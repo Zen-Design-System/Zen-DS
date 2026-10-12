@@ -143,5 +143,7 @@
   AppShell, and an AppShell on a Studio Screen was as tall as the browser window (sticky 100dvh), shorter than the page
   (the user's Dashboard page too). Fixed in `builder.css` (AppShell fills the Screen; Sidebar / aside height auto).
   NO-18/19/20 + HO-10 rerun: works; HO-10 added to the E2E baseline (P1 had left it out).
-- Question logged (BACKLOG): top bar 72 in Figma's Master vs 64 in code since 2026-10-09.
+- User answers: open the P2 PR ("OK"); top bar "Theo figma": 72px (Margin-Comfortable above and at the sides,
+  Padding/XSmall below, as the Master-Layout's Navigation row; the 2026-10-09 change to 12/12 reverted, the templates'
+  paddingY sm kept: PageHeader 8 + 12 below the bar, as Figma's Main row). Push draws the Header frame the same.
 

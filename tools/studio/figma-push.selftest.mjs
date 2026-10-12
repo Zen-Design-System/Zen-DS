@@ -224,7 +224,7 @@ export default function Page() {
   const column = shell.children[1];
   check("AppShell: its column is the top bar (Header) then the page (Main)", column.children.map((child) => child.name), ["Header", "Main"]);
   const bar = column.children[0].children[0];
-  check("AppShell: the top bar is the Dashboard header Type=Navigation, padded Padding/Small · Margin-Comfortable", { set: bar.set.name, type: bar.props.Type, padding: column.children[0].layout.padding }, { set: "Primitives/Dashboard/Header", type: "Navigation", padding: [12, 24, 12, 24] });
+  check("AppShell: the top bar is the Dashboard header Type=Navigation, padded as Figma's Navigation row (Margin-Comfortable, Padding/XSmall below)", { set: bar.set.name, type: bar.props.Type, padding: column.children[0].layout.padding }, { set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 8, 24] });
   check("AppShell: Leading-Slots the collapse toggle and the header, Trailing-Slots the actions and the account's Avatar", bar.slots.map((slot) => [slot.name, slot.children.map((child) => child.set.name)]), [["Leading-Slots", ["Button/Icon-Flat", "Breadcrumbs"]], ["Trailing-Slots", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]);
   check("a slot with content turns its block on (Nav-Trailing-Block), one without stays off", [bar.props["Nav-Trailing-Block"], bar.props["Nav-Center-Block"]], [true, false]);
   const account = find(bar, (node) => node.set?.name === "Avatar/Single");

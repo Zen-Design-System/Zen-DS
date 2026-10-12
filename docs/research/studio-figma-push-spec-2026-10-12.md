@@ -232,7 +232,7 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
   component. Heading → TEXT theo text style của level. Menu → trigger. AppShellAccount → Avatar/Single (ảnh hoặc chữ
   tắt như Avatar). PageHeader → Dashboard Header Type=Main (title, Child, SubHeading, Action-Slots, Trailing-Slots;
   breadcrumbs / eyebrow / meta / tabs là layer quanh nó). AppShell → frame `AppShell`: Sidebar (fill cao) + `Column`
-  [`Header` (Padding/Small · Margin-Comfortable) › Dashboard Header Type=Navigation: Leading = nút thu gọn + `header`,
+  [`Header` (padding như hàng Navigation của Figma) › Dashboard Header Type=Navigation: Leading = nút thu gọn + `header`,
   Center = `headerCenter`, Trailing = `headerActions`; `Sections` (Gap/Large); `Main`; footer; floating action ghim góc
   dưới phải] + aside; banner phía trên. Screen chrome (`screen-chrome.mjs`): desktop Sidebar + `Main` [`Header`
   (Padding/XLarge), `Content`], mobile Top / Bottom navigation quanh `Content`. Mọi layer của Screen (không chỉ layer
@@ -272,6 +272,8 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
   vậy): `builder.css` cho AppShell phủ Screen, Sidebar và aside kéo hết chiều cao trang. HO-10 vào baseline E2E.
 - **Kiểm tra:** selftest pull 47, push 57 (thêm vòng tròn AppShell và Screen chrome), Studio self-tests xanh, Vitest
   smoke + AppShell 177.
-- **Câu hỏi cho user / designer:** thanh trên cùng trong Master-Layout hiện đo 72px (24 trên, 8 dưới), code 64px (12 /
-  12, quyết định 2026-10-09 "theo Header/Dashboard"). Giữ 64 cho tới khi chốt (BACKLOG).
+- **Chiều cao thanh trên cùng (user chốt 2026-10-12: "Theo figma"):** 72px như hàng Navigation của Master-Layout —
+  Margin-Comfortable trên và hai bên, Spacing/Padding/XSmall dưới (đảo lại lần đổi 64px ngày 2026-10-09; padding
+  `sm` của template giữ nguyên: PageHeader nằm 8 + 12 = 20px dưới hàng nút, như hàng Main của Header/Dashboard). Push
+  vẽ frame `Header` cùng padding đó.
 

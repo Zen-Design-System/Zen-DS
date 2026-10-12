@@ -21,8 +21,8 @@ removed (four unused colour ramps were, see Removed).
 ### Changed
 - AppShell is built from the Zen components Figma's ◇ Master-Layout uses: its top bar is a DashboardHeader
   type="navigation" (Figma's Dashboard header Type=Navigation, its Leading-, Center- and Trailing-Slots), next to the
-  Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API and look unchanged (93 of 94 example
-  panels identical; the other is the fix below). The Studio's slots follow the new markup.
+  Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API unchanged; the swap alone left 93 of
+  94 example panels identical (the other is the fix below). The Studio's slots follow the new markup.
 - Zen Studio ↔ Figma: an app frame comes back from Figma as an AppShell — Figma's Master-Layout (the Sidebar pattern
   beside Main-Container › Header/Dashboard › Sections, Body, Floating-Actions) and the frames the Studio pushes — with
   its header, center, actions (the account as AppShellAccount), sections, page, footer and floating action; a Studio
@@ -883,6 +883,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- AppShell's top bar is 72px on desktop again, as Figma's Navigation row: Margin-Comfortable above and at the sides,
+  Spacing/Padding/XSmall below (it was 64px, 12px above and below, since 2026-10-09). The user's call: follow Figma.
 - AppShell: on a narrow top bar a centred Search (`headerCenter`) no longer runs under the actions; it stops a
   Spacing/Gap/Medium before them.
 - Zen Studio: an AppShell on a Screen fills the Screen and its Sidebar spans the whole page, as in Figma; it was as

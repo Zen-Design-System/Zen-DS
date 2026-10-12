@@ -11,9 +11,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1 and P2 done):** P3 link the components Figma has but the map does not (TopNavigation, Table cell JSX,
   ColorSelector, TabItem…; re-capture ❖ Chart and Metric); P4 raw HTML and className in examples. Audit and numbers:
   `docs/research/studio-figma-push-spec-2026-10-12.md` §8. Estimate (session "Kiểm tra tiến độ plan"): 7–10 days.
-- **P2 · AppShell top bar height (question, 2026-10-12):** Figma's Master-Layout navigation row measures 72px (24 above,
-  8 below); the code keeps 64px (12 / 12, the 2026-10-09 change "from Figma Header/Dashboard"). Ask the designer which
-  is current. Pointer: push spec §8 P2.
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
