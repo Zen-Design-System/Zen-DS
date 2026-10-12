@@ -340,7 +340,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     groups.push(<InspectorFields key="grid-padding" labels={["Padding"]} code="Grid padding" fields={[scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `padding → ${key}`)), <span key="none" />]} />);
   }
 
-  // ── Clip content (Box clip), under Padding as in Figma ──
+  // ── Clip content (Stack, Grid and Box clip: any frame, as in Figma), under Padding ──
   if (spec("clip") && plain("clip")) {
     handled.add("clip");
     const clipped = written.clip === true;
@@ -348,7 +348,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       <InspectorFields
         key="clip"
         name="clip"
-        code="Box clip"
+        code={`${component} clip`}
         fields={[<Checkbox key="clip" label="Clip content" checked={clipped} disabled={disabled} onCheckedChange={(next) => apply(next ? [{ op: "setProp", name: "clip", value: { kind: "boolean", value: true } }] : [{ op: "removeProp", name: "clip" }], next ? "clip content" : "clip content off")} />]}
       />,
     );

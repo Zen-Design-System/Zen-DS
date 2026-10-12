@@ -155,7 +155,7 @@ export function ExportDialog() {
     : tab === "design" ? "The page itself: open it in the Studio again with Import, or keep it with the code."
       : tab === "figma"
         ? (!figmaShown ? "Preparing the page for Figma…"
-          : figmaReady ? `For Figma: in the Zen plugin, Import › Import from Studio places this page as a frame of library instances on the page "Studio exports"; importing it again updates that frame.${figmaReady.notes.length ? ` Not placed yet: ${figmaReady.notes.join("; ")}.` : ""}`
+          : figmaReady ? `For Figma: in the Zen plugin, Import › Import from Studio places this page as a frame of library instances on the page "Studio exports"; importing it again updates that frame.${figmaReady.notes.length ? ` Notes: ${figmaReady.notes.join("; ")}.` : ""}`
             : `The page cannot go to Figma yet: ${"error" in figmaShown ? figmaShown.error : ""}`)
       : tab === "handoff"
         ? (!handoffShown ? "Packing the code, a picture of each frame and the HTML…"

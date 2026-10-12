@@ -54,7 +54,8 @@ const SOURCES = {
   ListBox: { tsx: ["ListItem/ListItem.tsx"], css: ["ListItem/list-item.css"] },
   TopNavigation: { tsx: ["TopNavigation/TopNavigation.tsx"], css: ["TopNavigation/top-navigation.css"] },
   Sidebar: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
-  AppShell: { tsx: ["AppShell/AppShell.tsx"], css: ["AppShell/app-shell.css"] },
+  // The top bar is a DashboardHeader type="navigation": its Leading-, Center- and Trailing-Slots hold the header parts.
+  AppShell: { tsx: ["AppShell/AppShell.tsx", "DashboardHeader/DashboardHeader.tsx"], css: ["AppShell/app-shell.css", "DashboardHeader/dashboard-header.css"] },
   SidebarMenuItem: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   SidebarMenuSection: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   PageHeader: { tsx: ["PageHeader/PageHeader.tsx"], css: ["PageHeader/page-header.css"] },

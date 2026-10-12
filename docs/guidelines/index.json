@@ -2411,6 +2411,7 @@
         "Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.",
         "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
         "A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth=\"full\"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.",
+        "Inside a surface (Card, ChartCard, an Accordion panel, SidePanel, Dialog/ModalForm, BottomSheet, Popover, a Box with a surface or border) the last row has no bottom rule: the surface edge closes the table. The Table drops it by itself; in Figma set the last row's cells to a 0 bottom stroke weight (the colour stays bound). A page table on the canvas keeps its last rule.",
         "A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).",
         "Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups."
       ],
@@ -3649,6 +3650,7 @@
           "align?: start|center|end|stretch|baseline",
           "justify?: start|center|end|between|around",
           "wrap?: boolean = false",
+          "clip?: boolean = false",
           "fillChildren?: boolean = false",
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
@@ -3679,7 +3681,8 @@
           "align?: start|center|end|stretch",
           "padding?: none|ZenScaleInput|4xl",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "clip?: boolean = false"
         ],
         "Box": [
           "width?: hug|fill|number",

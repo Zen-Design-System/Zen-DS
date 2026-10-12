@@ -12580,6 +12580,14 @@
           "deprecated": null
         },
         {
+          "name": "clip",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.\nOff by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll\ncontainer).",
+          "deprecated": null
+        },
+        {
           "name": "fillChildren",
           "type": "boolean",
           "required": false,
@@ -12815,6 +12823,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "clip",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.\nOff by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll\ncontainer).",
           "deprecated": null
         }
       ]

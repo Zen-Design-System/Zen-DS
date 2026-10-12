@@ -86,6 +86,21 @@ export const rows = [
     },
   },
   {
+    id: "L-12", feature: "Clip content on every frame, as in Figma: a Stack and a Grid take it as a Box does (the checkbox writes clip, unchecked removes it)", wp: "figma coverage 2026-10-12",
+    async run(ctx) {
+      for (const [select, id] of [[selectRowStack, "row"], [selectGrid, "grid"]]) {
+        const page = await select(ctx);
+        const clip = inspectorRow(page, "clip").getByText("Clip content");
+        await clip.click();
+        await expectSource(ctx, id, (el) => /^\{?true\}?$/.test(el.attr("clip") ?? ""), `${id}: clip written`);
+        await sleep(300);
+        await clip.click();
+        await expectSource(ctx, id, (el) => el.attr("clip") === undefined, `${id}: clip removed`);
+      }
+      return "Stack and Grid: Clip content on → off";
+    },
+  },
+  {
     id: "L-11", feature: "Cross axis (the icon beside Gap): Stretch writes align stretch, Position goes back to the default", wp: "Figma spec 2026-10-09",
     async run(ctx) {
       const page = await selectRowStack(ctx);
