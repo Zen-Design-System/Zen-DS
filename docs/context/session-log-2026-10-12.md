@@ -117,3 +117,6 @@
   The first upload was CHI SON 1 (a different, wider design) — replaced. fontzin.com / dafont.com are blocked by the
   session's network policy, so the user supplied the files.
 - `.claude/settings.json`: allow `mcp__Figma` (ask for `generate_image`).
+- Deck concept changed to old typewritten documents (approved mock + 100-page outline in
+  `docs/research/ui-foundations-deck/`); not built in Figma yet. Handed over to another session: read that folder's
+  `HANDOFF.md`. Fz Bohemian Typewriter (body font, non-commercial licence) stays out of this public repo.
