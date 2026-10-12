@@ -214,6 +214,8 @@ const readFrame = async (node, root = false) => {
     if (sets.every((set) => set && set.name === "Primitives/Table/Data-Row")) return readTable(node, visible, root);
   }
   const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
+  // Clip content: a frame inside the page that clips (the page frame itself is the screen, which always does).
+  if (!root && node.clipsContent === true) out.clip = true;
   const layout = await layoutOf(node);
   if (layout) out.layout = layout;
   for (const child of node.children || []) {
@@ -1062,6 +1064,8 @@ function frameElement(node, children, ctx) {
       });
     }
   } else if (children.length > 1) ctx.notes.push(`Frame "${node.name}" has no auto layout: its layers are stacked in order`);
+  // Figma's Clip content: the Stack or Grid clips too (figmaReadCode leaves it off the page frame).
+  if (node.clip) props.clip = literal(true);
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
 }
 

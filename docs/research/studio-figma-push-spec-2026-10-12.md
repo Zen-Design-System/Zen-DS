@@ -277,3 +277,10 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
   `sm` của template giữ nguyên: PageHeader nằm 8 + 12 = 20px dưới hàng nút, như hàng Main của Header/Dashboard). Push
   vẽ frame `Header` cùng padding đó.
 
+### Clip content (2026-10-12, user: "nên thêm bật tắt clipping trong studio … giống figma")
+
+- Figma cắt bóng vì plugin không đặt clipsContent (createFrame mặc định cắt). Plugin (phiên "Lỗi UI"): frame theo
+  `spec.clip`, frame gốc vẫn cắt; push ghi `clip` cho mọi frame có `clip`.
+- Stack và Grid có `clip` như Box; Studio hiện Clip content (dưới Padding) cho Stack, Grid, Box; pull đọc clipsContent
+  thành `clip` (trừ frame trang). E2E L-12.
+

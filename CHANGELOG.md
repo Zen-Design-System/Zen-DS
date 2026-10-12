@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
+  In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
+  as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
+  frames no longer clip by default, so a card's shadow shows past its frame's edge as in the Studio.
 - AppShell is built from the Zen components Figma's ◇ Master-Layout uses: its top bar is a DashboardHeader
   type="navigation" (Figma's Dashboard header Type=Navigation, its Leading-, Center- and Trailing-Slots), next to the
   Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API unchanged; the swap alone left 93 of
@@ -887,6 +891,13 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
+  Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
+  caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column
+  (each badge's colour and dot), TableActions an actions column; a page's own initials are kept where the Table's
+  would differ, and screen-reader text is not a cell's words. Before, only a photo was kept and everything else
+  became its text ("An Mai · an.mai@dizai.studio"), so the page and its Figma export lost the initials, colours,
+  badges and row menus.
 - AppShell's top bar is 72px on desktop again, as Figma's Navigation row: Margin-Comfortable above and at the sides,
   Spacing/Padding/XSmall below (it was 64px, 12px above and below, since 2026-10-09). The user's call: follow Figma.
 - AppShell: on a narrow top bar a centred Search (`headerCenter`) no longer runs under the actions; it stops a

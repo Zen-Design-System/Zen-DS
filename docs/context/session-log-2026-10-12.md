@@ -147,6 +147,38 @@
   Padding/XSmall below, as the Master-Layout's Navigation row; the 2026-10-09 change to 12/12 reverted, the templates'
   paddingY sm kept: PageHeader 8 + 12 below the bar, as Figma's Main row). Push draws the Header frame the same.
 
+## Clip content on every frame, as in Figma (tier S/M)
+
+- User: Figma still clips (cuts shadows) where the Studio does not; "nên thêm bật tắt clipping trong studio … giống
+  figma". Cause: the Zen plugin never set clipsContent, and createFrame clips by default.
+- Session "Lỗi UI" (holding the push and plugin files): studio-import.js sets clipsContent = spec.clip === true on
+  every frame build (the page frame keeps clipping); figma-push frameNode writes clip for any frame with `clip`.
+- Here (branch zen/feat/studio-clip-content, on top of P2): Stack and Grid take `clip` like Box (data-clip,
+  effects.css `:is(.zen-box, .zen-stack, .zen-grid)[data-clip="true"] { overflow: clip }`); the Studio's Clip content
+  checkbox shows for Stack, Grid and Box (propSchema isLayoutProp, LayoutSection); figma-pull reads clipsContent
+  (figmaReadCode, not on the page frame) into `clip`. Docs rebuilt.
+- Checks: effects selftest 64, pull selftest 49, Studio self-tests, E2E L-10 + new L-12 (baseline), tsc.
+
+## Export / import test: nested variants in slots; the design copy's Table cells (tier S/M)
+
+- Re-imported the Dashboard into the live file (my frame 15276:1842 on "Studio exports — QA", the stashed importer of
+  session "Lỗi UI"; their frames untouched): 129 layers, no notes. Measured the fit grids: 592 / 544 vs the Studio's
+  568 / 568 → proposal (width passed down, n = ⌊(W+gap)/(min+gap)⌋, a GRID of equal columns), done by "Lỗi UI",
+  re-measured 568 / 568 on their 15279:3.
+- User: "nhiều lỗi variant nested trong slot dùng sai". Read-only audit (slot children vs the master's slot content,
+  330 checked): differences legit except AppShellAccount's Avatar (Solid; code draws background="subtle"). Admin list /
+  HR Home vs the Studio sheets: avatars as Figma's placeholder, badges as words, no checkbox / menu columns, sort arrows,
+  AI field's model picker, HR Home's hero missing. Push-side items sent to "Lỗi UI" (push held by other sessions).
+- Root of the table ones: snapshot.ts cellsAsText kept a cell's Avatar only with a photo and joined the rest into text.
+  Rewritten (readCell): TableMedia → avatar / photo / icon / dock-icon column (+ caption, bold, `<id>Photo|Icon`,
+  `Row[id]/<col>/Avatar|Dock-Icon` looks), TableBadges / TableTags → badge / tag (+ `…/Badge` theme, background, dot),
+  TableActions → actions (icon + name without the row), TableText → text + caption. E2E SP-12 (Admin list → design
+  copy: avatar column, badges with colour and dot, actions, "AM" on the canvas); SP-01, NO-17 still pass.
+- After "Lỗi UI" re-exported Admin list (15301:3, matches the sheet): the page's own initials (BH, where Table's
+  initialsOf gives BN) as the Avatar override's `children`; VisuallyHidden text left out of a cell's words.
+- Also committed "Lỗi UI"'s finished export work (user OK): plugin 2d222ab (index only, "Kết nối file Figma
+  Pokeslide"'s Table last-row hunks left uncommitted at their request) and PR #26's branch (their hunks stripped).
+
 ## Studio → Figma: the Dashboard tried in the live Zen file, then fixed (session "Lỗi UI", tier M)
 
 - User: the imported Dashboard was broken (metrics stacked with "Metric Title / $1,680.68", table cells overlapping,
