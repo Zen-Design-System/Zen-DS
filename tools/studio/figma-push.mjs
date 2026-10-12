@@ -46,6 +46,9 @@ const SETS = {
   stepVertical: { id: "4034:11389", name: ".Primitives/Stepper/Step-Vertical" },
   // One colour swatch (its own fill is the colour); ColorSelector is a row of them.
   colorSwatch: { id: "373:97252", name: "Color-Selector" },
+  // Iconography (🍑): a file's type icon (Format) and a country's flag (Name), 20 and 24px.
+  fileIcon: { id: "5727:22537", name: "icon-media-file" },
+  flag: { id: "7063:63834", name: "Flag" },
   // A ChatMessage's reaction emojis (in its bubble's Chat/Reaction/Status) and the read list under it.
   reactionEmoji: { id: "6263:67248", name: "Chat/Reaction/Emoji/Static" },
   readList: { id: "6101:61545", name: "Chat/Section/Read-List" },
@@ -62,6 +65,17 @@ const FIELDS = new Set(["InputField", "SelectField", "DateField", "NumberField",
 const textValue = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
 /** A ChartCard's chart (its child) → the Figma chart card that draws that kind. */
 const CHART_SETS = { LineChart: SETS.lineChart, StackBarChart: SETS.stackBarChart };
+/**
+ * An icon's size (icon.css: Element-Size/Popular, the icon components' 20px is Base) as its Figma size variable, or a
+ * px size; Base writes nothing.
+ */
+const ICON_SIZE = { "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge" };
+const iconSizing = (size) => (typeof size === "number" ? { size } : ICON_SIZE[size] ? { sizeVar: `Element-Size/Popular/${ICON_SIZE[size]}` } : {});
+/** FileIcon format → icon-media-file's Format option. */
+const FILE_FORMAT = { doc: "Doc", pdf: "PDF", sheet: "Sheet", zip: "Zip", photo: "Photo", video: "Video", music: "Music", sound: "Sound", record: "Record", figma: "Figma" };
+/** Flag size (flag.css, Image-Size) → its size variable; Medium is the component's 24px. */
+const FLAG_SIZE = { small: "Image-Size/3XSmall", large: "Image-Size/Small" };
+const scaleOf = (size) => ({ sm: "small", md: "medium", lg: "large" })[size] ?? size;
 /** Metric's icon when it sets none (MetricWidget.tsx). */
 const METRIC_ICON = "icon-home-02-solid";
 /** MetricCard trend.direction → Figma .Primitives/Metrics/Metric-Trend's Trend option. */
@@ -302,7 +316,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const textStyle = code.textStyle ?? (element.name === "Heading" ? HEADING_STYLE[code.level ?? 2] : "Body/Base/Regular");
       const fill = contentToneToken(code.tone ?? "strongest");
       node = { type: "TEXT", ...(id ? { id } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}) };
-    } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {} };
+    } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {}, ...iconSizing(code.size) };
+    // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
+    else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
+    else if (element.name === "Flag" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: SETS.flag, props: { Name: code.name }, ...(FLAG_SIZE[scaleOf(code.size)] ? { sizeVar: FLAG_SIZE[scaleOf(code.size)] } : {}) };
     else if (element.name === "SidebarMenuItem") node = itemNode(SETS.menuItem, code, { id });
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id, parent);

@@ -165,6 +165,15 @@ const readInstance = async (instance) => {
   if (!out.nested.length) delete out.nested;
   if (!out.slots.length) delete out.slots;
   else { const layout = await layoutOf(instance); if (layout) out.layout = layout; }
+  // An icon's size (an Icon, a FileIcon, a Flag): its width's size variable, else its width where it is not the component's.
+  if (set && (/^(icon|ic)-/.test(set.name) || set.name === "Flag")) {
+    // (A file icon keeps its aspect ratio: Figma binds its height only.)
+    const bound = instance.boundVariables || {};
+    const sizeVar = await variableName((bound.width || bound.height || {}).id);
+    const main = await instance.getMainComponentAsync();
+    if (sizeVar) out.sizeVar = sizeVar;
+    else if (main && Math.round(main.width) !== Math.round(instance.width)) out.size = Math.round(instance.width);
+  }
   // A Color-Selector swatch: the colour variable its own fill is bound to (the colour it offers).
   if (set && set.name === "Color-Selector") {
     const paint = (instance.fills || [])[0];
@@ -962,11 +971,14 @@ function convertNode(node, ctx) {
     if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
     if (setName === TOP_NAV_SET.name) return topNavigationElement(node, ctx);
     if (setName === COLOR_SWATCH) return colorSelectorElement([node], null, ctx);
+    // A file's type icon and a country's flag (figma-push FileIcon, Flag), with their size.
+    if (setName === "icon-media-file") return { kind: "element", name: "FileIcon", props: { format: literal(String(node.props?.Format ?? "doc").toLowerCase()), ...iconSizeProps(node) }, children: [] };
+    if (setName === "Flag" && node.props?.Name) return { kind: "element", name: "Flag", props: { name: literal(node.props.Name), ...(FLAG_SIZE_OF[node.sizeVar] ? { size: literal(FLAG_SIZE_OF[node.sizeVar]) } : {}) }, children: [] };
     if (setName === CHAT_SECTION) return chatThreadElement({ ...node, children: [node] }, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
-      if (isZenIcon(setName, mapping)) return { kind: "element", name: "Icon", props: { name: literal(setName) }, children: [] };
+      if (isZenIcon(setName, mapping)) return { kind: "element", name: "Icon", props: { name: literal(setName), ...iconSizeProps(node) }, children: [] };
       // A primitive with slots (Dashboard/Header): what its slots hold, in its layout.
       // Each slot a Stack in its layout; slots that sit in one frame of the instance, a Stack in that frame's layout.
       const groups = [];
@@ -1193,6 +1205,16 @@ function frameElement(node, children, ctx) {
   if (node.clip) props.clip = literal(true);
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
 }
+
+/** An icon's size from Figma (figma-push iconSizing, the other way): its Element-Size/Popular step, else its px. */
+const ICON_SIZE_OF = { "2XSmall": "2xs", XSmall: "xs", Small: "sm", Medium: "md", Large: "lg", XLarge: "xl", "2XLarge": "2xl", "3XLarge": "3xl" };
+const iconSizeProps = (node) => {
+  const step = /^Element-Size\/Popular\/(.+)$/.exec(node.sizeVar ?? "")?.[1];
+  if (ICON_SIZE_OF[step]) return { size: literal(ICON_SIZE_OF[step]) };
+  return typeof node.size === "number" ? { size: literal(node.size) } : {};
+};
+/** A Flag's size variable → its size (flag.css). */
+const FLAG_SIZE_OF = { "Image-Size/3XSmall": "small", "Image-Size/Small": "large" };
 
 /** Figma's Metric-Inline sets (Metric; in a Card, MetricCard). */
 const METRIC_SET = /^Primitives\/Metric\/Metric-Inline\//;

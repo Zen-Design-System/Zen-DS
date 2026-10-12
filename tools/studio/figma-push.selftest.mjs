@@ -892,6 +892,39 @@ export default function Page() {
   check("round trip from Figma: no notes", fromFigma.notes, []);
 }
 
+// 25. Icon sizes, FileIcon and Flag (2026-10-13): an Icon's size as its Element-Size/Popular variable (Base, the
+//     components' 20px, writes nothing), FileIcon as icon-media-file (Format), Flag as Flag (Name, Image-Size); the pull
+//     reads them back.
+{
+  const page = `// @zen-page {"format":1,"title":"Icons"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { FileIcon, Flag, Icon, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Icons" device="desktop">
+        <Stack direction="row">
+          <Icon name="icon-plus-line" />
+          <Icon name="icon-plus-line" size="lg" />
+          <FileIcon format="pdf" />
+          <FileIcon format="sheet" size="xl" />
+          <Flag name="Vietnam" />
+          <Flag name="Japan" size="large" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  check("Icons: the size variable, icon-media-file by Format, Flag by Name and Image-Size", frame.children.map((icon) => [icon.set.name, icon.props.Format ?? icon.props.Name ?? null, icon.sizeVar ?? null]), [["icon-plus-line", null, null], ["icon-plus-line", null, "Element-Size/Popular/Large"], ["icon-media-file", "PDF", null], ["icon-media-file", "Sheet", "Element-Size/Popular/XLarge"], ["Flag", "Vietnam", null], ["Flag", "Japan", "Image-Size/Small"]]);
+  ok("Icons: no FileIcon or Flag drawn as a frame", !notes.some((note) => /FileIcon|Flag/.test(note)));
+  check("round trip: icons, file icons and flags come back with their sizes", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
