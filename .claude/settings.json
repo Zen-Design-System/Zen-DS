@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Figma"
+    ],
+    "ask": [
+      "mcp__Figma__generate_image"
+    ]
+  }
+}
