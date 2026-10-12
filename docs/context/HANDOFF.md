@@ -111,7 +111,9 @@ Last updated: 2026-10-12.
   **Q4/Q5 built 2026-10-12 (spec `docs/research/studio-figma-push-spec-2026-10-12.md`, branch `zen/feat/figma-push`,
   PR #24):** Studio Export › Figma + the Zen plugin's Import from Studio (plugin folder `~/Documents/zen-ds-figma-plugin-main`,
   local git since 2026-10-12), Check Figma bindings (binding-diff.mjs), Download for Figma after a token save
-  (rebind.mjs). Waiting for the user's one try in Figma.
+  (rebind.mjs). Waiting for the user's one try in Figma. Coverage (2026-10-12, spec §8): app pages exported as an
+  empty frame (code-only components dropped with their subtree); P1 fixed it on main (AppShell, Screen chrome, wrappers
+  as frames); P2 AppShell rebuild, P3 mapping gaps, P4 examples cleanup approved in that order (BACKLOG).
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,

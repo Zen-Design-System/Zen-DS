@@ -104,3 +104,23 @@
   order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
+
+## Studio → Figma: app pages imported as an empty frame; coverage audit; P1 (tier S/M)
+
+- User: Studio export of Dashboard / Admin list imports into Figma as an empty frame. Both `.figma.json` in Downloads
+  already had `children: []`: `figmaFromPage` dropped any component without a Figma set with its whole subtree, and
+  AppShell (no set) wraps the page.
+- User then asked whether examples, templates and AppShell are really built from Studio components matching Figma.
+  Static audit (numbers, groups, plan): `docs/research/studio-figma-push-spec-2026-10-12.md` §8. Short: examples 71%,
+  templates 76%, AppShell 23% Figma-placeable; 38% / 58% of Figma components sat inside a code-only wrapper; 12/15
+  templates in AppShell. User approved P1 → P4 in order; session "Kiểm tra tiến độ plan" estimated 7–10 days.
+- P1 done (`tools/studio/figma-push.mjs`): wrappers → frames of their layers (named by Zen), Heading → text, Menu →
+  trigger, AppShellAccount → Avatar, PageHeader → Dashboard header Main, AppShell → Sidebar + Column (Dashboard header
+  Navigation top bar, Sections, Main), Screen chrome (Sidebar / Page header, Top / Bottom navigation), every Screen
+  layer. Fixed on the way: Dashboard header toggles false with a filled slot, Sidebar children in Header-Content and no
+  Select=Yes, root key equal to its child's, overlays noted as "only the first Screen", repeated notes; Export › Figma
+  refuses a page with nothing to place. Export dialog copy "Not placed yet" → "Notes".
+- Checks: figma-push selftest 36 → 52; E2E HO-10; the plugin's importer (its test mock) places the Dashboard package
+  without errors (no plugin change). Dashboard 1 → 125 layers, Admin list 1 → 158.
+- Left for P3: charts (no sets captured), MetricCard trend/action, ListItem leading, ListBox header.
+- Not done: the user's try in Figma with the new export (Download again from Studio › Export › Figma).

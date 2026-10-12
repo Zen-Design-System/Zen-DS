@@ -188,3 +188,61 @@ Mỗi mốc: selftest + E2E (nhóm mới `push`, PU-xx), `npm run qa`, CHANGELOG
   cho fill / stroke; thiếu set / variant / layer / biến thì ghi chú.
 - **Còn lại: user thử một lần trong Figma** (Q4: export trang → import, import lại; Q5: Check Figma bindings sau một lần
   chụp lại contract; Save một sửa token trong Main component → Download for Figma → import).
+
+## 8. Độ phủ: example, template, AppShell so với Figma (2026-10-12)
+
+**Vì sao hỏi:** user xuất trang Dashboard và Admin list từ Studio rồi import vào Figma: ra một frame trống. File
+`.figma.json` đã rỗng (`children: []`): `figmaFromPage` gặp component không có set Figma thì bỏ cả nhánh, mà `AppShell`
+(không có set) bọc cả trang.
+
+**Audit tĩnh** (57 example `src/platform/examples/pages`, 16 file `src/templates`, `AppShell.tsx`; script trong scratchpad
+của phiên "Studio export/import Figma frame"):
+
+| Phần | Phần tử là component có set Figma / push tự vẽ | Component có set nằm trong wrapper code-only (mất khi push trước P1) |
+| --- | --- | --- |
+| Examples | 71% | 1.259 / 3.338 (38%) |
+| Templates | 76% | 465 / 803 (58%); 12/15 template nằm trong AppShell → frame rỗng |
+| AppShell.tsx | 23% (27 thẻ HTML thô, 28 className) | — |
+
+Wrapper kéo theo nhiều nhất: List 481, Container 422, Form 351, AppShell 260, TabPanel 47, PageHeader 26.
+
+Ba nhóm lệch:
+1. **Figma có, map chưa nối:** TopNavigation 114 lần dùng ↔ Top-Navigation/Mobile `12014:45167` (+ 8 set Nav-Action;
+   cố ý không có trong `figma-props.map.mjs`), PageHeader 74 ↔ Dashboard Header Type=Main, ô bảng viết JSX (TableText
+   152, TableMedia 49, TableBadges, TableActions, TableTags; push chỉ hiểu `columns.content`), AppShellAccount ↔
+   Avatar/Single, ColorSelector ↔ `373:97252`, TabItem ↔ `1576:2090`, InputConditions, UploaderFileItem,
+   DatePickerSheet, các phần Chat. 59/147 set contract đọc được chưa có component Zen nào map vào.
+2. **Figma có, contract chưa đọc:** trang ❖ Chart ra 0 set (Chart/Line-Chart `6643:63324`, Stack-Bar-Chart, Chart-Card),
+   Metric (`595:55188`), ◇ Master-Layout (Patterns/Pages/Density-Medium `4122:41885`, Header/Dashboard).
+3. **Figma không có component (vẽ thành frame / text):** Heading 295, List 265, Form* 158, ActionBar 45, Container 43,
+   Menu 28, Image/Thumbnail 28, TabPanel 22, Link 20.
+
+Ngoài ra: 119 thẻ HTML thô, 368 className (examples 340, templates 0).
+
+**Lộ trình (user duyệt 2026-10-12, theo thứ tự):** P1 push không bỏ nhánh · P2 dựng lại AppShell bằng component Zen
+khớp Master-Layout (thanh trên = DashboardHeader type="navigation", tài khoản = Avatar), push/pull hai chiều · P3 nối map
+nhóm 1, đọc lại nhóm 2 · P4 dọn HTML thô / className trong examples. Ước lượng 7–10 ngày (phiên "Kiểm tra tiến độ plan").
+Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo Figma (user, 2026-10-12).
+
+### P1 (2026-10-12)
+
+- `figma-push.mjs`: component không có set → frame các layer của nó (props node rồi children, bố cục theo CSS:
+  `WRAPPER_LAYOUT` List Gap/3XSmall, FormField/Fieldset Gap/XSmall, FormActions hàng Gap/Small về phải, PageHeader
+  Gap/XSmall; Container lề Margin-Comfortable), chỉ có chữ → TEXT, không có gì → bỏ kèm ghi chú; một ghi chú gộp mỗi
+  component. Heading → TEXT theo text style của level. Menu → trigger. AppShellAccount → Avatar/Single (ảnh hoặc chữ
+  tắt như Avatar). PageHeader → Dashboard Header Type=Main (title, Child, SubHeading, Action-Slots, Trailing-Slots;
+  breadcrumbs / eyebrow / meta / tabs là layer quanh nó). AppShell → frame `AppShell`: Sidebar (fill cao) + `Column`
+  [`Header` (Padding/Small · Margin-Comfortable) › Dashboard Header Type=Navigation: Leading = nút thu gọn + `header`,
+  Center = `headerCenter`, Trailing = `headerActions`; `Sections` (Gap/Large); `Main`; footer; floating action ghim góc
+  dưới phải] + aside; banner phía trên. Screen chrome (`screen-chrome.mjs`): desktop Sidebar + `Main` [`Header`
+  (Padding/XLarge), `Content`], mobile Top / Bottom navigation quanh `Content`. Mọi layer của Screen (không chỉ layer
+  đầu) và đều fill ngang.
+- Sửa lỗi gặp khi làm: toggle của Dashboard Header (`Nav-Trailing-Block`, `Actions`…) bị ghi false khi slot có nội dung
+  (slot ẩn trong Figma); con của Sidebar vào `Header-Content` thay vì `Body-Content`, mục `selectedId` không Select=Yes;
+  key của frame gốc trùng key layer con; Overlay bị ghi chú thành "only the first Screen"; ghi chú trùng gộp (×n).
+  Export › Figma báo lỗi khi trang không có gì đặt được, thay vì tải frame rỗng.
+- Kiểm tra: selftest figma-push 52 (thêm AppShell, Screen chrome, PageHeader, wrapper, Heading, Menu, trang rỗng); E2E
+  HO-10 (Export › Figma của trang AppShell); importer của plugin chạy trên gói Dashboard bằng mock trong test của plugin:
+  dựng frame không lỗi (plugin không cần sửa). Trang Dashboard thật: 1 → 125 layer; Admin list: 1 → 158.
+- Còn lại cho P3: ChartCard / LineChart / StackBarChart vẫn bị bỏ (chưa có set trong contract), MetricCard `trend` /
+  `action`, ListItem `leading`, ListBox `header` chưa có slot Figma.

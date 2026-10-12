@@ -175,6 +175,86 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
   ok("a data prop (subAction) is named as not written", notes.some((note) => /subAction is data/.test(note)));
 }
 
+// 8. A component with no Figma set keeps what it holds (2026-10-12: an AppShell page imported as an empty frame): the
+//    AppShell as the Zen components it renders, the Screen's app frame, PageHeader as the Dashboard header Type=Main,
+//    wrappers as frames of their layers, Heading as text, a Menu as its trigger.
+const SHELL = `// @zen-page {"format":1,"title":"Team"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Team" device="desktop">
+        <AppShell
+          sidebar={<Sidebar aria-label="Main" selectedId="people">
+            <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
+            <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+          </Sidebar>}
+          header={<Breadcrumbs items={[{ id: "team", label: "Team" }]} />}
+          headerActions={<Stack direction="row" gap="sm" align="center">
+            <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} />
+            <Menu trigger={<AppShellAccount name="Khoa Dang" />} items={[{ id: "out", label: "Sign out" }]} />
+          </Stack>}
+        >
+          <Container>
+            <Stack gap="lg">
+              <PageHeader title="Team members" description="12 people" actions={<Stack direction="row" gap="sm"><Button level="tertiary">Export</Button><Button>Invite</Button></Stack>} />
+              <Heading level={2}>Admins</Heading>
+              <List>
+                <ListItem title="Ava Chen" />
+                <ListItem title="Linh Hoang" />
+              </List>
+            </Stack>
+          </Container>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame, notes } = push(SHELL);
+  const shell = frame.children[0];
+  check("AppShell: a row of the Sidebar (fill height) and its column (fill width), filling the frame", { name: shell?.name, mode: shell?.layout.mode, fillW: shell?.fillW, parts: shell?.children.map((child) => [child.set?.name ?? child.name, Boolean(child.fillH), Boolean(child.fillW)]) }, { name: "AppShell", mode: "HORIZONTAL", fillW: true, parts: [["Side-Bar/Master/Basic", true, false], ["Column", false, true]] });
+  const sidebar = shell.children[0];
+  check("AppShell: Sidebar rows in Body-Content, the selected one Select Yes", sidebar.slots?.map((slot) => [slot.name, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), [["Body-Content", ["Home:No", "People:Yes"]]]);
+  const column = shell.children[1];
+  check("AppShell: its column is the top bar (Header) then the page (Main)", column.children.map((child) => child.name), ["Header", "Main"]);
+  const bar = column.children[0].children[0];
+  check("AppShell: the top bar is the Dashboard header Type=Navigation, padded Padding/Small · Margin-Comfortable", { set: bar.set.name, type: bar.props.Type, padding: column.children[0].layout.padding }, { set: "Primitives/Dashboard/Header", type: "Navigation", padding: [12, 24, 12, 24] });
+  check("AppShell: Leading-Slots the collapse toggle and the header, Trailing-Slots the actions and the account's Avatar", bar.slots.map((slot) => [slot.name, slot.children.map((child) => child.set.name)]), [["Leading-Slots", ["Button/Icon-Flat", "Breadcrumbs"]], ["Trailing-Slots", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]);
+  check("a slot with content turns its block on (Nav-Trailing-Block), one without stays off", [bar.props["Nav-Trailing-Block"], bar.props["Nav-Center-Block"]], [true, false]);
+  const account = find(bar, (node) => node.set?.name === "Avatar/Single");
+  check("AppShellAccount (a Menu's trigger): its Avatar, named by the person, the initials", [account?.name, account?.text, account?.props.Size], ["Khoa Dang", "KD", "Medium"]);
+  const main = column.children[1];
+  const container = main.children[0];
+  check("Container: a frame of its layers with the gutter (Margin-Comfortable each side)", [container?.name, container?.layout.padding, container?.fillW], ["Container", [0, 24, 0, 24], true]);
+  const header = find(main, (node) => node.props?.Type === "Main");
+  check("PageHeader: the Dashboard header Type=Main, its title, SubHeading and actions (Actions on)", [header?.text, header?.texts?.SubHeading, header?.props.Actions, header?.slots?.[0]?.name, header?.slots?.[0]?.children.map((button) => button.text)], ["Team members", "12 people", true, "Action-Slots", ["Export", "Invite"]]);
+  check("Heading: text in its level's style (h2 Heading/4)", find(main, (node) => node.type === "TEXT" && node.characters === "Admins")?.textStyle, "Heading/4");
+  const list = find(main, (node) => node.name === "List");
+  check("List: a frame of its rows, Gap/3XSmall", [list?.type, list?.layout.gap, list?.children.map((row) => row.set.name)], ["FRAME", 2, ["List-Item", "List-Item"]]);
+  ok("the wrappers are named in one note each", notes.includes("Container: no Figma component, drawn as a frame of its layers (or as its text)") && notes.includes("List: no Figma component, drawn as a frame of its layers (or as its text)"));
+  const keys = []; const walk = (node) => { keys.push(node.key); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  check("AppShell: every layer keyed, no key twice (the frame by the Screen, not its AppShell)", { all: keys.every(Boolean), unique: new Set(keys).size === keys.length, root: frame.key !== shell.key }, { all: true, unique: true, root: true });
+}
+{
+  // The Screen's app frame (screen-chrome.mjs): Sidebar beside a column of the Page header and the page.
+  const chrome = SHELL.replace(/<AppShell[\s\S]*<\/AppShell>/, '<Stack gap="md"><Heading level={1}>Team</Heading></Stack>').replace('device="desktop">', 'device="desktop" header={<PageHeader title="Team" />} sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>} topNavigation={<Heading>Phone only</Heading>}>');
+  const { frame, notes } = push(chrome);
+  const screen = frame.children[0];
+  check("Screen chrome (desktop): Sidebar beside Main › Header (Padding/XLarge) and Content; the phone's parts wait", { parts: screen?.children.map((child) => child.set?.name ?? child.name), main: screen?.children[1]?.children.map((child) => child.name), header: screen?.children[1]?.children[0]?.layout.padding }, { parts: ["Side-Bar/Master/Basic", "Main"], main: ["Header", "Content"], header: [24, 24, 0, 24] });
+  ok("Screen chrome: nothing noted as not pushed", !notes.some((note) => /^Screen /.test(note)));
+}
+{
+  const empty = SHELL.replace(/<AppShell[\s\S]*<\/AppShell>/, "<Menu items={[]} />");
+  const { pkg, notes } = figmaPackage(empty, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "p" } });
+  check("a page with nothing Figma can place gives no package, and says why", [pkg, /^nothing on the page has a place in Figma/.test(notes[0] ?? "")], [null, true]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

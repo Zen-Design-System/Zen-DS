@@ -875,6 +875,13 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Zen Studio → Figma: an app page no longer imports as an empty frame. A component with no Figma set is drawn with
+  what it holds instead of being left out with everything inside it: AppShell as its Sidebar and a top bar of Figma's
+  Dashboard header Type=Navigation (collapse toggle, header, actions, the account's Avatar), the Screen's own Sidebar
+  and Page header, PageHeader as the Dashboard header Type=Main, Heading as text in its level's style, a Menu as its
+  trigger, List / Container / Form… as frames of their layers. A Sidebar's rows go in Body-Content with the selected
+  one marked, a Dashboard header turns on the blocks whose slots hold content, and Export › Figma says why when nothing
+  on a page can go to Figma rather than downloading an empty frame.
 - `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
   component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in

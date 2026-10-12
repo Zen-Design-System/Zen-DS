@@ -14,6 +14,7 @@
 // no network).
 import { docFromText } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
@@ -59,11 +60,36 @@ const SLOT_OF_PROP = {
   DashboardHeader: { leading: "Leading-Slots", center: "Center-Slots", trailing: "Trailing-Slots", controls: "Control-Slots", actions: "Action-Slots" },
 };
 /** The slot a component's children go in, where it is not the set's first. */
-const CHILD_SLOT = { DashboardHeader: "Custome-Elements" };
+const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
 const ITEM_ICON = { Segmented: "leading" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
 const PICTURED = new Set(["Avatar", "Image", "Thumbnail", "AppShellAccount"]);
+/** Heading's text style when it sets none (src/components/Text/Text.tsx headingStyleByLevel). */
+const HEADING_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
+/**
+ * Code-only components (no Figma set) are drawn as a frame of their layers named by the component, in the layout their
+ * CSS gives; any other one is a column with nothing between its layers.
+ */
+const WRAPPER_LAYOUT = {
+  List: { gap: "3xs" }, // list-item.css .zen-list
+  FormField: { gap: "xs" }, // form.css: Input outside-field gap
+  FormFieldset: { gap: "xs" },
+  FormActions: { direction: "row", gap: "sm", align: "center", justify: "end", wrap: true }, // form.css .zen-form-actions
+  PageHeader: { gap: "xs" }, // page-header.css .zen-page-header
+};
+/** PageHeader props as the Dashboard header Type=Main draws them (DashboardHeader's props). */
+const PAGE_HEADER_PROPS = { title: "title", childTitle: "childTitle", description: "subheading", actions: "actions", trailing: "trailing" };
+/** AppShell's rows (app-shell.css): the top bar and each section pad Padding/Small above and below, Margin-Comfortable on the sides. */
+const SHELL_ROW_PADDING = [12, 24, 12, 24];
+/** Margin-Comfortable: Container's gutter (layout.css) and the floating action's inset (app-shell.css). */
+const MARGIN_COMFORTABLE = 24;
+
+const literal = (value) => ({ kind: "literal", value });
+/** A page element the push makes itself, to draw a code-only component with the Zen components it renders. */
+const elementOf = (name, props, children = []) => ({ kind: "element", name, props: Object.fromEntries(Object.entries(props).filter(([, value]) => value)), children });
+/** "Ava Chen" → "AC": the first letters of the first two words, as Avatar draws a name without a photo (Avatar.tsx). */
+const initialsOf = (name) => String(name ?? "").split(/\s+/).filter(Boolean).slice(0, 2).map((part) => Array.from(part)[0]).join("").toUpperCase() || "?";
 
 const short = (step) => LONG_TO_SHORT[step] ?? step;
 const pxOf = (step, table) => table.find(([, key]) => key === short(step))?.[0];
@@ -96,7 +122,7 @@ function setsByCode(mapping) {
  * mapped property whose code value is known (written, else the code default), by Figma name and Figma option.
  * `only`: write just these code props (a nested override names what it changes).
  */
-function figmaProps(entry, code, mapping, notes, where, only = null) {
+function figmaProps(entry, code, mapping, notes, where, only = null, filled = null) {
   const props = {};
   const defaults = mapping.apiProps[entry.code];
   const valueOf = (prop) => (prop in code ? code[prop] : only ? undefined : defaults?.get(prop));
@@ -123,8 +149,8 @@ function figmaProps(entry, code, mapping, notes, where, only = null) {
     if (only && !only.has(toggle.prop)) continue;
     if (!ownedBySet(toggle.label)) continue;
     // On whenever the prop holds something: an icon, a slot's content, a text (Subheading's "96 results" is only what
-    // the pull writes for a toggle without content).
-    const value = valueOf(toggle.prop);
+    // the pull writes for a toggle without content). `filled`: the props that hold layers or data (not in `code`).
+    const value = filled?.has(toggle.prop) ? true : valueOf(toggle.prop);
     props[toggle.label] = value !== undefined && value !== false && value !== null && value !== "";
   }
   for (const swap of swaps.values()) props[swap.name] = swap.icon;
@@ -157,7 +183,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const byCode = setsByCode(mapping);
   const screen = doc.board.children.find((child) => child.kind === "element" && child.name === "Screen");
   if (!screen) return { frame: null, notes: ["the page has no Screen"] };
-  if (doc.board.children.filter((child) => child.kind === "element").length > 1) notes.push("only the first Screen is pushed");
+  const boardElements = doc.board.children.filter((child) => child.kind === "element");
+  if (boardElements.filter((child) => child.name === "Screen").length > 1) notes.push("only the first Screen is pushed");
+  const overlays = boardElements.filter((child) => child.name === "Overlay").length;
+  if (overlays) notes.push(`${overlays} Overlay${overlays > 1 ? "s" : ""} (dialogs and sheets the page opens): not pushed`);
+  /** Code-only components drawn as a frame of their layers (or as their text), by name: one note each at the end. */
+  const framed = new Map();
+  const countFramed = (name) => framed.set(name, (framed.get(name) ?? 0) + 1);
 
   // Each node carries its element's document id (`key`): the plugin keeps it on the layer, so importing the page again
   // updates the same layers (Zen plugin src/plugin/studio-import.js).
@@ -183,13 +215,19 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const code = codeProps(element);
     let node;
     if (element.name === "Stack" || element.name === "Grid" || element.name === "Box") node = frameNode(element, code, id, parent);
-    else if (element.name === "Text") {
+    else if (element.name === "Text" || element.name === "Heading") {
       const align = { center: "CENTER", end: "RIGHT", justify: "JUSTIFIED" }[code.align];
-      node = { type: "TEXT", ...(id ? { id } : {}), characters: textOf(element), ...(code.textStyle ? { textStyle: code.textStyle } : {}), ...(align ? { align } : {}) };
+      const textStyle = code.textStyle ?? (element.name === "Heading" ? HEADING_STYLE[code.level ?? 2] : undefined);
+      node = { type: "TEXT", ...(id ? { id } : {}), characters: textOf(element), ...(textStyle ? { textStyle } : {}), ...(align ? { align } : {}) };
     } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {} };
     else if (element.name === "SidebarMenuItem") node = itemNode(SETS.menuItem, code, { id });
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id);
+    else if (element.name === "AppShell") node = appShellNode(element, code, id);
+    else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
+    else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
+    // A Menu draws its trigger on the page; its items open in a popover.
+    else if (element.name === "Menu" && element.props.trigger?.kind === "element") node = convertElement(element.props.trigger.node, parent);
     else node = instanceNode(element, code, id);
     if (node && code.position === "absolute") node.absolute = absoluteOf(code);
     return node;
@@ -217,6 +255,113 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const count = typeof code.count === "number" ? code.count : 0;
     const props = { Notification: Boolean(code.dot) || count > 0, ...(code.appearance === "flat" ? { Theme: "Flat" } : {}), ...(count > 0 ? { "Noti-type": "Number" } : {}) };
     return { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : "Action", set: SETS.actionItem, props, ...(count > 0 ? { textList: [String(count)] } : {}), ...(typeof code.icon === "string" ? { swapIcon: code.icon } : {}) };
+  }
+
+  /**
+   * A code-only component (no Figma set) as a frame of its layers, named by the component, so nothing inside it is lost:
+   * the layers in its node props, then its children, in its CSS layout (WRAPPER_LAYOUT; Container's gutter). One with
+   * text and no layers (a Link) is its text; one with neither is left out.
+   */
+  function wrapperNode(element, code, id, where) {
+    const layers = [
+      ...Object.values(element.props).filter((value) => value.kind === "element").map((value) => value.node),
+      ...element.children.filter((child) => child.kind === "element"),
+    ];
+    const label = textOf(element).trim();
+    if (!layers.length && label) {
+      countFramed(element.name);
+      return { type: "TEXT", ...(id ? { id } : {}), characters: label };
+    }
+    const shape = WRAPPER_LAYOUT[element.name] ?? {};
+    const gutter = element.name === "Container" && code.gutter !== false ? { paddingX: "xl" } : {};
+    const frame = layers.length ? frameNode(elementOf("Stack", {}, layers), { gap: "none", ...shape, ...gutter }, id) : null;
+    if (!frame?.children.length) {
+      notes.push(`${where}: no Figma set for ${element.name} (left out)`);
+      return null;
+    }
+    countFramed(element.name);
+    return { ...frame, name: element.name };
+  }
+
+  /** A row frame of layers (the AppShell's parts), nothing between them. */
+  const shellFrame = (name, mode, children, extra = {}) => ({ type: "FRAME", name, layout: { mode, gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: children.filter(Boolean), ...extra });
+  const layerOf = (element, prop) => (element.props[prop]?.kind === "element" ? element.props[prop].node : null);
+  /** A node prop's layers: a Stack of layout props alone gives its layers (as slotLayers does), anything else itself. */
+  const layersOf = (element, prop) => {
+    const node = layerOf(element, prop);
+    if (!node) return [];
+    return node.name === "Stack" && !Object.keys(node.props).some((name) => !["gap", "direction", "align", "justify", "wrap"].includes(name)) ? node.children.filter((child) => child.kind === "element") : [node];
+  };
+
+  /**
+   * AppShell with the Zen components it renders (app-shell.css), named by Zen: the Sidebar, then a column of the top bar
+   * (Figma's Dashboard header Type=Navigation: the collapse toggle and `header` in Leading-Slots, `headerCenter` in
+   * Center-Slots, `headerActions` in Trailing-Slots), the `sections` rows, the page (`children`) and the `footer`, the
+   * floating action pinned bottom right; the docked `aside` last.
+   */
+  function appShellNode(element, code, id) {
+    const sidebar = layerOf(element, "sidebar");
+    const overrides = plain(element.props.overrides) ?? {};
+    const hasTopBar = ["header", "headerCenter", "headerActions"].some((prop) => layerOf(element, prop));
+    // The collapse toggle (AppShell.tsx showCollapseToggle): a Zen Sidebar that is not the workspace rail, with a top bar.
+    const collapsed = literalOf(sidebar?.props.collapsed) ?? code.defaultSidebarCollapsed ?? code.sidebarCollapsed ?? false;
+    const toggle = hasTopBar && code.sidebarToggle !== false && sidebar?.name === "Sidebar" && literalOf(sidebar.props.variant) !== "workspace" && code.layout !== "drawer"
+      ? elementOf("IconButton", Object.fromEntries(Object.entries({ appearance: "flat", level: "primary", size: "md", icon: collapsed ? "icon-layout-right-line" : "icon-layout-left-line", "aria-label": collapsed ? "Expand sidebar" : "Collapse sidebar", ...(overrides.Collapse ?? {}) }).map(([name, value]) => [name, literal(value)])))
+      : null;
+    const leading = [toggle, ...layersOf(element, "header")].filter(Boolean);
+    const topBar = hasTopBar ? instanceNode(elementOf("DashboardHeader", {
+      type: literal("navigation"),
+      leading: leading.length ? { kind: "element", node: elementOf("Stack", { direction: literal("row"), gap: literal("md"), align: literal("center") }, leading) } : null,
+      center: element.props.headerCenter?.kind === "element" ? element.props.headerCenter : null,
+      trailing: element.props.headerActions?.kind === "element" ? element.props.headerActions : null,
+    }), { type: "navigation" }) : null;
+    const stretch = { direction: "column", stretch: true };
+    const filling = (layers) => layers.map((layer) => convert(layer, stretch)).filter(Boolean).map((node) => (node.absolute ? node : { ...node, fillW: true }));
+    const sections = filling(layersOf(element, "sections"));
+    const floating = layerOf(element, "floatingAction") ? convert(layerOf(element, "floatingAction"), stretch) : null;
+    const column = shellFrame("Column", "VERTICAL", [
+      topBar && shellFrame("Header", "VERTICAL", [{ ...topBar, fillW: true }], { layout: { mode: "VERTICAL", gap: 0, padding: SHELL_ROW_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
+      // Each section row pads Padding/Small above and below: Gap/Large between rows.
+      sections.length && shellFrame("Sections", "VERTICAL", sections, { layout: { mode: "VERTICAL", gap: 24, gapVar: "Spacing/Gap/Large", padding: SHELL_ROW_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
+      shellFrame("Main", "VERTICAL", filling(element.children.filter((child) => child.kind === "element")), { fillW: true }),
+      ...filling(layersOf(element, "footer")),
+      floating && { ...floating, absolute: { cx: "MAX", cy: "MAX", left: 0, right: MARGIN_COMFORTABLE, top: 0, bottom: MARGIN_COMFORTABLE } },
+    ], { fillW: true });
+    const aside = layerOf(element, "aside") ? convert(layerOf(element, "aside"), { direction: "row", stretch: true }) : null;
+    const row = [sidebar ? convert(sidebar, { direction: "row", stretch: true }) : null, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
+    const banner = layersOf(element, "banner");
+    if (!banner.length) return shellFrame("AppShell", "HORIZONTAL", row, id ? { id } : {});
+    return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], id ? { id } : {});
+  }
+
+  /** AppShellAccount: the Avatar it draws (Avatar/Single Circle Medium), its photo or the name's initials. */
+  function accountNode(element, code, id) {
+    const own = plain(element.props.overrides)?.Avatar ?? {};
+    const props = Object.fromEntries(Object.entries({ size: "md", shape: "circle", ...(code.theme ? { theme: code.theme } : {}), ...(code.src ? { src: code.src } : {}), alt: code.name ?? "", ...own }).map(([name, value]) => [name, literal(value)]));
+    const node = instanceNode(elementOf("Avatar", props, code.src ? [] : [{ kind: "text", value: initialsOf(code.name) }]), codeProps({ props }), id);
+    return node && typeof code.name === "string" ? { ...node, name: code.name } : node;
+  }
+
+  /**
+   * PageHeader as Figma's Dashboard header Type=Main (title, Child, SubHeading, Action-Slots, Trailing-Slots), with its
+   * breadcrumbs, eyebrow, meta and tabs as the layers around it (page-header.css: a column, Gap/XSmall).
+   */
+  function pageHeaderNode(element, code, id) {
+    const props = { type: literal("main") };
+    for (const [from, to] of Object.entries(PAGE_HEADER_PROPS)) if (element.props[from]) props[to] = element.props[from];
+    const header = instanceNode(elementOf("DashboardHeader", props), { ...codeProps({ props }) });
+    if (element.props.back) notes.push(`PageHeader${id ? ` (${id})` : ""} back: not pushed (no Back in Figma's Dashboard header)`);
+    const around = (prop) => {
+      const value = element.props[prop];
+      if (value?.kind === "element") return convert(value.node, { direction: "column", stretch: false });
+      if (value?.kind === "literal" && typeof value.value === "string") return { type: "TEXT", characters: value.value };
+      return null;
+    };
+    const before = ["breadcrumbs", "eyebrow"].map(around).filter(Boolean);
+    const after = ["meta", "tabs"].map(around).filter(Boolean);
+    if (!header || (!before.length && !after.length)) return header ? { ...header, ...(id ? { id } : {}) } : null;
+    const frame = { type: "FRAME", ...(id ? { id } : {}), name: "PageHeader", layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [...before, { ...header, fillW: true }, ...after] };
+    return frame;
   }
 
   const fills = (element, parent) => {
@@ -377,11 +522,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   function instanceNode(element, code, id) {
     const where = `${element.name}${id ? ` (${id})` : ""}`;
     const entry = entryFor(element.name, code, byCode, mapping);
-    if (!entry) {
-      notes.push(`${where}: no Figma set for ${element.name} (left out)`);
-      return null;
-    }
-    const props = figmaProps(entry, code, mapping, notes, where);
+    if (!entry) return wrapperNode(element, code, id, where);
+    const filled = new Set(Object.entries(element.props).filter(([name, value]) => name !== "overrides" && ["element", "array", "object"].includes(value.kind)).map(([name]) => name));
+    const props = figmaProps(entry, code, mapping, notes, where, null, filled);
     const node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : entry.name, set: { id: entry.id, name: entry.name }, props };
     const label = textOf(element);
     if (label) node.text = label;
@@ -410,8 +553,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const layers = element.children.filter((child) => child.kind === "element");
     if (layers.length) {
       const taken = new Set(slots.map((slot) => slot.name));
-      const name = CHILD_SLOT[element.name] ?? (entry.slots ?? []).find((slot) => !taken.has(slot)) ?? "Content";
-      slots.push({ name, children: layers.map((child) => convert(child, { direction: "column", stretch: true })).filter(Boolean) });
+      const own = CHILD_SLOT[element.name];
+      const name = (own && (!entry.slots || entry.slots.includes(own)) ? own : null) ?? (entry.slots ?? []).find((slot) => !taken.has(slot)) ?? "Content";
+      // A row the component marks selected (Sidebar selectedId → its SidebarMenuItem's Select Yes).
+      const selected = SELECTED_PROP[element.name] ? code[SELECTED_PROP[element.name]] : undefined;
+      slots.push({ name, children: layers.map((child) => {
+        const layer = convert(child, { direction: "column", stretch: true });
+        if (layer?.props && "Select" in layer.props && selected !== undefined && literalOf(child.props.id) === selected) layer.props.Select = "Yes";
+        return layer;
+      }).filter(Boolean) });
     }
     if (slots.length) node.slots = slots;
     const overrides = element.props.overrides;
@@ -434,10 +584,38 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
 
   const title = literalOf(screen.props.title) ?? doc.header?.title ?? "Studio page";
   const device = literalOf(screen.props.device) ?? "desktop";
-  const content = screen.children.find((child) => child.kind === "element");
-  const root = content && content.name === "Stack" ? frameNode(content, codeProps(content), figmaIdOf(content.id)) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: content ? [convert(content, null)].filter(Boolean) : [] };
-  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device"].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
-  if (content?.id && root.type === "FRAME") root.key = content.id;
+  // The Screen's app frame (screen-chrome.mjs; builder runtime Screen): the desktop layout's Sidebar and Page header, the
+  // mobile layout's Top and Bottom navigation, around the page. The other layout's parts wait for a device change.
+  const active = screenLayout(device, literalOf(screen.props.layout));
+  const chromeProps = SCREEN_CHROME.map((part) => part.prop);
+  const chromeOf = (prop) => (SCREEN_CHROME.some((part) => part.prop === prop && part.layout === active) && screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
+  const chrome = chromeProps.some(chromeOf);
+  const layers = screen.children.filter((child) => child.kind === "element");
+  const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
+  // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
+  const filled = (node) => (node.absolute ? node : { ...node, fillW: true });
+  const page = rootStack ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true })).filter(Boolean).map(filled);
+  const column = (name, children, extra = {}) => ({ type: "FRAME", name, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: children.filter(Boolean), ...extra });
+  const part = (prop, parent) => (chromeOf(prop) ? convert(chromeOf(prop), parent) : null);
+  let body = page;
+  if (chrome && active === "desktop") {
+    const sidebar = part("sidebar", { direction: "row", stretch: true });
+    const header = part("header", { direction: "column", stretch: true });
+    const main = column("Main", [
+      // builder.css .studio-builder-screen__header: Padding/XLarge above and on the sides.
+      header && column("Header", [filled(header)], { layout: { mode: "VERTICAL", gap: 0, padding: [24, 24, 0, 24], counter: "MIN", primary: "MIN" }, fillW: true }),
+      column("Content", page, { fillW: true }),
+    ], { fillW: true });
+    body = [{ type: "FRAME", name: "Screen", layout: { mode: "HORIZONTAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [sidebar && { ...sidebar, fillH: true }, main].filter(Boolean), fillW: true }];
+  } else if (chrome) {
+    body = [part("topNavigation", { direction: "column", stretch: true }), column("Content", page, { fillW: true }), part("bottomNavigation", { direction: "column", stretch: true })].filter(Boolean).map(filled);
+  }
+  const root = rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id)) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
+  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
+  // The frame is keyed by the Stack it draws, else by the Screen (its layers keep their own keys).
+  if (rootStack && layers[0].id) root.key = layers[0].id;
+  else if (screen.id) root.key = screen.id;
+  for (const [name, count] of framed) notes.push(`${name}${count > 1 ? ` ×${count}` : ""}: no Figma component, drawn as a frame of its layers (or as its text)`);
   const frame = { ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop, ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}) };
   if (doc.header?.figma?.node) frame.id = doc.header.figma.node;
   // Layers the push draws itself (a Table's rows and cells, a data slot's items, a section) take their parent's key and
@@ -448,13 +626,18 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     (node.slots ?? []).forEach((slot) => slot.children.forEach((child, index) => keyed(child, node.key, `${slot.name}.${index}`)));
   };
   keyed(frame, "page", 0);
-  return { frame, notes, images: [...images] };
+  // The same note for several layers (a MetricCard's trend on four cards) once, with its count.
+  const counted = new Map();
+  for (const note of notes) counted.set(note, (counted.get(note) ?? 0) + 1);
+  return { frame, notes: [...counted].map(([note, count]) => (count > 1 ? `${note} (×${count})` : note)), images: [...images] };
 }
 
 /** The file the Zen plugin's Import from Studio reads: `{ format: "zen-studio-figma", version: 1, page, frame }`. */
 export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId } = {}) {
   const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId });
   if (!frame) return { pkg: null, notes, images: [] };
+  // A frame with nothing in it would import as an empty frame: say why instead.
+  if (!frame.children?.length) return { pkg: null, notes: [`nothing on the page has a place in Figma${notes.length ? ` (${notes.join("; ")})` : ""}`], images: [] };
   // `images`: picture source → base64 bytes, which the caller fills (the Studio reads its uploads and the dev server's
   // files; the CLI reads repo files): a picture left null keeps the component's own.
   return { pkg: { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame, images: Object.fromEntries(images.map((src) => [src, null])) }, notes, images };
