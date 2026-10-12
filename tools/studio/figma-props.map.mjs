@@ -431,5 +431,7 @@ export const FIGMA_PROPS = {
   },
   EmptyState: { sets: { "Empty-State": null }, props: { CTA: { toggle: "primaryAction", on: ACTION } } },
   InputConditionItem: { sets: { "Primitives/Input/Input-Conditions/Condition-Item": null }, props: { State: "state" } },
+  // The list around them: its Item-List slot holds the Condition-Items (the element's children).
+  InputConditions: { sets: { "Input-Conditions": null }, props: { "Item-List": skip("content slot (Slots section)"), State: "state" } },
   ControlBarSelectItem: { sets: { "Control-Bar/Select-Item": null }, props: { "Icon-Src": "icon", Theme: "theme", State: "state" } },
 };

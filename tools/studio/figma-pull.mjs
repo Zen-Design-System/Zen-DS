@@ -398,6 +398,8 @@ const SLOT_PROPS = {
 const ROW_ELEMENTS = { "Primitives/Side-Bar/Menu-Item/Master": "SidebarMenuItem" };
 /** The prop that names a data slot's selected item (Figma's Select = Yes on the item). */
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
+/** Components whose text prop is a plain text layer of their set (figma-push TEXT_PROP): the instance's text is it. */
+const TEXT_PROP = { InputConditionItem: "label" };
 /** An item's icon field where it is not `icon` (SegmentedOption `leading`). */
 const ITEM_ICON = { Segmented: "leading" };
 /* ── tables ──────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -1019,6 +1021,7 @@ function convertNode(node, ctx) {
       slotted.push(slot);
     }
     ctx.ids = outerIds;
+    if (TEXT_PROP[set.code] && typeof node.text === "string" && node.text && !props[TEXT_PROP[set.code]]) props[TEXT_PROP[set.code]] = literal(node.text);
     let children = props.children && !node.slots?.length ? [{ kind: "text", value: props.children.value }] : [];
     const slottedLayers = slotted.flatMap((slot) => slot.children ?? []);
     if (slottedLayers.length && takesChildren) children = slottedLayers.map((child) => convert(child, ctx)).filter(Boolean);

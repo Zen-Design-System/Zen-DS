@@ -102,6 +102,8 @@ const SURFACES = new Set(["Card", "ChartCard", "MetricCard", "Accordion", "SideP
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
 const ITEM_ICON = { Segmented: "leading" };
+/** Components whose text prop is a plain text layer of their set (no Figma text property): it is the instance's text. */
+const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
 const PICTURED = new Set(["Avatar", "Image", "Thumbnail", "AppShellAccount"]);
 /** Heading's text style when it sets none (src/components/Text/Text.tsx headingStyleByLevel). */
@@ -1060,7 +1062,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const filled = new Set(Object.entries(element.props).filter(([name, value]) => name !== "overrides" && ["element", "array", "object"].includes(value.kind)).map(([name]) => name));
     const props = figmaProps(entry, code, mapping, notes, where, null, filled);
     const node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : entry.name, set: { id: entry.id, name: entry.name }, props };
-    const label = textOf(element);
+    const label = textOf(element) || (TEXT_PROP[element.name] && typeof code[TEXT_PROP[element.name]] === "string" ? code[TEXT_PROP[element.name]] : "");
     if (label) node.text = label;
     const slots = [];
     const dataSlots = mapping.dataSlots?.[element.name] ?? [];

@@ -2494,6 +2494,20 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "InputConditions": {
+    "figma": "373:97663",
+    "own": [
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "ControlBarSelectItem": {
     "figma": "9021:27379",
     "own": [

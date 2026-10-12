@@ -702,6 +702,36 @@ export default function Page() {
   ok("round trip: a small subtle Tabs keeps its size (read from its items)", back.includes('<Tabs variant="subtle" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} defaultValue="list" size="sm" />') && views.slots[0].children[0].props.Size === "Small");
 }
 
+// 19. InputConditions as Figma's Input-Conditions (2026-10-13): its Condition-Items in the Item-List slot, each one's
+//     label its text (the set has no text property); the pull gives the labels back.
+{
+  const page = `// @zen-page {"format":1,"title":"Password"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { InputConditionItem, InputConditions, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Password" device="desktop">
+        <Stack>
+          <InputConditions>
+            <InputConditionItem label="At least 8 characters" state="success" />
+            <InputConditionItem label="One symbol" />
+          </InputConditions>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [list] = frame.children;
+  check("InputConditions: Input-Conditions, its Condition-Items in Item-List with their state and label", [list.set.id, list.slots[0].name, list.slots[0].children.map((item) => [item.set.id, item.props.State, item.text])], ["373:97663", "Item-List", [["373:97437", "Success", "At least 8 characters"], ["373:97437", "Default", "One symbol"]]]);
+  check("round trip: InputConditions comes back with its items' labels", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
