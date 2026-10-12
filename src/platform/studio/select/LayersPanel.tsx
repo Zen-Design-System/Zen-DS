@@ -11,7 +11,7 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { frameLabel } from "../inspector/frames";
-import { focusSlot } from "../slots/actions";
+import { focusSlot, selectedSlotOf, useSlotFocusRequest } from "../slots/actions";
 import { layerSlotsOf } from "../slots/layers";
 import { dataItemRootOf, itemParts, renderedItemTitle } from "../slots/dataItems";
 import { itemSelection, useItemSelection } from "../slots/itemSelection";
@@ -26,7 +26,7 @@ import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
 import { layerName, MAIN_FRAME, variantKey, variantRoot } from "../mainComponent/model";
-import type { StudioVariantRef } from "../types";
+import type { StudioSelection, StudioVariantRef } from "../types";
 import "./select.css";
 
 /*
@@ -516,13 +516,13 @@ function selectNode(node: LayerNode) {
       selection: { kind: "node", src: node.src, name: node.name, frameId: node.frameId, panelId: panelOf(hit?.hosts[0]), instance: node.instance },
     });
   } else if (node.kind === "slot" && node.owner?.src && node.slot) {
-    // A slot is part of its component: the component is selected and the inspector shows that slot's block.
+    // A slot is part of its component: the component is selected and the inspector shows that slot's block. The row stays
+    // the selected one (⌘V pastes into that slot) until the selection changes.
     const owner = node.owner;
     const ownerHit = owner.fiber ? hitOf(owner.fiber) : null;
-    studioStore.setState({
-      selection: { kind: "node", src: owner.src!, name: owner.name, frameId: owner.frameId, panelId: panelOf(ownerHit?.hosts[0]), instance: owner.instance },
-    });
-    focusSlot(owner.src!, node.slot.prop);
+    const selection: StudioSelection = { kind: "node", src: owner.src!, name: owner.name, frameId: owner.frameId, panelId: panelOf(ownerHit?.hosts[0]), instance: owner.instance };
+    studioStore.setState({ selection });
+    focusSlot(owner.src!, node.slot.prop, selection);
   }
   const rect = hit ? rectOf(hit.hosts) : null;
   if (rect) canvasApi.ensureVisible(rect);
@@ -644,7 +644,11 @@ export function LayersPanel() {
   }, []);
 
   const part = selection?.kind === "node" ? selection.part : undefined;
-  const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : selection.kind === "variant" ? `variant:${variantKey(selection)}` : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
+  // A slot row clicked: its row is the selected one while its host stays selected (⌘V pastes into that slot).
+  useSlotFocusRequest();
+  const slotProp = selectedSlotOf(selection);
+  const slotId = selection?.kind === "node" && slotProp ? `${selection.src}#${selection.instance}/slot:${slotProp}` : null;
+  const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : selection.kind === "variant" ? `variant:${variantKey(selection)}` : slotId && tree.byId.has(slotId) ? slotId : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
   // A folded panel wrapper shows as its panel row.
   const selectedId = selectionId ? tree.aliases.get(selectionId) ?? selectionId : null;
 

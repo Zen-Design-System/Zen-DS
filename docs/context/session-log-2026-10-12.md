@@ -104,3 +104,20 @@
   order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
+
+## Studio: ⌘V into a slot (branch zen/fix/studio-paste-into-slot off 5ed7836, tier S; user: "Vẫn chưa copy trực tiếp được element khác vào trong slot")
+
+- Reproduced on page-header (Playwright on this worktree's :5185): ⌘V with Export (PageHeader › Actions) selected →
+  "PageHeader can't hold layers"; with the Action-Slots row selected in Layers → "Stack has no layer inside here".
+  Cause: ⌘V only knew layouts (isDropContainer) and children (op pasteCode); a prop slot was never a paste target, and
+  a Layers slot row selects its host, so the paste went beside the host.
+- Server (`tools/studio/slots.mjs`): insertChild gains `paste` (the code may read names bound where it lands, and may
+  hold several layers, put in a fragment where one expression is needed) and `after` (the slot layer it follows).
+  Selftest +12 (1949).
+- Client: `slots/actions.ts` pasteIntoSlot / slotPasteTarget (runInsert's body shared as insertCodeInSlot); a Layers
+  slot row stays the selected row while its host is selected (focusSlot remembers the selection), ⌘V goes to its end;
+  a layer of a prop slot gets the paste after it, ⇧⌘R swaps it (swapSelection).
+- Found on the way, fixed: a paste beside a layer an example's local `Page` lays out failed ("Stack has no layer
+  inside here": the canvas parent is Page's own Stack) → `clipboard.ts` sourceParent walks up to the ancestor whose
+  source holds the layer (`<Page>`).
+- E2E K-24 (layer in ListItem › leading), K-25 (slot row), K-26 (local wrapper; fixture gains ShellFixture, frame 11).

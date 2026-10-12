@@ -16,11 +16,11 @@ import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../
 import { attributeFormOf, constOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
 import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaption } from "./dataItems";
 import { itemGroup, itemTitle, type DataSlot } from "./dataSlots";
-import { frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
+import { containerOf, frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
 import { answeredLoc, isUnknownSlotOp, sendSlotEdit, type InsertChildOp, type ItemEditOp, type SlotEditApplied, type SlotEditOp, type SlotWrap } from "./ops";
 import { freshRow, groupedPlaces, itemsCode, rowFields, sectionEntries, sectionsCode, titleOf } from "./sectionList";
 import { paletteFor, type PaletteContext, type PaletteHostContext, type PaletteItem } from "./palette";
-import { headingLevelFor, hostPropsOf, insertTargetFor, isClickableHost, type ContentSlot, type HostProps } from "./registry";
+import { activeSlotsOf, headingLevelFor, hostPropsOf, insertTargetFor, isClickableHost, isLayoutPrimitive, slotOf, type ContentSlot, type HostProps } from "./registry";
 
 /*
  * Structural edits of example and template content (spec "Source ops" and "Client"): add a palette item to a content
@@ -768,12 +768,93 @@ async function runInsert({ selection, element, slot, item, context, warning }: I
   const content = slotContentOf(host, slot);
   if (content.insertBlock) return fail(content.insertBlock);
   const code = item.build(context ?? paletteFor(slotHostContext(selection, host, slot)).context);
+  return insertCodeInSlot(host, { selection, slot, code, label: item.label, root: item.root, requires: item.requires, state: item.state, warning });
+}
 
-  // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap).
+export type PasteIntoSlotRequest = {
+  /** The slot's host (a component instance with content slots). */
+  host: NodeSelection;
+  slot: ContentSlot;
+  /** The clipboard's one JSX element. */
+  code: string;
+  /** Its component ("Button"): the status names it, the canvas selects it under that name. */
+  name: string;
+  /** The layer the paste goes after; none: at the end of the slot (a Layers slot row). */
+  after?: NodeSelection;
+  /** The selection the paste was made from (the undo's; default `after`, else the host): a wrapped component's. */
+  from?: NodeSelection;
+  /** The useState values a copy from another file reads (declared where it lands, as pasteCode `state`). */
+  state?: readonly StateDecl[];
+};
+
+/**
+ * ⌘V into a content slot (user, 2026-10-12: "copy element khác vào trong slot"): the code goes after the selected layer
+ * of the slot, or at the slot's end when its Layers row is selected, with the slot's insert rules (a gap-less slot wraps,
+ * a column frame takes it). The code may read what exists where it lands (insertChild `paste`).
+ */
+export function pasteIntoSlot({ host, slot, code, name, after, from, state }: PasteIntoSlotRequest): Promise<boolean> {
+  return exclusive(async () => {
+    const check = canStructurallyEdit(host);
+    if (!check.ok) return fail(check.reason);
+    const element = await readElement(host.src, host.name);
+    if (!element) return false;
+    const content = slotContentOf(element, slot);
+    if (content.insertBlock) return fail(content.insertBlock);
+    const afterLoc = after ? parseSrc(after.src)?.loc : undefined;
+    if (after && !afterLoc) return fail(`${after.name}'s place is unknown — select it again`);
+    return insertCodeInSlot(element, { selection: host, slot, code, label: name, root: name, state, paste: { after: afterLoc, from: from ?? after ?? host } });
+  });
+}
+
+/**
+ * Where ⌘V goes when it goes into a content slot: the slot its Layers row selected (at its end), or the slot of the
+ * component that holds the selected layer, after that layer (PageHeader › Actions holds Export: a paste on Export goes
+ * after it in Actions). Null for anything else: a layout (Stack, Card…) takes pastes as children, a layer beside it.
+ */
+export function slotPasteTarget(selection: NodeSelection): { host: NodeSelection; slot: ContentSlot; after?: NodeSelection } | null {
+  const world = canvasApi.getWorldElement();
+  const hit = world ? selectedHit(selection, world) : null;
+  if (!world || !hit) return null;
+  const rowProp = selectedSlotOf(selection);
+  if (rowProp) {
+    const slot = activeSlotsOf(hit.name, hit.props as HostProps).find((item) => item.prop === rowProp) ?? slotOf(hit.name, rowProp);
+    return slot ? { host: selection, slot } : null;
+  }
+  const parent = parentHit(hit, frameElement(selection.frameId, world));
+  const node = hit.hosts[0];
+  if (!parent?.src || !node || isLayoutPrimitive(parent.name)) return null;
+  // Children are pasted as before (op pasteCode); a prop slot (actions, leading…) takes the paste through insertChild.
+  const root = hostRootOf(parent);
+  const slot = activeSlotsOf(parent.name, parent.props as HostProps).find((item) => item.prop !== "children" && Boolean(containerOf(root, item)?.contains(node)));
+  if (!slot) return null;
+  const host: NodeSelection = { kind: "node", src: parent.src, name: parent.name, frameId: selection.frameId, panelId: selection.panelId, instance: instanceOf(world, parent) };
+  return { host, slot, after: selection };
+}
+
+type CodeInsert = {
+  /** The slot's host. */
+  selection: NodeSelection;
+  slot: ContentSlot;
+  code: string;
+  /** What the status names ("Button", a palette item's label) and the selection's name until the canvas has it. */
+  label: string;
+  root: string;
+  requires?: readonly ("toast" | "media")[];
+  state?: readonly StateDecl[];
+  warning?: string;
+  /** A paste: after that layer of the slot (its loc), `from` the selection it was made from (undo goes back to it). */
+  paste?: { after?: string; from: NodeSelection };
+};
+
+/** Writes `code` into the host's slot (registry insertTargetFor) and selects the new element. */
+async function insertCodeInSlot(host: SlotSourceElement, { selection, slot, code, label, root, requires, state, warning, paste }: CodeInsert): Promise<boolean> {
+  const content = slotContentOf(host, slot);
+  // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap). A paste
+  // after a layer stays beside that layer, in the slot itself.
   let summary = content.summary;
   let frame: Target | null = null;
   const only = onlyFrame(content);
-  if (only && slot.gap === "none" && slot.kind !== "atom") {
+  if (only && !paste?.after && slot.gap === "none" && slot.kind !== "atom") {
     const child = await studioApi.element(host.file, only.loc);
     if (child && child.name === only.name) {
       summary = { ...summary, only: { name: child.name, props: hostPropsOf(child.attributes) } };
@@ -789,28 +870,31 @@ async function runInsert({ selection, element, slot, item, context, warning }: I
     ...(into || slot.prop === "children" ? {} : { prop: slot.prop }),
     // "into" without the frame's source (it could not be read): wrap instead, never write into an unknown element.
     ...(target.mode === "wrap" || (target.mode === "into" && !into) ? { wrap: WRAP } : {}),
-    ...(item.requires?.length ? { requires: [...item.requires] } : {}),
-    ...(item.state?.length ? { state: item.state.map((entry) => ({ ...entry })) } : {}),
+    ...(requires?.length ? { requires: [...requires] } : {}),
+    ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}),
+    ...(paste ? { paste: true, ...(paste.after && !into ? { after: paste.after } : {}) } : {}),
   };
-  if (!(await confirmRepeats(selection, { verb: "add", name: item.label, where }))) return false;
+  if (!(await confirmRepeats(selection, { verb: "add", name: label, where }))) return false;
 
-  writing("Adding…");
+  writing(paste ? "Pasting…" : "Adding…");
   // Everything on the canvas before the write: the inserted element is a new one, never one of these.
   const before = renderedNow(canvasApi.getWorldElement());
   // An overlay's slot renders in a portal the canvas does not walk: the new element is selected from the source.
   const away = !slotOnCanvas(selection, slot);
-  const response = await write(into ?? targetOf(host), op, `Add ${item.label} to ${where}`, [selection.src, ...(into ? [`${into.file}:${into.loc}`] : [])]);
+  const response = await write(into ?? targetOf(host), op, paste ? `Paste ${label} into ${where}` : `Add ${label} to ${where}`, [selection.src, ...(into ? [`${into.file}:${into.loc}`] : [])]);
   if (!response) return false;
   // A limit warns, it never blocks (Figma): the status says what the slot holds now.
   const limit = slot.max !== undefined && content.summary.count >= slot.max ? `${slot.name} now holds ${content.summary.count + 1} layers (limit ${slot.max})` : undefined;
   // So does a host rule (user, 2026-10-04): the item goes in, the usage harness reports it at Save.
-  const text = outcomeOf(`Added ${item.label} to ${where}`, response, [limit, warning && `Not recommended: ${warning}`].filter(Boolean).join(" · ") || undefined);
+  const text = outcomeOf(paste ? `Pasted ${label} into ${where}` : `Added ${label} to ${where}`, response, [limit, warning && `Not recommended: ${warning}`].filter(Boolean).join(" · ") || undefined);
   announce(text);
   const loc = answeredLoc(response, "inserted");
   if (!loc) return true;
-  // Synchronously (no request in between): Vite may reload the page as soon as it sees the write.
-  const next: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? item.root, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
-  if (selectNew(selection, next, before, text, { away })) remember(response.file, response.after, selection, next, { before: false, after: true }, { before: false, after: away });
+  // Synchronously (no request in between): Vite may reload the page as soon as it sees the write. The new element is
+  // selected only when the person kept the layer they pasted at (the host, or the slot's layer it follows) selected.
+  const from = paste?.from ?? selection;
+  const next: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name: tagAt(response.after, loc) ?? root, frameId: selection.frameId, panelId: selection.panelId, instance: selection.instance };
+  if (selectNew(from, next, before, text, { away })) remember(response.file, response.after, from, next, { before: false, after: true }, { before: false, after: away });
   return true;
 }
 
@@ -1245,13 +1329,21 @@ export const slotPickerRequests = {
 
 /* ───────────── "Show this slot" requests (a Layers slot row): the Slots section that mounts next consumes it ───────────── */
 
-let focusRequest: { src: string; prop: string; at: number } | null = null;
+let focusRequest: { src: string; prop: string; at: number; selection?: StudioSelection } | null = null;
 const focusListeners = new Set<() => void>();
 
-/** Asks the Slots section of `src` to bring its `prop` slot into view (its add button focused when it has one). */
-export function focusSlot(src: string, prop: string) {
-  focusRequest = { src, prop, at: Date.now() };
+/**
+ * Asks the Slots section of `src` to bring its `prop` slot into view (its add button focused when it has one).
+ * `selection`: the host selection a Layers slot row made; while it stays selected, that slot is the selected one.
+ */
+export function focusSlot(src: string, prop: string, selection?: StudioSelection) {
+  focusRequest = { src, prop, at: Date.now(), selection };
   focusListeners.forEach((listener) => listener());
+}
+
+/** The slot (its prop) a Layers slot row selected, while its host stays selected: ⌘V pastes into it. */
+export function selectedSlotOf(selection: StudioSelection | null): string | null {
+  return selection && focusRequest?.selection === selection ? focusRequest.prop : null;
 }
 
 /** The latest focusSlot request (the section checks its source and age). */

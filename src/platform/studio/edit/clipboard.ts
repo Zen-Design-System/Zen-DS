@@ -7,7 +7,7 @@ import { propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
-import { canStructurallyEdit, insideWrap, rememberInsert, removeSelection, studioWrapOf } from "../slots/actions";
+import { canStructurallyEdit, insideWrap, pasteIntoSlot, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, SourceElement, StateDecl, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
@@ -24,6 +24,9 @@ import { textEditSession } from "./textEdit";
  *   else right after it (Figma). In the same file the copy keeps its code as written (op moveTo + copy, names checked
  *   where it lands); from another file, after a cut, or code / plain text from elsewhere, op pasteCode: Zen components
  *   join the imports, other names must exist there. Plain text becomes a <Text>.
+ * - Into a component's slot (Figma: paste into a selected slot): with its Layers slot row selected, at the slot's end;
+ *   with a layer of a prop slot selected (PageHeader › Actions holds Export), right after it in that slot. The slot's own
+ *   insert rules apply (slots/actions.ts pasteIntoSlot, op insertChild `paste`); ⇧⌘R there swaps the layer.
  * - ⇧⌘R pastes to replace the selected layer. ⌥⌘C / ⌥⌘V copy and paste its properties (the literal, non-content
  *   props the target accepts), one undo step.
  * Every paste is one draft edit and one undo step; the pasted layer gets selected.
@@ -166,6 +169,26 @@ function spotFor(selection: NodeSelection, replace: boolean, beside = false): Sp
   return spot;
 }
 
+/**
+ * A paste beside (or instead of) a layer goes into that layer's JSX parent. The canvas parent is it, unless the layer
+ * renders inside another component's body (an example's local `Page` puts its children in its own Stack): then it is
+ * the nearest canvas ancestor of the same file whose source holds the layer (`<Page>` itself).
+ */
+async function sourceParent(spot: Spot): Promise<Spot> {
+  const at = parseSrc(spot.after ?? spot.replace ?? "");
+  if (!at) return spot;
+  const child = await studioApi.element(at.file, at.loc).catch(() => null);
+  if (!child?.range) return spot;
+  const frame = spot.parent.hosts[0]?.closest("[data-studio-frame]") ?? null;
+  for (let parent: FiberHit | null = spot.parent, guard = 0; parent && guard < 12; parent = parentHit(parent, frame), guard++) {
+    const place = parseSrc(parent.src);
+    if (!place || place.file !== at.file) continue;
+    const element = await studioApi.element(place.file, place.loc).catch(() => null);
+    if (element?.range && element.range.start <= child.range.start && child.range.end <= element.range.end) return { ...spot, parent, parentFile: place.file };
+  }
+  return spot;
+}
+
 /** Selects the layer a paste created once the canvas shows it; its undo goes back to `from` (the selection pasted at). */
 function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection, wrapped = false) {
   const at: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
@@ -193,13 +216,28 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
   const code = raw.startsWith("<") ? raw : textLayer(raw);
   pasting = true;
   try {
+    // Into a content slot (user, 2026-10-12): the slot its Layers row selected, or the prop slot of the component that
+    // holds the selected layer (PageHeader › Actions: after that layer; ⇧⌘R swaps it). A selected layout takes the paste
+    // as its child (below), as does a children slot; a wrapped component counts by its Studio wrap Stack.
+    const hit = hitOf(selection);
+    const intoLayout = !replace && Boolean(hit && isDropContainer(hit)) && !selectedSlotOf(selection);
+    const wrapped = intoLayout || selectedSlotOf(selection) ? undefined : await studioWrapOf(selection);
+    const slotted = intoLayout ? null : slotPasteTarget(selection) ?? (wrapped ? slotPasteTarget(wrapped) : null);
+    if (slotted && (!replace || slotted.after)) {
+      const file = parseSrc(slotted.host.src)?.file;
+      const reads = state ?? (own && own.file !== file ? own.state : undefined);
+      const name = selectedName(own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer");
+      if (replace) return await swapSelection(slotted.after!, code, name, reads);
+      return await pasteIntoSlot({ host: slotted.host, slot: slotted.slot, code, name, after: slotted.after, from: selection, state: reads });
+    }
     let spot = spotFor(selection, replace);
     if (typeof spot === "string") { fail(spot); return false; }
     // Beside or instead of a wrapped component: beside or instead of its wrap Stack (the Stack holds that component only).
     if (spot.after || spot.replace) {
-      const wrap = await studioWrapOf(selection);
+      const wrap = wrapped !== undefined ? wrapped : await studioWrapOf(selection);
       const outer = wrap ? spotFor(wrap, replace, true) : null;
       if (outer && typeof outer !== "string") spot = outer;
+      spot = await sourceParent(spot);
     }
     const before = renderedNow(canvasApi.getWorldElement());
     const verb = replace ? "Paste to replace" : "Paste";

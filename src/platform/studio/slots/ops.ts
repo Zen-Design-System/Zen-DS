@@ -24,6 +24,10 @@ export type InsertChildOp = {
   prop?: string;
   /** Position in SourceElement.children to insert before; omitted: at the end. */
   index?: number;
+  /** Instead of `index`: the "line:column" of a layer in the slot (or of an element inside it) the code follows. */
+  after?: string;
+  /** ⌘V into a slot: the code may read names bound where it lands (a state, a handler), as op pasteCode allows. */
+  paste?: boolean;
   wrap?: SlotWrap;
   /** "toast": the server adds `const { toast } = useToast();` to the enclosing component and the useToast import.
    * "media": the code reads platformMedia (imported in example pages). */

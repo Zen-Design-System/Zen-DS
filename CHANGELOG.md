@@ -875,6 +875,11 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: ⌘V pastes into a component's slot (2026-10-12):** with a layer of a slot selected (PageHeader ›
+  Actions holds Export), the copy goes right after it in that slot; with the slot's row selected in Layers (the row
+  now shows selected), at the slot's end. Both were refused ("PageHeader can't hold layers", "Stack has no layer inside
+  here"). ⇧⌘R on a slot's layer swaps it. A paste beside a layer that an example's local wrapper (`Page`) lays out goes
+  into that wrapper's JSX instead of failing.
 - `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
   component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in
