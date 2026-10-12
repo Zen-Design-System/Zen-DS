@@ -119,7 +119,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Action/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
+          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"CTA/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
           "deprecated": null
         }
       ]

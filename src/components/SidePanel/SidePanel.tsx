@@ -37,7 +37,7 @@ export interface SidePanelProps extends OverlayOpenProps {
   /** Accessible name of the close button. Default: the locale's “Close panel”. */
   closeLabel?: string;
   className?: string;
-  /** Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Buttons/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets icon / the actions. */
   overrides?: NestedOverrides;
 }
@@ -128,7 +128,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
           overhangs it by 6px. Standard: Wrapper at Modal-Padding; Modal: inside a 28px Close-Container (padding 4)
           on the icon row. */}
       {nest("Close", <IconButton className="zen-side-panel__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} onClick={() => onOpenChange(false)} icon={<Icon name="icon-x-small-line" />} />)}
-      {primaryAction || secondaryAction ? nest("Actions", <ModalActions className="zen-side-panel__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} onDefault={() => onOpenChange(false)} />) : null}
+      {primaryAction || secondaryAction ? nest("Buttons", <ModalActions className="zen-side-panel__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} onDefault={() => onOpenChange(false)} />) : null}
     </aside>
   );
   if (!modal) return panel;

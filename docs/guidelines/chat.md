@@ -85,7 +85,7 @@ Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat
 | `replyTo` | `ChatReplyTarget` | — | Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send. Setting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type; a composer that mounts with a reply already set does not take focus. |
 | `onCancelReply` | `() => void` | — |  |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio; app code sets actions / quickAction. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Main: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio; app code sets actions / quickAction. |
 
 ### ChatThread
 Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up (more than 48px from the bottom), in which case their position is kept. It pins again whenever the messages change size after the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction row appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.

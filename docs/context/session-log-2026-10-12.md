@@ -76,3 +76,22 @@
 - P4 rebind.mjs in the save's Figma check job, ParityDialog Download for Figma, plugin 173e97f rebind (licensed).
 - Selftests: figma-push 36, binding-diff 8, rebind 5 (all in studio:selftest); plugin npm test green; dist rebuilt
   (backups/pre-studio-rebind-dist-20261012.tgz before).
+
+## Nested layer names for every component (session "Kiểm tra tiến độ plan", branch zen/feat/figma-contracts, tier M)
+
+- PR #24 merged (f5b4b52); the shared checkout Zen-DS switched to main (fast-forward; Giám sát told).
+- Full contracts for the 29 sets without one are not practical through use_figma (20 KB answers, 0.7–2 MB contracts):
+  what the gate needs is each set's layer names. Four read-only use_figma calls (37 sets, hidden layers included) →
+  `docs/figma-contracts/nested-layers.json`; nested-paths reads it for sets without a full contract and for layers a
+  full one dropped. Re-read: `tools/figma-contract/nested-layers-read.mjs code | merge`.
+- Result: Input's hidden Leading / Trailing now checked (4 ALLOWED entries gone; Text-Area has none in Figma); 44/44
+  components match after renaming 9 code layers to Figma's (CTA, Buttons, Icon, Tab-Item, File-Item, Main — checked in
+  the file: Chat-Control's Main is the trailing send action) and allowing the rest with reasons (unnamed instances,
+  glyph-named icons, layers Figma does not draw); designer item in BACKLOG.
+- Found and fixed: contracts.lock.json was stale on main (10 sets: the 2026-10-09 re-captures and DashboardHeader never
+  refreshed it), so figma-kit's selftest failed; `figma-call.mjs lock` → 13/13.
+- Gate (isolated): passed; 12 contact sheets looked at, no visual change (the renames are override keys). Its
+  `deadclick` warn on uploader "Retry desert-trail-lookbook.jpg" (also on main, about 3 runs in 4 in the gate's page
+  order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
+  frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
+  photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.

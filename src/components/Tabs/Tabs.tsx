@@ -98,7 +98,7 @@ export interface TabsProps {
   /** Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. */
   idPrefix?: string;
   className?: string;
-  /** Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab[members]/Badge-Counter": { theme: "accent" }, "Tab[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab-Item[members]/Badge-Counter": { theme: "accent" }, "Tab-Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
    *  app code sets the items. */
   overrides?: NestedOverrides;
 }
@@ -130,7 +130,7 @@ export function Tabs({ items: itemsProp, children, value, defaultValue, onValueC
   };
   return (
     <div role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className={["zen-tabs", className].filter(Boolean).join(" ")} data-variant={variant} data-size={size} data-full-width={fullWidth ? "true" : undefined} onKeyDown={onKeyDown}>
-      {items.map((item) => nest("Tab", (
+      {items.map((item) => nest("Tab-Item", (
         <TabItem
           key={item.id}
           ref={(node) => { refs.current[item.id] = node; }}

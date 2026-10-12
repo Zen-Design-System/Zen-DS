@@ -61,7 +61,7 @@ export function InlineMessage({ theme: themeProp, status, title, children, icon 
   return (
     <div className={["zen-inline-message", className].filter(Boolean).join(" ")} data-tone={theme} role={urgent ? "alert" : "status"}>
       <div className="zen-inline-message__container">
-        {leading ? <span className="zen-inline-message__icon" aria-hidden="true">{nest("Leading", leading)}</span> : null}
+        {leading ? <span className="zen-inline-message__icon" aria-hidden="true">{nest("Icon", leading)}</span> : null}
         <div className="zen-inline-message__content">
           <div className="zen-inline-message__text">
             {title ? <span className={`zen-inline-message__title ${typographyStyles["Body/Base/Bold"]}`}>{title}</span> : null}

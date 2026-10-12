@@ -68,7 +68,7 @@ export interface BottomNavigationProps {
   /** Accessible name of the navigation landmark. Default: the locale's “Main”. */
   "aria-label"?: string;
   className?: string;
-  /** Figma instance overrides: props of the icons it draws, by layer (`{ "Item[home]/Icon": { name: "icon-home-02-solid" }, "Action/Icon": { name: "icon-plus-line" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the icons it draws, by layer (`{ "Item[home]/Icon": { name: "icon-home-02-solid" }, "CTA/Icon": { name: "icon-plus-line" } }`). Written by Zen Studio;
    *  app code sets the items and action. */
   overrides?: NestedOverrides;
 }
@@ -104,7 +104,7 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
   const itemGlass = useLiquidGlass("liquid-glass-normal", glassy);
   const actionButton = action ? (
     <TipButton ref={glassy && actionTheme === "default" ? floatingGlass : undefined} tip={action.label} className={floating ? "zen-bottom-nav__fab" : "zen-bottom-nav__action"} data-tone={actionTheme} aria-label={action.label} onClick={action.onClick}>
-      {nest.at("Action")("Icon", renderIcon(action.icon))}
+      {nest.at("CTA")("Icon", renderIcon(action.icon))}
     </TipButton>
   ) : null;
   const list = (

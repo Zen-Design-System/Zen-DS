@@ -111,7 +111,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the tabs it draws, by layer (`{ \"Tab[members]/Badge-Counter\": { theme: \"accent\" }, \"Tab[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "description": "Figma instance overrides: props of the tabs it draws, by layer (`{ \"Tab-Item[members]/Badge-Counter\": { theme: \"accent\" }, \"Tab-Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]

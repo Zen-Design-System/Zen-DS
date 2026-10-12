@@ -44,7 +44,7 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   /** Figma CTA Secondary: Button/Main Medium Tertiary, full width. */
   secondaryAction?: EmptyStateAction;
   className?: string;
-  /** Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: "accent" }, "Illustration/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ CTA: { level: "accent" }, "Illustration/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
    *  app code sets icon / primaryAction / secondaryAction. */
   overrides?: NestedOverrides;
 }
@@ -100,7 +100,7 @@ export function EmptyState({ ref, title, headingLevel, compactTitle = false, chi
         </div>
         {hasActions ? (
           <div className="zen-empty-state__actions">
-            {primaryAction ? nest("Primary", <Button appearance="main" level={primaryAction.level ?? "primary"} size="md" onClick={primaryAction.onClick}>{primaryAction.label}</Button>) : null}
+            {primaryAction ? nest("CTA", <Button appearance="main" level={primaryAction.level ?? "primary"} size="md" onClick={primaryAction.onClick}>{primaryAction.label}</Button>) : null}
             {secondaryAction ? nest("Secondary", <Button appearance="main" level={secondaryAction.level ?? "tertiary"} size="md" onClick={secondaryAction.onClick}>{secondaryAction.label}</Button>) : null}
           </div>
         ) : null}

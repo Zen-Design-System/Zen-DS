@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): BottomNavigation `Action` →
+  `CTA`, Dialog / ModalForm / SidePanel `Actions` → `Buttons`, EmptyState `Primary` → `CTA`, InlineMessage and Toast
+  `Leading` → `Icon`, Tabs `Tab` → `Tab-Item`, Uploader `File` → `File-Item`, ChatComposer `Send` → `Main`. The gate
+  `nested-paths` now checks 44 components (was 15) against `docs/figma-contracts/nested-layers.json`, a read of every
+  set's layer names, hidden layers included (re-read with `node tools/figma-contract/nested-layers-read.mjs`).
 - Zen Studio speaks design words on example and template pages too (the user, 2026-10-12): the Inspector header reads
   "Show code" and the canvas tag shows no file:line on every page; a status line keeps the file's name without its
   line ("Draft · uploader.tsx · ⌘S to save"). A Date field's `Leading` layer matches Figma (its `Leading-Icon` is the

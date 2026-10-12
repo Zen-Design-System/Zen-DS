@@ -53,7 +53,7 @@ Also accepts `OverlayOpenProps`.
 | `children` | `ReactNode` | — | Figma Custom slot, rendered between the heading and the actions. |
 | `dismissible` | `boolean` | `true` | Close when the overlay is clicked. Default true; set false for destructive confirmations in progress. |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "danger" }, Icon: { name: "icon-trash-line" } }`). Written by Zen Studio; app code sets icon / the actions. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ "Buttons/Primary": { level: "danger" }, Icon: { name: "icon-trash-line" } }`). Written by Zen Studio; app code sets icon / the actions. |
 
 ### ModalForm
 Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border, Effect/Container) with Header (Heading/2 + caption), Body (Main-Contents) and Footer (Modal/Actions); the 1-3, Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form. Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count.
@@ -85,7 +85,7 @@ Also accepts `OverlayOpenProps`.
 | `invalidMessage` | `(count: number) => string` | — | Screen-reader message after a blocked submit. Default: the locale's "1 field needs attention" / "3 fields need attention". |
 | `dismissible` | `boolean` | `true` |  |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets the actions. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ "Buttons/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets the actions. |
 
 ### ModalActions
 Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual · Triple), Button/Main Medium, gap Small.

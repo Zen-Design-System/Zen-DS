@@ -67,7 +67,7 @@ export function Toast({ type: typeProp, status, title, children, icon = true, ac
   const type: ToastType = typeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.dismiss;
-  const leading = nest("Leading", icon === true ? <Icon name={typeIcon[type]} decorative /> : icon ? renderIcon(icon) : null);
+  const leading = nest("Icon", icon === true ? <Icon name={typeIcon[type]} decorative /> : icon ? renderIcon(icon) : null);
   const urgent = type === "negative" || type === "warning";
   const button = actionButton[type];
   const closeTip = useIconTooltip(onClose ? closeLabel : false);

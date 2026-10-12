@@ -228,7 +228,7 @@ export interface DialogProps extends OverlayOpenProps {
   /** Close when the overlay is clicked. Default true; set false for destructive confirmations in progress. */
   dismissible?: boolean;
   className?: string;
-  /** Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "danger" }, Icon: { name: "icon-trash-line" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ "Buttons/Primary": { level: "danger" }, Icon: { name: "icon-trash-line" } }`). Written by Zen Studio;
    *  app code sets icon / the actions. */
   overrides?: NestedOverrides;
 }
@@ -262,7 +262,7 @@ export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp,
           {description ? <p id={`${id}-desc`} className={`zen-dialog__description ${typographyStyles["Body/Base/Regular"]}`}>{description}</p> : null}
         </div>
         {children ? <div className="zen-dialog__custom">{nest.slot(children)}</div> : null}
-        {nest("Actions", <ModalActions className="zen-dialog__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} />)}
+        {nest("Buttons", <ModalActions className="zen-dialog__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} />)}
       </div>
     </div>
   );
@@ -309,7 +309,7 @@ export interface ModalFormProps extends OverlayOpenProps {
   invalidMessage?: (count: number) => string;
   dismissible?: boolean;
   className?: string;
-  /** Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ "Buttons/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets the actions. */
   overrides?: NestedOverrides;
 }
@@ -349,7 +349,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
         </header>
       ) : null}
       {children ? <div className="zen-modal-form__body">{nest.slot(children)}</div> : null}
-      {nest("Actions", <ModalActions className="zen-modal-form__footer" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} submitPrimary={Boolean(onSubmit)} />)}
+      {nest("Buttons", <ModalActions className="zen-modal-form__footer" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} submitPrimary={Boolean(onSubmit)} />)}
       {closeButton ? nest("Close", <IconButton className="zen-modal-form__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} icon={<Icon name="icon-x-medium-line" />} onClick={() => onOpenChange(false)} />) : null}
     </>
   );

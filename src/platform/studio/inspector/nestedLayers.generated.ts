@@ -67,7 +67,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "ChatComposer": {
     "Action": "IconButton",
-    "Send": "IconButton"
+    "Main": "IconButton"
   },
   "ChatConversationItem": {
     "Avatar": "Avatar",
@@ -115,13 +115,13 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Apply": "Button"
   },
   "Dialog": {
-    "Actions": "ModalActions",
+    "Buttons": "ModalActions",
     "Icon": "Icon"
   },
   "EmptyState": {
+    "CTA": "Button",
     "Icon": "Icon",
     "Illustration": "EmptyStateIllustration",
-    "Primary": "Button",
     "Secondary": "Button"
   },
   "EmptyStateIllustration": {
@@ -133,7 +133,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "FileUpload": {
     "Button": "Button",
-    "File": "UploaderFileItem",
+    "File-Item": "UploaderFileItem",
     "Remove": "IconButton",
     "Replace": "IconButton",
     "Retry": "IconButton"
@@ -185,7 +185,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Badge": "Badge"
   },
   "ModalForm": {
-    "Actions": "ModalActions",
+    "Buttons": "ModalActions",
     "Close": "IconButton"
   },
   "NpsScale": {
@@ -289,7 +289,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Item": "SidebarItemView"
   },
   "SidePanel": {
-    "Actions": "ModalActions",
+    "Buttons": "ModalActions",
     "Close": "IconButton",
     "Icon": "Icon"
   },
@@ -303,7 +303,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   "Tabs": {
     "Badge-Counter": "BadgeCounter",
     "Icon": "Icon",
-    "Tab": "TabItem"
+    "Tab-Item": "TabItem"
   },
   "Tag": {
     "Avatar": "Avatar",
@@ -315,7 +315,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "Toast": {
     "Action": "Button",
-    "Leading": "Icon"
+    "Icon": "Icon"
   },
   "ToggleListItem": {
     "Leading": "Icon",

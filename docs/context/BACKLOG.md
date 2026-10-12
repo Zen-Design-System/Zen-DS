@@ -8,9 +8,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
-- **P2 · Re-capture the Input contract with hidden layers (M7, 2026-10-11):** Input/Textarea/Select/Date Leading and Trailing
-  are hidden in every captured variant (contracts skip invisible instances); a figma-kit re-capture (needs Figma access)
-  lets `nested-paths` check them instead of allowing them.
+- **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
+  nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
+  instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
+  ChatCall actions, Pagination's Previous / Next / page-size chip, SidePanel's close button), icons named after their
+  glyph (AlertBanner, Dialog, SidePanel, EmptyState, Tabs). Naming them in Figma (Submit, Attach, Action, Previous…) lets
+  the gate check them and a Studio page's overrides land in Figma by name. Pointer: `ALLOWED` in nested-paths.mjs.
 - **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
   builds each row's avatar with `personAvatar(people[t.assignee])` (a plain function, not a component), so the engine
   cannot reach that row's person; a dropped photo is refused ("shared by 14 rows"). Extend kind "param" to helper

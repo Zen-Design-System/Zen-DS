@@ -143,7 +143,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Buttons/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
           "deprecated": null
         }
       ]

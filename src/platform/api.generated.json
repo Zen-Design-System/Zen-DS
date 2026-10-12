@@ -5512,7 +5512,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the tabs it draws, by layer (`{ \"Tab[members]/Badge-Counter\": { theme: \"accent\" }, \"Tab[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "description": "Figma instance overrides: props of the tabs it draws, by layer (`{ \"Tab-Item[members]/Badge-Counter\": { theme: \"accent\" }, \"Tab-Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]
@@ -6024,7 +6024,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"danger\" }, Icon: { name: \"icon-trash-line\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "description": "Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ \"Buttons/Primary\": { level: \"danger\" }, Icon: { name: \"icon-trash-line\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
           "deprecated": null
         }
       ]
@@ -6222,7 +6222,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "description": "Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ \"Buttons/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
         }
       ]
@@ -7226,7 +7226,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: \"accent\" }, \"Illustration/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets icon / primaryAction / secondaryAction.",
+          "description": "Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ CTA: { level: \"accent\" }, \"Illustration/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets icon / primaryAction / secondaryAction.",
           "deprecated": null
         }
       ]
@@ -9394,7 +9394,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
+          "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File-Item[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
           "deprecated": null
         }
       ]
@@ -9592,7 +9592,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Buttons/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
           "deprecated": null
         }
       ]
@@ -9934,7 +9934,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Action/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
+          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"CTA/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
           "deprecated": null
         }
       ]
@@ -10412,7 +10412,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
+          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Main: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
         }
       ]
