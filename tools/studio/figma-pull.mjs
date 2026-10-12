@@ -70,7 +70,16 @@ const propsOf = async (instance) => {
   }
   return out;
 };
-const firstText = (node) => { const text = node.findOne ? node.findOne((n) => n.type === "TEXT" && n.visible) : null; return text ? text.characters : null; };
+// The first text a layer shows (a text inside a hidden layer shows nothing); \`name\`: the first so named.
+const firstText = (node, name) => {
+  for (const child of node.children || []) {
+    if (!child.visible) continue;
+    if (child.type === "TEXT" && (!name || child.name === name)) return child.characters;
+    const inner = firstText(child, name);
+    if (inner !== null) return inner;
+  }
+  return null;
+};
 // A composition of library components (Patterns/…, Header/…) is read inside, as a frame.
 const COMPOSITION = /^(Patterns|Header|Templates?|Layouts?|Screens?)\\//;
 // A Nav-Slot/Action: its layer name, the icon it draws (its first visible icon instance's component) and its dot.
@@ -112,10 +121,22 @@ const readInstance = async (instance) => {
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
   if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), text: firstText(instance), nested: [], slots: [] };
+  // A chat message's text is its bubble's Message (its Avatar's initials come first).
+  if (set && set.name === "Chat/Conversation/Bubble") out.text = firstText(instance, "Message");
   const changed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.some((f) => f === "componentProperties" || f === "characters")).map((o) => o.id));
-  const walk = async (node, trail) => {
+  // Avatars the push named after their person (a chat message's author, a read list's readers).
+  const renamed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.includes("name")).map((o) => o.id));
+  const walk = async (node, trail, owner) => {
     for (const child of node.children || []) {
       if (!child.visible) continue;
+      // A slot of a nested instance (a chat bubble's Chat/Reaction/Status › Emoji-Items): its layers, by the instance it
+      // sits in (figma-push writes it as \`within\`). Its layers are walked on as before.
+      if (child.type === "SLOT" && trail.length && child.children && child.children.length) {
+        const children = [];
+        for (const inner of child.children) { const read_ = await read(inner); if (read_) children.push(read_); }
+        out.innerSlots = out.innerSlots || [];
+        out.innerSlots.push({ name: child.name, within: owner.name, children });
+      }
       // The instance's own slot (Card › Content): its layers are the page's content, read as such.
       if (child.type === "SLOT" && !trail.length) {
         const children = [];
@@ -134,11 +155,12 @@ const readInstance = async (instance) => {
       // Its own texts (not a slot's, not a nested instance's): Dashboard/Header's Subheading count.
       if (child.type === "TEXT" && !trail.length) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters }); }
       const next = child.type === "INSTANCE" ? [...trail, layerKey(child.name)] : trail;
-      if (child.type === "INSTANCE" && changed.has(child.id)) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
-      await walk(child, next);
+      const avatarNamed = child.type === "INSTANCE" && renamed.has(child.id) && (await setOf(child))?.name === "Avatar/Single";
+      if (child.type === "INSTANCE" && (changed.has(child.id) || avatarNamed)) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
+      await walk(child, next, child.type === "INSTANCE" ? child : owner);
     }
   };
-  await walk(instance, []);
+  await walk(instance, [], instance);
   // Empty parts left out: an answer holds 20 KB. With slots, its layout (how they sit, for a set Zen has no component of).
   if (!out.nested.length) delete out.nested;
   if (!out.slots.length) delete out.slots;
@@ -940,6 +962,7 @@ function convertNode(node, ctx) {
     if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
     if (setName === TOP_NAV_SET.name) return topNavigationElement(node, ctx);
     if (setName === COLOR_SWATCH) return colorSelectorElement([node], null, ctx);
+    if (setName === CHAT_SECTION) return chatThreadElement({ ...node, children: [node] }, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -998,7 +1021,8 @@ function convertNode(node, ctx) {
     // Accent) is left out (figma-push writes it, the other way).
     if (set.code === "IconButton" && props.level?.kind === "literal" && props.level.value === ({ flat: "primary", overlay: "accent" }[props.appearance?.value] ?? "tertiary")) delete props.level;
     for (const slot of node.slots ?? []) {
-      if (handled.has(slot.name)) continue;
+      // A nested instance's slot (figma-push `within`): its owner reads it (a ChatMessage's reactions).
+      if (handled.has(slot.name) || slot.within) continue;
       if (slotsAreChildren) { slotted.push(slot); continue; }
       const dataSlot = dataSlots.find((candidate) => candidate.name === slot.name);
       if (dataSlot) {
@@ -1037,7 +1061,9 @@ function convertNode(node, ctx) {
       if (state === "uploading" && step) fields.progress = literal({ None: 0, Low: 25, Medium: 50, Good: 80, Done: 100 }[step] ?? 0);
       props.file = { kind: "object", fields };
     }
-    let children = props.children && !node.slots?.length ? [{ kind: "text", value: props.children.value }] : [];
+    // A chat message's text is its bubble's Message (figma-push writes it there; the reader reads it as the text).
+    if (set.code === "ChatMessage" && ownText(node, "Message")) props.children = literal(ownText(node, "Message"));
+    let children = props.children && !node.slots?.some((slot) => !slot.within) ? [{ kind: "text", value: props.children.value }] : [];
     const slottedLayers = slotted.flatMap((slot) => slot.children ?? []);
     if (slottedLayers.length && takesChildren) children = slottedLayers.map((child) => convert(child, ctx)).filter(Boolean);
     else if (slottedLayers.length) notes.push(`${where}: what its ${slotted.map((slot) => slot.name).join(", ")} slot holds is left out (the component takes no content)`);
@@ -1052,8 +1078,11 @@ function convertNode(node, ctx) {
       const text = title?.texts?.["Header-Text"] ?? title?.text;
       if (text && !["Choose date", "Choose dates", "Heading"].includes(text)) props.title = literal(text);
     }
-    // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title (read above).
-    for (const nested of set.code === "UploaderFileItem" || set.code === "DatePickerSheet" ? [] : node.nested ?? []) {
+    if (set.code === "ChatMessage") chatMessageParts(node, props, ctx);
+    // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title, a
+    // chat message's Avatar and reaction pill its author and reactions (read above).
+    const ownParts = (nested) => set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path)));
+    for (const nested of (node.nested ?? []).filter((nested) => !ownParts(nested))) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
       const fields = instanceProps(nested, inner, mapping, notes, `${set.code} › ${nested.path}`);
@@ -1061,7 +1090,7 @@ function convertNode(node, ctx) {
     }
     if (Object.keys(overrides).length) props.overrides = { kind: "object", fields: overrides };
     // A layer Figma shows with a boolean of its name (Card's Sub-Action) that the code draws only when a prop is set.
-    for (const layer of new Set((node.nested ?? []).map((nested) => nested.path.split("/")[0]))) {
+    for (const layer of new Set((node.nested ?? []).filter((nested) => !ownParts(nested)).map((nested) => nested.path.split("/")[0]))) {
       if (node.props?.[layer] === true && !set.toggles?.some((toggle) => toggle.label === layer)) notes.push(`${where}: ${layer} shows in Figma; set it on the ${set.code} in the Studio (its overrides apply once it is there)`);
     }
     const element = { kind: "element", name: set.code, props, children };
@@ -1069,6 +1098,10 @@ function convertNode(node, ctx) {
     // an AppShell's sections would.
     return PADDED.has(set.code) && node.layout?.padding?.some(Boolean) ? padded(element, node, ctx) : element;
   }
+  // Chat/Section/Conversation runs (figma-push chatThreadNode): a ChatThread; a message over its Read-List: its seenBy.
+  if ((node.children ?? []).some((child) => child.type === "INSTANCE" && child.set?.name === CHAT_SECTION)) return chatThreadElement(node, ctx);
+  const [message, readList] = node.children ?? [];
+  if (node.children?.length === 2 && codeOf(message, ctx) === "ChatMessage" && readList.set?.name === READ_LIST) return withSeenBy(convert(message, ctx), readList, ctx);
   // A row of Color-Selector swatches (figma-push colorSelectorNode): a ColorSelector.
   const swatches = node.children ?? [];
   if (swatches.length && swatches.every((child) => child.type === "INSTANCE" && child.set?.name === COLOR_SWATCH)) return colorSelectorElement(swatches, node.name, ctx);
@@ -1154,6 +1187,75 @@ function frameElement(node, children, ctx) {
   // Figma's Clip content: the Stack or Grid clips too (figmaReadCode leaves it off the page frame).
   if (node.clip) props.clip = literal(true);
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
+}
+
+/** Figma's chat sets the push draws around ChatMessage (figma-push chatMessageNode, chatThreadNode). */
+const CHAT_SECTION = "Chat/Section/Conversation";
+const READ_LIST = "Chat/Section/Read-List";
+/** The quick reactions' glyphs (Chat.tsx chatReactionEmojis; Figma's Emoji/Static draws the same, its Message text). */
+const chatReactionEmojis = { like: "👍", heart: "❤️", lol: "😆", surprised: "😮", sad: "😢", angry: "😡" };
+/** Figma Chat/Reaction/Emoji's Emoji option → the quick reaction (Chat.tsx chatReactionEmojis). */
+const REACTION_OF = { Like: "like", Heart: "heart", LOL: "lol", Surprised: "surprised", Sad: "sad", Angry: "angry" };
+/** An instance's own text layer by name: the reader's list, or the push's object. */
+const ownText = (node, name) => (Array.isArray(node.texts) ? node.texts.find((text) => text.name === name)?.characters : node.texts?.[name]);
+/** An Avatar the chat push drew: by its set, its path, or the person's name it carries as its layer name. */
+const isAvatar = (nested) => nested.set?.name === "Avatar/Single" || /^Avatar(\[\d+\])?$/.test(nested.path);
+/** The person's name an Avatar layer carries (figma-push names it), else none. */
+const avatarName = (avatar) => avatar?.name ?? (avatar && !isAvatarPath(avatar.path) ? avatar.path : undefined);
+const isAvatarPath = (path) => /^Avatar(\[\d+\])?$/.test(path ?? "");
+/** A person from an Avatar in Figma: its layer's name (else its initials) the name, its Theme the theme. */
+const personOf = (avatar, name) => {
+  const fields = { name: literal(name ?? avatarName(avatar) ?? avatar?.text ?? "?") };
+  const theme = String(avatar?.props?.Theme ?? "").toLowerCase();
+  if (theme && theme !== "photo" && theme !== "neutral") fields.theme = literal(theme);
+  return { kind: "object", fields };
+};
+
+/**
+ * A chat message's parts as figma-push chatMessageNode draws them: the author from its Avatar (initials) and its Name
+ * text, the reactions from its bubble's Chat/Reaction/Status (Emoji-Items, the total in Count).
+ */
+function chatMessageParts(node, props, ctx) {
+  const where = `ChatMessage "${node.name}"`;
+  const avatar = (node.nested ?? []).find(isAvatar);
+  const name = ownText(node, "Name") ?? avatarName(avatar);
+  if (node.props?.Side !== "You" && node.props?.Avatar !== false && (avatar || name)) {
+    props.author = personOf(avatar, name);
+    if (!name) ctx.notes.push(`${where}: its author is named by the Avatar's initials (${avatar?.text ?? "?"}); give the name in the Studio`);
+  }
+  if (node.props?.Reaction !== "Yes") return;
+  const slot = [...(node.innerSlots ?? []), ...(node.slots ?? [])].find((item) => item.name === "Emoji-Items");
+  // A quick reaction's option, unless its Message shows another emoji (one picked from the "+" panel).
+  const plainGlyph = (text) => String(text ?? "").replace(/\uFE0F/g, "");
+  const kindOf = (item) => {
+    const quick = REACTION_OF[item.props?.Emoji];
+    const glyph = ownText(item, "Message") ?? item.text;
+    return quick && (!glyph || plainGlyph(glyph) === plainGlyph(chatReactionEmojis[quick])) ? quick : glyph ?? quick;
+  };
+  const kinds = (slot?.children ?? []).filter((item) => item.type === "INSTANCE").map(kindOf).filter(Boolean);
+  if (!kinds.length) return;
+  const pill = (node.nested ?? []).find((nested) => nested.path === "Bubble/Chat");
+  const count = pill?.props?.Counter === "Yes" ? Number.parseInt(pill.texts?.Count ?? pill.text ?? "", 10) : 0;
+  props.reactions = { kind: "array", items: kinds.map((kind, index) => ({ kind: "object", fields: { kind: literal(kind), ...(index === 0 && count > kinds.length ? { count: literal(count - kinds.length + 1) } : {}) } })) };
+}
+
+/** A message with the Read-List under it: its seenBy (each reader by the Avatar's initials; "5+" adds the Badge's count). */
+function withSeenBy(element, readList, ctx) {
+  if (element?.name !== "ChatMessage") return element;
+  const avatars = (readList.nested ?? []).filter(isAvatar);
+  const more = readList.props?.["Seen by"] === "5+" ? Number.parseInt(String((readList.nested ?? []).find((nested) => nested.path === "Badge")?.text ?? "").replace(/\D/g, ""), 10) || 0 : 0;
+  const shown = readList.props?.["Seen by"] === "5+" ? 5 : Number(readList.props?.["Seen by"]) || avatars.length;
+  const people = Array.from({ length: shown + more }, (_, index) => personOf(avatars[index], avatarName(avatars[index]) ?? avatars[index]?.text ?? `Reader ${index + 1}`));
+  if (avatars.length < shown + more || avatars.some((avatar) => !avatarName(avatar))) ctx.notes.push(`ChatMessage "${readList.name}": readers Figma does not name are named by their initials (or "Reader N"); give their names in the Studio`);
+  return { ...element, props: { ...element.props, seenBy: { kind: "array", items: people } } };
+}
+
+/** Chat/Section/Conversation runs as one ChatThread: each run's messages (its Conversations slot), the other layers between. */
+function chatThreadElement(node, ctx) {
+  const children = (node.children ?? []).flatMap((child) => (child.type === "INSTANCE" && child.set?.name === CHAT_SECTION
+    ? (child.slots ?? []).flatMap((slot) => slot.children ?? []).map((item) => convert(item, ctx))
+    : [convert(child, ctx)])).filter(Boolean);
+  return { kind: "element", name: "ChatThread", props: {}, children };
 }
 
 /** Figma's colour swatch set; a token's Figma variable → its CSS value ("Color/Background/Support/Blue/Solid" → var(…)). */

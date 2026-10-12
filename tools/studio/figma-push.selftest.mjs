@@ -792,6 +792,71 @@ export default function Page() {
   check("round trip: the open sheets come back (range, title)", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('\n          <DatePickerSheet title="Closed" />', "")));
 }
 
+// 22. Chat (2026-10-13): ChatThread as Chat/Section/Conversation runs, a ChatMessage's author (a one-letter Avatar: small
+//     avatars show one; user, 2026-10-13), its text in the bubble's Message, its reactions pill and its read list; the
+//     pull gives the same page back, from the push and from the real Figma read of the import (fixtures/figma-chat.json).
+{
+  const page = `// @zen-page {"format":1,"title":"Chat"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { ChatMessage, ChatThread } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Chat" device="phone">
+        <ChatThread>
+          <ChatMessage author={{ name: "Ava Chen" }} reactions={[{ kind: "heart", count: 2 }, { kind: "lol" }]}>See you at 6?</ChatMessage>
+          <ChatMessage side="you" reactions={[{ kind: "🎉" }]} seenBy={[{ name: "Ava Chen" }, { name: "Bao Tran", theme: "blue" }]}>Yes, on my way</ChatMessage>
+        </ChatThread>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const thread = frame.children[0];
+  const [others, you] = thread.children;
+  const ava = others.slots[0].children[0];
+  check("ChatThread: a column (Gap/Medium, Padding/Medium) of Chat/Section/Conversation runs by side", [thread.layout.gapVar, thread.layout.paddingVar, thread.children.map((run) => [run.set.id, run.props.Side, run.slots[0].name])], ["Spacing/Gap/Medium", "Spacing/Padding/Medium", [["6182:57707", "Others", "Conversations"], ["6182:57707", "You", "Conversations"]]]);
+  check("ChatMessage: its text in Message, its author's Avatar named and one letter, the reactions pill (Count, Emoji-Items)", [ava.texts, ava.props.Reaction, ava.nested, ava.slots[0].within, ava.slots[0].children.map((emoji) => emoji.props.Emoji)], [{ Message: "See you at 6?" }, "Yes", [{ path: "Avatar", name: "Ava Chen", props: { Theme: "Neutral", Background: "Subtle" }, text: "A" }, { path: "Bubble/Chat", props: { Counter: "Yes" }, texts: { Count: "3" } }], "Chat/Reaction/Status/No", ["Heart", "LOL"]]);
+  const [message, readList] = you.slots[0].children[0].children;
+  check("ChatMessage: a picked emoji in Message; the read list under it (Seen by, each reader named, one letter)", [message.slots[0].children[0].texts, readList.set.id, readList.props["Seen by"], readList.nested.map((avatar) => [avatar.path, avatar.name, avatar.text, avatar.props.Theme])], [{ Message: "🎉" }, "6101:61545", "2", [["Avatar[0]", "Ava Chen", "A", "Neutral"], ["Avatar[1]", "Bao Tran", "B", "Blue"]]]);
+  ok("Chat: nothing unwritten", !notes.some((note) => /ChatMessage|ChatThread/.test(note)));
+  // (The pulled Screen holds its ChatThread in a Stack: a Screen's content is a Stack.)
+  check("round trip: the chat comes back the same from the push", shape(pageFromFigma(frame, { mapping }).text).children[0].children[0].children[0], shape(page).children[0].children[0]);
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-chat.json", import.meta.url), "utf8")).frame;
+  const fromFigma = pageFromFigma(read, { mapping });
+  check("round trip: the same chat from Figma's own read of the import (names from the avatars' layers, reactions from the nested slot)", shape(fromFigma.text).children[0].children[0].children[0], shape(page).children[0].children[0]);
+  check("round trip from Figma: no notes", fromFigma.notes, []);
+}
+
+// 23. Small avatars show one letter (Avatar.tsx: XSmall and 2XSmall; user, 2026-10-13): an Avatar element and a Table's
+//     avatar cell without a caption.
+{
+  const page = `// @zen-page {"format":1,"title":"People"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Avatar, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="People" device="desktop">
+        <Stack>
+          <Avatar size="xs" alt="Ava Chen">AC</Avatar>
+          <Avatar size="md" alt="Ava Chen">AC</Avatar>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  check("Avatar: one letter at XSmall, two at Medium", push(page).frame.children.map((avatar) => avatar.text), ["A", "AC"]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

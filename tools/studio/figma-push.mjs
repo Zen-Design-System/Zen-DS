@@ -46,7 +46,14 @@ const SETS = {
   stepVertical: { id: "4034:11389", name: ".Primitives/Stepper/Step-Vertical" },
   // One colour swatch (its own fill is the colour); ColorSelector is a row of them.
   colorSwatch: { id: "373:97252", name: "Color-Selector" },
+  // A ChatMessage's reaction emojis (in its bubble's Chat/Reaction/Status) and the read list under it.
+  reactionEmoji: { id: "6263:67248", name: "Chat/Reaction/Emoji/Static" },
+  readList: { id: "6101:61545", name: "Chat/Section/Read-List" },
+  // A run of messages from one side (its Conversations slot, Gap/2XSmall); ChatThread is a column of them.
+  chatSection: { id: "6182:57707", name: "Chat/Section/Conversation" },
 };
+/** A quick reaction (Chat.tsx chatReactionEmojis) → Figma Chat/Reaction/Emoji's Emoji option. */
+const EMOJI_OPTION = { like: "Like", heart: "Heart", lol: "LOL", surprised: "Surprised", sad: "Sad", angry: "Angry" };
 /** A token's CSS value → its Figma variable ("var(--zen-color-background-support-blue-solid)" → "Color/Background/Support/Blue/Solid"). */
 const VARIABLE_OF_CSS = new Map(Object.entries(tokens).filter(([, value]) => typeof value === "string" && value.startsWith("var(")).map(([name, value]) => [value.replace(/\s+/g, ""), name]));
 /** Form fields drawn as Figma's Input/…-Field: the label in Label, the value (else the placeholder) in Text, help in Message. */
@@ -90,7 +97,7 @@ const SLOT_OF_PROP = {
  */
 const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]) };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
+const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -145,6 +152,9 @@ const literal = (value) => ({ kind: "literal", value });
 const elementOf = (name, props, children = []) => ({ kind: "element", name, props: Object.fromEntries(Object.entries(props).filter(([, value]) => value)), children });
 /** "Ava Chen" → "AC": the first letters of the first two words, as Avatar draws a name without a photo (Avatar.tsx). */
 const initialsOf = (name) => String(name ?? "").split(/\s+/).filter(Boolean).slice(0, 2).map((part) => Array.from(part)[0]).join("").toUpperCase() || "?";
+/** An Avatar's initials as Avatar.tsx draws them: up to two letters, one on a small avatar (XSmall, 2XSmall; user, 2026-10-13). */
+const SMALL_AVATAR = new Set(["xs", "2xs", "xsmall", "2xsmall", "XSmall", "2XSmall"]);
+const avatarInitials = (text, size) => Array.from(String(text ?? "").trim()).slice(0, SMALL_AVATAR.has(size) ? 1 : 2).join("").toUpperCase() || "?";
 
 const short = (step) => LONG_TO_SHORT[step] ?? step;
 const pxOf = (step, table) => table.find(([, key]) => key === short(step))?.[0];
@@ -301,6 +311,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "ColorSelector") node = colorSelectorNode(element, code, id);
     else if (element.name === "UploaderFileItem") node = uploaderFileItemNode(element, code, id, parent);
     else if (element.name === "DatePickerSheet") node = datePickerSheetNode(element, code, id, parent);
+    else if (element.name === "ChatMessage") node = chatMessageNode(element, code, id, parent);
+    else if (element.name === "ChatThread") node = chatThreadNode(element, code, id);
     // Tabs written with TabItem children: the same Item-List of Tab-Items as its `items` (Tabs.tsx renders either).
     else if (element.name === "Tabs" && !element.props.items && element.children.some((child) => child.kind === "element" && child.name === "TabItem")) {
       const tabs = tabsOfChildren(element);
@@ -522,6 +534,78 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!header || (!before.length && !after.length)) return header ? { ...header, ...(id ? { id } : {}) } : null;
     const frame = { type: "FRAME", ...(id ? { id } : {}), name: "PageHeader", layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [...before, { ...header, fillW: true }, ...after] };
     return frame;
+  }
+
+  /**
+   * ChatMessage as Figma's Chat/Conversation/Bubble, with what Chat.tsx draws around the bubble: the author's Avatar
+   * (initials on its theme; hidden on a run's later message) and name, the reactions pill (Reaction=Yes: the total in
+   * Count, up to three Chat/Reaction/Emoji/Static in Emoji-Items) and the read list under it (Chat/Section/Read-List:
+   * Seen by, each reader's initials, "+N" past five), in a column aligned to the message's side (chat.css, Gap/2XSmall).
+   */
+  function chatMessageNode(element, code, id, parent) {
+    const node = instanceNode(element, code, id, parent);
+    if (node?.type !== "INSTANCE") return node;
+    const where = `ChatMessage${id ? ` (${id})` : ""}`;
+    const side = code.side === "you" ? "you" : "others";
+    const people = (value) => (Array.isArray(value) ? value : []).filter((person) => person && typeof person === "object" && typeof person.name === "string");
+    const avatar = (person, path) => {
+      if (person.src) notes.push(`${where}: ${person.name}'s photo keeps Figma's sample picture`);
+      const theme = person.src ? "Photo" : String(person.theme ?? "neutral").replace(/^./, (char) => char.toUpperCase());
+      // The layer takes the person's name (Figma has no field for it): the pull reads it back.
+      return { path, name: person.name, props: { Theme: theme, Background: "Subtle" }, ...(person.src ? {} : { text: avatarInitials(initialsOf(person.name), "XSmall") }) };
+    };
+    const author = people([plain(element.props.author)])[0];
+    // Its text in the bubble's Message (the Avatar's initials are the first text layer once shown).
+    if (typeof node.text === "string") { node.texts = { ...(node.texts ?? {}), Message: node.text }; delete node.text; }
+    const nested = [];
+    if (side === "others" && author) {
+      node.props = { ...node.props, ...onlyOwn(node.set, { Avatar: code.continued !== true }) };
+      if (code.continued !== true) nested.push(avatar(author, "Avatar"));
+      if (code.showName === true) node.texts = { ...(node.texts ?? {}), Name: author.name };
+    }
+    const reactions = (plain(element.props.reactions) ?? []).filter((reaction) => reaction && typeof reaction.kind === "string");
+    if (reactions.length) {
+      const total = reactions.reduce((sum, reaction) => sum + (Number(reaction.count) || reaction.by?.length || 1), 0);
+      node.props = { ...node.props, ...onlyOwn(node.set, { Reaction: "Yes" }) };
+      nested.push({ path: "Bubble/Chat", props: { Counter: total > 1 ? "Yes" : "No" }, ...(total > 1 ? { texts: { Count: String(total) } } : {}) });
+      const emojis = reactions.slice(0, 3).map((reaction) => (EMOJI_OPTION[reaction.kind]
+        ? { type: "INSTANCE", name: reaction.kind, set: SETS.reactionEmoji, props: { Emoji: EMOJI_OPTION[reaction.kind] } }
+        : { type: "INSTANCE", name: reaction.kind, set: SETS.reactionEmoji, props: {}, texts: { Message: reaction.kind } }));
+      node.slots = [...(node.slots ?? []), { name: "Emoji-Items", within: "Chat/Reaction/Status/No", children: emojis }];
+    }
+    if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
+    const seenBy = people(plain(element.props.seenBy));
+    if (!seenBy.length) return node;
+    const readList = { type: "INSTANCE", name: "Seen by", set: SETS.readList, props: { "Seen by": seenBy.length > 5 ? "5+" : String(seenBy.length) },
+      nested: [...(seenBy.length > 5 ? [{ path: "Badge", props: {}, text: `+${seenBy.length - 5}` }] : []), ...seenBy.slice(0, 5).map((person, index) => avatar(person, `Avatar[${index}]`))] };
+    const { id: _own, fillW: _fill, ...message } = node;
+    return { type: "FRAME", ...(id ? { id } : {}), name: "ChatMessage", layout: { mode: "VERTICAL", gap: 4, gapVar: "Spacing/Gap/2XSmall", padding: [0, 0, 0, 0], counter: side === "you" ? "MAX" : "MIN", primary: "MIN" }, children: [message, readList] };
+  }
+
+  /**
+   * ChatThread (chat.css: Padding/Medium, 4px within a run, 16px between sides) as Figma draws a conversation: a column
+   * (Gap/Medium) of Chat/Section/Conversation, one per run of messages from one side, the messages hugging in its
+   * Conversations slot (Gap/2XSmall, a You run at the right); its other layers (a date divider) between them.
+   */
+  function chatThreadNode(element, code, id) {
+    const layers = [];
+    let run = null;
+    for (const child of element.children.filter((item) => item.kind === "element")) {
+      if (child.name !== "ChatMessage") {
+        run = null;
+        const layer = convert(child, { direction: "column", stretch: true });
+        if (layer) layers.push({ ...layer, fillW: true });
+        continue;
+      }
+      const side = literalOf(child.props.side) === "you" ? "You" : "Others";
+      if (run?.props.Side !== side) {
+        run = { type: "INSTANCE", name: side, set: SETS.chatSection, props: { Side: side }, slots: [{ name: "Conversations", children: [] }], fillW: true };
+        layers.push(run);
+      }
+      const layer = convert(child, { direction: "column", stretch: false });
+      if (layer) { const { fillW: _fill, ...hugging } = layer; run.slots[0].children.push(hugging); }
+    }
+    return { type: "FRAME", ...(id ? { id } : {}), name: "ChatThread", layout: { mode: "VERTICAL", gap: 16, gapVar: "Spacing/Gap/Medium", padding: [16, 16, 16, 16], paddingVar: "Spacing/Padding/Medium", counter: "MIN", primary: "MIN" }, children: layers };
   }
 
   /**
@@ -1020,7 +1104,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
         const mine = own("Avatar");
         const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: "subtle", theme: photo ? "photo" : "neutral", ...mine }, where);
         // The page's own initials (an override's children: "Bich Ngoc Ha" → BH) win over the label's first two words.
-        if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(photo ? {} : { text: typeof mine.children === "string" ? mine.children : initialsOf(label) }) });
+        if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(photo ? {} : { text: avatarInitials(typeof mine.children === "string" ? mine.children : initialsOf(label), mine.size ?? (caption ? "sm" : "xs")) }) });
       }
       if ((kind === "avatar" || kind === "photo") && typeof media === "string") { node.image = media; images.add(media); }
       return node;
@@ -1113,7 +1197,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const props = figmaProps(entry, code, mapping, notes, where, null, filled);
     const node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : entry.name, set: { id: entry.id, name: entry.name }, props };
     const label = textOf(element) || (TEXT_PROP[element.name] && typeof code[TEXT_PROP[element.name]] === "string" ? code[TEXT_PROP[element.name]] : "");
-    if (label) node.text = label;
+    // An Avatar's initials as it draws them (one letter when small).
+    if (label) node.text = element.name === "Avatar" ? avatarInitials(label, code.size ?? "md") : label;
     const slots = [];
     const dataSlots = mapping.dataSlots?.[element.name] ?? [];
     const slotProps = SLOT_OF_PROP[element.name] ?? {};
