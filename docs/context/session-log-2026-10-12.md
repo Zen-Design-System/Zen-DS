@@ -104,3 +104,16 @@
   order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
+
+## Figma layers renamed to Zen's names (session "Kiểm tra tiến độ plan", branch zen/fix/figma-zen-layer-names, tier S)
+
+- User: "sửa theo Zen, đảm bảo Figma không lỗi" (Icon-Wrapper stays: a wrapper holding one icon). Dry run first
+  (read-only), then use_figma writes of names only, the same in every variant (variant switching matches by name);
+  nodes inside instances were renamed at their definition (.Primitives/Modal/Header, Primitives/Tab-Item 48 variants,
+  .Empty-State/CTAs, the Illustration). 186 layers + Inline-Message's slot property Visual → Leading (same id).
+  Checked after each write: component properties and variant counts unchanged, 0 errors, read-back of every set.
+- `saveVersionHistoryAsync` is not supported in use_figma: the undo map is `docs/figma-contracts/
+  layer-renames-2026-10-12.json` (Figma's own version history too).
+- Repo: nested-layers.json re-read for the 14 sets; 20 `ALLOWED` entries removed (44/44); Inline-Message `Visual` →
+  `Leading` in component-properties.json and figma-props.map.mjs. figma-push / pull match by set names, untouched.
+- Left for the user: publish the library (other files see the names then).

@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Figma: the Zen file's layers now carry Zen's names (186 layers, names only): `Action`, `Actions`, `Send`, `Attach` /
+  `Dictate` / `Submit`, `Previous` / `Next` / `Page-Size`, `Close`, `Primary` / `Secondary`, `Icon-Wrapper` and `Icon`
+  for glyph-named icons; Inline-Message's Custom slot property is `Leading`. The nested layer-name gate checks them now
+  (20 exceptions gone); the record and undo map are `docs/figma-contracts/layer-renames-2026-10-12.json`.
 - Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): Tabs `Tab` → `Tab-Item`,
   Uploader `File` → `File-Item`. Zen's own names stay where Figma differs: `Send`, `Action`
   (its own component and tokens; an inline component's own buttons are its Action too), `Actions` (the action row), a

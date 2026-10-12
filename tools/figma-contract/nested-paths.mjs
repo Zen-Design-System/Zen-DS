@@ -27,31 +27,21 @@ const ALLOWED = {
   Search: { Filter: "Figma draws it as Search/Filter-Icon or Search/Filter-Dropdown by Theme: one code layer for both" },
   Segmented: { "Badge-Counter": "inside Item (Primitives/Segmented/Item-N), whose layers the contract does not capture", Leading: "inside Item, whose layers the contract does not capture" },
   Sidebar: { "Badge-Counter": "inside Item (Primitives/Side-Bar/Menu-Item), whose layers the contract does not capture" },
-  // Read 2026-10-12 (nested-layers.json): Figma leaves these instances unnamed (they carry their component's name, the
-  // same for several: Button/Icon-Flat, Button/Overlay), names an icon after its glyph, or has no such layer.
-  AiChatField: { Submit: "unnamed in Figma: Trailing-Actions › Button/Icon-Main", Attach: "unnamed in Figma: Leading-Actions › Button/Icon-Flat", Dictate: "unnamed in Figma: Leading-Actions › Button/Icon-Flat" },
-  AlertBanner: { Leading: "Figma's status icon sits in Visual, named after its glyph (icon-info-circle-solid…)", Action: "unnamed in Figma: Actions › Button/Overlay" },
-  // Zen's names, kept against Figma's (user, 2026-10-12): Action is its own component with its own tokens (mobile /
-  // tablet) and never becomes a Button name; a button layer is named by its level (Primary, Secondary), as
-  // .Primitives/Modal/Actions names its two.
-  BottomNavigation: { Item: "Figma's items are unnamed instances of .Primitives/Bottom-Navigation/Items/Default, Floating or Floating-Glass", Action: "Zen's name for the bar's action (its own component and tokens); Figma's Floating sets call the instance CTA" },
-  ChatCall: { Action: "unnamed in Figma: Button/Overlay or Button/Flat by the call's state" },
-  ChatComposer: { Action: "Figma names each leading action by its job (More, Voice, Photo); the code's come from data, one layer name for all", Send: "Zen's name for the send button (user, 2026-10-12); Figma's Chat-Control names that trailing instance Main, a Button appearance's name" },
+  // Read 2026-10-12 (nested-layers.json), after the Figma layers were renamed to Zen's names (layer-renames in
+  // docs/figma-contracts): what is left is structure Figma draws differently, items it leaves unnamed, or layers it
+  // does not draw. Zen's names win (user, 2026-10-12): Icon-Wrapper holds one icon, Leading any visual.
+  AlertBanner: { Leading: "Figma draws the status icon in Icon-Wrapper › Icon, shown by its Leading property; the code's Leading takes any node" },
+  BottomNavigation: { Item: "Figma's items are unnamed instances of .Primitives/Bottom-Navigation/Items/Default, Floating or Floating-Glass" },
+  ChatComposer: { Action: "Figma names each leading action by its job (More, Voice, Photo); the code's come from data, one layer name for all" },
   ChatConversationItem: { "Avatar-Group": "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it", Avatar: "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it" },
-  Dialog: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph (icon-info-circle-solid…)" },
-  ModalForm: { Actions: "Zen's name for the action row, as Dialog and Side-Panel (their Actions frame) and its component .Primitives/Modal/Actions; Modal/Forms puts the instance in Footer, named Buttons" },
-  EmptyState: { Primary: "Figma's CTA (.Empty-State/CTAs) holds its buttons unnamed (Button/Main, Level=Primary / Tertiary)", Secondary: "Figma's CTA (.Empty-State/CTAs) holds its buttons unnamed (Button/Main, Level=Primary / Tertiary)", Icon: "Figma's illustration icon is named after its glyph (icon-user-circle-line)" },
   ListItem: { Leading: "Figma's List-Item leads with Avatar/Single; a leading icon is the code's" },
   Metric: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
   MetricCard: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
-  Pagination: { Previous: "unnamed in Figma: Button/Icon-Main", Next: "unnamed in Figma: Button/Icon-Main", Page: "Figma names each page by its number (1, 2, 3, …)", "Page-Size": "unnamed in Figma: Chip/Advanced" },
+  Pagination: { Page: "Figma names each page by its number (1, 2, 3, …)" },
   Popover: { Avatar: "a Popover item can lead with an Avatar in code; Figma's Popover/Default sample has none", Badge: "a Popover item can end with a Badge in code; Figma's Popover/Default sample has none" },
-  SidePanel: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph", Close: "unnamed in Figma: Close-Container › Button/Icon-Flat" },
   Stepper: { Step: "Figma's steps are unnamed instances of .Primitives/Stepper/Step-Horizontal or Step-Vertical" },
-  Tabs: { Icon: "Figma's tab icon is named after its glyph (icon-home-03-solid)" },
   Tag: { Avatar: "Figma's Tag shows its photo through Leading (Image, Status inside), no Avatar layer" },
-  Toast: { Action: "unnamed in Figma: Button/Overlay or Button/Main by the toast's type", Leading: "Zen's Leading holds the icon or any node (icon prop); Figma draws icon-Container › Icon" },
-  InlineMessage: { Leading: "Zen's Leading holds the icon or any visual (icon prop); Figma draws Icon-Wrapper › Icon, or the Visual slot for Theme=Custom" },
+  Toast: { Leading: "Figma draws the icon in Icon-Wrapper › Icon; the code's Leading (icon prop) takes any node" },
   FileUpload: { Retry: "Figma's File-Item shows Replace and Remove; Retry is the code's, for a failed upload" },
 };
 
