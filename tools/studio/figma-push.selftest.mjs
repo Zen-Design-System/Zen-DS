@@ -589,6 +589,55 @@ export default function Page() {
   ok("round trip: AiChatBlock comes back with its greeting, suggestions and field (no wrapper Stack)", /<AiChatBlock[^>]*greeting="Good morning, Alex\. How can I help\?"/.test(back) && back.includes('{ label: "Request time off", icon: "icon-calendar-plus-line" }') && /<AiChatField[^>]*fieldStyle="surface"/.test(back) && !/<Stack[^>]*align="center"[^>]*>\s*<AiChatBlock/.test(back));
 }
 
+// 15. TopNavigation as Figma's Top-Navigation/Mobile (figma-top-nav.mjs, 2026-10-13): the Type and the parts the page
+//     shows, the titles in their Heading-Text layers, the leading Action, the actions in each row's Trailing-Slot (by
+//     `within`) in the Button the Type draws, the control bar padded in Control-Slot; the Screen's mobile chrome round trip.
+{
+  const nav = `// @zen-page {"format":1,"title":"Inbox"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Segmented, Stack, Text, TopNavigation } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox" device="phone" topNavigation={<TopNavigation type="liquid-glass" largeTitle="Inbox" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-search-medium-line", label: "Search" }, { icon: "icon-bell-01-line", label: "Alerts", dot: true }]} largeTitleAction={{ icon: "icon-plus-line", label: "New" }} controlBar={<Segmented options={[{ id: "all", label: "All" }, { id: "unread", label: "Unread" }]} fullWidth defaultValue="all" />} />}>
+        <Stack>
+          <TopNavigation type="compact" largeTitle="Home" trailing={[{ icon: "icon-search-medium-line", label: "Search" }, { icon: "icon-bell-01-line", label: "Alerts" }]} />
+          <TopNavigation type="default-overlay" margin="compact" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call", group: "call" }, { icon: "icon-video-line", label: "Video", group: "call" }]} />
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(nav);
+  const [inbox] = frame.children;
+  const [home, ava] = frame.children[1].children[0].children;
+  check("TopNavigation: Top-Navigation/Mobile, its Type, no Status-bar, the parts the page shows", [inbox.set.id, inbox.props.Type, inbox.props["Status-Bar"], inbox.props["Top-bar"], inbox.props["Top-Heading-Text"], inbox.props["Expand-Heading"], inbox.props["Expand-Trailing"], inbox.props["Control-Bar"]], ["12014:45167", "Liquid Glass", false, true, false, true, true, true]);
+  check("TopNavigation: the large title and the leading Action (named by its label, its glyph)", [inbox.nested[0], inbox.nested[1]], [{ path: "Main-Heading-Text", props: { Type: "H1" }, texts: { "Header-Text": "Inbox" } }, { path: "Top-Leading/Action", name: "Back", props: { "Noti-Dot": false }, swapIcon: "icon-chevron-left-line-medium" }]);
+  check("TopNavigation: each row's actions in its own Trailing-Slot, as Nav-Slot/Action in the Type's Button", inbox.slots.slice(0, 2).map((slot) => [slot.within, slot.children.map((item) => [item.name, item.set.id, item.props.Style, item.props["Noti-Dot"], item.nested[0].set.name, item.nested[0].props.Level, item.nested[0].swapIcon])]), [["Navigator-bar", [["Search", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-search-medium-line"], ["Alerts", "6340:42675", "Default", true, "Nav-Action/Liquid-Glass", "Secondary", "icon-bell-01-line"]]], ["Expand-Heading", [["New", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-plus-line"]]]]);
+  check("TopNavigation: the control bar in Control-Slot, padded as the code pads it (Padding/2XSmall, Large, XSmall)", [inbox.slots[2].name, inbox.slots[2].children[0].name, inbox.slots[2].children[0].layout.padding, inbox.slots[2].children[0].children[0].set.name], ["Control-Slot", "Control", [4, 20, 8, 20], "Segmented"]);
+  check("TopNavigation: a compact root folds its bar into the large-title row (Top-bar off, the actions beside the title, Flat › Icon-Flat)", [home.props["Top-bar"], home.props["Top-Leading"], home.props["Expand-Trailing"], home.slots.map((slot) => [slot.within, slot.children.map((item) => [item.props.Style, item.nested[0].set.name, item.nested[0].props.Level])])], [false, false, true, [["Expand-Heading", [["Flat", "Nav-Action/Icon-Flat", "Primary"], ["Flat", "Nav-Action/Icon-Flat", "Primary"]]]]]);
+  check("TopNavigation: an identity's title and subtitle in Top-Heading-Text, Margin Compact, an overlay's Icon-Overlay", [ava.props.Margin, ava.props["Expand-Heading"], ava.nested[0].props, ava.nested[0].texts, ava.slots[0].children[0].nested[0].props.Level], ["Compact", false, { Type: "Sub", Header: true, Subheading: true, Leading: false }, { "Header-Text": "Ava Chen", Subheading: "Active now" }, "Black Overlay"]);
+  ok("TopNavigation: a note for actions that share a pill (Figma has none)", notes.some((note) => /share a pill/.test(note)));
+  const back = shape(pageFromFigma(frame, { mapping }).text);
+  check("round trip: the Screen's topNavigation and the page's TopNavigations come back the same", back, shape(nav.replace(/, group: "call"/g, "")));
+}
+
+// 16. A Top-Navigation/Mobile as the pull reads it in Figma (readTopNav; the instance an import placed, 2026-10-13).
+{
+  const read = { type: "FRAME", name: "Chat", width: 390, layout: { mode: "VERTICAL" }, children: [{ type: "INSTANCE", name: "Ava Chen", set: { id: "12014:45167", name: "Top-Navigation/Mobile" },
+    props: { "Top-Leading": true, "Top-Heading-Text": true, "Control-Bar": false, "Top-Trailing": true, "Expand-Trailing": false, "Status-Bar": false, "Top-bar": true, "Expand-Heading": false, Device: "Mobile", Margin: "Comfortable", Type: "Default-Overlay" },
+    topNav: { bar: { props: { Leading: false, Header: true, Subheading: true, Type: "Sub" }, texts: { Label: "A", "Header-Text": "Ava Chen", Subheading: "Active now" } }, large: { props: { Type: "H1" }, texts: { "Header-Text": "Heading" } },
+      leading: { props: { Style: "Liquid Glass", Type: "Action" }, action: { name: "Back", icon: "icon-chevron-left-line-medium" } },
+      barActions: [{ name: "Call", icon: "icon-phone-line" }, { name: "Video", icon: "icon-video-line", dot: true }], titleActions: [{ name: "Action", icon: "icon-plus-line" }], control: [] } }] };
+  const text = pageFromFigma(read, { mapping }).text;
+  ok("pull: Top-Navigation/Mobile → TopNavigation with its type, identity, leading and trailing (hidden rows left out)", text.includes('<TopNavigation type="default-overlay" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call" }, { icon: "icon-video-line", label: "Video", dot: true }]} />') && !text.includes("Heading\""));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

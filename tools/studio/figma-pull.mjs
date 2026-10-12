@@ -22,6 +22,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
+import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -71,9 +72,44 @@ const propsOf = async (instance) => {
 const firstText = (node) => { const text = node.findOne ? node.findOne((n) => n.type === "TEXT" && n.visible) : null; return text ? text.characters : null; };
 // A composition of library components (Patterns/…, Header/…) is read inside, as a frame.
 const COMPOSITION = /^(Patterns|Header|Templates?|Layouts?|Screens?)\\//;
+// A Nav-Slot/Action: its layer name, the icon it draws (its first visible icon instance's component) and its dot.
+const navActionOf = async (action) => {
+  const props = await propsOf(action);
+  let icon = null;
+  for (const inner of action.findAll((n) => n.type === "INSTANCE" && n.visible)) {
+    const main = await inner.getMainComponentAsync();
+    if (main && /^(icon|ic)-/.test(main.name)) { icon = main.name; break; }
+  }
+  return { name: action.name, ...(icon ? { icon } : {}), ...(props["Noti-Dot"] === true ? { dot: true } : {}) };
+};
+// Top-Navigation/Mobile (figma-top-nav.mjs) by its layer names: the bar and large titles' texts, the leading action, each
+// row's Trailing-Slot actions (both slots share that name) and what the Control-Slot holds.
+const readTopNav = async (instance, set) => {
+  const named = (name) => instance.findOne((n) => n.name === name);
+  const texts = (node) => (node ? Object.fromEntries(node.findAll((n) => n.type === "TEXT" && n.visible).map((text) => [text.name, text.characters])) : {});
+  const actionsIn = async (row) => {
+    const slot = named(row) ? named(row).findOne((n) => n.type === "SLOT" && n.name === "Trailing-Slot") : null;
+    const out = [];
+    for (const child of (slot ? slot.children : []).filter((child) => child.visible && child.type === "INSTANCE")) out.push(await navActionOf(child));
+    return out;
+  };
+  const bar = named("Top-Heading-Text"), large = named("Main-Heading-Text"), lead = named("Top-Leading");
+  const leadAction = lead ? lead.findOne((n) => n.type === "INSTANCE" && n.name === "Action") : null;
+  const controlSlot = instance.findOne((n) => n.type === "SLOT" && n.name === "Control-Slot");
+  const control = [];
+  for (const child of controlSlot ? controlSlot.children : []) { const read_ = await read(child); if (read_) control.push(read_); }
+  const topNav = {
+    bar: { props: bar ? await propsOf(bar) : {}, texts: texts(bar) },
+    large: { props: large ? await propsOf(large) : {}, texts: texts(large) },
+    leading: lead ? { props: await propsOf(lead), ...(leadAction ? { action: await navActionOf(leadAction) } : {}) } : null,
+    barActions: await actionsIn("Navigator-bar"), titleActions: await actionsIn("Expand-Heading"), control,
+  };
+  return { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), topNav };
+};
 const readInstance = async (instance) => {
   const set = await setOf(instance);
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
+  if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), text: firstText(instance), nested: [], slots: [] };
   const changed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.some((f) => f === "componentProperties" || f === "characters")).map((o) => o.id));
   const walk = async (node, trail) => {
@@ -888,6 +924,7 @@ function convertNode(node, ctx) {
     if (ROW_ELEMENTS[setName]) return { kind: "element", name: ROW_ELEMENTS[setName], props: itemFields(node, ctx, { where: ROW_ELEMENTS[setName] }), children: [] };
     if (setName === "Primitives/Dashboard/Header/Action-Item") return actionItem(node, ctx);
     if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
+    if (setName === TOP_NAV_SET.name) return topNavigationElement(node, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -952,6 +989,8 @@ function convertNode(node, ctx) {
       if (dataSlot) {
         const { value, selected } = dataSlotValue(slot, dataSlot, ctx, where, rail);
         props[dataSlot.prop] = value;
+        // A Segmented whose Item-List fills it splits its width (figma-push: fullWidth → the slot fills).
+        if (set.code === "Segmented" && slot.fillW) props.fullWidth = literal(true);
         if (selected && SELECTED_PROP[set.code]) props[SELECTED_PROP[set.code]] = literal(selected);
         continue;
       }
@@ -1069,6 +1108,93 @@ function frameElement(node, children, ctx) {
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
 }
 
+/** The push's own Top-Navigation node (nested, slots) as readTopNav reads the placed instance: the round trip's input. */
+function topNavOfPush(node) {
+  const nested = (path) => (node.nested ?? []).find((entry) => entry.path === path);
+  const actionsIn = (row) => ((node.slots ?? []).find((slot) => slot.name === "Trailing-Slot" && slot.within === row)?.children ?? []).map((item) => {
+    const button = (item.nested ?? []).find((entry) => entry.path === "Button");
+    return { name: item.name, ...(button?.swapIcon ? { icon: button.swapIcon } : {}), ...(item.props?.["Noti-Dot"] === true ? { dot: true } : {}) };
+  });
+  const leadAction = nested("Top-Leading/Action");
+  return {
+    bar: { props: nested("Top-Heading-Text")?.props ?? {}, texts: nested("Top-Heading-Text")?.texts ?? {} },
+    large: { props: nested("Main-Heading-Text")?.props ?? {}, texts: nested("Main-Heading-Text")?.texts ?? {} },
+    leading: { props: { Type: "Action", ...(nested("Top-Leading")?.props ?? {}) }, ...(leadAction ? { action: { name: leadAction.name ?? "Action", ...(leadAction.swapIcon ? { icon: leadAction.swapIcon } : {}), ...(leadAction.props?.["Noti-Dot"] === true ? { dot: true } : {}) } } : {}) },
+    barActions: actionsIn("Navigator-bar"), titleActions: actionsIn("Expand-Heading"),
+    control: (node.slots ?? []).find((slot) => slot.name === "Control-Slot")?.children ?? [],
+  };
+}
+
+/**
+ * Figma's Top-Navigation/Mobile as TopNavigation (figma-push topNavigationNode, the other way; read by readTopNav): its
+ * type and margin, the bar title (an identity's title and subtitle), the large title and its level, the leading action,
+ * the bar's and the large-title row's actions, what its Control-Slot holds. With the bar row hidden (Top-bar=false) the
+ * large-title row's actions are the trailing ones (the code folds them there); a bar row over a large title without a
+ * leading action is `topBar`.
+ */
+function topNavigationElement(node, ctx) {
+  const shown = node.props ?? {};
+  const read = node.topNav ?? topNavOfPush(node);
+  const where = `TopNavigation "${node.name}"`;
+  const props = {};
+  const type = TOP_NAV_TYPE_OF[shown.Type];
+  if (type && type !== "default") props.type = literal(type);
+  if (shown.Margin === "Compact") props.margin = literal("compact");
+  const action = (item) => {
+    const icon = item.icon && isZenIcon(item.icon, ctx.mapping) ? item.icon : null;
+    if (!icon) ctx.notes.push(`${where}: the action "${item.name}" draws ${item.icon ?? "no icon"}, not a Zen icon: it draws icon-plus-line`);
+    const label = item.name && item.name !== "Action" && !item.name.includes("/") ? item.name : iconWords(icon ?? "icon-plus-line");
+    return { kind: "object", fields: { icon: literal(icon ?? "icon-plus-line"), label: literal(label), ...(item.dot ? { dot: literal(true) } : {}) } };
+  };
+  const list = (items) => ({ kind: "array", items: items.map(action) });
+  const bar = shown["Top-bar"] !== false;
+  const barTitle = bar && shown["Top-Heading-Text"] !== false ? read.bar ?? {} : null;
+  if (barTitle?.texts?.["Header-Text"]) props.title = literal(barTitle.texts["Header-Text"]);
+  if (barTitle?.props?.Subheading === true && barTitle.texts?.Subheading) props.subtitle = literal(barTitle.texts.Subheading);
+  const large = shown["Expand-Heading"] === true ? read.large?.texts?.["Header-Text"] : undefined;
+  if (large) {
+    props.largeTitle = literal(large);
+    const level = { H2: "h2", H3: "h3" }[read.large?.props?.Type];
+    if (level) props.headingLevel = literal(level);
+  }
+  const leading = bar && shown["Top-Leading"] !== false ? read.leading : null;
+  if (leading?.props?.Type === "Visual") ctx.notes.push(`${where}: its leading visual (Nav-Slot/Visual) is left out: give the TopNavigation a leading in the Studio`);
+  else if (leading?.action) props.leading = action(leading.action);
+  const barActions = bar && shown["Top-Trailing"] !== false ? read.barActions ?? [] : [];
+  const titleActions = large && shown["Expand-Trailing"] !== false ? read.titleActions ?? [] : [];
+  if (bar) {
+    if (barActions.length) props.trailing = list(barActions);
+    if (titleActions.length) props.largeTitleAction = titleActions.length === 1 ? action(titleActions[0]) : list(titleActions);
+    if (large && !props.leading && !props.subtitle) props.topBar = literal(true);
+  } else if (titleActions.length) props.trailing = list(titleActions);
+  if (shown["Control-Bar"] === true) {
+    // The push pads the control in a "Control" frame (the code's control bar padding): its layer is the control.
+    const layers = (read.control ?? []).flatMap((child) => (child.type === "FRAME" && child.name === "Control" && child.children?.length === 1 ? child.children : [child])).map((child) => convert(child, ctx)).filter(Boolean);
+    if (layers.length) props.controlBar = { kind: "element", node: layers.length === 1 ? layers[0] : { kind: "element", name: "Stack", props: {}, children: layers } };
+  }
+  return { kind: "element", name: "TopNavigation", props, children: [] };
+}
+
+/**
+ * A phone Screen's app frame as the push draws it: Top-Navigation/Mobile, the "Content" frame, a Bottom Navigation
+ * (either bar may be missing, not both). It gives the Screen's `topNavigation` and `bottomNavigation` back and Content's
+ * layers as the page. Anything else: null.
+ */
+function mobileChrome(frame, ctx) {
+  const parts = frame?.children ?? [];
+  const at = parts.findIndex((part) => part.type === "FRAME" && part.name === "Content");
+  if (at < 0 || at > 1 || parts.length > at + 2) return null;
+  const top = at === 1 ? parts[0] : null;
+  const bottom = parts[at + 1] ?? null;
+  if ((!top && !bottom) || (top && top.set?.name !== TOP_NAV_SET.name) || (bottom && codeOf(bottom, ctx) !== "BottomNavigation")) return null;
+  const props = {};
+  if (top) props.topNavigation = { kind: "element", node: convert(top, ctx) };
+  if (bottom) props.bottomNavigation = { kind: "element", node: convert(bottom, ctx) };
+  const layers = (parts[at].children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  const root = layers.length === 1 ? layers[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: layers };
+  return { props, root };
+}
+
 /**
  * A Studio Screen's app frame as the push draws it (figma-push.mjs, screen-chrome.mjs): the frame's one layer "Screen",
  * a row of the Sidebar and "Main" (its "Header" holding the Page header, then "Content"). It gives the Screen's
@@ -1076,6 +1202,8 @@ function frameElement(node, children, ctx) {
  * as the page. Anything else: null.
  */
 function screenChrome(frame, ctx) {
+  const mobile = mobileChrome(frame, ctx);
+  if (mobile) return mobile;
   const [row] = frame?.children ?? [];
   if (frame?.children?.length !== 1 || row.type !== "FRAME" || row.name !== "Screen" || row.layout?.mode !== "HORIZONTAL") return null;
   const sidebarNode = instanceIn(row.children?.[0], "Sidebar", ctx);

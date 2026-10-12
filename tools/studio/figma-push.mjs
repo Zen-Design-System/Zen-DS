@@ -15,6 +15,7 @@
 import { docFromText } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
+import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
 
@@ -287,6 +288,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "AppShell") node = appShellNode(element, code, id, parent);
     else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
+    else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
     else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_SETS[child.name])) node = chartCardNode(element, code, id);
     else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
@@ -505,6 +507,83 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return frame;
   }
 
+  /**
+   * TopNavigation as Figma's Top-Navigation/Mobile (figma-top-nav.mjs): its Type and Margin, the parts the static page
+   * shows (TopNavigation.tsx), the bar and large titles in their Heading-Text layers, the leading action in Top-Leading,
+   * the actions as Nav-Slot/Action instances in the bar's or the large-title row's Trailing-Slot (each in the Button the
+   * Type draws), the control bar in Control-Slot. No Status-bar: the Studio's Screen draws none. A banner sits under it.
+   */
+  function topNavigationNode(element, code, id) {
+    const look = TOP_NAV_TYPES[code.type ?? "default"] ?? TOP_NAV_TYPES.default;
+    const where = `TopNavigation${id ? ` (${id})` : ""}`;
+    const words = (prop) => {
+      const value = plain(element.props[prop]);
+      return typeof value === "string" || typeof value === "number" ? String(value) : layerWords(element.props[prop]);
+    };
+    const title = words("title"), largeTitle = words("largeTitle"), subtitle = words("subtitle");
+    const leading = element.props.leading;
+    const layout = topNavLayout({ largeTitle, title, subtitle, titleLeading: element.props.titleLeading, leading, topBar: code.topBar, collapsed: code.collapsed === true });
+    // Folded (a root's large title showing): one row, the large title with the actions beside it (Top-bar=false).
+    const folded = layout.barFolds && layout.showLarge;
+    const actionsOf = (prop) => {
+      const value = plain(element.props[prop]);
+      return (Array.isArray(value) ? value : value ? [value] : []).filter((action) => action && typeof action === "object");
+    };
+    const titleActions = actionsOf("largeTitleAction");
+    const flat = look.style === "Flat";
+    const bar = topNavActions(layout.barFolds ? titleActions : [], actionsOf("trailing"), { flat, firstTwo: code.trailingGroup === true });
+    const beside = folded ? bar : layout.showLarge ? topNavActions(titleActions, [], { flat }) : { actions: [] };
+    const barActions = folded ? [] : bar.actions;
+    if (bar.grouped) notes.push(`${where}: actions that share a pill are drawn one by one (Figma's Trailing-Slot has no shared pill)`);
+    const navAction = (action, part, index) => {
+      const icon = typeof action.icon === "string" ? action.icon : null;
+      if (!icon) notes.push(`${where}: an action whose icon is not an icon name keeps Figma's sample glyph`);
+      return {
+        type: "INSTANCE", ...(element.id ? { key: `${element.id}/${part}.${index}` } : {}), name: typeof action.label === "string" ? action.label : "Action", set: NAV_ACTION_SET,
+        props: { Style: look.style, "Noti-Dot": Boolean(action.dot) },
+        nested: [{ path: "Button", set: look.button, props: { Level: look.level }, ...(icon ? { swapIcon: icon } : {}) }],
+      };
+    };
+    const props = {
+      Device: "Mobile", Type: look.option, Margin: code.margin === "compact" ? "Compact" : "Comfortable", "Status-Bar": false,
+      "Top-bar": !folded, "Top-Leading": !folded && Boolean(leading), "Top-Heading-Text": !folded && layout.barShowsTitle, "Top-Trailing": barActions.length > 0,
+      "Expand-Heading": layout.showLarge, "Expand-Trailing": beside.actions.length > 0, "Control-Bar": element.props.controlBar?.kind === "element",
+    };
+    // A bar title under a showing large title appears only once it scrolls away: Figma's bar title is hidden then.
+    if (title && layout.showLarge && !layout.identity) notes.push(`${where}: title shows once the large title scrolls away (Figma shows the large title; the bar title is not pushed)`);
+    const nested = [];
+    if (props["Top-Heading-Text"]) {
+      const titleLeading = element.props.titleLeading?.kind === "element";
+      if (titleLeading) notes.push(`${where}: titleLeading is drawn as Heading-Text's Leading sample`);
+      nested.push({ path: "Top-Heading-Text", props: { Type: "Sub", Header: true, Subheading: Boolean(subtitle), Leading: titleLeading }, texts: { "Header-Text": layout.identity ? title : layout.barTitle, ...(subtitle ? { Subheading: subtitle } : {}) } });
+    }
+    if (layout.showLarge) nested.push({ path: "Main-Heading-Text", props: { Type: TOP_NAV_HEADING[code.headingLevel ?? "h1"] ?? "H1" }, texts: { "Header-Text": largeTitle } });
+    if (props["Top-Leading"]) {
+      const action = leading.kind === "object" ? plain(leading) : null;
+      // The Action layer takes the action's label (its name, read back by the pull).
+      if (action && typeof action.icon === "string") nested.push({ path: "Top-Leading/Action", ...(typeof action.label === "string" ? { name: action.label } : {}), props: { "Noti-Dot": Boolean(action.dot) }, swapIcon: action.icon });
+      else if (!action) {
+        nested.push({ path: "Top-Leading", props: { Type: "Visual", Style: "Avatar Small" } });
+        notes.push(`${where}: leading is drawn as Figma's Nav-Slot/Visual sample (Avatar Small)`);
+      }
+    }
+    const slots = [];
+    if (barActions.length) slots.push({ name: "Trailing-Slot", within: "Navigator-bar", children: barActions.map((action, index) => navAction(action, "bar", index)) });
+    if (beside.actions.length) slots.push({ name: "Trailing-Slot", within: "Expand-Heading", children: beside.actions.map((action, index) => navAction(action, "title", index)) });
+    if (props["Control-Bar"]) {
+      // top-navigation.css .zen-top-nav__control: Padding/2XSmall above, Padding/XSmall below, the bar's side margin
+      // (Padding/Large, Medium when compact) on the sides; Figma's Control-Bar has none of its own.
+      const control = convert(element.props.controlBar.node, { direction: "column", stretch: true });
+      const side = code.margin === "compact" ? 16 : 20;
+      if (control) slots.push({ name: "Control-Slot", children: [{ type: "FRAME", name: "Control", layout: { mode: "VERTICAL", gap: 0, padding: [4, side, 8, side], counter: "MIN", primary: "MIN" }, children: [{ ...control, fillW: true }], fillW: true }] });
+    }
+    const node = { type: "INSTANCE", ...(id ? { id } : {}), name: title || largeTitle || "TopNavigation", set: TOP_NAV_SET, props, ...(nested.length ? { nested } : {}), ...(slots.length ? { slots } : {}) };
+    const banner = element.props.banner?.kind === "element" ? convert(element.props.banner.node, { direction: "column", stretch: true }) : null;
+    if (!banner) return node;
+    const { id: _id, ...inner } = node;
+    return { type: "FRAME", ...(id ? { id } : {}), name: "TopNavigation", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ ...inner, fillW: true }, { ...banner, fillW: true }] };
+  }
+
   const fills = (element, parent) => {
     const code = codeProps(element);
     const row = parent?.direction === "row";
@@ -690,7 +769,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!items) return null;
     const labelKey = /\btitle:/.test(dataSlot.newItem(0).code) ? "title" : "label";
     const iconKey = ITEM_ICON[owner] ?? "icon";
-    const selectedId = code[SELECTED_PROP[owner]];
+    // A Segmented shows `value`, else `defaultValue`, else its first option selected (Segmented.tsx).
+    const selectedId = owner === "Segmented" ? code.value ?? code.defaultValue ?? (Array.isArray(value) ? value[0]?.id : undefined) : code[SELECTED_PROP[owner]];
     // A Segmented's items take its Level and Size (Figma's item starts Small Primary); they split a full-width one.
     const look = owner === "Segmented" ? segmentLook(code) : {};
     const fill = owner === "Segmented" && code.fullWidth === true ? { fillW: true } : {};
