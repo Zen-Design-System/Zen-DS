@@ -114,7 +114,7 @@ function InvoiceStatus() {
       <Stack gap="md" align="stretch">
         <Stack direction="row" gap="md" align="start" justify="start">
           <DockIcon icon="icon-receipt-line" theme={project.theme} background="subtle" />
-          <Stack gap="xs" align="stretch" className="px-badge-grow">
+          <Stack gap="xs" align="stretch" width="fill">
             {/* The status sits right after the number and wraps under it on a narrow card; it never truncates. */}
             <Stack direction="row" gap="sm" align="center" wrap>
               <Heading level={4} id={titleId} textStyle="Heading/Subheading">{overdue.number}</Heading>

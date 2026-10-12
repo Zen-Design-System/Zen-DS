@@ -25,8 +25,5 @@
 .px-app-shell-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
 .px-app-shell-mark { display: block; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
 
-/* A details card keeps a readable width, so each term stays near its value beside the Sidebar (full width on a phone). */
-.px-app-shell-details { width: min(100%, 440px); }
-
 /* An activity caption keeps "· when" and any date whole: it wraps before the dot, never after it or inside a time or date. */
 .px-app-shell-value { white-space: nowrap; }

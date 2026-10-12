@@ -8,12 +8,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
-- **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
-  the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
-  and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile
-  + 8 Nav-Action sets), ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat parts, Metric
-  (re-capture); the chart family now belongs to session "Chart components với animation". P4: raw HTML and className in
-  examples. Audit and numbers: `docs/research/studio-figma-push-spec-2026-10-12.md` §8.
+- **P1 · Studio → Figma coverage, P4 (user approved 2026-10-12; P1–P3 done, branch zen/feat/figma-map-p3 2026-10-13):**
+  P3 mapped TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat (ChatThread,
+  reactions, read list), FileIcon, Flag, icon sizes and fixed Metric (spec §8 "P3"). P4 (examples' raw HTML and
+  className): Card and ListBox took width / minWidth / maxWidth / alignSelf (user, 2026-10-13) and the sizing classNames
+  became props. Left, waiting for the user: container-query layouts (27 uses: Grid columns that stack below a width of
+  their own — needs a Grid API), and className rules for colour, display and docs-only details (focus targets, video,
+  tabular numbers), which stay platform CSS. The chart family belongs to session "Chart components với animation".
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /

@@ -107,7 +107,7 @@ function DueDateExample() {
     setDue("");
   };
   return (
-    <Card theme="flat" className="px-date-picker-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={create} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">New task</Heading>
         <InputField label="Task" value={task} error={errors.task} onValueChange={(next) => { setTask(next); setErrors((e) => ({ ...e, task: undefined })); }} />
@@ -118,7 +118,7 @@ function DueDateExample() {
           <Button level="primary" type="submit">Create task</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -269,7 +269,7 @@ function ContractDatesExample() {
     toast({ type: "positive", title: "Contract saved" });
   };
   return (
-    <Card theme="flat" className="px-date-picker-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         {/* The person is a List row: it has no side padding of its own, so its text lines up with the fields. */}
         <List aria-label="Employee">
@@ -287,7 +287,7 @@ function ContractDatesExample() {
           <Button level="primary" type="submit">Save contract</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -311,7 +311,7 @@ function BirthdayExample() {
     if (!problem) toast({ type: "positive", title: "Details saved" });
   };
   return (
-    <Card theme="flat" className="px-date-picker-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Personal details</Heading>
         <InputField label="Legal name" defaultValue="Phạm Thị Em" />
@@ -323,7 +323,7 @@ function BirthdayExample() {
           <Button level="primary" type="submit">Save details</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 

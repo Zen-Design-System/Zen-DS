@@ -16,5 +16,3 @@
 .px-alert-banner-brand { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
 .px-alert-banner-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
 
-/* The billing card keeps a readable measure. */
-.px-alert-banner-billing { width: min(100%, 560px); }

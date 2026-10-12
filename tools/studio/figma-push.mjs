@@ -289,6 +289,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth): the instance's min and max width.
+    if (node?.type === "INSTANCE" && element.kind === "element") {
+      const own = codeProps(element);
+      if (typeof own.minWidth === "number") node.minW ??= own.minWidth;
+      if (typeof own.maxWidth === "number") node.maxW ??= own.maxWidth;
+    }
     return node;
   };
   const images = new Set();
@@ -881,6 +887,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const align = code.align ?? (row ? "center" : "stretch");
     if (!grid) {
       layout.counter = { start: "MIN", center: "CENTER", end: "MAX", baseline: "BASELINE" }[align] ?? "MIN";
+      // Figma aligns a frame's children, not one child: children that all align themselves the same way (alignSelf, a
+      // card centred at its maxWidth) set the frame's alignment.
+      const selves = element.children.filter((child) => child.kind === "element").map((child) => literalOf(child.props.alignSelf));
+      if (selves.length && selves.every((value) => value && value === selves[0]) && selves[0] !== "stretch") layout.counter = { start: "MIN", center: "CENTER", end: "MAX" }[selves[0]] ?? layout.counter;
       layout.primary = { center: "CENTER", end: "MAX", between: "SPACE_BETWEEN" }[code.justify] ?? "MIN";
       if (code.wrap) layout.wrap = true;
     } else if (fit) Object.assign(layout, { counter: "MIN", primary: "MIN", wrap: true });

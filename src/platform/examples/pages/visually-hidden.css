@@ -11,9 +11,6 @@
 /* zen-allow-focus-ring: the main landmark is a programmatic focus target (tabIndex -1), never a Tab stop or a control. */
 .px-visually-hidden-main:focus { outline: none; }
 
-/* A request card's name and dates take the room between the Avatar and the status Badge. */
-.px-visually-hidden-grow { flex: 1 1 auto; min-width: 0; }
-
 /* The portal header: brand · navigation · account in one row; in a narrow window (a phone) the navigation takes a row
    of its own under the brand and the account. */
 .px-visually-hidden-site { container-type: inline-size; }

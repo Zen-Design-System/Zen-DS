@@ -199,7 +199,7 @@ function TimeOffPages() {
             items={[{ id: "details", label: "Details" }, { id: "history", label: "History", badge: request.history.length }]} />} />
         <TabPanel idPrefix={tabsId} id="details" hidden={tab !== "details"}>
           {/* A readable width keeps each term near its value. */}
-          <Card theme="flat" className="px-page-header-details">
+          <Card theme="flat" width="fill" maxWidth={440}>
             <DescriptionList items={[
               { term: "Type", description: request.kind },
               { term: "Dates", description: formatRange(request.from, request.to) },
@@ -210,7 +210,7 @@ function TimeOffPages() {
           </Card>
         </TabPanel>
         <TabPanel idPrefix={tabsId} id="history" hidden={tab !== "history"}>
-          <ListBox className="px-page-header-details">
+          <ListBox width="fill" maxWidth={440}>
             <List aria-label="History">
               {request.history.map((event) => (
                 <ListItem key={event.id} title={event.text} caption={formatRelative(event.at)}
@@ -295,7 +295,7 @@ function ClientPages() {
       <Page pageRef={setPage}>
         <PageHeader breadcrumbs={breadcrumbs} back={back} title={project.name} meta={projectBadge(project.status)}
           description={`${formatRange(project.start, project.due)} · Led by ${people[project.lead].name}`} />
-        <Card theme="flat" className="px-page-header-details">
+        <Card theme="flat" width="fill" maxWidth={440}>
           <DescriptionList items={[
             { term: "Client", description: client.name },
             { term: "Progress", description: `${project.progress}%` },
@@ -377,7 +377,7 @@ function LongTitlePage() {
           ]} />
           <Button level="primary" onClick={() => setDialog("task")}>New task</Button>
         </>} />
-      <Card theme="flat" className="px-page-header-details">
+      <Card theme="flat" width="fill" maxWidth={440}>
         <DescriptionList items={[
           { term: "Client", description: "Lumen Bank" },
           { term: "Lead", description: phaseTwo.lead.name },
@@ -424,7 +424,7 @@ function SettingsTabs() {
       <TabPanel idPrefix={tabsId} id="general" hidden={tab !== "general"}>
         <Stack gap="lg">
           <PageHeader headingLevel={2} title="General" description="The name, domain and working week everyone in the workspace sees." />
-          <Card theme="flat" className="px-page-header-details">
+          <Card theme="flat" width="fill" maxWidth={440}>
             <DescriptionList items={[
               { term: "Workspace", description: studio.name },
               { term: "Domain", description: studio.domain },
@@ -445,7 +445,7 @@ function SettingsTabs() {
       <TabPanel idPrefix={tabsId} id="billing" hidden={tab !== "billing"}>
         <Stack gap="lg">
           <PageHeader headingLevel={2} title="Billing" description="Billed monthly to the card on file." />
-          <Card theme="flat" className="px-page-header-details">
+          <Card theme="flat" width="fill" maxWidth={440}>
             <DescriptionList items={[
               { term: "Plan", description: `${studioPlan.name} · ${plural(workspacePlan.seats, "seat")}` },
               { term: "Next invoice", description: `${formatMoney(studioPlan.seatMonthly * workspacePlan.seats)} on ${formatDate(daysFromToday(1))}` },

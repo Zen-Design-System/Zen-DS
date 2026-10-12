@@ -235,6 +235,7 @@ const placed = (out, child, parent) => {
   if (child.layoutSizingHorizontal === "FILL") out.fillW = true;
   if (child.layoutSizingVertical === "FILL") out.fillH = true;
   if (child.minWidth) out.minW = child.minWidth;
+  if (child.maxWidth) out.maxW = child.maxWidth;
   return out;
 };
 // A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
@@ -683,7 +684,9 @@ function actionItem(node, ctx) {
 /** Icon-only controls the harness wants named (icon-button/needs-name): they get an aria-label. */
 const NEEDS_NAME = new Set(["IconButton"]);
 /** The elements that take Figma's resizing (width / height fill), src/components/Layout/sizing.ts. */
-const SIZED = new Set(["Stack", "Grid", "Text"]);
+const SIZED = new Set(["Stack", "Grid", "Text", "Card", "ListBox"]);
+/** Components sized like a layout layer whose Figma min / max width comes back as minWidth / maxWidth (Card.tsx, ListBox). */
+const SIZED_INSTANCES = new Set(["Card", "ListBox"]);
 /** Layers the page has no element for: drawings, kept out with one note. */
 const DRAWINGS = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "BOOLEAN_OPERATION"]);
 
@@ -1186,7 +1189,9 @@ function frameElement(node, children, ctx) {
       const across = (source) => (row ? source?.fillH : source?.fillW);
       const along = (source) => (row ? source?.fillW : source?.fillH);
       // A row Stack centres by default (Layout.tsx), a column stretches: each writes only what differs.
-      const stretched = children.length > 0 && sources.every(across);
+      // Fill children stretch the Stack, unless one stops at a max width and the frame places it (centre, end).
+      const placesCapped = layout.counter && layout.counter !== "MIN" && sources.some((source) => source?.maxW);
+      const stretched = children.length > 0 && sources.every(across) && !placesCapped;
       const align = stretched ? "stretch" : { MIN: "start", CENTER: "center", MAX: "end", BASELINE: "baseline" }[layout.counter ?? "MIN"];
       if (align !== (row ? "center" : "stretch") && !(align === "start" && !row)) props.align = literal(align);
       const aligned = row ? align !== "stretch" : Boolean(props.align);
@@ -1195,6 +1200,10 @@ function frameElement(node, children, ctx) {
       if (layout.wrap) props.wrap = literal(true);
       // A layout layer that fills (Fill container): along the Stack it takes the free space; across, it is said when the Stack aligns.
       children.forEach((child, index) => {
+        if (SIZED_INSTANCES.has(child.name)) {
+          if (sources[index]?.minW) child.props.minWidth = literal(sources[index].minW);
+          if (sources[index]?.maxW) child.props.maxWidth = literal(sources[index].maxW);
+        }
         if (!SIZED.has(child.name)) return;
         if (along(sources[index])) child.props[row ? "width" : "height"] = literal("fill");
         if (across(sources[index]) && aligned) child.props[row ? "height" : "width"] = literal("fill");

@@ -484,7 +484,7 @@ function ClientSectionsExample() {
   const icon = (name: IconName) => <DockIcon icon={name} theme="neutral" background="subtle" size="medium" />;
 
   return (
-    <Card theme="flat" className="px-tabs-client">
+    <Stack><Card theme="flat" width="fill" maxWidth={340} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <Avatar size="medium" shape="square" theme="blue" alt="">LB</Avatar>
@@ -513,7 +513,7 @@ function ClientSectionsExample() {
         {panel("files", <List aria-label="Files">{lumenFiles.slice(0, 2).map((f) => <ListItem key={f.id} title={f.name} caption={formatBytes(f.bytes)} leading={<FileIcon format={fileIconFormatOf(f.name)} size="xl" />} />)}</List>)}
         {panel("notes", <List aria-label="Notes">{lumenNotes.map((n) => <ListItem key={n.id} title={n.title} caption={n.caption} leading={icon("icon-file-doc-line")} />)}</List>)}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 

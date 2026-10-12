@@ -1,7 +1,5 @@
 /* Toast examples (brief 2026-09-30). Tokens only; class prefix .px-toast-. */
 
-/* The example cards keep a card-sized measure; the width sits on the component, not on the grid row. */
-.px-toast-card { width: min(100%, 480px); }
 /* The title block takes the space left beside its button; the button hugs its label. */
 .px-toast-grow { min-width: 0; flex: 1 1 auto; }
 
