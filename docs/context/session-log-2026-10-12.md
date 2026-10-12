@@ -104,3 +104,15 @@
   order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
+
+## UI Foundations curriculum deck (Figma) + SG85 web font — XS repo change
+
+- Figma work, file `WxivIlv1HgC9NEMwtw9MOS` (UI-Foundations): audit of pages 1–10, merged page `10. Design System (Merged)`,
+  typo fixes on pages 1–10, new page `UI Foundations · Giáo án 2026` (local `Báo/*` text styles, `Báo/Masthead` and
+  `Báo/Footer` components, Zen ZEN Kaiz Official-Sep2026 variables and components; opening + Lesson 01 built).
+  User direction now: Figma is the source, converted to HTML slides later; layout A (editorial split, 16:9).
+- Repo: `src/assets/fonts/SG85/` — SG85-CHI SON 1 (Thái Hiếu / FontZin, "Commercial Use Allowed", fsType 0) as TTF +
+  WOFF2 (fontTools) + `sg85.css` `@font-face` + LICENSE.md. Not referenced by the library or platform build yet.
+  Checked in Chromium: full Vietnamese, unicase (lower = upper). Still missing: SG85-CHI SON 2 and SG85-Saigon 1985
+  (the poster's script); fontzin.com / dafont.com are blocked by the session's network policy.
+- `.claude/settings.json`: allow `mcp__Figma` (ask for `generate_image`).

@@ -1,0 +1,9 @@
+/* Display face for the UI Foundations slide titles (retro Saigon signage, full Vietnamese).
+   Use it for headlines only; body text stays on the Zen sans (Inter). Licence: ./LICENSE.md */
+@font-face {
+  font-family: "SG85 Chi Son";
+  src: url("./SG85-ChiSon1.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
