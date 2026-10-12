@@ -674,8 +674,10 @@ const iconWords = (icon) => {
  */
 function itemFields(item, ctx, { labelKey = "label", iconKey = "icon", where }) {
   const props = item.props ?? {};
-  const text = Object.entries(props).find(([name, value]) => TEXT_PROPS.test(name) && typeof value === "string")?.[1] ?? item.text ?? "";
-  const label = props.Label === false ? "" : text;
+  // A Label variant (Tab-Item's True / False) shows or hides the label; it is not the label's text.
+  const toggle = (value) => value === "True" || value === "False";
+  const text = Object.entries(props).find(([name, value]) => TEXT_PROPS.test(name) && typeof value === "string" && !toggle(value))?.[1] ?? item.text ?? "";
+  const label = props.Label === false || props.Label === "False" ? "" : text;
   const iconSrc = Object.entries(props).find(([name]) => /^(Leading-)?Icon-Src$/.test(name))?.[1];
   const iconOn = Object.entries(props).find(([name]) => /^(Leading-)?Icon$/.test(name))?.[1];
   const icon = typeof iconSrc === "string" && iconOn !== false ? iconSrc : null;
@@ -706,6 +708,9 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
   const toItem = (item) => {
     const shown = rail ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
     const fields = itemFields(shown, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
+    // A count in its Badge-Counter (a Tab-Item with Badge on).
+    const count = item.props?.Badge === true ? (item.nested ?? []).find((nested) => nested.path === "Badge-Counter")?.text : null;
+    if (count) fields.badge = literal(/^\d+$/.test(count) ? Number(count) : count);
     if (isSelected(item)) selected ??= fields.id.value;
     return { kind: "object", fields };
   };
@@ -1000,6 +1005,10 @@ function convertNode(node, ctx) {
         // A Segmented whose Item-List fills it splits its width (figma-push: fullWidth → the slot fills).
         if (set.code === "Segmented" && slot.fillW) props.fullWidth = literal(true);
         if (selected && SELECTED_PROP[set.code]) props[SELECTED_PROP[set.code]] = literal(selected);
+        // Tabs and Segmented draw their look on each item (figma-push): the first item's Size (and a Segmented's Level).
+        const look = rowsOf(slot.children ?? [])[0]?.props ?? {};
+        if ((set.code === "Tabs" || set.code === "Segmented") && look.Size === "Small") props.size = literal("sm");
+        if (set.code === "Segmented" && look.Level === "Primary") props.level = literal("primary");
         continue;
       }
       if (slotProps[slot.name]) {

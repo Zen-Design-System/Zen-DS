@@ -668,6 +668,40 @@ export default function Page() {
   ok("round trip: the swatches come back as the ColorSelector (colours, value, aria-label)", back.includes('<ColorSelector colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" aria-label="Label colour" />'));
 }
 
+// 18. Tabs written with TabItem children (2026-10-13): the same Tab-Items as `items` (the chosen one Select=Yes), a
+//     badge's count in its Badge-Counter; the pull reads the labels (not the Label variant's True), badges and Size.
+{
+  const page = `// @zen-page {"format":1,"title":"Inbox"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Stack, TabItem, Tabs } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox" device="desktop">
+        <Stack gap="md">
+          <Tabs aria-label="Inbox" value="reviews">
+            <TabItem value="assigned" label="Assigned" badge={3} />
+            <TabItem value="reviews" label="Reviews" icon="icon-home-03-line" />
+          </Tabs>
+          <Tabs aria-label="Views" variant="subtle" size="sm" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [inbox, views] = frame.children;
+  check("Tabs with TabItem children: Tab-Items in Item-List (label, Select, icon, Badge with its count)", inbox.slots[0].children.map((item) => [item.text, item.props.Select, item.props["Icon-Src"] ?? null, item.props.Badge, item.nested?.[0] ?? null]), [["Assigned", "No", null, true, { path: "Badge-Counter", text: "3" }], ["Reviews", "Yes", "icon-home-03-line", false, null]]);
+  ok("Tabs: no TabItem left out", !notes.some((note) => /TabItem/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: the tabs come back as items with their labels and badges, the chosen one the default", back.includes('<Tabs items={[{ id: "assigned", label: "Assigned", badge: 3 }, { id: "reviews", label: "Reviews", icon: "icon-home-03-line" }]} defaultValue="reviews" />'));
+  ok("round trip: a small subtle Tabs keeps its size (read from its items)", back.includes('<Tabs variant="subtle" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} defaultValue="list" size="sm" />') && views.slots[0].children[0].props.Size === "Small");
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

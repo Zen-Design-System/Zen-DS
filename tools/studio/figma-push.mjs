@@ -295,6 +295,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
     else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
     else if (element.name === "ColorSelector") node = colorSelectorNode(element, code, id);
+    // Tabs written with TabItem children: the same Item-List of Tab-Items as its `items` (Tabs.tsx renders either).
+    else if (element.name === "Tabs" && !element.props.items && element.children.some((child) => child.kind === "element" && child.name === "TabItem")) {
+      const tabs = tabsOfChildren(element);
+      node = instanceNode(tabs, codeProps(tabs), id, parent);
+    }
     else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_SETS[child.name])) node = chartCardNode(element, code, id);
     else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
@@ -511,6 +516,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!header || (!before.length && !after.length)) return header ? { ...header, ...(id ? { id } : {}) } : null;
     const frame = { type: "FRAME", ...(id ? { id } : {}), name: "PageHeader", layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [...before, { ...header, fillW: true }, ...after] };
     return frame;
+  }
+
+  /** Tabs with TabItem children as Tabs with `items` (each tab's value, else its position, as the id; a selected one the default). */
+  function tabsOfChildren(element) {
+    const tabs = element.children.filter((child) => child.kind === "element" && child.name === "TabItem");
+    const items = tabs.map((tab, index) => ({ kind: "object", fields: { id: literal(literalOf(tab.props.value) ?? String(index)), ...Object.fromEntries(["label", "icon", "badge"].filter((name) => tab.props[name]?.kind === "literal").map((name) => [name, tab.props[name]])) } }));
+    const chosen = tabs.find((tab) => literalOf(tab.props.selected) === true);
+    const props = { ...element.props, items: { kind: "array", items } };
+    if (chosen && !props.value && !props.defaultValue) props.defaultValue = literal(literalOf(chosen.props.value) ?? String(tabs.indexOf(chosen)));
+    return { ...element, props, children: element.children.filter((child) => !(child.kind === "element" && child.name === "TabItem")) };
   }
 
   /**
@@ -768,7 +783,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     Tabs: { items: (list, code) => {
       const selected = code.value ?? code.defaultValue ?? list[0]?.id;
       return list.map((item) => ({ type: "INSTANCE", name: textValue(item?.label) || "Tab", set: SETS.tabItem, ...(textValue(item?.label) ? { text: textValue(item.label) } : {}), ...(code.fullWidth ? { fillW: true } : {}),
-        props: { Style: code.variant === "subtle" ? "Subtle" : "Indicator", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium", Select: item?.id === selected ? "Yes" : "No", Label: textValue(item?.label) ? "True" : "False", Icon: typeof item?.icon === "string" ? "True" : "False", ...(typeof item?.icon === "string" ? { "Icon-Src": item.icon } : {}), Badge: item?.badge !== undefined && item?.badge !== null && item?.badge !== false } }));
+        props: { Style: code.variant === "subtle" ? "Subtle" : "Indicator", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium", Select: item?.id === selected ? "Yes" : "No", Label: textValue(item?.label) ? "True" : "False", Icon: typeof item?.icon === "string" ? "True" : "False", ...(typeof item?.icon === "string" ? { "Icon-Src": item.icon } : {}), Badge: item?.badge !== undefined && item?.badge !== null && item?.badge !== false },
+        // Its count in the Badge-Counter Badge=Yes shows.
+        ...(textValue(item?.badge) ? { nested: [{ path: "Badge-Counter", text: textValue(item.badge) }] } : {}) }));
     } },
     Stepper: { steps: (list, code) => {
       if (code.orientation !== "vertical") return null;
