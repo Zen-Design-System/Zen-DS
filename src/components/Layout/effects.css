@@ -14,5 +14,6 @@
 /* Effect/Overlay: background blur only (its shadow layer is none), behind a translucent Subtle or Pale fill. */
 .zen-box:is([data-surface="subtle"], [data-surface="pale"])[data-effect-style="effect-overlay"] { backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 
-/* Figma "Clip content": clip to the padding box and the corner radius without making a scroll container. */
-.zen-box[data-clip="true"] { overflow: clip; }
+/* Figma "Clip content" (any frame: Box, Stack, Grid): clip to the padding box and the corner radius without making a
+   scroll container. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-clip="true"] { overflow: clip; }

@@ -19,6 +19,22 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
+  In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
+  as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
+  frames no longer clip by default, so a card's shadow shows past its frame's edge as in the Studio.
+- AppShell is built from the Zen components Figma's ◇ Master-Layout uses: its top bar is a DashboardHeader
+  type="navigation" (Figma's Dashboard header Type=Navigation, its Leading-, Center- and Trailing-Slots), next to the
+  Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API unchanged; the swap alone left 93 of
+  94 example panels identical (the other is the fix below). The Studio's slots follow the new markup.
+- Zen Studio ↔ Figma: an app frame comes back from Figma as an AppShell — Figma's Master-Layout (the Sidebar pattern
+  beside Main-Container › Header/Dashboard › Sections, Body, Floating-Actions) and the frames the Studio pushes — with
+  its header, center, actions (the account as AppShellAccount), sections, page, footer and floating action; a Studio
+  Screen's own Sidebar and Page header come back as the Screen's.
+- Table: inside a surface (Card, ChartCard, MetricCard, Accordion, SidePanel, Dialog/ModalForm, BottomSheet, Popover,
+  ListBox, a Box with a surface or border) the last row has no bottom rule — the surface edge closes it. Page tables
+  on the canvas keep it. Table guideline updated (in Figma: 0 bottom stroke weight on the last row's cells); the
+  Studio's Export › Figma does the same (`strokeBottom`, applied by the Zen plugin's importer).
 - Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): Tabs `Tab` → `Tab-Item`,
   Uploader `File` → `File-Item`. Zen's own names stay where Figma differs: `Send`, `Action`
   (its own component and tokens; an inline component's own buttons are its Action too), `Actions` (the action row), a
@@ -877,6 +893,46 @@ removed (four unused colour ramps were, see Removed).
 ### Fixed
 - SidePanel: content in the body no longer shrinks when the body overflows; it scrolls. A Segmented or code block
   was squeezed instead (Studio Export's tabs at 25px, labels cut off).
+- Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
+  Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
+  caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column
+  (each badge's colour and dot), TableActions an actions column; a page's own initials are kept where the Table's
+  would differ, and screen-reader text is not a cell's words. Before, only a photo was kept and everything else
+  became its text ("An Mai · an.mai@dizai.studio"), so the page and its Figma export lost the initials, colours,
+  badges and row menus.
+- AppShell's top bar is 72px on desktop again, as Figma's Navigation row: Margin-Comfortable above and at the sides,
+  Spacing/Padding/XSmall below (it was 64px, 12px above and below, since 2026-10-09). The user's call: follow Figma.
+- AppShell: on a narrow top bar a centred Search (`headerCenter`) no longer runs under the actions; it stops a
+  Spacing/Gap/Medium before them.
+- Zen Studio: an AppShell on a Screen fills the Screen and its Sidebar spans the whole page, as in Figma; it was as
+  tall as the browser window (the app's sticky 100dvh), shorter than the page.
+- Zen Studio → Figma: an app page no longer imports as an empty frame. A component with no Figma set is drawn with
+  what it holds instead of being left out with everything inside it: AppShell as its Sidebar and a top bar of Figma's
+  Dashboard header Type=Navigation (collapse toggle, header, actions, the account's Avatar), the Screen's own Sidebar
+  and Page header, PageHeader as the Dashboard header Type=Main, Heading as text in its level's style, a Menu as its
+  trigger, List / Container / Form… as frames of their layers. A Sidebar's rows go in Body-Content with the selected
+  one marked, a Dashboard header turns on the blocks whose slots hold content, and Export › Figma says why when nothing
+  on a page can go to Figma rather than downloading an empty frame.
+- Zen Studio → Figma: the Dashboard imports as it looks in the Studio (tried in the live Zen file). A Grid whose
+  columns fit the width is an even Figma grid of as many columns as fit the page (a wrapping row where the width is not
+  known), a Grid of N columns is Figma's grid with rows that hug; MetricCard is a
+  Card around Figma's metric with its label, value, trend, icon and action; ChartCard a Card around Figma's line or
+  stacked-bar chart with its title and ranges; ListItem keeps its title, caption and leading Avatar or Dock Icon;
+  ListBox its header row; a Sidebar without a footer loses Figma's sample rows; the page is Canvas; Text takes its
+  default style and its tone; Search its placeholder; Chip its leading icon; plain icon names their Figma cut. The Zen
+  plugin (Import from Studio) no longer clips the frame's height, never moves a slot's content to another slot,
+  binds row gaps, minimum widths and colours, and takes on/off for a Yes/No variant.
+- Zen Studio → Figma: the other templates import as they look too (Invoice, HR Home, Admin list, Settings, Sign in,
+  the mobile pages, tried in the live Zen file). Fit-grid columns split evenly (the Dashboard's bottom row came out
+  592 / 544, now 568 / 568) and read back as `minColumnWidth`; Breadcrumbs draw their chevrons; InlineMessage shows its
+  close button only with `onClose`; a collapsed Sidebar is Figma's rail (Expand=No, icon-only rows, its mark in the
+  header, a divider between groups) and reads back collapsed with its labels; a ListBox is as tall as its rows instead
+  of clipping them at Figma's sample height; a full-width Segmented splits its row (its items overlapped). The Zen
+  plugin hugs a slot or a named layer and fills a slot when the page asks.
+- Zen Studio → Figma, compared with the Studio sheets: a selectable Table has its checkbox column and the sorted column
+  its arrow; a table's avatar cells draw their Avatar (initials or photo, each row's colour); the account Avatar is
+  Subtle; an IconButton without a level takes the level the code draws; `minmax(0, Npx)` tracks are a fixed width;
+  Form keeps its gap; AiChatBlock is Figma's AI/Chat-Block/Pale with its greeting and suggestions. All read back.
 - `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
   component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in

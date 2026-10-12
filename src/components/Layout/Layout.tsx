@@ -39,6 +39,12 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
   /** Let row items wrap onto new lines. */
   wrap?: boolean;
   /**
+   * Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.
+   * Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll
+   * container).
+   */
+  clip?: boolean;
+  /**
    * Every child takes an equal share along the direction (Figma: all children Fill container), for children that have
    * no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`).
    * A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button
@@ -64,7 +70,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
 export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
-  { direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
+  { direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
@@ -79,6 +85,7 @@ export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
       data-justify={justify}
       data-wrap={wrap ? "true" : undefined}
       data-fill-children={fillChildren ? "true" : undefined}
+      data-clip={clip ? "true" : undefined}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
@@ -113,6 +120,12 @@ export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProp
   padding?: ZenPadding;
   as?: LayoutElement;
   children?: ReactNode;
+  /**
+   * Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.
+   * Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll
+   * container).
+   */
+  clip?: boolean;
 }
 
 /** grid-template-columns for a column count (equal, shrinkable columns) or a track list as written. */
@@ -126,7 +139,7 @@ const tracks = (value: GridTracks | undefined) => (value === undefined ? undefin
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
 export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
-  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, padding, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
+  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, padding, clip = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
@@ -142,6 +155,7 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
       className={["zen-grid", className].filter(Boolean).join(" ")}
       data-mode={desktop === undefined ? "fill" : perBreakpoint ? "responsive" : "fixed"}
       data-align={align}
+      data-clip={clip ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
       style={withVars(style, {
