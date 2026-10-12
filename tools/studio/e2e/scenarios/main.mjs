@@ -72,6 +72,28 @@ export const rows = [
     },
   },
   {
+    id: "MC-08", feature: "Main component: Check Figma bindings (core rebuild Q5(1)) opens the Figma bindings dialog; with the contracts as committed it says they match and offers nothing to apply", wp: "figma bindings 2026-10-12",
+    // First in its group: the button page loads the Studio from cold.
+    timeout: 40000,
+    async run(ctx) {
+      const page = await buttonPage(ctx);
+      await showFrame(page);
+      await clickCell(page, cell(page, "Size=Small, Level=Accent, State=Default"));
+      await until(async () => (await badge(page).textContent())?.trim() === "Variant", { message: "the Inspector shows a Variant" });
+      await page.locator("#studio-right").getByRole("button", { name: "Check Figma bindings" }).click({ timeout: 5000 }).catch(async (error) => {
+        const buttons = await page.locator("#studio-right button").evaluateAll((els) => els.map((el) => el.textContent.trim()).filter(Boolean));
+        throw new Error(`${error.message.split("\n")[0]} (Inspector buttons: ${buttons.slice(-10).join(" | ")})`);
+      });
+      const dialog = page.getByRole("dialog", { name: "Figma bindings" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await until(async () => /match the last commit/.test(await dialog.innerText()), { timeout: 20_000, message: "the dialog says the bindings match" }).catch(async (error) => { throw new Error(`${error.message} (the dialog reads: ${(await dialog.innerText()).replace(/\s+/g, " ").slice(0, 240)})`); });
+      if (!(await dialog.getByRole("button", { name: /^Apply/ }).isDisabled())) throw new Error("Apply is enabled with nothing to apply");
+      await dialog.getByRole("button", { name: "Close" }).click();
+      await dialog.waitFor({ state: "hidden", timeout: 5000 });
+      return "dialog opened: bindings match the last commit, Apply disabled, closed";
+    },
+  },
+  {
     id: "MC-02", feature: "Main component: a click selects the variant (outline, Layers row, its Figma properties in the Inspector)", wp: "MC M1",
     async run(ctx) {
       const page = await buttonPage(ctx);

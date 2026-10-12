@@ -25,6 +25,16 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- Zen Studio → Figma (core rebuild Q4): Export › **Figma** downloads a page as `<page>.figma.json`; in the Zen Figma
+  plugin, Import › **Import from Studio** places it on the page "Studio exports" as a frame of library instances
+  (variants, nested overrides, slot content, auto layout bound to the Spacing variables, text styles), and importing it
+  again updates that frame in place — data slots (Sidebar sections, Breadcrumbs, Segmented), the Dashboard header's
+  rows and texts, Tables as Figma's Data-Rows and cells, absolute layers and pictures included. CLI:
+  `node tools/studio/figma-push-cli.mjs <page.zen.tsx>`.
+- Zen Studio ↔ Figma bindings (core rebuild Q5): after a Figma re-capture, Main component › **Check Figma bindings**
+  lists the stylesheet changes that follow Figma's re-bound variables and applies the chosen ones as drafts
+  (`node tools/studio/binding-diff.mjs`); saving a token edit of a component offers **Download for Figma**, a re-binding
+  the Zen plugin applies to the component masters (Import from Studio, licensed).
 - Table: `content: "actions"` with the column's `actions` (`TableRowAction`: icon, label, size, level, onClick) draws
   Figma's Actions-Cell — flat icon buttons named with their row ("Open, row 3"; label key `rowAction`, en/vi) — without
   a `cell` function; each button is the row's nested layer `Button`. The Studio offers Actions as a cell Content, and a

@@ -20,6 +20,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
+import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -239,49 +241,12 @@ export function joinParts(texts) {
 
 /* ── mapping data ───────────────────────────────────────────────────────────────────────────────────────────────── */
 
-/**
- * The Figma → code mapping from the repo's data: `figmaProps` (inspector/figmaProps.generated.ts FIGMA_PROPS), `contract`
- * (docs/figma-contracts/component-properties.json: each set's id, name and property defaults) and `apiProps` (component
- * → Map of its code props to their code default, from docs/api). Sets are found by id and by name. `dataSlots` (slots/dataSlots.ts
- * DATA_SLOTS): the Figma slots whose items the code takes as data (Sidebar sections, Breadcrumbs items).
- */
-export function figmaMapping({ figmaProps, contract, apiProps = {}, textStyles = null, iconNames = null, dataSlots = {} }) {
-  const contractSets = new Map();
-  for (const page of contract.pages ?? []) for (const set of page.sets ?? []) { contractSets.set(set.id, set); contractSets.set(set.name, set); }
-  const sets = new Map();
-  const register = (set, entry) => { if (set) { sets.set(set.id, entry); sets.set(set.name, entry); } };
-  const defaultsOf = (set) => Object.fromEntries((set?.props ?? []).map((prop) => [prop.name, prop.default]));
-  for (const [code, props] of Object.entries(figmaProps)) {
-    const own = props.own.filter((item) => item.type !== "SET");
-    const choice = props.own.find((item) => item.type === "SET");
-    if (choice) {
-      const first = Object.values(choice.options ?? {})[0];
-      for (const [name, value] of Object.entries(choice.options ?? {})) {
-        const set = contractSets.get(name);
-        register(set ?? { id: name, name }, { code, own, toggles: props.toggles, defaults: defaultsOf(set), setProp: choice.prop, setValue: value, setDefault: first });
-      }
-    }
-    const set = contractSets.get(props.figma);
-    register(set ?? { id: props.figma, name: props.figma }, { code, own, toggles: props.toggles, defaults: defaultsOf(set) });
-  }
-  // A set whose only property is its data slot (Breadcrumbs: Item-List, a one-option Size) has no FIGMA_PROPS entry.
-  for (const [code, slots] of Object.entries(dataSlots)) {
-    for (const slot of slots) {
-      const set = slot.figma && contractSets.get(slot.figma.node);
-      if (set && !sets.has(set.id)) register(set, { code, own: [], toggles: [], defaults: defaultsOf(set) });
-    }
-  }
-  return { sets, apiProps, textStyles: textStyles ? new Set(textStyles) : null, iconNames: iconNames ? new Set(iconNames) : null, dataSlots };
-}
+export { figmaMapping, apiPropsOf } from "./figma-map.mjs";
 
 /* ── converting ─────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 const literal = (value) => ({ kind: "literal", value });
 const TEXT_PROPS = /^(Label|Text|Title|Content)$/;
-/** Spacing/Gap and Spacing/Padding in px (src/components/_shared/scale.ts), for a value bound to no variable. */
-const GAP_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"], [16, "md"], [24, "lg"], [32, "xl"], [40, "2xl"], [48, "3xl"], [64, "giant"], [88, "xgiant"], [144, "2xgiant"]];
-const PADDING_PX = [[0, "none"], [2, "3xs"], [4, "2xs"], [8, "xs"], [12, "sm"], [16, "md"], [20, "lg"], [24, "xl"], [32, "2xl"], [40, "3xl"], [48, "4xl"]];
-const LONG_TO_SHORT = { "3-xsmall": "3xs", "3xsmall": "3xs", "2-xsmall": "2xs", "2xsmall": "2xs", xsmall: "xs", small: "sm", medium: "md", large: "lg", xlarge: "xl", "2-xlarge": "2xl", "2xlarge": "2xl", "3-xlarge": "3xl", "3xlarge": "3xl", "4-xlarge": "4xl", "4xlarge": "4xl" };
 
 /** A spacing step: from its variable's name ("Spacing/Gap/Medium" → md) or the nearest step to the px value. */
 function spacingStep(variable, px, table) {
@@ -297,8 +262,6 @@ function spacingStep(variable, px, table) {
 /** A Zen icon name: in the icon set (src/icons/generated/names.ts: icon-…, and the ic-… brand marks), else by its prefix. */
 const isZenIcon = (name, mapping) => (mapping.iconNames ? mapping.iconNames.has(name) : /^(icon|ic)-[a-z0-9-]+$/.test(name));
 
-/** "medium" and "md" are one step; other values compare as they are. */
-const sameValue = (a, b) => a === b || (typeof a === "string" && typeof b === "string" && (LONG_TO_SHORT[a] ?? a) === (LONG_TO_SHORT[b] ?? b));
 
 /**
  * The code props of an instance (or a nested one) that differ from the component's code default (docs/api; the Figma
@@ -958,17 +921,7 @@ export function figmaDocId(figmaId, part) {
 export async function repoMapping(root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")) {
   const { FIGMA_PROPS } = await import(pathToFileURL(path.join(root, "src/platform/studio/inspector/figmaProps.generated.ts")).href);
   const contract = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/component-properties.json"), "utf8"));
-  const apiProps = {};
-  for (const file of fs.readdirSync(path.join(root, "docs/api")).filter((name) => name.endsWith(".json"))) {
-    const doc = JSON.parse(fs.readFileSync(path.join(root, "docs/api", file), "utf8"));
-    for (const component of doc.components ?? []) {
-      apiProps[component.name] = new Map((component.props ?? []).map((prop) => {
-        let value;
-        try { value = prop.default === null || prop.default === undefined ? undefined : JSON.parse(prop.default); } catch { value = undefined; }
-        return [prop.name, value];
-      }));
-    }
-  }
+  const apiProps = apiPropsOf(fs.readdirSync(path.join(root, "docs/api")).filter((name) => name.endsWith(".json")).flatMap((file) => JSON.parse(fs.readFileSync(path.join(root, "docs/api", file), "utf8")).components ?? []));
   const { typographyStyles } = await import(pathToFileURL(path.join(root, "src/tokens/typography.generated.ts")).href).catch(() => ({ typographyStyles: null }));
   const iconSource = fs.readFileSync(path.join(root, "src/icons/generated/names.ts"), "utf8");
   const iconNames = [...new Set([...iconSource.matchAll(/"((?:icon|ic)-[a-z0-9-]+)"/g)].map((match) => match[1]))];

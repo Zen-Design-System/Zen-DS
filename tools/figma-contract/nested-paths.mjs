@@ -68,7 +68,22 @@ function layerName(node) {
   return null;
 }
 
-/** Per function of a file (its name → { names, renders }): the nest() layer names it calls and the local JSX it renders. */
+/** The component a nest() call draws: the first JSX element in its second argument (a ternary's first branch), or Icon for renderIcon(…). */
+function layerComponent(node, depth = 0) {
+  if (!node || typeof node.type !== "string" || depth > 6) return null;
+  if (node.type === "JSXElement") return node.openingElement.name.type === "JSXIdentifier" && /^[A-Z]/.test(node.openingElement.name.name) ? node.openingElement.name.name : null;
+  if (node.type === "CallExpression" && node.callee.type === "Identifier" && node.callee.name === "renderIcon") return "Icon";
+  for (const key of ["consequent", "alternate", "expression", "right", "left", "arguments"]) {
+    const value = node[key];
+    for (const child of Array.isArray(value) ? value : [value]) {
+      const found = layerComponent(child, depth + 1);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/** Per function of a file (its name → { names, renders, layers }): the nest() layer names it calls (and the component each draws) and the local JSX it renders. */
 function fileFunctions(text) {
   const ast = parseSource(text);
   const functions = new Map();
@@ -86,7 +101,7 @@ function fileFunctions(text) {
     if (isFunction && !owner) {
       // forwardRef(function X(…)) / memo(…) / const X = (…) => …
       const name = nameOf(node, parent) ?? (parent?.type === "CallExpression" ? parent.__declared : null);
-      if (name && /^[A-Z]/.test(name)) { current = name; if (!functions.has(name)) functions.set(name, { names: new Set(), renders: new Set() }); }
+      if (name && /^[A-Z]/.test(name)) { current = name; if (!functions.has(name)) functions.set(name, { names: new Set(), renders: new Set(), layers: new Map() }); }
     }
     if (current) {
       const fn = functions.get(current);
@@ -95,6 +110,8 @@ function fileFunctions(text) {
         const isNest = (callee.type === "Identifier" && callee.name === "nest") || (callee.type === "MemberExpression" && callee.object?.type === "Identifier" && callee.object.name === "nest" && callee.property?.name === "at");
         const name = isNest ? layerName(node.arguments[0]) : null;
         if (name) fn.names.add(name);
+        const drawn = name && callee.type === "Identifier" ? layerComponent(node.arguments[1]) : null;
+        if (drawn && !fn.layers.has(name)) fn.layers.set(name, drawn);
       }
       if (node.type === "JSXOpeningElement" && node.name.type === "JSXIdentifier" && /^[A-Z]/.test(node.name.name)) fn.renders.add(node.name.name);
     }
@@ -119,6 +136,38 @@ function namesWithHelpers(functions, name, seen = new Set()) {
   const out = new Set(fn.names);
   for (const rendered of fn.renders) for (const inner of namesWithHelpers(functions, rendered, seen)) out.add(inner);
   return out;
+}
+
+/** A component's nested layers with the component each draws: its own and those of its same-file helpers. */
+function layersWithHelpers(functions, name, seen = new Set()) {
+  if (seen.has(name) || !functions.has(name)) return new Map();
+  seen.add(name);
+  const fn = functions.get(name);
+  const out = new Map(fn.layers);
+  for (const rendered of fn.renders) for (const [layer, component] of layersWithHelpers(functions, rendered, seen)) if (!out.has(layer)) out.set(layer, component);
+  return out;
+}
+
+/**
+ * Owner component → its nested layers → the component each draws (`Card: { "Sub-Action": "IconButton" }`), read from
+ * the nest() calls in src/components (core rebuild Q4: a Studio page's `overrides` pushed to Figma name the nested
+ * instance's component). A layer whose component the source does not say (an element built elsewhere) is left out.
+ */
+export function nestedLayers() {
+  const out = {};
+  const dir = path.join(root, "src/components");
+  for (const folder of fs.readdirSync(dir).sort()) {
+    const full = path.join(dir, folder);
+    if (folder.startsWith("_") || !fs.statSync(full).isDirectory()) continue;
+    for (const file of fs.readdirSync(full).filter((name) => name.endsWith(".tsx") && !name.includes(".stories")).sort()) {
+      const functions = fileFunctions(fs.readFileSync(path.join(full, file), "utf8"));
+      for (const [component] of functions) {
+        const layers = layersWithHelpers(functions, component);
+        if (layers.size) out[component] = Object.fromEntries([...layers].sort(([a], [b]) => a.localeCompare(b)));
+      }
+    }
+  }
+  return Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b)));
 }
 
 export async function nestedPaths() {

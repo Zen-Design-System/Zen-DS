@@ -45,6 +45,7 @@ import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
 import { DraftsDialog } from "./shell/DraftsControls";
 import { ParityDialog } from "./mainComponent/ParityDialog";
+import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
 import { PanelResizer } from "./shell/PanelResizer";
 import { ShortcutsDialog } from "./shell/ShortcutsDialog";
 import { openShortcuts } from "./shell/shortcutsOpen";
@@ -558,6 +559,7 @@ export function StudioApp() {
           <SharedConfirm />
           <DraftsDialog />
           <ParityDialog />
+          <BindingDiffDialog />
           <CanvasMenu />
         </ChromeScope>
         {/* Popovers, menus, tooltips and dialogs of the chrome: above the canvas and its overlays. */}

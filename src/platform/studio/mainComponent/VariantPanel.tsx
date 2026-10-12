@@ -17,6 +17,7 @@ import { findSet, setFilter, toggleOn, filterStore } from "./sets";
 import { TokenField } from "./TokenField";
 import { isDocumentToken } from "./tokens";
 import type { VariantSet } from "./variantSets.generated";
+import { openBindingDiff } from "./BindingDiffDialog";
 import "./mainComponent.css";
 
 /*
@@ -139,6 +140,10 @@ export function VariantPanel({ selection }: { selection: VariantSelection }) {
           A token changes for every variant its rule covers. Text styles and icons are set in {selection.component}.tsx.
         </p>
         <CssDrafts files={[...new Set(all.map((row) => row.declaration.file).concat(all.flatMap((row) => row.chain.map((step) => step.file))).filter((file) => file.startsWith("src/components/")))]} />
+        {/* Figma re-bound a variable (after a re-capture): the declarations that follow (core rebuild Q5(1)). */}
+        <div className="studio-inspector__actions">
+          <Button appearance="flat" size="sm" level="primary" startIcon="ic-figma-line" onClick={() => { void openBindingDiff(); }}>Check Figma bindings</Button>
+        </div>
       </div>
     </div>
   );

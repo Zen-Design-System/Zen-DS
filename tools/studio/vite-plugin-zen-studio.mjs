@@ -51,7 +51,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
 const MAX_FRAMES = 200;
 const MAX_LOCS = 50_000;
@@ -239,6 +239,13 @@ export function zenStudio() {
         // Then the Figma check of each saved component stylesheet runs in the background (Main component M3).
         const parity = startParity(saved, prior);
         return send(res, 200, { ok: true, saved, conflicts, harness, parity });
+      }
+      // Figma changed a binding → the CSS proposals (core rebuild Q5(1), tools/studio/binding-diff.mjs): read only, as
+      // GET /source (writes go through POST /css-edit, which checks the token).
+      if (route === "GET /binding-diff") {
+        const { repoBindingDiff } = await import("./binding-diff.mjs");
+        const result = await repoBindingDiff({ base: url.searchParams.get("base") || "HEAD" });
+        return send(res, 200, { ok: true, base: result.base, changes: result.changes.length, proposals: result.proposals });
       }
       if (route === "GET /parity") {
         checkToken(req);
@@ -513,7 +520,7 @@ export function zenStudio() {
   /** What the Studio is told about a check (its first rows; the rest are counted). */
   function parityReport(job) {
     const result = job.result;
-    return { id: job.id, file: job.file, suites: job.suites.length, status: result ? "done" : "running", ...(result ? { total: result.total, failures: result.failures, variants: new Set(result.rows.map((row) => `${row.suite}|${JSON.stringify(row.variant)}`)).size, rows: result.rows.slice(0, PARITY_ROWS), more: Math.max(0, result.rows.length - PARITY_ROWS), errors: result.errors } : {}), kept: job.kept ?? false, reverted: job.reverted ?? false };
+    return { id: job.id, file: job.file, suites: job.suites.length, status: result ? "done" : "running", ...(result ? { total: result.total, failures: result.failures, variants: new Set(result.rows.map((row) => `${row.suite}|${JSON.stringify(row.variant)}`)).size, rows: result.rows.slice(0, PARITY_ROWS), more: Math.max(0, result.rows.length - PARITY_ROWS), errors: result.errors, rebind: job.rebind?.pkg ?? null, rebindNotes: job.rebind?.notes ?? [] } : {}), kept: job.kept ?? false, reverted: job.reverted ?? false };
   }
 
   const announceParity = (job) => devServer?.ws?.send({ type: "custom", event: "zen-studio:parity", data: parityReport(job) });
@@ -528,8 +535,12 @@ export function zenStudio() {
       started.push({ id: job.id, file: job.file, suites: job.suites.length });
       // A component without a contract suite has nothing to compare: done at once.
       const run = job.suites.length ? runSuites(root, job.suites) : Promise.resolve({ total: 0, failures: 0, rows: [], errors: [] });
+      // Beside the check: the Figma re-binding the save's token changes need (core rebuild Q5(2), tools/studio/rebind.mjs).
+      const rebound = Promise.all([import("./rebind.mjs"), readDisk(entry.file)])
+        .then(([{ repoRebind }, after]) => (after === null ? { pkg: null, notes: [] } : repoRebind({ root, file: entry.file, before: job.prior, after })))
+        .catch((error) => ({ pkg: null, notes: [`The Figma re-binding could not be read: ${error.message}`] }));
       announceParity(job);
-      void run.then((result) => { job.result = result; announceParity(job); });
+      void Promise.all([run, rebound]).then(([result, rebind]) => { job.result = result; job.rebind = rebind; announceParity(job); });
     }
     return started;
   }
