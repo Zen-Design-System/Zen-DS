@@ -126,3 +126,10 @@ and "$0".
   Heading/3 figure — the Chart Card's description and value) leads a start column, the legend lists down at its foot,
   the ring stands at the end with an empty hole; a picked slice takes the total's place. Narrow boxes wrap: the column,
   then the ring.
+- Figma (Chart/Donut-Chart 15324:80365): each `Slice` is now a SUBTRACT boolean of its exact `Arc` (innerRadius 0.56,
+  no angle gap) and two 4px `Cut` bars on its edges, fills still bound to the palette. Variant property `Total` =
+  Centre | Start: `Legend=Bottom, Total=Centre` 15324:984, `Legend=Start, Total=Centre` 15324:1057, and the new
+  `Legend=Start, Total=Start` 15392:2438 (560 wide: Start column 15392:2495 with Total 15392:2496 and Legend 15392:2499,
+  Ring 15392:2515, 240px, empty hole). Its texts are `Total Label#15392:9` and `Total Value#15392:13` (the header's
+  Description/Value keep their own toggles). `Show Ranges` has one default per set (true), so this variant's main shows
+  the Segmented; the DONUT cover instance 15392:2590 turns it off.

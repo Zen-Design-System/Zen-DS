@@ -310,4 +310,4 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
 - 2026-10-13 (the user, two screenshots): donut gaps read uneven → the slices now meet and an SVG mask cuts a straight
   4px line on each edge (parallel gaps; the sweep stays); `totalPosition="start"` for the total beside the ring above
   the legend, as their sample layout. Example "Total beside the ring" (a half-width dashboard row), tests 13/13. Figma:
-  same gaps and a `Total=Start` variant on Chart/Donut-Chart.
+  same gaps and a `Total=Start` variant on Chart/Donut-Chart (15392:2438; IDs in spec §5.2), audit clean.
