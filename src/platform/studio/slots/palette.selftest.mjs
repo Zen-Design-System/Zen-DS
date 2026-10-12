@@ -17,7 +17,7 @@ import {
   isClickableHost, isLayoutPrimitive, isSlotActive, slotFlowOf, slotIsClickTarget, slotOf, slotsOf,
 } from "./registry.ts";
 import { DATA_SLOTS, dataSlotOf, itemTitle } from "./dataSlots.ts";
-import { COMPONENT_FOLDERS, NOT_RECOMMENDED, PALETTE, PALETTE_GROUPS, isMobileChain, paletteFor, paletteItem, paletteSections, preferredFor, searchPalette } from "./palette.ts";
+import { COMPONENT_FOLDERS, NOT_RECOMMENDED, PALETTE, PALETTE_GROUPS, isMobileChain, paletteFor, paletteItem, paletteSections, preferredFor, searchPalette, warningForCode } from "./palette.ts";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const components = path.join(root, "src/components");
@@ -339,7 +339,23 @@ check("ListItem leading: fitting", fitting(paletteFor(ctxFor("ListItem", "leadin
 check("ListItem leading: every item listed", ids(paletteFor(ctxFor("ListItem", "leading"))), everyId);
 check("ListItem trailing: fitting", fitting(paletteFor(ctxFor("ListItem", "trailing"))), ["button", "button-primary", "icon-button", "badge"]);
 check("ListItem leading: warning reasons name the slot", [...new Set(Object.values(paletteFor(ctxFor("ListItem", "leading")).warnings).map((row) => row.reason))], ["Leading takes Avatar or DockIcon"]);
-check("Divider next to a Divider", [fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), nextSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Text" })).includes("divider")], [false, false, true]);
+// ⌘V warns as an insert does (user, 2026-10-12): warningForCode reads pasted code as the palette item it matches.
+{
+  const pasted = (ctx, code) => warningForCode(ctx, code)?.reason ?? null;
+  const clickableCard = ctxFor("Stack", "children", { ancestors: ["Card"], clickableAncestor: "Card" });
+  const inDialog = ctxFor("Stack", "children", { ancestors: ["Dialog"] });
+  check("paste into a clickable Card: a Button, a Button row, a field warned; a Badge not", [
+    pasted(clickableCard, '<Button level="secondary">Open</Button>'),
+    pasted(clickableCard, '<Stack direction="row" gap="sm">\n  <Button>Edit</Button>\n</Stack>'),
+    pasted(clickableCard, '<InputField label="Name" />'),
+    pasted(clickableCard, "<Badge>New</Badge>"),
+  ], ["The card is one click target, so it holds no controls or fields", "The card is one click target, so it holds no controls or fields", "The card is one click target, so it holds no controls or fields", null]);
+  check("paste into a Dialog: a Primary Button warned, a Secondary one not", [pasted(inDialog, '<Button level="primary">Save</Button>'), pasted(inDialog, '<Button level="secondary">Back</Button>')], ["Dialog actions are props (primaryAction, secondaryAction)", null]);
+  check("paste: a Card into a Card", pasted(ctxFor("Card"), '<Card theme="border">\n  <Text>Inner</Text>\n</Card>'), "A card never goes inside a card");
+  check("paste into ListItem leading: a Badge warned, an Avatar not", [pasted(ctxFor("ListItem", "leading"), "<Badge>2</Badge>"), pasted(ctxFor("ListItem", "leading"), '<Avatar alt="Ava" />')], ["Leading takes Avatar or DockIcon", null]);
+  check("paste: plain text, nothing to warn", pasted(ctxFor("Card"), "Just text"), null);
+}
+check("Divider next to a Divider",[fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), nextSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Text" })).includes("divider")], [false, false, true]);
 const outside = paletteFor({ ...ctxFor("Card"), canUseToast: false });
 check("outside a component: toast and state items cannot be written (hidden)", outside.items.filter((item) => item.requires?.includes("toast") || item.state?.length).length, 0);
 check("a template: Image cannot be written (hidden)", paletteFor({ ...ctxFor("Card"), canUseMedia: false }).hidden.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`), ["Data display: Images read platformMedia, which only the example pages import (Image)"]);

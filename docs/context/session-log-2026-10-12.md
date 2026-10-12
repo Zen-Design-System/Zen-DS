@@ -121,3 +121,8 @@
   inside here": the canvas parent is Page's own Stack) → `clipboard.ts` sourceParent walks up to the ancestor whose
   source holds the layer (`<Page>`).
 - E2E K-24 (layer in ListItem › leading), K-25 (slot row), K-26 (local wrapper; fixture gains ShellFixture, frame 11).
+- The user: "Làm luôn nhé" (a paste warns as the insert picker does). `palette.ts` paletteFor's host rules move to
+  hostRules; `warningForCode` reads pasted code as the palette item it matches (components, controls, fields, a
+  `level="primary"` Button as button-primary). Slot pastes pass it as the insert's warning; layout pastes
+  (`pasteWarningIn`, the layout's children slot) add "Not recommended: …" under the edit line (`currentEditStatus`);
+  ⇧⌘R in a slot too. Palette selftest +5 (1696); E2E K-24 asserts the line, K-27 (a Card into the Shell frame's Card).

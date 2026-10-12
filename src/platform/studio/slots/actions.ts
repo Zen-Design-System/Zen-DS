@@ -19,7 +19,7 @@ import { itemGroup, itemTitle, type DataSlot } from "./dataSlots";
 import { containerOf, frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
 import { answeredLoc, isUnknownSlotOp, sendSlotEdit, type InsertChildOp, type ItemEditOp, type SlotEditApplied, type SlotEditOp, type SlotWrap } from "./ops";
 import { freshRow, groupedPlaces, itemsCode, rowFields, sectionEntries, sectionsCode, titleOf } from "./sectionList";
-import { paletteFor, type PaletteContext, type PaletteHostContext, type PaletteItem } from "./palette";
+import { paletteFor, warningForCode, type PaletteContext, type PaletteHostContext, type PaletteItem } from "./palette";
 import { activeSlotsOf, headingLevelFor, hostPropsOf, insertTargetFor, isClickableHost, isLayoutPrimitive, slotOf, type ContentSlot, type HostProps } from "./registry";
 
 /*
@@ -802,7 +802,9 @@ export function pasteIntoSlot({ host, slot, code, name, after, from, state }: Pa
     if (content.insertBlock) return fail(content.insertBlock);
     const afterLoc = after ? parseSrc(after.src)?.loc : undefined;
     if (after && !afterLoc) return fail(`${after.name}'s place is unknown — select it again`);
-    return insertCodeInSlot(element, { selection: host, slot, code, label: name, root: name, state, paste: { after: afterLoc, from: from ?? after ?? host } });
+    // The host rules an insert from the picker follows warn here too (it pastes all the same).
+    const warning = warningForCode(slotHostContext(host, element, slot), code)?.reason;
+    return insertCodeInSlot(element, { selection: host, slot, code, label: name, root: name, state, warning, paste: { after: afterLoc, from: from ?? after ?? host } });
   });
 }
 
@@ -829,6 +831,28 @@ export function slotPasteTarget(selection: NodeSelection): { host: NodeSelection
   if (!slot) return null;
   const host: NodeSelection = { kind: "node", src: parent.src, name: parent.name, frameId: selection.frameId, panelId: selection.panelId, instance: instanceOf(world, parent) };
   return { host, slot, after: selection };
+}
+
+/** The host-rule warning for pasted code in the host's slot (⇧⌘R on a slot's layer), or null. */
+export async function slotPasteWarning(host: NodeSelection, slot: ContentSlot, code: string): Promise<string | null> {
+  const at = parseSrc(host.src);
+  const element = at ? await studioApi.element(at.file, at.loc).catch(() => null) : null;
+  return element ? warningForCode(slotHostContext(host, element, slot), code)?.reason ?? null : null;
+}
+
+/**
+ * The host-rule warning for a paste into a layout's children (⌘V into a Stack or a Card, or beside one of its layers),
+ * read as the insert picker reads that layout's children slot; null without such a slot or with nothing to say.
+ */
+export async function pasteWarningIn(parent: FiberHit, frameId: string | null, panelId: string | null, code: string): Promise<string | null> {
+  const slot = slotOf(parent.name, "children");
+  const at = parseSrc(parent.src);
+  const world = canvasApi.getWorldElement();
+  if (!slot || !at || !world) return null;
+  const element = await studioApi.element(at.file, at.loc).catch(() => null);
+  if (!element) return null;
+  const host: NodeSelection = { kind: "node", src: parent.src, name: parent.name, frameId, panelId, instance: instanceOf(world, parent) };
+  return warningForCode(slotHostContext(host, element, slot), code)?.reason ?? null;
 }
 
 type CodeInsert = {
@@ -935,7 +959,7 @@ async function runSwap({ selection, element, slot, layer, item }: SwapRequest): 
  * Swap instance for a whole layer (Figma, GĐ4 M2: Quick insert in its Swap mode): `code` takes the selected layer's place
  * wherever it is written (op replaceElement; a key stays), one undo step; the new layer is selected.
  */
-export function swapSelection(selection: NodeSelection, code: string, label: string, state?: readonly StateDecl[]): Promise<boolean> {
+export function swapSelection(selection: NodeSelection, code: string, label: string, state?: readonly StateDecl[], warning?: string | null): Promise<boolean> {
   return exclusive(async () => {
     const check = canStructurallyEdit(selection);
     if (!check.ok) return fail(check.reason);
@@ -947,7 +971,7 @@ export function swapSelection(selection: NodeSelection, code: string, label: str
     const op: SlotEditOp = { op: "replaceElement", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}) };
     const response = await write(targetOf(target), op, `Swap ${target.name} for ${label}`);
     if (!response) return false;
-    const text = outcomeOf(`Swapped ${target.name} for ${label}`, response);
+    const text = outcomeOf(`Swapped ${target.name} for ${label}`, response, warning ? `Not recommended: ${warning}` : undefined);
     announce(text);
     const loc = answeredLoc(response, "inserted");
     if (!loc) return true;

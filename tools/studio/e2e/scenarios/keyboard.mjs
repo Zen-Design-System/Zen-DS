@@ -299,7 +299,10 @@ export const rows = [
       await until(async () => (await count(ctx, "inst-click-badge")) === 2, { message: `a pasted Badge (status: ${(await statusText(page)).slice(0, 160)})` });
       const leading = leadingOf(await ctx.text());
       if (idsIn(leading, "inst-click-badge") !== 2) throw new Error(`the copy is not in the row's leading slot: ${leading.slice(0, 200)}`);
-      return "ListItem › leading holds the Badge and its copy";
+      // The slot's host rule warns as the insert picker does (Leading takes Avatar or DockIcon); it pasted all the same.
+      const status = await statusText(page);
+      if (!/Not recommended: Leading takes Avatar or DockIcon/.test(status)) throw new Error(`no "Not recommended" line: ${status.slice(0, 200)}`);
+      return "ListItem › leading holds the Badge and its copy; Not recommended: Leading takes Avatar or DockIcon";
     },
   },
   {
@@ -338,6 +341,24 @@ export const rows = [
       const line = (loc) => Number(loc.split(":")[0]);
       if (!(line(first.loc) < line(copy.loc) && line(copy.loc) < line(button.loc))) throw new Error(`the copy is not between the Text and the Button inside <Shell> (${first.loc}, ${copy.loc}, ${button.loc})`);
       return "the copy right after the Text, inside <Shell>";
+    },
+  },
+  {
+    id: "K-27", feature: "⌘V into a layout warns as the insert picker does (a Card pasted into a Card's Stack), and pastes", wp: "user 2026-10-12",
+    async run(ctx) {
+      // The Slot frame's Card, pasted beside the Text in the Shell frame's Card (a Card never copies into itself).
+      const page = await freshSelect(ctx, "card", { frame: 2, position: { dx: 4, dy: 4 } });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      await focusFrame(page, 11);
+      await clickLoc(page, ctx.file, await at(ctx, "shell-card-text"));
+      await sleep(300);
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => (await count(ctx, "card")) === 2, { message: `a pasted Card (status: ${(await statusText(page)).slice(0, 160)})` });
+      await until(async () => /Not recommended: A card never goes inside a card/.test(await statusText(page)), { timeout: 4000, message: `"Not recommended" (status: ${(await statusText(page)).slice(0, 200)})` });
+      return "Card pasted into the Shell's Card; Not recommended: A card never goes inside a card";
     },
   },
 ];

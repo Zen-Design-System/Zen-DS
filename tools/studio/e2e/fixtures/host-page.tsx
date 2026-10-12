@@ -261,6 +261,11 @@ function ShellFixture() {
     <Shell data-e2e="shell">
       <Text data-e2e="shell-text">Inside a local wrapper</Text>
       <Button data-e2e="shell-btn" level="secondary">Wrapped</Button>
+      <Card data-e2e="shell-card" theme="border">
+        <Stack gap="sm">
+          <Text data-e2e="shell-card-text">In a card (K-27: a Card pasted here is warned)</Text>
+        </Stack>
+      </Card>
     </Shell>
   );
 }

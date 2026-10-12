@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
-import { announceEditStatus, applyEdit, parseSrc, studioApi, subscribeStudioWrites } from "../api";
+import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { propSpecs } from "../inspector/propSchema";
 import { findBySrc, isTypingTarget, parentHit, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
-import { canStructurallyEdit, insideWrap, pasteIntoSlot, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, studioWrapOf, swapSelection } from "../slots/actions";
+import { canStructurallyEdit, insideWrap, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, SourceElement, StateDecl, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
@@ -227,7 +227,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
       const file = parseSrc(slotted.host.src)?.file;
       const reads = state ?? (own && own.file !== file ? own.state : undefined);
       const name = selectedName(own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer");
-      if (replace) return await swapSelection(slotted.after!, code, name, reads);
+      if (replace) return await swapSelection(slotted.after!, code, name, reads, await slotPasteWarning(slotted.host, slotted.slot, code));
       return await pasteIntoSlot({ host: slotted.host, slot: slotted.slot, code, name, after: slotted.after, from: selection, state: reads });
     }
     let spot = spotFor(selection, replace);
@@ -239,8 +239,10 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
       if (outer && typeof outer !== "string") spot = outer;
       spot = await sourceParent(spot);
     }
-    const before = renderedNow(canvasApi.getWorldElement());
     const verb = replace ? "Paste to replace" : "Paste";
+    // The host rules an insert from the picker follows (a control in a clickable card…): the paste goes in all the same.
+    const warning = await pasteWarningIn(spot.parent, spot.frameId, spot.panelId, code);
+    const before = renderedNow(canvasApi.getWorldElement());
     // The same file, its source still there: copy it as written (names checked where it lands).
     if (own && own.file && own.loc && !own.cut && own.file === spot.parentFile) {
       const origin = await studioApi.element(own.file, own.loc);
@@ -249,6 +251,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
         if (spot.after) op.after = parseSrc(spot.after)?.loc;
         if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
         const response = await applyEdit({ file: own.file, loc: own.loc, name: origin.name, ops: [op], hash: origin.hash }, `${verb} ${own.name}`);
+        if (response.ok) notRecommended(warning);
         if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(own.name), spot, before, selection, own.wrapped);
         return response.ok;
       }
@@ -263,11 +266,19 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
     const name = own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
     const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `${verb} ${name}`);
+    if (response.ok) notRecommended(warning);
     if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(name), spot, before, selection, Boolean(own?.wrapped));
     return response.ok;
   } finally {
     pasting = false;
   }
+}
+
+/** "Not recommended: …" under the paste's outcome line (it pasted all the same, as an insert from the picker does). */
+function notRecommended(reason: string | null) {
+  const now = currentEditStatus();
+  if (!reason || !now) return;
+  announceEditStatus({ ...now, details: [...(now.details ?? []), `Not recommended: ${reason}`] });
 }
 
 /** Inserts `code` (one JSX element) into the selected layout, else right after the selected layer (Assets click). */
