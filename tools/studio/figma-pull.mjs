@@ -1022,13 +1022,29 @@ function convertNode(node, ctx) {
     }
     ctx.ids = outerIds;
     if (TEXT_PROP[set.code] && typeof node.text === "string" && node.text && !props[TEXT_PROP[set.code]]) props[TEXT_PROP[set.code]] = literal(node.text);
+    // A File-Item's file: its Name, Size, State and Additional Caption (an alert's error, an upload's caption).
+    if (set.code === "UploaderFileItem") {
+      const shown = node.props ?? {};
+      const name = String(shown["✏️ Name"] ?? node.text ?? "File");
+      const state = String(shown.State ?? "Uploaded").toLowerCase();
+      // An alert's error is its Help-Text's; an upload's progress the Progress-Bar's step (its middle value).
+      const caption = state === "alert" ? (node.nested ?? []).find((nested) => nested.path === "Help-Text")?.text : shown["✏️ Additional Caption"];
+      const step = (node.nested ?? []).find((nested) => nested.path === "Progress-Bar")?.props?.Progress;
+      const fields = { id: literal(slug(name)), name: literal(name) };
+      if (shown["✏️ Size"]) fields.size = literal(String(shown["✏️ Size"]));
+      if (state !== "uploaded") fields.state = literal(state);
+      if (caption && (state === "alert" || state === "uploading")) fields[state === "alert" ? "error" : "caption"] = literal(String(caption));
+      if (state === "uploading" && step) fields.progress = literal({ None: 0, Low: 25, Medium: 50, Good: 80, Done: 100 }[step] ?? 0);
+      props.file = { kind: "object", fields };
+    }
     let children = props.children && !node.slots?.length ? [{ kind: "text", value: props.children.value }] : [];
     const slottedLayers = slotted.flatMap((slot) => slot.children ?? []);
     if (slottedLayers.length && takesChildren) children = slottedLayers.map((child) => convert(child, ctx)).filter(Boolean);
     else if (slottedLayers.length) notes.push(`${where}: what its ${slotted.map((slot) => slot.name).join(", ")} slot holds is left out (the component takes no content)`);
     delete props.children;
     const overrides = {};
-    for (const nested of node.nested ?? []) {
+    // A File-Item's Help-Text and Progress-Bar are its file's error and progress (read above).
+    for (const nested of set.code === "UploaderFileItem" ? [] : node.nested ?? []) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
       const fields = instanceProps(nested, inner, mapping, notes, `${set.code} › ${nested.path}`);

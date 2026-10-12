@@ -338,6 +338,19 @@ export const FIGMA_PROPS = {
       Type: "type",
     },
   },
+  // One file of a FileUpload's list: Theme and Thumbnail are its own props; the rest is its `file` object (figma-push
+  // uploaderFileItemNode writes State and the texts, figma-pull reads them back).
+  UploaderFileItem: {
+    sets: { "Primitives/Uploader/File-Item": null },
+    props: {
+      Theme: "theme",
+      Thumbnail: "thumbnail",
+      State: skip("the file's state (file.state)"),
+      "✏️ Name": skip("the file's name (file.name)"),
+      "✏️ Size": skip("the file's size (file.size)"),
+      "✏️ Additional Caption": skip("the upload's caption or error (file.caption, file.error)"),
+    },
+  },
   FileUpload: {
     sets: { "Uploader/File-Upload": null },
     props: {

@@ -732,6 +732,37 @@ export default function Page() {
   check("round trip: InputConditions comes back with its items' labels", shape(pageFromFigma(frame, { mapping }).text), shape(page));
 }
 
+// 20. UploaderFileItem as Figma's Primitives/Uploader/File-Item (2026-10-13): its file's State, Name, Size and caption,
+//     an alert's error in Help-Text, an upload's progress as the Progress-Bar step, the buttons it has no handler for
+//     hidden; the pull gives the file back.
+{
+  const page = `// @zen-page {"format":1,"title":"Files"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Stack, UploaderFileItem } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Files" device="desktop">
+        <Stack>
+          <UploaderFileItem thumbnail="file" file={{ id: "brief-pdf", name: "Brief.pdf", size: "1.2 MB", state: "uploading", caption: "7 seconds left", progress: 50 }} />
+          <UploaderFileItem theme="overlay" file={{ id: "notes-docx", name: "Notes.docx", size: "320 KB", state: "alert", error: "Upload failed" }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [upload, alert] = frame.children;
+  check("UploaderFileItem: File-Item with its file's State, Name, Size, caption and Thumbnail", [upload.set.id, upload.name, upload.props.State, upload.props["✏️ Name"], upload.props["✏️ Size"], upload.props["✏️ Additional Caption"], upload.props.Thumbnail, upload.nested], ["1581:22739", "Brief.pdf", "Uploading", "Brief.pdf", "1.2 MB", "7 seconds left", "File", [{ path: "Progress-Bar", props: { Progress: "Medium" } }]]);
+  check("UploaderFileItem: an alert's error in its Help-Text; Remove and Retry hidden without their handlers", [alert.props.State, alert.props.Theme, alert.nested, alert.hide], ["Alert", "Overlay", [{ path: "Help-Text", props: {}, text: "Upload failed" }], ["Remove", "Retry"]]);
+  ok("UploaderFileItem: no note of its file as unwritten data", !notes.some((note) => /file is data/.test(note)));
+  check("round trip: the file items come back with their files", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

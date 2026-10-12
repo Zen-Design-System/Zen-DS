@@ -90,7 +90,7 @@ const SLOT_OF_PROP = {
  */
 const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]) };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]) };
+const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]) };
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -102,6 +102,8 @@ const SURFACES = new Set(["Card", "ChartCard", "MetricCard", "Accordion", "SideP
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
 const ITEM_ICON = { Segmented: "leading" };
+/** A 0–100 value as Figma Progress-Bar's fill step (None, Low, Medium, Good, Done). */
+const progressStep = (value) => (value <= 0 ? "None" : value < 40 ? "Low" : value < 70 ? "Medium" : value < 100 ? "Good" : "Done");
 /** Components whose text prop is a plain text layer of their set (no Figma text property): it is the instance's text. */
 const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
@@ -297,6 +299,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
     else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
     else if (element.name === "ColorSelector") node = colorSelectorNode(element, code, id);
+    else if (element.name === "UploaderFileItem") node = uploaderFileItemNode(element, code, id, parent);
     // Tabs written with TabItem children: the same Item-List of Tab-Items as its `items` (Tabs.tsx renders either).
     else if (element.name === "Tabs" && !element.props.items && element.children.some((child) => child.kind === "element" && child.name === "TabItem")) {
       const tabs = tabsOfChildren(element);
@@ -518,6 +521,30 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!header || (!before.length && !after.length)) return header ? { ...header, ...(id ? { id } : {}) } : null;
     const frame = { type: "FRAME", ...(id ? { id } : {}), name: "PageHeader", layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [...before, { ...header, fillW: true }, ...after] };
     return frame;
+  }
+
+  /**
+   * UploaderFileItem as Figma's Primitives/Uploader/File-Item: its theme and thumbnail (photo when the file has a preview,
+   * Uploader.tsx), its file's State, Name, Size and Additional Caption (the upload's caption, or the error of an alert).
+   */
+  function uploaderFileItemNode(element, code, id, parent) {
+    const node = instanceNode(element, code, id, parent);
+    if (node?.type !== "INSTANCE") return node;
+    const file = plain(element.props.file) ?? {};
+    const state = ["uploading", "uploaded", "replaceable", "alert"].includes(file.state) ? file.state : "uploaded";
+    const thumbnail = code.thumbnail ?? (file.previewUrl ? "photo" : "none");
+    const caption = textValue(state === "uploading" ? file.caption : "");
+    // An alert's error in its Help-Text; an upload's progress as the Progress-Bar's step.
+    const error = state === "alert" ? textValue(file.error) : "";
+    const nested = [...(error ? [{ path: "Help-Text", props: {}, text: error }] : []), ...(state === "uploading" ? [{ path: "Progress-Bar", props: { Progress: progressStep(Number(file.progress) || 0) } }] : [])];
+    if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
+    // Its buttons show only with their handler (Uploader.tsx): Remove (onRemove), Retry (an alert's onRetry).
+    const hide = [...(element.props.onRemove ? [] : ["Remove"]), ...(state === "alert" && !element.props.onRetry ? ["Retry"] : [])];
+    if (hide.length) node.hide = [...(node.hide ?? []), ...hide];
+    if (thumbnail === "photo") notes.push(`UploaderFileItem "${textValue(file.name)}": its photo thumbnail keeps Figma's sample picture`);
+    Object.assign(node.props, onlyOwn(node.set, { State: state[0].toUpperCase() + state.slice(1), Thumbnail: thumbnail[0].toUpperCase() + thumbnail.slice(1), "✏️ Name": textValue(file.name), "✏️ Size": textValue(file.size), "✏️ Additional Caption": caption }));
+    if (typeof file.name === "string" && node.name === node.set.name) node.name = file.name;
+    return node;
   }
 
   /** Tabs with TabItem children as Tabs with `items` (each tab's value, else its position, as the id; a selected one the default). */
@@ -1108,7 +1135,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (element.name === "ProgressBar" || element.name === "ProgressCircle") {
       const value = Math.max(0, Math.min(100, Number(code.value) || 0));
       const label = typeof code.label === "string" ? code.label : code.label ? `${Math.round(value)}%` : null;
-      Object.assign(node.props, onlyOwn(node.set, { ...(label ? { Text: label } : {}), ...(element.name === "ProgressBar" ? { Progress: value <= 0 ? "None" : value < 40 ? "Low" : value < 70 ? "Medium" : value < 100 ? "Good" : "Done" } : {}) }));
+      Object.assign(node.props, onlyOwn(node.set, { ...(label ? { Text: label } : {}), ...(element.name === "ProgressBar" ? { Progress: progressStep(value) } : {}) }));
     }
     if (element.name === "AiChatField" && typeof code.placeholder === "string") node.texts = { ...(node.texts ?? {}), Text: code.placeholder };
     // Its model switch shows only with `model` (Figma's Model starts on).

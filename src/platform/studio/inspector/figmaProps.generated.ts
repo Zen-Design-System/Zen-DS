@@ -1899,6 +1899,31 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "UploaderFileItem": {
+    "figma": "1581:22739",
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Overlay": "overlay"
+        }
+      },
+      {
+        "prop": "thumbnail",
+        "label": "Thumbnail",
+        "type": "VARIANT",
+        "options": {
+          "None": "none",
+          "File": "file",
+          "Photo": "photo"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "FileUpload": {
     "figma": "1581:22708",
     "own": [
