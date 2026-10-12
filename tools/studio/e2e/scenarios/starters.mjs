@@ -35,6 +35,39 @@ export async function pageFromFrame(ctx, frame, { on } = {}) {
 
 export const rows = [
   {
+    id: "SP-12", feature: "New page from a template frame keeps its Table cells as the Table draws them (2026-10-12, Admin list): the Member column an avatar column (name, email caption, bold, each person's colour), Status Badges with their colour and dot, the row menu an actions column", wp: "figma coverage 2026-10-12",
+    timeout: 45000,
+    async run(ctx) {
+      const { page } = await ctx.studio({ page: "templates" });
+      const frame = await until(() => page.evaluate(() => {
+        const found = [...document.querySelectorAll('[data-studio-frame^="example:"]')].find((element) => element.querySelector(".zen-table") && /Team members/.test(element.textContent ?? ""));
+        return found ? found.getAttribute("data-studio-frame").replace("example:", "") : null;
+      }), { timeout: 20000, message: "the Admin list frame on Templates" });
+      const made = await pageFromFrame(ctx, frame, { on: "templates" });
+      const { id, text, newErrors } = made;
+      const expected = [
+        [/id: "member"[^}]*content: "avatar"/, "the Member column an avatar column"],
+        [/id: "member"[^}]*captionField: "memberCaption"/, "its email as the caption"],
+        [/id: "member"[^}]*bold: true/, "its name bold"],
+        [/id: "status"[^}]*content: "badge"/, "Status a badge column"],
+        [/id: "actions"[^}]*content: "actions"[^]*?icon: "icon-dots-horizontal-line"/, "the row menu an actions column"],
+        [/"Row\[an\.mai@dizai\.studio\]\/member\/Avatar": \{ theme: "[a-z]+" \}/, "An Mai's avatar colour"],
+        [/"Row\[[^\]]+\]\/status\/Badge": \{ theme: "green"[^}]*leadingIcon: true/, "an Active badge green with its dot"],
+        [/"Row\[bichngoc\.ha@dizai\.studio\]\/member\/Avatar": \{[^}]*children: "BH"/, "the template's own initials (BH, not the Table's BN)"],
+      ];
+      if (/Not signed in yet/.test(text)) throw new Error("screen-reader text (VisuallyHidden) became a cell's words");
+      const missing = expected.filter(([pattern]) => !pattern.test(text)).map(([, what]) => what);
+      if (missing.length) throw new Error(`the design copy lacks: ${missing.join(", ")}\n${text.slice(text.indexOf("<Table"), text.indexOf("<Table") + 1500)}`);
+      // On the canvas: initials in a colour, badges, the menus.
+      const screen = made.page.locator(`[data-studio-frame^="screen:"]`).first();
+      await screen.locator(".zen-table .zen-badge").first().waitFor({ state: "attached", timeout: 20000 });
+      const initials = await screen.locator(".zen-table .zen-avatar").allInnerTexts();
+      if (!initials.some((value) => value.trim() === "AM")) throw new Error(`no "AM" avatar in the table (${initials.slice(0, 4).join(", ")})`);
+      if (newErrors().length) throw new Error(`console errors on the new page: ${newErrors().slice(0, 2).join(" | ").slice(0, 300)}`);
+      return `Admin list → page ${id}: avatar column (caption, bold, colours), badges (colour, dot), actions column; ${initials.length} avatars`;
+    },
+  },
+  {
     id: "SP-01", feature: "New page from a frame: the E2E instance frame becomes a builder page that renders and edits", wp: "GĐ3b M1",
     async run(ctx) {
       const { page, id, text, newErrors } = await pageFromFrame(ctx, 6);
