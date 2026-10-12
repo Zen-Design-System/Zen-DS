@@ -67,6 +67,34 @@ export default function Page() {
 `;
 
 /** A page for Export › Figma: a flat Button with its icon, a row, a Card holding text (figma-push.selftest's Projects). */
+// An app page (2026-10-12: it imported into Figma as an empty frame): an AppShell holding a Container and a List.
+const FIGMA_SHELL_PAGE = `// @zen-page {"format":1,"title":"Team"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { AppShell, AppShellAction, Container, List, ListItem, Search, Sidebar, SidebarMenuItem } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Team" device="desktop">
+        <AppShell
+          sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>}
+          header={<Search aria-label="Search people" placeholder="Search people" />}
+          headerActions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" />}
+        >
+          <Container>
+            <List>
+              <ListItem title="Ava Chen" />
+            </List>
+          </Container>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 const FIGMA_PAGE = `// @zen-page {"format":1,"title":"Projects"}
 import { Board, Screen } from "@zen/design-system/builder";
 import { Button, Card, Stack, Text } from "@zen/design-system";
@@ -207,6 +235,33 @@ export const rows = [
       if (problems.length) throw new Error(problems.join(" · "));
       await page.keyboard.press("Escape");
       return `${first.name}: ${nodes(pkg.frame).length} layers, Button/Flat, gap Spacing/Gap/Large, keys stable`;
+    },
+  },
+  {
+    id: "HO-10", feature: "Export › Figma of an app page: the AppShell as the Zen components it renders (Sidebar, the top bar as the Dashboard header Type=Navigation) and the Container and List as frames that keep their layers, never an empty frame", wp: "figma push coverage P1 2026-10-12",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, FIGMA_SHELL_PAGE, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+      const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      const all = nodes(pkg.frame);
+      const shell = pkg.frame.children?.[0];
+      const bar = all.find((node) => node.set?.name === "Primitives/Dashboard/Header");
+      const problems = [
+        shell?.name !== "AppShell" && `first layer ${shell?.name ?? "none"}`,
+        !all.some((node) => node.set?.name === "Side-Bar/Master/Basic") && "no Sidebar",
+        bar?.props?.Type !== "Navigation" && `top bar ${bar?.props?.Type}`,
+        !all.some((node) => node.type === "FRAME" && node.name === "List" && node.children?.some((row) => row.set?.name === "List-Item")) && "the List lost its row",
+        !all.some((node) => node.type === "FRAME" && node.name === "Container") && "no Container frame",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.keyboard.press("Escape");
+      return `${all.length} layers: AppShell › Sidebar, Dashboard header Navigation, Container › List › List-Item`;
     },
   },
   {
