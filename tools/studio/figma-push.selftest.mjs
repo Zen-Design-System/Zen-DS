@@ -160,7 +160,7 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
   ok("Overviews: a Dashboard header's slots and texts", header?.slots?.length > 0);
   check("Overviews: Breadcrumbs items in their Item-List slot", find(frame, (node) => node.set?.name === "Breadcrumbs")?.slots?.[0]?.children.every((item) => item.set.name === "Primitives/Breadcrumbs/Item/Slot"), true);
   const absolutes = []; const collect = (node) => { if (node.absolute) absolutes.push(node.absolute); (node.children ?? []).forEach(collect); (node.slots ?? []).forEach((slot) => slot.children.forEach(collect)); }; collect(frame);
-  check("Overviews: layers outside the auto layout keep their constraints and insets (top right 32, Floating-Actions bottom right)", absolutes.map((box) => [box.cx, box.cy, box.right, box.top]), [["MAX", "MIN", 32, 32], ["MAX", "MAX", 0, 0]]);
+  check("Overviews: layers outside the auto layout keep their constraints and insets (top right 32; the AppShell's floating action bottom right, Margin-Comfortable in)", absolutes.map((box) => [box.cx, box.cy, box.right, box.top]), [["MAX", "MIN", 32, 32], ["MAX", "MAX", 24, 0]]);
 }
 {
   const pictured = PAGE.replace('<Icon name="icon-star-01-line" />', '<Avatar src="zen-media:abc123" alt="Alex" />').replace("import { Button, Card, Grid, Icon, IconButton, Stack, Text }", "import { Avatar, Button, Card, Grid, Icon, IconButton, Stack, Text }");
@@ -224,7 +224,7 @@ export default function Page() {
   const column = shell.children[1];
   check("AppShell: its column is the top bar (Header) then the page (Main)", column.children.map((child) => child.name), ["Header", "Main"]);
   const bar = column.children[0].children[0];
-  check("AppShell: the top bar is the Dashboard header Type=Navigation, padded Padding/Small · Margin-Comfortable", { set: bar.set.name, type: bar.props.Type, padding: column.children[0].layout.padding }, { set: "Primitives/Dashboard/Header", type: "Navigation", padding: [12, 24, 12, 24] });
+  check("AppShell: the top bar is the Dashboard header Type=Navigation, padded as Figma's Navigation row (Margin-Comfortable, Padding/XSmall below)", { set: bar.set.name, type: bar.props.Type, padding: column.children[0].layout.padding }, { set: "Primitives/Dashboard/Header", type: "Navigation", padding: [24, 24, 8, 24] });
   check("AppShell: Leading-Slots the collapse toggle and the header, Trailing-Slots the actions and the account's Avatar", bar.slots.map((slot) => [slot.name, slot.children.map((child) => child.set.name)]), [["Leading-Slots", ["Button/Icon-Flat", "Breadcrumbs"]], ["Trailing-Slots", ["Primitives/Dashboard/Header/Action-Item", "Avatar/Single"]]]);
   check("a slot with content turns its block on (Nav-Trailing-Block), one without stays off", [bar.props["Nav-Trailing-Block"], bar.props["Nav-Center-Block"]], [true, false]);
   const account = find(bar, (node) => node.set?.name === "Avatar/Single");
@@ -248,6 +248,24 @@ export default function Page() {
   const screen = frame.children[0];
   check("Screen chrome (desktop): Sidebar beside Main › Header (Padding/XLarge) and Content; the phone's parts wait", { parts: screen?.children.map((child) => child.set?.name ?? child.name), main: screen?.children[1]?.children.map((child) => child.name), header: screen?.children[1]?.children[0]?.layout.padding }, { parts: ["Side-Bar/Master/Basic", "Main"], main: ["Header", "Content"], header: [24, 24, 0, 24] });
   ok("Screen chrome: nothing noted as not pushed", !notes.some((note) => /^Screen /.test(note)));
+}
+{
+  // The round trip of an app page (P2): what the push draws, the pull reads back as an AppShell.
+  const { frame } = push(SHELL);
+  const back = pageFromFigma(frame, { mapping }).text;
+  const shell = shape(back).children[0].children[0];
+  const prop = (name) => shell.props[name]?.element;
+  check("AppShell round trip: an AppShell straight in the Screen, its Sidebar's rows with the selected one", { name: shell.name, sidebar: prop("sidebar")?.name, selected: prop("sidebar")?.props.selectedId }, { name: "AppShell", sidebar: "Sidebar", selected: "people" });
+  check("AppShell round trip: the toggle is AppShell's own (not a header layer), the header the Breadcrumbs", { toggle: shell.props.sidebarToggle ?? null, header: prop("header")?.name }, { toggle: null, header: "Breadcrumbs" });
+  check("AppShell round trip: the actions, the account (its Avatar named after the person) as AppShellAccount", prop("headerActions")?.children.map((child) => child.name), ["AppShellAction", "AppShellAccount"]);
+  check("AppShell round trip: the page's Container › Stack comes back as the AppShell's content", shell.children.map((child) => child.name), ["Stack"]);
+}
+{
+  // The Screen's app frame round trip: Sidebar and Page header come back as the Screen's props.
+  const chrome = SHELL.replace(/<AppShell[\s\S]*<\/AppShell>/, '<Stack gap="md"><Button>Invite</Button></Stack>').replace('device="desktop">', 'device="desktop" header={<PageHeader title="Team" description="12 people" />} sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>}>');
+  const back = shape(pageFromFigma(push(chrome).frame, { mapping }).text);
+  const screen = back.children[0];
+  check("Screen chrome round trip: the Screen's sidebar and its Page header (title, description), the page as before", { sidebar: screen.props.sidebar?.element.name, header: screen.props.header?.element.name, title: screen.props.header?.element.props.title, description: screen.props.header?.element.props.description, page: screen.children.map((child) => child.name) }, { sidebar: "Sidebar", header: "PageHeader", title: "Team", description: "12 people", page: ["Stack"] });
 }
 {
   const empty = SHELL.replace(/<AppShell[\s\S]*<\/AppShell>/, "<Menu items={[]} />");

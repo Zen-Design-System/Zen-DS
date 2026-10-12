@@ -114,8 +114,10 @@ const WRAPPER_LAYOUT = {
 };
 /** PageHeader props as the Dashboard header Type=Main draws them (DashboardHeader's props). */
 const PAGE_HEADER_PROPS = { title: "title", childTitle: "childTitle", description: "subheading", actions: "actions", trailing: "trailing" };
-/** AppShell's rows (app-shell.css): the top bar and each section pad Padding/Small above and below, Margin-Comfortable on the sides. */
+/** AppShell's section rows (app-shell.css): Padding/Small above and below, Margin-Comfortable on the sides. */
 const SHELL_ROW_PADDING = [12, 24, 12, 24];
+/** AppShell's top bar, as Figma's Navigation row: Margin-Comfortable above and on the sides, Padding/XSmall below. */
+const TOP_BAR_PADDING = [24, 24, 8, 24];
 /** Container's content width by maxWidth (layout.css .zen-container[data-width]). */
 const CONTAINER_MAX = { sm: 640, md: 960, lg: 1280, xl: 1440 };
 /** AiChatBlock: Figma's Say-Hi text layer (its greeting) and the block's widest (ai-chat.css .zen-ai-block max-width). */
@@ -397,7 +399,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const sections = filling(layersOf(element, "sections"), columnWidth === null ? null : columnWidth - SHELL_ROW_PADDING[1] - SHELL_ROW_PADDING[3]);
     const floating = layerOf(element, "floatingAction") ? convert(layerOf(element, "floatingAction"), stretch) : null;
     const column = shellFrame("Column", "VERTICAL", [
-      topBar && shellFrame("Header", "VERTICAL", [{ ...topBar, fillW: true }], { layout: { mode: "VERTICAL", gap: 0, padding: SHELL_ROW_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
+      topBar && shellFrame("Header", "VERTICAL", [{ ...topBar, fillW: true }], { layout: { mode: "VERTICAL", gap: 0, padding: TOP_BAR_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
       // Each section row pads Padding/Small above and below: Gap/Large between rows.
       sections.length && shellFrame("Sections", "VERTICAL", sections, { layout: { mode: "VERTICAL", gap: 24, gapVar: "Spacing/Gap/Large", padding: SHELL_ROW_PADDING, counter: "MIN", primary: "MIN" }, fillW: true }),
       shellFrame("Main", "VERTICAL", filling(element.children.filter((child) => child.kind === "element")), { fillW: true }),

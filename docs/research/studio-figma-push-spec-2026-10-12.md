@@ -232,7 +232,7 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
   component. Heading → TEXT theo text style của level. Menu → trigger. AppShellAccount → Avatar/Single (ảnh hoặc chữ
   tắt như Avatar). PageHeader → Dashboard Header Type=Main (title, Child, SubHeading, Action-Slots, Trailing-Slots;
   breadcrumbs / eyebrow / meta / tabs là layer quanh nó). AppShell → frame `AppShell`: Sidebar (fill cao) + `Column`
-  [`Header` (Padding/Small · Margin-Comfortable) › Dashboard Header Type=Navigation: Leading = nút thu gọn + `header`,
+  [`Header` (padding như hàng Navigation của Figma) › Dashboard Header Type=Navigation: Leading = nút thu gọn + `header`,
   Center = `headerCenter`, Trailing = `headerActions`; `Sections` (Gap/Large); `Main`; footer; floating action ghim góc
   dưới phải] + aside; banner phía trên. Screen chrome (`screen-chrome.mjs`): desktop Sidebar + `Main` [`Header`
   (Padding/XLarge), `Content`], mobile Top / Bottom navigation quanh `Content`. Mọi layer của Screen (không chỉ layer
@@ -246,3 +246,41 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
   dựng frame không lỗi (plugin không cần sửa). Trang Dashboard thật: 1 → 125 layer; Admin list: 1 → 158.
 - Còn lại cho P3: ChartCard / LineChart / StackBarChart vẫn bị bỏ (chưa có set trong contract), MetricCard `trend` /
   `action`, ListItem `leading`, ListBox `header` chưa có slot Figma.
+
+### P2 (2026-10-12, nhánh `zen/feat/appshell-figma`, xếp trên nhánh P1)
+
+- **Code:** thanh trên cùng của AppShell giờ là `DashboardHeader type="navigation"` (Figma Primitives/Dashboard/Header
+  Type=Navigation 4122:33400): nút thu gọn + `header` ở Leading-Slots, `headerCenter` ở Center-Slots, `headerActions`
+  ở Trailing-Slots; `<header>` của AppShell chỉ còn là vỏ sticky (padding, nền Canvas). API không đổi. Khi không có
+  Center-Slots, phần leading lấy chỗ còn lại như trước (Figma vẽ hai nửa FILL; nội dung vừa nửa thì trông như nhau), nên
+  Breadcrumbs dài vẫn trên một hàng; cách xếp chồng (stacked) và đo đạc giữ nguyên, khoảng cách hàng đọc từ bar.
+  Slot của Studio (`slots/registry.ts`) theo DOM mới.
+- **So ảnh** (`visual-diff`, 7 trang dùng AppShell, 1512 + 390): 93/94 khung giống hệt; khung còn lại là sửa lỗi —
+  ở 390 ô Search giữa thanh (headerCenter) trước đây chạy dưới nút chuông, giờ dừng trước nó (Trailing-Slots không co
+  dưới nội dung).
+- **Pull:** `figma-pull.mjs appShellElement` đọc một frame ngang [Sidebar (instance, hoặc composition bọc nó), cột có
+  hàng đầu là Dashboard Header Type=Navigation, SidePanel?] thành `AppShell`: Leading-Slots (bỏ nút thu gọn AppShell
+  tự vẽ; không có nút → `sidebarToggle={false}`) → `header`, Center-Slots → `headerCenter`, Trailing-Slots →
+  `headerActions` (Avatar có tên người ở cuối → `AppShellAccount`), các hàng khác của Header/Dashboard hoặc frame
+  `Sections` → `sections`, frame trang (Body giữ padding trong một Stack; `Main` của push thì lấy thẳng layer) →
+  children, layer ngoài auto layout → `floatingAction`, layer sau trang → `footer`. Trang Overviews thật của Figma giờ
+  kéo về thành AppShell (Sidebar, Breadcrumbs, Segmented, hàng custom, IconButton nổi). `screenChrome`: frame `Screen`
+  của push → `sidebar` / `header` của Screen (Dashboard Header Main → PageHeader). Hàng Main không có Header-Text đọc
+  `text` / `texts` (JSON của push).
+- **Sửa lỗi gặp khi làm:** AppShell trên một Screen của Studio cao bằng cửa sổ trình duyệt (100dvh của app cuộn trang)
+  nên Sidebar ngắn hơn trang (E2E NO-19 bắt được khi Overviews kéo về thành AppShell; trang Dashboard của user cũng
+  vậy): `builder.css` cho AppShell phủ Screen, Sidebar và aside kéo hết chiều cao trang. HO-10 vào baseline E2E.
+- **Kiểm tra:** selftest pull 47, push 57 (thêm vòng tròn AppShell và Screen chrome), Studio self-tests xanh, Vitest
+  smoke + AppShell 177.
+- **Chiều cao thanh trên cùng (user chốt 2026-10-12: "Theo figma"):** 72px như hàng Navigation của Master-Layout —
+  Margin-Comfortable trên và hai bên, Spacing/Padding/XSmall dưới (đảo lại lần đổi 64px ngày 2026-10-09; padding
+  `sm` của template giữ nguyên: PageHeader nằm 8 + 12 = 20px dưới hàng nút, như hàng Main của Header/Dashboard). Push
+  vẽ frame `Header` cùng padding đó.
+
+### Clip content (2026-10-12, user: "nên thêm bật tắt clipping trong studio … giống figma")
+
+- Figma cắt bóng vì plugin không đặt clipsContent (createFrame mặc định cắt). Plugin (phiên "Lỗi UI"): frame theo
+  `spec.clip`, frame gốc vẫn cắt; push ghi `clip` cho mọi frame có `clip`.
+- Stack và Grid có `clip` như Box; Studio hiện Clip content (dưới Padding) cho Stack, Grid, Box; pull đọc clipsContent
+  thành `clip` (trừ frame trang). E2E L-12.
+

@@ -125,6 +125,60 @@
 - Left for P3: charts (no sets captured), MetricCard trend/action, ListItem leading, ListBox header.
 - Not done: the user's try in Figma with the new export (Download again from Studio › Export › Figma).
 
+## P2: AppShell rebuilt on Figma's parts; app frames pulled back as AppShell (tier L)
+
+- Worktree `Zen-DS-appshell`, branch `zen/feat/appshell-figma` on top of the P1 branch (PR #26), so the shared main
+  checkout and :5173 stay as they are. Own dev server :5187 (`.claude/launch.json` zen-appshell-worktree-5187).
+- AppShell's top bar renders `DashboardHeader type="navigation"` (leading = toggle + header, center, trailing); the
+  `<header>` stays the sticky padded shell. Without a centre the leading content keeps taking the rest (as before);
+  stacking and its measure unchanged (row gap read from the bar). Studio slot selectors moved to the bar's slots;
+  palette selftest reads DashboardHeader's files for AppShell; Center-Slots gap "own".
+- visual-diff before/after (app-shell, sidebar, breadcrumbs, dashboard-header, alert-banner, visually-hidden,
+  page-header; 1512 + 390): 93/94 identical. The changed one is a fix: at 390 the centred Search ran under the bell.
+- figma-pull: `appShellElement` (Master-Layout and the push's frames → AppShell), `screenChrome` (the push's Screen
+  frame → Screen sidebar/header), Type=Main title from `text`/`texts` when no Header-Text slot; the root Stack around
+  a lone AppShell is dropped. The live Overviews fixture now pulls as an AppShell (3 checks rewritten, 1 dropped).
+- Checks: pull 47, push 57 (round trips), Studio self-tests, Vitest smoke + AppShell 177, tsc, guidelines rebuilt.
+- Gate run 1 failed on E2E NO-19 ("the Sidebar is 540 px tall in a 686 px row"): the pulled Overviews is now an
+  AppShell, and an AppShell on a Studio Screen was as tall as the browser window (sticky 100dvh), shorter than the page
+  (the user's Dashboard page too). Fixed in `builder.css` (AppShell fills the Screen; Sidebar / aside height auto).
+  NO-18/19/20 + HO-10 rerun: works; HO-10 added to the E2E baseline (P1 had left it out).
+- User answers: open the P2 PR ("OK"); top bar "Theo figma": 72px (Margin-Comfortable above and at the sides,
+  Padding/XSmall below, as the Master-Layout's Navigation row; the 2026-10-09 change to 12/12 reverted, the templates'
+  paddingY sm kept: PageHeader 8 + 12 below the bar, as Figma's Main row). Push draws the Header frame the same.
+
+## Clip content on every frame, as in Figma (tier S/M)
+
+- User: Figma still clips (cuts shadows) where the Studio does not; "nên thêm bật tắt clipping trong studio … giống
+  figma". Cause: the Zen plugin never set clipsContent, and createFrame clips by default.
+- Session "Lỗi UI" (holding the push and plugin files): studio-import.js sets clipsContent = spec.clip === true on
+  every frame build (the page frame keeps clipping); figma-push frameNode writes clip for any frame with `clip`.
+- Here (branch zen/feat/studio-clip-content, on top of P2): Stack and Grid take `clip` like Box (data-clip,
+  effects.css `:is(.zen-box, .zen-stack, .zen-grid)[data-clip="true"] { overflow: clip }`); the Studio's Clip content
+  checkbox shows for Stack, Grid and Box (propSchema isLayoutProp, LayoutSection); figma-pull reads clipsContent
+  (figmaReadCode, not on the page frame) into `clip`. Docs rebuilt.
+- Checks: effects selftest 64, pull selftest 49, Studio self-tests, E2E L-10 + new L-12 (baseline), tsc.
+
+## Export / import test: nested variants in slots; the design copy's Table cells (tier S/M)
+
+- Re-imported the Dashboard into the live file (my frame 15276:1842 on "Studio exports — QA", the stashed importer of
+  session "Lỗi UI"; their frames untouched): 129 layers, no notes. Measured the fit grids: 592 / 544 vs the Studio's
+  568 / 568 → proposal (width passed down, n = ⌊(W+gap)/(min+gap)⌋, a GRID of equal columns), done by "Lỗi UI",
+  re-measured 568 / 568 on their 15279:3.
+- User: "nhiều lỗi variant nested trong slot dùng sai". Read-only audit (slot children vs the master's slot content,
+  330 checked): differences legit except AppShellAccount's Avatar (Solid; code draws background="subtle"). Admin list /
+  HR Home vs the Studio sheets: avatars as Figma's placeholder, badges as words, no checkbox / menu columns, sort arrows,
+  AI field's model picker, HR Home's hero missing. Push-side items sent to "Lỗi UI" (push held by other sessions).
+- Root of the table ones: snapshot.ts cellsAsText kept a cell's Avatar only with a photo and joined the rest into text.
+  Rewritten (readCell): TableMedia → avatar / photo / icon / dock-icon column (+ caption, bold, `<id>Photo|Icon`,
+  `Row[id]/<col>/Avatar|Dock-Icon` looks), TableBadges / TableTags → badge / tag (+ `…/Badge` theme, background, dot),
+  TableActions → actions (icon + name without the row), TableText → text + caption. E2E SP-12 (Admin list → design
+  copy: avatar column, badges with colour and dot, actions, "AM" on the canvas); SP-01, NO-17 still pass.
+- After "Lỗi UI" re-exported Admin list (15301:3, matches the sheet): the page's own initials (BH, where Table's
+  initialsOf gives BN) as the Avatar override's `children`; VisuallyHidden text left out of a cell's words.
+- Also committed "Lỗi UI"'s finished export work (user OK): plugin 2d222ab (index only, "Kết nối file Figma
+  Pokeslide"'s Table last-row hunks left uncommitted at their request) and PR #26's branch (their hunks stripped).
+
 ## Studio → Figma: the Dashboard tried in the live Zen file, then fixed (session "Lỗi UI", tier M)
 
 - User: the imported Dashboard was broken (metrics stacked with "Metric Title / $1,680.68", table cells overlapping,

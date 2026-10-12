@@ -93,18 +93,17 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("live: Breadcrumbs' Item-List is its items, ids its own (not the Sidebar's)", page.includes('<Breadcrumbs items={[{ id: "overviews", label: "Overviews" }]} />'));
   ok("live: icon-only Segments: an empty label, the icon as leading, an aria-label from it; Select = Yes the defaultValue",
     page.includes('<Segmented options={[{ id: "sun", label: "", leading: "icon-sun-solid", "aria-label": "Sun" }, { id: "moon", label: "", leading: "icon-moon-01-solid", "aria-label": "Moon" }]} defaultValue="sun" />'));
-  ok("live: Dashboard/Header Type=Navigation is a DashboardHeader: Leading-Slots its leading, Trailing-Slots its trailing, the row's padding a Stack around it",
-    /<Stack paddingX="xl" paddingY="xl">\s*<DashboardHeader type="navigation" leading=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} \/><\/Stack>\} trailing=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
+  ok("live: the app frame's Dashboard/Header Type=Navigation is AppShell's top bar: Leading-Slots its header (no toggle in Figma: sidebarToggle off), Trailing-Slots its headerActions",
+    /<AppShell sidebar=\{<Sidebar [\s\S]*?\/>\} sidebarToggle=\{false\} header=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} \/><\/Stack>\} headerActions=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
   ok("live: a Type=Main row whose Header-Text holds a cover of its own is a custom row that keeps it", /<DashboardHeader type="custom">[\s\S]*?ZEN DESIGN SYSTEM[\s\S]*?<\/DashboardHeader>/.test(page) && notesWith("its Header-Text holds layers of its own (_Cover)") === 1);
   ok("live: span-2 cards on 8 columns, 2 to a row: a Grid of 2 columns", page.includes("<Grid columns={2} width=\"fill\">"));
   check("live: the cards in Figma's placement order (row by row), not the layers panel's",
     [...page.matchAll(/<Text textStyle="Heading\/4">(?:\{")?([^<"]+)/g)].map((match) => match[1]), ["Foundation", "Components", "Patterns", "Resources & Tools", "Development"]);
-  ok("live: a row whose layers all fill its height stretches them (a row Stack centres by default), the main column fills the rest",
-    /<Screen[^>]*>\s*<Stack direction="row" gap="none" align="stretch">\s*<Stack direction="row" align="stretch">\s*<Sidebar /.test(page) && /<\/Stack>\s*<Stack gap="none" width="fill">/.test(page));
-  ok("live: a floating icon button without a layer name is named by its icon", page.includes('<IconButton level="accent" icon="icon-zen" aria-label="Zen" />') && notesWith('aria-label "Zen" comes from its icon') === 1);
+  ok("live: an app frame (the Sidebar pattern beside Main-Container under Header/Dashboard) is an AppShell straight in the Screen, Header/Dashboard's other row its sections, Body's layers its page with Body's padding",
+    /<Screen[^>]*>\s*<AppShell sidebar=\{<Sidebar /.test(page) && /sections=\{<DashboardHeader type="custom">/.test(page) && /\}>\s*<Stack gap="xs" padding="xl">/.test(page));
+  ok("live: Floating-Actions (outside the auto layout) is AppShell's floatingAction; the icon button without a layer name is named by its icon", page.includes('floatingAction={<IconButton level="accent" icon="icon-zen" aria-label="Zen" />}') && notesWith('aria-label "Zen" comes from its icon') === 1);
   ok("live: Figma's soft line break is a space; a centred text is align=\"center\"", page.includes('<Text align="center">ZEN DESIGN SYSTEM</Text>'));
   ok("live: text alignment: the tagline centred, a right-aligned text at the end", page.includes('<Text textStyle="Display/3" align="center">') && page.includes('<Text textStyle="All-Caps/M-BOLD" align="end" width="fill">2026</Text>'));
-  ok("live: Ignore auto layout: a frame takes position absolute with its constraints (Floating-Actions, bottom right, flush)", /<Stack direction="row" gap="lg" padding="xl" align="start" position="absolute" constraintX="right" constraintY="bottom">/.test(page));
   ok("live: an absolute text is wrapped in a Stack that takes its constraints and insets (32 px = 2xl)", /<Stack position="absolute" constraintX="right" constraintY="top" insetRight="2xl" insetTop="2xl">\s*<Text textStyle="All-Caps\/M-BOLD" align="end">kaiz<\/Text>/.test(page));
   check("live: the drawings, the grid and the off-step gap are noted; Dashboard/Header is no longer unmapped",
     [notesWith("3 drawings"), notesWith("(Primitives/Dashboard/Header) has no Zen component"), notesWith('Grid "Frame 2"'), notesWith("gap 337 px")], [1, 0, 1, 1]);
@@ -138,6 +137,14 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("table: the compiled page has no usage-harness errors", checkSource(compileReact(page, { file: "table.zen.tsx" }).code, "TableExample.tsx").filter((finding) => finding.severity === "error").map((finding) => finding.rule), []);
 }
 
+// Clip content (2026-10-12, "giống figma"): a frame that clips is a Stack with clip; the page frame's own clipping (the
+// screen's) is not read (figmaReadCode leaves it off the root).
+{
+  const frame = { type: "FRAME", name: "Clip", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] }, children: [{ type: "FRAME", name: "Strip", clip: true, layout: { mode: "HORIZONTAL", gap: 8, padding: [0, 0, 0, 0] }, children: [{ type: "TEXT", name: "A", characters: "A" }, { type: "TEXT", name: "B", characters: "B" }] }] };
+  const page = pageFromFigma(frame, { mapping }).text;
+  ok("Clip content: a clipping frame is a Stack with clip, the page's Stack has none", /<Stack direction="row" gap="xs" align="start" clip>/.test(page) && /<Screen[^>]*>\s*<Stack>/.test(page));
+  ok("Clip content: figmaReadCode reads clipsContent, never on the page frame", /if \(!root && node\.clipsContent === true\) out\.clip = true;/.test(figmaReadCode("1:2")));
+}
 {
   // figma-push draws `selectable` as a first checkbox column, the sorted column's direction in its Sort glyph and an
   // avatar cell's Avatar (theme from the row's override): they come back as the Table's props, not as columns.
