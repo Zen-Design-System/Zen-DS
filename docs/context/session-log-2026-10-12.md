@@ -104,3 +104,47 @@
   order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
+
+## Chart family with motion, code + Figma (session "Chart components với animation", worktree `../Zen-DS-charts`, branch `zen/feat/charts`)
+
+The user asked for the library's chart components with animation for Zen Studio, built back into the official Figma
+file, in the mood of their moodboard with Zen tokens and components, every chart in one style. Tier L. Spec card:
+`docs/research/chart-family-spec-2026-10-12.md` (tokens per element, geometry, motion, keys, the Figma plan).
+
+- Code (`src/components/Chart/`): `chartCore.tsx` holds the shared language (palette, `niceScale`, `ChartLegend`,
+  `ChartBlock`, `PlotFrame`, `useChartSelection`, summaries). New `BarChart.tsx` (vertical / horizontal, `projected`,
+  `target`), `DonutChart.tsx`, `RadialChart.tsx`, `HeatmapChart.tsx`; `LineChart` gains `series` (dashed, gradient or
+  hatch fill via a CSS mask so stripes stay square), `curve`, legend; `ChartCard` gains `icon`, `description`, `value`
+  (the header became a column: title bar · description · value, so the Studio slot's parts selector is unchanged).
+- `niceScale` now picks the smallest top a 1·2·2.5·5 step reaches in ≤ 5 steps (2,800 → 3,000, was 5,000), so marks
+  use the plot; existing charts keep 125K for the revenue months.
+- Motion: clip-path rise/grow for bars (Slow, Emphasized, stagger Xfast/2), a wipe for lines (Slow × 2.5), stroke-dash
+  sweep for slices and rings, scale-pop for heatmap cells (× Motion/Movement); the marks layer is keyed by the data so
+  a new range draws in again; reduced motion swaps every keyframe for a fade. The QA freeze shows the end state.
+- Axe: BarChart and HeatmapChart baselined for `color-contrast`, the same cause as LineChart/StackBarChart (axis labels
+  Content/Neutral/Light at 3.73:1 on Canvas, Figma's choice; the labels are aria-hidden and the summary reads them).
+- Studio: palette items column-chart, horizontal-bar-chart, multi-line-chart, donut-chart, radial-chart,
+  heatmap-chart (group Charts); ChartCard content prefers the charts; keywords, part props and compile API regenerated.
+- Harness: `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale` (+ fixtures). Tests:
+  `tests/interaction/chart-family.test.tsx` (keys, summaries, radius, reduced-motion fade, 320px fit).
+- Platform: 7 new examples on the chart page (Studio analytics screen + one card per chart), 2 Do/Don't pairs.
+- Figma (a sub-agent, then my own read-only audit): five new sets and two primitives on ❖ Chart, five covers, header
+  properties on the existing Line/Stack-Bar (instances unchanged); IDs and deviations in the spec §5.1 and
+  `docs/platform-json-audit.md`. Audit: no unbound colour, gap, padding or radius and no unstyled text in the new sets; no
+  fill override inside instances except the chevron's carried Button-Tertiary colour (same as a fresh Button/Icon-Main).
+  Found and fixed: the existing cards' chevron was bound to Neutral/Strongest by an old swap override (Line-Chart
+  re-swapped from the default; Stack-Bar's button re-created, 15332:81887). Stack-Bar's four `Sectors` gaps of 10 are
+  unbound in the original design (not touched).
+- Code follows Figma on one point: the heatmap Tooltip names its cell ("Tue 1 pm · 55 h").
+- Follow-ups (BACKLOG): Studio Export › Figma mapping for the new charts (waits on "Lỗi UI"'s figma-push work), Figma
+  contracts for the family.
+- The user then asked for an average line with a boolean, like their screenshot ("Avg 6.8%" tag on a dotted rule):
+  `showAverage` on LineChart (the first series), BarChart (closed bars; projected left out; down the plot on
+  horizontal bars, its tag in a 32px top lane) and StackBarChart (column totals). `AverageLine` in chartCore: 2px
+  Border/Neutral/Solid dots every 6px, each ringed in Surface/Default so the rule reads across dark bars; tag in the
+  Tooltip colours with a 6px clip-path tip; fades in after the draw-in. Labels `chartAverage` ("Avg …" / "TB …") and
+  `chartAverageLong` for the summary. Tests in chart-family.test.tsx (11). Figma `Show Average` + `Average` text
+  property on Line, Multi-Line, Bar (both), Stack-Bar via the same sub-agent.
+- Figma follow-ups, fixed in the same change: my Stack-Bar button re-creation dropped the hidden chevron of the two
+  "Billable hours by team" instances (the sub-agent's check caught it) → `Show Open = false` on 15279:1512 and
+  15276:3107; Line-Chart's wrong Y labels ("$20K", "5K" → "$5K", "$0").

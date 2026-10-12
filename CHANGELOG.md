@@ -32,6 +32,16 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- **Chart family in one style, with motion** (the user, 2026-10-12; spec `docs/research/chart-family-spec-2026-10-12.md`):
+  new `BarChart` (vertical or `orientation="horizontal"`, `projected` bars hatched, a `target` track), `DonutChart`
+  (% pills, the total in the centre), `RadialChart` (ring gauges over dotted tracks) and `HeatmapChart` (row × column on
+  five Support/Brand steps, 2D keys). `LineChart` takes `series` (a `dashed` comparison, a `gradient` or `hatch` fill,
+  a legend); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
+  and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
+  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean with an
+  "Avg" tag (Figma Show Average). Stacked columns now take Corner-Radius/Small on every corner, like the bars. Zen
+  Studio's Charts palette gains Bar, Horizontal bar, Line (two series), Donut, Radial and Heatmap. Harness:
+  `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
 - Zen Studio → Figma (core rebuild Q4): Export › **Figma** downloads a page as `<page>.figma.json`; in the Zen Figma
   plugin, Import › **Import from Studio** places it on the page "Studio exports" as a frame of library instances
   (variants, nested overrides, slot content, auto layout bound to the Spacing variables, text styles), and importing it

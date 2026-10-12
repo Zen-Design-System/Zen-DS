@@ -8,6 +8,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Chart family in Studio Export › Figma (2026-10-12, waits on another session):** map `BarChart`, `DonutChart`,
+  `RadialChart`, `HeatmapChart` and series `LineChart` in `tools/studio/figma-push.mjs` (SETS / CHART_SETS) to Figma
+  Chart/Bar-Chart 15321:84071, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart
+  15326:1043, Chart/Multi-Line-Chart 15323:80980 (header properties: spec `docs/research/chart-family-spec-2026-10-12.md`
+  §5.1). The chart mapping itself (CHART_SETS, chartCardNode) is still uncommitted work of session "Lỗi UI" in the main
+  checkout; add these once it lands, then run the real importer in the Zen file (memory: test in real Figma).
+- **P3 · Chart family Figma contracts (2026-10-12):** capture `docs/figma-contracts/chart-*.json` for the five new sets
+  (`tools/figma-contract/mcp-capture`) and add parity suites, so a later Figma edit is caught like the other components.
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /

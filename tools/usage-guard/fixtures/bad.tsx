@@ -234,6 +234,14 @@ export const Bad = () => <>
   <AiChatBubble side="ai" streaming actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copy }]}>Working</AiChatBubble>
   {/* expect: chart/stack-needs-legend */}
   <StackBarChart aria-label="Budget" data={data} series={series} showLegend={false} />
+  {/* expect: chart/needs-name */}
+  <BarChart data={data} />
+  {/* expect: chart/shares-need-legend */}
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} showLegend={false} />
+  {/* expect: chart/shares-need-legend */}
+  <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} series={series} showLegend={false} />
+  {/* expect: chart/heatmap-needs-scale */}
+  <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} showLegend={false} />
   {/* expect: table/media-size-by-subtext */}
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   {/* expect: uploader/no-noop-replace */}

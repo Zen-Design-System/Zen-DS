@@ -119,6 +119,11 @@ Last updated: 2026-10-12.
   Header-Text cover → type custom; Action-Item → AppShellAction). Manifest: `docs/platform-json-audit.md` › DashboardHeader.
   Chip's counters follow Figma's layer names (`Badge`, `Badge-Counter`; the user's choice B, branch
   `zen/fix/chip-figma-names`); Date field waits on the Figma rename.
+- **Chart family (2026-10-12, branch `zen/feat/charts`, worktree `Zen-CodeBase/Zen-DS-charts`):** the user's moodboard
+  in Zen tokens, one style for every chart, with motion. New BarChart (vertical/horizontal, projected, target),
+  DonutChart, RadialChart, HeatmapChart; LineChart `series`; ChartCard `icon`/`description`/`value`; shared
+  `chartCore.tsx`; Studio palette items; harness `chart/*`. Spec `docs/research/chart-family-spec-2026-10-12.md`; the
+  Figma side (❖ Chart page) is built from it in the official file at the user's request.
 - **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
   `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
   `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview

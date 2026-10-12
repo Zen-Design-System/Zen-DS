@@ -1,19 +1,28 @@
-/* Figma ❖ Chart (7032:8969). */
-.zen-chart { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Figma ❖ Chart (7032:8969). One language for the whole family: docs/research/chart-family-spec-2026-10-12.md. */
+.zen-chart { --zen-chart-reveal: calc(var(--zen-motion-duration-slow, 280ms) * 2.5); --zen-chart-stagger: calc(var(--zen-motion-duration-xfast, 80ms) * 0.5); display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* A chart and its legend: legend below (default) or above, gap 16. */
+.zen-chart-block { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-chart-block[data-legend="top"] > .zen-chart__legend { order: -1; }
+
 /* Y labels sit on their gridlines: same 36px top / 28px bottom insets as the plot, centred on each line. */
 .zen-chart__y { position: relative; min-width: 28px; height: var(--zen-chart-height, 280px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
 .zen-chart__y > span { position: absolute; right: 0; line-height: var(--zen-typography-line-height-label-small, 12px); white-space: nowrap; transform: translateY(50%); }
 /* zen-allow-raw-spacing: the plot's lanes, not spacing — 36px above the grid for the Tooltip and 28px below it for the
    X labels (Figma Line-Chart 6643:63324); the grid, bars, sector rules and Y labels share them. */
 .zen-chart__plot { position: relative; height: var(--zen-chart-height, 280px); box-sizing: border-box; padding: 36px 0 28px; border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
-.zen-chart__plot:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+.zen-chart__plot:focus-visible, .zen-chart__hplot:focus-visible, .zen-chart__heat:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
 /* Top 36px holds the active Tooltip so it never covers the header / range switch. */
 .zen-chart__grid, .zen-chart__visual, .zen-chart__bars { position: absolute; inset: 36px 0 28px; }
 /* zen-allow-dashed-color: Figma chart gridlines (Line-2…6) are dashed Border/Neutral/Pale — a data guide, not a container edge. */
 .zen-chart__grid > span { position: absolute; right: 0; left: 0; height: 0; border-top: 1px dashed var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .zen-chart__grid > span[data-base="true"] { border-top-style: solid; }
+.zen-chart__marks { position: absolute; inset: 0; }
 .zen-chart__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .zen-chart__line { fill: none; stroke: var(--zen-color-border-accent-solid-default, #ff66d4); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+.zen-chart__line[data-dashed="true"] { stroke-dasharray: 6 6; }
+/* A hatched area: the series colour in 45° stripes, cut to the area by a mask (Chart.tsx areaMask). */
+.zen-chart__hatch { position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, var(--zen-chart-colour, var(--zen-color-border-accent-solid-default)) 0 1px, transparent 1px 6px); opacity: .32; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
 .zen-chart__dot { position: absolute; width: 10px; height: 10px; box-sizing: border-box; border: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); pointer-events: none; transform: translate(-50%, -50%); }
 
 /* Sectors: one column per X value; a 1px rule (Active/Accent/Subtle, Solid when active) and the X label (a pill when active). */
@@ -25,25 +34,155 @@
 .zen-chart__sector[data-active]::before { opacity: 1; }
 .zen-chart__sector[data-active="accent"]::before { border-left-color: var(--zen-color-border-active-accent-solid, #ff66d4); }
 .zen-chart__sector[data-active="neutral"]::before { border-left-color: var(--zen-color-border-active-neutral-subtle, rgb(1 1 1 / 14%)); }
-/* X label Wrapper (4388:8501): Corner-Radius/Rounded pill. */
-.zen-chart__x { display: inline-flex; height: 20px; align-items: center; margin-bottom: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-rounded, 1000px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }
-.zen-chart__sector[data-active] .zen-chart__x { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-chart__tooltip { position: absolute; top: 2px; left: 50%; z-index: 1; pointer-events: none; transform: translateX(-50%); }
+/* X label Wrapper (4388:8501): Corner-Radius/Rounded pill; the horizontal bar's category labels are the same pill. */
+.zen-chart__x, .zen-chart__hlabel { display: inline-flex; height: 20px; align-items: center; padding: 0 var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-rounded, 1000px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }
+/* The X label floats centred under its sector (a pill may be wider than a narrow sector). */
+.zen-chart__x { position: absolute; bottom: var(--zen-spacing-gap-2-xsmall, 4px); left: 50%; transform: translateX(-50%); }
+/* Nine or more periods in a plot under 400px: every other label, the active pill always, its two neighbours never. */
+.zen-chart__plot { container: zen-chart-plot / inline-size; }
+@container zen-chart-plot (max-width: 400px) {
+  .zen-chart[data-dense="true"] .zen-chart__sector:nth-child(even):not([data-active]) .zen-chart__x,
+  .zen-chart[data-dense="true"] .zen-chart__sector[data-active] + .zen-chart__sector .zen-chart__x,
+  .zen-chart[data-dense="true"] .zen-chart__sector:has(+ .zen-chart__sector[data-active]) .zen-chart__x { visibility: hidden; }
+}
+.zen-chart__sector[data-active] .zen-chart__x, .zen-chart__hlabel[data-active] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
+/* The Tooltip hangs from its sector by the sector's place along the plot (chartCore anchorStyle), so it stays inside. */
+.zen-chart__tooltip { position: absolute; top: 2px; left: 50%; z-index: 1; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
+/* Several series in one Tooltip: "● $320  ● $210"; the dot keeps an Inverse ring so a dark series still reads on the dark Tooltip. */
+.zen-chart__tip-values { display: inline-flex; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.zen-chart__tip-value { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-chart__tip-dot { width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); box-shadow: 0 0 0 1px var(--zen-color-border-inverse, #fff); }
 
-/* Stack bars: 2px side padding per column, 4px top radius, segments bottom-up. */
+/* Bars: one column per X value (2px side padding), a bar ≤ 40px wide with Corner-Radius/Small on every corner; a target
+   track and the bar share the column's one cell. Stack: segments bottom-up in a column cut to the same radius. */
 .zen-chart__bars { display: grid; grid-template-columns: repeat(var(--zen-chart-count, 4), minmax(0, 1fr)); align-items: end; }
-.zen-chart__column { display: flex; height: 100%; align-items: flex-end; justify-content: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
-.zen-chart__stack { display: flex; width: min(100%, 40px); flex-direction: column-reverse; overflow: hidden; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
+.zen-chart__visual > .zen-chart__bars { inset: 0; }
+.zen-chart__column { display: grid; height: 100%; align-items: end; justify-items: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
+.zen-chart__column > * { grid-area: 1 / 1; width: min(100%, 40px); }
+.zen-chart__stack, .zen-chart__bar, .zen-chart__target { display: block; border-radius: var(--zen-corner-radius-small, 8px); }
+.zen-chart__stack { display: flex; flex-direction: column-reverse; overflow: hidden; }
 .zen-chart__segment { display: block; min-height: 2px; flex-basis: 0; }
 .zen-chart__column:not([data-active="true"]) .zen-chart__stack { opacity: .88; }
-.zen-chart__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: var(--zen-spacing-gap-medium, 16px) 0 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart__bar { min-height: 2px; background: var(--zen-chart-bar, var(--zen-chart-sector-primary, #111)); }
+.zen-chart__column[data-active="true"] .zen-chart__bar, .zen-chart__htrack[data-active="true"] .zen-chart__bar { background: var(--zen-chart-bar-active, var(--zen-chart-sector-secondary, #ff66d4)); }
+/* Projected bars and target tracks: 45° stripes of Border/Neutral/Subtle (the active projected bar takes its colour). */
+.zen-chart__bar[data-projected="true"], .zen-chart__target { --zen-chart-hatch: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 14%)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 6px); box-shadow: inset 0 0 0 1px var(--zen-chart-hatch); }
+.zen-chart__column[data-active="true"] .zen-chart__bar[data-projected="true"], .zen-chart__htrack[data-active="true"] .zen-chart__bar[data-projected="true"] { --zen-chart-hatch: var(--zen-chart-bar-active, var(--zen-chart-sector-secondary, #ff66d4)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 6px); }
+
+/* Horizontal bars: category pills · 24px bars on a dashed vertical grid · the value axis below (Label/Small/Medium). The
+   end padding keeps the last axis label inside the chart. */
+.zen-chart--horizontal { display: block; }
+.zen-chart__hplot { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: repeat(var(--zen-chart-count, 4), 24px) auto; gap: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-gap-xsmall, 8px); padding-inline-end: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__hgrid { position: relative; grid-column: 2; grid-row: 1 / -2; }
+/* zen-allow-dashed-color: the vertical gridlines of horizontal bars, the same dashed Border/Neutral/Pale data guide as the plot grid. */
+.zen-chart__hgrid > span { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.zen-chart__hgrid > span[data-base="true"] { border-left-style: solid; }
+.zen-chart__hrows { display: contents; }
+.zen-chart__hlabel { grid-column: 1; align-self: center; justify-self: end; cursor: pointer; }
+.zen-chart__htrack { position: relative; grid-column: 2; display: grid; align-items: center; cursor: pointer; }
+.zen-chart__htrack > .zen-chart__bar, .zen-chart__htrack > .zen-chart__target { grid-area: 1 / 1; height: 24px; }
+.zen-chart__htip { position: absolute; top: 50%; z-index: 1; pointer-events: none; transform: translate(var(--zen-spacing-gap-xsmall, 8px), -50%); }
+.zen-chart__htip[data-flip="true"] { transform: translate(calc(-100% - var(--zen-spacing-gap-xsmall, 8px)), -50%); }
+.zen-chart__haxis { position: relative; grid-column: 2; grid-row: -2 / -1; height: 12px; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chart__haxis > span { position: absolute; top: 0; white-space: nowrap; transform: translateX(-50%); }
+
+/* Average line (showAverage): 2px Border/Neutral/Solid dots every 6px at the mean and an "Avg" tag in the Tooltip's
+   colours whose tip points along the rule; on horizontal bars the rule runs down and the tag sits in a top lane. */
+/* Each dot keeps a Surface/Default ring, so the rule still reads where it crosses a dark bar. */
+.zen-chart__average { position: absolute; z-index: 1; pointer-events: none; background-image: radial-gradient(circle, var(--zen-color-border-neutral-solid-default, #111) 1px, var(--zen-color-background-surface-default, #fff) 1.25px 2px, transparent 2.25px); background-position: center; }
+.zen-chart__average[data-direction="across"] { right: 0; left: 0; height: 4px; background-size: 6px 4px; background-repeat: repeat-x; transform: translateY(50%); }
+.zen-chart__average[data-direction="down"] { top: 0; bottom: 0; width: 4px; background-size: 4px 6px; background-repeat: repeat-y; transform: translateX(-50%); }
+.zen-chart__average-tag { position: absolute; display: inline-flex; height: 20px; box-sizing: border-box; align-items: center; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-neutral-solid-default, #111); color: var(--zen-color-content-inverse-strongest, #fff); white-space: nowrap; }
+/* zen-allow-raw-spacing: the tag's 6px tip, drawn by its clip-path, needs the same 6px of room. */
+.zen-chart__average[data-direction="across"] .zen-chart__average-tag { top: 50%; left: 0; padding: 0 calc(var(--zen-spacing-padding-xsmall, 8px) + 6px) 0 var(--zen-spacing-padding-xsmall, 8px); clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 0 100%); transform: translateY(-50%); }
+/* zen-allow-raw-spacing: the tag's 6px tip, drawn by its clip-path, needs the same 6px of room. */
+.zen-chart__average[data-direction="down"] .zen-chart__average-tag { bottom: calc(100% + 2px); left: 50%; height: 26px; padding: 0 var(--zen-spacing-padding-xsmall, 8px) 6px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), 50% 100%, 0 calc(100% - 6px)); transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
+.zen-chart__hplot[data-average="true"] { padding-top: 32px; }
+.zen-chart:not([data-animate="false"]) .zen-chart__average { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; animation-delay: var(--zen-chart-reveal); }
+
+/* Round charts (Donut, Radial): the ring box hugs its size and never outgrows its parent; a centre figure (Heading/4) and
+   caption sit in the hole. Beside a legend (start / end) on wide boxes, above it once they no longer fit. */
+.zen-chart--round { display: flex; justify-content: center; }
+.zen-chart-round[data-legend="start"], .zen-chart-round[data-legend="end"] { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-large, 24px); }
+/* Start: the legend leads on one line; once they wrap, wrap-reverse puts the ring on top and the legend under it. */
+.zen-chart-round[data-legend="start"] { flex-wrap: wrap-reverse; }
+.zen-chart-round[data-legend="start"] > .zen-chart__legend { order: -1; }
+.zen-chart-round[data-legend="start"] > .zen-chart__legend, .zen-chart-round[data-legend="end"] > .zen-chart__legend { flex: 1 1 100px; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chart__round { position: relative; width: min(100%, var(--zen-chart-size, 200px)); aspect-ratio: 1; border-radius: var(--zen-corner-radius-rounded, 1000px); outline: 0; }
+.zen-chart__round:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+.zen-chart__ring-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.zen-chart__slice, .zen-chart__arc { fill: none; cursor: pointer; }
+.zen-chart__arc { stroke-linecap: round; }
+.zen-chart__round[data-picked="true"] .zen-chart__slice:not([data-active]), .zen-chart__round[data-picked="true"] .zen-chart__arc:not([data-active]), .zen-chart__pill[data-dim="true"] { opacity: .32; }
+/* The dotted ring under each gauge: Border/Neutral/Subtle dots (round caps on 0-length dashes).
+   zen-allow-subtle-static-box: an SVG stroke drawn as dots (a dashed line takes Neutral/Subtle), not a container edge. */
+.zen-chart__track { fill: none; stroke: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 14%)); stroke-linecap: round; }
+.zen-chart__pill { position: absolute; z-index: 1; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); color: var(--zen-color-content-neutral-strongest, #111); pointer-events: none; transform: translate(-50%, -50%); white-space: nowrap; }
+.zen-chart__centre { position: absolute; inset: 24%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.zen-chart__centre-value { max-width: 100%; color: var(--zen-color-content-neutral-strongest, #111); overflow-wrap: anywhere; }
+.zen-chart__centre-label { max-width: 100%; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+
+/* Heatmap: row labels · one 24px cell per column (Spacing/Gap/2XSmall apart, Corner-Radius/Small) on the 5-step
+   Support/Brand ramp; the active cell takes a 2px Border/Neutral/Solid ring and its row and column labels light up. */
+.zen-chart--heatmap { display: block; }
+.zen-chart__heat { position: relative; display: grid; grid-template-columns: auto repeat(var(--zen-chart-columns, 7), minmax(0, 1fr)); align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__cells { display: contents; }
+.zen-chart__heat-label { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }
+.zen-chart__heat-label[data-axis="column"] { justify-self: center; }
+.zen-chart__heat-label[data-axis="row"] { justify-self: end; padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-chart__heat-label[data-active="true"] { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart__cell { position: relative; height: 24px; border-radius: var(--zen-corner-radius-small, 8px); cursor: pointer; }
+.zen-chart__cell[data-active="true"] { z-index: 1; box-shadow: 0 0 0 2px var(--zen-color-border-neutral-solid-default, #111); }
+.zen-chart__cell-tip { position: absolute; bottom: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 50%; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
+.zen-chart__cell[data-level="0"], .zen-chart__scale-step[data-level="0"] { background: var(--zen-color-background-support-brand-pale, rgb(255 2 152 / 4%)); }
+.zen-chart__cell[data-level="1"], .zen-chart__scale-step[data-level="1"] { background: var(--zen-color-background-support-brand-subtle, rgb(255 2 152 / 9%)); }
+.zen-chart__cell[data-level="2"], .zen-chart__scale-step[data-level="2"] { background: var(--zen-color-background-support-brand-soft, #ffb0e4); }
+.zen-chart__cell[data-level="3"], .zen-chart__scale-step[data-level="3"] { background: var(--zen-color-background-support-brand-solid, #ff66d4); }
+.zen-chart__cell[data-level="4"], .zen-chart__scale-step[data-level="4"] { background: var(--zen-color-background-support-brand-deep, #5c0f45); }
+/* Less → More under the grid, at its end: Caption/Regular, 12px steps (Element-Size/Popular/2XSmall). */
+.zen-chart__scale { display: flex; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chart__scale-step { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); border-radius: var(--zen-corner-radius-xsmall, 4px); }
+
+.zen-chart__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
 /* Legend item (6643:73387): a 12px dot, Spacing/Gap/2XSmall before its label. */
 .zen-chart__legend li { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); border-radius: var(--zen-corner-radius-rounded, 1000px); }
+.zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); }
 
-/* Chart card: header · Segmented · chart, gap 16. */
+/* Chart card: header (title bar · description · value) · Segmented · chart, gap 16. */
 .zen-chart-card__body { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
-.zen-chart-card__header { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-chart-card__header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-chart-card__titlebar { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chart-card__icon { display: inline-flex; flex: none; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart-card__title { min-width: 0; flex: 1; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
-@media (prefers-reduced-motion: no-preference) { .zen-chart__x, .zen-chart__sector::before { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
-.zen-chart__visual > .zen-chart__bars { inset: 0; }
+.zen-chart-card__description { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+.zen-chart-card__value { margin: var(--zen-spacing-gap-2-xsmall, 4px) 0 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
+
+/* Colour and opacity follow the pointer and the keys in Fast (nothing moves). */
+.zen-chart__x, .zen-chart__hlabel, .zen-chart__sector::before, .zen-chart__bar, .zen-chart__stack, .zen-chart__slice, .zen-chart__arc, .zen-chart__pill, .zen-chart__heat-label, .zen-chart__cell {
+  transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
+}
+
+/* Draw-in (spec §3): bars rise from the baseline (clip, Slow, Emphasized, staggered); lines wipe in from the left; slices
+   and rings sweep their stroke; heatmap cells fade and scale up by Motion/Movement. Each chart re-mounts its marks when
+   its data changes, so a new range draws itself in again. */
+@keyframes zen-chart-rise { from { clip-path: inset(100% 0 0 0 round var(--zen-corner-radius-small, 8px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px)); } }
+@keyframes zen-chart-grow { from { clip-path: inset(0 100% 0 0 round var(--zen-corner-radius-small, 8px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px)); } }
+@keyframes zen-chart-wipe { from { clip-path: inset(-8px 100% -8px -8px); } to { clip-path: inset(-8px -8px -8px -8px); } }
+@keyframes zen-chart-sweep { from { stroke-dasharray: 0 100; } }
+@keyframes zen-chart-pop { from { opacity: 0; transform: scale(calc(1 - .4 * var(--zen-motion-movement, 1))); } }
+@keyframes zen-chart-fade { from { opacity: 0; } }
+.zen-chart:not([data-animate="false"]) .zen-chart__column > .zen-chart__bar, .zen-chart:not([data-animate="false"]) .zen-chart__stack { animation: zen-chart-rise var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
+.zen-chart:not([data-animate="false"]) .zen-chart__htrack > .zen-chart__bar { animation: zen-chart-grow var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
+.zen-chart:not([data-animate="false"]) .zen-chart__target { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; }
+.zen-chart:not([data-animate="false"]) .zen-chart__marks { animation: zen-chart-wipe var(--zen-chart-reveal) var(--zen-motion-ease-standard, ease) both; }
+.zen-chart:not([data-animate="false"]) .zen-chart__slice { animation: zen-chart-sweep var(--zen-chart-reveal) var(--zen-motion-ease-emphasized, ease) both; }
+.zen-chart:not([data-animate="false"]) .zen-chart__arc { animation: zen-chart-sweep var(--zen-chart-reveal) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-motion-duration-xfast, 80ms) * var(--zen-chart-i, 0)); }
+.zen-chart:not([data-animate="false"]) .zen-chart__pill, .zen-chart:not([data-animate="false"]) .zen-chart__track { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; }
+.zen-chart:not([data-animate="false"]) .zen-chart__pill { animation-delay: var(--zen-chart-reveal); }
+.zen-chart:not([data-animate="false"]) .zen-chart__cell { animation: zen-chart-pop var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; animation-delay: calc(var(--zen-motion-duration-xfast, 80ms) * 0.25 * var(--zen-chart-i, 0)); }
+.zen-chart:not([data-animate="false"]) .zen-chart__tooltip, .zen-chart:not([data-animate="false"]) .zen-chart__htip, .zen-chart:not([data-animate="false"]) .zen-chart__cell-tip { animation: zen-chart-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
+/* Reduced motion: every draw-in becomes a fade (same timing); nothing wipes, sweeps or scales. */
+@media (prefers-reduced-motion: reduce) {
+  .zen-chart:not([data-animate="false"]) .zen-chart__column > .zen-chart__bar, .zen-chart:not([data-animate="false"]) .zen-chart__stack, .zen-chart:not([data-animate="false"]) .zen-chart__htrack > .zen-chart__bar,
+  .zen-chart:not([data-animate="false"]) .zen-chart__marks, .zen-chart:not([data-animate="false"]) .zen-chart__slice, .zen-chart:not([data-animate="false"]) .zen-chart__arc, .zen-chart:not([data-animate="false"]) .zen-chart__cell { animation-name: zen-chart-fade; }
+}

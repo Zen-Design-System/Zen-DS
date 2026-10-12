@@ -2,7 +2,7 @@
    hours and a project's budget through ChartCard, LineChart and StackBarChart; the phone example is Alex's own hours in
    the studio app. Charts and KPI tiles may abbreviate ("$105.7K"); the report behind a chart never does. */
 import { useEffect, useId, useRef, useState } from "react";
-import { ChartCard, LineChart, StackBarChart, type ChartPoint, type ChartStack } from "../../../components/Chart";
+import { BarChart, ChartCard, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart, type ChartDatum, type ChartPoint, type ChartSlice, type ChartStack } from "../../../components/Chart";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { InlineMessage } from "../../../components/InlineMessage";
@@ -281,6 +281,125 @@ function PhoneHoursExample() {
   );
 }
 
+/* ───────────── Studio analytics (the chart family on one canvas) ───────────── */
+
+/** Invoiced per month in 2026: Jan – Sep from the shared months, Oct – Dec the finance team's forecast (hatched). */
+const forecast = [["Oct", 108000], ["Nov", 112500], ["Dec", 104000]] as const;
+const revenue2026: ChartPoint[] = [
+  ...studioMonths.slice(-9).map((m) => ({ label: m.label, value: m.invoiced })),
+  ...forecast.map(([label, value]) => ({ label, value, projected: true })),
+];
+const invoicedSoFar = studioMonths.slice(-9).reduce((total, m) => total + m.invoiced, 0);
+
+function RevenueBarsCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="Revenue" headingLevel={headingLevel} icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value={formatMoney(invoicedSoFar)}>
+      <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue2026} format={formatCompactMoney} height={240} showAverage />
+    </ChartCard>
+  );
+}
+
+/** Invoiced and collected, Apr – Sep 2026: the measured series is hatched, the comparison dashed. */
+const cashSeries = [{ id: "invoiced", label: "Invoiced", fill: "hatch" as const }, { id: "collected", label: "Collected", dashed: true }];
+const cashMonths: ChartDatum[] = studioMonths.slice(-6).map((m) => ({ label: m.label, values: { invoiced: m.invoiced, collected: m.collected } }));
+
+function CashFlowCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="Invoiced and collected" headingLevel={headingLevel} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+      <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={cashMonths} series={cashSeries} legendPosition="top" format={formatCompactMoney} height={240} />
+    </ChartCard>
+  );
+}
+
+/** Billable hours per team in September against the hours each team can bill (its capacity). */
+const capacity: ChartPoint[] = [
+  { label: "Design", value: 2650, target: 2800 },
+  { label: "Engineering", value: 1990, target: 2240 },
+  { label: "Delivery", value: 750, target: 960 },
+  { label: "Client Services", value: 510, target: 640 },
+];
+
+function CapacityCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="Hours against capacity" headingLevel={headingLevel} icon="icon-clock-line" description="Billable hours in September" value={hours(capacity.reduce((total, team) => total + team.value, 0))}>
+      <BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026" data={capacity} format={hours} showAverage />
+    </ChartCard>
+  );
+}
+
+/** Q3 2026 revenue by client; the five shares add up to the quarter ($296,800). */
+const clientShares: ChartSlice[] = [
+  { id: "lumen", label: "Lumen Bank", value: 89000 },
+  { id: "phin", label: "Phin & Co", value: 68300 },
+  { id: "mekong", label: "Mekong Freight", value: 53400 },
+  { id: "bookfair", label: "Hanoi Book Fair", value: 50500 },
+  { id: "other", label: "Other clients", value: 35600 },
+];
+/** Jan – Sep 2026 by the same clients; adds up to the year's invoiced revenue on the Revenue card ($798,300). */
+const clientSharesYtd: ChartSlice[] = [239400, 183700, 143600, 135800, 95800].map((value, i) => ({ ...clientShares[i], value }));
+const quarters = [{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }];
+
+function ClientShareCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  const [quarter, setQuarter] = useState("q3");
+  return (
+    <ChartCard title="Revenue by client" headingLevel={headingLevel} icon="icon-pie-chart-01-line" ranges={quarters} range={quarter} onRangeChange={setQuarter}>
+      <DonutChart key={quarter} aria-label={`Revenue by client, ${quarter === "q3" ? "Q3 2026" : "Jan – Sep 2026"}`} data={quarter === "q3" ? clientShares : clientSharesYtd}
+        format={formatCompactMoney} size={168} legendPosition="start" />
+    </ChartCard>
+  );
+}
+
+/** Budget used on the client projects under way (spent ÷ budget). */
+const budgetRings: ChartSlice[] = ["lumen-banking", "phin-loyalty", "mekong-tracking"].map((id) => {
+  const project = projectById(id);
+  return { id, label: project.name, value: Math.round((project.spent / project.budget) * 100) };
+});
+
+function BudgetRingsCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="Budget used" headingLevel={headingLevel} icon="icon-target-04-line" description="Client projects, spent of budget">
+      <RadialChart aria-label="Budget used on client projects, September 30, 2026" data={budgetRings} legendPosition="end" />
+    </ChartCard>
+  );
+}
+
+/** Hours logged per hour of the day in September, by weekday (the studio's timesheets). */
+const loggedHours = ["9 am", "10 am", "11 am", "12 pm", "1 pm", "2 pm", "3 pm", "4 pm", "5 pm", "6 pm"];
+const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const loggedByHour = [
+  [38, 41, 40, 39, 35, 4, 0], [62, 66, 64, 63, 55, 6, 2], [71, 74, 72, 70, 61, 7, 2], [34, 36, 35, 33, 30, 5, 1], [52, 55, 53, 51, 44, 6, 1],
+  [68, 72, 70, 69, 52, 5, 2], [70, 75, 73, 71, 48, 4, 1], [61, 64, 63, 60, 39, 3, 0], [42, 44, 43, 41, 22, 2, 0], [12, 14, 13, 12, 5, 0, 0],
+];
+
+function ActivityCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="When the studio logs time" headingLevel={headingLevel} icon="icon-activity-line" description="Hours logged per hour, September">
+      <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026" rows={loggedHours} columns={weekdays} values={loggedByHour} format={hours} />
+    </ChartCard>
+  );
+}
+
+function StudioAnalyticsExample() {
+  return (
+    <Box className="px-chart-canvas">
+      <Container maxWidth="lg">
+        <Stack paddingY="xl" gap="xl">
+          <PageHeader title="Analytics" description={`How ${studio.name} earns, bills and spends its time.`} />
+          {/* Three cards a row on a desktop, one per row once 300px no longer fits; every card is flat on the canvas. */}
+          <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
+            <RevenueBarsCard headingLevel={2} />
+            <CashFlowCard headingLevel={2} />
+            <ClientShareCard headingLevel={2} />
+            <ActivityCard headingLevel={2} />
+            <CapacityCard headingLevel={2} />
+            <BudgetRingsCard headingLevel={2} />
+          </Grid>
+        </Stack>
+      </Container>
+    </Box>
+  );
+}
+
 /* ───────────── Examples ───────────── */
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
@@ -310,6 +429,23 @@ const [reportOpen, setReportOpen] = useState(false);
 </SidePanel>`,
   },
   {
+    title: "Studio analytics",
+    screen: true,
+    description: "The whole chart family on one canvas, every card flat with its title as an h2 under the page title: bars with a hatched forecast, two series with a dashed comparison, a donut, a heatmap, bars against capacity and ring gauges. Each chart draws itself in as it mounts.",
+    render: () => <StudioAnalyticsExample />,
+    code: `<PageHeader title="Analytics" description="How Đìzai Studio earns, bills and spends its time." />
+<Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
+  <ChartCard title="Revenue" headingLevel={2} icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+    <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240} showAverage />
+  </ChartCard>
+  <ChartCard title="Invoiced and collected" headingLevel={2} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+    <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={months} series={cashSeries} legendPosition="top" height={240} />
+  </ChartCard>
+  {/* Revenue by client (DonutChart), When the studio logs time (HeatmapChart),
+      Hours against capacity (BarChart orientation="horizontal"), Budget used (RadialChart) */}
+</Grid>`,
+  },
+  {
     title: "Hours by team",
     description: "A Stack Bar shows how each month's billable hours split across the four teams. The legend names every colour, the Tooltip gives the month's total, and the range switch fills the card.",
     render: () => <HoursByTeamExample />,
@@ -323,6 +459,72 @@ const [range, setRange] = useState("3m");
   <StackBarChart key={range} aria-label="Billable hours per month by team, Jul – Sep 2026"
     data={range === "3m" ? months.slice(-3) : months} // { label: "Sep", values: { design: 2650, … } }
     series={teams} format={hours} />
+</ChartCard>`,
+  },
+  {
+    title: "Revenue with a forecast",
+    description: "Bars compare months; the months not closed yet are projected and hatched, so the forecast never reads as earned. The card leads with the year's figure, the active bar (the last closed month) takes the Secondary colour with its Tooltip, and showAverage draws the closed months' mean as a dotted line with its Avg tag.",
+    render: () => <RevenueBarsCard />,
+    code: `const revenue = [
+  { label: "Jan", value: 74300 }, /* … */ { label: "Sep", value: 105700 },
+  { label: "Oct", value: 108000, projected: true }, { label: "Nov", value: 112500, projected: true }, { label: "Dec", value: 104000, projected: true },
+];
+
+<ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+  <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240}
+    showAverage />
+</ChartCard>`,
+  },
+  {
+    title: "Two series and a comparison",
+    description: "Invoiced and collected share one plot: the measured series keeps a hatched area, the comparison is dashed, and the legend above names both. The Tooltip reads both values for the active month.",
+    render: () => <CashFlowCard />,
+    code: `const series = [{ id: "invoiced", label: "Invoiced", fill: "hatch" }, { id: "collected", label: "Collected", dashed: true }];
+const months = [{ label: "Apr", values: { invoiced: 82300, collected: 79500 } }, /* … */];
+
+<ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+  <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={months} series={series}
+    legendPosition="top" format={formatCompactMoney} height={240} />
+</ChartCard>`,
+  },
+  {
+    title: "Shares of a total",
+    description: "A donut splits one quarter's revenue across clients: a % pill on every slice of 6% or more, the total in the hole, the legend beside the ring. Hover or ←/→ pick a client and the centre shows its amount.",
+    render: () => <ClientShareCard />,
+    code: `const [quarter, setQuarter] = useState("q3");
+
+<ChartCard title="Revenue by client" icon="icon-pie-chart-01-line"
+  ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={quarter} onRangeChange={setQuarter}>
+  <DonutChart key={quarter} aria-label="Revenue by client, Q3 2026" format={formatCompactMoney} size={168} legendPosition="start"
+    data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
+</ChartCard>`,
+  },
+  {
+    title: "Against a target",
+    description: "Horizontal bars suit long category names. Each team's capacity is a hatched track behind its bar, the Tooltip reads \"1,990 h of 2,240 h\", and the average runs down the plot under its tag. ↑/↓ move between teams.",
+    render: () => <CapacityCard />,
+    code: `<ChartCard title="Hours against capacity" icon="icon-clock-line" description="Billable hours in September" value="5,900 h">
+  <BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026" format={hours} showAverage
+    data={[{ label: "Design", value: 2650, target: 2800 }, { label: "Engineering", value: 1990, target: 2240 }, /* … */]} />
+</ChartCard>`,
+  },
+  {
+    title: "Ring gauges",
+    description: "Up to four measures against the same maximum, as concentric rings over dotted tracks: here the share of budget each client project has spent. The centre shows the outer ring, or the ring you pick.",
+    render: () => <BudgetRingsCard />,
+    code: `<ChartCard title="Budget used" icon="icon-target-04-line" description="Client projects, spent of budget">
+  <RadialChart aria-label="Budget used on client projects, September 30, 2026" legendPosition="end"
+    data={[{ id: "lumen-banking", label: "Online banking redesign", value: 36 }, /* … */]} />
+</ChartCard>`,
+  },
+  {
+    title: "Activity by hour",
+    description: "A heatmap reads a value per weekday and hour on five Brand steps, from Pale to Deep, with the Less → More scale under it. The arrow keys move through the cells; the row and column labels of the active cell light up.",
+    render: () => <ActivityCard />,
+    code: `<ChartCard title="When the studio logs time" icon="icon-activity-line" description="Hours logged per hour, September">
+  <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026" format={hours}
+    rows={["9 am", "10 am", /* … */ "6 pm"]} columns={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
+    values={[[38, 41, 40, 39, 35, 4, 0], /* one row per hour */]} />
 </ChartCard>`,
   },
   {
