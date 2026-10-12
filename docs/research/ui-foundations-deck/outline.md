@@ -1,6 +1,6 @@
-# UI Foundations — curriculum outline (approved 2026-10-12)
+# UI Foundations — curriculum outline (approved 2026-10-12, + DesignOps and AI workflow)
 
-The content source for the deck in Figma and for the HTML slides later. 4 parts, 15 lessons, 100 pages; page 1 is the
+The content source for the deck in Figma and for the HTML slides later. 5 parts, 17 lessons, 116 pages; page 1 is the
 cover, page 2 the contents. Headlines are the English slide titles; "Ý chính · Minh hoạ" is the key point and the
 illustration (Zen DS components and tokens). Written in Vietnamese, as agreed with the user.
 
@@ -179,17 +179,48 @@ Trang 62 là trang mở Phần 3.
 | 93 | Learn from the best | Material 3, Fluent 2, Carbon, Polaris, Atlassian, Zen DS |
 | 94 | Exercise: Assemble your mini system | |
 
-## Phần 4 · Project (tr. 95–100)
-Trang 95 là trang mở Phần 4.
+## Phần 4 · Workflow (tr. 95–110)
+Trang 95 là trang mở Phần 4. Hai bài này đặt sau Systems vì hai lý do. Phải có nền tảng mới đánh giá được đầu ra của AI, và phải có design system thì AI mới có cái để đọc.
 
-**Lesson 15 · Project & showcase**
+**Lesson 15 · DesignOps** (bài mới, tr. 96–103). Mục tiêu: hiểu DesignOps là gì; tổ chức file, handoff, nghi thức review; phát hành thay đổi và đo tác động. Dự án: playbook của nhóm.
 
 | Tr. | Headline | Ý chính · Minh hoạ |
 |---|---|---|
-| 96 | Your product, your system | Mở bài |
-| 97 | The road so far | Mỗi bài tập là một mảnh của dự án · timeline |
-| 98 | What to hand in | Foundations, ≥10 component có state, 5–8 màn, prototype, case study · checklist |
-| 99 | How you’ll be graded | 4 tiêu chí, mỗi tiêu chí 25% |
-| 100 | Showcase day | Trình bày 10 phút + trang kết |
+| 96 | The work around the work | Mở bài · bàn làm việc: file, lịch, checklist |
+| 97 | What is DesignOps? | Điều phối con người, quy trình và tay nghề để giá trị thiết kế lớn lên cùng đội (NN/g, 2019; Merholz & Skinner, *Org Design for Design Orgs*, 2016). 3 vùng: làm cùng nhau, làm xong việc, tạo tác động · sơ đồ 3 vùng |
+| 98 | One file structure for everyone | Trang bìa, trang theo trạng thái (WIP, Ready for dev, Archive), quy ước đặt tên frame và layer · cây file Figma mẫu |
+| 99 | Handoff without the pain | Dev Mode, trạng thái Ready for dev, annotation, Code Connect, token · màn hình có chú thích đo |
+| 100 | Rituals: critique, review, design QA | Critique trong nhóm, review với PO và dev, QA trên bản build trước khi phát hành · lịch một tuần |
+| 101 | Ship changes safely | Branch → review → merge → changelog → thông báo; semver cho thư viện · dòng thời gian phát hành (Badge phiên bản) |
+| 102 | Measure what design changes | HEART của Google (Rodden và cộng sự, 2010), mức dùng design system, design debt · dashboard (Progress, Badge) |
+| 103 | Exercise: Write your team playbook | File mẫu + checklist handoff + changelog đầu tiên |
 
-So với giáo án cũ, sườn này thêm 3 bài: **Visual principles**, **Platform guidelines**, **Figma for systems**. Phần token (Lesson 13) là nơi duy nhất định nghĩa tầng token; Lesson 14 chỉ dẫn lại.
+**Lesson 16 · AI workflow for UI design** (bài mới, tr. 104–110). Mục tiêu: biết AI giúp ở bước nào, viết prompt như một brief, dùng AI để làm prototype, nối AI với design system, kiểm tra đầu ra. Dự án: một luồng làm cùng AI, có nhật ký prompt.
+
+| Tr. | Headline | Ý chính · Minh hoạ |
+|---|---|---|
+| 104 | AI is a teammate, not the designer | Mở bài |
+| 105 | Where AI fits in the process | Tổng hợp research, ý tưởng, nội dung, prototype, code, QA · double diamond (Lesson 03) đánh dấu các điểm dùng AI |
+| 106 | Prompt like a design brief | Vai trò, bối cảnh, ràng buộc, ví dụ, định dạng đầu ra · giải phẫu một prompt |
+| 107 | From prompt to prototype | Figma Make, First Draft, công cụ prompt-to-app: dùng để khám phá, không phải bản cuối · 3 phương án sinh ra, 1 được chọn |
+| 108 | Give AI your design system | MCP (chuẩn mở, Anthropic công bố năm 2024), Figma MCP server, Code Connect. Zen DS có MCP server, `AGENTS.md` và guideline máy đọc được · sơ đồ AI ↔ MCP ↔ Figma và code |
+| 109 | Check everything AI makes | Thông tin bịa, a11y và contrast, “AI look” na ná nhau, bản quyền hình ảnh, không dán dữ liệu cá nhân của người dùng · checklist (Checkbox) + harness Zen |
+| 110 | Exercise: One flow with AI | Nhật ký prompt, bản trước/sau, phần đã sửa và lý do |
+
+## Phần 5 · Project (tr. 111–116)
+Trang 111 là trang mở Phần 5.
+
+**Lesson 17 · Project & showcase**
+
+| Tr. | Headline | Ý chính · Minh hoạ |
+|---|---|---|
+| 112 | Your product, your system | Mở bài |
+| 113 | The road so far | Mỗi bài tập là một mảnh của dự án · timeline |
+| 114 | What to hand in | Foundations, ≥10 component có state, 5–8 màn, prototype, case study, playbook (Lesson 15) và nhật ký AI (Lesson 16) · checklist |
+| 115 | How you’ll be graded | 4 tiêu chí, mỗi tiêu chí 25% |
+| 116 | Showcase day | Trình bày 10 phút + trang kết |
+
+So với giáo án cũ, sườn này thêm 5 bài: **Visual principles**, **Platform guidelines**, **Figma for systems**, **DesignOps**, **AI workflow for UI design**.
+
+- Phần token (Lesson 13) là nơi duy nhất định nghĩa tầng token; Lesson 14 chỉ dẫn lại.
+- Changelog xuất hiện ở hai bài nhưng không trùng nhau: Lesson 14 nói về nội dung tài liệu, Lesson 15 nói về quy trình phát hành.

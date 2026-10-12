@@ -5,7 +5,7 @@ user (Đìzai Studio, writes Vietnamese) asked to hand the work over: "bàn giao
 
 ## The task
 
-Rebuild the whole UI Foundations curriculum ("giáo án") as slides, from the user's material + Zen DS. 100 pages, the
+Rebuild the whole UI Foundations curriculum ("giáo án") as slides, from the user's material + Zen DS. 116 pages, the
 approved outline is [`outline.md`](outline.md). The user's latest words: "bắt đầu làm lại slide giáo án theo concept
 này" and "tăng letter spacing lên 1 tí cho title" (done in the mock: `-0.005em` → `0.02em`; carry it into Figma).
 Nothing of the new concept is built in Figma yet.
@@ -86,5 +86,5 @@ textField `e98b29a6380d63ec5dbc74df9f6c4fb3d12b22f8` · toggle `9685499bb16e5add
    note, photo card + clip, stamp, keynote) in `_Template`.
 2. Rebuild cover, contents, the Part 1 divider and Lesson 01 (pages 3–9) in the new concept; screenshot; get the
    user's review before going on.
-3. Lessons 02–15 by the outline, one section per lesson.
+3. Lessons 02–17 by the outline, one section per lesson (DesignOps and AI workflow added 2026-10-12).
 4. Session log in `docs/context/session-log-<date>.md`.
