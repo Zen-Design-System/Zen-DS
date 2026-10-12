@@ -35,21 +35,41 @@ Nothing of the new concept is built in Figma yet.
 - Fz Bohemian Typewriter is **not in git**: the repo is public and the font says "Free for non-commercial use only"
   (FontZin's Vietnamese version). The user said the HTML will not be published. Ask the user to upload
   `Fz-Bohemian-Typewriter.zip` again in your session, extract it in an empty scratch directory, keep it out of git.
-- The Figma MCP cannot load SG85 or Bohemian (`listAvailableFontsAsync` = Google Fonts + Figma defaults). Plan: local
-  text styles named by role (title, script, body, header, caption, stamp, keynote) set to stand-ins of similar width,
-  so the user swaps the family once per style in Figma desktop with the fonts installed. Stand-ins available in Figma:
-  typewriter — Special Elite, Courier Prime, Cutive Mono; title — League Gothic, Bebas Neue, Anton, Staatliches,
-  Fjalla One; script — Homemade Apple, Yesteryear, Dancing Script, Caveat. Widths not compared yet.
+- The Figma MCP cannot load SG85 or Bohemian. It runs on Figma's servers (Google Fonts + team shared fonts), the
+  team plan is Pro (no shared fonts), and an SVG text with the real family falls back to Inter. Verified 2026-10-12.
+- Decision (user, "cách 1"): build in Figma with stand-ins behind role text styles `Typed/*`; the user swaps the three
+  families in Figma desktop (fonts installed) once a batch is final. After the swap the MCP can no longer edit those
+  texts, so swap per finished batch, or swap back to the stand-in before asking for MCP edits.
+  - Paytone One Regular → SG85-CHI SON 2 (user asked for a rounded stand-in; wider than Chi Son, so the swap only
+    narrows text). Styles: Title Display 180, Title 112, Title S 48, Title XS 30, Stamp 34; line-height 80–100 %,
+    letter-spacing 2 %, uppercase, leading trim to cap height.
+  - Kalam Bold → SG85-Saigon 1985 (Script 54, Script S 34; closest width, 889 vs 860 at 100 px).
+  - Courier Prime Regular → Fz Bohemian Typewriter (Deck 28, Body 26, Header, Rule, Caption 20, Label, Footer 18,
+    Small 16, Keynote Head 22, Keynote 20). ~9 % wider than Bohemian. No bold anywhere: Bohemian has one style.
+  - Each style's description names the real font. Widths at 100 px, "UI IS THE TIP,": Chi Son 483, Paytone 623.
 
 ## Figma state (file `WxivIlv1HgC9NEMwtw9MOS`, UI-Foundations)
 
 - Page `10. Design System (Merged)` (710:61): done earlier (34 slides), plus typo fixes on pages 1–10.
-- Page `UI Foundations · Giáo án 2026` (727:2) holds the **superseded** newspaper concept: section `_Template`
-  (727:108: components `Báo/Masthead` 727:109, `Báo/Footer` 727:119), `00 · Opening` (729:508: cover, contents),
-  `Lesson 01 · The UI craft` (729:821: 7 English slides with notes beside them; the copy is reusable), local text styles
-  `Báo/*` (Anton, UnifrakturMaguntia, Inter, Libre Caslon). Replace them with the new concept.
-- Placement used: one section per lesson (`y = row × 1500`), slides at `x = 80 + i × 2800`, `y = 140`; the keynote is
-  a GROUP (not a frame, so it never becomes a presentation frame) 720 wide to the right of its slide.
+- Page `UI Foundations · Giáo án 2026` (727:2), new concept, built 2026-10-12 (session "Figma requests auto-allow"):
+  - `_Template · Typed` (749:433): `Typed/Paper` 749:434 (paper fill, NOISE + inner-shadow vignette), `Typed/Rule`
+    749:439 (Style=Double 749:435 / Single 749:437), `Typed/Header` 749:440 (Left#749:0, Right#749:1), `Typed/Footer`
+    749:446 (Left#749:2, Page#749:3), `Typed/Note` 749:449 (Note#749:4), `Typed/Point` 749:451 (Number#749:5,
+    Text#749:6), `Typed/Stamp` 749:454 (Title#749:7, Sub#749:8; rotate the instance 9°), `Typed/Clip` 749:459,
+    `Typed/TOC row` 749:460 (Number#749:9, Title#749:10, Page#749:11). Effect style `Typed/Photo shadow`.
+  - Variables: collection `UIF Deck` (747:433, mode Paper): Paper/Base, Ink/Default, Ink/Soft, Photo/Surface,
+    Photo/Edge, Clip/Metal, Note/Surface, Note/Edge (code syntax `var(--uif-*)`).
+  - `00 · Opening` (751:435): 001 Cover 751:436, 002 Contents 751:597 (5 parts · 17 lessons · 116 pages).
+  - `Lesson 01 · The UI craft` (754:669): 003 Part 1 754:670, 004 754:708, 005 754:775, 006 757:731, 007 757:818,
+    008 757:923, 009 757:1010. Illustrations are the old Zen illustrations cloned into the pinned photo; their Anton /
+    Libre Caslon labels were moved to `Typed/*` styles.
+  - Slide anatomy (auto layout, ready for HTML): frame 1920×1080, padding 44/84/40/84 → Paper (absolute) · Header ·
+    Main (Text column 820, gap 28: Note, Title, Deck, Rule, Points; Figure: Photo 846×640 rotated −1.2° + Clip + Caption)
+    · Footer · Stamp (absolute). Keep points ≤ 45 characters and captions under a stamp ≤ 45 characters.
+  - Superseded newspaper concept kept for reference at y = 40000: `_Old · Newspaper template`, `_Old · 00 · Opening
+    (newspaper)`, `_Old · Lesson 01 (newspaper)`, styles `Báo/*`. Delete when the user agrees.
+- Placement: one section per lesson (`y = row × 1500`), slides at `x = 80 + i × 2800`, `y = 140`; the keynote is a
+  GROUP (card rectangle + texts, not a frame, so it never becomes a presentation frame) 720 wide, 60 right of its slide.
 
 ## Zen keys (ZEN Kaiz Official-Sep2026)
 
@@ -82,9 +102,8 @@ textField `e98b29a6380d63ec5dbc74df9f6c4fb3d12b22f8` · toggle `9685499bb16e5add
 
 ## Next steps
 
-1. Pick the stand-in fonts by width; create the role text styles and local components (header, footer, rules, margin
-   note, photo card + clip, stamp, keynote) in `_Template`.
-2. Rebuild cover, contents, the Part 1 divider and Lesson 01 (pages 3–9) in the new concept; screenshot; get the
-   user's review before going on.
-3. Lessons 02–17 by the outline, one section per lesson (DesignOps and AI workflow added 2026-10-12).
-4. Session log in `docs/context/session-log-<date>.md`.
+1. Get the user's review of pages 1–9 (stand-in fonts) and apply their changes.
+2. Lessons 02–17 by the outline, one section per lesson (DesignOps and AI workflow added 2026-10-12), Part dividers
+   at pages 10, 62, 95 and 111. Illustrations from Zen components and variables (keys below).
+3. When a batch is final: the user swaps the three families in the `Typed/*` styles in Figma desktop.
+4. Later: HTML slides from the Figma source with the real fonts (`sg85.css` + the Bohemian TTF kept out of git).

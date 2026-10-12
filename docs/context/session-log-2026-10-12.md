@@ -263,3 +263,16 @@
 - Corrections to the earlier Figma library findings: Pagination's light previous arrow is its Disabled state (Inline,
   Manually) — not a bug; Table/Cell/Header's Title (All-Caps/S, 16px line) sits in a 12px fixed Wrapper → 2px over
   top and bottom in all 8 variants (invisible, no clip); the Edit cell's 62px was the row's caption height, not the cell; its text colour follows the nested Input-Content state (Typing = Strongest for a cell with a value, user) — no library gap. Figma's Edit field is left-aligned while code right-aligns number editors (table/editor-number-right): the user keeps the code and the designer updates Figma.
+
+## UI Foundations deck — Figma rebuild in the typed-document concept (no library change)
+
+- Took over from the session "UI Foundations Figma review" (branch `claude/eloquent-ptolemy-lhe433`): SG85 fonts,
+  `docs/research/ui-foundations-deck/` (outline, now 5 parts · 17 lessons · 116 pages; approved concept; HANDOFF.md).
+- The Figma MCP cannot load SG85 Chi Son 2, SG85 Saigon 1985 or Fz Bohemian Typewriter (server-side fonts, Pro plan,
+  SVG text falls back to Inter). User chose to build in Figma with stand-ins behind `Typed/*` text styles and swap the
+  families on desktop: Paytone One (rounded, user's pick over Anton), Kalam Bold, Courier Prime.
+- Figma file `WxivIlv1HgC9NEMwtw9MOS`, page 727:2: `_Template · Typed` components, `UIF Deck` variables, sections
+  `00 · Opening` (pp. 1–2) and `Lesson 01 · The UI craft` (pp. 3–9) with Vietnamese keynote cards; the newspaper
+  version archived at y = 40000. Overflow/overlap audit clean. Node ids and anatomy in the deck HANDOFF.md.
+- Repo: `.claude/settings.json` allows `mcp__Figma` (asks for `generate_image`) and two read-only session lookups.
+  The Bohemian TTF stays out of git (non-commercial licence, public repo).
