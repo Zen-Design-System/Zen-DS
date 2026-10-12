@@ -18,7 +18,7 @@ export type ChartFill = "gradient" | "hatch" | "none";
 export interface ChartSeries {
   id: string;
   label: string;
-  /** CSS colour; defaults walk the Figma palette (Chart/Sector/Primary · Secondary · Cyan · Violet · Yellow …). */
+  /** CSS colour; defaults walk the Figma colour styles Color Chart Sector/Primary · Secondary · Tertiary … Septenary. */
   color?: string;
   /** LineChart: a dashed line, for a comparison (last year, a plan) next to the measured series. */
   dashed?: boolean;
@@ -34,15 +34,16 @@ export interface ChartSlice { id: string; label: string; value: number; color?: 
 /** Where a chart's legend sits. Top and bottom for every chart; start and end (beside the drawing) for Donut and Radial. */
 export type ChartLegendPosition = "top" | "bottom" | "start" | "end";
 
-/** Figma legend order: Chart/Sector/Primary, Chart/Sector/Secondary, then Support Solid colours. */
+/** The Figma colour styles "Color Chart Sector/Primary … Septenary", in order: Chart/Sector/Primary, Chart/Sector/Secondary,
+ *  Support Cyan, Violet, Yellow and Orange Solid, Support Red Soft. Figma paints chart marks with those styles. */
 export const chartPalette = [
   "var(--zen-chart-sector-primary, #111)",
   "var(--zen-chart-sector-secondary, #ff66d4)",
   "var(--zen-color-background-support-cyan-solid, #21b8d8)",
   "var(--zen-color-background-support-violet-solid, #7a5af8)",
   "var(--zen-color-background-support-yellow-solid, #f5b800)",
-  "var(--zen-color-background-support-green-solid, #2ea44f)",
   "var(--zen-color-background-support-orange-solid, #f5832a)",
+  "var(--zen-color-background-support-red-soft, #ffc0af)",
 ] as const;
 
 /** The colour of the series (or slice) at `index`: its own colour, else the palette in order. */

@@ -6426,7 +6426,7 @@
       [
         "Stack bar",
         "StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition",
-        "Figma palette: Sector Primary, Secondary, Cyan, Violet, Yellow…; the column cut to Corner-Radius/Small"
+        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small"
       ],
       [
         "Donut",

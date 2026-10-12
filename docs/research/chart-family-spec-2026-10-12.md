@@ -30,7 +30,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Sector rule | 1px Border/Active/Accent/Subtle at 35% (line), Solid when active; Neutral/Subtle for bars |
 | Tooltip | `TooltipSurface` default medium, in the plot's 36px top lane |
 | Legend | 12px dot (Element-Size/Popular/2XSmall), Spacing/Gap/2XSmall to its label, Caption/Regular · Content/Neutral/Strongest; items gap 4/8; `legendPosition` bottom (default) or top |
-| Categorical colours (series, slices, rings) | `chartPalette` in order: Chart/Sector/Primary, Chart/Sector/Secondary, Support Cyan, Violet, Yellow, Green, Orange (Solid) |
+| Categorical colours (series, slices, rings) | `chartPalette` = the Figma colour styles Color Chart Sector/Primary · Secondary · Tertiary (Support Cyan) · Quaternary (Violet) · Quinary (Yellow) · Senary (Orange Solid) · Septenary (Red Soft). In Figma, chart marks take these **styles**, never the variables directly (the user, 2026-10-13) |
 | Single measure | Line: Border/Accent/Solid + Accent area (unchanged). Bars: Chart/Sector/Primary, the active bar Chart/Sector/Secondary |
 | Projected bar, target track | Hatch: 45° stripes of Border/Neutral/Subtle on transparent |
 | Hatched area (`fill="hatch"`) | The series colour, 1px stripes every 6px at 32% |
