@@ -48,7 +48,7 @@ Figma Bottom-Navigation (page ❖ Bottom-Navigations, 7042:38507): 3–5 root de
 | `backdrop` | `"surface" \| "none"` | `"surface"` | Floating types: what sits behind the pill. `surface` (Figma) fades transparent → Surface/Default for plain screens; `none` keeps only the progressive blur, for photos and video where a Surface band would show as a white strip. |
 | `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Main”. |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icons it draws, by layer (`{ "Item[home]/Icon": { name: "icon-home-02-solid" }, "CTA/Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the items and action. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icons it draws, by layer (`{ "Item[home]/Icon": { name: "icon-home-02-solid" }, "Action/Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the items and action. |
 
 ### Types
 Object shapes the props above refer to.

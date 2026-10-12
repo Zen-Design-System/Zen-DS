@@ -115,13 +115,13 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Apply": "Button"
   },
   "Dialog": {
-    "Buttons": "ModalActions",
+    "Actions": "ModalActions",
     "Icon": "Icon"
   },
   "EmptyState": {
-    "CTA": "Button",
     "Icon": "Icon",
     "Illustration": "EmptyStateIllustration",
+    "Primary": "Button",
     "Secondary": "Button"
   },
   "EmptyStateIllustration": {
@@ -185,7 +185,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Badge": "Badge"
   },
   "ModalForm": {
-    "Buttons": "ModalActions",
+    "Actions": "ModalActions",
     "Close": "IconButton"
   },
   "NpsScale": {
@@ -289,7 +289,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Item": "SidebarItemView"
   },
   "SidePanel": {
-    "Buttons": "ModalActions",
+    "Actions": "ModalActions",
     "Close": "IconButton",
     "Icon": "Icon"
   },

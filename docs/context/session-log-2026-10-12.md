@@ -85,9 +85,16 @@
   `docs/figma-contracts/nested-layers.json`; nested-paths reads it for sets without a full contract and for layers a
   full one dropped. Re-read: `tools/figma-contract/nested-layers-read.mjs code | merge`.
 - Result: Input's hidden Leading / Trailing now checked (4 ALLOWED entries gone; Text-Area has none in Figma); 44/44
-  components match after renaming 9 code layers to Figma's (CTA, Buttons, Icon, Tab-Item, File-Item, Main — checked in
-  the file: Chat-Control's Main is the trailing send action) and allowing the rest with reasons (unnamed instances,
-  glyph-named icons, layers Figma does not draw); designer item in BACKLOG.
+  components match after renaming code layers to Figma's (Icon, Tab-Item, File-Item, Main — checked in the file:
+  Chat-Control's Main is the trailing send action) and allowing the rest with reasons (unnamed instances, glyph-named
+  icons, layers Figma does not draw); designer item in BACKLOG.
+- User review of PR #25: Action → CTA, Actions → Buttons and Primary → CTA were wrong and are reverted. Action is its own
+  component with its own tokens (mobile/tablet) and never becomes a Button name; a button layer is named by its level.
+  My mistake (read read-only in Figma afterwards): Empty-State's CTA is the wrapper (.Empty-State/CTAs) of two unnamed
+  Button/Main (Primary, Tertiary), not the primary button; Dialog / Side-Panel do have an Actions frame (Buttons is the
+  .Primitives/Modal/Actions instance inside it). Zen's names are kept and allowed with reasons; the Figma side is in
+  the BACKLOG designer item. Lesson: a layer-name gate is matched by asking which side follows the principle, not by
+  renaming code to Figma.
 - Found and fixed: contracts.lock.json was stale on main (10 sets: the 2026-10-09 re-captures and DashboardHeader never
   refreshed it), so figma-kit's selftest failed; `figma-call.mjs lock` → 13/13.
 - Gate (isolated): passed; 12 contact sheets looked at, no visual change (the renames are override keys). Its

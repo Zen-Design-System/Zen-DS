@@ -45,7 +45,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `primaryAction` | `EmptyStateAction` | — | Figma CTA Primary: Button/Main Medium Primary, full width. |
 | `secondaryAction` | `EmptyStateAction` | — | Figma CTA Secondary: Button/Main Medium Tertiary, full width. |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ CTA: { level: "accent" }, "Illustration/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets icon / primaryAction / secondaryAction. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: "accent" }, "Illustration/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets icon / primaryAction / secondaryAction. |
 
 ### EmptyStateIllustration
 Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.

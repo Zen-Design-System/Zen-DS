@@ -31,12 +31,16 @@ const ALLOWED = {
   // same for several: Button/Icon-Flat, Button/Overlay), names an icon after its glyph, or has no such layer.
   AiChatField: { Submit: "unnamed in Figma: Trailing-Actions › Button/Icon-Main", Attach: "unnamed in Figma: Leading-Actions › Button/Icon-Flat", Dictate: "unnamed in Figma: Leading-Actions › Button/Icon-Flat" },
   AlertBanner: { Leading: "Figma's status icon sits in Visual, named after its glyph (icon-info-circle-solid…)", Action: "unnamed in Figma: Actions › Button/Overlay" },
-  BottomNavigation: { Item: "Figma's items are unnamed instances of .Primitives/Bottom-Navigation/Items/Default, Floating or Floating-Glass" },
+  // Zen's names, kept against Figma's (user, 2026-10-12): Action is its own component with its own tokens (mobile /
+  // tablet) and never becomes a Button name; a button layer is named by its level (Primary, Secondary), as
+  // .Primitives/Modal/Actions names its two.
+  BottomNavigation: { Item: "Figma's items are unnamed instances of .Primitives/Bottom-Navigation/Items/Default, Floating or Floating-Glass", Action: "Zen's name for the bar's action (its own component and tokens); Figma's Floating sets call the instance CTA" },
   ChatCall: { Action: "unnamed in Figma: Button/Overlay or Button/Flat by the call's state" },
   ChatComposer: { Action: "Figma names each leading action by its job (More, Voice, Photo); the code's come from data, one layer name for all" },
   ChatConversationItem: { "Avatar-Group": "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it", Avatar: "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it" },
   Dialog: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph (icon-info-circle-solid…)" },
-  EmptyState: { Secondary: "Figma's Empty-State draws one CTA; the code's second action has no layer", Icon: "Figma's illustration icon is named after its glyph (icon-user-circle-line)" },
+  ModalForm: { Actions: "Zen's name for the action row, as Dialog and Side-Panel (their Actions frame) and its component .Primitives/Modal/Actions; Modal/Forms puts the instance in Footer, named Buttons" },
+  EmptyState: { Primary: "Figma's CTA (.Empty-State/CTAs) holds its buttons unnamed (Button/Main, Level=Primary / Tertiary)", Secondary: "Figma's CTA (.Empty-State/CTAs) holds its buttons unnamed (Button/Main, Level=Primary / Tertiary)", Icon: "Figma's illustration icon is named after its glyph (icon-user-circle-line)" },
   ListItem: { Leading: "Figma's List-Item leads with Avatar/Single; a leading icon is the code's" },
   Metric: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
   MetricCard: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },

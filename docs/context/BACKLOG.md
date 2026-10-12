@@ -12,8 +12,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
   ChatCall actions, Pagination's Previous / Next / page-size chip, SidePanel's close button), icons named after their
-  glyph (AlertBanner, Dialog, SidePanel, EmptyState, Tabs). Naming them in Figma (Submit, Attach, Action, Previous…) lets
-  the gate check them and a Studio page's overrides land in Figma by name. Pointer: `ALLOWED` in nested-paths.mjs.
+  glyph (AlertBanner, Dialog, SidePanel, EmptyState, Tabs), and Figma names that differ from Zen's, which the code keeps
+  (user, 2026-10-12): Empty-State's buttons unnamed inside CTA (code `Primary` / `Secondary`), Modal/Forms' action row
+  `Footer › Buttons` (code `Actions`, as Dialog and Side-Panel), Bottom-Navigation Floating's `CTA` (code `Action`).
+  Naming them in Figma with Zen's names lets the gate check them and a Studio page's overrides land in Figma by name.
+  Pointer: `ALLOWED` in nested-paths.mjs.
 - **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
   builds each row's avatar with `personAvatar(people[t.assignee])` (a plain function, not a component), so the engine
   cannot reach that row's person; a dropped photo is refused ("shared by 14 rows"). Extend kind "param" to helper

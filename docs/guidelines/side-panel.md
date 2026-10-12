@@ -51,7 +51,7 @@ Also accepts `OverlayOpenProps`.
 | `dismissible` | `boolean` | `true` | Escape / scrim click close a modal panel (default true). |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close panel”. |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Buttons/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / the actions. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / the actions. |
 
 ### Types
 Object shapes the props above refer to.
