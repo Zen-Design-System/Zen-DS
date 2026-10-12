@@ -111,8 +111,9 @@
   typo fixes on pages 1–10, new page `UI Foundations · Giáo án 2026` (local `Báo/*` text styles, `Báo/Masthead` and
   `Báo/Footer` components, Zen ZEN Kaiz Official-Sep2026 variables and components; opening + Lesson 01 built).
   User direction now: Figma is the source, converted to HTML slides later; layout A (editorial split, 16:9).
-- Repo: `src/assets/fonts/SG85/` — SG85-CHI SON 1 (Thái Hiếu / FontZin, "Commercial Use Allowed", fsType 0) as TTF +
-  WOFF2 (fontTools) + `sg85.css` `@font-face` + LICENSE.md. Not referenced by the library or platform build yet.
-  Checked in Chromium: full Vietnamese, unicase (lower = upper). Still missing: SG85-CHI SON 2 and SG85-Saigon 1985
-  (the poster's script); fontzin.com / dafont.com are blocked by the session's network policy.
+- Repo: `src/assets/fonts/SG85/` — the Đìzai poster's type, from Thái Hiếu's free Saigon Xưa set (fsType 0):
+  SG85-CHI SON 2 (titles) and SG85-Saigon 1985 (script accent), TTF + WOFF2 (fontTools) + `sg85.css` `@font-face`
+  + LICENSE.md. Not referenced by the library or platform build yet. Checked in Chromium: both load, full Vietnamese.
+  The first upload was CHI SON 1 (a different, wider design) — replaced. fontzin.com / dafont.com are blocked by the
+  session's network policy, so the user supplied the files.
 - `.claude/settings.json`: allow `mcp__Figma` (ask for `generate_image`).
