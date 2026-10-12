@@ -10412,7 +10412,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Main: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
+          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
         }
       ]

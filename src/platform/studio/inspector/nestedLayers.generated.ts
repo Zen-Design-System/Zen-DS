@@ -67,7 +67,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "ChatComposer": {
     "Action": "IconButton",
-    "Main": "IconButton"
+    "Send": "IconButton"
   },
   "ChatConversationItem": {
     "Avatar": "Avatar",

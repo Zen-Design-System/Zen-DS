@@ -20,7 +20,7 @@ removed (four unused colour ramps were, see Removed).
 
 ### Changed
 - Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): Tabs `Tab` → `Tab-Item`,
-  Uploader `File` → `File-Item`, ChatComposer `Send` → `Main`. Zen's own names stay where Figma differs: `Action`
+  Uploader `File` → `File-Item`. Zen's own names stay where Figma differs: `Send`, `Action`
   (its own component and tokens; an inline component's own buttons are its Action too), `Actions` (the action row), a
   button named by its level (`Primary`, `Secondary`) and `Leading`, the wrapper that holds an icon or any other
   visual. The gate

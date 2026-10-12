@@ -852,7 +852,7 @@ export interface ChatComposerProps {
   replyTo?: ChatReplyTarget;
   onCancelReply?: () => void;
   className?: string;
-  /** Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Main: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets actions / quickAction. */
   overrides?: NestedOverrides;
 }
@@ -907,7 +907,7 @@ export function ChatComposer({ onSend, placeholder: placeholderProp, label: labe
         {!typing
           ? action(quickAction)
           : device === "desktop"
-            ? nest("Main", <IconButton type="submit" className="zen-chat-composer__send" appearance="flat" level="primary" size="md" icon={<Icon name="icon-send-03-line" />} aria-label={t.send} disabled={disabled} />)
+            ? nest("Send", <IconButton type="submit" className="zen-chat-composer__send" appearance="flat" level="primary" size="md" icon={<Icon name="icon-send-03-line" />} aria-label={t.send} disabled={disabled} />)
             : <><button {...sendTip.bind()} type="submit" className="zen-top-nav__action zen-chat-composer__send" data-style="flat-chat" aria-label={t.send} disabled={disabled}><Icon name="icon-send-03-line" decorative /></button>{sendTip.tooltip}</>}
       </div>
     </form>

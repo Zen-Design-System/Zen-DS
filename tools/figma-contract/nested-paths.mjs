@@ -36,7 +36,7 @@ const ALLOWED = {
   // .Primitives/Modal/Actions names its two.
   BottomNavigation: { Item: "Figma's items are unnamed instances of .Primitives/Bottom-Navigation/Items/Default, Floating or Floating-Glass", Action: "Zen's name for the bar's action (its own component and tokens); Figma's Floating sets call the instance CTA" },
   ChatCall: { Action: "unnamed in Figma: Button/Overlay or Button/Flat by the call's state" },
-  ChatComposer: { Action: "Figma names each leading action by its job (More, Voice, Photo); the code's come from data, one layer name for all" },
+  ChatComposer: { Action: "Figma names each leading action by its job (More, Voice, Photo); the code's come from data, one layer name for all", Send: "Zen's name for the send button (user, 2026-10-12); Figma's Chat-Control names that trailing instance Main, a Button appearance's name" },
   ChatConversationItem: { "Avatar-Group": "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it", Avatar: "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it" },
   Dialog: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph (icon-info-circle-solid…)" },
   ModalForm: { Actions: "Zen's name for the action row, as Dialog and Side-Panel (their Actions frame) and its component .Primitives/Modal/Actions; Modal/Forms puts the instance in Footer, named Buttons" },
