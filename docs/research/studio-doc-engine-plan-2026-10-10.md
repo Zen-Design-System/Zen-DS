@@ -438,5 +438,5 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
 - Còn lại:
   - User thử Studio → Figma một lần trên bản sao file.
   - Publish library Figma.
-  - Phần mở rộng export (P1 → P4, `docs/research/studio-figma-push-spec-2026-10-12.md` §8) do session "Studio
-    export/import Figma frame" làm.
+  - Phần mở rộng export P3–P4 (`docs/research/studio-figma-push-spec-2026-10-12.md` §8): P1, P2 đã merge
+    2026-10-13 (#26, #30); việc còn lại ghi trong BACKLOG.
