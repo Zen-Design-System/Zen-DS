@@ -54,7 +54,7 @@ for (const rule of effectRules) {
 
 // Nothing else in effects.css may cast a shadow (an ungated rule would reach every fill).
 for (const rule of rules.filter((r) => !effectRules.includes(r))) check(`${rule.selector}: no shadow outside the gated rules`, !/box-shadow|backdrop-filter|filter:/.test(rule.body), rule.body);
-check("clip is overflow: clip", rules.some((r) => r.selector === '.zen-box[data-clip="true"]' && /^overflow:\s*clip;?$/.test(r.body)));
+check("clip is overflow: clip (Box, Stack and Grid)", rules.some((r) => r.selector === ':is(.zen-box, .zen-stack, .zen-grid)[data-clip="true"]' && /^overflow:\s*clip;?$/.test(r.body)));
 
 // effectStyleKey and boxEffects.
 check("key: Shadow/Bottom/Level-1", effectStyleKey("Shadow/Bottom/Level-1") === "shadow-bottom-level-1");
