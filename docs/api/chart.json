@@ -313,7 +313,7 @@
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order with\n4px gaps, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre\n(Heading/4, Caption/Regular caption). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim (a mask, so the card shows through), a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -354,7 +354,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The centre figure. Default: the total, formatted. The active slice's value replaces it while one is picked.",
+          "description": "The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked.",
           "deprecated": null
         },
         {
@@ -362,7 +362,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The caption under the centre figure. Default: the locale's “Total”.",
+          "description": "The caption of the total (\"Invoiced in Q3\"). Default: the locale's “Total”.",
+          "deprecated": null
+        },
+        {
+          "name": "totalPosition",
+          "type": "\"centre\" | \"start\"",
+          "required": false,
+          "default": "\"centre\"",
+          "description": "Where the total sits: in the hole (`centre`, default), or above the legend in a start column beside the ring\n (`start`: the hole stays empty, the legend lists down that column; Figma Total=Start).",
           "deprecated": null
         },
         {
@@ -386,7 +394,7 @@
           "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
           "required": false,
           "default": "\"bottom\"",
-          "description": "Legend below (default), above, or beside the ring (start / end).",
+          "description": "Legend below (default), above, or beside the ring (start / end). With `totalPosition=\"start\"` it is always in the\n start column, under the total.",
           "deprecated": null
         },
         {

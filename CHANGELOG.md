@@ -55,7 +55,9 @@ removed (four unused colour ramps were, see Removed).
   a legend); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
   and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
   motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean with an
-  "Avg" tag (Figma Show Average). Stacked columns now take Corner-Radius/Small on every corner, like the bars. Zen
+  "Avg" tag (Figma Show Average). DonutChart slices are parted by even, straight 4px gaps, and
+  `totalPosition="start"` puts the total beside the ring above the legend. Stacked columns now take Corner-Radius/Small
+  on every corner, like the bars. Zen
   Studio's Charts palette gains Bar, Horizontal bar, Line (two series), Donut, Radial and Heatmap. Harness:
   `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
 - Zen Studio → Figma (core rebuild Q4): Export › **Figma** downloads a page as `<page>.figma.json`; in the Zen Figma

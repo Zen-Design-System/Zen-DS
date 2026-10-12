@@ -28,7 +28,7 @@ One chart family in one style: how a value changes over time (Line), compares ac
 | Line | `LineChart data[] {label, value} · series[] {id, label, color, dashed, fill} with data[] {label, values} · curve · fill · showLegend · legendPosition` | Accent/Solid 2px line + Accent area for one measure; series in palette order, a dashed comparison, gradient or hatch area |
 | Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma palette: Sector Primary, Secondary, Cyan, Violet, Yellow…; the column cut to Corner-Radius/Small |
-| Donut | `DonutChart data[] {id, label, value} · value · label · showPercent · size · legendPosition (bottom · top · start · end)` | 4px gaps, Surface % pills on slices ≥ 6%, total in the centre (Heading/4) |
+| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/3 figure) |
 | Radial | `RadialChart data[] {id, label, value} · max · value · label · size · legendPosition` | 10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first |
 | Heatmap | `HeatmapChart rows · columns · values[row][column] · max · showLegend` | 24px cells on Support/Brand Pale · Subtle · Soft · Solid · Deep, Less → More scale |
 | Every chart | `aria-label · format · animate` | Draw-in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop); reduced motion fades; animate={false} turns it off |
@@ -92,7 +92,7 @@ Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side paddin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the column totals, tagged "Avg 5.9K h" (Figma Show Average). |
 
 ### DonutChart
-Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order with 4px gaps, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
+Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim (a mask, so the card shows through), a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -100,11 +100,12 @@ Donut chart in the shared chart language (docs/research/chart-family-spec-2026-1
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)` | Formats the centre figure and the summary. |
 | `size` | `number` | `200` | Diameter in px (default 200). The ring is 22% of it; it never grows past its box. |
 | `aria-label` (required) | `string` | — | What the chart shows ("Spending by category, September 2026"). |
-| `value` | `ReactNode` | — | The centre figure. Default: the total, formatted. The active slice's value replaces it while one is picked. |
-| `label` | `ReactNode` | — | The caption under the centre figure. Default: the locale's “Total”. |
+| `value` | `ReactNode` | — | The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked. |
+| `label` | `ReactNode` | — | The caption of the total ("Invoiced in Q3"). Default: the locale's “Total”. |
+| `totalPosition` | `"centre" \| "start"` | `"centre"` | Where the total sits: in the hole (`centre`, default), or above the legend in a start column beside the ring (`start`: the hole stays empty, the legend lists down that column; Figma Total=Start). |
 | `showPercent` | `boolean` | `true` | A % pill on every slice of 6% or more (default true). |
 | `showLegend` | `boolean` | `true` | The legend names every slice (default true; colour is never the only key). |
-| `legendPosition` | `"top" \| "bottom" \| "start" \| "end"` | `"bottom"` | Legend below (default), above, or beside the ring (start / end). |
+| `legendPosition` | `"top" \| "bottom" \| "start" \| "end"` | `"bottom"` | Legend below (default), above, or beside the ring (start / end). With `totalPosition="start"` it is always in the start column, under the total. |
 | `className` | `string` | — |  |
 | `animate` | `boolean` | `true` | Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades). |
 

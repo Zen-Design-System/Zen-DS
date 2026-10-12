@@ -6430,8 +6430,8 @@
       ],
       [
         "Donut",
-        "DonutChart data[] {id, label, value} · value · label · showPercent · size · legendPosition (bottom · top · start · end)",
-        "4px gaps, Surface % pills on slices ≥ 6%, total in the centre (Heading/4)"
+        "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)",
+        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/3 figure)"
       ],
       [
         "Radial",

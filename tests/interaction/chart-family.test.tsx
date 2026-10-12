@@ -83,6 +83,32 @@ describe("chart family keyboard", () => {
   });
 });
 
+describe("donut", () => {
+  it("parts the slices with even, straight gaps: one cut per slice edge, all the same width", async () => {
+    await render(wrap(<DonutChart aria-label="Gaps" size={200} data={[{ id: "a", label: "A", value: 3 }, { id: "b", label: "B", value: 2 }, { id: "c", label: "C", value: 1 }]} />));
+    const cuts = [...document.querySelectorAll('[aria-label="Gaps"] mask line')];
+    expect(cuts).toHaveLength(3);
+    expect(new Set(cuts.map((c) => c.getAttribute("stroke-width")))).toEqual(new Set(["2"])); // 4px of a 200px ring = 2 viewBox units
+    // The slices meet their neighbours exactly; the cut makes the gap (no angular gap left in the dashes).
+    const offsets = [...document.querySelectorAll('[aria-label="Gaps"] .zen-chart__slice')].map((c) => Number.parseFloat((c as SVGElement).style.strokeDashoffset));
+    expect(offsets.map((o) => Math.abs(Math.round(o)))).toEqual([0, 50, 83]);
+  });
+
+  it("totalPosition start: the total and legend in a column beside the ring, the hole empty, a picked slice takes the total's place", async () => {
+    await render(wrap(<DonutChart aria-label="Split" totalPosition="start" label="Invoiced in Q3" value="$296,800" data={[{ id: "a", label: "Lumen", value: 75 }, { id: "b", label: "Phin", value: 25 }]} />, 640));
+    const plot = await focusChart("Split");
+    const side = document.querySelector(".zen-chart__side") as HTMLElement;
+    expect(plot.querySelector(".zen-chart__centre")).toBeNull();
+    expect(side.querySelector(".zen-chart__total-label")?.textContent).toBe("Invoiced in Q3");
+    expect(side.querySelector(".zen-chart__total-value")?.textContent).toBe("$296,800");
+    expect(side.querySelectorAll(".zen-chart__legend li")).toHaveLength(2);
+    expect(side.getBoundingClientRect().right).toBeLessThanOrEqual(plot.getBoundingClientRect().left);
+    await press(plot, "ArrowRight");
+    expect(side.querySelector(".zen-chart__total-label")?.textContent).toBe("Lumen");
+    expect(side.querySelector(".zen-chart__total-value")?.textContent).toBe("75");
+  });
+});
+
 describe("average line", () => {
   it("BarChart: the mean of the closed bars, its tag and the summary", async () => {
     await render(wrap(<BarChart aria-label="Avg bars" showAverage data={[{ label: "Jan", value: 10 }, { label: "Feb", value: 20 }, { label: "Mar", value: 90, projected: true }]} />));

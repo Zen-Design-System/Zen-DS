@@ -3533,6 +3533,7 @@
           "aria-label: string",
           "value?: ReactNode",
           "label?: ReactNode",
+          "totalPosition?: centre|start = centre",
           "showPercent?: boolean = true",
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom|start|end = bottom",

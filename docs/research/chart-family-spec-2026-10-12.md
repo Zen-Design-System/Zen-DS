@@ -44,7 +44,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 
 Geometry: plot lanes 36px top (Tooltip) / 28px bottom (X labels); bar column = 2px side padding, bar width ≤ 40px
 (vertical); horizontal bars 24px thick, gap Spacing/Gap/Medium (16); heatmap cells gap Spacing/Gap/2XSmall (4), 24px
-tall; donut ring = 22% of the diameter, 4px gaps between slices; radial rings 10px thick, Spacing/Gap/XSmall (8)
+tall; donut ring = 22% of the diameter, slices parted by straight 4px gaps of the same width from the hole to the rim (2026-10-13, the user: angular gaps read uneven); radial rings 10px thick, Spacing/Gap/XSmall (8)
 apart.
 
 ## 3. One motion language (`animate`, default true)
@@ -117,3 +117,12 @@ Fixes met on the way (2026-10-12): re-creating Stack-Bar's open button dropped t
 "Billable hours by team" instances (15279:1512, 15276:3107 and their nested copies); they now say `Show Open = false`.
 Chart/Line-Chart's Y labels read "$20K" and "5K" at the bottom (overrides of the Trend primitive's 1 and 0): now "$5K"
 and "$0".
+
+### 5.2 Donut follow-up (2026-10-13, the user)
+
+- Gaps: the slices meet exactly and a mask cuts a straight 4px line along each edge, so every gap has parallel sides
+  (the angular gaps were wedges, wider at the rim: "spacing giữa các pie không đều nhau nhìn xấu").
+- `totalPosition="start"` (Figma `Total=Start`): the total (Body/Small/Regular caption in Content/Neutral/Base,
+  Heading/3 figure — the Chart Card's description and value) leads a start column, the legend lists down at its foot,
+  the ring stands at the end with an empty hole; a picked slice takes the total's place. Narrow boxes wrap: the column,
+  then the ring.

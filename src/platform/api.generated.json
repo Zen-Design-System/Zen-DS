@@ -11808,7 +11808,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The centre figure. Default: the total, formatted. The active slice's value replaces it while one is picked.",
+          "description": "The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked.",
           "deprecated": null
         },
         {
@@ -11816,7 +11816,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The caption under the centre figure. Default: the locale's “Total”.",
+          "description": "The caption of the total (\"Invoiced in Q3\"). Default: the locale's “Total”.",
+          "deprecated": null
+        },
+        {
+          "name": "totalPosition",
+          "type": "\"centre\" | \"start\"",
+          "required": false,
+          "default": "\"centre\"",
+          "description": "Where the total sits: in the hole (`centre`, default), or above the legend in a start column beside the ring\n (`start`: the hole stays empty, the legend lists down that column; Figma Total=Start).",
           "deprecated": null
         },
         {
@@ -11840,7 +11848,7 @@
           "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
           "required": false,
           "default": "\"bottom\"",
-          "description": "Legend below (default), above, or beside the ring (start / end).",
+          "description": "Legend below (default), above, or beside the ring (start / end). With `totalPosition=\"start\"` it is always in the\n start column, under the total.",
           "deprecated": null
         },
         {

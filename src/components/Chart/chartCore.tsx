@@ -97,9 +97,9 @@ export function ChartLegend({ items, className }: { items: { id: string; label: 
 }
 
 /** A chart with its legend before or after it (top / bottom; start / end beside it for round charts). */
-export function ChartBlock({ legend, position = "bottom", kind, children, className }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string }) {
+export function ChartBlock({ legend, position = "bottom", kind, children, className, layout }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string }) {
   return (
-    <div className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined}>
+    <div className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout}>
       {children}
       {legend}
     </div>

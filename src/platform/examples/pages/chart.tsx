@@ -349,6 +349,26 @@ function ClientShareCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   );
 }
 
+/** The same quarter with its total beside the ring: the figure leads, the legend lists down under it. */
+function ClientShareSplitCard() {
+  return (
+    <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line">
+      <DonutChart aria-label="Revenue by client, Q3 2026" data={clientShares} format={formatCompactMoney} totalPosition="start" size={240}
+        label="Invoiced in Q3 2026" value={formatMoney(clientShares.reduce((sum, c) => sum + c.value, 0))} />
+    </ChartCard>
+  );
+}
+
+/** A dashboard row of two half-width cards: the split donut next to the ring gauges. */
+function ClientShareSplitRow() {
+  return (
+    <Grid minColumnWidth="clamp(320px, 45%, 100%)" gap="md">
+      <ClientShareSplitCard />
+      <BudgetRingsCard />
+    </Grid>
+  );
+}
+
 /** Budget used on the client projects under way (spent ÷ budget). */
 const budgetRings: ChartSlice[] = ["lumen-banking", "phin-loyalty", "mekong-tracking"].map((id) => {
   const project = projectById(id);
@@ -496,6 +516,17 @@ const months = [{ label: "Apr", values: { invoiced: 82300, collected: 79500 } },
 <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line"
   ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={quarter} onRangeChange={setQuarter}>
   <DonutChart key={quarter} aria-label="Revenue by client, Q3 2026" format={formatCompactMoney} size={168} legendPosition="start"
+    data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
+</ChartCard>`,
+  },
+  {
+    title: "Total beside the ring",
+    wide: true,
+    description: "On a half-width dashboard card the total leads in a column of its own, the legend lists down under it and the ring stands at the end with an empty hole (totalPosition=\"start\"). Picking a slice puts its amount in the total's place; on a narrow card the column comes first and the ring under it.",
+    render: () => <ClientShareSplitRow />,
+    code: `<ChartCard title="Revenue by client" icon="icon-pie-chart-01-line">
+  <DonutChart aria-label="Revenue by client, Q3 2026" totalPosition="start" size={240}
+    label="Invoiced in Q3 2026" value="$296,800" format={formatCompactMoney}
     data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
 </ChartCard>`,
   },
