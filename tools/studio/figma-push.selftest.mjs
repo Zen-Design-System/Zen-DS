@@ -638,6 +638,36 @@ export default function Page() {
   ok("pull: Top-Navigation/Mobile → TopNavigation with its type, identity, leading and trailing (hidden rows left out)", text.includes('<TopNavigation type="default-overlay" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call" }, { icon: "icon-video-line", label: "Video", dot: true }]} />') && !text.includes("Heading\""));
 }
 
+// 17. ColorSelector as a row of Color-Selector swatches (2026-10-13): each its colour's variable as its own fill, the
+//     chosen one Select=Yes, a colour that is no token noted; the pull gives the ColorSelector back.
+{
+  const page = `// @zen-page {"format":1,"title":"Labels"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { ColorSelector, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Labels" device="desktop">
+        <Stack gap="md">
+          <ColorSelector aria-label="Label colour" colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" />
+          <ColorSelector colors={[{ value: "#123456", label: "Custom" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [row] = frame.children;
+  check("ColorSelector: a wrapping row (Gap/Small) of Color-Selector swatches, named, their fill the colour's variable, the chosen one Select=Yes", [row.name, row.layout.gapVar, row.layout.wrap, row.children.map((swatch) => [swatch.set.id, swatch.name, swatch.fill, swatch.props.Select])], ["Label colour", "Spacing/Gap/Small", true, [["373:97252", "Red", "Background/Support/Red/Solid", "No"], ["373:97252", "Blue", "Background/Support/Blue/Solid", "Yes"]]]);
+  ok("ColorSelector: a colour that is no Zen token keeps the sample colour, with a note", !frame.children[1].children[0].fill && notes.some((note) => /#123456 is no Zen token/.test(note)));
+  const back = pageFromFigma({ ...frame, children: [row] }, { mapping }).text;
+  ok("round trip: the swatches come back as the ColorSelector (colours, value, aria-label)", back.includes('<ColorSelector colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" aria-label="Label colour" />'));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

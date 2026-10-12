@@ -18,6 +18,7 @@ import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
+import { tokens } from "../../src/tokens/generated.ts";
 
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
@@ -43,7 +44,11 @@ const SETS = {
   descriptionItem: { id: "14859:78890", name: ".Primitives/Description-List/Item" },
   tabItem: { id: "1576:2090", name: "Primitives/Tab-Item" },
   stepVertical: { id: "4034:11389", name: ".Primitives/Stepper/Step-Vertical" },
+  // One colour swatch (its own fill is the colour); ColorSelector is a row of them.
+  colorSwatch: { id: "373:97252", name: "Color-Selector" },
 };
+/** A token's CSS value → its Figma variable ("var(--zen-color-background-support-blue-solid)" → "Color/Background/Support/Blue/Solid"). */
+const VARIABLE_OF_CSS = new Map(Object.entries(tokens).filter(([, value]) => typeof value === "string" && value.startsWith("var(")).map(([name, value]) => [value.replace(/\s+/g, ""), name]));
 /** Form fields drawn as Figma's Input/…-Field: the label in Label, the value (else the placeholder) in Text, help in Message. */
 const FIELDS = new Set(["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"]);
 /** A data value as the text it shows (a string or number; anything else draws nothing). */
@@ -289,6 +294,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
     else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
+    else if (element.name === "ColorSelector") node = colorSelectorNode(element, code, id);
     else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_SETS[child.name])) node = chartCardNode(element, code, id);
     else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
@@ -505,6 +511,22 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!header || (!before.length && !after.length)) return header ? { ...header, ...(id ? { id } : {}) } : null;
     const frame = { type: "FRAME", ...(id ? { id } : {}), name: "PageHeader", layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [...before, { ...header, fillW: true }, ...after] };
     return frame;
+  }
+
+  /**
+   * ColorSelector as a row of Figma Color-Selector swatches (color-selector.css: wrap, Gap/Small, centred): each named by
+   * its label, its fill the colour's variable, Select=Yes on the chosen one. A colour that is no Zen token keeps Figma's
+   * sample fill.
+   */
+  function colorSelectorNode(element, code, id) {
+    const colors = (plain(element.props.colors) ?? []).filter((color) => color && typeof color === "object");
+    const swatches = colors.map((color) => {
+      const variable = typeof color.value === "string" ? VARIABLE_OF_CSS.get(color.value.replace(/\s+/g, "")) : undefined;
+      if (!variable) notes.push(`ColorSelector: the colour ${color.value} is no Zen token: its swatch keeps Figma's sample colour`);
+      if (color.contrast === "dark" && color.value === code.value) notes.push(`ColorSelector: the chosen ${color.label}'s dark check (contrast) is drawn in Figma's check colour`);
+      return { type: "INSTANCE", name: typeof color.label === "string" ? color.label : String(color.value), set: SETS.colorSwatch, props: { Select: color.value === code.value ? "Yes" : "No", Status: "Default" }, ...(variable ? { fill: variable.replace(/^Color\//, "") } : {}) };
+    });
+    return { type: "FRAME", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : "ColorSelector", layout: { mode: "HORIZONTAL", gap: 12, gapVar: "Spacing/Gap/Small", padding: [0, 0, 0, 0], counter: "CENTER", primary: "MIN", wrap: true }, children: swatches };
   }
 
   /**

@@ -23,6 +23,7 @@ import { printPage } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
+import { tokens } from "../../src/tokens/generated.ts";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -142,6 +143,12 @@ const readInstance = async (instance) => {
   if (!out.nested.length) delete out.nested;
   if (!out.slots.length) delete out.slots;
   else { const layout = await layoutOf(instance); if (layout) out.layout = layout; }
+  // A Color-Selector swatch: the colour variable its own fill is bound to (the colour it offers).
+  if (set && set.name === "Color-Selector") {
+    const paint = (instance.fills || [])[0];
+    const fill = await variableName(paint && paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id);
+    if (fill) out.fill = fill;
+  }
   // A text-less instance (an icon button, Dashboard/Header's Action-Item): the icon it draws, by the icon's own name.
   if (out.text === null) {
     delete out.text;
@@ -925,6 +932,7 @@ function convertNode(node, ctx) {
     if (setName === "Primitives/Dashboard/Header/Action-Item") return actionItem(node, ctx);
     if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
     if (setName === TOP_NAV_SET.name) return topNavigationElement(node, ctx);
+    if (setName === COLOR_SWATCH) return colorSelectorElement([node], null, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -1024,6 +1032,9 @@ function convertNode(node, ctx) {
     // an AppShell's sections would.
     return PADDED.has(set.code) && node.layout?.padding?.some(Boolean) ? padded(element, node, ctx) : element;
   }
+  // A row of Color-Selector swatches (figma-push colorSelectorNode): a ColorSelector.
+  const swatches = node.children ?? [];
+  if (swatches.length && swatches.every((child) => child.type === "INSTANCE" && child.set?.name === COLOR_SWATCH)) return colorSelectorElement(swatches, node.name, ctx);
   // An app frame (Sidebar beside a column under the Dashboard header Type=Navigation): AppShell.
   const shell = appShellElement(node, ctx);
   if (shell) return shell;
@@ -1106,6 +1117,30 @@ function frameElement(node, children, ctx) {
   // Figma's Clip content: the Stack or Grid clips too (figmaReadCode leaves it off the page frame).
   if (node.clip) props.clip = literal(true);
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
+}
+
+/** Figma's colour swatch set; a token's Figma variable → its CSS value ("Color/Background/Support/Blue/Solid" → var(…)). */
+const COLOR_SWATCH = "Color-Selector";
+const CSS_OF_VARIABLE = new Map(Object.entries(tokens).filter(([, value]) => typeof value === "string" && value.startsWith("var(")));
+
+/**
+ * Color-Selector swatches as a ColorSelector (figma-push colorSelectorNode, the other way): each swatch a colour (its
+ * fill's variable as the token's CSS value, its layer name the label), the one with Select=Yes the value; the row's name
+ * (unless Figma's default) the group's aria-label.
+ */
+function colorSelectorElement(swatches, name, ctx) {
+  const colors = [];
+  let value = null;
+  for (const swatch of swatches) {
+    const css = swatch.fill ? CSS_OF_VARIABLE.get(swatch.fill.startsWith("Color/") ? swatch.fill : `Color/${swatch.fill}`) : undefined;
+    if (!css) { ctx.notes.push(`ColorSelector: the swatch "${swatch.name}" is painted with no Zen colour variable: left out`); continue; }
+    colors.push({ kind: "object", fields: { value: literal(css), label: literal(swatch.name && !swatch.name.includes("/") && swatch.name !== COLOR_SWATCH ? swatch.name : swatch.fill.split("/").slice(-2).join(" ")) } });
+    if (swatch.props?.Select === "Yes") value = css;
+  }
+  const props = { colors: { kind: "array", items: colors } };
+  if (value) props.value = literal(value);
+  if (name && !/^(Frame|Stack|ColorSelector)( \d+)?$/.test(name)) props["aria-label"] = literal(name);
+  return { kind: "element", name: "ColorSelector", props, children: [] };
 }
 
 /** The push's own Top-Navigation node (nested, slots) as readTopNav reads the placed instance: the round trip's input. */
