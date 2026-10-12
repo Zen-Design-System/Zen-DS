@@ -23,13 +23,36 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
  */
 const ALLOWED = {
   Chip: { "Badge-Counter": "inside .Chip/Trailing (333:82245, Select Type=Multiple), whose layers the Chip contract does not capture; suites/chip-trailing.mjs checks it" },
-  InputField: { Leading: "hidden in every captured variant (contracts skip invisible instances): re-capture with tools/figma-kit", Trailing: "hidden in every captured variant: re-capture with tools/figma-kit" },
-  TextAreaField: { Leading: "hidden in every captured variant: re-capture with tools/figma-kit", Trailing: "hidden in every captured variant: re-capture with tools/figma-kit" },
-  SelectField: { Leading: "hidden in every captured variant: re-capture with tools/figma-kit" },
-  DateField: { Leading: "hidden in every captured variant, as on the other fields (live read 2026-10-12: Field › Container › Leading hidden; Trailing holds the calendar, whose own icon layer is the primitive's Leading-Icon): re-capture with tools/figma-kit" },
+  TextAreaField: { Leading: "Figma's Input/Text-Area has no Leading or Trailing (nested-layers.json); the code's text area takes them as the other fields do", Trailing: "Figma's Input/Text-Area has no Leading or Trailing (nested-layers.json); the code's text area takes them as the other fields do" },
   Search: { Filter: "Figma draws it as Search/Filter-Icon or Search/Filter-Dropdown by Theme: one code layer for both" },
   Segmented: { "Badge-Counter": "inside Item (Primitives/Segmented/Item-N), whose layers the contract does not capture", Leading: "inside Item, whose layers the contract does not capture" },
   Sidebar: { "Badge-Counter": "inside Item (Primitives/Side-Bar/Menu-Item), whose layers the contract does not capture" },
+  // Read 2026-10-12 (nested-layers.json): Figma leaves these instances unnamed (they carry their component's name, the
+  // same for several: Button/Icon-Flat, Button/Overlay), names an icon after its glyph, or has no such layer.
+  AiChatField: { Submit: "unnamed in Figma: Trailing-Actions › Button/Icon-Main", Attach: "unnamed in Figma: Leading-Actions › Button/Icon-Flat", Dictate: "unnamed in Figma: Leading-Actions › Button/Icon-Flat" },
+  AlertBanner: { Leading: "Figma's status icon sits in Visual, named after its glyph (icon-info-circle-solid…)", Action: "unnamed in Figma: Actions › Button/Overlay" },
+  // Zen's names, kept against Figma's (user, 2026-10-12): Action is its own component with its own tokens (mobile /
+  // tablet) and never becomes a Button name; a button layer is named by its level (Primary, Secondary), as
+  // .Primitives/Modal/Actions names its two.
+  BottomNavigation: { Item: "Figma's items are unnamed instances of .Primitives/Bottom-Navigation/Items/Default, Floating or Floating-Glass", Action: "Zen's name for the bar's action (its own component and tokens); Figma's Floating sets call the instance CTA" },
+  ChatCall: { Action: "unnamed in Figma: Button/Overlay or Button/Flat by the call's state" },
+  ChatComposer: { Action: "Figma names each leading action by its job (More, Voice, Photo); the code's come from data, one layer name for all", Send: "Zen's name for the send button (user, 2026-10-12); Figma's Chat-Control names that trailing instance Main, a Button appearance's name" },
+  ChatConversationItem: { "Avatar-Group": "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it", Avatar: "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it" },
+  Dialog: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph (icon-info-circle-solid…)" },
+  ModalForm: { Actions: "Zen's name for the action row, as Dialog and Side-Panel (their Actions frame) and its component .Primitives/Modal/Actions; Modal/Forms puts the instance in Footer, named Buttons" },
+  EmptyState: { Primary: "Figma's CTA (.Empty-State/CTAs) holds its buttons unnamed (Button/Main, Level=Primary / Tertiary)", Secondary: "Figma's CTA (.Empty-State/CTAs) holds its buttons unnamed (Button/Main, Level=Primary / Tertiary)", Icon: "Figma's illustration icon is named after its glyph (icon-user-circle-line)" },
+  ListItem: { Leading: "Figma's List-Item leads with Avatar/Single; a leading icon is the code's" },
+  Metric: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
+  MetricCard: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
+  Pagination: { Previous: "unnamed in Figma: Button/Icon-Main", Next: "unnamed in Figma: Button/Icon-Main", Page: "Figma names each page by its number (1, 2, 3, …)", "Page-Size": "unnamed in Figma: Chip/Advanced" },
+  Popover: { Avatar: "a Popover item can lead with an Avatar in code; Figma's Popover/Default sample has none", Badge: "a Popover item can end with a Badge in code; Figma's Popover/Default sample has none" },
+  SidePanel: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph", Close: "unnamed in Figma: Close-Container › Button/Icon-Flat" },
+  Stepper: { Step: "Figma's steps are unnamed instances of .Primitives/Stepper/Step-Horizontal or Step-Vertical" },
+  Tabs: { Icon: "Figma's tab icon is named after its glyph (icon-home-03-solid)" },
+  Tag: { Avatar: "Figma's Tag shows its photo through Leading (Image, Status inside), no Avatar layer" },
+  Toast: { Action: "unnamed in Figma: Button/Overlay or Button/Main by the toast's type", Leading: "Zen's Leading holds the icon or any node (icon prop); Figma draws icon-Container › Icon" },
+  InlineMessage: { Leading: "Zen's Leading holds the icon or any visual (icon prop); Figma draws Icon-Wrapper › Icon, or the Visual slot for Theme=Custom" },
+  FileUpload: { Retry: "Figma's File-Item shows Replace and Remove; Retry is the code's, for a failed upload" },
 };
 
 /** Every layer name in a contract set, by name → the layer types it has there. */
@@ -44,11 +67,30 @@ function contractLayers(set) {
   return names;
 }
 
+/**
+ * docs/figma-contracts/nested-layers.json: each set's layer names with their types (I instance, F frame / slot, T text),
+ * hidden layers included, read from the live file (2026-10-12). It stands in for a full contract the set does not have
+ * and adds the layers a full contract dropped (hidden ones inside instances: Input's Leading and Trailing).
+ */
+function lightSets() {
+  const file = path.join(root, "docs/figma-contracts/nested-layers.json");
+  if (!fs.existsSync(file)) return new Map();
+  const data = JSON.parse(fs.readFileSync(file, "utf8"));
+  const out = new Map();
+  for (const [id, set] of Object.entries(data.sets ?? {})) {
+    const layers = new Map(Object.entries(set.l ?? {}).map(([name, types]) => [name, new Set([...types].map((type) => ({ I: "INSTANCE", F: "FRAME", T: "TEXT" })[type] ?? type))]));
+    const entry = { id, name: set.n, layers, file: "nested-layers.json" };
+    out.set(id, entry);
+    out.set(set.n, entry);
+  }
+  return out;
+}
+
 /** The contract sets by id and by name. */
 function contractSets() {
   const dir = path.join(root, "docs/figma-contracts");
   const sets = new Map();
-  for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".json") && name !== "component-properties.json")) {
+  for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".json") && name !== "component-properties.json" && name !== "nested-layers.json")) {
     const data = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
     for (const set of Array.isArray(data) ? data : []) {
       if (!set?.id) continue;
@@ -173,6 +215,7 @@ export function nestedLayers() {
 export async function nestedPaths() {
   const { FIGMA_PROPS } = await import(pathToFileURL(path.join(root, "src/platform/studio/inspector/figmaProps.generated.ts")).href);
   const sets = contractSets();
+  const light = lightSets();
   const rows = [];
   const dir = path.join(root, "src/components");
   for (const folder of fs.readdirSync(dir)) {
@@ -187,8 +230,11 @@ export async function nestedPaths() {
         if (!names.size) continue;
         const ids = [entry.figma, ...entry.own.filter((item) => item.type === "SET").flatMap((item) => Object.keys(item.options ?? {}))];
         const found = [...new Set(ids.map((id) => sets.get(id)).filter(Boolean))];
+        const read = [...new Set(ids.map((id) => light.get(id)).filter(Boolean))];
         const layers = new Map();
         for (const set of found) for (const [name, types] of contractLayers(set)) layers.set(name, new Set([...(layers.get(name) ?? []), ...types]));
+        for (const set of read) for (const [name, types] of set.layers) layers.set(name, new Set([...(layers.get(name) ?? []), ...types]));
+        if (!found.length && read.length) found.push(...read);
         const instances = [...layers].filter(([, types]) => types.has("INSTANCE")).map(([name]) => name);
         // No contract, or one that captured no nested instance (Popover: its items are slot content): not judged.
         if (!found.length || !instances.length) { rows.push({ component, file: `${folder}/${file}`, names: [...names], covered: false, missing: [] }); continue; }

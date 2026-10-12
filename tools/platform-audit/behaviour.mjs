@@ -596,6 +596,8 @@ function installHelpers() {
       o.muts += 1; if (layer) o.layer = true; if (!o.first) o.first = `${rec.type}${rec.attributeName ? `:${rec.attributeName}` : ""} on ${describe(t)}`;
     }
   };
+  /** The point (x, y) still lands on the registered element (nothing moved or covered it since pointAt). */
+  B.hits = (key, x, y) => { const el = B.reg.get(key); const hit = el?.isConnected ? document.elementFromPoint(x, y) : null; return !!hit && (hit === el || el.contains(hit)); };
   B.observeStart = (key) => {
     const el = B.reg.get(key); if (!el?.isConnected || disabled(el) || selectedNoop(el)) return false; // state moved on since collection
     const o = { el, region: regionOf(el) ?? document.body, muts: 0, first: "", active: document.activeElement, href: location.href, anims: new Set(document.getAnimations()), dialogs: new Set(visibleDialogs()) };
@@ -1004,10 +1006,21 @@ async function clickPass(S, region) {
     if (reportDead && k.dead.length >= 2 && !k.alive && counts.get(b.kind) >= 4) { k.skipped += 1; continue; }
     // The same button (kind + name) already worked twice on this page, in other examples: skip the repeat.
     if ((S.working.get(`${b.kind}|${b.desc}`) ?? 0) >= 2) continue;
-    const pos = await ev(page, (key) => window.__bhv.pointAt(key), b.key);
+    let pos = await ev(page, (key) => window.__bhv.pointAt(key), b.key);
     if (!pos) continue;
     await page.mouse.move(pos.x, pos.y).catch(() => undefined);
     await page.waitForTimeout(25);
+    // The page can still move after pointAt measured: the previous card's failed submit focuses and scrolls to its first
+    // invalid field a few frames later (later still on a loaded machine), and a click at the old point lands beside the
+    // button (uploader "Retry" read as dead, 2026-10-12). Measure again once the page is still.
+    if (!await ev(page, ([key, x, y]) => window.__bhv.hits(key, x, y), [b.key, pos.x, pos.y])) {
+      if (VERBOSE) console.log(`    ${b.desc} moved after it was measured: measuring again`);
+      await settle(page, 250);
+      pos = await ev(page, (key) => window.__bhv.pointAt(key), b.key);
+      if (!pos) continue;
+      await page.mouse.move(pos.x, pos.y).catch(() => undefined);
+      await page.waitForTimeout(25);
+    }
     if (!await ev(page, (key) => window.__bhv.observeStart(key), b.key)) continue;
     S.errors.length = 0; S.external.hit = false; S.stats.clicks += 1; clicked += 1;
     await page.mouse.down().catch(() => undefined); await page.mouse.up().catch(() => undefined);

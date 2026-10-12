@@ -133,7 +133,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "FileUpload": {
     "Button": "Button",
-    "File": "UploaderFileItem",
+    "File-Item": "UploaderFileItem",
     "Remove": "IconButton",
     "Replace": "IconButton",
     "Retry": "IconButton"
@@ -303,7 +303,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   "Tabs": {
     "Badge-Counter": "BadgeCounter",
     "Icon": "Icon",
-    "Tab": "TabItem"
+    "Tab-Item": "TabItem"
   },
   "Tag": {
     "Avatar": "Avatar",

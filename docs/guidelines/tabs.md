@@ -46,7 +46,7 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 | `aria-label` | `string` | — |  |
 | `idPrefix` | `string` | — | Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. |
 | `className` | `string` | — |  |
-| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab[members]/Badge-Counter": { theme: "accent" }, "Tab[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets the items. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab-Item[members]/Badge-Counter": { theme: "accent" }, "Tab-Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets the items. |
 
 ### TabItem
 Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge).

@@ -146,7 +146,7 @@ export interface FileUploadProps {
   /** Figma DragDrop-Field Extended: Yes (default) stacks icon, text and caption; No is a single 48px row (icon + text). */
   extended?: boolean;
   className?: string;
-  /** Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: "secondary" }, "File[f1]/Remove": { level: "secondary" } }`). Written by Zen Studio;
+  /** Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: "secondary" }, "File-Item[f1]/Remove": { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets files / buttonLabel. */
   overrides?: NestedOverrides;
 }
@@ -175,8 +175,8 @@ export function FileUpload({ label, helpText, error, type = "dropzone", text: te
   const single = !multiple && files.length > 0;
   // Single-file field: Figma shows the file as State=Replaceable; Replace re-opens the picker unless the app handles it.
   const items = single
-    ? [nest("File", <UploaderFileItem key={files[0].id} file={files[0].state === "uploaded" || !files[0].state ? { ...files[0], state: "replaceable" } : files[0]} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace ?? (() => open())} onRetry={onRetry} />, files[0].id)]
-    : files.map((file) => nest("File", <UploaderFileItem key={file.id} file={file} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace} onRetry={onRetry} />, file.id));
+    ? [nest("File-Item", <UploaderFileItem key={files[0].id} file={files[0].state === "uploaded" || !files[0].state ? { ...files[0], state: "replaceable" } : files[0]} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace ?? (() => open())} onRetry={onRetry} />, files[0].id)]
+    : files.map((file) => nest("File-Item", <UploaderFileItem key={file.id} file={file} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace} onRetry={onRetry} />, file.id));
   return (
     <div className={["zen-file-upload", className].filter(Boolean).join(" ")} data-invalid={error ? "true" : undefined} data-files={files.length && !single ? "true" : undefined}>
       <div className="zen-file-upload__field">

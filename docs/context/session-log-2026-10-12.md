@@ -76,3 +76,31 @@
 - P4 rebind.mjs in the save's Figma check job, ParityDialog Download for Figma, plugin 173e97f rebind (licensed).
 - Selftests: figma-push 36, binding-diff 8, rebind 5 (all in studio:selftest); plugin npm test green; dist rebuilt
   (backups/pre-studio-rebind-dist-20261012.tgz before).
+
+## Nested layer names for every component (session "Kiểm tra tiến độ plan", branch zen/feat/figma-contracts, tier M)
+
+- PR #24 merged (f5b4b52); the shared checkout Zen-DS switched to main (fast-forward; Giám sát told).
+- Full contracts for the 29 sets without one are not practical through use_figma (20 KB answers, 0.7–2 MB contracts):
+  what the gate needs is each set's layer names. Four read-only use_figma calls (37 sets, hidden layers included) →
+  `docs/figma-contracts/nested-layers.json`; nested-paths reads it for sets without a full contract and for layers a
+  full one dropped. Re-read: `tools/figma-contract/nested-layers-read.mjs code | merge`.
+- Result: Input's hidden Leading / Trailing now checked (4 ALLOWED entries gone; Text-Area has none in Figma); 44/44
+  components match after renaming code layers to Figma's (Tab-Item, File-Item) and allowing the rest with reasons (unnamed instances, glyph-named
+  icons, layers Figma does not draw); designer item in BACKLOG.
+- User review of PR #25: Action → CTA, Actions → Buttons and Primary → CTA were wrong and are reverted. Action is its own
+  component with its own tokens (mobile/tablet) and never becomes a Button name; a button layer is named by its level.
+  My mistake (read read-only in Figma afterwards): Empty-State's CTA is the wrapper (.Empty-State/CTAs) of two unnamed
+  Button/Main (Primary, Tertiary), not the primary button; Dialog / Side-Panel do have an Actions frame (Buttons is the
+  .Primitives/Modal/Actions instance inside it). Zen's names are kept and allowed with reasons; the Figma side is in
+  the BACKLOG designer item. Second review: `Leading` is the wrapper that holds an icon or any other element
+  (InlineMessage's and Toast's `icon` take a node; Inline-Message Custom is a Visual slot), so Leading → Icon is
+  reverted too; an inline component's own buttons are its `Action` (not the top navigation's); ChatComposer keeps
+  `Send` (Figma's `Main` is a Button appearance's name). Lesson: a layer-name gate is matched by asking which side follows the principle, not by
+  renaming code to Figma.
+- Found and fixed: contracts.lock.json was stale on main (10 sets: the 2026-10-09 re-captures and DashboardHeader never
+  refreshed it), so figma-kit's selftest failed; `figma-call.mjs lock` → 13/13.
+- Gate (isolated): passed; 12 contact sheets looked at, no visual change (the renames are override keys). Its
+  `deadclick` warn on uploader "Retry desert-trail-lookbook.jpg" (also on main, about 3 runs in 4 in the gate's page
+  order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
+  frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
+  photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
