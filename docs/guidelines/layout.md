@@ -67,6 +67,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `align` | `"start" \| "center" \| "end" \| "stretch" \| "baseline"` | — | Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width while buttons, chips, badges, tags and avatars keep their own width (pass `align="stretch"` to stretch those too, e.g. full-width buttons in a mobile footer). |
 | `justify` | `"start" \| "center" \| "end" \| "between" \| "around"` | — | Main-axis distribution. `between` pushes the first and last items to the edges. |
 | `wrap` | `boolean` | `false` | Let row items wrap onto new lines. |
+| `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
 | `fillChildren` | `boolean` | `false` | Every child takes an equal share along the direction (Figma: all children Fill container), for children that have no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`). A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button never shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get taller); with only a maxHeight the children keep their content height and shrink once it caps; without a height they keep their content height. |
 | `padding` | `"none" \| ZenScaleInput \| "4xl"` | — | Space inside the stack (Figma Spacing/Padding). |
 | `paddingX` | `"none" \| ZenScaleInput \| "4xl"` | — | Horizontal padding (overrides `padding` on the sides). |
@@ -104,6 +105,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `padding` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
+| `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
 
 ### Box
 A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use Card; for page width use Container.

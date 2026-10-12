@@ -8,6 +8,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
+  the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
+  and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile
+  + 8 Nav-Action sets), ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat parts, Metric
+  (re-capture); the chart family now belongs to session "Chart components với animation". P4: raw HTML and className in
+  examples. Audit and numbers: `docs/research/studio-figma-push-spec-2026-10-12.md` §8.
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
