@@ -537,6 +537,11 @@ function dashboardHeaderParts(node, props, ctx) {
       if (title) props.title = literal(title.replace(/\u2028/g, " "));
       if (node.props?.["Child-Heading"] === true && named("Child")) props.childTitle = literal(named("Child"));
       if (node.props?.Subheading === true && named("SubHeading")) props.subheading = literal(named("SubHeading"));
+    } else {
+      // No Header-Text read (the push's own JSON): the row's first text is the title, its `texts` the others.
+      if (typeof node.text === "string" && node.text) props.title = literal(node.text);
+      if (node.props?.["Child-Heading"] === true && node.texts?.Child) props.childTitle = literal(node.texts.Child);
+      if (node.props?.Subheading === true && node.texts?.SubHeading) props.subheading = literal(node.texts.SubHeading);
     }
   }
   if (type === "control-bar") {
@@ -660,6 +665,108 @@ function slotContent(slot, ctx) {
   if (slot.id) element.id = figmaDocId(slot.id);
   SOURCE.set(element, slot);
   return element;
+}
+
+/* ── AppShell ───────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+/** The Zen component a layer is an instance of (null for a frame or an unmapped instance). */
+const codeOf = (node, ctx) => (node?.type === "INSTANCE" && node.set ? (ctx.mapping.sets.get(node.set.id) ?? ctx.mapping.sets.get(node.set.name))?.code ?? null : null);
+/** The layer itself when it is an instance of `code`, or the one instance a composition wraps (Patterns/Sidebar/… › Side-Bar/Master/Basic). */
+const instanceIn = (node, code, ctx) => {
+  if (!node) return null;
+  if (codeOf(node, ctx) === code) return node;
+  return node.type !== "INSTANCE" && node.children?.length === 1 ? instanceIn(node.children[0], code, ctx) : null;
+};
+const isNavigation = (node, ctx) => codeOf(node, ctx) === "DashboardHeader" && node.props?.Type === "Navigation";
+/** A header's rows: Figma's Header/Dashboard holds them in its Sections slot, the push's Header frame directly. */
+const rowsIn = (node) => (node.type === "INSTANCE" ? [node] : (node.children ?? []).flatMap((child) => (child.type === "SLOT" ? child.children ?? [] : [child])));
+/** The collapse toggle or the phone's menu button, which AppShell draws itself at the start of the top bar. */
+const TOGGLE_ICON = /^icon-(layout-(left|right)|menu-01)-line$/;
+/** A Stack the pull adds around one element for its padding (a padded Dashboard header row): the element. */
+const unpadded = (element) => (element?.name === "Stack" && element.children.length === 1 && Object.keys(element.props).every((name) => /^padding[XY]?$/.test(name)) ? element.children[0] : element);
+/** Layers as one node: the one layer, or a Stack of them in `layout`. */
+function oneOf(elements, { name, layout, id }, ctx) {
+  if (elements.length <= 1) return elements[0] ?? null;
+  const element = frameElement({ name, layout }, elements, ctx);
+  if (id) element.id = figmaDocId(id);
+  return element;
+}
+/** The one instance a wrapper holds (Figma's Floating-Actions › Floating-Item › Button/Icon-Main), else the layer. */
+const innermost = (node) => (node.type === "INSTANCE" || node.children?.length !== 1 ? node : innermost(node.children[0]));
+
+/**
+ * An app frame as AppShell (AppShell.tsx; figma-push.mjs appShellNode, the other way): a row of the Sidebar (an instance,
+ * or the composition that wraps one), a column whose first row is the Dashboard header Type=Navigation, and an optional
+ * Side-Panel. Read from Figma's ◇ Master-Layout (Main-Container › Header/Dashboard › Sections; Body with its Content
+ * and Floating-Actions) and from the push's frames (Column › Header, Sections, Main). The navigation row gives `header`
+ * (its Leading-Slots without the toggle AppShell draws), `headerCenter` and `headerActions` (a named Avatar at their
+ * end is the account); the other rows are `sections`; the page frame's layers the children (Body's padding kept in a
+ * Stack); a layer pinned outside the auto layout the floating action; layers after the page the footer.
+ */
+function appShellElement(node, ctx) {
+  const layers = node.children ?? [];
+  if (node.type === "INSTANCE" || node.layout?.mode !== "HORIZONTAL" || layers.length < 2 || layers.length > 3) return null;
+  const sidebarNode = instanceIn(layers[0], "Sidebar", ctx);
+  const column = layers[1];
+  const asideNode = layers[2] ? instanceIn(layers[2], "SidePanel", ctx) : null;
+  if (!sidebarNode || column.type === "INSTANCE" || column.layout?.mode !== "VERTICAL" || (layers[2] && !asideNode)) return null;
+  const [headerNode, ...rest] = column.children ?? [];
+  const rows = headerNode ? rowsIn(headerNode) : [];
+  if (!isNavigation(rows[0], ctx)) return null;
+  const props = { sidebar: { kind: "element", node: convert(sidebarNode, ctx) } };
+  const nav = rows[0];
+  const slotOf = (name) => (nav.slots ?? []).find((slot) => slot.name === name);
+  // Top bar: Leading-Slots without the toggle (AppShell draws it; a design without one says sidebarToggle={false}).
+  const leadingSlot = slotOf("Leading-Slots");
+  const leading = (leadingSlot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  if (leading[0]?.name === "IconButton" && TOGGLE_ICON.test(leading[0].props.icon?.value ?? "")) leading.shift();
+  else props.sidebarToggle = literal(false);
+  const header = oneOf(leading, { name: "Leading-Slots", layout: leadingSlot?.layout, id: leadingSlot?.id }, ctx);
+  if (header) props.header = { kind: "element", node: unpadded(header) };
+  const centerSlot = nav.props?.["Nav-Center-Block"] === false ? null : slotOf("Center-Slots");
+  const center = centerSlot ? oneOf((centerSlot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name: "Center-Slots", layout: centerSlot.layout, id: centerSlot.id }, ctx) : null;
+  if (center) props.headerCenter = { kind: "element", node: center };
+  const trailingSlot = slotOf("Trailing-Slots");
+  const trailingNodes = trailingSlot?.children ?? [];
+  const trailing = trailingNodes.map((child, index) => {
+    const element = convert(child, ctx);
+    // The account: an Avatar named after the person at the end of the actions (the push names it so).
+    const name = child.name ?? "";
+    if (element?.name === "Avatar" && index === trailingNodes.length - 1 && name && !name.includes("/")) {
+      const fields = { name: literal(name) };
+      for (const prop of ["src", "theme"]) if (element.props[prop]) fields[prop] = element.props[prop];
+      return { ...element, name: "AppShellAccount", props: fields, children: [] };
+    }
+    return element;
+  }).filter(Boolean);
+  const actions = oneOf(trailing, { name: "Trailing-Slots", layout: trailingSlot?.layout, id: trailingSlot?.id }, ctx);
+  if (actions) props.headerActions = { kind: "element", node: actions };
+  // Sections: Header/Dashboard's other rows, or the push's Sections frame.
+  const sectionNodes = rows.slice(1);
+  let after = rest;
+  if (after[0]?.type === "FRAME" && after[0].name === "Sections") { sectionNodes.push(...(after[0].children ?? [])); after = after.slice(1); }
+  const sections = sectionNodes.map((row) => unpadded(convert(row, ctx))).filter(Boolean);
+  if (sections.length) props.sections = { kind: "element", node: sections.length === 1 ? sections[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: sections } };
+  // The page: the next frame's layers (Body's padding kept in a Stack around them); pinned layers are the floating action.
+  const pinned = [];
+  let children = [];
+  const pageNode = after.find((part) => !part.absolute && part.type !== "INSTANCE" && part.type !== "TEXT");
+  if (pageNode) {
+    const inside = (pageNode.children ?? []).filter((child) => (child.absolute ? (pinned.push(child), false) : true));
+    const elements = inside.map((child) => convert(child, ctx)).filter(Boolean);
+    const padding = pageNode.layout?.padding ?? [];
+    children = padding.some(Boolean) ? [frameElement({ ...pageNode, children: inside }, elements, ctx)] : elements;
+  }
+  const footer = after.filter((part) => part !== pageNode && !(part.absolute && pinned.push(part)) && after.indexOf(part) > after.indexOf(pageNode)).map((part) => convert(part, ctx)).filter(Boolean);
+  if (footer.length) props.footer = { kind: "element", node: oneOf(footer, { name: "Footer", layout: { mode: "VERTICAL" } }, ctx) };
+  if (pinned.length) {
+    const { absolute, ...floating } = innermost(pinned[0]);
+    const element = convert(floating, ctx);
+    if (element) props.floatingAction = { kind: "element", node: element };
+    if (pinned.length > 1) ctx.notes.push(`AppShell "${node.name}": ${pinned.length} layers sit outside the auto layout; the first is the floating action, the others are left out`);
+  }
+  if (asideNode) props.aside = { kind: "element", node: convert(asideNode, ctx) };
+  return { kind: "element", name: "AppShell", props, children };
 }
 
 /** Each element's Figma layer: its parent reads its Fill container from it. */
@@ -810,6 +917,9 @@ function convertNode(node, ctx) {
     // an AppShell's sections would.
     return PADDED.has(set.code) && node.layout?.padding?.some(Boolean) ? padded(element, node, ctx) : element;
   }
+  // An app frame (Sidebar beside a column under the Dashboard header Type=Navigation): AppShell.
+  const shell = appShellElement(node, ctx);
+  if (shell) return shell;
   // A grid's layers in the order Figma places them (row by row), which the layers panel need not follow.
   const layers = node.layout?.mode === "GRID" ? [...(node.children ?? [])].sort((a, b) => (a.cell?.row ?? 0) - (b.cell?.row ?? 0) || (a.cell?.col ?? 0) - (b.cell?.col ?? 0)) : node.children ?? [];
   const children = layers.map((child) => convert(child, ctx)).filter(Boolean);
@@ -878,6 +988,36 @@ function frameElement(node, children, ctx) {
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
 }
 
+/**
+ * A Studio Screen's app frame as the push draws it (figma-push.mjs, screen-chrome.mjs): the frame's one layer "Screen",
+ * a row of the Sidebar and "Main" (its "Header" holding the Page header, then "Content"). It gives the Screen's
+ * `sidebar` and `header` props back (the Dashboard header Type=Main as the PageHeader it renders) and Content's layers
+ * as the page. Anything else: null.
+ */
+function screenChrome(frame, ctx) {
+  const [row] = frame?.children ?? [];
+  if (frame?.children?.length !== 1 || row.type !== "FRAME" || row.name !== "Screen" || row.layout?.mode !== "HORIZONTAL") return null;
+  const sidebarNode = instanceIn(row.children?.[0], "Sidebar", ctx);
+  const main = row.children?.[sidebarNode ? 1 : 0];
+  if (!main || main.name !== "Main" || (row.children?.length ?? 0) > (sidebarNode ? 2 : 1)) return null;
+  const headerFrame = main.children?.find((part) => part.name === "Header");
+  const contentFrame = main.children?.find((part) => part.name === "Content");
+  if (!contentFrame) return null;
+  const props = {};
+  if (sidebarNode) props.sidebar = { kind: "element", node: convert(sidebarNode, ctx) };
+  const headerNode = headerFrame?.children?.[0];
+  let header = headerNode ? unpadded(convert(headerNode, ctx)) : null;
+  // The Page header: DashboardHeader type="main" draws a PageHeader (title, childTitle, description, actions, trailing).
+  if (header?.name === "DashboardHeader" && header.props.type?.value === "main") {
+    const { type, subheading, ...rest } = header.props;
+    header = { ...header, name: "PageHeader", props: { ...rest, ...(subheading ? { description: subheading } : {}) } };
+  }
+  if (header) props.header = { kind: "element", node: header };
+  const layers = (contentFrame.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  const root = layers.length === 1 ? layers[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: layers };
+  return { props, root };
+}
+
 /** The frame's device: a phone up to 480 px wide, a tablet up to 1100, else a desktop. */
 const deviceOf = (width) => (typeof width === "number" && width <= 480 ? "phone" : typeof width === "number" && width <= 1100 ? "tablet" : "desktop");
 
@@ -890,11 +1030,15 @@ const deviceOf = (width) => (typeof width === "number" && width <= 480 ? "phone"
  */
 export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapping, file = null }) {
   const ctx = { mapping, notes: [], ids: new Set(), drawings: [] };
-  const root = convert(frame, ctx);
+  const chrome = screenChrome(frame, ctx);
+  let root = chrome ? chrome.root : convert(frame, ctx);
+  // The push's page frame around an app frame (a column holding only the AppShell): the AppShell itself.
+  if (root?.name === "Stack" && root.children.length === 1 && root.children[0].name === "AppShell" && Object.keys(root.props).every((name) => name === "gap")) root = root.children[0];
   if (ctx.drawings.length) ctx.notes.push(`${ctx.drawings.length} drawings (vectors, shapes: ${[...new Set(ctx.drawings)].join(", ")}) are left out: a page has no layer for them`);
   const own = (part) => (frame?.id ? figmaDocId(frame.id, part) : undefined);
-  const content = root ? (root.name === "Stack" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
-  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)) }, children: content ? [content] : [] };
+  // A Stack, or an AppShell (an app frame), is the Screen's content as it is; anything else goes in a Stack.
+  const content = root ? (root.name === "Stack" || root.name === "AppShell" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
+  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
   const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
   const walk = (node) => {

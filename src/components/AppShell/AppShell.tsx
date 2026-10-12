@@ -1,6 +1,7 @@
 import { cloneElement, createContext, forwardRef, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type FocusEvent, type HTMLAttributes, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { Avatar, type AvatarTheme } from "../Avatar";
 import { IconButton } from "../Button";
+import { DashboardHeader } from "../DashboardHeader";
 import { useModal } from "../Dialog/Dialog";
 import { Icon, type IconName } from "../Icon";
 import { usePresence } from "../Motion/usePresence";
@@ -190,7 +191,10 @@ function useStackedHeader(header: HTMLElement | null, content: HTMLElement | nul
     const style = getComputedStyle(header);
     const room = header.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     if (room <= 0) return;
-    const leadingGap = content.parentElement ? parseFloat(getComputedStyle(content.parentElement).columnGap) || 0 : 0;
+    // The content sits in the bar's Leading-Slots (DashboardHeader type="navigation"), which sits in the header.
+    const leading = content.parentElement;
+    const leadingGap = leading ? parseFloat(getComputedStyle(leading).columnGap) || 0 : 0;
+    const barGap = leading?.parentElement ? parseFloat(getComputedStyle(leading.parentElement).columnGap) || 0 : 0;
     // Rendered widths ÷ the scale the top bar is drawn at (a CSS transform around the shell): CSS px, as `room` is.
     const scale = header.offsetWidth > 0 ? header.getBoundingClientRect().width / header.offsetWidth || 1 : 1;
     const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
@@ -200,7 +204,7 @@ function useStackedHeader(header: HTMLElement | null, content: HTMLElement | nul
     content.style.flex = "none"; content.style.width = "max-content";
     const natural = content.getBoundingClientRect().width / scale;
     content.style.flex = flex; content.style.width = width;
-    const needed = natural + (toggleWidth ? toggleWidth + leadingGap : 0) + (actionsWidth ? actionsWidth + (parseFloat(style.columnGap) || 0) : 0);
+    const needed = natural + (toggleWidth ? toggleWidth + leadingGap : 0) + (actionsWidth ? actionsWidth + barGap : 0);
     setStacked(needed > room + 0.5);
   }, [header, content, toggle, actions]);
   // After every render (the Breadcrumbs change with the page) and whenever the top bar resizes.
@@ -219,12 +223,15 @@ const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__foot
 
 /**
  * The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):
- * Sidebar navigation, a sticky top bar (Header/Dashboard Type=Navigation 4122:33400), the page, and optional banner,
- * docked side panel and floating action, with a "Skip to content" link. From 1024px the Sidebar sits beside the page
- * and the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer.
+ * Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a
+ * "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar
+ * collapses it to its rail; narrower, it opens as a modal drawer.
  *
- * Top bar: Margin-Comfortable top and sides, Spacing/Padding/XSmall bottom, a Button/Size/Medium row; toggle → content
- * Spacing/Gap/XSmall, leading → trailing Spacing/Gap/Medium, trailing actions Spacing/Gap/Small.
+ * Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader
+ * type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,
+ * `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually
+ * DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar
+ * pads Spacing/Padding/Small above and below and Margin-Comfortable at the sides around a Button/Size/Medium row.
  *
  *   <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>
  *     <Container><PageHeader title="Team members" /> …</Container>
@@ -393,13 +400,16 @@ export function AppShell({
           {sidebar && !compact ? <div ref={setSidebarEl} id={sidebarId} className="zen-app-shell__sidebar">{inlineSidebar}</div> : null}
           <div className="zen-app-shell__column">
             {hasTopBar || showMenuButton ? (
-              <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined} data-center={headerCenter ? "true" : undefined}>
-                <div className="zen-app-shell__header-leading">
-                  {toggle}
-                  {header ? <div ref={setContentEl} className="zen-app-shell__header-content">{nest.slot(header)}</div> : null}
-                </div>
-                {headerCenter ? <div className="zen-app-shell__header-center">{nest.slot(headerCenter)}</div> : null}
-                {headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{nest.slot(headerActions)}</div> : null}
+              <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined}>
+                {/* The bar is Figma's Primitives/Dashboard/Header Type=Navigation (4122:33400): the toggle and the
+                    content in Leading-Slots, the centre block in Center-Slots, the actions in Trailing-Slots. */}
+                <DashboardHeader
+                  type="navigation"
+                  className="zen-app-shell__bar"
+                  leading={<>{toggle}{header ? <div ref={setContentEl} className="zen-app-shell__header-content">{nest.slot(header)}</div> : null}</>}
+                  center={headerCenter ? nest.slot(headerCenter) : undefined}
+                  trailing={headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{nest.slot(headerActions)}</div> : undefined}
+                />
               </header>
             ) : null}
             <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>

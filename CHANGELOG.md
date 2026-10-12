@@ -19,6 +19,14 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- AppShell is built from the Zen components Figma's ◇ Master-Layout uses: its top bar is a DashboardHeader
+  type="navigation" (Figma's Dashboard header Type=Navigation, its Leading-, Center- and Trailing-Slots), next to the
+  Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API and look unchanged (93 of 94 example
+  panels identical; the other is the fix below). The Studio's slots follow the new markup.
+- Zen Studio ↔ Figma: an app frame comes back from Figma as an AppShell — Figma's Master-Layout (the Sidebar pattern
+  beside Main-Container › Header/Dashboard › Sections, Body, Floating-Actions) and the frames the Studio pushes — with
+  its header, center, actions (the account as AppShellAccount), sections, page, footer and floating action; a Studio
+  Screen's own Sidebar and Page header come back as the Screen's.
 - Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): Tabs `Tab` → `Tab-Item`,
   Uploader `File` → `File-Item`. Zen's own names stay where Figma differs: `Send`, `Action`
   (its own component and tokens; an inline component's own buttons are its Action too), `Actions` (the action row), a
@@ -875,6 +883,10 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- AppShell: on a narrow top bar a centred Search (`headerCenter`) no longer runs under the actions; it stops a
+  Spacing/Gap/Medium before them.
+- Zen Studio: an AppShell on a Screen fills the Screen and its Sidebar spans the whole page, as in Figma; it was as
+  tall as the browser window (the app's sticky 100dvh), shorter than the page.
 - Zen Studio → Figma: an app page no longer imports as an empty frame. A component with no Figma set is drawn with
   what it holds instead of being left out with everything inside it: AppShell as its Sidebar and a top bar of Figma's
   Dashboard header Type=Navigation (collapse toggle, header, actions, the account's Avatar), the Screen's own Sidebar

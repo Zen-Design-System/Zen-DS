@@ -124,3 +124,24 @@
   without errors (no plugin change). Dashboard 1 → 125 layers, Admin list 1 → 158.
 - Left for P3: charts (no sets captured), MetricCard trend/action, ListItem leading, ListBox header.
 - Not done: the user's try in Figma with the new export (Download again from Studio › Export › Figma).
+
+## P2: AppShell rebuilt on Figma's parts; app frames pulled back as AppShell (tier L)
+
+- Worktree `Zen-DS-appshell`, branch `zen/feat/appshell-figma` on top of the P1 branch (PR #26), so the shared main
+  checkout and :5173 stay as they are. Own dev server :5187 (`.claude/launch.json` zen-appshell-worktree-5187).
+- AppShell's top bar renders `DashboardHeader type="navigation"` (leading = toggle + header, center, trailing); the
+  `<header>` stays the sticky padded shell. Without a centre the leading content keeps taking the rest (as before);
+  stacking and its measure unchanged (row gap read from the bar). Studio slot selectors moved to the bar's slots;
+  palette selftest reads DashboardHeader's files for AppShell; Center-Slots gap "own".
+- visual-diff before/after (app-shell, sidebar, breadcrumbs, dashboard-header, alert-banner, visually-hidden,
+  page-header; 1512 + 390): 93/94 identical. The changed one is a fix: at 390 the centred Search ran under the bell.
+- figma-pull: `appShellElement` (Master-Layout and the push's frames → AppShell), `screenChrome` (the push's Screen
+  frame → Screen sidebar/header), Type=Main title from `text`/`texts` when no Header-Text slot; the root Stack around
+  a lone AppShell is dropped. The live Overviews fixture now pulls as an AppShell (3 checks rewritten, 1 dropped).
+- Checks: pull 47, push 57 (round trips), Studio self-tests, Vitest smoke + AppShell 177, tsc, guidelines rebuilt.
+- Gate run 1 failed on E2E NO-19 ("the Sidebar is 540 px tall in a 686 px row"): the pulled Overviews is now an
+  AppShell, and an AppShell on a Studio Screen was as tall as the browser window (sticky 100dvh), shorter than the page
+  (the user's Dashboard page too). Fixed in `builder.css` (AppShell fills the Screen; Sidebar / aside height auto).
+  NO-18/19/20 + HO-10 rerun: works; HO-10 added to the E2E baseline (P1 had left it out).
+- Question logged (BACKLOG): top bar 72 in Figma's Master vs 64 in code since 2026-10-09.
+

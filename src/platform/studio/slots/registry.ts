@@ -307,6 +307,8 @@ const pageHeaderActions: ContentSlot = {
  */
 const APP_SHELL_COLUMN = ":scope > .zen-app-shell__frame > .zen-app-shell__column";
 const APP_SHELL_HEADER = `${APP_SHELL_COLUMN} > .zen-app-shell__header`;
+/** The bar inside the header: DashboardHeader type="navigation" (Leading-, Center- and Trailing-Slots). */
+const APP_SHELL_BAR = `${APP_SHELL_HEADER} > .zen-app-shell__bar`;
 
 const appShellSidebar: ContentSlot = {
   // {sidebar && !compact ? <div … className="zen-app-shell__sidebar">…} beside the column (a phone shows it as the drawer).
@@ -317,12 +319,12 @@ const appShellSidebar: ContentSlot = {
 };
 
 const appShellHeader: ContentSlot = {
-  // {header ? <div … className="zen-app-shell__header-content">…} after the menu toggle (Figma Leading-Slots): Breadcrumbs,
+  // {header ? <div … className="zen-app-shell__header-content">…} in the bar's Leading-Slots after the menu toggle: Breadcrumbs,
   // a title, a Search. The top bar renders only with a part in it: without one the ghost sits at the column's top.
   component: "AppShell", prop: "header", name: "Leading-Slots",
-  kind: "content", container: `${APP_SHELL_HEADER} > .zen-app-shell__header-leading > .zen-app-shell__header-content`, mountsWhenEmpty: false,
+  kind: "content", container: `${APP_SHELL_BAR} > .zen-dashboard-header__leading > .zen-app-shell__header-content`, mountsWhenEmpty: false,
   ghostAnchor: [
-    { selector: `${APP_SHELL_HEADER} > .zen-app-shell__header-leading`, place: "last-child" },
+    { selector: `${APP_SHELL_BAR} > .zen-dashboard-header__leading`, place: "last-child" },
     { selector: APP_SHELL_COLUMN, place: "first-child", flow: "row" },
   ],
   flow: "row", gap: "own",
@@ -330,24 +332,24 @@ const appShellHeader: ContentSlot = {
 };
 
 const appShellHeaderCenter: ContentSlot = {
-  // {headerCenter ? <div className="zen-app-shell__header-center">…} the top bar's middle (Figma Center-Slots, up to 400px).
+  // The bar's Center-Slots (DashboardHeader `center`): the top bar's middle, up to 400px.
   component: "AppShell", prop: "headerCenter", name: "Center-Slots",
-  kind: "content", container: `${APP_SHELL_HEADER} > .zen-app-shell__header-center`, mountsWhenEmpty: false,
+  kind: "content", container: `${APP_SHELL_BAR} > .zen-dashboard-header__center`, mountsWhenEmpty: false,
   ghostAnchor: [
-    { selector: `${APP_SHELL_HEADER} > .zen-app-shell__header-leading`, place: "after" },
+    { selector: `${APP_SHELL_BAR} > .zen-dashboard-header__leading`, place: "after" },
     { selector: APP_SHELL_COLUMN, place: "first-child", flow: "row" },
   ],
-  flow: "row", gap: "none", max: 1,
+  flow: "row", gap: "own", max: 1,
   accepts: { only: ["Search", "Segmented", "Tabs"] },
 };
 
 const appShellHeaderActions: ContentSlot = {
-  // {headerActions ? <div … className="zen-app-shell__header-actions">…} at the top bar's end (Figma Trailing-Slots): a plan
+  // {headerActions ? <div … className="zen-app-shell__header-actions">…} in the bar's Trailing-Slots, at its end: a plan
   // Badge, AppShellAction buttons, the account.
   component: "AppShell", prop: "headerActions", name: "Trailing-Slots",
-  kind: "content", container: `${APP_SHELL_HEADER} > .zen-app-shell__header-actions`, mountsWhenEmpty: false,
+  kind: "content", container: `${APP_SHELL_BAR} > .zen-dashboard-header__trailing > .zen-app-shell__header-actions`, mountsWhenEmpty: false,
   ghostAnchor: [
-    { selector: APP_SHELL_HEADER, place: "last-child" },
+    { selector: APP_SHELL_BAR, place: "last-child" },
     { selector: APP_SHELL_COLUMN, place: "first-child", flow: "row" },
   ],
   flow: "row", gap: "own",

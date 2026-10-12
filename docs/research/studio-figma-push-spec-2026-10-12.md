@@ -246,3 +246,32 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
   dựng frame không lỗi (plugin không cần sửa). Trang Dashboard thật: 1 → 125 layer; Admin list: 1 → 158.
 - Còn lại cho P3: ChartCard / LineChart / StackBarChart vẫn bị bỏ (chưa có set trong contract), MetricCard `trend` /
   `action`, ListItem `leading`, ListBox `header` chưa có slot Figma.
+
+### P2 (2026-10-12, nhánh `zen/feat/appshell-figma`, xếp trên nhánh P1)
+
+- **Code:** thanh trên cùng của AppShell giờ là `DashboardHeader type="navigation"` (Figma Primitives/Dashboard/Header
+  Type=Navigation 4122:33400): nút thu gọn + `header` ở Leading-Slots, `headerCenter` ở Center-Slots, `headerActions`
+  ở Trailing-Slots; `<header>` của AppShell chỉ còn là vỏ sticky (padding, nền Canvas). API không đổi. Khi không có
+  Center-Slots, phần leading lấy chỗ còn lại như trước (Figma vẽ hai nửa FILL; nội dung vừa nửa thì trông như nhau), nên
+  Breadcrumbs dài vẫn trên một hàng; cách xếp chồng (stacked) và đo đạc giữ nguyên, khoảng cách hàng đọc từ bar.
+  Slot của Studio (`slots/registry.ts`) theo DOM mới.
+- **So ảnh** (`visual-diff`, 7 trang dùng AppShell, 1512 + 390): 93/94 khung giống hệt; khung còn lại là sửa lỗi —
+  ở 390 ô Search giữa thanh (headerCenter) trước đây chạy dưới nút chuông, giờ dừng trước nó (Trailing-Slots không co
+  dưới nội dung).
+- **Pull:** `figma-pull.mjs appShellElement` đọc một frame ngang [Sidebar (instance, hoặc composition bọc nó), cột có
+  hàng đầu là Dashboard Header Type=Navigation, SidePanel?] thành `AppShell`: Leading-Slots (bỏ nút thu gọn AppShell
+  tự vẽ; không có nút → `sidebarToggle={false}`) → `header`, Center-Slots → `headerCenter`, Trailing-Slots →
+  `headerActions` (Avatar có tên người ở cuối → `AppShellAccount`), các hàng khác của Header/Dashboard hoặc frame
+  `Sections` → `sections`, frame trang (Body giữ padding trong một Stack; `Main` của push thì lấy thẳng layer) →
+  children, layer ngoài auto layout → `floatingAction`, layer sau trang → `footer`. Trang Overviews thật của Figma giờ
+  kéo về thành AppShell (Sidebar, Breadcrumbs, Segmented, hàng custom, IconButton nổi). `screenChrome`: frame `Screen`
+  của push → `sidebar` / `header` của Screen (Dashboard Header Main → PageHeader). Hàng Main không có Header-Text đọc
+  `text` / `texts` (JSON của push).
+- **Sửa lỗi gặp khi làm:** AppShell trên một Screen của Studio cao bằng cửa sổ trình duyệt (100dvh của app cuộn trang)
+  nên Sidebar ngắn hơn trang (E2E NO-19 bắt được khi Overviews kéo về thành AppShell; trang Dashboard của user cũng
+  vậy): `builder.css` cho AppShell phủ Screen, Sidebar và aside kéo hết chiều cao trang. HO-10 vào baseline E2E.
+- **Kiểm tra:** selftest pull 47, push 57 (thêm vòng tròn AppShell và Screen chrome), Studio self-tests xanh, Vitest
+  smoke + AppShell 177.
+- **Câu hỏi cho user / designer:** thanh trên cùng trong Master-Layout hiện đo 72px (24 trên, 8 dưới), code 64px (12 /
+  12, quyết định 2026-10-09 "theo Header/Dashboard"). Giữ 64 cho tới khi chốt (BACKLOG).
+
