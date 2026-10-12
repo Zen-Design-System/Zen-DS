@@ -323,7 +323,7 @@ export default function Page() {
   const [metricCard, lineCard, barCard] = fit.children;
   const metric = metricCard.slots[0].children[0];
   check("MetricCard: a Card (Shadow, no ⋮) around Metric-Inline, its Label and Metric-Number, Trend, Dock-Icon and Action on", { card: [metricCard.set.name, metricCard.props.Theme, metricCard.props["Sub-Action"]], metric: [metric.set.name, metric.texts, metric.props.Trend, metric.props["Dock-Icon"], metric.props.Action] }, { card: ["Card", "Shadow", false], metric: ["Primitives/Metric/Metric-Inline/Title-Highlight", { Label: "Revenue", "Metric-Number": "$541.4K" }, true, true, true] });
-  check("MetricCard: its trend badge, Dock Icon and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
+  check("MetricCard: its trend badge, Dock Icon (its background written too: Metric's Subtle) and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", Background: "Subtle", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
   const line = lineCard.slots[0].children[0];
   check("ChartCard: a Card around Figma's chart of its kind, the title its Label, ranges as Segmented items, no open button without onOpen", { set: line.set.name, texts: line.texts, items: line.slots?.[0]?.children.map((item) => `${item.text}:${item.props.Select}`), hide: line.hide }, { set: "Chart/Line-Chart", texts: { Label: "Revenue" }, items: ["Revenue:Yes", "Profit:No"], hide: ["Button/Icon-Main"] });
   check("ChartCard without ranges: its Segmented hidden", barCard.slots[0].children[0].hide, ["Segmented", "Button/Icon-Main"]);
@@ -855,6 +855,41 @@ export default function Page() {
 }
 `;
   check("Avatar: one letter at XSmall, two at Medium", push(page).frame.children.map((avatar) => avatar.text), ["A", "AC"]);
+}
+
+// 24. Metric and MetricCard (2026-10-13): the Dock Icon shows by default (MetricWidget.tsx: icon-home-02-solid, Neutral,
+//     Subtle) as the code draws it; the pull gives a lone Metric-Inline back as a Metric and a Card holding one as the
+//     MetricCard (label, value, trend, icon), from the push and from Figma's read of the import (fixtures/figma-metric.json,
+//     the trend's override on its Badge).
+{
+  const page = `// @zen-page {"format":1,"title":"KPIs"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Metric, MetricCard, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="KPIs" device="desktop">
+        <Stack>
+          <MetricCard label="Revenue" value="$12,400" icon="icon-wallet-02-line" iconTheme="green" theme="border" trend={{ direction: "negative", label: "-3%" }} />
+          <Metric label="Orders" value="320" />
+          <Metric label="Refunds" value="4" icon={false} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [, orders, refunds] = frame.children;
+  check("Metric: its default Dock Icon shows (home, Neutral, Subtle); icon={false} hides it", [orders.props["Dock-Icon"], orders.nested?.find((nested) => nested.path === "Metric-Icon")?.props, refunds.props["Dock-Icon"]], [true, { Theme: "Neutral", Background: "Subtle", "Icon-Src": "icon-home-02-solid" }, false]);
+  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-metric.json", import.meta.url), "utf8")).frame;
+  const fromFigma = pageFromFigma(read, { mapping });
+  check("round trip: the same MetricCard and Metric from Figma's read of the import", shape(fromFigma.text).children[0].children[0].children.slice(0, 2), shape(page).children[0].children[0].children.slice(0, 2));
+  check("round trip from Figma: no notes", fromFigma.notes, []);
 }
 
 if (failures.length) {

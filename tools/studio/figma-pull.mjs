@@ -1079,9 +1079,11 @@ function convertNode(node, ctx) {
       if (text && !["Choose date", "Choose dates", "Heading"].includes(text)) props.title = literal(text);
     }
     if (set.code === "ChatMessage") chatMessageParts(node, props, ctx);
+    const metric = METRIC_SET.test(setName);
+    if (metric) metricParts(node, props, ctx);
     // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title, a
     // chat message's Avatar and reaction pill its author and reactions (read above).
-    const ownParts = (nested) => set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path)));
+    const ownParts = (nested) => set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path))) || (metric && /^(Trend|Metric-Icon)(\/|$)/.test(nested.path));
     for (const nested of (node.nested ?? []).filter((nested) => !ownParts(nested))) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
@@ -1093,7 +1095,10 @@ function convertNode(node, ctx) {
     for (const layer of new Set((node.nested ?? []).filter((nested) => !ownParts(nested)).map((nested) => nested.path.split("/")[0]))) {
       if (node.props?.[layer] === true && !set.toggles?.some((toggle) => toggle.label === layer)) notes.push(`${where}: ${layer} shows in Figma; set it on the ${set.code} in the Studio (its overrides apply once it is there)`);
     }
-    const element = { kind: "element", name: set.code, props, children };
+    // Metric-Inline alone is a Metric; a Card holding only one is the MetricCard (figma-push draws it so).
+    const lone = children.length === 1 && children[0].kind === "element" && children[0].name === "Metric" ? children[0] : null;
+    if (set.code === "Card" && lone && Object.keys(props).every((name) => name === "theme")) return { kind: "element", name: "MetricCard", props: { ...lone.props, ...props }, children: [] };
+    const element = { kind: "element", name: metric ? "Metric" : set.code, props, children };
     // A row Figma pads (Header/Dashboard's Sections pad each Primitives/Dashboard/Header): a Stack takes its padding, as
     // an AppShell's sections would.
     return PADDED.has(set.code) && node.layout?.padding?.some(Boolean) ? padded(element, node, ctx) : element;
@@ -1187,6 +1192,44 @@ function frameElement(node, children, ctx) {
   // Figma's Clip content: the Stack or Grid clips too (figmaReadCode leaves it off the page frame).
   if (node.clip) props.clip = literal(true);
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
+}
+
+/** Figma's Metric-Inline sets (Metric; in a Card, MetricCard). */
+const METRIC_SET = /^Primitives\/Metric\/Metric-Inline\//;
+/** Figma .Primitives/Metrics/Metric-Trend's Trend option → MetricCard trend.direction (figma-push TREND_OPTION). */
+const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "normal" };
+/** Metric-Trend's Badge theme by its Trend (Positive green, Negative red, Normal neutral) → the direction. */
+const BADGE_DIRECTION = { Green: "positive", Red: "negative", Neutral: "normal" };
+
+/**
+ * Metric-Inline's parts as figma-push metricParts writes them: Label and Metric-Number, the Trend badge (direction and
+ * label), the Metric-Icon Dock Icon (icon, theme, background).
+ */
+function metricParts(node, props, ctx) {
+  const label = ownText(node, "Label");
+  const value = ownText(node, "Metric-Number");
+  if (label && node.props?.["Metric-Title"] !== false) props.label = literal(label);
+  if (value) props.value = literal(value);
+  // The trend: its Metric-Trend (the push's own JSON) or the Badge inside it (Figma's read: the override sits there).
+  const trend = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend") : null;
+  const badge = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend/Badge") : null;
+  if (trend || badge) {
+    const fields = { direction: literal(TREND_DIRECTION[trend?.props?.Trend] ?? BADGE_DIRECTION[badge?.props?.Theme] ?? "positive") };
+    const text = trend?.textList?.[0] ?? trend?.text ?? badge?.props?.Text ?? badge?.text;
+    if (text) fields.label = literal(text);
+    props.trend = { kind: "object", fields };
+  }
+  const dock = node.props?.["Dock-Icon"] === true ? (node.nested ?? []).find((nested) => nested.path === "Metric-Icon") : null;
+  const dockSet = dock ? [...ctx.mapping.sets.values()].find((set) => set.code === "DockIcon") : null;
+  // Its Dock Icon: hidden is icon={false}; Metric's defaults (icon-home-02-solid, neutral, subtle) are left out.
+  if (node.props?.["Dock-Icon"] === false) props.icon = literal(false);
+  if (dock && dockSet) {
+    const fields = instanceProps({ ...dock, set: dock.set ?? { id: dockSet.id, name: dockSet.name } }, dockSet, ctx.mapping, ctx.notes, "Metric › Metric-Icon");
+    if (fields.icon && fields.icon.value !== "icon-home-02-solid") props.icon = fields.icon;
+    if (fields.theme && fields.theme.value !== "neutral") props.iconTheme = fields.theme;
+    if (fields.background && fields.background.value !== "subtle") props.iconBackground = fields.background;
+  }
+  delete props.children;
 }
 
 /** Figma's chat sets the push draws around ChatMessage (figma-push chatMessageNode, chatThreadNode). */

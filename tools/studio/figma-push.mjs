@@ -62,6 +62,8 @@ const FIELDS = new Set(["InputField", "SelectField", "DateField", "NumberField",
 const textValue = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
 /** A ChartCard's chart (its child) → the Figma chart card that draws that kind. */
 const CHART_SETS = { LineChart: SETS.lineChart, StackBarChart: SETS.stackBarChart };
+/** Metric's icon when it sets none (MetricWidget.tsx). */
+const METRIC_ICON = "icon-home-02-solid";
 /** MetricCard trend.direction → Figma .Primitives/Metrics/Metric-Trend's Trend option. */
 const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal", neutral: "Normal" };
 /** A Table column's content cell (Figma Table/Cell/Default › Content) by the column's `content`. */
@@ -1131,12 +1133,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
     const trend = plain(element.props.trend);
     const action = layerOf(element, "action");
-    Object.assign(node.props, onlyOwn(node.set, { "Metric-Title": Boolean(texts.Label), Trend: Boolean(trend), "Dock-Icon": typeof code.icon === "string", Action: Boolean(action) }));
+    // Its Dock Icon shows unless icon={false} (MetricWidget.tsx: icon-home-02-solid, Neutral, Subtle by default).
+    const icon = code.icon === false || code.iconEmoji ? null : typeof code.icon === "string" ? code.icon : METRIC_ICON;
+    Object.assign(node.props, onlyOwn(node.set, { "Metric-Title": Boolean(texts.Label), Trend: Boolean(trend), "Dock-Icon": code.icon !== false && Boolean(icon || code.iconEmoji), Action: Boolean(action) }));
     const nested = [];
     if (trend && typeof trend === "object") nested.push({ path: "Trend", props: TREND_OPTION[trend.direction] ? { Trend: TREND_OPTION[trend.direction] } : {}, ...(typeof trend.label === "string" ? { textList: [trend.label] } : {}) });
-    const dock = typeof code.icon === "string" ? entryFor("DockIcon", {}, byCode, mapping) : null;
+    const dock = icon ? entryFor("DockIcon", {}, byCode, mapping) : null;
     if (dock) {
-      const fields = { icon: code.icon, ...(code.iconTheme ? { theme: code.iconTheme } : {}), ...(code.iconBackground ? { background: code.iconBackground } : {}) };
+      const fields = { icon, theme: code.iconTheme ?? "neutral", background: code.iconBackground ?? "subtle" };
       nested.push({ path: "Metric-Icon", props: figmaProps(dock, fields, mapping, notes, `${where} › Metric-Icon`, new Set(Object.keys(fields))) });
     }
     const actionIcon = action?.name === "IconButton" ? literalOf(action.props.icon) : undefined;
