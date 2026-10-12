@@ -85,7 +85,7 @@
   `docs/figma-contracts/nested-layers.json`; nested-paths reads it for sets without a full contract and for layers a
   full one dropped. Re-read: `tools/figma-contract/nested-layers-read.mjs code | merge`.
 - Result: Input's hidden Leading / Trailing now checked (4 ALLOWED entries gone; Text-Area has none in Figma); 44/44
-  components match after renaming code layers to Figma's (Icon, Tab-Item, File-Item, Main — checked in the file:
+  components match after renaming code layers to Figma's (Tab-Item, File-Item, Main — checked in the file:
   Chat-Control's Main is the trailing send action) and allowing the rest with reasons (unnamed instances, glyph-named
   icons, layers Figma does not draw); designer item in BACKLOG.
 - User review of PR #25: Action → CTA, Actions → Buttons and Primary → CTA were wrong and are reverted. Action is its own
@@ -93,7 +93,9 @@
   My mistake (read read-only in Figma afterwards): Empty-State's CTA is the wrapper (.Empty-State/CTAs) of two unnamed
   Button/Main (Primary, Tertiary), not the primary button; Dialog / Side-Panel do have an Actions frame (Buttons is the
   .Primitives/Modal/Actions instance inside it). Zen's names are kept and allowed with reasons; the Figma side is in
-  the BACKLOG designer item. Lesson: a layer-name gate is matched by asking which side follows the principle, not by
+  the BACKLOG designer item. Second review: `Leading` is the wrapper that holds an icon or any other element
+  (InlineMessage's and Toast's `icon` take a node; Inline-Message Custom is a Visual slot), so Leading → Icon is
+  reverted too; an inline component's own buttons are its `Action` (not the top navigation's). Lesson: a layer-name gate is matched by asking which side follows the principle, not by
   renaming code to Figma.
 - Found and fixed: contracts.lock.json was stale on main (10 sets: the 2026-10-09 re-captures and DashboardHeader never
   refreshed it), so figma-kit's selftest failed; `figma-call.mjs lock` → 13/13.

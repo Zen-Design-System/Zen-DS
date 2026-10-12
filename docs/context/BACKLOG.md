@@ -14,7 +14,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   ChatCall actions, Pagination's Previous / Next / page-size chip, SidePanel's close button), icons named after their
   glyph (AlertBanner, Dialog, SidePanel, EmptyState, Tabs), and Figma names that differ from Zen's, which the code keeps
   (user, 2026-10-12): Empty-State's buttons unnamed inside CTA (code `Primary` / `Secondary`), Modal/Forms' action row
-  `Footer › Buttons` (code `Actions`, as Dialog and Side-Panel), Bottom-Navigation Floating's `CTA` (code `Action`).
+  `Footer › Buttons` (code `Actions`, as Dialog and Side-Panel), Bottom-Navigation Floating's `CTA` (code `Action`),
+  Inline-Message's `Icon-Wrapper › Icon` / Custom `Visual` slot and Toast's `icon-Container › Icon` (code `Leading`).
   Naming them in Figma with Zen's names lets the gate check them and a Studio page's overrides land in Figma by name.
   Pointer: `ALLOWED` in nested-paths.mjs.
 - **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example

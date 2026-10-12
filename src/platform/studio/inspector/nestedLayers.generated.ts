@@ -315,7 +315,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "Toast": {
     "Action": "Button",
-    "Icon": "Icon"
+    "Leading": "Icon"
   },
   "ToggleListItem": {
     "Leading": "Icon",

@@ -50,7 +50,8 @@ const ALLOWED = {
   Stepper: { Step: "Figma's steps are unnamed instances of .Primitives/Stepper/Step-Horizontal or Step-Vertical" },
   Tabs: { Icon: "Figma's tab icon is named after its glyph (icon-home-03-solid)" },
   Tag: { Avatar: "Figma's Tag shows its photo through Leading (Image, Status inside), no Avatar layer" },
-  Toast: { Action: "unnamed in Figma: Button/Overlay or Button/Main by the toast's type" },
+  Toast: { Action: "unnamed in Figma: Button/Overlay or Button/Main by the toast's type", Leading: "Zen's Leading holds the icon or any node (icon prop); Figma draws icon-Container › Icon" },
+  InlineMessage: { Leading: "Zen's Leading holds the icon or any visual (icon prop); Figma draws Icon-Wrapper › Icon, or the Visual slot for Theme=Custom" },
   FileUpload: { Retry: "Figma's File-Item shows Replace and Remove; Retry is the code's, for a failed upload" },
 };
 
