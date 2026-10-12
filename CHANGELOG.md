@@ -875,6 +875,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- SidePanel: content in the body no longer shrinks when the body overflows; it scrolls. A Segmented or code block
+  was squeezed instead (Studio Export's tabs at 25px, labels cut off).
 - `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
   component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in

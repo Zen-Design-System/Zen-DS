@@ -430,5 +430,13 @@ layer Figma qua nhiều máy: ghi nó vào TSX (thuộc tính) hoặc một file
   `Button` từng hàng); figma-pull đưa Actions-Cell thành cột đó, icon riêng của một hàng thành override của hàng đó;
   Studio cho chọn Content = Actions. NO-21: 6 cột, 9 nút "Open, row N".
 - **AiChatBubble:** có `overrides`; các nút hành động là layer `Button[i]`, tooltip vẫn chạy (Vitest).
-- Còn lại: các mục chờ designer trong BACKLOG (Date field Leading-Icon, contract Input có layer ẩn, 29 component chưa
-  có contract); Q4 / Q5 (tuỳ chọn) chờ user duyệt.
+- Sau đó (2026-10-12), đã xong:
+  - Q4 / Q5 được duyệt và làm xong (PR #24): đẩy trang Studio sang Figma qua plugin Zen › Import from Studio, Figma
+    đổi binding thì stylesheet đi theo, lưu token xong thì gắn lại variable.
+  - Contract Input có layer ẩn và 29 component chưa có contract (PR #25): gate `nested-paths` phủ 44 component.
+  - Tên lớp trong Figma đổi theo nguyên tắc của Zen: 186 lớp, ghi lại ở `docs/figma-contracts/layer-renames-2026-10-12.json`.
+- Còn lại:
+  - User thử Studio → Figma một lần trên bản sao file.
+  - Publish library Figma.
+  - Phần mở rộng export (P1 → P4, `docs/research/studio-figma-push-spec-2026-10-12.md` §8) do session "Studio
+    export/import Figma frame" làm.

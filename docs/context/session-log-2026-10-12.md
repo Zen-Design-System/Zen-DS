@@ -104,3 +104,14 @@
   order) was the probe, not the app: the previous card's failed submit focuses and scrolls to its invalid field a few
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
+
+## SidePanel body children squeezed (Studio Export tabs cut off) (tier S)
+
+- User screenshot: Studio Export's Segmented (React · HTML · Handoff · Figma · Design file) clipped to a thin strip.
+- Cause: `.zen-side-panel__body` is a scrolling flex column; its children kept `flex-shrink: 1`, and a child whose
+  min-height resolves to 0 (Segmented clips with `overflow-x: auto`, the code block has its own overflow, or any fixed
+  height) shrank instead of the body scrolling. Repro in the browser: Segmented 25px (should be 40), a 56px block 30px.
+- Fix at the owner: `side-panel.css` gives body children `flex-shrink: 0`. After: 40 / 56, body scrolls (572 of 613).
+- Gate (`--files=side-panel.css`): passed; sheets side-panel 390/1512 looked at, no change.
+- Committed by session "Kiểm tra tiến độ plan" (user, 2026-10-12): the session that wrote it had ended and the change
+  sat uncommitted in the shared checkout.
