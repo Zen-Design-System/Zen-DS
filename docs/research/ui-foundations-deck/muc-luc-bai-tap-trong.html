@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Foundations · Mục lục khoá học</title>
+<!-- Inter (sans) and Newsreader (serif), both with the Vietnamese subset -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+:root {
+  --ink: #1b1a17; --ink-soft: #5f5a51; --edge: #bdb6a8; --rule: #e4dfd5;
+  --bg: #fcfbf8; --head: #f3f0ea; --paper: #efe8d8; --chip: #f1eee8; --chip-strong: #e2d9c5;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--sans); }
+main { max-width: 800px; margin: 0 auto; padding: 56px 16px 72px; }
+h1, h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: clamp(32px, 6vw, 46px); line-height: 1.15; margin: 0 0 12px; }
+h2 { font-size: clamp(24px, 4vw, 30px); line-height: 1.25; margin: 56px 0 8px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.byline { margin: 0 0 24px; color: var(--ink-soft); font-size: 14px; }
+.lead { font-size: 18px; line-height: 1.6; margin: 0; }
+p { margin: 0 0 16px; }
+figure { margin: 16px 0 16px; }
+.diagram { overflow-x: auto; background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 8px; }
+.diagram svg { display: block; width: 100%; height: auto; }
+.diagram.narrow { display: none; }
+figcaption { margin-top: 8px; font-size: 13px; color: var(--ink-soft); }
+.table { overflow-x: auto; margin: 16px 0 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.5; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+th { background: var(--head); font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+th:nth-child(1) { width: 26%; } th:nth-child(2) { width: 46%; }
+td.lesson { font-weight: 600; }
+td.exercise:empty { height: 48px; }
+ul { margin: 0 0 16px; padding-left: 22px; }
+li { margin: 4px 0; }
+@media (max-width: 640px) {
+  main { padding-top: 32px; }
+  .diagram.wide { display: none; }
+  .diagram.narrow { display: block; }
+  table, thead, tbody, tr, td { display: block; width: 100%; }
+  thead { display: none; }
+  tr { border: 1px solid var(--rule); border-radius: 10px; padding: 4px 0; margin-bottom: 12px; background: #fff; }
+  td { border: 0; padding: 6px 14px; }
+  td.exercise:empty { height: auto; min-height: 56px; }
+  td:not(.lesson)::before { content: attr(data-label); display: block; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+}
+@media print {
+  @page { size: A4; margin: 16mm; }
+  body { background: #fff; }
+  main { padding: 0; max-width: none; }
+  h2 { break-after: avoid; }
+  tr, figure { break-inside: avoid; }
+  .diagram { border: 0; padding: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>UI Foundations · Mục lục khoá học</h1>
+  <p class="byline"><time datetime="2026-10-12">12/10/2026</time></p>
+  <p class="lead">Khoá UI Foundations gồm 5 phần, 17 bài.</p>
+</header>
+
+<section>
+  <h2 id="lo-trinh">Lộ trình</h2>
+  <figure>
+    <div class="diagram wide">
+<svg viewBox="0 0 760 676" role="img" aria-label="Mỗi bài tập là một mảnh của dự án cuối khoá" font-family="Inter, system-ui, sans-serif" font-size="11.5">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--edge)"/></marker></defs>
+<text x="24" y="34" font-size="15" font-weight="600" fill="var(--ink)">Mỗi bài tập là một mảnh của dự án cuối khoá</text>
+<text x="24" y="54" fill="var(--ink-soft)">5 phần, 17 bài, đọc từ trên xuống</text>
+<g fill="none" stroke="var(--edge)" stroke-width="1.25">
+<path d="M92 132V155" marker-end="url(#arrow)"/>
+<path d="M92 332V355" marker-end="url(#arrow)"/>
+<path d="M92 492V515" marker-end="url(#arrow)"/>
+<path d="M92 572V595" marker-end="url(#arrow)"/>
+</g>
+<g><rect x="24" y="76" width="712" height="56" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="40" y="100" font-size="13" font-weight="600" fill="var(--ink)">Introduction</text>
+<text x="40" y="118" fill="var(--ink-soft)">Phần 1 · bài 01</text>
+<rect x="176" y="88" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="108" fill="var(--ink)">01 · The UI craft</text>
+</g>
+<g><rect x="24" y="156" width="712" height="176" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="40" y="180" font-size="13" font-weight="600" fill="var(--ink)">Foundations</text>
+<text x="40" y="198" fill="var(--ink-soft)">Phần 2 · bài 02–09</text>
+<rect x="176" y="168" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="188" fill="var(--ink)">02 · Figma essentials</text>
+<rect x="456" y="168" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="188" fill="var(--ink)">03 · Design process</text>
+<rect x="176" y="208" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="228" fill="var(--ink)">04 · Visual principles</text>
+<rect x="456" y="208" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="228" fill="var(--ink)">05 · Grid, layout &amp; spacing</text>
+<rect x="176" y="248" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="268" fill="var(--ink)">06 · Typography</text>
+<rect x="456" y="248" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="268" fill="var(--ink)">07 · Color &amp; accessibility</text>
+<rect x="176" y="288" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="308" fill="var(--ink)">08 · Icons, imagery, elevation &amp; motion</text>
+<rect x="456" y="288" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="308" fill="var(--ink)">09 · Platform guidelines</text>
+</g>
+<g><rect x="24" y="356" width="712" height="136" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="40" y="380" font-size="13" font-weight="600" fill="var(--ink)">Systems</text>
+<text x="40" y="398" fill="var(--ink-soft)">Phần 3 · bài 10–14</text>
+<rect x="176" y="368" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="388" fill="var(--ink)">10 · Atomic design</text>
+<rect x="456" y="368" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="388" fill="var(--ink)">11 · Figma for systems</text>
+<rect x="176" y="408" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="428" fill="var(--ink)">12 · UI elements &amp; patterns</text>
+<rect x="456" y="408" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="428" fill="var(--ink)">13 · Design tokens</text>
+<rect x="176" y="448" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="468" fill="var(--ink)">14 · Design systems</text>
+</g>
+<g><rect x="24" y="516" width="712" height="56" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="40" y="540" font-size="13" font-weight="600" fill="var(--ink)">Workflow</text>
+<text x="40" y="558" fill="var(--ink-soft)">Phần 4 · bài 15–16</text>
+<rect x="176" y="528" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="188" y="548" fill="var(--ink)">15 · DesignOps</text>
+<rect x="456" y="528" width="268" height="32" rx="8" fill="var(--chip)"/>
+<text x="468" y="548" fill="var(--ink)">16 · AI workflow for UI design</text>
+</g>
+<g><rect x="24" y="596" width="712" height="56" rx="8" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+<text x="40" y="620" font-size="13" font-weight="600" fill="var(--ink)">Project</text>
+<text x="40" y="638" fill="var(--ink-soft)">Phần 5 · bài 17</text>
+<rect x="176" y="608" width="268" height="32" rx="8" fill="var(--chip-strong)"/>
+<text x="188" y="628" font-weight="600" fill="var(--ink)">17 · Project &amp; showcase</text>
+<text x="468" y="628" fill="var(--ink-soft)">Ghép từ bài tập của 16 bài trước</text>
+</g>
+</svg>
+    </div>
+    <div class="diagram narrow">
+<svg viewBox="0 0 360 1192" role="img" aria-label="Mỗi bài tập là một mảnh của dự án cuối khoá" font-family="Inter, system-ui, sans-serif" font-size="11.5">
+<defs><marker id="arrow-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--edge)"/></marker></defs>
+<text x="8" y="26" font-size="15" font-weight="600" fill="var(--ink)">Mỗi bài tập là một mảnh</text>
+<text x="8" y="46" font-size="15" font-weight="600" fill="var(--ink)">của dự án cuối khoá</text>
+<text x="8" y="66" fill="var(--ink-soft)">5 phần, 17 bài, đọc từ trên xuống</text>
+<g><rect x="8" y="84" width="344" height="100" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="24" y="108" font-size="13" font-weight="600" fill="var(--ink)">Introduction</text>
+<text x="24" y="126" fill="var(--ink-soft)">Phần 1 · bài 01</text>
+<rect x="24" y="140" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="160" fill="var(--ink)">01 · The UI craft</text>
+</g>
+<path d="M40 184V207" fill="none" stroke="var(--edge)" stroke-width="1.25" marker-end="url(#arrow-n)"/>
+<g><rect x="8" y="208" width="344" height="380" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="24" y="232" font-size="13" font-weight="600" fill="var(--ink)">Foundations</text>
+<text x="24" y="250" fill="var(--ink-soft)">Phần 2 · bài 02–09</text>
+<rect x="24" y="264" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="284" fill="var(--ink)">02 · Figma essentials</text>
+<rect x="24" y="304" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="324" fill="var(--ink)">03 · Design process</text>
+<rect x="24" y="344" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="364" fill="var(--ink)">04 · Visual principles</text>
+<rect x="24" y="384" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="404" fill="var(--ink)">05 · Grid, layout &amp; spacing</text>
+<rect x="24" y="424" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="444" fill="var(--ink)">06 · Typography</text>
+<rect x="24" y="464" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="484" fill="var(--ink)">07 · Color &amp; accessibility</text>
+<rect x="24" y="504" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="524" fill="var(--ink)">08 · Icons, imagery, elevation &amp; motion</text>
+<rect x="24" y="544" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="564" fill="var(--ink)">09 · Platform guidelines</text>
+</g>
+<path d="M40 588V611" fill="none" stroke="var(--edge)" stroke-width="1.25" marker-end="url(#arrow-n)"/>
+<g><rect x="8" y="612" width="344" height="260" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="24" y="636" font-size="13" font-weight="600" fill="var(--ink)">Systems</text>
+<text x="24" y="654" fill="var(--ink-soft)">Phần 3 · bài 10–14</text>
+<rect x="24" y="668" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="688" fill="var(--ink)">10 · Atomic design</text>
+<rect x="24" y="708" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="728" fill="var(--ink)">11 · Figma for systems</text>
+<rect x="24" y="748" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="768" fill="var(--ink)">12 · UI elements &amp; patterns</text>
+<rect x="24" y="788" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="808" fill="var(--ink)">13 · Design tokens</text>
+<rect x="24" y="828" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="848" fill="var(--ink)">14 · Design systems</text>
+</g>
+<path d="M40 872V895" fill="none" stroke="var(--edge)" stroke-width="1.25" marker-end="url(#arrow-n)"/>
+<g><rect x="8" y="896" width="344" height="140" rx="8" fill="none" stroke="var(--edge)" stroke-width="1.25"/>
+<text x="24" y="920" font-size="13" font-weight="600" fill="var(--ink)">Workflow</text>
+<text x="24" y="938" fill="var(--ink-soft)">Phần 4 · bài 15–16</text>
+<rect x="24" y="952" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="972" fill="var(--ink)">15 · DesignOps</text>
+<rect x="24" y="992" width="312" height="32" rx="8" fill="var(--chip)"/>
+<text x="36" y="1012" fill="var(--ink)">16 · AI workflow for UI design</text>
+</g>
+<path d="M40 1036V1059" fill="none" stroke="var(--edge)" stroke-width="1.25" marker-end="url(#arrow-n)"/>
+<g><rect x="8" y="1060" width="344" height="124" rx="8" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+<text x="24" y="1084" font-size="13" font-weight="600" fill="var(--ink)">Project</text>
+<text x="24" y="1102" fill="var(--ink-soft)">Phần 5 · bài 17</text>
+<rect x="24" y="1116" width="312" height="32" rx="8" fill="var(--chip-strong)"/>
+<text x="36" y="1136" font-weight="600" fill="var(--ink)">17 · Project &amp; showcase</text>
+<text x="24" y="1168" fill="var(--ink-soft)">Ghép từ bài tập của 16 bài trước</text>
+</g>
+</svg>
+    </div>
+    <figcaption>Lộ trình khoá học · 5 phần, 17 bài</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2 id="phan-1">Phần 1 · Introduction</h2>
+  <p>Hiểu UI là gì trước khi học công cụ: Làm gì, làm cùng ai, làm ở đâu.</p>
+<div class="table"><table><thead><tr><th>Bài</th><th>Bạn sẽ học</th><th>Bài tập</th></tr></thead><tbody>
+<tr><td data-label="Bài" class="lesson">01 · The UI craft</td><td data-label="Bạn sẽ học">UI khác UX ở đâu (5 tầng của Garrett); các vai trò trong đội sản phẩm; làm việc với PO, BA, dev, QA và khách hàng; agency, in-house, outsource, startup, freelance</td><td data-label="Bài tập" class="exercise"></td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+  <h2 id="phan-2">Phần 2 · Foundations</h2>
+  <p>Công cụ, quy trình và các nguyên lý thị giác mà mọi màn hình đều dựa vào.</p>
+<div class="table"><table><thead><tr><th>Bài</th><th>Bạn sẽ học</th><th>Bài tập</th></tr></thead><tbody>
+<tr><td data-label="Bài" class="lesson">02 · Figma essentials</td><td data-label="Bạn sẽ học">Giao diện UI3; frame, group, section; auto layout; constraints; làm việc chung (comment, version history, Dev Mode)</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">03 · Design process</td><td data-label="Bạn sẽ học">Design thinking 5 bước; Double Diamond; đầu ra của từng bước; wireframe → mockup → prototype</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">04 · Visual principles</td><td data-label="Bạn sẽ học">Hierarchy; Gestalt; căn lề; khoảng trắng; mỗi màn một điểm nhấn</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">05 · Grid, layout &amp; spacing</td><td data-label="Bạn sẽ học">Cột, gutter, margin; thang spacing 4 và 8; breakpoint; bo góc lồng nhau</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">06 · Typography</td><td data-label="Bạn sẽ học">Typeface và font, kiểm tra dấu tiếng Việt; cỡ chữ, line-height, tracking, độ dài dòng; type scale; đặt tên style theo vai trò</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">07 · Color &amp; accessibility</td><td data-label="Bạn sẽ học">Các nhóm màu trong UI; dựng thang màu; contrast theo WCAG 2.2; không dùng màu làm tín hiệu duy nhất; light và dark</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">08 · Icons, imagery, elevation &amp; motion</td><td data-label="Bạn sẽ học">Một bộ icon, một phong cách; ảnh và tỉ lệ khung; elevation có ý nghĩa; motion nhanh và có mục đích</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">09 · Platform guidelines</td><td data-label="Bạn sẽ học">Material 3 và Apple HIG; vùng chạm tối thiểu; điều hướng quen thuộc; Jakob’s law</td><td data-label="Bài tập" class="exercise"></td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+  <h2 id="phan-3">Phần 3 · Systems</h2>
+  <p>Từ component đến design system: thiết kế một lần, dùng lại mọi nơi.</p>
+<div class="table"><table><thead><tr><th>Bài</th><th>Bạn sẽ học</th><th>Bài tập</th></tr></thead><tbody>
+<tr><td data-label="Bài" class="lesson">10 · Atomic design</td><td data-label="Bạn sẽ học">5 cấp của Brad Frost; atomic qua ví dụ Zen DS; một mô hình tư duy, không phải dây chuyền</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">11 · Figma for systems</td><td data-label="Bạn sẽ học">Main component và instance; variants và properties; variables và modes; publish một thư viện</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">12 · UI elements &amp; patterns</td><td data-label="Bạn sẽ học">4 nhóm component; state của component; pattern form; trạng thái rỗng, lỗi, đang tải; phản hồi cho người dùng</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">13 · Design tokens</td><td data-label="Bạn sẽ học">Token là gì (chuẩn W3C DTCG); 4 tầng token; đặt tên token; từ Figma sang code</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">14 · Design systems</td><td data-label="Bạn sẽ học">Style guide, UI kit, pattern library và design system khác nhau ra sao; cấu trúc file; tự xây hay dùng sẵn; 6 bước dựng; tài liệu và quản trị; học từ các hệ thống lớn</td><td data-label="Bài tập" class="exercise"></td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+  <h2 id="phan-4">Phần 4 · Workflow</h2>
+  <p>Vận hành một đội thiết kế và làm việc cùng AI. Hai bài này đặt sau Systems: có nền tảng mới đánh giá được đầu ra của AI, có design system thì AI mới có cái để đọc.</p>
+<div class="table"><table><thead><tr><th>Bài</th><th>Bạn sẽ học</th><th>Bài tập</th></tr></thead><tbody>
+<tr><td data-label="Bài" class="lesson">15 · DesignOps</td><td data-label="Bạn sẽ học">DesignOps là gì; một cấu trúc file chung cho cả đội; handoff cho dev; critique, review và design QA; phát hành thay đổi an toàn; đo tác động của thiết kế</td><td data-label="Bài tập" class="exercise"></td></tr>
+<tr><td data-label="Bài" class="lesson">16 · AI workflow for UI design</td><td data-label="Bạn sẽ học">AI giúp ở bước nào của quy trình; viết prompt như một brief; từ prompt đến prototype; cho AI đọc design system của bạn; kiểm tra mọi thứ AI làm ra</td><td data-label="Bài tập" class="exercise"></td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+  <h2 id="phan-5">Phần 5 · Project</h2>
+  <p><strong>17 · Project &amp; showcase.</strong> Thiết kế một sản phẩm của riêng mình cùng design system, trình bày trong 10 phút vào ngày showcase.</p>
+  <p>Bài nộp gồm:</p>
+  <ul>
+    <li>Foundations: grid, spacing, chữ, màu và token</li>
+    <li>Ít nhất 10 component, đủ các state</li>
+    <li>5–8 màn hình</li>
+    <li>Prototype</li>
+    <li>Case study</li>
+    <li>Sổ tay quy trình của nhóm (playbook, bài 15) và nhật ký AI (bài 16)</li>
+  </ul>
+  <p>Chấm theo 4 tiêu chí, mỗi tiêu chí 25%.</p>
+</section>
+
+</main>
+</body>
+</html>
