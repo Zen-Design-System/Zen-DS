@@ -137,6 +137,19 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("table: the compiled page has no usage-harness errors", checkSource(compileReact(page, { file: "table.zen.tsx" }).code, "TableExample.tsx").filter((finding) => finding.severity === "error").map((finding) => finding.rule), []);
 }
 
+{
+  // figma-push draws `selectable` as a first checkbox column, the sorted column's direction in its Sort glyph and an
+  // avatar cell's Avatar (theme from the row's override): they come back as the Table's props, not as columns.
+  const avatarSet = [...mapping.sets.values()].find((set) => set.code === "Avatar");
+  const person = (texts, props, initials) => ({ kind: "Avatar-Cell", props: { Bold: "No", Subtext: "Yes" }, w: 400, fill: true, texts, parts: [{ id: "a", set: { id: avatarSet.id, name: avatarSet.name }, props: { Size: "Small", Shape: "Circle", Background: "Subtle", ...props }, text: initials }] });
+  const frame = { type: "FRAME", name: "T", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [{ type: "TABLE", name: "Members", header: [{ label: "", checkbox: true, w: 48 }, { label: "Member", sort: true, sorted: "asc", fill: true }, { label: "Role", sort: true, w: 120 }],
+    rows: [["An Mai", "Neutral", "AM"], ["Bao Nguyen", "Green", "BX"]].map(([name, theme, initials]) => ({ cells: [{ kind: "Control-Cell", props: { Type: "Checkbox" }, w: 48 }, person([name, "mail"], { Theme: theme }, initials), { kind: "Text-Cell", props: {}, w: 120, texts: ["Member"] }] })) }] };
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("table: a first checkbox column is `selectable`, not a column", /<Table[^>]*\bselectable\b/.test(back) && !/id: "column-1"|content: "checkbox"/.test(back));
+  ok("table: the sorted column's glyph gives `sort`", back.includes('sort={{ columnId: "member", direction: "asc" }}'));
+  ok("table: an avatar cell's Avatar theme other than Neutral, and initials other than the label's, are its row's override", back.includes('"Row[row-2]/member/Avatar": { theme: "green", children: "BX" }') && !back.includes("Row[row-1]/member/Avatar"));
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

@@ -180,7 +180,11 @@ const readTable = async (node, rows, root) => {
         header = true;
         const named = Object.entries(props).find(([key, value]) => key.endsWith("Label") && typeof value === "string");
         const swap = Object.entries(props).find(([key]) => key.endsWith("-Src"));
-        cells.push({ ...base, label: props.Label === false ? "" : named ? named[1] : firstText(cell) || "", ...(props.Type === "Sort" ? { sort: true } : {}), ...(props.Icon === true && swap ? { icon: swap[1] } : {}) });
+        // Its Sort glyph shows the sorted column's direction (figma-push: arrow up / down; ↕ elsewhere).
+        const glyph = props.Type === "Sort" ? cell.findOne((n) => n.type === "INSTANCE" && n.name === "Icon") : null;
+        const glyphName = glyph ? (await setOf(glyph))?.name ?? "" : "";
+        const sorted = /arrow-up/.test(glyphName) ? "asc" : /arrow-down/.test(glyphName) ? "desc" : null;
+        cells.push({ ...base, label: props.Label === false ? "" : named ? named[1] : firstText(cell) || "", ...(props.Type === "Sort" ? { sort: true } : {}), ...(sorted ? { sorted } : {}), ...(props.Type === "Checkbox" ? { checkbox: true } : {}), ...(props.Icon === true && swap ? { icon: swap[1] } : {}) });
         continue;
       }
       let kind = null;
@@ -366,7 +370,13 @@ const TABLE_DRAWS = {
   Badge: { layer: "Badge", props: { size: "medium", theme: "neutral", background: "subtle", leadingIcon: false } },
   IconButton: { layer: "Button", props: { size: "md", level: "primary", appearance: "flat" } },
   DockIcon: { layer: "Dock-Icon", props: { size: "xs", theme: "neutral", background: "subtle" } },
+  // An avatar / photo cell's Avatar (Table.tsx cellVisual): its size and shape follow the cell (see drawnProps).
+  Avatar: { layer: "Avatar", props: { background: "subtle", theme: "neutral" } },
 };
+/** Table.tsx initialsOf: the first letters of the first two words. */
+const tableInitials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
+/** What the Table draws for a cell's instance: an Avatar is Small over a Subtext (XSmall alone), square in a photo cell. */
+const drawnProps = (code, column) => (code === "Avatar" ? { ...TABLE_DRAWS.Avatar.props, size: column.caption ? "sm" : "xs", shape: column.content === "photo" ? "square" : "circle" } : TABLE_DRAWS[code].props);
 
 /** Figma Actions-Cell's default button icon (docs/figma-contracts/table-cells.json). */
 const ACTION_ICON = "icon-dots-vertical-line";
@@ -410,7 +420,9 @@ function tableElement(node, ctx) {
   const sample = node.rows[0]?.cells ?? [];
   const ids = new Set();
   const columns = [];
-  for (let index = 0; index < Math.max(header.length, sample.length); index += 1) {
+  // A first checkbox column is the Table's selection (figma-push: `selectable`), not a column of its own.
+  const selectable = Boolean(header[0]?.checkbox);
+  for (let index = selectable ? 1 : 0; index < Math.max(header.length, sample.length); index += 1) {
     const head = header[index] ?? {};
     const cell = sample[index] ?? {};
     const content = cell.kind === "Control-Cell" ? { Checkbox: "checkbox", Toggle: "toggle" }[cell.props?.Type] ?? null : cell.kind ? CELL_CONTENT[cell.kind] ?? null : "text";
@@ -480,11 +492,14 @@ function tableElement(node, ctx) {
         const figma = instanceProps(part, set, mapping, notes, `${where} › ${column.id}`);
         const defaults = mapping.apiProps[set.code];
         const fields = {};
-        for (const [prop, value] of Object.entries(draws.props)) {
+        const expected = drawnProps(set.code, column);
+        for (const [prop, value] of Object.entries(expected)) {
           const mine = figma[prop]?.value ?? defaults?.get(prop);
           if (mine !== undefined && !sameValue(mine, value)) fields[prop] = literal(mine);
         }
-        for (const [prop, value] of Object.entries(figma)) if (!(prop in draws.props) && prop !== "children") fields[prop] = value;
+        for (const [prop, value] of Object.entries(figma)) if (!(prop in expected) && prop !== "children") fields[prop] = value;
+        // An avatar's own initials, where they are not the label's first two words (Table.tsx initialsOf).
+        if (set.code === "Avatar" && typeof part.text === "string" && part.text && part.text !== tableInitials(String(record[column.id] ?? ""))) fields.children = literal(part.text);
         // An emoji Dock-Icon draws its emoji (the instance's text), not an icon.
         if (fields.theme?.value === "emoji") { delete fields.icon; if (part.text) fields.emoji = literal(part.text); }
         if (Object.keys(fields).length) overrides[`Row[${rowId}]/${column.id}/${draws.layer}${drawn.length > 1 ? `[${index}]` : ""}`] = { kind: "object", fields };
@@ -496,6 +511,10 @@ function tableElement(node, ctx) {
   const label = node.name.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
   const props = { "aria-label": literal(label.charAt(0).toUpperCase() + label.slice(1).toLowerCase()), columns: { kind: "array", items: columns.map((column) => ({ kind: "object", fields: column.fields })) }, rows: { kind: "array", items: rows.map((row) => ({ kind: "object", fields: Object.fromEntries(Object.entries(row).map(([name, value]) => [name, Array.isArray(value) ? { kind: "array", items: value.map(literal) } : literal(value)])) })) } };
   if (Object.keys(overrides).length) props.overrides = { kind: "object", fields: overrides };
+  if (selectable) props.selectable = literal(true);
+  const sortedAt = header.findIndex((head) => head.sorted);
+  const sortedColumn = columns.find((column) => column.index === sortedAt);
+  if (sortedColumn) props.sort = { kind: "object", fields: { columnId: literal(sortedColumn.id), direction: literal(header[sortedAt].sorted) } };
   return { kind: "element", name: "Table", props, children: [] };
 }
 
@@ -816,6 +835,34 @@ function positioned(element, node, ctx) {
   return { kind: "element", ...(node.id ? { id: figmaDocId(node.id, "place") } : {}), name: "Stack", props, children: [element] };
 }
 
+/** Figma's Say-Hi text in AI/Chat-Block/Pale: its words are AiChatBlock's greeting (the locale's default left out). */
+const AI_GREETING_LAYER = "How can I help you today?";
+/**
+ * Figma's AI/Chat-Block/Pale as AiChatBlock (figma-push aiChatBlockNode, the other way): its Say-Hi text the greeting,
+ * the chips in Suggestions the suggestions (label, leading icon), its AI/Chat-Field the field it holds.
+ */
+function aiChatBlockElement(node, ctx) {
+  const props = {};
+  const slotOf = (name) => (node.slots ?? []).find((slot) => slot.name === name);
+  const all = (nodes, type) => nodes.flatMap((child) => (child.type === type ? [child] : all(child.children ?? [], type)));
+  const greeting = node.texts && !Array.isArray(node.texts) ? node.texts[AI_GREETING_LAYER] : all(slotOf("AI-Say Hi")?.children ?? [], "TEXT")[0]?.characters;
+  if (typeof greeting === "string" && greeting !== AI_GREETING_LAYER) props.greeting = literal(greeting);
+  const chips = node.props?.["Suggestion-Chips"] === false ? [] : all(slotOf("Suggestions")?.children ?? [], "INSTANCE");
+  if (chips.length) {
+    props.suggestions = { kind: "array", items: chips.map((chip) => {
+      const fields = { label: literal(chip.text ?? chip.name ?? "") };
+      const icon = chip.props?.Theme === "Leading-Icon" ? chip.props?.["Icon-Src"] ?? chip.swapIcon : null;
+      if (typeof icon === "string" && isZenIcon(icon, ctx.mapping)) fields.icon = literal(icon);
+      return { kind: "object", fields };
+    }) };
+  }
+  // Its field's layer key is "AI" (studio-import.js layerKey: a name with "/" keys by its first part).
+  const part = (node.nested ?? []).find((nested) => nested.path === "AI");
+  const fieldSet = [...ctx.mapping.sets.values()].find((set) => set.code === "AiChatField");
+  const field = fieldSet ? convert({ type: "INSTANCE", name: "AI/Chat-Field", set: { id: fieldSet.id, name: fieldSet.name }, props: part?.props ?? {}, ...(part?.texts ? { texts: part.texts } : {}), ...(part?.text ? { text: part.text } : {}) }, ctx) : null;
+  return { kind: "element", name: "AiChatBlock", props, children: field ? [field] : [] };
+}
+
 function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
@@ -838,6 +885,7 @@ function convertNode(node, ctx) {
     const setName = node.set?.name ?? "";
     if (ROW_ELEMENTS[setName]) return { kind: "element", name: ROW_ELEMENTS[setName], props: itemFields(node, ctx, { where: ROW_ELEMENTS[setName] }), children: [] };
     if (setName === "Primitives/Dashboard/Header/Action-Item") return actionItem(node, ctx);
+    if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -948,6 +996,8 @@ function convertNode(node, ctx) {
 
 /** A frame (or a slot) as a Stack in its auto layout; Figma's grid layout as a Grid. */
 function frameElement(node, children, ctx) {
+  // figma-push centres an AiChatBlock in a frame of its name: the block itself.
+  if (node.name === "AiChatBlock" && children.length === 1 && children[0].name === "AiChatBlock") return children[0];
   const props = {};
   const layout = node.layout;
   // A wrapping row whose layers all fill it, or a grid whose cells all keep, the same minimum width: a Grid of columns
