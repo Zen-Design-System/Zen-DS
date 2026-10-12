@@ -19,6 +19,16 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Card and List Box `theme="on-container"` (2026-10-12, user): Surface/Flat, for a Card or ListBox inside a Modal
+  (Dialog, ModalForm), a SidePanel or a BottomSheet, on their Container fill — no border, no shadow; a selected card
+  keeps it. Usage rules §16 and both guidelines say so (a card in a card or in a ListBox keeps the Pale border); the
+  harness warns on a Card or ListBox right inside one of them with another theme (`card/on-container-in-overlay`,
+  `listbox/on-container-in-overlay`, allow `overlay-theme`). Figma Card and Component/List-Box have the same
+  Theme=On-Container; stories `OnContainer`.
+- List Box `theme` is in Figma too (2026-10-12): Component/List-Box (14922:75297) has a Theme variant property,
+  Flat (default) · Shadow · Pale · Border · On-Container, with the tokens of Card's Theme (Border's stroke stays out of
+  the layout, like Card's). Zen Studio shows it in the Properties panel, and Export › Figma writes it
+  (`figma-props.map.mjs`).
 - Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
   In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
   as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
@@ -1472,7 +1482,7 @@ removed (four unused colour ramps were, see Removed).
   Card's Figma Theme (same tokens; no Semi-Pale), default `flat`. Examples and templates pick it by usage rules §16:
   flat on Canvas/Default and on Surface-Alt phone screens, shadow beside a default Sidebar (elevation follows the
   Sidebar), border on a white page or phone and inside another Surface. Exported `listBoxThemes` / `ListBoxTheme`;
-  stories in `ListBox.stories.tsx`. Figma's Component/List-Box has no Theme property yet.
+  stories in `ListBox.stories.tsx`. Figma's Component/List-Box had no Theme property then (added 2026-10-12).
 - **List Box only for List-Item rows (2026-10-06, user rule):** in the examples, templates and the List Item
   playground, a container whose content is a list of List-Item rows (with an optional title, search or filters above
   and buttons or pagination below) is now a `<ListBox header footer>` instead of a Card; everything else (Description

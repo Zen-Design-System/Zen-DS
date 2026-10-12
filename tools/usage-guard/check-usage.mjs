@@ -194,6 +194,37 @@ const insideCard = (src, start) => {
   const before = src.slice(0, start);
   return (before.match(/<Card[\s>]/g) ?? []).length > (before.match(/<\/Card>/g) ?? []).length;
 };
+/** Overlays whose Container fill takes On-Container boxes (usage rules §16), and the boxes that stand between them. */
+const OVERLAYS = ["Dialog", "ModalForm", "SidePanel", "BottomSheet"];
+const BOX_TAGS = ["Card", "ListBox", "MetricCard", "ChartCard", ...OVERLAYS];
+/** The nearest enclosing box or overlay of the element at `start` (children or a prop={…} of it), or null. Tags in
+ *  another template string (a code sample) and self-closing tags that end before `start` don't count. */
+const nearestBox = (src, start) => {
+  const sameString = (i) => ((src.slice(i, start).match(/(?<!\\)`/g) ?? []).length) % 2 === 0;
+  const stack = [];
+  for (const m of src.slice(0, start).matchAll(new RegExp(`<(/?)(${BOX_TAGS.join("|")})\\b`, "g"))) {
+    if (!sameString(m.index) || /[\w$)\]]/.test(src[m.index - 1] ?? "")) continue;
+    if (m[1]) { const at = stack.lastIndexOf(m[2]); if (at >= 0) stack.length = at; continue; }
+    let i = m.index + m[0].length, depth = 0, quote = null;
+    for (; i < src.length; i++) {
+      const c = src[i];
+      if (quote) { if (c === quote) quote = null; continue; }
+      if (c === '"' || c === "'") { if (depth === 0) quote = c; continue; }
+      if (c === "{") depth += 1; else if (c === "}") depth -= 1; else if (c === ">" && depth === 0) break;
+    }
+    if (src[i - 1] === "/" && i < start) continue; // self-closing, ended before the element
+    stack.push(m[2]);
+  }
+  return stack.at(-1) ?? null;
+};
+/** A Card or ListBox right inside an overlay takes theme="on-container": message, or false. */
+const onContainerFinding = (attrs, src, start, end, fallback) => {
+  if (inCodeSample(src, end) || opaque(attrs)) return false;
+  const theme = literal(attrs, "theme");
+  if (theme === "on-container" || (theme === undefined && has(attrs, "theme"))) return false;
+  const host = nearestBox(src, start);
+  return OVERLAYS.includes(host) && `sits in a ${host} with theme "${theme ?? fallback}" — use theme="on-container" (Surface/Flat on the ${host}'s Container fill, usage rules §16).`;
+};
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
 /* Layout position, Box effects and per-corner radius (Studio Phase 2 spec 2026-10-03 §3.6; position.ts, effects.ts,
@@ -916,6 +947,12 @@ export const rules = [
   { id: "card/clickable-no-nested-controls", components: ["Card"], severity: "error", allow: "card-nested-control", guideline: "docs/guidelines/card.md",
     summary: "A clickable Card (onClick) is one button: it must not contain buttons, links, inputs or a subAction.",
     check: ({ attrs, children }) => has(topLevel(attrs), "onClick") && !opaque(attrs) && (/<(Button|IconButton|a|Link|Checkbox|RadioButton|Toggle|Chip|InputField|Search)\b/.test(children) || has(attrs, "subAction")) && "is clickable but contains another control — make the card static, or move the control out." },
+  { id: "card/on-container-in-overlay", components: ["Card"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/card.md",
+    summary: "A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
+    check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "shadow") },
+  { id: "listbox/on-container-in-overlay", components: ["ListBox"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/list-item.md",
+    summary: "A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
+    check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "flat") },
   { id: "list-item/clickable-row-toggle", components: ["ListItem"], severity: "warn", allow: "row-toggle", guideline: "docs/guidelines/list-item.md",
     summary: "A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions).",
     check: ({ attrs }) => (has(topLevel(attrs), "onClick") || has(topLevel(attrs), "href")) && !opaque(attrs) && /<(Toggle|ToggleButton|Checkbox|RadioButton)\b/.test(`${value(attrs, "trailing") ?? ""} ${value(attrs, "leading") ?? ""}`) && "is clickable and also holds a Toggle/Checkbox/Radio (leading or trailing) — an input inside the row button is invalid; keep the row static and let the control own the click." },

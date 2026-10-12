@@ -105,8 +105,8 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, trailin
   );
 }
 
-/** ListBox elevation: Card's Figma Theme without Semi-Pale. */
-export const listBoxThemes = ["flat", "shadow", "pale", "border"] as const;
+/** ListBox elevation: Figma List-Box Theme (Flat · Shadow · Pale · Border · On-Container, the tokens of Card's Theme). */
+export const listBoxThemes = ["flat", "shadow", "pale", "border", "on-container"] as const;
 export type ListBoxTheme = (typeof listBoxThemes)[number];
 
 /** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element (`as`). */
@@ -122,10 +122,11 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
   children: ReactNode;
   /** Figma Footer-Slot (Footer=Yes): what follows the rows, e.g. a "Show all" Tertiary button. Pads Card-padding-medium. */
   footer?: ReactNode;
-  /** Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame
-   *  (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:
+  /** Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it
+   *  needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:
    *  Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px
-   *  Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11). */
+   *  Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).
+   *  On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16). */
   theme?: ListBoxTheme;
   /** "div" (default) or "section" when the box is a titled region (give it aria-labelledby). */
   as?: "div" | "section";
@@ -137,8 +138,8 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
  * tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:
  * Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium
  * sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and
- * Footer are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow,
- * pale or border.
+ * Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: flat (default), shadow, pale,
+ * border or on-container.
  */
 export function ListBox({ ref, header, footer, children, theme = "flat", as: Tag = "div", className, ...rest }: ListBoxProps) {
   return (

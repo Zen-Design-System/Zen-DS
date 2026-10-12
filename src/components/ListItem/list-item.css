@@ -97,6 +97,9 @@
    zen-allow-pale-actionable-box: the box is a static container; its clickable rows carry their own states. */
 .zen-list-box[data-tone="shadow"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
 .zen-list-box[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* On-Container: Surface/Flat inside a Modal, Side Panel or Bottom Sheet (Figma List-Box Theme=On-Container).
+   zen-allow-surface-flat: Figma's On-Container theme is Surface/Flat (user, 2026-10-12), not a navigation bar. */
+.zen-list-box[data-tone="on-container"] { background: var(--zen-color-background-surface-flat, #fff); }
 .zen-list-box[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 .zen-list-box__header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-card-padding-medium, 24px) var(--zen-card-padding-medium, 24px) var(--zen-spacing-padding-xsmall, 8px); }
 .zen-list-box__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-list-container-vertical-padding, 12px) var(--zen-card-padding-medium, 24px); }

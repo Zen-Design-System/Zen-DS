@@ -225,6 +225,7 @@ export const FIGMA_PROPS = {
       Header: { toggle: "header", on: "slot" },
       "Header-Slot": skip("content slot (Slots section)"),
       "Body-Slot": skip("content slot (Slots section)"),
+      Theme: "theme",
       Footer: { toggle: "footer", on: "slot" },
       "Footer-Slot": skip("content slot (Slots section)"),
     },

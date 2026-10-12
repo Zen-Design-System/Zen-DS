@@ -168,7 +168,7 @@
     {
       "name": "ListBox",
       "file": "src/components/ListItem/ListItem.tsx",
-      "description": "Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the\ntokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:\nInteractive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium\nsideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and\nFooter are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow,\npale or border.",
+      "description": "Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the\ntokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:\nInteractive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium\nsideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and\nFooter are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: flat (default), shadow, pale,\nborder or on-container.",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
       "props": [
@@ -206,10 +206,10 @@
         },
         {
           "name": "theme",
-          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\"",
+          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\" | \"on-container\"",
           "required": false,
           "default": "\"flat\"",
-          "description": "Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame\n (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).",
+          "description": "Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
           "deprecated": null
         },
         {
