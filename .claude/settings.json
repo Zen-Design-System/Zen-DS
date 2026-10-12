@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Figma"
+      "mcp__Figma",
+      "mcp__claude-code-remote__list_events",
+      "mcp__claude-code-remote__get_session"
     ],
     "ask": [
       "mcp__Figma__generate_image"
