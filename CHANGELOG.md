@@ -31,6 +31,10 @@ removed (four unused colour ramps were, see Removed).
   beside Main-Container › Header/Dashboard › Sections, Body, Floating-Actions) and the frames the Studio pushes — with
   its header, center, actions (the account as AppShellAccount), sections, page, footer and floating action; a Studio
   Screen's own Sidebar and Page header come back as the Screen's.
+- Table: inside a surface (Card, ChartCard, MetricCard, Accordion, SidePanel, Dialog/ModalForm, BottomSheet, Popover,
+  ListBox, a Box with a surface or border) the last row has no bottom rule — the surface edge closes it. Page tables
+  on the canvas keep it. Table guideline updated (in Figma: 0 bottom stroke weight on the last row's cells); the
+  Studio's Export › Figma does the same (`strokeBottom`, applied by the Zen plugin's importer).
 - Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): Tabs `Tab` → `Tab-Item`,
   Uploader `File` → `File-Item`. Zen's own names stay where Figma differs: `Send`, `Action`
   (its own component and tokens; an inline component's own buttons are its Action too), `Actions` (the action row), a
@@ -923,6 +927,10 @@ removed (four unused colour ramps were, see Removed).
   header, a divider between groups) and reads back collapsed with its labels; a ListBox is as tall as its rows instead
   of clipping them at Figma's sample height; a full-width Segmented splits its row (its items overlapped). The Zen
   plugin hugs a slot or a named layer and fills a slot when the page asks.
+- Zen Studio → Figma, compared with the Studio sheets: a selectable Table has its checkbox column and the sorted column
+  its arrow; a table's avatar cells draw their Avatar (initials or photo, each row's colour); the account Avatar is
+  Subtle; an IconButton without a level takes the level the code draws; `minmax(0, Npx)` tracks are a fixed width;
+  Form keeps its gap; AiChatBlock is Figma's AI/Chat-Block/Pale with its greeting and suggestions. All read back.
 - `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
   component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
 - SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in

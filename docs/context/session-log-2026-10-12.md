@@ -229,9 +229,37 @@
   a493ce's strokeBottom change is in the same file).
 - Checks: figma-push selftest 67 → 101 (sections 10–11: forms, widths, rail, round trips), figma-pull 48, figma-diff,
   parity, binding-diff; plugin `npm test`; every frame measured in Figma (Dashboard 568/568, 4 × 276).
-- Found, not fixed yet (figma-push.mjs was with peer a493ce): `minmax(0, 320px)` tracks become Flex 1 instead of
-  Fixed 320 (Admin list, HR tasks, Leave types, My leaves, Empty states); a `selectable` Table loses its checkbox
-  column silently; an array cell value (assignees) writes "" where the Table renders its items.
+- Then fixed (after a493ce released the file; user: "button more action đang dùng sai variant"; peer bd6bd7's
+  comparison with the Studio sheets): IconButton without a level gets Button.tsx's resolved Level (Main Tertiary, Flat
+  Primary, Overlay Accent; the Invoice ⋯ was Figma's Primary) and the pull leaves it out; `minmax(0, Npx)` tracks are
+  Fixed N; `selectable` → a 48px checkbox column (header Type=Checkbox + Control-Cell, `edge` kept), `sort` → the
+  sorted header's arrow glyph, both read back as props; avatar cells draw their Avatar (size by caption, Subtle,
+  initials or photo, the row's override; pull: TABLE_DRAWS Avatar); Form gap lg; AppShellAccount Subtle; AiChatBlock
+  → Figma's AI/Chat-Block/Pale (greeting, Chip/Normal suggestions, its field by layer key "AI" with Style/placeholder/
+  Model, centred ≤ 800) and back; AiChatField Model only with `model`. An array cell value stays "" (Table.tsx textOf
+  renders nothing too). The sort glyph is the header's Icon layer itself: swapped by component (nested `set`, cut
+  name). Live: Invoice 15295:3, HR Home 15299:3, Admin list 15301:3 (re-made after peer bd6bd7's snapshot.ts fix:
+  avatars, badges, actions, checkbox column, sorted arrow as in the Studio); then 15303:283 with an avatar override's
+  own initials (`children`: Bich Ngoc Ha → BH, read back as that row's override) and "—" for an unsigned member.
+  push selftest 118, pull 51. The QA pages made in the pane browser's Studio were moved to its trash.
 - Left (data, not push): several Studio template pages hold flattened data (Admin list rows 2–10 "name · email" on
   one line, empty-state rows with no fields, booleans in cells); TopNavigation, Thumbnail, ActionBar have no Figma
   set; Sidebar search not drawn; Description List set has a duplicate variant in Figma (designer).
+
+## Table: no last-row rule inside a surface (session a493ce, tier S)
+- User rule: rows of a table inside a box/card/accordion/container end without a bottom stroke; applied back to Studio
+  and the Platform. `table.css`: one `:is(<surfaces>) … tbody > tr:last-child > :is(cell, empty)` rule (Card,
+  ChartCard, MetricCard, Accordion panel, SidePanel, Dialog, ModalForm, BottomSheet, Popover, ListBox, Box with
+  data-surface/data-border); page tables keep it. Table guideline `do` line added (guidelines rebuilt).
+- Verified on a private :5174 server: synthetic tables in each surface → last row 0px, plain Box and canvas → 1px.
+  `npm run qa -- --isolated --files=…` PASS (53 browser tests, audits, dark, behaviour); table contact sheets reviewed.
+- Figma push mirror (user: do it now, no backlog): plugin `studio-import.js` gained `applyStrokeBottom` (`strokeBottom`
+  on an INSTANCE or FRAME sets only strokeBottomWeight, the paint stays bound; a reused instance without it gets its
+  component's weight back) + a studio-import test (2 rows → last 0; re-import with 3 → middle back to 1); plugin
+  `npm test` passes, dist rebuilt (backup `backups/pre-strokebottom-dist-*.tgz`). `figma-push.mjs` (after "Lỗi UI" released it):
+  `SURFACES` + a `surface` flag in convert's context (frameNode: passed down or a Box with surface/border; instanceNode
+  slots of a surface; wrapperNode for an unmapped surface) → tableNode's last row cells `strokeBottom: 0`; selftest §13
+  (page table / Card / bordered Box / plain Box), 105 checks pass.
+- Corrections to the earlier Figma library findings: Pagination's light previous arrow is its Disabled state (Inline,
+  Manually) — not a bug; Table/Cell/Header's Title (All-Caps/S, 16px line) sits in a 12px fixed Wrapper → 2px over
+  top and bottom in all 8 variants (invisible, no clip); the Edit cell's 62px was the row's caption height, not the cell; its text colour follows the nested Input-Content state (Typing = Strongest for a cell with a value, user) — no library gap. Figma's Edit field is left-aligned while code right-aligns number editors (table/editor-number-right): the user keeps the code and the designer updates Figma.
