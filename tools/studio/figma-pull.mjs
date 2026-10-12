@@ -1043,8 +1043,17 @@ function convertNode(node, ctx) {
     else if (slottedLayers.length) notes.push(`${where}: what its ${slotted.map((slot) => slot.name).join(", ")} slot holds is left out (the component takes no content)`);
     delete props.children;
     const overrides = {};
-    // A File-Item's Help-Text and Progress-Bar are its file's error and progress (read above).
-    for (const nested of set.code === "UploaderFileItem" ? [] : node.nested ?? []) {
+    // Date-Picker/Mobile: range mode for its Multiple variants, its heading's text the title (unless the default).
+    if (set.code === "DatePickerSheet") {
+      // Figma shows it: the page opens it.
+      props.open = literal(true);
+      if (/^Multiple/.test(node.props?.Variant ?? "")) props.selectionMode = literal("range");
+      const title = (node.nested ?? []).find((nested) => nested.path.split("/").pop() === "Main-Heading-Text");
+      const text = title?.texts?.["Header-Text"] ?? title?.text;
+      if (text && !["Choose date", "Choose dates", "Heading"].includes(text)) props.title = literal(text);
+    }
+    // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title (read above).
+    for (const nested of set.code === "UploaderFileItem" || set.code === "DatePickerSheet" ? [] : node.nested ?? []) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
       const fields = instanceProps(nested, inner, mapping, notes, `${set.code} › ${nested.path}`);

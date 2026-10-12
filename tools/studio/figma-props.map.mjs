@@ -397,6 +397,9 @@ export const FIGMA_PROPS = {
     setProp: "calendar",
     props: { "Time-Picker": "timePicker", Actions: "showActions", State: skip("preview state: the month and year list opens from the header") },
   },
+  // The phone date picker (a Bottom-Sheet around the calendar): Variant follows selectionMode and whether a range is
+  // chosen (figma-push datePickerSheetNode), the title is its heading's text.
+  DatePickerSheet: { sets: { "Date-Picker/Mobile": null }, props: { Variant: skip("selectionMode, and a chosen range (Multiple-Selected)") } },
   Stepper: {
     sets: { "Stepper-Bar/Horizontal": "horizontal", "Stepper-Bar/Vertical": "vertical" },
     setProp: "orientation",

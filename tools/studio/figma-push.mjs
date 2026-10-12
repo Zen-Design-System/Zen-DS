@@ -90,7 +90,7 @@ const SLOT_OF_PROP = {
  */
 const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]) };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]) };
+const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -300,6 +300,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
     else if (element.name === "ColorSelector") node = colorSelectorNode(element, code, id);
     else if (element.name === "UploaderFileItem") node = uploaderFileItemNode(element, code, id, parent);
+    else if (element.name === "DatePickerSheet") node = datePickerSheetNode(element, code, id, parent);
     // Tabs written with TabItem children: the same Item-List of Tab-Items as its `items` (Tabs.tsx renders either).
     else if (element.name === "Tabs" && !element.props.items && element.children.some((child) => child.kind === "element" && child.name === "TabItem")) {
       const tabs = tabsOfChildren(element);
@@ -521,6 +522,28 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!header || (!before.length && !after.length)) return header ? { ...header, ...(id ? { id } : {}) } : null;
     const frame = { type: "FRAME", ...(id ? { id } : {}), name: "PageHeader", layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [...before, { ...header, fillW: true }, ...after] };
     return frame;
+  }
+
+  /**
+   * DatePickerSheet as Figma's Date-Picker/Mobile: Variant Single, or Multiple (Selected once a range is chosen), its
+   * title in the heading (the locale's "Choose date" / "Choose dates" by default, labels.ts en). The calendar keeps
+   * Figma's sample month: the page's dates are not literals.
+   */
+  function datePickerSheetNode(element, code, id, parent) {
+    // A closed sheet shows nothing on the page (the Studio draws it only while open).
+    if (code.open !== true && code.isOpen !== true) {
+      notes.push(`DatePickerSheet${id ? ` (${id})` : ""}: closed (open is not set): not pushed`);
+      return null;
+    }
+    const node = instanceNode(element, code, id, parent);
+    if (node?.type !== "INSTANCE") return node;
+    const range = code.selectionMode === "range";
+    const chosen = range && (element.props.range ?? element.props.defaultRange) !== undefined;
+    node.props = { ...node.props, ...onlyOwn(node.set, { Variant: range ? (chosen ? "Multiple-Selected" : "Multiple-Default") : "Single" }) };
+    const title = typeof code.title === "string" ? code.title : layerWords(element.props.title) || (range ? "Choose dates" : "Choose date");
+    node.nested = [...(node.nested ?? []), { path: "Main-Heading-Text", props: {}, texts: { "Header-Text": title } }];
+    if (node.name === node.set.name) node.name = title;
+    return node;
   }
 
   /**

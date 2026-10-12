@@ -2242,6 +2242,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "DatePickerSheet": {
+    "figma": "9923:3576",
+    "own": [],
+    "toggles": []
+  },
   "Stepper": {
     "figma": "1625:8328",
     "own": [

@@ -763,6 +763,35 @@ export default function Page() {
   check("round trip: the file items come back with their files", shape(pageFromFigma(frame, { mapping }).text), shape(page));
 }
 
+// 21. DatePickerSheet as Figma's Date-Picker/Mobile (2026-10-13): Variant Single / Multiple-Default / Multiple-Selected,
+//     its title in the heading; a closed sheet is not pushed; the pull opens it again.
+{
+  const page = `// @zen-page {"format":1,"title":"Stay"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { DatePickerSheet, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Stay" device="phone">
+        <Stack>
+          <DatePickerSheet open selectionMode="range" title="Your stay" />
+          <DatePickerSheet open />
+          <DatePickerSheet title="Closed" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  check("DatePickerSheet: Date-Picker/Mobile, its Variant and its title in Main-Heading-Text (the locale's by default)", frame.children.map((sheet) => [sheet.set.id, sheet.props.Variant, sheet.nested[0].texts["Header-Text"]]), [["9923:3576", "Multiple-Default", "Your stay"], ["9923:3576", "Single", "Choose date"]]);
+  ok("DatePickerSheet: a closed sheet is not pushed, with a note", notes.some((note) => /DatePickerSheet.*closed/.test(note)));
+  check("round trip: the open sheets come back (range, title)", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('\n          <DatePickerSheet title="Closed" />', "")));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
