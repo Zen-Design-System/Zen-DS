@@ -133,3 +133,11 @@ and "$0".
   Ring 15392:2515, 240px, empty hole). Its texts are `Total Label#15392:9` and `Total Value#15392:13` (the header's
   Description/Value keep their own toggles). `Show Ranges` has one default per set (true), so this variant's main shows
   the Segmented; the DONUT cover instance 15392:2590 turns it off.
+
+### 5.3 Chart colours are styles (2026-10-13, the user)
+
+Every series/sector paint in the new chart components now takes the local paint styles `Color Chart Sector/Primary …
+Septenary` (fill/stroke style ids, no direct variable): Bar 13, Multi-Line 9, Donut 30, Radial 6, Legend-Item 7.
+Before/after PNGs identical. `.Chart/Legend-Item` `Color` options renamed to the style names (Primary, Secondary,
+Tertiary, Quaternary, Quinary, Senary, Septenary); the old Green option (unused, no style) became Septenary (Red Soft),
+as the code palette. The original Stack-Bar already used the styles; Line-Chart has no sector paint (Border/Accent).

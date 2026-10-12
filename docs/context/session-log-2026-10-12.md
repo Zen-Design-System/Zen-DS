@@ -311,3 +311,6 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
   4px line on each edge (parallel gaps; the sweep stays); `totalPosition="start"` for the total beside the ring above
   the legend, as their sample layout. Example "Total beside the ring" (a half-width dashboard row), tests 13/13. Figma:
   same gaps and a `Total=Start` variant on Chart/Donut-Chart (15392:2438; IDs in spec §5.2), audit clean.
+- 2026-10-13 (the user): chart colours from the "Color Chart Sector" paint styles, not variables. Code `chartPalette`
+  follows the 7 styles (6th/7th now Orange Solid, Red Soft; was Green, Orange). Figma: 65 sector paints re-pointed to
+  the styles (no visual change), Legend-Item options renamed to the style names. Memory: figma-chart-colours-use-styles.
