@@ -20,3 +20,18 @@
   no longer bypasses Avatar's rule (the 2026-10-02 two-letter test now expects one), and the push writes small
   avatars' initials the same way (Avatar elements, table avatar cells, chat).
 - Gate: `npm run qa -- --isolated --files=…` (Chat.tsx, the chat test, push / pull).
+
+## Studio → Figma coverage P4: examples' classNames (same session and branch, tier M)
+
+- Measured the 350 classNames in the examples by what their CSS does: ~110 sized a Card or ListBox (fill, a readable
+  max width, centred), which had no sizing props. User chose to add them: Card and ListBox take width / minWidth /
+  maxWidth / alignSelf (LayoutWidthProps, the Layout sizing rules extended to .zen-card and .zen-list-box); push writes
+  the instance's min / max width, pull reads them; browser tests in layout-sizing.test.tsx.
+- Converted by script (dry run, then write) and by hand: 90 classNames became props, their CSS went (file headers kept).
+  40 example roots centred at a readable width now sit in a `<Stack>` (the docs stage is no Stack, so alignSelf alone
+  did not centre them). Two `flex: 1` classes in wrapping rows stayed (fill shares the row instead of wrapping).
+- Visual diff (tools/platform-audit/visual-diff.mjs on a worktree server, :5192): 31 pages, 430 panels; every panel
+  identical except one whose lazy image had not loaded in the before capture.
+- Left (BACKLOG, the user's call): 27 container-query layouts (a Grid API), docs-only details and mixed colour /
+  display rules, which stay platform CSS. classNames now 260.
+

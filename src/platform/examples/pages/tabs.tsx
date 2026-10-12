@@ -198,7 +198,7 @@ function DraftInvoiceExample() {
   };
 
   return (
-    <Card theme="flat" className="px-tabs-invoice">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
@@ -248,7 +248,7 @@ function DraftInvoiceExample() {
           </Stack>
         ) : null}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -294,7 +294,7 @@ function YourWorkExample() {
   );
 
   return (
-    <Card theme="flat" className="px-tabs-work">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
         {/* The tabs as TabItem children (Figma's Item-List slot); an items array works the same. */}
@@ -314,7 +314,7 @@ function YourWorkExample() {
         </TabPanel>
         <TabPanel idPrefix={prefix} id="mentions" hidden={tab !== "mentions"}>{rows(mentions, "Mentions")}</TabPanel>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 

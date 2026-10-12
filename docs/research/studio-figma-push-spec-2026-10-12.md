@@ -311,3 +311,13 @@ file Zen (trang "Studio exports", frame thử của phiên này: 15342:11, 15351
 - Còn lại (không làm trong P3): primitive con mà component cha tự vẽ (Popover/Item, Sheet-Actions/Item trong overlay chưa
   đẩy; Checkbox/Radio Mark; Empty-State Illustration; Progress-Circle/Icon); Metric-Card (6643:64008) — push vẽ MetricCard
   bằng Card + Metric-Inline như trước.
+
+### P4 — className trong ví dụ (2026-10-13, cùng nhánh)
+
+- Đo 350 className theo CSS của chúng: ~110 chỉ để chỉnh độ rộng Card/ListBox. User chọn thêm prop: Card và ListBox nhận
+  width / minWidth / maxWidth / alignSelf như Stack (Figma Fill container, Min/Max width). Push ghi min/max width của
+  instance; các con cùng alignSelf đặt căn của frame cha; pull đọc lại (`Stack align="center"` + `width="fill"`).
+- 90 className thành prop, CSS của chúng bị xoá; 40 gốc ví dụ căn giữa nằm trong `<Stack>`. Visual diff 430 panel: giống
+  hệt (một panel khác vì ảnh lazy). Còn 260 className: container query (cần API Grid, chờ user), chi tiết chỉ cho docs,
+  màu / display.
+
