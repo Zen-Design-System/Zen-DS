@@ -158,13 +158,16 @@ export async function selectAt(page, rect, x = rect.x + rect.width / 2, y = rect
  * select the element itself climbs back to it with ⇧Enter, as a person does in Figma.
  */
 export async function ownerOfLayer(page) {
-  const part = await page.evaluate(async () => {
+  const inPart = () => page.evaluate(async () => {
     try { return Boolean((await import("/src/platform/studio/store.ts")).studioStore.getState().selection?.part); } catch { return false; }
   });
-  if (!part) return false;
-  await page.locator(".studio-viewport").focus();
-  await page.keyboard.press("Shift+Enter");
-  await sleep(150);
+  if (!(await inPart())) return false;
+  // ⇧Enter climbs one layer at a time (a MetricCard's value › its Metric › the MetricCard).
+  for (let step = 0; step < 6 && (await inPart()); step++) {
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("Shift+Enter");
+    await sleep(150);
+  }
   return true;
 }
 

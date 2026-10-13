@@ -127,25 +127,11 @@ export function ownsText(element: Element): boolean {
   return false;
 }
 
-/** Whether the owner draws more than one text: only then are its texts layers of their own (a MetricCard's title and
- *  value, a ListItem's title and caption). A one-text instance (a Button's or a Badge's label, an Avatar's initials) is
- *  its own text, as Figma lists an atom's label as the instance's text property: a ⌘-click selects the instance, whose
- *  variants are what is changed most (2026-10-13, E2E NO-10). */
-export function manyTexts(owner: FiberHit): boolean {
-  let count = 0;
-  for (const host of owner.hosts) {
-    for (const element of [host, ...Array.from(host.querySelectorAll("*"))]) {
-      if (!element.closest("svg") && ownsText(element) && ++count > 1) return true;
-    }
-  }
-  return false;
-}
 
 /**
  * Figma's ⌘-click inside an instance (user, 2026-10-13: "⌘-click mới dừng ở component, chưa vào tới layer chữ hay icon
  * bên trong như Figma"): the deepest layer under the pointer that is a text (a DOM node showing text of its own) or a
- * nested instance (an Icon, a Badge, a Dock-Icon), innermost first; null when there is none, or for a text when the
- * owner draws one text only (then the instance itself is the layer).
+ * nested instance (an Icon, a Badge, a Dock-Icon), innermost first; null when there is none (the instance itself).
  */
 export function deepLayerAt(owner: FiberHit, element: Element | null): PartHit | null {
   const chain = partChain(owner, element).filter((part) => !wrapsOwner(part));
@@ -153,17 +139,27 @@ export function deepLayerAt(owner: FiberHit, element: Element | null): PartHit |
   if (index < 0) return null;
   const layer = chain[index];
   if (layer.isComponent) return layer;
-  // A text the owner holds as one of its own words (a MetricCard's value, a Button's label) is the layer; a text inside
-  // a nested instance that it does not (a Badge built from a trend object) gives that instance, whose properties change it.
-  const words = (layer.element.textContent ?? "").trim();
-  // The nested instance around the text: one that draws only this text (a Badge's label) is the layer itself.
-  const around = chain.slice(index + 1).find((part) => part.isComponent && nestedPathOf(part) !== null) ?? null;
-  if (around && !manyTexts(around)) return around;
-  // Only the owner's own string props: words from the data it lists (a Sidebar row's label) stay with that row, whose
-  // ⌘-click selects the row (rows are picked several at a time, SP-10) and whose double-click edits its text.
-  const ownWords = Object.entries(owner.props).some(([prop, value]) => prop !== "data-zen-src" && typeof value === "string" && value.trim() === words);
-  if (around && !ownWords) return around;
-  return manyTexts(owner) ? layer : null;
+  // A picture's initials are the picture (an Avatar's photo is what a ⌘-click there changes): the Avatar, or the
+  // instance itself when it is one.
+  const picture = chain.slice(index + 1).find((part) => part.isComponent && PICTURES.has(part.name));
+  if (picture) return nestedPathOf(picture) !== null ? picture : null;
+  if (PICTURES.has(owner.name)) return null;
+  // Every other text is its own layer, a Button's or a Badge's label too, as Figma's deep select lands on it (user,
+  // 2026-10-13: "⌘-click giống Figma 100% với Button/Badge/Chip"); ⇧Enter goes up to the instance. A data row's text
+  // gives its row (SelectionLayer, dataItemOfPart): rows are picked several at a time (SP-10).
+  return layer;
+}
+
+/** Components that show a picture (inspector PHOTO_PROPS): their text is initials or a caption of the picture. */
+const PICTURES = new Set(["Avatar", "AppShellAccount", "Image", "Thumbnail"]);
+
+/**
+ * The layer one level up from a part (Figma's ⇧Enter / Esc, user 2026-10-13): the nearest enclosing nested instance, or a
+ * part with a Figma name (a Table's Cell, Data-Row), DOM wrappers in between skipped; null when only the owner is above.
+ */
+export function parentLayerOf(part: PartHit): PartHit | null {
+  const chain = partChain(part.owner, part.element.parentElement);
+  return chain.find((candidate) => candidate.element !== part.element && !wrapsOwner(candidate) && (candidate.isComponent ? nestedPathOf(candidate) !== null : /^[A-Z]/.test(candidate.name))) ?? null;
 }
 
 const samePart = (a: PartHit, b: PartHit) => a.fiber === b.fiber || a.fiber === b.fiber.alternate || (a.element === b.element && a.name === b.name);

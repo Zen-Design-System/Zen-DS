@@ -486,7 +486,7 @@ export const rows = [
     },
   },
   {
-    id: "SP-17", feature: "⌘-click goes into an instance to its text, as Figma's deep select (user 2026-10-13): a KPI value is the Text layer of the MetricCard, its Text › Value field writes value=, Enter edits it in place; ⌘-click on a Badge still selects the Badge (one text: the instance)", wp: "studio click 2026-10-13",
+    id: "SP-17", feature: "⌘-click goes into an instance to its text, as Figma's deep select (user 2026-10-13): a KPI value is the Text layer of the MetricCard, its Text › Value field writes value=, Enter edits it in place; a Badge's label is its Text too, ⇧Enter goes up to the Badge", wp: "studio click 2026-10-13",
     timeout: 60_000,
     async run(ctx) {
       try {
@@ -505,8 +505,10 @@ export const rows = [
         const badge = await page.locator(".studio-frame .zen-table tbody .zen-badge").first().boundingBox();
         await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
         await page.keyboard.down("Meta"); await page.mouse.click(badge.x + badge.width / 2, badge.y + badge.height / 2); await page.keyboard.up("Meta");
-        await until(async () => /^Badge\b/.test(await selectedName(page)), { message: "⌘-click on a Badge selects the Badge" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
-        return "value → Text layer → $600K (field) → $700K (Enter on the canvas); Badge → Badge";
+        await until(async () => /^Text\b/.test(await selectedName(page)), { message: "⌘-click on a Badge's label selects its Text (Figma)" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        await page.locator(".studio-viewport").focus(); await page.keyboard.press("Shift+Enter");
+        await until(async () => /^Badge\b/.test(await selectedName(page)), { message: "⇧Enter goes up to the Badge" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        return "value → Text layer → $600K (field) → $700K (Enter on the canvas); Badge label → Text → ⇧Enter → Badge";
       } finally {
         await ctx.studio({ fresh: true });
       }

@@ -276,10 +276,13 @@ export const rows = [
       await click(centre(loudRect));
       await expectSelected(page, ctx.file, rowStack, "a click outside the context selects the top-level layer (the buttons' Stack)");
       steps.push("click elsewhere → Stack");
-      // 6. ⌘-click on Loud: the deepest element there.
+      // 6. ⌘-click on Loud: the deepest layer there, its label (Figma's deep select, 2026-10-13); ⇧Enter: the Button.
       await click(centre(loudRect), { keys: ["ControlOrMeta"] });
-      await expectSelected(page, ctx.file, loud, "⌘-click selects the deepest layer (the Button)");
-      steps.push("⌘-click → Loud");
+      await until(async () => /^Text\b/.test((await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim()), { message: "⌘-click selects the deepest layer (Loud's label)" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Enter");
+      await expectSelected(page, ctx.file, loud, "⇧Enter goes up to the Button");
+      steps.push("⌘-click → Loud's label → ⇧Enter → Loud");
       // 7. A click on Featured: Loud's sibling.
       await click(centre((await rectsOf(page, ctx.file, featured))[0]));
       await expectSelected(page, ctx.file, featured, "a click beside a Button selects its sibling");

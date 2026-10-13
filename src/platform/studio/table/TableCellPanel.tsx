@@ -16,7 +16,7 @@ import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
 import { currentFiber, fiberOf, hostsOf, onSourceUpdate, srcOf, type Fiber } from "../select/picker";
 import { useWords } from "../useWords";
-import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { nestedPathOf, selectedPartStore, withoutPart, type PartHit, ownsText } from "../select/parts";
 import { OverrideProperties } from "../inspector/OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, ObjectShape, SourceAttr, SourceElement, StudioSelection } from "../types";
@@ -380,7 +380,8 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   const kind = drawn ? (column?.content ?? "text") : contentOfWritten(content);
   const shape = drawn && column ? columnShape(table, column.id) : null;
   const columnLocked = !editable || (drawn ? !shape || "reason" in shape : !content);
-  const title = part.name === TABLE_PARTS.cell ? "Cell" : part.name;
+  // A text the cell draws reads as Figma's text layer (⌘-click's deep select lands on it).
+  const title = part.name === TABLE_PARTS.cell ? "Cell" : !part.isComponent && ownsText(part.element) ? "Text" : part.name;
   const where = `row ${cell.row + 1} · ${header} · ${selection.name}`;
 
   /** Writes fields of the column (a column without `cell`): null removes one. */

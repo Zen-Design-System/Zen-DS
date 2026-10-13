@@ -2,7 +2,7 @@
 // Studio, a Zen component the owner draws itself (Card's Sub-Action, the icon inside it, one Table row's Badge) is
 // selected with ⌘-click and changed in the Inspector like Figma's nested instance. The edit is the owner's `overrides`
 // (src/components/_shared/nested.tsx), one ⌘Z.
-import { openAssetLibrary, openStudioSpace, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { openAssetLibrary, openStudioSpace, ownerOfLayer, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { focusScreen, newPage, pageText } from "./builder.mjs";
 import { pickOption } from "./inspector.mjs";
 
@@ -97,6 +97,13 @@ async function deepSelect(page, selector, name, { dy } = {}) {
     }
     await sleep(400);
     if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
+    // ⌘-click lands on the deepest layer (its label, Figma): ⇧Enter goes up one layer at a time to it.
+    for (let up = 0; up < 4; up++) {
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Enter");
+      await sleep(250);
+      if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
+    }
   }
   await page.screenshot({ path: `.qa/studio-e2e/nested-${name}.png` }).catch(() => undefined);
   throw new Error(`⌘-click did not reach ${name} (Inspector: "${await heading(page)}")`);
@@ -175,6 +182,13 @@ async function drill(page, x, y, name) {
     await page.mouse.dblclick(x, y);
     await sleep(400);
     if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
+    // ⌘-click lands on the deepest layer (its label, Figma): ⇧Enter goes up one layer at a time to it.
+    for (let up = 0; up < 4; up++) {
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Enter");
+      await sleep(250);
+      if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
+    }
   }
   throw new Error(`double-click did not reach ${name} (Inspector: "${await heading(page)}")`);
 }
@@ -425,7 +439,7 @@ export const rows = [
     },
   },
   {
-    id: "NO-09", feature: "Layers lists a nested instance under its owner's Parts with its Figma layer name (IconButton · Sub-Action); its row selects it and the Inspector edits it as the Card's override; one ⌘Z", wp: "core rebuild M3 2026-10-11",
+    id: "NO-09", feature: "Layers lists a nested instance under its owner by its Figma layer name (Sub-Action · IconButton), no Parts folder; its row selects it and the Inspector edits it as the Card's override; one ⌘Z", wp: "core rebuild M3 2026-10-11",
     async run(ctx) {
       const { page, id } = await openNestedPage(ctx);
       await selectWritten(page, id, "Card", 6, 30);
@@ -437,17 +451,12 @@ export const rows = [
       };
       await open(tree.locator('[role="treeitem"][aria-selected="true"]'), "the Card's Layers row");
       const card = await tree.locator('[role="treeitem"][aria-selected="true"]').first().getAttribute("data-layer-id");
-      await open(tree.locator(`[role="treeitem"][data-layer-id="${card}/parts"]`), "the Card's Parts row");
-      // The Card's inner frames open one level at a time (as a component's frames in Figma's Layers) until the IconButton shows.
-      const row = tree.locator('[role="treeitem"][data-kind="part"]', { hasText: "IconButton" }).first();
-      for (let round = 0; round < 6 && !(await row.count()); round++) {
-        const closed = tree.locator(`[role="treeitem"][data-layer-id^="${card}/part:"][aria-expanded="false"]`);
-        for (let index = (await closed.count()) - 1; index >= 0; index--) await closed.nth(index).locator(".studio-layers__chevron").click();
-        await sleep(200);
-      }
-      await until(() => row.count(), { message: "an IconButton row under Parts" });
+      // As Figma lists an instance's layers (2026-10-13): no Parts folder; the nested instance is a row of the Card named
+      // by its layer, Sub-Action, its component beside it.
+      const row = tree.locator('[role="treeitem"][data-kind="part"]', { hasText: "Sub-Action" }).first();
+      await until(() => row.count(), { message: "a Sub-Action row under the Card" });
       const caption = (await row.locator(".studio-layers__hint").innerText().catch(() => "")).trim();
-      if (caption !== "Sub-Action") throw new Error(`the IconButton row's caption is "${caption}", not its layer name Sub-Action`);
+      if (caption !== "IconButton") throw new Error(`the Sub-Action row's caption is "${caption}", not its component IconButton`);
       await row.scrollIntoViewIfNeeded();
       await row.click();
       await until(async () => /^IconButton(\s|·|$)/.test(await heading(page)), { message: "the IconButton selected from Layers" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
@@ -456,7 +465,7 @@ export const rows = [
       await undo(page);
       await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after ⌘Z" });
       await shot(page, "NO-09");
-      return "Card › Parts › IconButton · Sub-Action → Level Danger as the Card's override · ⌘Z";
+      return "Card › Sub-Action · IconButton → Level Danger as the Card's override · ⌘Z";
     },
   },
   {
@@ -468,6 +477,8 @@ export const rows = [
       const box = await badges.nth(1).boundingBox();
       await page.keyboard.down("ControlOrMeta");
       try { await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); } finally { await page.keyboard.up("ControlOrMeta"); }
+      // ⌘-click lands on the Badge's label (Figma's deep select): ⇧Enter goes up to the Badge.
+      await ownerOfLayer(page);
       await until(async () => /^Badge(\s|$)/.test(await heading(page)), { message: "the second Badge selected" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });
       const scope = page.locator("#studio-right").getByRole("group", { name: "Changes go to" });
       await until(() => scope.count(), { message: 'the "Changes go to" choice (Row 2 · All 3 rows)' });

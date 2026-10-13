@@ -5,7 +5,7 @@ import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
-import { chainHas, deepLayerAt, ownsText, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { chainHas, deepLayerAt, ownsText, parentLayerOf, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
 import { dataGroupOfPart, dataItemOfPart, dataItemRootOf, groupPartAt, groupTitlePartOf, itemParts, rowPartAtPoint, sectionPartAtPoint } from "../slots/dataItems";
@@ -894,6 +894,15 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const state = studioStore.getState();
       if (state.presenting || state.selection?.kind !== "node") return;
       const current = state.selection;
+      // A layer inside a nested instance (a Badge's label) → that instance, one level up as in Figma.
+      const nestedPart = event.key === "Escape" && current.part && partRef.current ? livePart(partRef.current.owner, partRef.current) : null;
+      const parentLayer = nestedPart && !dataItemRootOf(nestedPart) ? parentLayerOf(nestedPart) : null;
+      if (parentLayer && !dataItemOfPart(nestedPart)) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(parentLayer);
+        return;
+      }
       // A Table's content → its Cell → its Data-Row (then the Table, as any part goes to its owner).
       const up = event.key === "Escape" ? tableUp(selectedRef.current, partRef.current) : null;
       if (up) {

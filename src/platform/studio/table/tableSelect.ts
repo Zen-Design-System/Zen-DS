@@ -1,4 +1,4 @@
-import { deepPartAt, drillNested, manyTexts, ownsText, partChain, partForElement, type PartHit } from "../select/parts";
+import { deepPartAt, drillNested, ownsText, partChain, partForElement, type PartHit } from "../select/parts";
 import { fiberOf, hitOf, srcOf, type FiberHit } from "../select/picker";
 import { TABLE_PARTS, tableFiberOf } from "./tableCells";
 
@@ -94,9 +94,10 @@ export function tableDeep(hit: FiberHit | null, target: Element | null): PartHit
   const chain = partChain(hit, target);
   const at = chain.findIndex((candidate) => !candidate.isComponent && ownsText(candidate.element) && cell.contains(candidate.element) && candidate.element !== cell);
   if (at >= 0) {
-    // Inside a one-text instance the cell draws (a status Badge): that instance, as for any atom.
-    const around = chain.slice(at + 1).find((candidate) => candidate.isComponent && cell.contains(candidate.element) && candidate.element !== cell);
-    return around && !manyTexts(around) ? around : chain[at];
+    // A picture's initials (a member's Avatar) are the picture; any other text is the layer (a status Badge's label too,
+    // as Figma's deep select; ⇧Enter goes up to its Badge).
+    const picture = chain.slice(at + 1).find((candidate) => candidate.isComponent && /^(Avatar|Image|Thumbnail)$/.test(candidate.name) && cell.contains(candidate.element));
+    return picture ?? chain[at];
   }
   const part = deepPartAt(hit, target);
   return part && cell.contains(part.element) && part.element !== cell ? part : tablePart(hit, cell, TABLE_PARTS.cell);

@@ -357,6 +357,8 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   // …or its own text child (a Button's label).
   const childText = resolved && !resolved.isComponent && !item && !group && !textPasses.length && ownsText(resolved.element) && driving.includes("children") && typeof ownerProps.children === "string" && ownerProps.children.trim() === text;
   const textLayer = textPasses.length > 0 || Boolean(childText);
+  // Any text inside the instance reads as Figma's text layer, editable here or not (its words may come from data).
+  const textPart = Boolean(resolved && !resolved.isComponent && !item && !group && ownsText(resolved.element));
 
   return (
     <div className="studio-inspector__panel">
@@ -364,11 +366,12 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           <Heading level={2} textStyle="Body/Small/Bold" className="studio-part__title">
-            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : textLayer ? "Text" : name}
+            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : textPart ? "Text" : name}
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
-        {item || group || textLayer ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
+        {textPart && !textLayer ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Double-click it or press Enter to edit its words</p> : null}
+        {item || group || textPart ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
@@ -380,7 +383,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           </Button>
         </div>
         {inside ? <DataItemBanner item={inside} /> : null}
-        {driving.length && !item && !inside && !group && !overridable && !textLayer ? (
+        {driving.length && !item && !inside && !group && !overridable && !textPart ? (
           <p className={`studio-inspector__note studio-part__edit ${typographyStyles["Body/Small/Regular"]}`}>
             Edit via the owner&apos;s {driving.map((prop, index) => (
               <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{say(prop)}</span></span>
@@ -398,7 +401,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
       {resolved && textPasses.length ? <PartProperties selection={selection} part={resolved} passes={textPasses} title="Text" /> : null}
       {resolved && childText ? <PartTextChild selection={selection} text={text} /> : null}
       {resolved && overridable && layerPath ? <OverrideProperties selection={selection} part={resolved} path={layerPath} /> : resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
-      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable && !textLayer} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable && !textPart} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

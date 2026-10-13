@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { canvasApi } from "../canvas/viewport";
 import { childHits, findBySrc, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
 import { multiSelection } from "../select/multiSelection";
-import { withoutPart } from "../select/parts";
+import { parentLayerOf, selectedPartStore, selectPart, withoutPart } from "../select/parts";
+import { dataItemOfPart } from "../slots/dataItems";
 import { studioStore } from "../store";
 import { textEditSession } from "./textEdit";
 
@@ -56,8 +57,17 @@ export function useNavigateKeys() {
         event.preventDefault();
         event.stopPropagation();
         multiSelection.clear();
-        // A part → its owner; a layer → the layer around it (the frame at the top, as Esc does).
-        if (selection.part) { studioStore.setState({ selection: withoutPart(selection) }); return; }
+        // A part → the layer around it inside the instance (a Badge's label → the Badge, Figma), else its owner; a layer →
+        // the layer around it (the frame at the top, as Esc does).
+        if (selection.part) {
+          const part = selectedPartStore.get();
+          // Inside a data item (a Sidebar row's label): the item.
+          const item = part && part.element.isConnected ? dataItemOfPart(part) : null;
+          const parent = item ? (item.part.element !== part!.element ? item.part : null) : part && part.element.isConnected ? parentLayerOf(part) : null;
+          if (parent) selectPart(parent, world);
+          else studioStore.setState({ selection: withoutPart(selection) });
+          return;
+        }
         const found = selectedHit();
         const parent = found ? parentHit(found.hit, found.frame) : null;
         if (parent && world) { selectHit(parent, world); reveal(parent); }

@@ -19,7 +19,7 @@ import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
 import { componentSchema } from "../inspector/propSchema";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
-import { classHint, elementAt, isComponentFiber, nestedPathOf, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
+import { classHint, elementAt, isComponentFiber, nestedPathOf, ownsText, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
 import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
 import { isTableHit } from "../table/tableSelect";
 import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
@@ -91,12 +91,18 @@ type LayerNode = {
   dataItem?: boolean;
   /** part: that item's slot prop and place among the slot's items (Shift/⌘+click selects several, itemSelection.ts). */
   item?: { prop: string; index: number };
+  /** node (Figma mode): the instance's own layers, computed when first listed (namedParts). */
+  named?: LayerNode[];
+  /** part: a text layer (named by its words). */
+  text?: boolean;
 };
 
 /** `aliases`: a folded wrapper's id → the panel row that stands for it (selecting the wrapper highlights the panel). */
-type Tree = { groups: LayerNode[]; byId: Map<string, LayerNode>; total: number; aliases: Map<string, string> };
+/** `figma`: Layers as Figma lists them (no Parts folders, no empty slots, an instance's own layers named); false with
+ *  "Show all layers". */
+type Tree = { groups: LayerNode[]; byId: Map<string, LayerNode>; total: number; aliases: Map<string, string>; figma: boolean };
 
-const emptyTree: Tree = { groups: [], byId: new Map(), total: 0, aliases: new Map() };
+const emptyTree: Tree = { groups: [], byId: new Map(), total: 0, aliases: new Map(), figma: true };
 
 /** A playground panel's title ("Button / Main"): its own h2, else the first heading inside. */
 function panelTitle(element: Element) {
@@ -177,11 +183,11 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
   for (const group of groups) {
     if (group.frameId !== MAIN_FRAME) {
       if (!showAll) group.children = simplify(group.children, aliases);
-      attachSlots(group.children, byId);
+      attachSlots(group.children, byId, !showAll);
     }
     group.children.forEach((child) => relink(child, group));
   }
-  return { groups, byId, total, aliases };
+  return { groups, byId, total, aliases, figma: !showAll };
 }
 
 /** The Main component frame's layers: each component, its Figma sets, their variants and the elements inside them. */
@@ -220,9 +226,9 @@ function firstHostOf(node: LayerNode): Element | undefined {
  * container holds its first DOM node). Children outside every slot (JSX in another prop) stay directly under the
  * component. Depths and parents are set by the relink that follows.
  */
-function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
+function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>, figma = false) {
   for (const node of nodes) {
-    attachSlots(node.children, byId);
+    attachSlots(node.children, byId, figma);
     if (node.kind !== "node" || !node.isComponent) continue;
     if (tableRows(node, byId)) continue;
     const data = dataSlotRows(node, byId);
@@ -243,7 +249,11 @@ function attachSlots(nodes: LayerNode[], byId: Map<string, LayerNode>) {
       byId.set(row.id, row);
       return row;
     });
-    node.children = [...rows, ...data, ...node.children.filter((child) => !claimed.has(child))];
+    // As Figma lists them (user, 2026-10-13: "hàng slot (vd. Sidebar › Sidebar), chưa giống tên layer trong Figma"): an
+    // empty slot is no row (the canvas shows it on the selected instance, the Inspector's Slots lists it), and a slot
+    // holding one layer of its own name is that layer.
+    const shown = figma ? rows.flatMap((row) => (!row.children.length ? [] : row.children.length === 1 && row.children[0].name === row.name ? row.children : [row])) : rows;
+    node.children = [...shown, ...data, ...node.children.filter((child) => !claimed.has(child))];
   }
 }
 
@@ -457,10 +467,65 @@ const partKey = (path: number[], name: string) => `${path.join(".")}:${name}`;
 /** A nested instance's Figma layer name ("Sub-Action", "Leading-Icon"), the last step of its path, shown beside it. */
 const layerNameOf = (part: PartHit) => nestedPathOf(part)?.split("/").pop()?.replace(/\[[^\]]*\]$/, "") || undefined;
 
-/** The rows under a node; a "Parts" folder or part computes its parts the first time it is asked. */
-function childrenOf(node: LayerNode, byId: Map<string, LayerNode>): LayerNode[] {
-  if (node.kind === "node") return node.hasParts ? [partsFolderOf(node), ...node.children] : node.children;
+/**
+ * An instance's own layers as Figma lists them (no "Parts" folder, user 2026-10-13): its nested instances by their Figma
+ * layer names and its texts, the DOM wrappers between them left out (their layers come up a level); a data-slot item is
+ * listed in its slot row instead. Each nested instance opens on its own layers the same way.
+ */
+function namedParts(owner: FiberHit, fiber: Fiber, depth = 0): PartHit[] {
+  const out: PartHit[] = [];
+  for (const hit of partChildren(owner, fiber)) {
+    // A data-slot item is its slot row's (its own layers open there): skipped here with everything inside it.
+    if (dataItemRootOf(hit)) continue;
+    // Words for screen readers only draw nothing: no layer (Figma has none).
+    if (hit.element.closest(".zen-visually-hidden") || hit.name === "VisuallyHidden") continue;
+    if (hit.isComponent && nestedPathOf(hit) !== null) out.push(hit);
+    else if (!hit.isComponent && hit.path.length > 1 && ownsText(hit.element)) {
+      // A text clipped to a pixel is a screen reader's (a chart's summary line), not a layer on the canvas.
+      const box = hit.element.getBoundingClientRect();
+      if (box.width > 1 || box.height > 1) out.push(hit);
+    }
+    else if (depth < 24) out.push(...namedParts(owner, hit.fiber, depth + 1));
+  }
+  return out;
+}
+
+/** A row for part `hit` of `owner`'s instance, under `parent` (a unique id; a text is named by its words, as Figma does). */
+function partRowOf(owner: LayerNode, parent: LayerNode, hit: PartHit, byId: Map<string, LayerNode>, used: Set<string>): LayerNode {
+  let id = `${owner.id}/part:${partKey(hit.path, hit.name)}`;
+  for (let copy = 2; used.has(id) || (byId.get(id)?.dataItem && byId.get(id)?.parent !== parent); copy++) id = `${owner.id}/part:${partKey(hit.path, hit.name)}~${copy}`;
+  used.add(id);
+  const text = !hit.isComponent && ownsText(hit.element) ? (hit.element.textContent ?? "").trim().replace(/\s+/g, " ") : null;
+  const child: LayerNode = {
+    id, kind: "part", name: text ? (text.length > 28 ? `${text.slice(0, 28)}…` : text) : hit.isComponent ? layerNameOf(hit) ?? hit.name : hit.name, src: owner.src, frameId: owner.frameId, isComponent: hit.isComponent, instance: owner.instance, count: 0,
+    depth: parent.depth + 1, children: [], fiber: hit.fiber, frame: owner.frame, parent, owner, part: hit,
+    meta: text ? "Text" : hit.isComponent ? (layerNameOf(hit) ? hit.name : undefined) : classHint(hit.element) ?? undefined, lazy: !text, text: Boolean(text),
+  };
+  byId.set(id, child);
+  return child;
+}
+
+/** The rows under a node; a "Parts" folder or part computes its parts the first time it is asked. In Figma mode an
+ *  instance lists its own layers (namedParts) after its written ones. */
+function childrenOf(node: LayerNode, byId: Map<string, LayerNode>, figma = false): LayerNode[] {
+  if (node.kind === "node") {
+    if (!figma) return node.hasParts ? [partsFolderOf(node), ...node.children] : node.children;
+    if (!node.hasParts || !node.fiber) return node.children;
+    if (!node.named) {
+      const owner = hitOf(node.fiber);
+      const used = new Set<string>();
+      node.named = owner?.fiber ? namedParts(owner, owner.fiber).map((hit) => partRowOf(node, node, hit, byId, used)) : [];
+    }
+    return [...node.children, ...node.named];
+  }
   if (!node.lazy) return node.children;
+  if (figma && node.kind === "part" && node.owner && node.part) {
+    node.lazy = false;
+    const ownerHit = node.owner.fiber ? hitOf(node.owner.fiber) : null;
+    const used = new Set<string>();
+    node.children = ownerHit ? namedParts(ownerHit, node.part.fiber).map((hit) => partRowOf(node.owner!, node, hit, byId, used)) : [];
+    return node.children;
+  }
   node.lazy = false;
   const owner = node.owner;
   const ownerHit = owner?.fiber ? hitOf(owner.fiber) : null;
@@ -507,7 +572,7 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
       emitted.add(node.id);
       if (rows.length >= MAX_ROWS) { hidden += 1; continue; }
       // A part row looks one level ahead (its own parts) to know whether it opens.
-      const children = node.kind === "part" || isOpen(node) || needle ? childrenOf(node, tree.byId) : node.kind === "node" && node.hasParts ? [partsFolderOf(node)] : node.children;
+      const children = node.kind === "part" || isOpen(node) || needle ? childrenOf(node, tree.byId, tree.figma) : node.kind === "node" && node.hasParts ? (tree.figma ? childrenOf(node, tree.byId, true) : [partsFolderOf(node)]) : node.children;
       const hasChildren = children.length > 0 || (node.kind === "parts" && Boolean(node.lazy));
       const open = hasChildren && (needle ? children.some((child) => matches.has(child)) : isOpen(node));
       rows.push({ node, open, hasChildren });
@@ -565,6 +630,7 @@ function rowIcon(node: LayerNode): IconName {
   if (node.kind === "variant") return node.isComponent ? "icon-cube-line" : "icon-layers-three-01-line";
   if (node.kind === "parts") return "icon-layers-three-01-line";
   if (node.kind === "slot") return "icon-grid-dots-blank-line";
+  if (node.text) return "icon-type-01-line";
   return node.isComponent ? "icon-cube-line" : "icon-code-02-line";
 }
 
@@ -689,16 +755,21 @@ export function LayersPanel() {
       const ownerHit = owner?.fiber ? hitOf(owner.fiber) : null;
       const target = ownerHit ? elementAt(ownerHit, part.path) : null;
       if (!owner?.hasParts || !target) return;
-      const folder = partsFolderOf(owner);
-      opens.push(folder);
-      let level = childrenOf(folder, tree.byId);
+      // Figma mode: from the instance's own layers; else from its Parts folder.
+      let level: LayerNode[];
+      if (tree.figma) level = childrenOf(owner, tree.byId, true).filter((candidate) => candidate.kind === "part");
+      else {
+        const folder = partsFolderOf(owner);
+        opens.push(folder);
+        level = childrenOf(folder, tree.byId);
+      }
       for (let depth = 0; depth < 80 && level.length && !node; depth++) {
         node = level.find((candidate) => candidate.part && candidate.part.name === part.name && partKey(candidate.part.path, candidate.part.name) === partKey(part.path, part.name));
         if (node) break;
         const next = level.find((candidate) => candidate.part?.hosts.some((host) => host === target || host.contains(target)));
         if (!next) break;
         opens.push(next);
-        level = childrenOf(next, tree.byId);
+        level = childrenOf(next, tree.byId, tree.figma);
       }
     }
     if (!node) return;
