@@ -8,6 +8,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Figma styles Color Chart Sector/On-Color/Secondary (48%) and /Tertiary (20%) draw at 100% (2026-10-14, needs
+  the user's go-ahead):** both bind Content/Neutral/Strongest (alpha 1) and a bound colour's opacity follows the
+  variable's alpha, so every node using them is solid (the Bullet-Chart main's Track too). Fix: bind them to alpha
+  variables (Content/Neutral/Light 49%/60%, Border/Neutral/Subtle/Pressed 18%/23%); the Metric Widget board's
+  Spark-Bars uses Chart Sector/Secondary + layer opacity meanwhile (the Chart page's widget board was deleted by the
+  user 2026-10-14). Session log 2026-10-13, "Widget recolour" and "Correction".
 - **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
   Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale/Semi-Pale hues), Metric-Card and Chart-Card
   expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `theme` semi-pale + `surface` +

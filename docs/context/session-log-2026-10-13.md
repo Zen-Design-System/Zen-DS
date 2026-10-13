@@ -370,6 +370,22 @@
   screen-rules §1 table, SKILL.md hard rule, audit-rules rows; ai-kit:check 100 ✓. Live: 36/36 user theme frames clean,
   the old review board flags as expected; it caught the Team performance chart card left Flat beside Shadow cards
   (fixed). Old review section renamed "superseded".
+- Widget recolour (2026-10-14, user: "Ngoại trừ 3 card widget này. Các widget còn lại nên học cách phối màu lại"): the
+  Hero cards' recipe on every other coloured widget — marks in one neutral ramp, solid / 48% / 20%, never brand pink on a
+  hue. Chart › Widget themes: Combo (Pale Brand) bars 48% + line solid; Bar-List solid; Gauge value solid, track 20%,
+  target 48%; Funnel stages 48%, Signed (the headline) solid; Stacked area solid / 48% / 20%; Quarter goals (dark card)
+  actual white, target white 48%, track white 10% — its target was #121212 on #1c1c1c (Chart/Sector/* have no dark
+  value). Metric Widget: KPI/Sparkline/Spark-Bars badges On-Color Solid, Spark-Bars bars 48% + active solid.
+  Root cause found: a bound colour's paint opacity always follows the variable's alpha, so the styles Color Chart
+  Sector/On-Color/Secondary (48%) and /Tertiary (20%), bound to Content/Neutral/Strongest (alpha 1), draw at 100% on
+  every node (also the Bullet-Chart main's Track). Widgets therefore use Chart Sector/Secondary (or On-Color/Primary on
+  the dark card) + layer opacity; rebinding the two styles to alpha variables was refused by the permission check →
+  BACKLOG. Shadow cuts fixed: Widget themes Grid and five Hero Metric-Body frames (button shadow, 2px) no longer clip.
+- Correction (user, 2026-10-14: "Các card màu Neutral tối phải dùng solid neutral … không đổi sang dark mode. Không dùng
+  nhiều mode khác nhau trong 1 component"): the user deleted the Chart page's widget board. Card Solid variants (10) and
+  Metric-Card Hero's Card no longer set a colour mode; Solid/Neutral fills Background/Neutral/Solid/Default and its
+  header icon takes Content/Inverse/Light (the Hero Neutral "⋮" was black 49% on #121212). Card description and the
+  Metric board caption rewritten; skill: SKILL.md hard rule "One colour mode per screen" + screen-rules §1 bullet.
 
 ## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
 
