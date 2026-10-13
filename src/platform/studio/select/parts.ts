@@ -3,6 +3,7 @@ import type { StudioPartRef, StudioSelection } from "../types";
 import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit, typeNameOf } from "./picker";
 import { tablePartName } from "../table/tableCells";
 import { NestedContext, type NestedScope } from "../../../components/_shared/nested";
+import { srcProp } from "./srcIds";
 
 // ContextProvider (react-reconciler ReactWorkTags): the fiber of a `<Context value>`.
 const CONTEXT_PROVIDER = 10;
@@ -67,7 +68,7 @@ export function partHit(owner: FiberHit, fiber: Fiber): PartHit | null {
     // A Table's rows and cells go by Figma's names (Data-Row, Cell, Header, Header-Cell), as its Layers list them.
     // A component the owner hands its own props to (MetricCard spreads them on its Metric) carries the owner's builder
     // label (data-zen-name): the part goes by its own name.
-    const inherited = !host && live.memoizedProps?.["data-zen-src"] === owner.src;
+    const inherited = !host && srcProp(live.memoizedProps) === owner.src;
     const name = (host && tablePartName(element)) || (inherited ? typeNameOf(live) : nameOf(live));
     return { src: owner.src, name, hosts, isComponent: !host, props: live.memoizedProps ?? {}, fiber: live, owner, path, element };
   } catch {

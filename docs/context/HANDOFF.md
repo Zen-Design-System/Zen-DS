@@ -76,7 +76,10 @@ Last updated: 2026-10-12.
   what clicks pass through, ⌘-click reaches texts and nested instances (`select/parts.ts deepLayerAt`), text layers edit
   (Inspector Text, Enter), nested booleans off drop their override, edits ~2× faster (render cache in
   `builder/render/renderPage.tsx`, sync parse, parse/sha1 caches, deferred size probes); Figma walk 14/14 tasks at
-  Figma's step count (scripts in the session log). Session log 2026-10-13.
+  Figma's step count (scripts in the session log). Round 3: ⌘-click on every text (atoms too), ⇧Enter/Esc one layer
+  up (`parts.ts parentLayerOf`), Layers without Parts / empty slots; builder pages mark elements `file:@<doc id>`
+  (`select/srcIds.ts` turns them back into file:line:col; BuilderBoard sets it from `locsOf`), edits 35–60 ms.
+  Session log 2026-10-13.
 - **Zen Studio, Figma usability round 1 (2026-10-10):** pictures replace like Figma everywhere (Assets › Photos click or
   a drop on an Avatar/Image/Thumbnail/account, the Inspector's Picture; data rows and factories write that row,
   `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:

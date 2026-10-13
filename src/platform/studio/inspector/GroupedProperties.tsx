@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, startTransition, useEffect, useState } from "react";
 import { Icon } from "../../../components/Icon";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { dataItemBlock, dataSlotOf, editDataItem, insertIntoSlot, openSlotPicker, slotHostContext, sourceItems, type DataSlot } from "../slots";
@@ -121,7 +121,8 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
       disabled={api.disabled}
       resettable={false}
       onSet={(next) => {
-        if (next === true && !on) { setPending(true); switchOn(); } else if (next === false && on) { setPending(false); switchOff(); }
+        // The edit first, the switch's own redraw as a transition after it (the canvas shows the change sooner).
+        if (next === true && !on) { switchOn(); startTransition(() => setPending(true)); } else if (next === false && on) { switchOff(); startTransition(() => setPending(false)); }
       }}
       onReset={() => undefined}
     />

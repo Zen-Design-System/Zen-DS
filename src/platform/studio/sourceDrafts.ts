@@ -6,6 +6,7 @@ import { flushInspectorDrafts } from "./inspector/drafts";
 import { fiberOf, type Fiber } from "./select/picker";
 import { studioStore } from "./store";
 import type { DraftInfo, FrameDraft, SaveResult, SourceFile } from "./types";
+import { srcAttr, srcProp } from "./select/srcIds";
 
 /*
  * Admin drafts (spec: drafts until Save). The dev server keeps every Studio edit of a file as a draft (shown to every
@@ -327,15 +328,15 @@ const MAX_FRAME_FIBERS = 40_000;
  */
 export function frameLocs(element: HTMLElement): string[] {
   const seen = new Set<string>();
-  const own = element.getAttribute("data-zen-src");
+  const own = srcAttr(element);
   const sources = own ? [own] : [];
-  element.querySelectorAll("[data-zen-src]").forEach((node) => { sources.push(node.getAttribute("data-zen-src") ?? ""); });
+  element.querySelectorAll("[data-zen-src]").forEach((node) => { sources.push(srcAttr(node) ?? ""); });
   const stack: Array<Fiber | null> = [fiberOf(element)?.child ?? null];
   for (let count = 0; stack.length && count < MAX_FRAME_FIBERS; count += 1) {
     const fiber = stack.pop();
     if (!fiber) continue;
-    const src = fiber.memoizedProps?.["data-zen-src"];
-    if (typeof src === "string") sources.push(src);
+    const src = srcProp(fiber.memoizedProps);
+    if (src) sources.push(src);
     stack.push(fiber.sibling, fiber.child);
   }
   for (const source of sources) {

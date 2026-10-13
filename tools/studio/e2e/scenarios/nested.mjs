@@ -182,13 +182,6 @@ async function drill(page, x, y, name) {
     await page.mouse.dblclick(x, y);
     await sleep(400);
     if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
-    // ⌘-click lands on the deepest layer (its label, Figma): ⇧Enter goes up one layer at a time to it.
-    for (let up = 0; up < 4; up++) {
-      await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("Shift+Enter");
-      await sleep(250);
-      if (new RegExp(`^${name}(\\s|·|$)`).test(await heading(page))) return;
-    }
   }
   throw new Error(`double-click did not reach ${name} (Inspector: "${await heading(page)}")`);
 }
@@ -655,7 +648,11 @@ export const rows = [
       // The Studio's edits, as the Inspector sends them.
       const scope = `[data-zen-src^="local:${id}.zen.tsx:"]`;
       await until(async () => (await page.locator(`${scope}[data-zen-name="Card"]`).count()) === 5, { timeout: 30000, message: "five Cards" });
-      const srcOf = async (name, text) => page.locator(`${scope}[data-zen-name="${name}"]`).filter({ hasText: text }).first().getAttribute("data-zen-src");
+      // A page made in the Studio marks elements by id: read back as file:line:col (src/platform/studio/select/srcIds.ts).
+      const srcOf = async (name, text) => {
+        const raw = await page.locator(`${scope}[data-zen-name="${name}"]`).filter({ hasText: text }).first().getAttribute("data-zen-src");
+        return page.evaluate((mark) => (typeof window.__zenResolveSrc === "function" ? window.__zenResolveSrc(mark) : mark), raw);
+      };
       const edit = (src, name, prop, value) => page.evaluate(async ({ src: at, name: tag, prop: key, value: next }) => {
         const api = await import("/src/platform/studio/api.ts");
         const parsed = api.parseSrc(at);

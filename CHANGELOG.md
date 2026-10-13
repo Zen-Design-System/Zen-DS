@@ -19,6 +19,12 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio, round 3: ⌘-click lands on every text as Figma's deep select (a Button's, Badge's or Chip's label too; a
+  picture's initials stay the picture), ⇧Enter / Esc go up one layer inside an instance; Layers shows an instance's own
+  layers by their Figma names and texts by their words, with no "Parts" folder, no empty slots and no slot row that
+  only repeats its layer's name. Edits on a page you made reach the canvas in 35–60 ms (was 160–260 before these
+  rounds): its elements are marked by their stable document ids, so an added line no longer redraws the page below it,
+  and the Studio's own panels redraw after the canvas has painted.
 - Zen Studio, Figma parity round 2: Layers lists what the canvas selects (no Container, a card's content Stack, a list's
   `<ul>` or Parts row under a Stack / Grid); ⌘-click goes into an instance to its text or nested instance (a KPI value,
   a list title, a table cell's name, an icon, a Badge), a text layer edits in the Inspector (Text) or with Enter in

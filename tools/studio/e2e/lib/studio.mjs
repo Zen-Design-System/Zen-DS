@@ -20,16 +20,19 @@ function installHelpers() {
     for (const key in el) if (key.startsWith("__reactFiber$")) return el[key];
     return null;
   };
+  // A page made in the Studio marks elements by id (src/platform/studio/select/srcIds.ts): read back as file:line:col.
+  const resolve = (raw) => (typeof window.__zenResolveSrc === "function" ? window.__zenResolveSrc(raw) : raw);
   const srcOfFiber = (fiber) => {
     for (let f = fiber; f; f = f.return) {
       const src = f.memoizedProps?.["data-zen-src"];
-      if (typeof src === "string") return src;
+      if (typeof src === "string") return resolve(src);
     }
     return null;
   };
   window.__e2e = {
     elementOf(src) {
-      const direct = document.querySelector(`[data-zen-src="${CSS.escape(src)}"]`);
+      const direct = document.querySelector(`[data-zen-src="${CSS.escape(src)}"]`)
+        ?? [...document.querySelectorAll("[data-zen-src]")].find((el) => resolve(el.getAttribute("data-zen-src")) === src);
       if (direct) return direct;
       for (const el of document.querySelectorAll(".studio-frame *")) {
         const fiber = fiberOf(el);

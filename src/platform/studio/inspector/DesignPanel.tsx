@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
@@ -56,6 +56,7 @@ import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "./status"
 import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from "./textInfo";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, type WritePlan } from "./writePlan";
 import { remountFrameAfterUpdate } from "../board/remount";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * Design tab for a selected JSX element (spec §6): playground properties (the playground's own controls, portalled
@@ -81,7 +82,7 @@ function selectedHit(selection: NodeSelection): FiberHit | null {
 /** The selection's rendered element that carries its data-zen-src (else its first host element), for measured px. */
 function sourceHost(selection: NodeSelection): HTMLElement | null {
   const hosts = (selectedHit(selection)?.hosts ?? []).filter((node): node is HTMLElement => node instanceof HTMLElement);
-  return hosts.find((node) => node.getAttribute("data-zen-src") === selection.src) ?? hosts[0] ?? null;
+  return hosts.find((node) => srcAttr(node) === selection.src) ?? hosts[0] ?? null;
 }
 
 /** Selects a child element of the selection by its source location (searches a few annotated levels down). */
@@ -448,7 +449,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     if (!shown || !editable) return Promise.resolve(false);
     // Queued behind another write, or planned from attributes a landed write made stale: read again before sending.
     const behind = stale();
-    setOverrides((current) => ({ ...current, ...optimistic }));
+    // The optimistic value redraws the whole panel: as a transition, after the edit has left for the canvas (in the click's
+    // own flush it held every edit back ~20 ms, 2026-10-13).
+    startTransition(() => setOverrides((current) => ({ ...current, ...optimistic })));
     editCount.current += 1;
     inFlight.current += 1;
     let written = false;

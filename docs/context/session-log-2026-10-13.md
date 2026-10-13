@@ -91,3 +91,23 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   actions.ts read the frame for prop slots: was refused), Enter on a text layer, table cell text, Sidebar label in place.
   Now 14/14 at Figma's step count (icon swap +1 for typing a search).
 - E2E: SP-16…SP-20 new; O-04, SE-30 updated; full run before the last fixes: 7 regressions, all fixed and rerun.
+
+### Round 3 (user: 1 OK, 2 "xử lý luôn", 4 OK; 3 to explain)
+- ⌘-click 100% Figma for atoms: `deepLayerAt` returns the text layer always (Avatar / Image / Thumbnail initials stay
+  the picture; a data row's text still gives the row through SelectionLayer); Table cell text too. PartPanel: any text
+  part reads "Text" (field when its words are an owner prop or text child, else "Double-click it or press Enter").
+  ⇧Enter (navigate.ts) and Esc go up one layer inside the instance (`parentLayerOf`: nearest nested instance or a
+  Figma-named part such as Cell), a data item's inside → the item; E2E helpers climb with repeated ⇧Enter.
+- Layers (Figma mode, i.e. without "Show all layers"): no Parts folder; `namedParts` lists an instance's nested
+  instances (Figma layer name, component as hint) and texts (named by their words), DOM wrappers flattened, data items
+  left to their slot rows, screen-reader-only and pixel-clipped texts out; empty slot rows hidden; a slot row holding
+  one layer of its own name folds (AppShell › Sidebar).
+- Ids: `select/srcIds.ts` (`setPlaces`, `resolveSrc`, `srcAttr`, `srcProp`, window.__zenResolveSrc for the E2E
+  helpers); picker `srcOf` resolves; 13 direct reads of data-zen-src now go through it; renderPage marks
+  `file:@id` from `ctx.ids` (BuilderBoard: engine.locsOf(page.doc, text)) and signs nodes by id → after a line is
+  added 8 of 24 cache lookups miss (was 71 of 80). Pipeline marks (click → apply → localEdit → put → board render →
+  commit → paint): the click's sync flush rendered DesignPanel first (~20 ms: optimistic overrides and ToggleRow
+  pending → transitions), the page store notify redrew every My pages row (memo), notifySourceUpdate ran the
+  Inspector / Layers / overlays before the paint (deferred a frame). Switch → canvas 34–62 ms.
+- E2E: SP-21 (marks stay through a line change, a ListBox still selects), SE-30 / SP-17 / DA-09 / NO-03 / NO-09 /
+  NO-10 follow Figma's deep select and the Layers without Parts.

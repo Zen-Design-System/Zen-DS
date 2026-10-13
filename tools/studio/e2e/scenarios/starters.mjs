@@ -588,6 +588,37 @@ export const rows = [
       }
     },
   },
+  {
+    id: "SP-21", feature: "A page made in the Studio marks its elements by document id (user 2026-10-13: \"Refactor định danh layer để sửa gần như tức thì\"): a switch that adds a line leaves the marks of the elements below it as they were, and the Studio still reads their place (a click on one selects it, its Inspector edits it)", wp: "studio ids 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        // The page's document exists after its first edit: one edit first (Hint on the first card, then off).
+        await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        const hint = page.locator("#studio-right").getByRole("switch", { name: "Hint", exact: true }).first();
+        await hint.click();
+        await until(async () => /hint=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "hint written" });
+        // Every mark the page's elements put in the DOM (components that pass their attributes on).
+        const marks = () => page.evaluate(() => [...document.querySelectorAll('.studio-frame [data-zen-src^="local:"]')].map((el) => el.getAttribute("data-zen-src")));
+        const before = await marks();
+        if (before.length < 10 || !before.every((mark) => /:@[\w-]+$/.test(mark ?? ""))) throw new Error(`not marked by id (${before.length}): ${before.slice(0, 3).join(", ")}`);
+        await hint.click();
+        await until(async () => !/hint=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "hint removed (a line fewer)" });
+        const after = await marks();
+        if (after.join("|") !== before.join("|")) throw new Error("the marks of the elements below changed with the line count");
+        // Their place is still read right: ⌘-click a ListBox's padding selects the ListBox.
+        const list = await page.locator(".studio-frame .zen-list-box").first().boundingBox();
+        await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+        await page.keyboard.down("Meta"); await page.mouse.click(list.x + 4, list.y + 4); await page.keyboard.up("Meta");
+        await until(async () => (await selectedName(page)) === "ListBox", { message: "the ListBox selected by its mark" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        return `${before.length} marks kept through an edit that removed a line; ListBox selected`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
   ...[["SP-02", 4, "Sign in", "desktop"], ["SP-03", 5, "Mobile list", "phone"]].map(([id, frame, name, device]) => ({
     id, feature: `New page from the ${name} template: a ${device} page that renders`, wp: "GĐ3b M1",
     // The first row opens the Templates page, which the server compiles then (about 20 s).

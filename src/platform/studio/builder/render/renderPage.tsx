@@ -43,6 +43,9 @@ export type RenderContext = {
   forceOpen?: boolean;
   /** The elements of the last render, by what their node says: an unchanged node gives the same element (renderCache). */
   cache?: RenderCache;
+  /** Each element's document id by its place ("line:col" → id, doc.mjs locsOf): the canvas marks it `<file>:@<id>`
+   *  (select/srcIds.ts), which an edit keeps; without one, by its place. */
+  ids?: ReadonlyMap<string, string>;
 };
 
 type Scope = Record<string, unknown>;
@@ -82,16 +85,23 @@ function hash(text: string): string {
 
 const signatures = new WeakMap<object, string>();
 
-/** What a node says, as a short string: its name, place, props (its elements by their own signatures) and children. */
-function signatureOf(node: PageNode): string {
+/** What a node says, as a short string: its name, identity (its document id, else its place), props (its elements by
+ *  their own signatures) and children. A node is a new object on every parse, so a tree's `ids` stay with its nodes. */
+function signatureOf(node: PageNode, ids: ReadonlyMap<string, string> | undefined): string {
   const known = signatures.get(node);
   if (known) return known;
-  const props = JSON.stringify(node.props, (_key, value: unknown) => (value && typeof value === "object" && (value as { kind?: unknown }).kind === "element" && (value as { node?: unknown }).node ? `@${signatureOf((value as { node: PageNode }).node)}` : value));
-  const children = node.children.map((child) => (child.kind === "element" ? signatureOf(child) : child.kind === "map" ? `map:${JSON.stringify(child.source)}:${child.item}:${signatureOf(child.node)}` : JSON.stringify(child))).join("\u0002");
-  const signature = hash(`${node.name}\u0001${node.loc}\u0001${props}\u0001${children}`);
+  const props = JSON.stringify(node.props, (_key, value: unknown) => (value && typeof value === "object" && (value as { kind?: unknown }).kind === "element" && (value as { node?: unknown }).node ? `@${signatureOf((value as { node: PageNode }).node, ids)}` : value));
+  const children = node.children.map((child) => (child.kind === "element" ? signatureOf(child, ids) : child.kind === "map" ? `map:${JSON.stringify(child.source)}:${child.item}:${signatureOf(child.node, ids)}` : JSON.stringify(child))).join("\u0002");
+  const signature = hash(`${node.name}\u0001${ids?.get(node.loc) ?? node.loc}\u0001${props}\u0001${children}`);
   signatures.set(node, signature);
   return signature;
 }
+
+/** The element's mark: `<file>:@<id>` when its document gives it one (stable through edits), else `<file>:<line>:<col>`. */
+const srcOfNode = (node: PageNode, ctx: RenderContext) => {
+  const id = ctx.ids?.get(node.loc);
+  return id ? `${ctx.file}:@${id}` : `${ctx.file}:${node.loc}`;
+};
 
 function valueOf(value: PageValue, scope: Scope, ctx: RenderContext): unknown {
   switch (value.kind) {
@@ -155,7 +165,7 @@ function initialStateOf(props: Record<string, unknown>): string {
 export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   // In the page's own scope (not a list row's) and without extra props, an unchanged node gives its last element.
   const cache = ctx.cache && scope.mock === ctx.mock && Object.keys(scope).length === 1 && !extra ? ctx.cache : null;
-  const cacheKey = cache ? `${key ?? ""}|${signatureOf(node)}` : "";
+  const cacheKey = cache ? `${key ?? ""}|${signatureOf(node, ctx.ids)}` : "";
   if (cache) {
     const reused = cache.current.get(cacheKey) ?? cache.previous.get(cacheKey);
     if (reused !== undefined) {
@@ -171,7 +181,7 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
 function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   const component = componentOf(node.name);
   if (!component) return null;
-  const props: Record<string, unknown> = { key, "data-zen-src": `${ctx.file}:${node.loc}`, "data-zen-name": node.name, ...extra };
+  const props: Record<string, unknown> = { key, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": node.name, ...extra };
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL, in a prop's data too (a
   // Table row's picture).
   for (const [name, value] of Object.entries(node.props)) props[name] = resolveMediaDeep(valueOf(value, scope, ctx));

@@ -19,6 +19,7 @@ import { instanceSizing, type InstanceAxis, type InstanceSizingInput } from "./i
 import type { ParentLayout } from "../inspector/sizingModel";
 import { ladderOf } from "../position/PositionSection";
 import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type PositionAxis, type Snap } from "../position/positionModel";
+import { srcAttr, srcProp } from "./srcIds";
 
 /*
  * Resize handles on the selected element (Figma-like): 4 corner squares and 4 edge strips on its outline (Text and
@@ -422,7 +423,7 @@ function handsOn(children: unknown, src: string, through: string[], depth = 0): 
   if (Array.isArray(children)) return through.includes("array") && children.some((child) => handsOn(child, src, through, depth + 1));
   if (!isElementLike(children)) return false;
   if (children.type === Fragment) return through.includes("fragment") && handsOn(children.props?.children, src, through, depth + 1);
-  return children.props?.["data-zen-src"] === src;
+  return srcProp(children.props) === src;
 }
 
 /**
@@ -450,8 +451,8 @@ function clonedWhere(hit: FiberHit): string | null {
       const held = cloningProp(cloningList, owner, fiber.memoizedProps, srcs);
       if (held) return cloneReason(held, `<${hit.name}>`, owner);
       if (componentSchema(owner)) return null;
-      const src: unknown = fiber.memoizedProps?.["data-zen-src"];
-      if (typeof src === "string") srcs.add(src);
+      const src = srcProp(fiber.memoizedProps);
+      if (src) srcs.add(src);
     }
   } catch {
     return null;
@@ -675,7 +676,7 @@ function fixedReason(name: string, axes: ResizeAxis[], host?: HTMLElement | null
 function gridCell(host: HTMLElement, wrapperSrc: string | null, props: Record<string, unknown>): { src: string; element: HTMLElement; index: number } | null {
   const item = wrapperSrc && host.parentElement ? host.parentElement : host;
   const grid = layoutParent(item);
-  const src = grid?.classList.contains("zen-grid") ? grid.getAttribute("data-zen-src") : null;
+  const src = grid?.classList.contains("zen-grid") ? srcAttr(grid) : null;
   if (!grid || !src) return null;
   if (item.getAttribute("data-w") === "fixed" || (item === host && typeof props.width === "number")) return null;
   const sole = soleColumn(grid, item);
