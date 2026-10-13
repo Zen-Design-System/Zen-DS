@@ -121,11 +121,11 @@ removed (four unused colour ramps were, see Removed).
 - AI kit for Figma (2026-10-13, user): Installation › AI kit for Figma downloads `zen-figma-ai-kit.zip` (built in the
   browser from the repo) so Claude or ChatGPT/Codex can design in a Zen Figma file through Figma's MCP server: the skill
   `skills/zen-figma-design` (setup, hard rules, build steps, screen rules, Plugin API gotchas), the read-only audit
-  harness `harness/zen-figma-audit.js` (22 rules: unbound colours/spacing/radii, text and effect styles, paint
+  harness `harness/zen-figma-audit.js` (23 rules: unbound colours/spacing/radii, text and effect styles, paint
   overrides and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller
   non-clipping wrapper like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured
-  from the effect; an error on the screen's own frames), crushed text, placeholder copy, and theme pairing: boxes and
-  navigation surfaces that clash with the Canvas, one elevation per screen), the generated
+  from the effect; an error on the screen's own frames), crushed or shifted text, placeholder copy, and theme
+  pairing: boxes and navigation surfaces that clash with the Canvas, one elevation per screen), the generated
   Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
   writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
 - Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)
@@ -998,6 +998,11 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Figma List-Box (2026-10-14, user): a heading no longer starts in from the edge when the box is wider than 311px.
+  Header-Slot and Footer-Slot align their content left and the default Heading / Footer texts fill the slot (they were
+  fixed at 263px in a centred slot), as `.zen-list-box__header` lays it out; the 30 List-Boxes on ◆ Performance were
+  fixed too. Publish the library so files that use it get the change. The AI kit's Figma audit reports the pattern as
+  `text/shifted` (fixed-width left-aligned text pushed in by a centred column).
 - Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
   Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
   caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column

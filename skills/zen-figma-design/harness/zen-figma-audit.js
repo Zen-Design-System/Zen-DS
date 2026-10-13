@@ -30,6 +30,8 @@
 //   bounds/shadow-clipped-in-component  warning  the same, cut by a frame of the component itself
 //   text/overflow            error    text taller than its fixed box, or sticking out of its instance
 //   text/crushed             error    text squeezed into a box narrower than a few characters
+//   text/shifted             error    left-aligned text with a fixed width, narrower than a centred or end-aligned
+//                                     column, pushed in from its edge (a slot's default text kept after a resize)
 //   copy/placeholder         warning  lorem ipsum or a bare default label left in the screen
 //   theme/box-on-canvas      error    a box (Card, List-Box, a standalone chart) whose fill does not belong to the
 //                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
@@ -382,6 +384,20 @@ function checkText(node, instanceRoot) {
   else if (!instanceRoot && DEFAULT_LABELS.has(characters)) report("copy/placeholder", WARNING, node, `“${characters}”`);
 }
 
+/**
+ * Left-aligned text with a fixed width in a vertical auto layout that centres (or end-aligns) its children: when the
+ * column is wider than the text box, the box moves in and the text no longer lines up with its siblings. Typical case:
+ * the default Heading kept in a resized List-Box's Header-Slot.
+ */
+function checkShiftedText(node) {
+  const parent = node.parent;
+  if (!parent || parent.layoutMode !== "VERTICAL" || node.layoutPositioning === "ABSOLUTE") return;
+  if (node.layoutSizingHorizontal !== "FIXED" || (node.textAlignHorizontal !== "LEFT" && node.textAlignHorizontal !== "JUSTIFIED")) return;
+  if (parent.counterAxisAlignItems !== "CENTER" && parent.counterAxisAlignItems !== "MAX") return;
+  const shift = node.x - parent.paddingLeft;
+  if (shift > TOLERANCE) report("text/shifted", ERROR, node, `starts ${Math.round(shift)}px in from the edge of ${parent.name} (fixed ${Math.round(node.width)}px in ${Math.round(parent.width)}px)`);
+}
+
 /** True when `node` belongs to `instance`'s component, false when it sits in one of its slots (authored content). */
 function ownedBy(node, instance) {
   for (let current = node.parent; current && current.id !== instance.id; current = current.parent) {
@@ -450,7 +466,7 @@ async function walk(node, instanceRoot, isRoot) {
   const inInstance = Boolean(instanceRoot);
   if (!isRoot && !inInstance) checkBounds(node);
   if (node.type === "TEXT") {
-    if (!inInstance) { checkTextStyle(node); checkPaints(node); }
+    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); }
     checkText(node, instanceRoot);
     return;
   }
