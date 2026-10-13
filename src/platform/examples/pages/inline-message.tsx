@@ -26,8 +26,8 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import { keepOnHotUpdate } from "../../hotData";
-import "./inline-message.css";
 
 export const page: PlatformPage = "inline-message";
 
@@ -50,8 +50,8 @@ function SentInvoiceExample() {
     onSubmit: (values, { reset }) => { reset(values); toast({ title: "Updated invoice sent", children: "Phin & Co got the new copy by email" }); },
   });
   return (
-    <div className="px-inline-message-screen">
-      <Stack gap="xl" className="px-inline-message-page">
+    <PreviewPage margin="all" fill>
+      <Stack gap="xl">
         <PageHeader eyebrow="Invoices" title={`Edit ${sentInvoice.number}`}
           meta={<Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>}
           description={`${sentInvoice.client} · ${projectById(sentInvoice.project).name} · Issued ${formatDate(sentInvoice.issued)}`} />
@@ -76,7 +76,7 @@ function SentInvoiceExample() {
           </Form>
         </Card>
       </Stack>
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -223,7 +223,7 @@ function MoodboardExample() {
     if (!target) return undefined;
     const frame = requestAnimationFrame(() => {
       moveFocus.current = null;
-      if (target === "again") root.current?.querySelector<HTMLElement>(".px-inline-message-again")?.focus();
+      if (target === "again") root.current?.querySelector<HTMLElement>("[data-again]")?.focus();
       if (target === "message") root.current?.querySelector<HTMLElement>(".zen-inline-message__action")?.focus();
       if (target === "heading") document.getElementById(titleId)?.focus();
     });
@@ -248,7 +248,7 @@ function MoodboardExample() {
             <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Kickoff {formatDate(daysFromToday(12))}</Text>
           </Stack>
           {approved ? null : hidden ? (
-            <Button level="tertiary" className="px-inline-message-start px-inline-message-again" onClick={showAgain}>Show message again</Button>
+            <Stack align="start"><Button level="tertiary" data-again="" onClick={showAgain}>Show message again</Button></Stack>
           ) : (
             <InlineMessage theme="custom" icon={<Thumbnail src={moodboard[0].src} alt="" size="md" />}
               title="Gia’s moodboard is ready for review" action={{ label: "Review", onClick: () => setOpen(true) }} onClose={hide}>

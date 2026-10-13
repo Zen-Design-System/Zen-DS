@@ -111,3 +111,57 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   Inspector / Layers / overlays before the paint (deferred a frame). Switch → canvas 34–62 ms.
 - E2E: SP-21 (marks stay through a line change, a ListBox still selects), SE-30 / SP-17 / DA-09 / NO-03 / NO-09 /
   NO-10 follow Figma's deep select and the Layers without Parts.
+
+## Examples' last classNames: Layout / Text props and docs frames (P5; branch zen/feat/examples-classnames, tier L)
+
+- User: "Xử lý hết" (the 27 container-query layouts and the rest), then chose all four answers: Text wrap /
+  tabularNumbers, Stack/Box scroll, Box surface="canvas", and "no more API, another way" for the rest (docs frames
+  become platform components).
+- Library: Grid `stackBelow` (useStackBelow measures the Grid's own width with a ResizeObserver; `data-stacked`), Stack /
+  Box `scroll` (`data-scroll`, overscroll contained), Box `surface="canvas"` (zen-allow-canvas-layer), Text / Heading
+  `wrap` and `tabularNumbers`, a focus ring for Text with tabIndex -1, Badge `flex-shrink: 0`. Tests:
+  tests/interaction/layout-text-props.test.tsx.
+- Studio ↔ Figma: Box surface ↔ Color/Background fill, scroll ↔ Overflow scrolling (+ clip), maxHeight ↔ Max height,
+  wrap={false} → Auto width, tabularNumbers ← TNUM (one note on push: a plugin cannot set it), stackBelow → one column
+  where the push knows the width; Box frames no longer get a md gap. Pull fixes met: a Figma grid's gap (gridColumnGap)
+  read as none; a layout frame's maxWidth dropped. Plugin 6b823d2 (scroll, max height, auto width, a stale variable fill
+  cleared). Live: Studio exports frame 15417:3, pushed and pulled back. Spec §8 "P5".
+- Examples: 219 → 112 classes. Frames → src/platform/PlatformFrames.tsx (PreviewAppFrame, PreviewWindow, PreviewPage,
+  PreviewShell / ShellMain, ShellPage, StudioLogo / StudioMark, PhoneToastHost) and ChatWindow / ChatWindowList /
+  ChatWindowMain / ChatWindowSplit (PlatformChatDesktopShowcases.tsx; ThreadHeader takes a group avatar). Values in
+  captions keep whole with no-break spaces instead of a nowrap span.
+- Visual diff (worktree server :5195, 55 pages, 760 panels): identical except sub-pixel text shaping where NBSP replaced
+  the nowrap spans (layout captions) and antialiasing noise (gone at tolerance 6). Mistakes caught by it and undone:
+  `ch` widths turned into px (ch follows the typography mode: 12/14/16px), a dead `width: 112px` class whose removal
+  narrowed a NumberField, a flex-basis that may shrink (date-picker) turned into minWidth. The gate's density audit
+  caught `6.5rem` → 104px (2px overflow at Comfortable); min-heights on tokens that change by mode (Badge size, line
+  heights, button size) went back to CSS too.
+- Left (BACKLOG): page-margin and per-side padding, component internals, Skeleton / `ch` widths, media, bespoke
+  responsive rules.
+- Gate: `npm run qa -- --isolated --files=…`; browser tests 620 passed; studio, layout, usage, MCP selftests pass.
+
+
+## Studio ↔ Figma round trip on every example (P6; branch zen/feat/figma-roundtrip, tier M)
+
+- User: "tiếp vụ test và improve export import". Snapshot of 353 example frames → push → pull (matched by push key) to
+  find losses, then real placements in the Zen file (stashed importer and reader on QA holder 15342:11) read back.
+  Only real reads count; the harness only points.
+- Fixed (push / pull / reader / plugin):
+  - Checkbox / Toggle / Radio label and caption go through the nested Content (Figma dropped Checkbox's Caption
+    property; map skips it, variantSets regenerated).
+  - Emoji Dock-Icon text.
+  - Field label / value / help read.
+  - ListItem title / caption / leading / trailing read; ListBox header / footer slots; a column of ListItems → List.
+  - Text tone from its Content variable; `Heading N` layer names ↔ Heading level.
+  - Type=Main → PageHeader; DashboardHeader search placeholder; a `texts.find` crash.
+  - Sidebar `logo` → Header-Content (Figma's sample LOGO and Collapse dropped both ways, noted on pull).
+  - Breadcrumbs `master` / `emphasis` from the crumbs' Item.
+  - DescriptionList term / description / emphasis.
+  - Reader: swapped nested icons/avatars told from the owner's main component (Figma lists no override for a swap
+    inside slot content).
+- Figma limit, checked live: a nested instance's size cannot be overridden ("cannot be overridden in an instance:
+  size") → a ListItem's FileIcon xl shows at 20; push notes it, the plugin's nested-size code went.
+- Contract drift: 14 sets differ from component-properties.json (2026-10-05); list sent to the session editing
+  figma-props.map (they map List-Box Theme, ProgressBar Layout, SidePanel). Not changed here.
+- Fixtures: figma-parts.json (+ swapped FileIcon row), figma-shell.json (breadcrumbs page, frame 15448:3). Push
+  selftest 187, pull 52, studio:selftest all pass. Spec §8 "P6". P6b (key-based round trip) proposed; BACKLOG.

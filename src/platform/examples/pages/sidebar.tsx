@@ -29,9 +29,9 @@ import {
   type Activity, type Invoice, type Person, type PersonId, type Project, type StudioFile, type Task, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, PreviewShell, ShellMain, ShellPage, StudioLogo, StudioMark } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./sidebar.css";
 
 export const page: PlatformPage = "sidebar";
 
@@ -85,7 +85,7 @@ function RowCard({ label, rows, canvas }: { label: string; rows: Row[]; canvas: 
 
 /** The page beside the Sidebar: Container keeps the page margin; one h1 (the PageHeader title), then its content. */
 function Page({ children, ...header }: { title: string; description?: ReactNode; eyebrow?: string; breadcrumbs?: ReactNode; meta?: ReactNode; actions?: ReactNode; children: ReactNode }) {
-  return <Container><Stack gap="xl" className="px-sidebar-page"><PageHeader {...header} />{children}</Stack></Container>;
+  return <ShellPage><PageHeader {...header} />{children}</ShellPage>;
 }
 
 /** A task opened from a list: the Sidebar keeps the list's destination selected, and the trail leads back to it. */
@@ -105,14 +105,14 @@ function TaskPage({ task, from, project, canvas, onBack }: { task: Task; from: s
 }
 
 /** A fixed-height app window: the AppShell fills it, and its navigation drawer (below 1024px) covers the frame. */
-const AppFrame = ({ children, frameRef }: { children: ReactNode; frameRef?: Ref<HTMLDivElement> }) => <div ref={frameRef} className="px-sidebar-frame"><div className="px-sidebar-frame__scroll">{children}</div></div>;
+const AppFrame = ({ children, frameRef }: { children: ReactNode; frameRef?: Ref<HTMLDivElement> }) => <PreviewAppFrame frameRef={frameRef} height={{ min: 520, max: 760 }}>{children}</PreviewAppFrame>;
 
 /* The studio's mark and name. The logo slot has a fixed height (24px; 20px in Small-Density), so the mark is an image that
    fills it and the name uses a text style whose line fits it: nothing grows past the slot at Comfortable density. */
-const studioLogo = <span className="px-sidebar-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>;
-const handbookLogo = <span className="px-sidebar-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Small/Bold">{studio.name}</Text></span>;
+const studioLogo = <StudioLogo src={studio.logo} name={studio.name} />;
+const handbookLogo = <StudioLogo src={studio.logo} name={studio.name} textStyle="Body/Small/Bold" />;
 const studioMark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
-const handbookMark = <img className="px-sidebar-mark" src={studio.logo} alt={studio.name} />;
+const handbookMark = <StudioMark src={studio.logo} name={studio.name} />;
 const openProjects = projects.filter((p) => p.status !== "Completed");
 const tasksOf = (projectId: string) => tasks.filter((t) => t.project === projectId);
 const filesOf = (projectId: string) => files.filter((f) => f.project === projectId);
@@ -296,7 +296,7 @@ function ProjectsFlyoutExample() {
 
   return (
     // Canvas/Alt (a white page) → Sidebar background="alt".
-    <div ref={shellRef} className="pe-shell pe-shell--tall px-sidebar-rail-shell" data-canvas="alt">
+    <PreviewShell shellRef={shellRef} canvas="alt" tall keepRow>
       <Sidebar
         background="alt"
         logo={studioLogo}
@@ -321,8 +321,8 @@ function ProjectsFlyoutExample() {
           </SidebarSubMenu>
         ) : undefined}
       />
-      <div className="px-sidebar-main">{content}</div>
-    </div>
+      <ShellMain>{content}</ShellMain>
+    </PreviewShell>
   );
 }
 

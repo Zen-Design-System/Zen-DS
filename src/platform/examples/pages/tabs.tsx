@@ -29,9 +29,9 @@ import {
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type Task,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./tabs.css";
 
 export const page: PlatformPage = "tabs";
 
@@ -82,7 +82,7 @@ function ProjectSectionsExample() {
   };
 
   return (
-    <div className="px-tabs-page">
+    <PreviewPage margin="block">
       <Container maxWidth="full">
         <Stack gap="xl">
           <PageHeader
@@ -153,7 +153,7 @@ function ProjectSectionsExample() {
                 <List aria-busy="true" aria-label="Loading activity">
                   {[0, 1, 2].map((row) => (
                     <ListItem key={row} aria-hidden="true" title="" leading={<SkeletonShape shape="round" size="md" />}>
-                      <SkeletonText lines={2} className="px-tabs-skeleton-text" />
+                      <SkeletonText lines={2} />
                     </ListItem>
                   ))}
                 </List>
@@ -167,7 +167,7 @@ function ProjectSectionsExample() {
         field={{ kind: "email", label: "Email address", placeholder: "thu@lumenbank.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
       <DemoFieldDialog open={dialog === "task"} onOpenChange={(next) => setDialog(next ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Review the transfer limits copy" }} submitLabel="Add task" confirm={() => "Task added"} onSubmit={addTask} />
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -205,7 +205,7 @@ function DraftInvoiceExample() {
             <Heading level={4} textStyle="Heading/Subheading">{draftInvoice.number}</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">{`${draftInvoice.client} · ${draftInvoice.project}`}</Text>
           </Stack>
-          <Badge className="px-tabs-status" theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
+          <Badge theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
         </Stack>
         <Stack gap="xs">
           {/* ←/→ skip the disabled tab; the line under the bar says why it is off. */}

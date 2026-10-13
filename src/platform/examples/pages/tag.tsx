@@ -27,7 +27,6 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { TODAY, daysFromToday, files, formatRelative, people, peopleList, projectById, type Person, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./tag.css";
 
 export const page: PlatformPage = "tag";
 
@@ -293,10 +292,10 @@ function NewGroup() {
           <InputField label="Group name" size="lg" value={name} error={error.name} onValueChange={(value) => { setName(value); setError((e) => ({ ...e, name: undefined })); }} />
           <FormFieldset ref={membersRef} legend="Members" error={error.members}>
             {members.length ? (
-              <Stack as="ul" direction="row" gap="2xs" wrap className="px-tag-list" aria-label="Members added">
+              <Stack as="ul" direction="row" gap="2xs" wrap aria-label="Members added">
                 {members.map((id) => {
                   const person = people[id];
-                  return <li key={id}><Tag photoSrc={person.photo} remove onRemove={() => removeMember(id)}>{person.name}</Tag></li>;
+                  return <Stack as="li" key={id} direction="row"><Tag photoSrc={person.photo} remove onRemove={() => removeMember(id)}>{person.name}</Tag></Stack>;
                 })}
               </Stack>
             ) : null}

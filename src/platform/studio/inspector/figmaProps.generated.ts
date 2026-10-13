@@ -761,13 +761,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": [
-      {
-        "label": "Caption",
-        "prop": "caption",
-        "on": "Caption"
-      }
-    ]
+    "toggles": []
   },
   "Divider": {
     "figma": "460:38361",

@@ -26,6 +26,7 @@ import { Heading, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import {
   TODAY, daysFromToday, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveRequests,
   leaveStatusTheme, people, plans, projectStatusTheme, projects, studio, workspacePlan,
@@ -33,7 +34,6 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./page-header.css";
 
 export const page: PlatformPage = "page-header";
 
@@ -57,16 +57,18 @@ function useWidth() {
 
 /** A row caption of whole values: it wraps between values, never inside a date or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
 const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
-  <Fragment key={`${index}:${value}`}>{index ? " " : null}<span className="px-page-header-value">{index ? "· " : null}{value}</span></Fragment>
+  <Fragment key={`${index}:${value}`}>{index ? " " : null}{whole(`${index ? "· " : ""}${value}`)}</Fragment>
 ));
+/** A run of words that never breaks: its spaces are no-break spaces. */
+const whole = (text: string) => text.replace(/ /g, "\u00a0");
 
 /** Each example is one desktop page: the Canvas, the page margin, then PageHeader → content xl apart. */
 // maxWidth "full": list pages whose content is a non-widget Table span the page (user rule 2026-10-03); detail pages keep lg.
 function Page({ children, pageRef, maxWidth }: { children: ReactNode; pageRef?: (element: HTMLElement | null) => void; maxWidth?: "lg" | "full" }) {
   return (
-    <Box className="px-page-header-page" ref={pageRef}>
+    <PreviewPage ref={pageRef} margin="block">
       <Container maxWidth={maxWidth}><Stack gap="xl">{children}</Stack></Container>
-    </Box>
+    </PreviewPage>
   );
 }
 

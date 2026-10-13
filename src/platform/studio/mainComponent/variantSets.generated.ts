@@ -1283,14 +1283,7 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "left"
         }
       ],
-      "toggles": [
-        {
-          "prop": "caption",
-          "label": "Caption",
-          "on": "Caption",
-          "default": false
-        }
-      ]
+      "toggles": []
     }
   ],
   "Divider": [

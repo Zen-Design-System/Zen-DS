@@ -61,8 +61,8 @@ function PeopleDirectory() {
     toast({ title: "Email copied", children: person.email });
   };
   return (
-    <Box className="px-list-item-scope">
-      <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 3fr)" }} gap="lg" align="start" className="px-list-item-split">
+    <Box>
+      <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 3fr)" }} gap="lg" align="start" stackBelow={640}>
         {/* A ListBox: the toolbar and the count in its Header-Slot, the rows (or the empty state) in its Body-Slot. */}
         <ListBox as="section" aria-label="People"
           header={<>
