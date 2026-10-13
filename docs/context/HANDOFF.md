@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-12.
+Last updated: 2026-10-13.
 
 ## Read order
 
@@ -23,6 +23,11 @@ Last updated: 2026-10-12.
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
+  every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
+  approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user
+  reviews and publishes the library. 🔤 Typography has a Content-Hierarchy section. Installation › AI kit for Figma
+  downloads the skill `skills/zen-figma-design` + its audit harness (`npm run ai-kit:check`).
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
   labels (en/vi), `data-tone` variants and the harness are described in `HANDOFF-details.md` ("Vibe-code readiness").
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·
@@ -121,7 +126,10 @@ Last updated: 2026-10-12.
   real importer in the Zen file. P3–P4 (2026-10-13, branch `zen/feat/figma-map-p3`, spec §8 "P3" / "P4"):
   TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat, FileIcon, Flag and
   icon sizes map both ways (shared module `tools/studio/figma-top-nav.mjs`, fixtures `figma-chat.json`,
-  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. Left: BACKLOG P1 item.
+  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. P5 (branch
+  `zen/feat/examples-classnames`, spec §8 "P5"): Grid stackBelow, Stack / Box scroll, Box surface="canvas", Text wrap /
+  tabularNumbers (all pushed and pulled; plugin 6b823d2); docs frames in `src/platform/PlatformFrames.tsx`; examples
+  down to 112 classNames, none with a Zen prop. Left: BACKLOG P2 item.
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,

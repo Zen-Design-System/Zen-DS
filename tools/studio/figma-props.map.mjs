@@ -163,7 +163,8 @@ export const FIGMA_PROPS = {
   },
   Checkbox: {
     sets: { "Checkbox/Text": null },
-    props: { Caption: { toggle: "caption", on: "Caption" }, State: "state", Select: { prop: "checked", bool: true }, "Check-Side": "checkSide" },
+    // Caption moved to the nested Content's Subtext (the live file, 2026-10-13): figma-push writes it there.
+    props: { Caption: skip("the caption is the nested Content's Subtext (figma-push)"), State: "state", Select: { prop: "checked", bool: true }, "Check-Side": "checkSide" },
   },
   Divider: { sets: { Divider: null }, props: { Color: "color" } },
   DockIcon: {
@@ -225,6 +226,7 @@ export const FIGMA_PROPS = {
       Header: { toggle: "header", on: "slot" },
       "Header-Slot": skip("content slot (Slots section)"),
       "Body-Slot": skip("content slot (Slots section)"),
+      Theme: "theme",
       Footer: { toggle: "footer", on: "slot" },
       "Footer-Slot": skip("content slot (Slots section)"),
     },
@@ -252,7 +254,7 @@ export const FIGMA_PROPS = {
   },
   ProgressBar: {
     sets: { "Progress-Bar": null },
-    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: skip("progress is the numeric value") },
+    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: skip("progress is the numeric value"), Layout: "layout" },
   },
   ProgressCircle: {
     sets: { "Progress-Circle": null },
@@ -313,7 +315,7 @@ export const FIGMA_PROPS = {
     props: { Shape: "shape", Size: { prop: "size", values: { "Large - 48px": "large", "Medium - 40px": "medium", "Small - 32px": "small" } } },
   },
   Segmented: { sets: { Segmented: null }, props: { "Item-List": skip("data slot (options list)"), Level: "level" } },
-  SidePanel: { sets: { "Side-Panel": null }, props: { Contents: skip("content slot"), Type: "type", Size: "size" } },
+  SidePanel: { sets: { "Side-Panel": null }, props: { Contents: skip("content slot"), "Header-Contents": skip("the header slot (headerContent)"), "Top-Customize": skip("the top slot (top)"), Type: "type", Size: "size" } },
   Tabs: { sets: { "Tab-Bar": null }, props: { "Item-List": skip("data slot (items list)"), Style: "variant" } },
   Tag: {
     sets: { Tag: null },

@@ -74,7 +74,7 @@ function StorageQuotaExample() {
           </Text>
         </Stack>
         <Stack gap="xs">
-          <Heading ref={headingRef} tabIndex={-1} className="px-progress-focus-target" level={5} id={listId} textStyle="Body/Small/Bold" tone="light">Largest files</Heading>
+          <Heading ref={headingRef} tabIndex={-1} level={5} id={listId} textStyle="Body/Small/Bold" tone="light">Largest files</Heading>
           {files.length ? (
             <List ref={listRef} aria-labelledby={listId}>
               {files.map((file) => (
@@ -192,8 +192,8 @@ function BackgroundExportExample() {
           <ListItem title={EXPORT_NAME} leading={<FileIcon format="sheet" size="xl" />}
             trailing={<IconButton appearance="flat" size="md" icon="icon-x-line" aria-label="Cancel export" onClick={cancel} />}>
             <Stack gap="2xs">
-              <Text as="span" textStyle="Body/Base/Bold" truncate>{EXPORT_NAME}</Text>
-              <ProgressBar value={percent} theme="accent" label={`${percent}%`} aria-label={`Exporting ${EXPORT_NAME}`} />
+              {/* Layout=Stacked: the file name and its percentage on a row above the bar. */}
+              <ProgressBar layout="stacked" value={percent} theme="accent" label={EXPORT_NAME} aria-label={`Exporting ${EXPORT_NAME}`} />
               <Text as="span" textStyle="Body/Small/Regular" tone="light">{percent < 100 ? `About ${plural(secondsLeft, "second")} left` : "Saving the file…"}</Text>
             </Stack>
           </ListItem>
@@ -357,8 +357,7 @@ toast({ title: "File deleted", children: \`\${gb(file.gb)} freed\`, action: { la
     {running ? (
       <ListItem title={name} leading={<FileIcon format="sheet" size="xl" />}
         trailing={<IconButton appearance="flat" size="md" icon="icon-x-line" aria-label="Cancel export" onClick={cancel} />}>
-        <Text as="span" textStyle="Body/Base/Bold" truncate>{name}</Text>
-        <ProgressBar value={percent} theme="accent" label={\`\${percent}%\`} aria-label={\`Exporting \${name}\`} />
+        <ProgressBar layout="stacked" value={percent} theme="accent" label={name} aria-label={\`Exporting \${name}\`} />
         <Text as="span" textStyle="Body/Small/Regular" tone="light">
           {percent < 100 ? \`About \${plural(secondsLeft, "second")} left\` : "Saving the file…"}
         </Text>

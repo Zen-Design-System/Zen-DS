@@ -1043,7 +1043,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.5199999809265137
+    "value": -1.5800000429153442
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1078,7 +1078,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.2100000381469727
+    "value": -1.2000000476837158
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1113,7 +1113,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.9800000190734863
+    "value": -1.0800000429153442
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1148,7 +1148,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.7599999904632568
+    "value": -0.9599999785423279
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1183,7 +1183,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.5600000023841858
+    "value": -0.8399999737739563
    },
    "paragraphSpacing": 28,
    "paragraphIndent": 0,
@@ -1219,7 +1219,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.5
+    "value": -0.75
    },
    "paragraphSpacing": 25,
    "paragraphIndent": 0,
@@ -1255,7 +1255,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.4399999976158142
+    "value": -0.6600000262260437
    },
    "paragraphSpacing": 22,
    "paragraphIndent": 0,
@@ -1291,7 +1291,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.4000000059604645
+    "value": -0.6000000238418579
    },
    "paragraphSpacing": 20,
    "paragraphIndent": 0,
@@ -1578,7 +1578,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": 0
+    "value": -0.11999999731779099
    },
    "paragraphSpacing": 12,
    "paragraphIndent": 0,
@@ -1614,7 +1614,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": 0
+    "value": -0.11999999731779099
    },
    "paragraphSpacing": 12,
    "paragraphIndent": 0,
@@ -1650,7 +1650,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": 0
+    "value": -0.11999999731779099
    },
    "paragraphSpacing": 12,
    "paragraphIndent": 0,

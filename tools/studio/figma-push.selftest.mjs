@@ -220,7 +220,7 @@ export default function Page() {
   const shell = frame.children[0];
   check("AppShell: a row of the Sidebar (fill height) and its column (fill width), filling the frame", { name: shell?.name, mode: shell?.layout.mode, fillW: shell?.fillW, parts: shell?.children.map((child) => [child.set?.name ?? child.name, Boolean(child.fillH), Boolean(child.fillW)]) }, { name: "AppShell", mode: "HORIZONTAL", fillW: true, parts: [["Side-Bar/Master/Basic", true, false], ["Column", false, true]] });
   const sidebar = shell.children[0];
-  check("AppShell: Sidebar rows in Body-Content, the selected one Select Yes; no footer: Footer-Content emptied, its container hidden", [sidebar.slots?.map((slot) => [slot.name, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), sidebar.hide], [[["Body-Content", ["Home:No", "People:Yes"]], ["Footer-Content", []]], ["Divider", "Footer-Container"]]);
+  check("AppShell: Sidebar rows in Body-Content, the selected one Select Yes; no logo: Header-Content emptied (Figma's sample LOGO and Collapse go); no footer: Footer-Content emptied, its container hidden", [sidebar.slots?.map((slot) => [slot.name, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), sidebar.hide], [[["Header-Content", []], ["Body-Content", ["Home:No", "People:Yes"]], ["Footer-Content", []]], ["Divider", "Footer-Container"]]);
   const column = shell.children[1];
   check("AppShell: its column is the top bar (Header) then the page (Main)", column.children.map((child) => child.name), ["Header", "Main"]);
   const bar = column.children[0].children[0];
@@ -336,6 +336,9 @@ export default function Page() {
   check("Segmented: as wide as its items (not fullWidth), its items its Level and Size, the selected one Select Yes", [seg.hugW, seg.slots[0].hugW, seg.slots[0].children.map((item) => [item.text, item.props.Level, item.props.Size, item.props.Select])], [true, true, [["Day", "Primary", "Small", "No"], ["Week", "Primary", "Small", "Yes"]]]);
   const listBox = fixed.children[0];
   check("ListBox: Header on, its header row one frame filling Header-Slot, the List filling Body-Slot", { header: listBox.props.Header, slots: listBox.slots.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.layout?.mode, child.fillW])]) }, { header: true, slots: [["Header-Slot", [["FRAME", "HORIZONTAL", true]]], ["Body-Slot", [["FRAME", "VERTICAL", true]]]] });
+  const bordered = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const onContainer = find(push(DASH.replace("<ListBox header=", '<ListBox theme="on-container" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  check("ListBox theme: Figma's Theme (Flat by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Flat", "Border", "On-Container"]);
   const [withAvatar, withDock] = listBox.slots[1].children[0].children;
   check("ListItem: Title and Subtitle, its leading Avatar (theme, initials) in Figma's Avatar", [withAvatar.texts, withAvatar.nested[0].set.name, withAvatar.nested[0].props.Theme, withAvatar.nested[0].text], [{ Title: "Checkout shared", Subtitle: "Bao Nguyen" }, "Avatar/Single", "Green", "BN"]);
   check("ListItem: a Dock Icon swaps in for the Avatar; no caption hides Subtitle", [withDock.nested[0].set.name, withDock.nested[0].props["Icon-Src"], withDock.hide], ["Dock-Icon", "icon-file-check-line", ["Subtitle"]]);
@@ -398,7 +401,7 @@ export default function Page() {
   check("InputField with neither value nor placeholder: its Text empty (not Figma's sample)", bySet("Input/Text-Field")[1].texts, { Label: "Password", Text: "" });
   const select = bySet("Input/Select-Field")[0];
   check("SelectField: its value as the option's label (State Inputted), its help in Message", [select.texts, select.props.State], [{ Label: "Role", Text: "Team lead", Message: "Leads approve leave." }, "Inputted"]);
-  check("Toggle: its label, Subtext hidden without a caption", [bySet("Toggle")[0].texts, bySet("Toggle")[0].hide], [{ Label: "Weekly summary" }, ["Subtext"]]);
+  check("Toggle: its label in its Content, whose Subtext stays off without a caption", [bySet("Toggle")[0].texts, bySet("Toggle")[0].nested], [{ Label: "Weekly summary" }, [{ path: "Content", props: { Subtext: false } }]]);
   const row = all.find((node) => node.layout?.mode === "HORIZONTAL" && node.children?.some((child) => child.set?.name === "Divider"));
   check("Divider in a row takes the room left", row.children.filter((child) => child.set?.name === "Divider").map((divider) => Boolean(divider.fillW)), [true, true]);
   check("Text with an inline Link: all its words", all.some((node) => node.characters === "New here? Create an account"), true);
@@ -923,6 +926,171 @@ export default function Page() {
   check("Icons: the size variable, icon-media-file by Format, Flag by Name and Image-Size", frame.children.map((icon) => [icon.set.name, icon.props.Format ?? icon.props.Name ?? null, icon.sizeVar ?? null]), [["icon-plus-line", null, null], ["icon-plus-line", null, "Element-Size/Popular/Large"], ["icon-media-file", "PDF", null], ["icon-media-file", "Sheet", "Element-Size/Popular/XLarge"], ["Flag", "Vietnam", null], ["Flag", "Japan", "Image-Size/Small"]]);
   ok("Icons: no FileIcon or Flag drawn as a frame", !notes.some((note) => /FileIcon|Flag/.test(note)));
   check("round trip: icons, file icons and flags come back with their sizes", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
+// 26. Layout and Text props for the examples' last classNames (2026-10-13): a Box's surface as its Color/Background
+//     variable (canvas too) and no gap, Stack / Box scroll as Overflow scrolling (it clips), Grid stackBelow as one
+//     column on a Screen narrower than it, Text wrap={false} as Auto width (it does not fill its column), and one note
+//     for tabularNumbers (a plugin cannot set Numbers: Tabular). The pull reads the surface, the scroll and a layout
+//     frame's max height back.
+{
+  const layers = (device) => `// @zen-page {"format":1,"title":"Layers"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Box, Grid, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Layers" device="${device}">
+        <Stack>
+          <Box surface="canvas" padding="xl">
+            <Stack scroll="y" maxHeight={120}>
+              <Text>One</Text>
+              <Text>Two</Text>
+            </Stack>
+            <Box surface="subtle" padding="md">
+              <Text>Well</Text>
+            </Box>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const page = layers("desktop");
+  const { frame } = push(page);
+  const canvas = frame.children[0];
+  const [list, well] = canvas.children;
+  check("Box: its surface's variable, no gap; a scrolling Stack clips at its max height", [canvas.fill, canvas.layout.gap, well.fill, list.scroll, list.clip, list.maxH], ["Background/Canvas/Default", 0, "Background/Neutral/Subtle/Default", "VERTICAL", true, 120]);
+  check("round trip: Box surfaces and a scrolling Stack come back", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  // A Box framing a Stack's gap pulls back as a Box around the Stack.
+  const framed = pageFromFigma({ ...frame, children: [{ ...well, layout: { ...well.layout, gap: 12, gapVar: "Spacing/Gap/Small" }, children: [well.children[0], well.children[0]] }] }, { mapping }).text;
+  ok("pull: a surface frame with a gap is a Box around a Stack", /<Box surface="subtle" padding="md">\s*<Stack gap="sm">/.test(framed));
+  const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Grid, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Texts" device="${device}">
+        <Stack gap="lg">
+          <Text wrap={false} tabularNumbers>10:45 am</Text>
+          <Text tabularNumbers>12</Text>
+          <Grid columns="minmax(0, 1fr) minmax(0, 2fr)" stackBelow={640}>
+            <Text>Side</Text>
+            <Text>Main</Text>
+          </Grid>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  // (The Screen's one Stack is its frame's layout.)
+  const desktop = push(texts("desktop"));
+  const [time, count, grid] = desktop.frame.children;
+  check("Text wrap={false}: Auto width, not filling its column; a wrapping one fills", [time.autoWidth, time.fillW, count.autoWidth, count.fillW], [true, undefined, undefined, true]);
+  ok("tabularNumbers: one note for the page", desktop.notes.filter((note) => /Numbers: Tabular/.test(note)).length === 1 && desktop.notes.some((note) => note.startsWith("2 texts")));
+  check("Grid stackBelow: its columns on desktop, one column on a phone", [grid.layout.grid.columns, push(texts("phone")).frame.children[2].layout.grid.columns], [2, 1]);
+}
+
+// 27. Round trip found by testing every example frame through the real Zen file (2026-10-13, P6): the pull reads a
+//     List-Item's title, caption, leading and trailing, a List-Box's header, a field's label, value and help, a
+//     Checkbox's label and caption (its Content), an emoji Dock-Icon and a text's tone from Figma's read
+//     (fixtures/figma-parts.json); the push writes the Checkbox's label and caption through its Content and the emoji.
+{
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-parts.json", import.meta.url), "utf8")).frame;
+  const text = pageFromFigma(read, { mapping }).text;
+  ok("pull: Checkbox label and caption from its Content", /<Checkbox label="I confirm these hours are accurate" caption="They are billed to Phin & Co and Lumen Bank in October\." \/>/.test(text));
+  ok("pull: a field's label and value (Inputted)", /<InputField[^>]*label="Phone"[^>]*defaultValue="9123 4567"|<InputField[^>]*defaultValue="9123 4567"[^>]*label="Phone"/.test(text));
+  ok("pull: a field's help is its Message, not Figma's \"Help text\"", text.includes('helpText="Billed on the 1st of each month."') && !text.includes('"Help text"'));
+  ok("pull: List-Box header and List", /<ListBox header=\{<Text textStyle="Heading\/Subheading">Leave balance<\/Text>\}>\s*<List>/.test(text));
+  ok("pull: List-Item title, caption and emoji leading", text.includes('<ListItem title="Annual leave" caption="7 of 18 days left · resets Jan 1, 2027" leading={<DockIcon theme="emoji" emoji="🏝️" />} />'));
+  ok("pull: List-Item Avatar leading and Badge trailing", /<ListItem\s+title="Audit the account overview for WCAG 2\.2"\s+caption="LUM-091 · Due today"\s+leading=\{<Avatar[^}]*\/>\}\s+trailing=\{<Badge[^}]*>To do<\/Badge>\}/.test(text.replace(/\n\s*/g, " ")));
+  ok("pull: a text's tone from its Content variable", text.includes('<Text textStyle="Body/Small/Regular" tone="base">Sep 21 – Sep 27, 2026</Text>'));
+  ok("pull: a List-Item's leading swapped for a file icon (read from its main component) and its IconButton trailing", text.includes('<ListItem title="Usability plan – transfers.pdf" caption="1.2 MB · Ava Chen · Yesterday at 4:05 pm" leading={<FileIcon format="pdf" />} trailing={<IconButton icon="icon-trash-line" appearance="flat" aria-label="Delete Usability plan – transfers.pdf" />} />'));
+  const page = `// @zen-page {"format":1,"title":"Controls"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Checkbox, DockIcon, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Controls" device="desktop">
+        <Stack>
+          <Checkbox label="I confirm" caption="Billed in October." />
+          <DockIcon theme="emoji" emoji="🏝️" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const [box, dock] = push(page).frame.children;
+  check("push: Checkbox label, caption through its Content (shown, then written)", [box.texts, box.nested, box.props.Caption], [{ Label: "I confirm" }, [{ path: "Content", props: { Subtext: true }, texts: { Subtext: "Billed in October." } }], undefined]);
+  check("push: an emoji Dock-Icon's emoji as its text", dock.text, "🏝️");
+  // A Heading's level rides on its layer's name, so it comes back a Heading (its level's text style unsaid).
+  const headings = `// @zen-page {"format":1,"title":"Headings"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Heading, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Headings" device="desktop">
+        <Stack>
+          <Heading level={2}>Projects</Heading>
+          <Heading level={3} textStyle="Heading/4">Due this week</Heading>
+          <Text tone="base">Six projects</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const pushed = push(headings).frame;
+  check("push: a Heading's layer named for its level", pushed.children.map((child) => child.name ?? null), ["Heading 2", "Heading 3", null]);
+  check("round trip: Headings (level, text style) and a Text's tone come back", shape(pageFromFigma(pushed, { mapping }).text), shape(headings));
+
+  // A pushed app page read back (fixtures/figma-shell.json): Figma's sample LOGO and Collapse are the Sidebar's own,
+  // the crumbs' Sub level is `master` off, a Description List's rows their Term and Value, Type=Main a PageHeader.
+  const shell = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-shell.json", import.meta.url), "utf8")).frame, { mapping });
+  ok("pull: a Sidebar header of Figma's sample LOGO and Collapse is no brand (both noted)", !shell.text.includes("brand=") && !shell.text.includes("Collapse") && shell.notes.filter((note) => /sample LOGO|Collapse button/.test(note)).length === 2);
+  ok("pull: crumbs at the Item's Sub level: Breadcrumbs master off", shell.text.includes('{ id: "chi-tran", label: "Chi Tran" }]} master={false} />'));
+  ok("pull: Description List rows are their Term and Value", shell.text.includes('<DescriptionList items={[{ term: "Team", description: "Design" }, { term: "Email", description: "chi@dizai.studio" }, { term: "Location", description: "Hanoi" }]} />'));
+  ok("pull: Dashboard/Header Type=Main is a PageHeader, its Subheading the description", shell.text.includes('<PageHeader title="Chi Tran" description="Product Designer · Hanoi" />'));
+  const sidebarPage = (sidebar) => `// @zen-page {"format":1,"title":"Shell"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Sidebar, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Shell" device="desktop">
+        ${sidebar}
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const headerOf = (sidebar) => push(sidebarPage(sidebar)).frame.children[0].slots.find((slot) => slot.name === "Header-Content");
+  const logoHeader = headerOf(`<Sidebar logo={<Stack direction="row" gap="xs"><Text as="span" textStyle="Body/Base/Bold">Dizai Studio</Text></Stack>} sections={[{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }] }]} />`);
+  const fileRow = push(sidebarPage(`<ListItem title="Q3 report.pdf" leading={<FileIcon format="pdf" size="xl" />} />`).replace("import { Sidebar, Stack, Text }", "import { FileIcon, ListItem, Sidebar, Stack, Text }"));
+  const fileLead = fileRow.frame.children[0].nested?.[0];
+  check("push: a List-Item's FileIcon lead swaps its Avatar, without a size Figma cannot set inside an instance (noted)", [fileLead?.set?.name, "sizeVar" in (fileLead ?? {}), fileRow.notes.some((note) => note.includes("shows at its own size in Figma"))], ["icon-media-file", false, true]);
+  check("push: a Sidebar's logo is its Header-Content (Figma's sample LOGO and Collapse go)", logoHeader.children.map((layer) => [layer.type, layer.fillW, layer.children.map((child) => child.characters)]), [["FRAME", true, ["Dizai Studio"]]]);
 }
 
 if (failures.length) {

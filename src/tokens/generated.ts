@@ -535,8 +535,12 @@ export const tokens = {
   "Color/Content/Warning/Strongest": "var(--zen-color-content-warning-strongest)",
   "Color/Focus/Accent/Solid": "var(--zen-color-focus-accent-solid)",
   "Color/Focus/Accent/Subtle": "var(--zen-color-focus-accent-subtle)",
+  "Color/Focus/Negative/Solid": "var(--zen-color-focus-negative-solid)",
+  "Color/Focus/Negative/Subtle": "var(--zen-color-focus-negative-subtle)",
   "Color/Focus/Neutral/Solid": "var(--zen-color-focus-neutral-solid)",
   "Color/Focus/Neutral/Subtle": "var(--zen-color-focus-neutral-subtle)",
+  "Color/Focus/Positive/Solid": "var(--zen-color-focus-positive-solid)",
+  "Color/Focus/Positive/Subtle": "var(--zen-color-focus-positive-subtle)",
   "Color/Shadow/Inverse/Base": "var(--zen-color-shadow-inverse-base)",
   "Color/Shadow/Inverse/Light": "var(--zen-color-shadow-inverse-light)",
   "Color/Shadow/Inverse/Strong": "var(--zen-color-shadow-inverse-strong)",
@@ -2232,7 +2236,7 @@ export const tokenCollections = {
       "Light",
       "Dark"
     ],
-    "variableCount": 427
+    "variableCount": 431
   },
   "component-colors-theme": {
     "name": "Component Theme",

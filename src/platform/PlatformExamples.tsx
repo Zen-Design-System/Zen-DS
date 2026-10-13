@@ -18,7 +18,7 @@ import { DatePicker, type DatePickerDevice, type DatePickerTime } from "../compo
 import { Tooltip, tooltipColors, type TooltipColor, type TooltipPlacement, type TooltipSize } from "../components/Tooltip";
 import { Tabs, TabPanel, type TabSize, type TabVariant } from "../components/Tabs";
 import { Breadcrumbs, type BreadcrumbEmphasis } from "../components/Breadcrumbs";
-import { ProgressBar, ProgressCircle, progressCircleThemes, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
+import { ProgressBar, ProgressCircle, progressBarLayouts, progressCircleThemes, type ProgressBarLayout, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
 import { Dialog, ModalForm, dialogThemes, modalActionDirections, modalFormLayouts, type DialogTheme, type ModalActionDirection, type ModalFormLayout } from "../components/Dialog";
 import { Accordion, type AccordionContentWidth, type AccordionSize, type AccordionTheme } from "../components/Accordion";
 import { Divider, dividerColors, type DividerColor } from "../components/Divider";
@@ -42,6 +42,7 @@ import { orders, pageOf, ScrollBox } from "./PlatformPaginationData";
 import { SkeletonHeading, SkeletonShape, SkeletonText, skeletonShapes, skeletonShapeSizes, type SkeletonHeadingSize, type SkeletonShapeSize } from "../components/Skeleton";
 import { Toast, toastTypes, type ToastType } from "../components/Toast";
 import { typographyStyles } from "../tokens/typography.generated";
+import { PlatformAiKit } from "./PlatformAiKit";
 import { FoundationOverview } from "../foundations/FoundationOverview";
 import { IconGallery } from "../foundations/IconGallery";
 import { TextStylesGallery } from "../foundations/TextStylesGallery";
@@ -346,6 +347,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [progressCircleTheme, setProgressCircleTheme] = useState<string | undefined>("accent");
   const [progressValue, setProgressValue] = useState(40);
   const [progressLabel, setProgressLabel] = useState(true);
+  const [progressBarLayout, setProgressBarLayout] = useState<string | undefined>("inline");
   const [dialogTheme, setDialogTheme] = useState<string | undefined>("default");
   const [accordionSize, setAccordionSize] = useState<string | undefined>("medium");
   const [accordionTheme, setAccordionTheme] = useState<string | undefined>("divider");
@@ -438,6 +440,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [panelSize, setPanelSize] = useState<string | undefined>("default");
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelDescription, setPanelDescription] = useState(true);
+  const [panelBack, setPanelBack] = useState(false);
+  const [panelTop, setPanelTop] = useState(false);
   const [tableMode, setTableMode] = useState<string | undefined>("display");
   const [tableOpenButton, setTableOpenButton] = useState(true);
   const [tableLockRow, setTableLockRow] = useState(true);
@@ -1483,6 +1487,8 @@ ${actions ? `
   if (page === "progress") {
     const isBar = (progressType ?? "bar") === "bar";
     const barTheme = (progressBarTheme ?? "accent") as ProgressBarTheme;
+    const barLayout = (progressBarLayout ?? "inline") as ProgressBarLayout;
+    const stackedLabel = isBar && barLayout === "stacked" && progressLabel;
     const circleTheme = (progressCircleTheme ?? "accent") as ProgressCircleTheme;
     const step = (delta: number) => setProgressValue((value) => Math.max(0, Math.min(100, value + delta)));
     return <ExamplePage page="progress" eyebrow="Components / Progress" title="Progress" description="Progress-Bar for linear tasks and Progress-Circle for compact status. Theme=Status colours the bar by how far along it is.">
@@ -1493,11 +1499,12 @@ ${actions ? `
           {isBar
             ? <PlaygroundFilterChip label="Theme" value={progressBarTheme} onChange={(value) => setProgressBarTheme(String(value) || undefined)} options={["neutral", "accent", "status"].map((id) => ({ id, label: id }))} />
             : <PlaygroundFilterChip label="Theme" value={progressCircleTheme} onChange={(value) => setProgressCircleTheme(String(value) || undefined)} options={progressCircleThemes.map((id) => ({ id, label: id }))} />}
+          {isBar ? <PlaygroundFilterChip label="Layout" value={progressBarLayout} onChange={(value) => setProgressBarLayout(String(value) || undefined)} options={progressBarLayouts.map((id) => ({ id, label: id }))} /> : null}
           <PlaygroundFilterChip label="Progress" value={String(progressValue)} onChange={(value) => setProgressValue(Number(value))} options={[["0", "None · 0%"], ["20", "Low · 20%"], ["40", "Medium · 40%"], ["80", "Good · 80%"], ["100", "Done · 100%"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Label" selected={progressLabel} onChange={setProgressLabel} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-progress-preview">
-          {isBar ? <ProgressBar value={progressValue} theme={barTheme} label={progressLabel ? true : undefined} aria-label="Upload progress" /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
+          {isBar ? <ProgressBar value={progressValue} theme={barTheme} layout={barLayout} label={stackedLabel ? "Uploading files" : progressLabel ? true : undefined} aria-label={stackedLabel ? undefined : "Upload progress"} /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
           <div className="pe-row">
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 0} onClick={() => step(-10)}>−10%</Button>
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 100} onClick={() => step(10)}>+10%</Button>
@@ -1507,7 +1514,9 @@ ${actions ? `
 
 <${isBar ? "ProgressBar" : "ProgressCircle"}
   value={${progressValue}}
-  theme="${isBar ? barTheme : circleTheme}"${progressLabel ? `
+  theme="${isBar ? barTheme : circleTheme}"${isBar && barLayout === "stacked" ? `
+  layout="stacked" // the value (${progressValue}%) ends the row above the bar` : ""}${stackedLabel ? `
+  label="Uploading files"` : progressLabel ? `
   label // shows "${progressValue}%"` : `
   aria-label="${isBar ? "Upload progress" : "Task progress"}"`}
 />`} />
@@ -1826,7 +1835,7 @@ ${code}`} />
     const type = (panelType ?? "modal") as SidePanelType;
     const size = (panelSize ?? "default") as SidePanelSize;
     const body = <PlaygroundSlot name="Content slot" className="platform-slot--tall" />;
-    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} icon={type === "modal" ? "icon-info-circle-solid" : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
+    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} top={panelTop ? <PlaygroundSlot name="Top slot" /> : undefined} onBack={panelBack ? () => setPanelOpen(false) : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
     return <ExamplePage page="side-panel" eyebrow="Components / Side Panel" title="Side Panel" description="A panel on the right edge: Standard docks beside the page (non-modal); Modal floats over a scrim and traps focus. Header, Contents slot and Modal/Actions footer.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Side Panel</h2>
@@ -1834,6 +1843,8 @@ ${code}`} />
           <PlaygroundFilterChip label="Type" value={panelType} onChange={(value) => { setPanelType(String(value) || undefined); setPanelOpen(false); }} options={["modal", "standard"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={panelSize} onChange={(value) => setPanelSize(String(value) || undefined)} options={[["default", "Default (440)"], ["small", "Small (360)"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Caption" selected={panelDescription} onChange={setPanelDescription} />
+          <PlaygroundToggle label="Back" selected={panelBack} onChange={setPanelBack} />
+          <PlaygroundToggle label="Top slot" selected={panelTop} onChange={setPanelTop} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-side-panel-preview" data-type={type}>
           {type === "standard" ? (
@@ -1858,7 +1869,9 @@ ${code}`} />
   open={open}
   onOpenChange={setOpen}${type === "standard" ? `
   type="standard"` : ""}${size === "small" ? `
-  size="small"` : ""}
+  size="small"` : ""}${panelTop ? `
+  top={<Stepper … />}` : ""}${panelBack ? `
+  onBack={goBack}` : ""}
   title="Edit project"${panelDescription ? `
   description="Changes apply to everyone in the workspace."` : ""}
   primaryAction={{ label: "Save changes", onClick: save }}
@@ -2401,7 +2414,7 @@ createRoot(document.getElementById("root")!).render(
       { title: "4. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). Add one line to your app's CLAUDE.md or AGENTS.md:", command: "Read node_modules/@zen/design-system/AGENTS.consumer.md before writing UI, and follow it." },
     ];
     return (
-      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider.">
+      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider. Designing in Figma with AI? Download the AI kit below.">
         <div className="platform-install">
           {steps.map((step) => (
             <section key={step.title} className="platform-example-panel platform-install__step">
@@ -2411,6 +2424,7 @@ createRoot(document.getElementById("root")!).render(
               {step.code ? <PlatformCode code={step.code} /> : null}
             </section>
           ))}
+          <PlatformAiKit />
         </div>
       </ExamplePage>
     );

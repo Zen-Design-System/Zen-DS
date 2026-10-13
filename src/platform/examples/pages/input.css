@@ -3,5 +3,3 @@
 /* Toggle is 232px wide on its own (Figma). A setting row in a form fills the card so the switch meets the fields' edge. */
 .zen-toggle.px-input-fill { width: 100%; }
 
-/* A status Badge never shrinks or truncates beside a long title. */
-.px-input-status { flex: none; }

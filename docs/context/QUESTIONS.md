@@ -104,6 +104,11 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
   Header-Slot / Footer-Slot centre their content; code hugs its rows and left-aligns header text and footer actions.
   Ask the designer to update the master to Hug and left alignment.
 
+- **Side-Panel (P3, 2026-10-12):** the hidden Back-Container (1573:3127 and the other 3 variants) reports 32×32 while
+  its padding 2XSmall + 20px Wrapper make 28×28 (the Modal Close-Container beside it is 28). Code draws 28, like the
+  close. Is 28 meant? Also: the Modal heading icon (Icon-Wrapper) was removed; code keeps `icon` as deprecated until
+  confirmed.
+
 ## For the user (decisions and actions)
 
 Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,

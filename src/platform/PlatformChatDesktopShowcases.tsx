@@ -20,11 +20,11 @@ const initials = (name: string) => name.split(/\s+/).slice(0, 2).map((w) => w[0]
 
 /** Desktop thread header: avatar · name + presence · call / video / details (Button/Icon-Flat Medium, with tooltips). The
  *  desktop counterpart of the mobile TopNavigation chat header (PlatformChatHeader). */
-export function ThreadHeader({ person, status, actions = [], onAction }: { person: ChatPerson; status: string; actions?: { icon: IconName; label: string }[]; onAction?: (label: string) => void }) {
+export function ThreadHeader({ person, avatar, status, actions = [], onAction }: { person: ChatPerson; /** In place of the person's Avatar (a group's ChatAvatarGroup). */ avatar?: ReactNode; status: string; actions?: { icon: IconName; label: string }[]; onAction?: (label: string) => void }) {
   return (
     <>
     <div className="pe-chat-desktop__header">
-      <Avatar size="medium" theme={person.src ? "photo" : person.theme ?? "neutral"} background="subtle" src={person.src} alt="" status={status === "Active now"}>{person.src ? null : initials(person.name)}</Avatar>
+      {avatar ?? <Avatar size="medium" theme={person.src ? "photo" : person.theme ?? "neutral"} background="subtle" src={person.src} alt="" status={status === "Active now"}>{person.src ? null : initials(person.name)}</Avatar>}
       <div className="pe-chat-desktop__who">
         <span className={`pe-chat-desktop__name ${typographyStyles["Body/Base/Bold"]}`}>{person.name}</span>
         <span className={`pe-chat-desktop__status ${typographyStyles["Body/Small/Regular"]}`}>{status}</span>
@@ -38,6 +38,34 @@ export function ThreadHeader({ person, status, actions = [], onAction }: { perso
     <Divider decorative />
     </>
   );
+}
+
+/**
+ * The desktop chat window the examples draw (Figma Chat Device=Desktop), Surface and 600px high: `layout="split"` puts a
+ * ChatWindowList beside the thread (ChatWindowSplit between them), "thread" is one thread pane at the window's width,
+ * "single" a narrower one in a Pale frame. `fit`: on a narrow page the window fits the card instead of keeping its
+ * desktop width and scrolling sideways (the chat's name then wraps).
+ */
+export function ChatWindow({ layout = "split", domain, fit = false, children }: { layout?: "split" | "thread" | "single"; domain?: string; fit?: boolean; children: ReactNode }) {
+  return <div className={layout === "single" ? "pe-chat-desktop pe-chat-desktop--single" : "pe-chat-desktop"} data-layout={layout === "thread" ? "thread" : undefined} data-fit={fit ? "true" : undefined} data-domain={domain}>{children}</div>;
+}
+
+/** The chat list pane: its head (a title, a Search) stays on top while the rows scroll under it. */
+export function ChatWindowList({ head, children, ...label }: { head: ReactNode; children: ReactNode; "aria-label"?: string; "aria-labelledby"?: string }) {
+  return (
+    <aside className="pe-chat-desktop__list" {...label}>
+      <div className="pe-chat-desktop__list-head">{head}</div>
+      {children}
+    </aside>
+  );
+}
+
+/** The line between the chat list and the thread (a horizontal one once the window stacks them). */
+export const ChatWindowSplit = () => <Divider orientation="vertical" decorative className="pe-chat-desktop__split" />;
+
+/** The thread pane: its header, the thread (it takes the free height and scrolls) and the composer. */
+export function ChatWindowMain({ label, children }: { label: string; children: ReactNode }) {
+  return <section className="pe-chat-desktop__main" aria-label={label}>{children}</section>;
 }
 
 export const headerActions: { icon: IconName; label: string }[] = [{ icon: "icon-phone-call-line", label: "Voice call" }, { icon: "icon-video-recorder-line", label: "Video call" }, { icon: "icon-info-circle-line", label: "Conversation details" }];

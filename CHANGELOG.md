@@ -21,6 +21,58 @@ removed (four unused colour ramps were, see Removed).
 ### Changed
 - Chart values are larger, as in Figma: the `ChartCard` value and the `DonutChart` total beside the ring
   (`totalPosition="start"`) are Heading/2 (were Heading/3).
+- Focus rings (2026-10-13, live Figma): four new tokens, `--zen-color-focus-positive-solid|subtle` and
+  `--zen-color-focus-negative-solid|subtle` (Color/Focus/Positive|Negative/*, the same steps as the Accent pair). Button
+  (Main, Flat, Icon-Main, Icon-Flat) now draws its 3px ring in Focus/Accent/Solid (was Accent/Subtle); Danger levels use
+  Focus/Negative/Solid and Positive levels Focus/Positive/Solid. Input's Inputted-Error / Blank-Error border reads
+  Focus/Negative/Solid (same colour as before). Top Navigation actions keep a 3px clear gap to their ring (was 2px).
+  The 3px field ring of Input (Focused/Typing, and the code-only error-focus and read-only-focus rings) is
+  Focus/Neutral/Subtle, a step lighter than Border/Active/Neutral/Subtle; AiChatField and the Chat composer, which take
+  the Input ring, follow. Stepper: Focused ring Focus/Neutral/Subtle, Error ring Focus/Negative/Subtle. New harness rule
+  `focus/ring-token` (error): a focus ring's colour comes from `--zen-color-focus-*`.
+- Text on a Zen accent solid (2026-10-13, live Figma): Base Colors On-Brand-Default (Light, Dark) and Light/On-Brand-Hover
+  are black 86% instead of white, so `--zen-color-content-on-accent-*` passes contrast on Zen pink (white was 2.5:1).
+- Table rows (2026-10-13, user rule, Figma Table/Cell/Default FIXED): every body row is exactly Table/Cell/Size and the
+  header Table/Header/Size in every density (rows were 1px taller, and long text wrapped onto more lines). Cells hold
+  one line: long text ends in an ellipsis, right-aligned values stay whole, Badge/Tag items no longer wrap (Figma
+  NO_WRAP). Long, multi-line content is not Table's job; a sheet-style component will cover it.
+- Typography (2026-10-13, Figma re-sync, mode Dashboard): headings and display text track tighter and Body/Small
+  gains -0.12px — Letter-Spacing Display-1…4, Heading-1…4 and Body-Small re-synced (e.g. Heading-1 -0.56 → -0.84px);
+  the Studio mode follows. Every text style and component reads the variables, so nothing else changes.
+- Card and List Box `theme="on-container"` (2026-10-12, user): Surface/Flat, for a Card or ListBox inside a Modal
+  (Dialog, ModalForm), a SidePanel or a BottomSheet, on their Container fill — no border, no shadow; a selected card
+  keeps it. Usage rules §16 and both guidelines say so (a card in a card or in a ListBox keeps the Pale border); the
+  harness warns on a Card or ListBox right inside one of them with another theme (`card/on-container-in-overlay`,
+  `listbox/on-container-in-overlay`, allow `overlay-theme`). Figma Card and Component/List-Box have the same
+  Theme=On-Container; stories `OnContainer`.
+- List Box `theme` is in Figma too (2026-10-12): Component/List-Box (14922:75297) has a Theme variant property,
+  Flat (default) · Shadow · Pale · Border · On-Container, with the tokens of Card's Theme (Border's stroke stays out of
+  the layout, like Card's). Zen Studio shows it in the Properties panel, and Export › Figma writes it
+  (`figma-props.map.mjs`).
+- Side Panel synced with Figma's Side-Panel (1573:3128): the header, contents and actions each keep Modal-Padding on
+  every side (contents start 24px lower, the actions 12px lower); the back and close buttons sit in the title row.
+  `icon` is deprecated: Figma no longer draws the Modal heading icon (it still renders for now).
+- Progress-Circle: the ring has its Neutral/Subtle fill again, and Done is a plain solid disc (no ring over it), as in
+  Figma's Progress-Circle/Icon.
+- Zen Studio ↔ Figma keeps more of a page through a push and a pull. This was tested by placing the examples in the
+  real Zen file and reading them back. Fixes:
+  - A Checkbox, Toggle or Radio keeps its label and caption (Figma moved them into the Content primitive).
+  - An emoji Dock-Icon keeps its emoji.
+  - Fields keep their label, value and help text.
+  - List rows keep their title, caption, leading and trailing.
+  - Text keeps its tone.
+  - Headings keep their level.
+  - A Type=Main header comes back as a PageHeader.
+  - A Sidebar's logo replaces Figma's sample logo, and its collapse button is no longer pulled in as content.
+  - Breadcrumbs keep `master`.
+  - A DescriptionList keeps its terms and values.
+  - A swapped-in file icon is read back.
+  - Figma cannot resize an icon nested inside a List-Item, so the push says so instead of failing silently.
+- A Badge keeps its width in a row (it shrank to its 28px minimum beside long text, so examples had to pin it), and a
+  Text or Heading that takes focus after an action (tabIndex -1) draws the focus ring with room around its words.
+- The examples lost 107 of their last 219 classNames: their frames (an app window, a page on the Canvas, a desktop
+  chat window) are platform components now (`src/platform/PlatformFrames.tsx`), the rest Zen props. Pages look the
+  same (visual diff, 760 panels).
 - Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
   and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
 - Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
@@ -63,6 +115,26 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- Figma descriptions (2026-10-13, user): the live library now describes all 168 public component sets (when to use,
+  what instead, properties, rules), 592 variables (semantic colours by layer and role, the spacing ladder, radii,
+  breakpoints, emphasis, dimensions) and every text, effect and paint style, written from the guidelines, usage rules
+  and harness by `tools/figma-docs/build.mjs` (rerun it after a rule changes). The 🔤 Typography page has a new
+  Content-Hierarchy section: the heading/text-style ladder for desktop, phone and overlays plus the outline rules.
+- AI kit for Figma (2026-10-13, user): Installation › AI kit for Figma downloads `zen-figma-ai-kit.zip` (built in the
+  browser from the repo) so Claude or ChatGPT/Codex can design in a Zen Figma file through Figma's MCP server: the skill
+  `skills/zen-figma-design` (setup, hard rules, build steps, screen rules, Plugin API gotchas), the read-only audit
+  harness `harness/zen-figma-audit.js` (23 rules: unbound colours/spacing/radii, text and effect styles, paint
+  overrides and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller
+  non-clipping wrapper like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured
+  from the effect; an error on the screen's own frames), crushed or shifted text, placeholder copy, and theme
+  pairing: boxes and navigation surfaces that clash with the Canvas, one elevation per screen), the generated
+  Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
+  writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
+- Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)
+  and `onBack` / `backLabel` (Figma Back-Container: a back button before the title).
+- ProgressBar `layout="stacked"` (Figma Layout=Stacked): the label and the value on a row above the bar; `valueLabel`
+  replaces the percentage ("3 of 5 steps"). The stacked label is Body/Base/Bold, the value Body/Base/Regular (Figma
+  re-read 2026-10-13).
 - **Chart family in one style, with motion** (the user, 2026-10-12; spec `docs/research/chart-family-spec-2026-10-12.md`):
   new `BarChart` (vertical or `orientation="horizontal"`, `projected` bars hatched, a `target` track), `DonutChart`
   (% pills, the total in the centre), `RadialChart` (ring gauges over dotted tracks) and `HeatmapChart` (row × column on
@@ -76,6 +148,12 @@ removed (four unused colour ramps were, see Removed).
   Border/Neutral/Pale stripes). Zen
   Studio's Charts palette gains Bar, Horizontal bar, Line with comparison, Donut, Radial and Heatmap. Harness:
   `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
+- Grid `stackBelow={640}`: one column while the Grid itself is narrower than 640px (a side column in a narrow card or
+  window), whatever the breakpoint. Stack and Box `scroll="y" | "x"`: Figma's Overflow scrolling (it clips, and the
+  scroll stays inside). Box `surface="canvas"` for a whole screen drawn inside something else. Text and Heading
+  `wrap={false}` (one line, Figma Auto width) and `tabularNumbers` (Figma Numbers: Tabular). Unset, each renders nothing
+  new. Zen Studio → Figma pushes and pulls them (a Box's surface as its Color/Background fill, scroll as Overflow
+  scrolling, maxHeight as Max height; Numbers: Tabular is read back, the plugin API cannot set it).
 - Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
   and Max width on the instance): a card can fill its column up to a readable width and centre itself without a
   className. Unset, they render nothing new. The push to Figma writes them on the instance and a pull reads them back.
@@ -922,6 +1000,11 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Figma List-Box (2026-10-14, user): a heading no longer starts in from the edge when the box is wider than 311px.
+  Header-Slot and Footer-Slot align their content left and the default Heading / Footer texts fill the slot (they were
+  fixed at 263px in a centred slot), as `.zen-list-box__header` lays it out; the 30 List-Boxes on ◆ Performance were
+  fixed too. Publish the library so files that use it get the change. The AI kit's Figma audit reports the pattern as
+  `text/shifted` (fixed-width left-aligned text pushed in by a centred column).
 - Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
   Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
   caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column
@@ -942,6 +1025,8 @@ removed (four unused colour ramps were, see Removed).
   trigger, List / Container / Form… as frames of their layers. A Sidebar's rows go in Body-Content with the selected
   one marked, a Dashboard header turns on the blocks whose slots hold content, and Export › Figma says why when nothing
   on a page can go to Figma rather than downloading an empty frame.
+- SidePanel: content in the body no longer shrinks when the body overflows; it scrolls. A Segmented or code block
+  was squeezed instead (Studio Export's tabs at 25px, labels cut off).
 - Zen Studio → Figma: the Dashboard imports as it looks in the Studio (tried in the live Zen file). A Grid whose
   columns fit the width is an even Figma grid of as many columns as fit the page (a wrapping row where the width is not
   known), a Grid of N columns is Figma's grid with rows that hug; MetricCard is a
@@ -1503,7 +1588,7 @@ removed (four unused colour ramps were, see Removed).
   Card's Figma Theme (same tokens; no Semi-Pale), default `flat`. Examples and templates pick it by usage rules §16:
   flat on Canvas/Default and on Surface-Alt phone screens, shadow beside a default Sidebar (elevation follows the
   Sidebar), border on a white page or phone and inside another Surface. Exported `listBoxThemes` / `ListBoxTheme`;
-  stories in `ListBox.stories.tsx`. Figma's Component/List-Box has no Theme property yet.
+  stories in `ListBox.stories.tsx`. Figma's Component/List-Box had no Theme property then (added 2026-10-12).
 - **List Box only for List-Item rows (2026-10-06, user rule):** in the examples, templates and the List Item
   playground, a container whose content is a list of List-Item rows (with an optional title, search or filters above
   and buttons or pagination below) is now a `<ListBox header footer>` instead of a Card; everything else (Description

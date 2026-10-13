@@ -114,7 +114,8 @@
 .zen-top-nav__action .zen-icon, .zen-top-nav__action svg { width: var(--zen-navigation-mobile-top-icon-size, 24px); height: var(--zen-navigation-mobile-top-icon-size, 24px); }
 .zen-top-nav__action:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, #f7f7f7); }
 .zen-top-nav__action:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, #efefef); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)); }
-.zen-top-nav__action:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+/* Figma Nav-Action Focus-Ring: a 3px INSIDE stroke on a rect 6px outside the 44px container, so a 3px ring 3px clear of it. */
+.zen-top-nav__action:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff6bd5); outline-offset: 3px; }
 .zen-top-nav__action:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 /* Flat: no container; the 44px target stays but only the 24px icon takes layout room (Figma Style=Flat 12012:36254: an
    Icon-Size slot with the Navigation-Action/Size button at −10px). */

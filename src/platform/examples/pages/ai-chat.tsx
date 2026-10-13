@@ -8,13 +8,14 @@ import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Stack } from "../../../components/Layout";
+import { Box, Container, Stack } from "../../../components/Layout";
 import { Popover } from "../../../components/Popover";
 import { Tag } from "../../../components/Tag";
 import { Text } from "../../../components/Text";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { AiVoiceConversation, type AiVoiceState } from "../../../components/Voice";
+import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import { files, formatBytes, formatDate, formatMoney, formatRange, formatRelative, invoices, leaveRequests, me, people, projectById, studioMonths, type StudioFile } from "../data";
 import type { ExampleDef } from "../types";
@@ -255,15 +256,17 @@ function AssistantHomeExample() {
   const field = <AskField fieldStyle="surface" dictation="What's due tomorrow?" modelId={modelId} onModelChange={setModelId}
     busy={chat.busy} onStop={chat.stop} onAsk={ask} className={started ? "px-ai-chat-column" : undefined} />;
   return (
-    <Box ref={screenRef} className="px-ai-chat-screen">
+    <PreviewWindow ref={screenRef} height={{ min: 560, max: 720, offset: 160 }} clip={false}>
       <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
       {started ? (
         <>
           {/* A strip over the conversation: block padding Small, the page margin at the sides (24, or 20 on a phone). */}
-          <Stack direction="row" justify="end" className="px-ai-chat-screen__bar">
-            <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={chat.reset}>New chat</Button>
-          </Stack>
-          <Box ref={scrollRef} className="px-ai-chat-screen__scroll">
+          <Container maxWidth="full">
+            <Stack direction="row" justify="end" paddingY="sm">
+              <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={chat.reset}>New chat</Button>
+            </Stack>
+          </Container>
+          <Box ref={scrollRef} scroll="y" height="fill" className="px-ai-chat-screen__scroll">
             <AiChatThread aria-label="Conversation with Zen AI">
               {chat.turns.map((turn) => turn.side === "you" ? (
                 <AiChatBubble key={turn.id} side="you" actions={[actions.copy(turn)]}><Prompt turn={turn} /></AiChatBubble>
@@ -282,7 +285,7 @@ function AssistantHomeExample() {
           <Box className="px-ai-chat-screen__dock">{field}</Box>
         </>
       ) : (
-        <Box className="px-ai-chat-screen__home">
+        <Stack direction="row" scroll="y" height="fill" className="px-ai-chat-screen__home">
           <AiChatBlock greeting={`What are we working on, ${firstName}?`} suggestions={[
             { label: "Summarise my week", icon: "icon-align-left-line", onClick: () => ask("Summarise my week") },
             { label: "Draft a client update", icon: "icon-pencil-line", onClick: () => ask("Draft an update for Lumen Bank on the online banking redesign") },
@@ -291,9 +294,9 @@ function AssistantHomeExample() {
           ]}>
             {field}
           </AiChatBlock>
-        </Box>
+        </Stack>
       )}
-    </Box>
+    </PreviewWindow>
   );
 }
 

@@ -8,6 +8,41 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
+  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale/Semi-Pale hues), Metric-Card and Chart-Card
+  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `theme` semi-pale + `surface` +
+  `color`, MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
+  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation).
+  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
+  background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
+  Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
+  until then (screen-rules §1).
+- **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
+  studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
+  so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in
+  tools/studio/figma-push.mjs leaves Figma's sample data. Next, once the user confirms the scope: pick Sector 4/6/7/12 by
+  the point count and write X labels, the six Y ticks and the active tooltip (push; pull has no chart mapping yet).
+- **P3 · Sheet-style table for long content (user, 2026-10-13):** Table rows are FIXED at Table/Cell/Size (one line,
+  ellipsis). The docs Props / API / Keyboard references still need multi-line rows: a temporary `.platform-ref`
+  override in `src/platform/platform.css` lets them grow. Replace it with the planned sheet component (needs the user's
+  approval and a Figma source).
+- **P2 · Studio ↔ Figma P6b: round trip by push key (2026-10-13, needs the user's approval):** P6 (spec §8) fixed what
+  pulls lose part by part. Still lost on a pull, as code-only detail:
+  - Container / Box / Form come back as Stack.
+  - ListItem `titleLines`.
+  - Chip popoverItems, tooltips and aria.
+  Proposal: the reader reads the push's key (shared plugin data), the pull uses it as the element id, and Studio keeps
+  the pushed page as the base. "Update from Figma" then changes only what the designer edited. Session log 2026-10-13
+  "P6".
+- **P2 · Examples' last 112 classNames (2026-10-13, branch zen/feat/examples-classnames):** P1–P5 of the Studio → Figma
+  coverage are done (spec §8). What is left has no Zen prop, so it waits for the user: (1) padding on the page-margin
+  token (Figma Margin/Comfortable: 24, 20 on a phone) and per-side padding (Figma auto layout has both): ai-chat,
+  bottom-navigation safe area, checkbox indent; (2) component internals: Table min-width, ProgressBar label width,
+  Toggle width, a Card's content filling its height, SidePanel height when docked, Segmented hug; (3) Skeleton widths,
+  `ch` / rem widths and min-heights on mode tokens (Badge size, line heights); (4) media (img / video / photo buttons);
+  (5) bespoke responsive rules (divider zoom group, search split borders, image channels, visually-hidden site header).
+  Session log 2026-10-13 "P5".
 - **P2 · Chart family in Studio Export › Figma (2026-10-12, unblocked 2026-10-13):** map `BarChart`, `DonutChart`,
   `RadialChart`, `HeatmapChart` and series `LineChart` in `tools/studio/figma-push.mjs` (SETS / CHART_SETS) to Figma
   Chart/Bar-Chart 15321:84071, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart
@@ -16,13 +51,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   importer in the Zen file (memory: test in real Figma). Needs the user's go-ahead (new scope).
 - **P3 · Chart family Figma contracts (2026-10-12):** capture `docs/figma-contracts/chart-*.json` for the five new sets
   (`tools/figma-contract/mcp-capture`) and add parity suites, so a later Figma edit is caught like the other components.
-- **P1 · Studio → Figma coverage, P4 (user approved 2026-10-12; P1–P3 done, branch zen/feat/figma-map-p3 2026-10-13):**
-  P3 mapped TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat (ChatThread,
-  reactions, read list), FileIcon, Flag, icon sizes and fixed Metric (spec §8 "P3"). P4 (examples' raw HTML and
-  className): Card and ListBox took width / minWidth / maxWidth / alignSelf (user, 2026-10-13) and the sizing classNames
-  became props. Left, waiting for the user: container-query layouts (27 uses: Grid columns that stack below a width of
-  their own — needs a Grid API), and className rules for colour, display and docs-only details (focus targets, video,
-  tabular numbers), which stay platform CSS. The chart family belongs to session "Chart components với animation".
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
@@ -380,8 +408,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (same session, for the designer): ~~Neutral-S7 focus is faint by design~~ — resolved 2026-10-03 evening: the designer
   set `Input/Border/Focus` in Neutral-S7 to Focus/Neutral/Solid (export synced). Still open: `Input/Border/Popover-Search` stores "Focus/Neutral/Solid at
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also
-  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px
-  Border/Active/Neutral/Subtle one (code uses the 3px ring on both).
+  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px one (both
+  Focus/Neutral/Subtle since 2026-10-13; code uses the 3px ring on both). Also 2026-10-13: Field-Only's
+  Inputted-Error/Blank-Error border is Color/Focus/Negative/Solid but Text-Area's is still Color/Border/Negative/Solid/Default
+  (same colour; code uses Focus/Negative/Solid on both).
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.

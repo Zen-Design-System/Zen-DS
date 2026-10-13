@@ -51,6 +51,11 @@ body { background: var(--zen-color-background-surface-default); }
 .x-option.is-selected { background: var(--zen-color-background-active-neutral-subtle); }
 /* expect: focus/selected-fill-only */
 .x-option:hover, .x-option:focus-visible { background: var(--zen-color-background-neutral-flat-hover); }
+/* Focus rings take Color/Focus/*, not the Border token that stood in for them (Figma 2026-10-13). */
+/* expect: focus/ring-token */
+.x-tab:focus-visible { outline: 3px solid var(--zen-color-border-active-neutral-subtle); }
+/* expect: focus/ring-token */
+.x-step[data-state="focused"] { box-shadow: 0 0 0 3px var(--zen-color-border-negative-subtle-default); }
 /* Motion (tokens/source/motion.json, 2026-10-01). */
 /* expect: motion/token-only */
 .chip-x { transition: background-color 120ms ease; }

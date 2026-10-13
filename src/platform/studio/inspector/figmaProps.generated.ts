@@ -566,7 +566,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Flat": "flat",
           "Pale": "pale",
           "Border": "border",
-          "Semi-Pale": "semi-pale"
+          "Semi-Pale": "semi-pale",
+          "On-Container": "on-container"
         }
       },
       {
@@ -694,13 +695,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": [
-      {
-        "label": "Caption",
-        "prop": "caption",
-        "on": "Caption"
-      }
-    ]
+    "toggles": []
   },
   "Divider": {
     "figma": "460:38361",
@@ -1229,7 +1224,20 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
   },
   "ListBox": {
     "figma": "14922:75297",
-    "own": [],
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Flat": "flat",
+          "Shadow": "shadow",
+          "Pale": "pale",
+          "Border": "border",
+          "On-Container": "on-container"
+        }
+      }
+    ],
     "toggles": [
       {
         "label": "Header",
@@ -1339,6 +1347,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Accent": "accent",
           "Neutral": "neutral",
           "Status": "status"
+        }
+      },
+      {
+        "prop": "layout",
+        "label": "Layout",
+        "type": "VARIANT",
+        "options": {
+          "Inline": "inline",
+          "Stacked": "stacked"
         }
       }
     ],
