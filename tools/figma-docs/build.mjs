@@ -41,7 +41,7 @@ const PAGES = {
 };
 const EXTRA = {
   "❖ Bottom Sheet (Mobile)": ["Bottom-Sheet/Modal"],
-  "❖ Chat": ["Chat/Section/Time", "Chat/Reaction-Bar", "Chat/Conversation-List/List-Item/Default", "Chat/Bubble/Voice"],
+  "❖ Chat": ["Chat/Section/Time", "Chat/Reaction-Bar", "Chat/Conversation-List/List-Item/Default", "Chat/Bubble/Voice", "Chat/Conversation/Reply", "Chat/Reply/Quote", "Chat/Composer-Reply"],
   "❖ Popover": ["Scroll-Bar", "Popover/Manual-Add-New"],
   "❖ Table ": ["Primitives/Table/Cell/Group-Avatar-Cell"],
   "❖ Voice": ["Voice Recorder", "AI Voice Conversation"],

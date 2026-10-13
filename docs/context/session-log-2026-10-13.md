@@ -276,6 +276,114 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   figma-props.map (they map List-Box Theme, ProgressBar Layout, SidePanel). Not changed here.
 - Fixtures: figma-parts.json (+ swapped FileIcon row), figma-shell.json (breadcrumbs page, frame 15448:3). Push
   selftest 187, pull 52, studio:selftest all pass. Spec §8 "P6". P6b (key-based round trip) proposed; BACKLOG.
+## ListItem value variant (session 9e5675b4, tier S)
+
+- User asked for a second stacked-list variant like a banking "Transactions" list: an amount + its other currency on the
+  right of each row. Chose (AskUserQuestion): props on ListItem, code only for now (Figma → BACKLOG P3), money in in
+  Content/Positive/Light (first Accent, changed by the user mid-task).
+- `ListItem.tsx`: `value` · `valueCaption` · `valueTone` (ContentTone, default strongest). Rendered inside the row body
+  (`.zen-list-item__value`), so a clickable row's button/link reads the amount; `trailing` follows it.
+- `list-item.css`: right-aligned column, Spacing/Gap/3XSmall, nowrap + `flex: 0 0 auto` (the title truncates first),
+  tabular figures; value colour through `--zen-list-item-value-color` (set inline only for a non-default tone).
+- Story `Value`; example "Transactions on a phone" (list-item page: Studio VND account, See all / Show fewer, + / −
+  signs in the text, Hanoi Book Fair = INV-2026-0138 paid Sep 10 at 26,350 VND/USD).
+- Guideline: api row "Value" + one Do line; guidelines:build / check pass. CHANGELOG 0.4.0 Added.
+
+## Phone preview bezel smeared by a bar's blur (session c30087ec, tier S)
+- User: the example preview blurs the mockup's edge (screenshot: Bottom Navigation › Floating, bottom-left corner).
+- Cause: the bezel was the screen's own box-shadow, so the black sat in the rect corners outside the 55px curve, inside
+  the progressive blur's backdrop; the blur pulled it into the corner (also in headless Chromium).
+- Fix (`PlatformPhone.tsx`, `platform.css` › PlatformPhone): the bezel is its own `.platform-phone-fit__bezel` layer
+  (same size and scale, under the screen); the screen rounds with `clip-path: inset(0 round …)`, which makes it the
+  backdrop root (square background in the corners). `--platform-phone-radius` now comes from `platformDevices` on the
+  fit wrapper (the per-device CSS values went). The bars' rounded blur layers stay.
+- Checked at 2×/3×: Floating and Floating-Glass corners clean, no seam at the curve, top corners and layout unchanged.
+- Contact sheet review: inside a ListBox in a padded Box the phone rows cut the payee after ~10 characters and wrapped
+  "Received · Today"; the example became a full-bleed list (Box paddingX lg, as the reference) and the title the payee
+  alone (arrow, caption and sign give the direction). Gate (`--isolated`): PASS; list-item re-run 0 warnings. The first
+  run's templates [rhythm] and chat "Audio call" dead-click warnings are pre-existing and already in BACKLOG.
+- User rule: section-head See all / Show all = underlined text ("text sẽ tiết kiệm được space hơn"), not a Main
+  tertiary button. Transactions example and DashboardTemplate "Recent activity" → `<Text as="span"
+  textStyle="Body/Base/Medium"><Link as="button" tone="inherit" aria-expanded>`; Link `use` + List Item do/don't lines.
+  A `<button>` written in a `//` comment tripped interaction/action-without-handler (the scanner reads it as JSX):
+  reworded. Gate PASS (only the BACKLOG'd templates [rhythm]); Playwright on :5173: Show all expands 7 → 10 rows.
+  Left as they are: footer "Show all N files" (not a section head), Metric "Show all metrics" (restores hidden
+  tiles: a command), Studio Assets "See all" (Flat Primary xs, allowed by the user's first message).
+
+## Chart/Sector tokens equal in every Component Theme mode (tier XS)
+
+- User: Chart Sector tokens in Component Theme the same in every mode, as Brand - S1; update Figma too.
+- Repo: `component-theme.json` Primary → {Color/Background/Support/Brand/Solid}, Secondary → {…/Support/Neutral/Deep}
+  in the 7 Neutral modes (14 values; Brand - S2 already matched); `tokens:build` changed only those lines (tokens.css, catalog, native).
+- Figma `9nZv4uW2LT21yuHabMTCh1`: the same 14 values via `setValueForMode` (VariableID:9024:24167 / 24168); the "Color
+  Chart Sector/Primary · Secondary" styles still bind them and now resolve pink / #121212 in Neutral - S1; Donut set
+  screenshot checked. `figma-styles.full.json` resolved colours and Chart.tsx palette fallbacks swapped to match.
+
+## Color Chart Sector/Septenary reference (session fa12e55e, tier XS)
+
+- User: update the Septenary style's reference. Live Figma (`getLocalPaintStylesAsync`, read-only): Septenary binds
+  Color/Background/Support/Green/Soft (VariableID:5196:29030, #ACDAAE); the repo still had Red/Soft.
+- `figma-styles.full.json`: Septenary binding + colour, and the stale resolved colours of Tertiary (Cyan #12A2CE) and
+  Senary (Orange #E37A02) from the same read; `build-style-manifest.mjs` changed only those 3 CSS lines + manifest.
+- User approved aligning `chartPalette` (Chart.tsx) to the seven styles: 6th Orange/Solid (#E37A02), 7th Green/Soft
+  (#ACDAAE); was Green/Solid, Orange/Solid. Only series 6–7 without their own `color` change.
+- QA: the first full-scope run (41 pages, other sessions' token edits) failed only on pagination@390 local .webp
+  ERR_CONNECTION_REFUSED (shared server restart); `--isolated` pagination + chart passed.
+
+## Chat reply components built back into Figma (tier S)
+
+- User: "Bổ sung ngược lại các component reply bubble chat vào lại Figma" — ChatReply had no Figma set.
+- Measured the code first (Playwright on `?page=chat`, "Reply to a message"): caption Caption/Regular 16 high, inset 12;
+  quote padding 8/12/20, radius 16, Neutral/Pale; bubble tucks 12 over it; composer bar 8/14/4/16, 47 high.
+- Figma `9nZv4uW2LT21yuHabMTCh1`, page ❖ Chat, new frame "Chat Reply" (15465:1541, section widened to 14296):
+  - `Chat/Reply/Quote` 15467:1661 — Side Others|You × Kind Text|Photo|File|Call|Voice|Deleted (6×2 grid). Preview
+    Body/Small/Regular Neutral/Base, hugs up to 220 − padding − leading, 2 lines then ellipsis; glyphs 16 Neutral/Light;
+    File = Dock-Icon XSmall Neutral Subtle (exposed); Photo = 40px Subtle-Disabled placeholder (the file's photo look).
+  - `Chat/Conversation/Reply` 15468:1658 — Side; Avatar, Sent, Bubble-Others/You-Content (same preferred values as
+    Chat/Conversation/Bubble); Quote and Bubble exposed. Quote → bubble spacing −12 is the one raw value (code constant
+    `--zen-chat-reply-tuck`).
+  - `Chat/Composer-Reply` 15469:1669 — Kind Text|Photo|File|Call|Voice, 390 wide, top hairline Border/Neutral/Pale;
+    ✕ = Button/Icon-Flat Small Primary in a Navigation-Action-wide slot, so its centre is 30 from the edge (Chat-Control's last action).
+- Checks: sizes match the code (File quote 184×52, Call 144 wide, bar 47); a temporary thread (Reply Others Kind=Photo,
+  You Kind=Deleted + Sent, bar Kind=File over Chat-Control Mobile) screenshotted and removed; binding audit of 135 layers:
+  only the −12. Descriptions from `tools/figma-docs` (3 entries + EXTRA in build.mjs). JSDoc/CSS cite the nodes.
+- Not done: no text properties (shared TEXT props force one text on all variants, so texts are edited directly, as in
+  Text-You/Others); Deleted stays Body/Small/Regular (no italic style in the file; code renders italic); no hover state
+  for the quote; Studio push/pull and figma-contract suites don't know the new sets.
+
+## Voice motion and usability review (tier S)
+
+- User: "Improve animation của các Voice component cho giống với thực tế hơn", then "đánh giá luôn lại usability và tính
+  thực tế … dựa trên các hành vi và component pattern tương tự". Review: `docs/research/voice-usability-review-2026-10-13.md`
+  (Voice Memos, Google Recorder, WhatsApp/Telegram, ChatGPT Voice, Gemini Live, Meet/Zoom mute).
+- Before: no Voice motion at all (static Figma bars); the examples' clock counted 0.1 s ticks.
+- `Voice.tsx`: `useMotionAllowed` (useSyncExternalStore on prefers-reduced-motion); `Waveform` memoised, `loop` draws
+  `SAMPLE_LOOP` (Figma's 56 + 104 seeded speech bars, ends quiet) twice on `.zen-voice-wave__track`; `data-fresh` when the
+  take started from Ready in this mount. AI signal: `data-live="listening|responding"` without `levels` and not muted;
+  bar height now `--zen-ai-voice-level` (same px). Muted + listening: bars 4px, `voiceMutedGuidance`; note
+  `voiceMutedNote` whenever muted; Mute IconButton `state="pressed"` while on (it had no visible on state).
+- `voice.css` (all motion in `prefers-reduced-motion: no-preference`): scroll `frames ÷ 7` s per copy; reveal mask
+  `--zen-voice-reveal` at the same speed (initial 9999px, so a stopped animation shows the take); badge dot blink 1.6 s;
+  AI `--zen-voice-energy` (circle) × `--zen-voice-band` (bar) × Figma height via `clip-path: inset(… round)` on a 72px
+  box; halo `0 0 0` ring × `--zen-voice-moving` (1 only in keyframes) × Motion/Movement.
+- `chat.css`: ChatVoice bar opacity transition (Duration/Base, linear). Examples: real-clock timer (47 ms), the
+  conversation streams the answer and hands the turn back; muted stops the transcript. Playground: same clock.
+- Checked with Playwright (`?page=voice`): track 35 px/s (= 7 × 5 px), reveal = scroll offset, Paused holds the offset,
+  energy/clip/halo animate, muted rests + copy + Pressed; reduced motion = 56 bars, no clip, no halo; with
+  `animation: none` (Studio HTML export) the take shows and the halo is 0.
+- Open (BACKLOG P2 + QUESTIONS Voice): Thinking state, Discard confirm/Undo, `useVoiceLevels`, ChatVoice seek, copy of
+  the Responding heading, Mute-on treatment, Social voice length.
+
+## Chat reply synced back from Figma (tier S)
+
+- User: "Update lại các component reply Chat từ Figma lên" after editing the sets built earlier today.
+- Diff of the live sets against the build: Chat/Reply/Quote — every Kind except Text now has padding-left
+  Spacing/Padding/XSmall 8 (Text keeps 12); Chat/Composer-Reply › File — Dock-Icon swapped XSmall → Small, still at 2/3
+  (21.33px, bar 52.3 high). Nothing else changed (tokens, text styles, alignments, Conversation/Reply).
+- Code: `chat-reply.css` `.zen-chat-reply__quote:not([data-kind="text"])` padding-inline-start XSmall; composer dock
+  `scale(2/3)` with margin `--zen-dock-icon-size / -6`; `ChatReplyBody` `dock` size (xsmall quote, small composer).
+- Measured (Playwright, ?page=chat): quotes File 180×52, Call 140, Photo 100 (Figma 101: text width), composer File bar
+  52, dock 21.3 — as Figma. Guideline Reply row updated; `guidelines:build` also refreshed voice/provider docs that were stale.
 
 ## ◆ Performance template page in Figma (tier S, Figma only)
 
@@ -338,3 +446,84 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   screen-rules §1 table, SKILL.md hard rule, audit-rules rows; ai-kit:check 100 ✓. Live: 36/36 user theme frames clean,
   the old review board flags as expected; it caught the Team performance chart card left Flat beside Shadow cards
   (fixed). Old review section renamed "superseded".
+- Widget recolour (2026-10-14, user: "Ngoại trừ 3 card widget này. Các widget còn lại nên học cách phối màu lại"): the
+  Hero cards' recipe on every other coloured widget — marks in one neutral ramp, solid / 48% / 20%, never brand pink on a
+  hue. Chart › Widget themes: Combo (Pale Brand) bars 48% + line solid; Bar-List solid; Gauge value solid, track 20%,
+  target 48%; Funnel stages 48%, Signed (the headline) solid; Stacked area solid / 48% / 20%; Quarter goals (dark card)
+  actual white, target white 48%, track white 10% — its target was #121212 on #1c1c1c (Chart/Sector/* have no dark
+  value). Metric Widget: KPI/Sparkline/Spark-Bars badges On-Color Solid, Spark-Bars bars 48% + active solid.
+  Root cause found: a bound colour's paint opacity always follows the variable's alpha, so the styles Color Chart
+  Sector/On-Color/Secondary (48%) and /Tertiary (20%), bound to Content/Neutral/Strongest (alpha 1), draw at 100% on
+  every node (also the Bullet-Chart main's Track). Widgets therefore use Chart Sector/Secondary (or On-Color/Primary on
+  the dark card) + layer opacity; rebinding the two styles to alpha variables was refused by the permission check →
+  BACKLOG. Shadow cuts fixed: Widget themes Grid and five Hero Metric-Body frames (button shadow, 2px) no longer clip.
+- Correction (user, 2026-10-14: "Các card màu Neutral tối phải dùng solid neutral … không đổi sang dark mode. Không dùng
+  nhiều mode khác nhau trong 1 component"): the user deleted the Chart page's widget board. Card Solid variants (10) and
+  Metric-Card Hero's Card no longer set a colour mode; Solid/Neutral fills Background/Neutral/Solid/Default and its
+  header icon takes Content/Inverse/Light (the Hero Neutral "⋮" was black 49% on #121212). Card description and the
+  Metric board caption rewritten; skill: SKILL.md hard rule "One colour mode per screen" + screen-rules §1 bullet.
+- Follow-up (user, 2026-10-14: "1. thử 2. OK 3. Thử rồi duyệt sau", then "bỏ hết gradient chỉ dùng màu pale … hoặc subtle
+  nếu muốn nhấn mạnh"): styles On-Color/Secondary → Content/Neutral/Light, /Tertiary → Border/Neutral/Subtle/Pressed
+  (they now draw 49% / 18%; awaiting review, BACKLOG). Chart page board "Widget themes" (15559:2870) rebuilt on
+  Canvas/Alt: Border, Flat/Alt, Pale Brand, Subtle Cyan (Pale + Support/Cyan/Subtle fill), Pale Violet, Pale Orange,
+  Solid Neutral (Inverse text, icon and marks: Background/Inverse/Solid, Content/Inverse/Light, Inverse/Subtle track),
+  Pale Green; the Metric board's Gradient/Semi-Pale cards → Pale; both captions rewritten. Dark check (a temporary
+  Dark frame, removed): Solid Neutral turns light with dark content, the Pale marks flip too. Harness: new
+  `theme/mode-override` (error; a probe frame with a Dark child was caught), `theme/box-on-canvas` now flags Semi-Pale,
+  Gradient and Solid colour boxes, Subtle and Solid Neutral are the highlights; audit-rules, screen-rules §1, Card
+  description. ai-kit:check 104 ✓; the chart board audits clean (one mixed-boxes warning: a showcase).
+- Gradients deleted (user, 2026-10-14: "Giữ solid, xoá gradient"): Card set −30 variants (Gradient ×14, hue Semi-Pale
+  ×16; none had instances) → 62, grid 13 rows (Figma closes empty grid rows itself; a same-run setGridChildPosition
+  fails and the run rolls back); List-Box −36 Semi-Pale → 64 (4 instances in my Theme-01/03 mobile frames moved to Pale,
+  frames renamed), rows re-stacked; 15 Gradients/Card/* styles deleted (their only consumers were the page-less deleted
+  variants). Semi-Pale Neutral kept: code Card `theme="semi-pale"`, the Studio map and the Card example use it (BACKLOG).
+  Solid stays a highlight next to Subtle (harness + skill wording). Card, List-Box, Chart-Card and Metric-Card
+  descriptions decoded: each read-then-write had stacked one more HTML-escape level (`&amp;amp;#39;`).
+- Semi-Pale and chart gradients retired (user, 2026-10-14: "1. OK 2. Bỏ luôn"). Figma: the 4 Card Semi-Pale Neutral
+  variants deleted after 36 nested Cards (Theme-01/03 KPIs, Time worked) moved to Pale and the 4 "Leads by salesperson"
+  charts' Semi-Pale fill became Support/Neutral/Pale; 8 chart area layers (Area-Chart, Metric-Card Sparkline/Hero, board
+  overrides) went from Gradients/Chart/Area/* to their series' solid style at half the layer opacity (0.32 → 0.16; Hero
+  Neutral's raw Inverse gradient → Content/Inverse/Strongest); styles Semi-Pale + 6 Gradients/Chart/Area deleted. Card
+  58 variants. getInstancesAsync only sees loaded pages: load every page before trusting "0 instances". Code (shared
+  tree): Card `semi-pale` off `cardThemes`, kept in `CardTheme` as a deprecated alias drawn as pale; card.css rule,
+  style source entry (+ styles:build: `--zen-style-semi-pale-fill`, `.zen-fill-semi-pale` gone), guideline source,
+  figma-docs sources, example copy, CHANGELOG. Chart worktree (zen/feat/chart-grid-lanes): LineChart `fill="area"`
+  (flat Accent at 16%, default), `gradient` deprecated alias; guideline + docs + CHANGELOG.
+
+## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
+
+- User: research metric and chart card widgets on neutral, coloured and gradient backgrounds (gradient styles from
+  tokens), add chart types; Figma first, then code + Studio. Picked (AskUserQuestion): 8 charts, 6 metric types,
+  Card Theme + Color, phase 1 Figma → review → phase 2 code + Studio.
+- Research: Figma had Line, Multi-Line, Stack-Bar, Bar V/H, Donut, Radial, Heatmap; code only LineChart/StackBarChart/
+  ChartCard; Studio pushes Line/Stack-Bar as sample pictures, pulls no chart, no chart/metric contract suite.
+- Contrast (catalog, Light): white on Support Solid fails (2.5–3.5) except Violet 4.96; Light-mode content on Solid —
+  Strongest ≥ 5.4 and Base ≥ 4.59 on Brand/Cyan/Yellow/Orange, Base 4.12 on Green, 3.21 on Violet. So Solid =
+  Brand, Cyan, Yellow, Orange with the card in Light mode, Neutral = a dark card (Surface/Default in Dark mode).
+- Styles (paint, token-bound): Gradients/Card/Semi-Pale/<6 hues> (Pale→Subtle), Gradients/Card/Gradient/<7 hues>
+  (Pale→Soft, Semi-Pale's angle), Gradients/Chart/Area/Primary·Secondary·Tertiary·Quaternary·On-Color (series Solid →
+  matching Pale; bound stops ignore stop alpha), Color Chart Sector/On-Color/Primary·Secondary 48%·Tertiary 20%
+  (Content/Neutral/Strongest; opacity re-set after binding, which drops it).
+- Card (6643:51021): `Color` variant prop (existing 24 → Color=Neutral), +48 variants (Pale/Semi-Pale × 6 hues, Gradient
+  × 7, Solid × 5, Medium/Small, Active=No), grid 7 colour columns × 13 rows at the old 1448px width; description updated.
+- Metric-Card (6643:64008): Level=Master → Type=KPI; +Sparkline, Spark-Bars, Goal-Progress, Comparison (560 wide),
+  Category-Bar, Hero (Card Solid/Brand, On-Color sparkline, Badge Theme=On-Color, Button Primary); wrap layout.
+- Charts (Chart page, y 6300–6900): Chart/Area-Chart set (Area, Stacked) and components Grouped-Bar-Chart, Combo-Chart,
+  Gauge-Chart, Funnel-Chart, Bar-List, Bullet-Chart — card-less content (header cloned from Bar-Chart with Show Icon,
+  Icon, Title, Description, Value, Show Ranges, Show Open, Show Legend props) because props cannot reach a nested
+  Card's slot content. Descriptions written.
+- Boards "Widget themes" on the Chart page (8 charts in Card themes) and the Metric Widget page (10 Metric-Cards).
+  Audit (own layers + slot content): every fill/stroke/text/gap/padding/radius on a token or style; one stray default
+  vector stroke (Hero area) removed. Scratch board deleted. Repo unchanged in this phase (BACKLOG P1 = phase 2).
+
+## Shared-checkout gathering: LineChart compare colour, BottomNavigation test (session "Giám sát", tier S)
+
+- PR #42 (the shared checkout's later work) made Chart/Sector/Primary brand pink, so LineChart's `compare` (sector-primary)
+  read the same colour as its Accent line: legend and tooltip dots matched. Fix taken verbatim from the "Performance"
+  session's branch zen/feat/chart-grid-lanes so both merge cleanly: compare is Border/Neutral/Solid at 40% (Figma
+  Multi-Line Compare), COMPARE_COLOUR Background/Neutral/Solid; JSDoc, chart guideline note and CHANGELOG follow. The
+  chart example's caption still says Chart/Sector/Primary; that branch rewrites it with the lane work.
+- Gate flake (2 of 3 runs on this branch): "BottomNavigation idle labels" compared an idle item's colour with its label's,
+  but the pointer can rest on that item from an earlier test, and a hovered idle item on the Default bar takes the
+  label's colour. The test now unhovers the bar and measures an idle item the pointer is not on (a forced hover
+  reproduces the old failure). Gate PASS (chart, bottom-navigation; full Vitest 57/57).

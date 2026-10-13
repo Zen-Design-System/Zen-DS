@@ -2091,7 +2091,7 @@
           "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "children?: ReactNode",
-          "theme?: shadow|flat|pale|border|semi-pale|on-container = shadow",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "spacing?: md|sm|medium|small = md",
           "selected?: boolean",
           "active?: boolean (deprecated)",
@@ -2237,7 +2237,7 @@
       "do": [
         "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
         "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
-        "Let your audio code drive state, and give the time and levels from it.",
+        "Let your audio code drive state, and give the time and levels from it: one recorder level every 1/7 s (oldest dropped) keeps a real take scrolling at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.",
         "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
       ],
       "dont": [
@@ -2285,6 +2285,9 @@
           "titleLines?: 1|2 = 1",
           "caption?: ReactNode",
           "leading?: IconName|ReactNode",
+          "value?: ReactNode",
+          "valueCaption?: ReactNode",
+          "valueTone?: ContentTone = strongest",
           "trailing?: ReactNode",
           "children?: ReactNode",
           "selected?: boolean = false",
@@ -2331,6 +2334,8 @@
         "Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.",
         "Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance=\"flat\" size=\"md\") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.",
         "Keep to one or two trailing actions; move the rest into a More (…) menu.",
+        "Make a See all / Show all at a section head (beside a ListBox header title or a kicker) underlined text, not a button (user, 2026-10-13: it takes no more room than its words): <Text as=\"span\" textStyle=\"Body/Base/Medium\"><Link tone=\"inherit\"> — href when it opens the full list, as=\"button\" with aria-expanded when it expands the list in place.",
+        "Give a row that ends in an amount or total value + valueCaption (a transaction: \"+94,860,000 VND\" over \"3,600.00 USD\") instead of a Text stack in trailing: it lines up with the title and caption and keeps its width. Keep the sign in the text (+ / −) when valueTone colours money in or out.",
         "Use titleLines={2} when the title must be read in full (long task, document or file names in a narrow list); keep the default one line in dense lists where the caption carries the detail. Keep the caption short (it may wrap to a second line).",
         "Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.",
         "Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.",
@@ -2344,6 +2349,7 @@
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
         "Don't mix leading sizes in one list — row heights stop lining up.",
+        "Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).",
         "Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).",
         "Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.",
         "Don't give a static row an onClick just to get hover, and don't mark a static row selected.",
@@ -2643,7 +2649,7 @@
           "hint?: ReactNode",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
-          "theme?: shadow|flat|pale|border|semi-pale|on-container = shadow",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
         ]
       },
@@ -3597,7 +3603,7 @@
           "range?: string",
           "onRangeChange?: (id: string) => void",
           "rangesFullWidth?: boolean = true",
-          "theme?: shadow|flat|pale|border|semi-pale|on-container = flat",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = flat",
           "surface?: default|alt",
           "children: ReactNode",
           "className?: string",
@@ -4184,7 +4190,8 @@
         "Links inside running text: help copy, descriptions, empty states, inline messages.",
         "Standalone links to a related page (“View all invoices”, a footer link).",
         "Other sites (docs, status page) in a new tab with external.",
-        "Client-side routes through your router's link: as={RouterLink} to=\"/x\"."
+        "Client-side routes through your router's link: as={RouterLink} to=\"/x\".",
+        "A section head's See all / Show all (user, 2026-10-13: text takes less room than a button): tone=\"inherit\" (underlined) in a Body/Base/Medium Text; href when it opens the full list, as=\"button\" with aria-expanded when it expands the list in place."
       ],
       "avoid": [
         "An action on this page (save, open a dialog, delete) → Button (level=\"tertiary\" or appearance=\"flat\").",

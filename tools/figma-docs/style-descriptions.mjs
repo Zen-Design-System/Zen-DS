@@ -56,7 +56,6 @@ export function describeStyle(kind, name) {
     const nth = { Primary: 1, Secondary: 2, Tertiary: 3, Quaternary: 4, Quinary: 5, Senary: 6, Septenary: 7 };
     if (name.startsWith("Color Chart Sector/")) return `Chart series colour ${nth[name.split("/")[1]] || ""}: give series these colours in order (Primary first). Chart marks keep their colours; never repaint them by hand.`;
     if (name.startsWith("Avatars/")) return "A sample avatar photo for mockups (Avatar Theme=Photo). Product screens show the person's real photo or initials.";
-    if (name === "Semi-Pale") return "The gradient fill of Card Theme=Semi-Pale, for cards over imagery.";
     if (name.startsWith("Gradients/Border/")) return `The gradient stroke of glass controls over ${name.includes("White") ? "white" : "black"} overlays.`;
     if (name === "Tool/Canvas") return "The canvas of documentation and tool frames; not for product screens (use Color/Background/Canvas/*).";
     if (name === "Background/Canvas-Liquid-Glass") return "A rich backdrop to preview Liquid Glass components; not a product canvas.";

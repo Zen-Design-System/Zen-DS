@@ -4,6 +4,7 @@
  * the composer's focus indicator.
  */
 import { describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import {
   Badge, BottomNavigation, ChatCall, ChatComposer, ChatConversationItem, ChatMessage, ChatThread, InlineMessage, Pagination, ZenProvider,
@@ -46,7 +47,10 @@ describe("BottomNavigation idle labels", () => {
       );
       const nav = document.querySelector<HTMLElement>(".zen-bottom-nav")!;
       const background = getComputedStyle(nav).backgroundColor;
-      const idle = document.querySelector<HTMLElement>(".zen-bottom-nav__item[data-selected='false']")!;
+      // The pointer can rest where an earlier test left it, and a hovered idle item on the Default bar takes the label's
+      // colour (bottom-navigation.css): measure an idle item the pointer is not on.
+      await userEvent.unhover(nav);
+      const idle = [...document.querySelectorAll<HTMLElement>(".zen-bottom-nav__item[data-selected='false']")].find((item) => !item.matches(":hover"))!;
       const label = idle.querySelector<HTMLElement>(".zen-bottom-nav__label")!;
       const probe = document.createElement("span");
       probe.style.color = "var(--zen-color-content-neutral-light)";

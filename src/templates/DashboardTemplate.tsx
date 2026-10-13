@@ -35,6 +35,7 @@ import {
   IconButton,
   InputField,
   LineChart,
+  Link,
   List, ListBox,
   ListItem,
   Menu,
@@ -599,14 +600,18 @@ export function DashboardTemplate() {
                 </Stack>
               </Card>
 
-              {/* Rows only: a ListBox, the title and Show all in its Header-Slot. */}
+              {/* Rows only: a ListBox, the title and an underlined Show all in its Header-Slot. */}
               <ListBox as="section" theme="shadow" aria-labelledby="dashboard-activity"
                 header={<Stack direction="row" gap="sm" justify="between" align="center">
                   <Heading level={2} textStyle="Heading/Subheading" id="dashboard-activity">Recent activity</Heading>
                   {activity.length > ACTIVITY_PREVIEW ? (
-                    <Button level="tertiary" size={phone ? "md" : "sm"} aria-expanded={showAllActivity} onClick={() => setShowAllActivity((all) => !all)}>
-                      {showAllActivity ? "Show less" : "Show all"}
-                    </Button>
+                    // A section head's Show all is underlined text, not a button (user, 2026-10-13): a Link rendered as a
+                    // button element, since it expands the list in place.
+                    <Text as="span" textStyle="Body/Base/Medium">
+                      <Link as="button" tone="inherit" aria-expanded={showAllActivity} onClick={() => setShowAllActivity((all) => !all)}>
+                        {showAllActivity ? "Show less" : "Show all"}
+                      </Link>
+                    </Text>
                   ) : null}
                 </Stack>}>
                 <List aria-labelledby="dashboard-activity">

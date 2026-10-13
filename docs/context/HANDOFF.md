@@ -23,6 +23,10 @@ Last updated: 2026-10-13.
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
+  gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
+  Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
+  Bar-List, Bullet). Code + Studio = phase 2, after the user's review (BACKLOG P1).
 - **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
   every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
   approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user
@@ -37,6 +41,8 @@ Last updated: 2026-10-13.
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
 - **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode
   "Studio" for the Zen Studio chrome (ChromeScope); not in Figma — keep them on the next sync (or add them in Figma).
+  2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
+  Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
   were 3 = Pressed); every Flat/Hover is now step 2.
   Repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
