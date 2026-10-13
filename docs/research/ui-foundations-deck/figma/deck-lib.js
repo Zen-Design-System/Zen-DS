@@ -607,6 +607,77 @@ return (async function () {
     const cap = await T(d.caption, 'Typed/Caption', VAR.ink, 'Caption'); fig.appendChild(cap); cap.layoutSizingHorizontal = 'FILL'; cap.textAutoResize = 'HEIGHT';
     return fig;
   }
+  // ---------- example pages: text column + pinned photos ('not this' / 'do this') ----------
+  // d.photos: [{ illo, label, caption, rot, h }]; one photo takes the whole width
+  async function photoCard(w, h, illo, rot) {
+    const ph = al('VERTICAL', 'Photo'); ph.primaryAxisAlignItems = 'CENTER'; ph.counterAxisAlignItems = 'CENTER';
+    ph.resize(w, h); ph.primaryAxisSizingMode = 'FIXED'; ph.counterAxisSizingMode = 'FIXED';
+    ph.fills = [bind(VAR.photo)]; ph.strokes = [bind(VAR.edge)]; ph.strokeWeight = 1; ph.clipsContent = true;
+    await ph.setEffectStyleIdAsync(FX.id);
+    if (illo) {
+      const n = await build(illo); n.name = 'Illustration'; ph.appendChild(n);
+      const s = Math.min((w - 48) / n.width, (h - 48) / n.height, illo.maxScale || 1.25);
+      if (Math.abs(s - 1) > 0.01) n.rescale(s);
+    }
+    ph.rotation = rot || 0;
+    return ph;
+  }
+  async function figure2(parent, d) {
+    const n = d.photos.length, gap = 48, W = Math.floor((1752 - (d.textW || 600) - 72 - gap * (n - 1)) / n);
+    const row = al('HORIZONTAL', 'Figures', gap); parent.appendChild(row); row.layoutSizingHorizontal = 'FILL'; row.clipsContent = false;
+    for (let k = 0; k < n; k++) {
+      const p = d.photos[k];
+      const fig = al('VERTICAL', 'Figure ' + (k + 1), 16); row.appendChild(fig); fixW(fig, W); fig.clipsContent = false;
+      if (p.label) fig.appendChild(await T(p.label, 'Typed/Script S', VAR.ink, 'Label'));
+      const ph = await photoCard(W, p.h || d.photoH || 560, p.illo, p.rot == null ? (k % 2 ? 1.2 : -1.4) : p.rot); fig.appendChild(ph);
+      if (p.caption) { const cap = await T(p.caption, 'Typed/Caption', VAR.ink, 'Caption'); fig.appendChild(cap); cap.layoutSizingHorizontal = 'FILL'; cap.textAutoResize = 'HEIGHT'; }
+      const cl = COMP.clip.createInstance(); fig.appendChild(cl); cl.layoutPositioning = 'ABSOLUTE'; cl.rotation = ph.rotation; cl.name = 'Clip';
+      cl.x = W - 110; cl.y = ph.y - 30;
+    }
+    return row;
+  }
+  // order the pages of a section by name ('026' < '026a' < '027') and re-space them with their keynotes
+  function reflow(sec) {
+    const frames = sec.children.filter(function (n) { return n.type === 'FRAME' && /^\d{3}[a-z]? · /.test(n.name); });
+    frames.sort(function (a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+    frames.forEach(function (f, i) {
+      f.x = 80 + i * 3200; f.y = 140;
+      const g = sec.children.find(function (n) { return n.name === 'Keynote · ' + f.name; });
+      if (g) { g.x = f.x + 1980; g.y = f.y; }
+    });
+    return fit(sec);
+  }
+  // ---------- UI mock helpers (Zen variables, Inter) ----------
+  async function screen(name, w, opts) {
+    opts = opts || {};
+    const s = al('VERTICAL', name, opts.gap || 0);
+    s.paddingLeft = s.paddingRight = opts.pad == null ? 20 : opts.pad; s.paddingTop = opts.padTop == null ? 20 : opts.padTop; s.paddingBottom = opts.padBottom == null ? 24 : opts.padBottom;
+    s.fills = [await zpaint(opts.fill || 'white')]; s.cornerRadius = opts.radius == null ? 28 : opts.radius;
+    s.strokes = [await zpaint('subtle')]; s.strokeWeight = 1; s.clipsContent = true; fixW(s, w);
+    return s;
+  }
+  // red spec marker for the vertical gap between the bottom of a and the top of b, inside scr at x
+  async function redline(scr, a, b, x, label) {
+    const sb = scr.absoluteBoundingBox, ab = a.absoluteBoundingBox, bb = b.absoluteBoundingBox;
+    const y1 = Math.round(ab.y + ab.height - sb.y), h = Math.max(Math.round(bb.y - sb.y) - y1, 2);
+    const red = await zpaint('red');
+    const g = figma.createFrame(); g.name = 'Redline ' + (label || h); g.fills = []; g.clipsContent = false;
+    scr.appendChild(g); g.layoutPositioning = 'ABSOLUTE'; g.resize(12, h); g.x = x; g.y = y1;
+    const ln = figma.createRectangle(); g.appendChild(ln); ln.resize(2, h); ln.x = 5; ln.y = 0; ln.fills = [red];
+    for (const yy of [0, h - 2]) { const t = figma.createRectangle(); g.appendChild(t); t.resize(12, 2); t.x = 0; t.y = yy; t.fills = [red]; }
+    const tag = al('HORIZONTAL', 'Tag'); tag.paddingLeft = tag.paddingRight = 6; tag.paddingTop = tag.paddingBottom = 1; tag.cornerRadius = 6; tag.fills = [red];
+    tag.appendChild(await Z(String(label || h), 14, 'Bold', 'white')); g.appendChild(tag); tag.x = 16; tag.y = Math.round(h / 2 - 11);
+    return g;
+  }
+  // numbered marker at the top-right corner of node, inside scr
+  async function pin(scr, node, num, color) {
+    const sb = scr.absoluteBoundingBox, nb = node.absoluteBoundingBox;
+    const p = al('HORIZONTAL', 'Pin ' + num); p.primaryAxisAlignItems = 'CENTER'; p.counterAxisAlignItems = 'CENTER';
+    p.resize(26, 26); p.primaryAxisSizingMode = 'FIXED'; p.counterAxisSizingMode = 'FIXED'; p.cornerRadius = 13; p.fills = [await zpaint(color || 'red')];
+    p.appendChild(await Z(String(num), 14, 'Bold', 'white'));
+    scr.appendChild(p); p.layoutPositioning = 'ABSOLUTE'; p.x = Math.round(nb.x - sb.x + nb.width - 14); p.y = Math.round(nb.y - sb.y - 12);
+    return p;
+  }
   async function keynote(sec, f, d) {
     const W = 1040, PAD = 40, TW = W - PAD * 2, x = f.x + 1920 + 60, y = f.y;
     const nodes = []; let cy = y + PAD;
@@ -651,7 +722,8 @@ return (async function () {
     if (d.layout === 'part') return part(sec, i, d);
     const f = await frameFor(sec, i, d);
     const main = al('HORIZONTAL', 'Main', 72); f.appendChild(main); main.layoutSizingHorizontal = 'FILL'; main.layoutSizingVertical = 'FILL'; main.paddingTop = 40; main.paddingBottom = 24;
-    await textCol(main, d); await figure(main, d);
+    if (d.layout === 'example') { await textCol(main, d, d.textW || 600); await figure2(main, d); }
+    else { await textCol(main, d); await figure(main, d); }
     return finish(sec, f, d);
   }
   // part divider: { title: 'Part 2:\nFoundations', deck, lessons: [[num, title, page]], quote: [text, by], note }
@@ -687,12 +759,13 @@ return (async function () {
     for (const pnt of main.findAll(function (n) { return n.type === 'INSTANCE' && /^Point /.test(n.name); })) {
       const txt = pnt.componentProperties[P.pT].value; if (txt.length > 46) issues.push('long point (' + txt.length + '): ' + txt.slice(0, 30));
     }
-    const ill = f.findOne(function (n) { return n.name === 'Illustration'; });
-    if (ill) { const ph = ill.parent; if (ill.width > ph.width - 40 || ill.height > ph.height - 40) issues.push('illustration tight in photo'); }
+    for (const ill of f.findAll(function (n) { return n.name === 'Illustration'; })) {
+      const ph = ill.parent; if (ill.width > ph.width - 40 || ill.height > ph.height - 40) issues.push('illustration tight in photo');
+    }
     const stamp = f.findOne(function (n) { return n.name === 'Stamp'; }), cap = f.findOne(function (n) { return n.type === 'TEXT' && n.name === 'Caption'; });
     if (stamp && cap) { const sb = box(stamp), cb = box(cap); const ink = Math.min(cap.characters.length * 12, cb.width); if (sb.x < cb.x + ink && sb.y < cb.y + cb.height && sb.y + sb.height > cb.y) issues.push('stamp overlaps caption'); }
     return issues;
   }
-  const API = { page: page, VAR: VAR, bind: bind, T: T, Z: Z, zi: zi, zvar: zvar, zpaint: zpaint, setText: setText, boolProp: boolProp, al: al, fixW: fixW, wrapText: wrapText, card: card, svg: svg, recolor: recolor, arrowH: arrowH, arrowV: arrowV, arrowXY: arrowXY, labelUnder: labelUnder, build: build, ILLO: ILLO, ZEFFECT: ZEFFECT, section: section, fit: fit, slide: slide, part: part, audit: audit, loadFontsIn: loadFontsIn, reillo: reillo, fitTitle: fitTitle, knSet: knSet };
+  const API = { page: page, VAR: VAR, bind: bind, T: T, Z: Z, zi: zi, zvar: zvar, zpaint: zpaint, setText: setText, boolProp: boolProp, al: al, fixW: fixW, wrapText: wrapText, card: card, svg: svg, recolor: recolor, arrowH: arrowH, arrowV: arrowV, arrowXY: arrowXY, labelUnder: labelUnder, build: build, ILLO: ILLO, ZEFFECT: ZEFFECT, section: section, fit: fit, slide: slide, part: part, audit: audit, loadFontsIn: loadFontsIn, reillo: reillo, fitTitle: fitTitle, knSet: knSet, reflow: reflow, screen: screen, redline: redline, pin: pin };
   return API;
 })();
