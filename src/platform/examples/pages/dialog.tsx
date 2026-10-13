@@ -554,7 +554,7 @@ function TokenOnce() {
         primaryAction={{ label: "Done" }}>
         {/* Read-only: the value can be selected and copied but not changed. The copy action sits outside the field. */}
         <Stack gap="md" align="start">
-          <Box className="px-dialog-fill">
+          <Box alignSelf="stretch">
             <InputField label="Token" readOnly value={secret} helpText={copied ? "Copied to the clipboard." : undefined} helpTheme="positive" />
           </Box>
           <Button level="tertiary" startIcon={copied ? "icon-check-line" : "icon-copy-line"} onClick={copy}>Copy token</Button>

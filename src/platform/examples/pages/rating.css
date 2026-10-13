@@ -1,10 +1,10 @@
 /* Rating examples (src/platform/examples/pages/rating.tsx). Tokens only; class prefix .px-rating-. */
 
-/* Scorecard rows: the word for the value keeps one width, so the stars line up row to row. */
-.px-rating-word { width: 6.5rem; }
-
 /* Distribution rows: the percentage takes the width of "100%", so the bars end on one line. */
 .px-rating-bar .zen-progress-bar__label { min-width: 4.5ch; text-align: end; }
 
 /* A list row's caption: XSmall stars, then the average and the review count on the same line. */
 .px-rating-caption { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+
+/* The score word keeps one width (6.5rem follows the density's root size; Zen size props are px), so the rows line up. */
+.px-rating-word { width: 6.5rem; }

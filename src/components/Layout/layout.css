@@ -24,6 +24,8 @@
 .zen-grid:is([data-mode="fixed"], [data-mode="responsive"]) { grid-template-columns: var(--zen-grid-cols, minmax(0, 1fr)); }
 [data-breakpoint="tablet"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-tablet, var(--zen-grid-cols, minmax(0, 1fr))); }
 [data-breakpoint="mobile"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-mobile, minmax(0, 1fr)); }
+/* stackBelow: one column while the Grid is narrower than its threshold (Layout.tsx measures it), at any breakpoint. */
+:is(.zen-grid, [data-breakpoint] .zen-grid)[data-stacked="true"] { grid-template-columns: minmax(0, 1fr); }
 .zen-grid[data-align="start"] { align-items: start; }
 .zen-grid[data-align="center"] { align-items: center; }
 .zen-grid[data-align="end"] { align-items: end; }
@@ -33,6 +35,11 @@
 .zen-box[data-surface="surface-alt"] { background: var(--zen-color-background-surface-alt); }
 .zen-box[data-surface="subtle"] { background: var(--zen-color-background-neutral-subtle-default); }
 .zen-box[data-surface="pale"] { background: var(--zen-color-background-neutral-pale-default); }
+/* zen-allow-canvas-layer: surface="canvas" is the page layer itself, for a whole screen or page area drawn inside something else (Box JSDoc). */
+.zen-box[data-surface="canvas"] { background: var(--zen-color-background-canvas-default); }
+/* scroll (Figma Overflow scrolling): one axis scrolls inside the frame, and the scroll stays inside it. */
+:is(.zen-stack, .zen-box)[data-scroll="y"] { overflow-y: auto; overscroll-behavior: contain; }
+:is(.zen-stack, .zen-box)[data-scroll="x"] { overflow-x: auto; overscroll-behavior-x: contain; }
 .zen-box[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
 /* zen-allow-subtle-static-box: border="subtle" is for actionable boxes; the JSX rule box/border-matches-action checks each use. */
 .zen-box[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }

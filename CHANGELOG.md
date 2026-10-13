@@ -52,6 +52,25 @@ removed (four unused colour ramps were, see Removed).
   `icon` is deprecated: Figma no longer draws the Modal heading icon (it still renders for now).
 - Progress-Circle: the ring has its Neutral/Subtle fill again, and Done is a plain solid disc (no ring over it), as in
   Figma's Progress-Circle/Icon.
+- Zen Studio ↔ Figma keeps more of a page through a push and a pull. This was tested by placing the examples in the
+  real Zen file and reading them back. Fixes:
+  - A Checkbox, Toggle or Radio keeps its label and caption (Figma moved them into the Content primitive).
+  - An emoji Dock-Icon keeps its emoji.
+  - Fields keep their label, value and help text.
+  - List rows keep their title, caption, leading and trailing.
+  - Text keeps its tone.
+  - Headings keep their level.
+  - A Type=Main header comes back as a PageHeader.
+  - A Sidebar's logo replaces Figma's sample logo, and its collapse button is no longer pulled in as content.
+  - Breadcrumbs keep `master`.
+  - A DescriptionList keeps its terms and values.
+  - A swapped-in file icon is read back.
+  - Figma cannot resize an icon nested inside a List-Item, so the push says so instead of failing silently.
+- A Badge keeps its width in a row (it shrank to its 28px minimum beside long text, so examples had to pin it), and a
+  Text or Heading that takes focus after an action (tabIndex -1) draws the focus ring with room around its words.
+- The examples lost 107 of their last 219 classNames: their frames (an app window, a page on the Canvas, a desktop
+  chat window) are platform components now (`src/platform/PlatformFrames.tsx`), the rest Zen props. Pages look the
+  same (visual diff, 760 panels).
 - Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
   and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
 - Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
@@ -124,6 +143,12 @@ removed (four unused colour ramps were, see Removed).
   Border/Neutral/Pale stripes). Zen
   Studio's Charts palette gains Bar, Horizontal bar, Line with comparison, Donut, Radial and Heatmap. Harness:
   `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
+- Grid `stackBelow={640}`: one column while the Grid itself is narrower than 640px (a side column in a narrow card or
+  window), whatever the breakpoint. Stack and Box `scroll="y" | "x"`: Figma's Overflow scrolling (it clips, and the
+  scroll stays inside). Box `surface="canvas"` for a whole screen drawn inside something else. Text and Heading
+  `wrap={false}` (one line, Figma Auto width) and `tabularNumbers` (Figma Numbers: Tabular). Unset, each renders nothing
+  new. Zen Studio → Figma pushes and pulls them (a Box's surface as its Color/Background fill, scroll as Overflow
+  scrolling, maxHeight as Max height; Numbers: Tabular is read back, the plugin API cannot set it).
 - Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
   and Max width on the instance): a card can fill its column up to a readable width and centre itself without a
   className. Unset, they render nothing new. The push to Figma writes them on the instance and a pull reads them back.

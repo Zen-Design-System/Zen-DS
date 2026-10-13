@@ -24,6 +24,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewWindow } from "../../PlatformFrames";
 import {
   TODAY, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, invoiceStatusTheme, people, projects, projectStatusTheme,
   taskStatusTheme, type InvoiceStatus, type TaskStatus,
@@ -323,8 +324,8 @@ function ProjectPanels() {
     { id: "spent", term: "Spent", description: project.budget ? formatMoney(project.spent) : "Not tracked" },
   ];
   return (
-    <div ref={frameRef} className="px-description-list-frame">
-      <div className="px-description-list-frame__page">
+    <PreviewWindow ref={frameRef} direction="row">
+      <Box width="fill">
         <Stack padding="xl" gap="xl">
           <PageHeader title="Projects" description={`${plural(projects.length, "project")} · Đìzai Studio`} />
           <List aria-label="Projects">
@@ -334,7 +335,7 @@ function ProjectPanels() {
             ))}
           </List>
         </Stack>
-      </div>
+      </Box>
       <SidePanel type={docked ? "standard" : "modal"} size="small" className="px-description-list-panel" open={Boolean(opened)} onOpenChange={(next) => { if (!next) close(); }}
         title={opened ? <span ref={titleRef} tabIndex={-1} className="px-description-list-focus-target">{opened.name}</span> : ""}
         description={opened?.client}>
@@ -351,7 +352,7 @@ function ProjectPanels() {
           </Stack>
         ) : null}
       </SidePanel>
-    </div>
+    </PreviewWindow>
   );
 }
 
@@ -374,9 +375,9 @@ function TaskPage() {
     toast({ type: "positive", title: "Task marked as done", action: { label: "Undo", onClick: reopen } });
   };
   return (
-    <Box className="px-description-list-scope">
-      <Grid columns={{ mobile: 1, desktop: "minmax(0, 3fr) minmax(0, 1fr)" }} gap="lg" align="start" className="px-description-list-split">
-        <Stack ref={articleRef} as="article" gap="md" aria-labelledby={titleId}>
+    <Box>
+      <Grid columns={{ mobile: 1, desktop: "minmax(0, 3fr) minmax(0, 1fr)" }} gap="lg" align="start" stackBelow={640}>
+        <Stack ref={articleRef} as="article" gap="md" align="start" aria-labelledby={titleId}>
           <Stack gap="xs">
             <Heading level={4} id={titleId} textStyle="Heading/Subheading">Run five usability sessions on transfers</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">LUM-088 · Online banking redesign</Text>
@@ -388,9 +389,9 @@ function TaskPage() {
           </Text>
           <Text>Recordings and notes go into the test script folder the same day; findings are due with the round 2 report.</Text>
           {done ? (
-            <Button level="tertiary" className="px-description-list-start" data-reopen="" onClick={() => { reopen(); focus("[data-mark-done]"); }}>Reopen task</Button>
+            <Button level="tertiary" data-reopen="" onClick={() => { reopen(); focus("[data-mark-done]"); }}>Reopen task</Button>
           ) : (
-            <Button level="primary" className="px-description-list-start" data-mark-done="" onClick={markDone}>Mark as done</Button>
+            <Button level="primary" data-mark-done="" onClick={markDone}>Mark as done</Button>
           )}
         </Stack>
         {/* About 260px wide on a desktop page: the list inside is under the 280px stackBelow, so each term sits above its value. */}

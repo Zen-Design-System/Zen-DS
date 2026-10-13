@@ -3673,6 +3673,7 @@
           "justify?: start|center|end|between|around",
           "wrap?: boolean = false",
           "clip?: boolean = false",
+          "scroll?: x|y",
           "fillChildren?: boolean = false",
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
@@ -3701,6 +3702,7 @@
           "rowGap?: none|ZenScaleInput|giant|xgiant|2xgiant",
           "columnGap?: none|ZenScaleInput|giant|xgiant|2xgiant",
           "align?: start|center|end|stretch",
+          "stackBelow?: number",
           "padding?: none|ZenScaleInput|4xl",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
           "children?: ReactNode",
@@ -3730,7 +3732,8 @@
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
           "paddingY?: none|ZenScaleInput|4xl",
-          "surface?: none|surface|surface-alt|subtle|pale = none",
+          "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
+          "scroll?: x|y",
           "border?: none|pale|subtle = none",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
@@ -3822,6 +3825,8 @@
           "truncate?: boolean|number",
           "align?: start|center|end|justify",
           "verticalAlign?: top|middle|bottom",
+          "wrap?: boolean = true",
+          "tabularNumbers?: boolean = false",
           "htmlFor?: string",
           "children?: ReactNode"
         ],
@@ -3839,10 +3844,13 @@
           "truncate?: boolean|number",
           "align?: start|center|end|justify",
           "verticalAlign?: top|middle|bottom",
+          "wrap?: boolean = true",
+          "tabularNumbers?: boolean = false",
           "children?: ReactNode"
         ]
       },
       "do": [
+        "Give a readout that changes in place (a zoom %, \"3 of 12\", a quantity between − and +) tabularNumbers and a minWidth, so the controls beside it stay put; keep a time or amount beside a row on one line with wrap={false}.",
         "Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as=\"span\" textStyle=… tone=\"strongest\">👋</Text>, and keep the words in the light tone (Zen has no Emoji component).",
         "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
         "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",

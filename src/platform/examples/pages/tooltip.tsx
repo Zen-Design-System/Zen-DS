@@ -62,7 +62,7 @@ function PhotoReview() {
             <Tooltip content="Zoom out · −" placement="bottom">
               <IconButton appearance="flat" size="sm" icon="icon-zoom-out-line" aria-label="Zoom out" onClick={() => step(-1)} />
             </Tooltip>
-            <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status" className="px-tooltip-zoom">{`${zoom}%`}</Text>
+            <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status" align="center" tabularNumbers className="px-tooltip-zoom">{`${zoom}%`}</Text>
             <Tooltip content="Zoom in · +" placement="bottom">
               <IconButton appearance="flat" size="sm" icon="icon-zoom-in-line" aria-label="Zoom in" onClick={() => step(1)} />
             </Tooltip>
@@ -105,7 +105,7 @@ function PaymentLink() {
           <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${invoice.client} · ${formatMoney(invoice.amount, true)} · Due ${formatDate(invoice.due)}`}</Text>
         </Stack>
         <Stack direction="row" align="end" gap="xs">
-          <InputField className="px-tooltip-grow" label="Payment link" value={link} readOnly />
+          <Box width="fill"><InputField label="Payment link" value={link} readOnly /></Box>
           <Tooltip content={copied ? "Link copied" : "Copy link"} color={copied ? "accent" : "default"} open={copied || undefined}>
             <IconButton level="tertiary" size="md" icon="icon-copy-line" aria-label="Copy link" onClick={copy} />
           </Tooltip>

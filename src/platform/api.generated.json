@@ -12716,6 +12716,14 @@
           "deprecated": null
         },
         {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls the content vertically, `\"x\"` sideways, inside the stack's own box (it\nneeds a height or a maxHeight for `\"y\"`, a width for `\"x\"`); the scroll stays inside (overscroll-behavior: contain).",
+          "deprecated": null
+        },
+        {
           "name": "fillChildren",
           "type": "boolean",
           "required": false,
@@ -12927,6 +12935,14 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment of cells. Default stretch (equal-height cards).",
+          "deprecated": null
+        },
+        {
+          "name": "stackBelow",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint:\na two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it.",
           "deprecated": null
         },
         {
@@ -13153,10 +13169,18 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\"",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
           "default": "\"none\"",
-          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or\nContainer (modals and sheets use Dialog / BottomSheet).",
+          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the\npage itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never\nfor a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).",
+          "deprecated": null
+        },
+        {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside).",
           "deprecated": null
         },
         {
@@ -13342,6 +13366,22 @@
           "deprecated": null
         },
         {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), e.g. a time or an amount that must stay whole; the row\naround it gives it room. Unlike `truncate`, nothing is cut. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes\n does not move the text around it.",
+          "deprecated": null
+        },
+        {
           "name": "htmlFor",
           "type": "string",
           "required": false,
@@ -13465,6 +13505,22 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height.",
+          "deprecated": null
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), as on Text. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): digits of one width, as on Text.",
           "deprecated": null
         },
         {

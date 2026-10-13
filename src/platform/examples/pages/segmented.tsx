@@ -64,7 +64,7 @@ function FileViewsExample() {
           <Text role="status" textStyle="Body/Small/Regular" tone="base">{`Saola Outdoor · ${plural(shown.length, "file")}`}</Text>
         </Stack>
         <Stack direction="row" justify="between" align="center" gap="xs">
-          <Box className="px-segmented-search"><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+          <Box width="fill" maxWidth={320}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
           {/* Icon-only segments: each option carries its own name, the icon is decorative. */}
           <Segmented className="px-segmented-hug" aria-label="Layout" value={view} onValueChange={setView} options={[
             { id: "grid", label: null, "aria-label": "Grid view", leading: <Icon name="icon-grid-01-line" decorative /> },
@@ -83,7 +83,7 @@ function FileViewsExample() {
           </List>
         ) : (
           // Four previews a row on a desktop page, two on a phone.
-          <Grid as="ul" aria-label="Brand refresh files" minColumnWidth="clamp(104px, 22%, 220px)" gap="md" className="px-segmented-tiles">
+          <Grid as="ul" aria-label="Brand refresh files" minColumnWidth="clamp(104px, 22%, 220px)" gap="md">
             {shown.map((file) => (
               <Stack as="li" key={file.id} gap="xs">
                 {file.photo
@@ -271,12 +271,12 @@ function BillingPeriodExample() {
           <Text textStyle="Body/Small/Regular" tone="base">{`${studio.workspace} · ${plural(seats, "seat")}`}</Text>
         </Stack>
         {/* Primary: the period is the one decision on this card. */}
-        <Box className="px-segmented-start">
+        <Stack align="start">
           <Segmented level="primary" aria-label="Billing period" value={period} onValueChange={(id) => setPeriod(id as Billing)} options={[
             { id: "monthly", label: "Monthly" },
             { id: "yearly", label: "Yearly" },
           ]} />
-        </Box>
+        </Stack>
         <DescriptionList items={[
           { term: "Per seat", description: `${formatMoney(seatPrice[period], true)} ${per}` },
           { term: "Seats", description: String(seats) },
@@ -382,13 +382,13 @@ function PhonePeriodsExample() {
     <PlatformPhone label="Hours" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
       <Stack gap="lg" paddingY="xs">
         {/* Four periods don't fit a phone as equal segments: one row of single-choice chips that scrolls sideways. */}
-        <Box className="px-segmented-chips" role="group" aria-label="Period">
+        <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Period">
           {hourPeriods.map((item) => (
             <Chip key={item.id} variant="normal" level="primary" selected={item.id === periodId} onClick={() => setPeriodId(item.id)}>
               {item.label}
             </Chip>
           ))}
-        </Box>
+        </Stack>
         <Stack gap="xs" paddingX="lg">
           <Text role="status" textStyle="Body/Small/Regular" tone="base">{formatRange(period.from, period.to)}</Text>
           <Metric size="md" label="Logged hours" value={hoursLabel(total)} icon="icon-clock-line" iconTheme="blue" />
@@ -399,7 +399,7 @@ function PhonePeriodsExample() {
           <List aria-labelledby={headingId}>
             {days.map((log) => (
               <ListItem key={log.date.toISOString()} title={dayTitle(log.date)} caption={log.projects.map((id) => projectById(id).name).join(" · ")}
-                trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-segmented-hours">{hoursLabel(log.hours)}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{hoursLabel(log.hours)}</Text>} />
             ))}
           </List>
         </Stack>

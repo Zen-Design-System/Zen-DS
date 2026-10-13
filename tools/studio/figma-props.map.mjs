@@ -163,7 +163,8 @@ export const FIGMA_PROPS = {
   },
   Checkbox: {
     sets: { "Checkbox/Text": null },
-    props: { Caption: { toggle: "caption", on: "Caption" }, State: "state", Select: { prop: "checked", bool: true }, "Check-Side": "checkSide" },
+    // Caption moved to the nested Content's Subtext (the live file, 2026-10-13): figma-push writes it there.
+    props: { Caption: skip("the caption is the nested Content's Subtext (figma-push)"), State: "state", Select: { prop: "checked", bool: true }, "Check-Side": "checkSide" },
   },
   Divider: { sets: { Divider: null }, props: { Color: "color" } },
   DockIcon: {

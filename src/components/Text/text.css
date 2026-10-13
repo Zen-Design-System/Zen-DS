@@ -13,5 +13,20 @@
 /* Truncation needs a box: even an inline span (as="span") becomes a block so the ellipsis can show. */
 .zen-text[data-truncate="line"] { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-text[data-truncate="lines"] { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: var(--zen-text-lines, 2); line-clamp: var(--zen-text-lines, 2); }
+/* wrap={false}: one line (Figma text Auto width); tabularNumbers: digits of one width (Figma Number: Tabular). */
+.zen-text[data-wrap="false"] { white-space: nowrap; }
+.zen-text[data-numbers="tabular"] { font-variant-numeric: tabular-nums; }
+/* A text that takes focus after an action (tabIndex -1: a result count, the heading a step moves focus to) shows the
+   focus ring with room around the words, not flush on them. */
+.zen-text[tabindex="-1"] { position: relative; }
+.zen-text[tabindex="-1"]:focus { outline: none; }
+.zen-text[tabindex="-1"]:focus-visible::after {
+  position: absolute;
+  inset: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)) calc(-1 * var(--zen-spacing-padding-xsmall, 8px));
+  border-radius: var(--zen-corner-radius-small, 8px);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #ff66d4);
+  content: "";
+  pointer-events: none;
+}
 /* Inline code inside copy uses the Dev font family (JetBrains Mono in Zen; the app loads it, else the system mono). */
 .zen-text code { font: inherit; font-family: var(--zen-typography-font-family-dev, ui-monospace), ui-monospace, monospace; }

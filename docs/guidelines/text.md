@@ -25,6 +25,7 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 | Level | `level (Heading)` | 1–6 → h1–h6; the default style per level follows the Content hierarchy ladder: 1 Heading/1 · 2 Heading/4 · 3 Heading/Subheading · 4 Body/Extra/Bold · 5–6 Body/Base/Bold |
 | Color/Content | `tone` | every resting Color/Content token by its path: strongest (default) · base · light (Neutral) · <family>-strongest|base|light for accent · info · positive · negative · warning · support-<colour> · inverse · on-black-overlay · on-white-overlay · on-colors · on-brights · on-accent · hyperlink · disabled · inherit; aliases primary · secondary · tertiary · accent (= accent-base) … inverse (= inverse-strongest) |
 | — | `as · truncate · align` | Text element (p default, span inline, label…) · true = one line with ellipsis, n = clamp to n lines · start/center/end |
+| Line and digits | `wrap · tabularNumbers` | wrap={false}: one line as wide as its words, never cut (Figma Auto width; a time, a price beside a row) · tabularNumbers: every digit one width (Figma Numbers: Tabular), for values that change or line up |
 | Sizing (Figma resizing) | `width · minWidth · maxWidth · alignSelf` | as on Layout: "hug" · "fill" · a number (Fixed px); maxWidth caps a line length; alignSelf = the text's alignment in its Stack or Grid |
 
 ## Props
@@ -50,6 +51,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps`.
 | `truncate` | `boolean \| number` | — | true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM. |
 | `align` | `"start" \| "center" \| "end" \| "justify"` | — | Text alignment (Figma Alignment): "start" (left in LTR), "center", "end", or "justify" (both edges flush, Figma's Justified: only for long paragraphs in a wide column; in a narrow one it opens gaps between words). Unset keeps the parent's alignment. Inline text (as="span") aligns once it is a block or has a width. |
 | `verticalAlign` | `"top" \| "middle" \| "bottom"` | — | Vertical alignment inside the box (Figma Align top / middle / bottom). It shows only when the box is taller than its text: a Fixed or Fill `height` (Figma's Fixed size text box). Default top. |
+| `wrap` | `boolean` | `true` | `false`: one line that never wraps (Figma text Auto width), e.g. a time or an amount that must stay whole; the row around it gives it room. Unlike `truncate`, nothing is cut. Default true. |
+| `tabularNumbers` | `boolean` | `false` | Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes does not move the text around it. |
 | `htmlFor` | `string` | — | For `as="label"`. |
 | `children` | `ReactNode` | — |  |
 
@@ -73,6 +76,8 @@ Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">, LayoutSizingPro
 | `truncate` | `boolean \| number` | — | true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM. |
 | `align` | `"start" \| "center" \| "end" \| "justify"` | — | Text alignment (Figma Alignment), as on Text: start · center · end · justify. Unset keeps the parent's alignment. |
 | `verticalAlign` | `"top" \| "middle" \| "bottom"` | — | Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height. |
+| `wrap` | `boolean` | `true` | `false`: one line that never wraps (Figma text Auto width), as on Text. Default true. |
+| `tabularNumbers` | `boolean` | `false` | Figma Number: Tabular (OpenType tnum): digits of one width, as on Text. |
 | `children` | `ReactNode` | — |  |
 
 ### Types
@@ -83,6 +88,7 @@ type ContentTone = (typeof contentTones)[number]
 ```
 
 ## ✅ Do
+- Give a readout that changes in place (a zoom %, "3 of 12", a quantity between − and +) tabularNumbers and a minWidth, so the controls beside it stay put; keep a time or amount beside a row on one line with wrap={false}.
 - Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as="span" textStyle=… tone="strongest">👋`</Text>`, and keep the words in the light tone (Zen has no Emoji component).
 - Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).
 - Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone "base" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).

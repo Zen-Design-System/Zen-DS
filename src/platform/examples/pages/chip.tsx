@@ -26,7 +26,6 @@ import {
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
-import "./chip.css";
 
 export const page: PlatformPage = "chip";
 
@@ -67,7 +66,7 @@ function TaskFiltersExample() {
     // The table is the section's content, so it lies on the stage with its toolbar: no Card or Box around it.
     <Stack gap="md">
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box className="px-chip-search"><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={320}><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
         <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
           {/* Multiple: the counter shows how many values are on; one value shows as the label. */}
           <Chip variant="advanced" selectionMode="multiple" selectionCount={status.length} selected={status.length > 0} popoverMultiple
@@ -285,7 +284,7 @@ function PhoneFiltersExample() {
     <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
       <Stack gap="md" paddingY="xs">
         {/* One row that scrolls sideways; Sort opens an Action Bottom Sheet instead of a Popover. */}
-        <Box className="px-chip-scroll" role="group" aria-label="Filters">
+        <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Filters">
           <Chip variant="advanced" aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet} onClick={() => setSheet(true)}>
             {`Sort: ${sortLabel}`}
           </Chip>
@@ -294,7 +293,7 @@ function PhoneFiltersExample() {
               {filter.label}
             </Chip>
           ))}
-        </Box>
+        </Stack>
         <Stack gap="xs">
           <Box paddingX="lg">
             <Text role="status" textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "person", "people")}</Text>

@@ -126,7 +126,10 @@ Last updated: 2026-10-13.
   real importer in the Zen file. P3–P4 (2026-10-13, branch `zen/feat/figma-map-p3`, spec §8 "P3" / "P4"):
   TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat, FileIcon, Flag and
   icon sizes map both ways (shared module `tools/studio/figma-top-nav.mjs`, fixtures `figma-chat.json`,
-  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. Left: BACKLOG P1 item.
+  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. P5 (branch
+  `zen/feat/examples-classnames`, spec §8 "P5"): Grid stackBelow, Stack / Box scroll, Box surface="canvas", Text wrap /
+  tabularNumbers (all pushed and pulled; plugin 6b823d2); docs frames in `src/platform/PlatformFrames.tsx`; examples
+  down to 112 classNames, none with a Zen prop. Left: BACKLOG P2 item.
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,

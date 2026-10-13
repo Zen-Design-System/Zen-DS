@@ -235,7 +235,7 @@ function DueThisWeek() {
             {rows.map((task) => (
               <Stack key={task.id} direction="row" gap="md" align="center">
                 <SkeletonShape shape="round" size="md" />
-                <SkeletonText lines={2} className="px-card-grow" />
+                <SkeletonText lines={2} />
               </Stack>
             ))}
           </Stack>
@@ -311,13 +311,13 @@ function WorkspacePlan() {
     );
   };
   return (
-    <Stack gap="md" className="px-card-scope">
+    <Stack gap="md">
       <Stack direction="row" gap="xs" align="center" wrap>
         <Segmented aria-label="Billing period" value={period} onValueChange={(value) => setPeriod(value as "monthly" | "yearly")}
           options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly" }]} />
         <Text as="span" textStyle="Body/Small/Regular" tone="base">Yearly billing saves 20%</Text>
       </Stack>
-      <Grid columns={{ mobile: 1, desktop: 3 }} className="px-card-stack">
+      <Grid columns={{ mobile: 1, desktop: 3 }} stackBelow={640}>
         {plans.map((plan) => {
           const titleId = `${baseId}-${plan.id}`;
           return (
@@ -402,13 +402,13 @@ function NotificationSettings() {
   };
   const baseId = useId();
   return (
-    <Stack gap="xl" className="px-card-scope">
+    <Stack gap="xl">
       {settingGroups.map((group, index) => {
         const titleId = `${baseId}-${group.id}`;
         return (
           <Stack key={group.id} gap="xl">
             {index > 0 ? <Divider /> : null}
-            <Grid as="section" aria-labelledby={titleId} columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start" className="px-card-stack">
+            <Grid as="section" aria-labelledby={titleId} columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start" stackBelow={640}>
               <Stack gap="xs">
                 <Heading level={4} id={titleId} textStyle="Heading/4">{group.title}</Heading>
                 <Text textStyle="Body/Small/Regular" tone="base">{group.summary}</Text>

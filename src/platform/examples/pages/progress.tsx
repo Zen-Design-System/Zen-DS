@@ -74,7 +74,7 @@ function StorageQuotaExample() {
           </Text>
         </Stack>
         <Stack gap="xs">
-          <Heading ref={headingRef} tabIndex={-1} className="px-progress-focus-target" level={5} id={listId} textStyle="Body/Small/Bold" tone="light">Largest files</Heading>
+          <Heading ref={headingRef} tabIndex={-1} level={5} id={listId} textStyle="Body/Small/Bold" tone="light">Largest files</Heading>
           {files.length ? (
             <List ref={listRef} aria-labelledby={listId}>
               {files.map((file) => (

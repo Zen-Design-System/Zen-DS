@@ -28,8 +28,8 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, PreviewPage, StudioLogo } from "../../PlatformFrames";
 import { keepOnHotUpdate } from "../../hotData";
-import "./alert-banner.css";
 
 export const page: PlatformPage = "alert-banner";
 
@@ -40,7 +40,7 @@ const avatarOf = (person: Person) => person.photo
 
 /** A page without its own shell keeps the page margin; its one h1 is the PageHeader title. */
 const Page = ({ children, ...header }: { title: string; description?: ReactNode; eyebrow?: ReactNode; meta?: ReactNode; actions?: ReactNode; children: ReactNode }) => (
-  <Stack gap="xl" className="px-alert-banner-page"><PageHeader {...header} />{children}</Stack>
+  <PreviewPage margin="all" canvas={false}><Stack gap="xl"><PageHeader {...header} />{children}</Stack></PreviewPage>
 );
 
 /* ───────────── 1. Payment failed (AppShell banner) ───────────── */
@@ -176,30 +176,28 @@ function PaymentFailedExample() {
   }
 
   return (
-    <div className="px-alert-banner-frame">
-      <div className="px-alert-banner-frame__scroll">
-        <AppShell
-          banner={paid ? undefined : (
-            // Critical: no close control. It leaves when the payment goes through.
-            <AlertBanner theme="negative" action={{ label: "Update card", onClick: openBilling }}>
-              Payment for the {plan.name} plan failed. Update your card by {formatDate(graceEnds)} to keep editing projects.
-            </AlertBanner>
-          )}
-          sidebar={(
-            <Sidebar
-              // The mark is an image sized by the 24px header slot, so it stays inside it at every density.
-              logo={<span className="px-alert-banner-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>}
-              logoCollapsed={<Avatar size="xs" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
-              sections={sections}
-              selectedId={page}
-              onItemClick={(item) => setPage(item.id as ShellPageId)}
-            />
-          )}
-        >
-          {content}
-        </AppShell>
-      </div>
-    </div>
+    <PreviewAppFrame height={{ min: 560, max: 720 }}>
+      <AppShell
+        banner={paid ? undefined : (
+          // Critical: no close control. It leaves when the payment goes through.
+          <AlertBanner theme="negative" action={{ label: "Update card", onClick: openBilling }}>
+            Payment for the {plan.name} plan failed. Update your card by {formatDate(graceEnds)} to keep editing projects.
+          </AlertBanner>
+        )}
+        sidebar={(
+          <Sidebar
+            // The mark is an image sized by the 24px header slot, so it stays inside it at every density.
+            logo={<StudioLogo src={studio.logo} name={studio.name} />}
+            logoCollapsed={<Avatar size="xs" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
+            sections={sections}
+            selectedId={page}
+            onItemClick={(item) => setPage(item.id as ShellPageId)}
+          />
+        )}
+      >
+        {content}
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -237,7 +235,7 @@ function OneBannerExample() {
   });
 
   return (
-    <div ref={root} className="px-alert-banner-screen">
+    <PreviewPage ref={root} fill>
       {notice ? <AlertBanner theme={notice.theme} action={notice.action} onClose={notice.onClose}>{notice.message}</AlertBanner> : null}
       <Page title="Settings" description={`Connections and sign-in for ${studio.name}`}
         actions={maintenanceHidden ? <Button ref={showAgain} level="tertiary" startIcon="icon-bell-01-line" onClick={() => { moveFocus.current = true; setMaintenanceHidden(false); }}>Show notice again</Button> : undefined}>
@@ -252,7 +250,7 @@ function OneBannerExample() {
           </List>
         </ListBox>
       </Page>
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -295,7 +293,7 @@ function ArchivedProjectExample() {
   };
   const addTask = (title: string) => setRows((list) => [...list, { id: `new-${list.length}`, key: `HBF-${128 + list.length - bookFairTasks.length}`, title, assignee: "alex", status: "To do" }]);
   return (
-    <div ref={root} className="px-alert-banner-screen">
+    <PreviewPage ref={root} fill>
       {archived ? (
         <AlertBanner action={{ label: "Restore project", onClick: restore }}>This project is archived, so it’s read-only. Restore it to add or change tasks.</AlertBanner>
       ) : null}
@@ -321,7 +319,7 @@ function ArchivedProjectExample() {
       </Page>
       <DemoFieldDialog open={adding} onOpenChange={setAdding} title="New task" field={{ kind: "name", label: "Task name", placeholder: "Update the 2027 exhibitor list" }}
         submitLabel="Add task" confirm={() => "Task added"} onSubmit={addTask} />
-    </div>
+    </PreviewPage>
   );
 }
 
