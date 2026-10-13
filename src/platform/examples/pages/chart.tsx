@@ -14,6 +14,7 @@ import { SidePanel } from "../../../components/SidePanel";
 import { SkeletonShape } from "../../../components/Skeleton";
 import { Table, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
+import { Segmented } from "../../../components/Segmented";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
@@ -237,20 +238,23 @@ const thisWeek = [
 function PhoneHoursExample() {
   // The phone's scroller: the large title folds as the month's entries run under the bar.
   const screenRef = useRef<HTMLDivElement>(null);
+  const chartId = useId();
   const groupId = useId();
   const weekId = useId();
   const [rangeId, setRangeId] = useState("weekly");
   return (
-    // Grouped list: the screen is Surface-Alt and the card and each group of entries are white blocks on it, so no
-    // border or shadow is needed. The rows are static with no side padding of their own: each group is a ListBox (20px on a
-    // phone) and its kicker lines up with the row text (lg).
+    // One main chart on a phone goes straight on the screen, no Chart Card: the card's padding would cost the plot its
+    // width (the user, 2026-10-13). The entries are grouped: the screen is Surface-Alt and each group is a white block, so
+    // no border or shadow is needed; each group is a ListBox (20px on a phone) and its kicker lines up with the row text.
     <PlatformPhone label="My hours" canvas="alt" headerOverlay screenRef={screenRef}
       header={<TopNavigation type="alt" title="My hours" largeTitle="My hours" scrollRef={screenRef} />}>
       <Stack gap="lg" padding="lg">
-        <ChartCard title="Hours logged" headingLevel={2} ranges={myRanges} range={rangeId} onRangeChange={setRangeId}>
+        <Stack as="section" gap="md" aria-labelledby={chartId}>
+          <Heading level={2} id={chartId} textStyle="Heading/Subheading">Hours logged</Heading>
+          <Segmented options={myRanges} value={rangeId} onValueChange={setRangeId} fullWidth aria-label="Range" />
           <LineChart key={rangeId} aria-label={rangeId === "weekly" ? "Your hours per week, Aug 17 – Sep 27, 2026" : "Your hours per month, Apr – Sep 2026"}
-            data={myHours[rangeId]} format={hours} height={200} />
-        </ChartCard>
+            data={myHours[rangeId]} format={hours} height={220} />
+        </Stack>
         <Stack as="section" gap="xs" aria-labelledby={groupId}>
           <Box paddingX="lg"><Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">September by project</Heading></Box>
           <ListBox>
@@ -625,19 +629,21 @@ const retry = () => {
   },
   {
     title: "Hours on a phone",
-    description: "On a phone the Chart Card spans the screen inside its margin, the range switch splits it into equal halves, and six short labels keep every point tappable. The entries are grouped, so the screen is Surface-Alt: the card and each group are white blocks with no border, and the entries scroll the large title into the bar.",
+    description: "On a phone a screen's one main chart goes straight on the screen — no Chart Card, whose padding would cost the plot its width: its title, the range switch split into equal halves and the chart share the screen margin, and six short labels keep every point tappable. The entries below are grouped on the Surface-Alt screen as white blocks, and they scroll the large title into the bar.",
     render: () => <PhoneHoursExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
-// Grouped list: Surface-Alt screen, Alt bar; the card and each group are white blocks (no border, no shadow).
+// One main chart on a phone: straight on the screen, no Chart Card. Grouped list: Surface-Alt screen, white blocks.
 <PlatformPhone canvas="alt" headerOverlay screenRef={screenRef}
   header={<TopNavigation type="alt" title="My hours" largeTitle="My hours" scrollRef={screenRef} />}>
-  {/* padding 20 (Margin-Compact); gap 24 between the card and the groups */}
+  {/* padding 20 (Margin-Compact); gap 24 between the chart and the groups */}
   <Stack gap="lg" padding="lg">
-    <ChartCard title="Hours logged" headingLevel={2}
-      ranges={[{ id: "weekly", label: "Weekly" }, { id: "monthly", label: "Monthly" }]} range={range} onRangeChange={setRange}>
-      <LineChart aria-label="Your hours per week, Aug 17 – Sep 27, 2026" data={myHours[range]} format={hours} height={200} />
-    </ChartCard>
+    <Stack as="section" gap="md" aria-labelledby={chartId}>
+      <Heading level={2} id={chartId} textStyle="Heading/Subheading">Hours logged</Heading>
+      <Segmented options={[{ id: "weekly", label: "Weekly" }, { id: "monthly", label: "Monthly" }]} value={range}
+        onValueChange={setRange} fullWidth aria-label="Range" />
+      <LineChart aria-label="Your hours per week, Aug 17 – Sep 27, 2026" data={myHours[range]} format={hours} height={220} />
+    </Stack>
     <Stack as="section" gap="xs" aria-labelledby={groupId}>
       {/* The kicker lines up with the row text inside the group */}
       <Box paddingX="lg"><Heading level={2} id={groupId} textStyle="Body/Small/Bold" tone="light">September by project</Heading></Box>

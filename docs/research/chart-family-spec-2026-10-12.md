@@ -175,3 +175,11 @@ cover instance into the main (15426:2663, 15426:2665); code follows. The legend'
 Color=Primary (the same black in the Neutral themes; a Brand theme would tint it — flagged to the user).
 Figma: Bar Horizontal's Tooltip 15321:83482 removed; `Values` column 15435:2521 (Value rows 15435:2522 … 2528,
 Label/Small/Medium, Neutral/Light, the active row Strongest); the Chart row's end padding removed, as in code.
+
+2026-10-13, the user, three more calls: (1) donut slices get 4px round corners — code draws each slice as a path inset
+by the corner and stroked 2 × 4px with round joins (straight 4px gaps kept; the draw-in is a sweeping mask ring);
+Figma flattens each `Slice` boolean to a vector with cornerRadius bound to Corner-Radius/XSmall (15 slices,
+15436:2526 … 2554), fill styles kept. (2) The Multi-Line legend dots are Background/Accent/Solid ("Invoiced") and
+Background/Neutral/Solid ("Collected") — the user's Figma edit; code legend and Tooltip dots follow. (3) A phone screen
+whose one main chart is the point shows it straight on the screen, no Chart Card ("Hours on a phone" example,
+guideline "use").

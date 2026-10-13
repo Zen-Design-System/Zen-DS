@@ -88,14 +88,19 @@ describe("chart family keyboard", () => {
 });
 
 describe("donut", () => {
-  it("parts the slices with even, straight gaps: one cut per slice edge, all the same width", async () => {
+  it("draws each slice with straight 4px gaps and 4px round corners", async () => {
     await render(wrap(<DonutChart aria-label="Gaps" size={200} data={[{ id: "a", label: "A", value: 3 }, { id: "b", label: "B", value: 2 }, { id: "c", label: "C", value: 1 }]} />));
-    const cuts = [...document.querySelectorAll('[aria-label="Gaps"] mask line')];
-    expect(cuts).toHaveLength(3);
-    expect(new Set(cuts.map((c) => c.getAttribute("stroke-width")))).toEqual(new Set(["2"])); // 4px of a 200px ring = 2 viewBox units
-    // The slices meet their neighbours exactly; the cut makes the gap (no angular gap left in the dashes).
-    const offsets = [...document.querySelectorAll('[aria-label="Gaps"] .zen-chart__slice')].map((c) => Number.parseFloat((c as SVGElement).style.strokeDashoffset));
-    expect(offsets.map((o) => Math.abs(Math.round(o)))).toEqual([0, 50, 83]);
+    const slices = [...document.querySelectorAll('[aria-label="Gaps"] path.zen-chart__slice')] as SVGPathElement[];
+    expect(slices).toHaveLength(3);
+    // The outline is inset by the corner and stroked 2 × 4px wide with round joins (200px ring: 1 viewBox unit = 2px).
+    for (const slice of slices) {
+      expect(slice.getAttribute("stroke-width")).toBe("4");
+      expect(slice.getAttribute("stroke-linejoin")).toBe("round");
+    }
+    // Neighbouring slices never touch: the painted shapes stay a gap apart along their shared edge.
+    const box = (el: SVGPathElement) => el.getBBox();
+    expect(box(slices[0]).x).toBeGreaterThan(50); // A (half the ring) starts right of 12 o'clock's gap
+    expect(document.querySelector('[aria-label="Gaps"] .zen-chart__sweep')).not.toBeNull();
   });
 
   it("totalPosition start: the total and legend in a column beside the ring, the hole empty, a picked slice takes the total's place", async () => {

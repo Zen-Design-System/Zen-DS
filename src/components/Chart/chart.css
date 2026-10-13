@@ -128,7 +128,9 @@
 .zen-chart__round { position: relative; width: min(100%, var(--zen-chart-size, 200px)); aspect-ratio: 1; border-radius: var(--zen-corner-radius-rounded, 1000px); outline: 0; }
 .zen-chart__round:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
 .zen-chart__ring-svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.zen-chart__slice, .zen-chart__arc { fill: none; cursor: pointer; }
+.zen-chart__arc { fill: none; cursor: pointer; }
+.zen-chart__slice { cursor: pointer; }
+.zen-chart__sweep { stroke-dasharray: 100 0; }
 .zen-chart__arc { stroke-linecap: round; }
 .zen-chart__round[data-picked="true"] .zen-chart__slice:not([data-active]), .zen-chart__round[data-picked="true"] .zen-chart__arc:not([data-active]), .zen-chart__pill[data-dim="true"] { opacity: .32; }
 /* The dotted ring under each gauge: Border/Neutral/Subtle dots (round caps on 0-length dashes).
@@ -192,7 +194,7 @@
 .zen-chart:not([data-animate="false"]) .zen-chart__htrack > .zen-chart__bar { animation: zen-chart-grow var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
 .zen-chart:not([data-animate="false"]) .zen-chart__target { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; }
 .zen-chart:not([data-animate="false"]) .zen-chart__marks { animation: zen-chart-wipe var(--zen-chart-reveal) var(--zen-motion-ease-standard, ease) both; }
-.zen-chart:not([data-animate="false"]) .zen-chart__slice { animation: zen-chart-sweep var(--zen-chart-reveal) var(--zen-motion-ease-emphasized, ease) both; }
+.zen-chart:not([data-animate="false"]) .zen-chart__sweep { animation: zen-chart-sweep var(--zen-chart-reveal) var(--zen-motion-ease-emphasized, ease) both; }
 .zen-chart:not([data-animate="false"]) .zen-chart__arc { animation: zen-chart-sweep var(--zen-chart-reveal) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-motion-duration-xfast, 80ms) * var(--zen-chart-i, 0)); }
 .zen-chart:not([data-animate="false"]) .zen-chart__pill, .zen-chart:not([data-animate="false"]) .zen-chart__track { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; }
 .zen-chart:not([data-animate="false"]) .zen-chart__pill { animation-delay: var(--zen-chart-reveal); }
@@ -201,5 +203,5 @@
 /* Reduced motion: every draw-in becomes a fade (same timing); nothing wipes, sweeps or scales. */
 @media (prefers-reduced-motion: reduce) {
   .zen-chart:not([data-animate="false"]) .zen-chart__column > .zen-chart__bar, .zen-chart:not([data-animate="false"]) .zen-chart__stack, .zen-chart:not([data-animate="false"]) .zen-chart__htrack > .zen-chart__bar,
-  .zen-chart:not([data-animate="false"]) .zen-chart__marks, .zen-chart:not([data-animate="false"]) .zen-chart__slice, .zen-chart:not([data-animate="false"]) .zen-chart__arc, .zen-chart:not([data-animate="false"]) .zen-chart__cell { animation-name: zen-chart-fade; }
+  .zen-chart:not([data-animate="false"]) .zen-chart__marks, .zen-chart:not([data-animate="false"]) .zen-chart__sweep, .zen-chart:not([data-animate="false"]) .zen-chart__arc, .zen-chart:not([data-animate="false"]) .zen-chart__cell { animation-name: zen-chart-fade; }
 }

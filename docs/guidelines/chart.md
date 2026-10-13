@@ -14,6 +14,7 @@ One chart family in one style: how a value changes over time (Line), compares ac
 - 1–4 measures against the same maximum (budget used, goals) → RadialChart.
 - A value per day × hour, or any row × column grid → HeatmapChart.
 - Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.
+- A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.
 
 ## Use something else for
 - One number → Metric / MetricCard.
@@ -93,7 +94,7 @@ Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side paddin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the column totals, tagged "Avg 5.9K h" (Figma Show Average). |
 
 ### DonutChart
-Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim (a mask, so the card shows through), a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
+Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

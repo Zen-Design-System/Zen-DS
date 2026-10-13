@@ -3483,7 +3483,8 @@
         "Shares of one total (2–7) → DonutChart.",
         "1–4 measures against the same maximum (budget used, goals) → RadialChart.",
         "A value per day × hour, or any row × column grid → HeatmapChart.",
-        "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards."
+        "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",

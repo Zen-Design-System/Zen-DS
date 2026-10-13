@@ -328,3 +328,6 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
   kinds with Compare / Average toggles at 520px (was Line / Stack at 345px).
 - 2026-10-13 (the user): the comparison line and dot → Color/Border/Neutral/Solid (not the Sector style); moved into the
   Multi-Line main, cover instance cleared; code COMPARE_COLOUR = border-neutral-solid. Memory note: the exception.
+- 2026-10-13 (the user): donut slices 4px round corners (code: rounded sector paths, sweep mask; Figma: Slice booleans
+  flattened, cornerRadius → Corner-Radius/XSmall); Multi-Line legend/Tooltip dots = Background/Accent/Solid and
+  Background/Neutral/Solid (their Figma edit); the phone example drops its Chart Card (one main chart on a phone).

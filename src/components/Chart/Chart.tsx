@@ -29,9 +29,10 @@ function linePath(pts: readonly (readonly [number, number])[], curve: "smooth" |
   }).join(" ");
 }
 
-/** The line's Accent/Solid and the comparison's Border/Neutral/Solid (a neutral reference, the user's Figma call). */
-const LINE_COLOUR = "var(--zen-color-border-accent-solid-default, #ff66d4)";
-const COMPARE_COLOUR = "var(--zen-color-border-neutral-solid-default, #111)";
+/** The legend and Tooltip dots of the line and its comparison (the lines themselves are drawn in chart.css):
+ *  Background/Accent/Solid and Background/Neutral/Solid, as the user's Figma legend. */
+const LINE_SWATCH = "var(--zen-color-background-accent-solid-default, #ff66d4)";
+const COMPARE_SWATCH = "var(--zen-color-background-neutral-solid-default, #111)";
 
 export interface LineChartProps {
   /** One point per period (`{ label, value }`). Keep 4–12 periods. */
@@ -90,12 +91,12 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
   const current = active === null ? undefined : data[active];
   const position = current ? ` (${t.chartPoint(active! + 1, data.length)})` : "";
   const tooltip = !current ? null : compared
-    ? <SeriesValues items={[{ id: "value", color: LINE_COLOUR, value: format(current.value) }, { id: "compare", color: COMPARE_COLOUR, value: format(compared[active!]) }]} />
+    ? <SeriesValues items={[{ id: "value", color: LINE_SWATCH, value: format(current.value) }, { id: "compare", color: COMPARE_SWATCH, value: format(compared[active!]) }]} />
     : format(current.value);
   const summary = !current ? t.noData : compared
     ? `${current.label}: ${name} ${format(current.value)}, ${compare!.label} ${format(compared[active!])}${position}`
     : `${current.label}: ${format(current.value)}${position}`;
-  const legend = compare && showLegend ? <ChartLegend items={[{ id: "value", label: name, color: LINE_COLOUR }, { id: "compare", label: compare.label, color: COMPARE_COLOUR }]} /> : undefined;
+  const legend = compare && showLegend ? <ChartLegend items={[{ id: "value", label: name, color: LINE_SWATCH }, { id: "compare", label: compare.label, color: COMPARE_SWATCH }]} /> : undefined;
   const mean = showAverage ? meanOf(values) : undefined;
   return (
     <ChartBlock kind="line" legend={legend} position={legendPosition}>
