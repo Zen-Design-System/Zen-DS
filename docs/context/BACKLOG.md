@@ -8,6 +8,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Chart family in Studio Export › Figma (2026-10-12, unblocked 2026-10-13):** map `BarChart`, `DonutChart`,
+  `RadialChart`, `HeatmapChart` and series `LineChart` in `tools/studio/figma-push.mjs` (SETS / CHART_SETS) to Figma
+  Chart/Bar-Chart 15321:84071, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart
+  15326:1043, Chart/Multi-Line-Chart 15426:2521 (header properties: spec `docs/research/chart-family-spec-2026-10-12.md`
+  §5.1). The chart mapping itself (CHART_SETS, chartCardNode) landed on main with PR #26; extend it, then run the real
+  importer in the Zen file (memory: test in real Figma). Needs the user's go-ahead (new scope).
+- **P3 · Chart family Figma contracts (2026-10-12):** capture `docs/figma-contracts/chart-*.json` for the five new sets
+  (`tools/figma-contract/mcp-capture`) and add parity suites, so a later Figma edit is caught like the other components.
 - **P1 · Studio → Figma coverage, P4 (user approved 2026-10-12; P1–P3 done, branch zen/feat/figma-map-p3 2026-10-13):**
   P3 mapped TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat (ChatThread,
   reactions, read list), FileIcon, Flag, icon sizes and fixed Metric (spec §8 "P3"). P4 (examples' raw HTML and
