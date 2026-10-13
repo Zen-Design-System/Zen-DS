@@ -60,7 +60,7 @@ function FinanceDashboardExample() {
   const reportRows: ReportRow[] = [...months].reverse().map((m) => ({ id: m.id, month: m.month, invoiced: m.invoiced, collected: m.collected }));
   reportRows.push({ id: "total", month: "Total", invoiced: sum("invoiced"), collected: sum("collected"), total: true });
   return (
-    <Box className="px-chart-canvas">
+    <Box surface="canvas">
       <Container maxWidth="lg">
         <Stack paddingY="xl" gap="xl">
           <PageHeader title="Finance" description={`What ${studio.name} invoiced and collected from its clients.`} />

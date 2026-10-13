@@ -12,7 +12,6 @@ import { PlatformPhone } from "../../PlatformPhone";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
-import "./voice.css";
 
 export const page: PlatformPage = "voice";
 
@@ -48,7 +47,7 @@ function TaskVoiceNote() {
   const [status, setStatus] = useState("");
   return (
     <Stack gap="md">
-      <Card theme="flat" spacing="sm" className="pe-voice-card">
+      <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
         <VoiceRecorder
           {...take.props}
           title="Note for “Rewards screens”"
@@ -83,7 +82,7 @@ function MicrophoneBlocked() {
           Your browser blocked the microphone for this site. Allow it, then record again.
         </InlineMessage>
       ) : null}
-      <Card theme="flat" spacing="sm" className="pe-voice-card">
+      <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
         <VoiceRecorder
           {...take.props}
           input={blocked ? "No microphone allowed" : "Built-in microphone"}
@@ -134,7 +133,7 @@ function useConversation() {
 function TalkWithZen() {
   const talk = useConversation();
   return (
-    <Card theme="flat" spacing="sm" className="pe-voice-card">
+    <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
       <AiVoiceConversation {...talk.props} />
     </Card>
   );
@@ -165,7 +164,7 @@ function TakeLimit() {
   }, [take, atLimit]);
   return (
     <Stack gap="md">
-      <Card theme="flat" spacing="sm" className="pe-voice-card pe-voice-card--narrow">
+      <Card theme="flat" spacing="sm" width="fill" maxWidth={320}>
         <VoiceRecorder
           {...take.props}
           title="Note for “Rewards screens — checkout copy review with Lumen Bank”"

@@ -35,6 +35,7 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { platformMedia, type PlatformPhoto } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage, PreviewShell } from "../../PlatformFrames";
 import {
   daysFromToday, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRange, initials, invoiceStatusTheme, invoices,
   people, projectById, projectStatusTheme, projects, studio, tasks, taskStatusTheme,
@@ -54,8 +55,10 @@ const statusBadge = (status: TaskStatus) => <Badge theme={taskStatusTheme[status
 const taskStatuses: TaskStatus[] = ["To do", "In progress", "In review", "Done"];
 /** A row caption of whole values: it wraps between values, never inside a key or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
 const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
-  <Fragment key={`${index}:${value}`}>{index ? " " : null}<span className="px-layout-value">{index ? "· " : null}{value}</span></Fragment>
+  <Fragment key={`${index}:${value}`}>{index ? " " : null}{whole(`${index ? "· " : ""}${value}`)}</Fragment>
 ));
+/** A run of words that never breaks: its spaces are no-break spaces. */
+const whole = (text: string) => text.replace(/ /g, "\u00a0");
 
 /** The width of an element, kept current: the table folds its columns when the main column gets narrow. */
 function useWidth() {
@@ -110,7 +113,7 @@ function ProjectOverview() {
   const invite = (email: string) => setTeam((list) => [...list, { id: email, title: email, caption: "Invited just now" }]);
 
   return (
-    <Box className="px-layout-page">
+    <PreviewPage margin="block">
       <Container maxWidth="full">
         {/* Page sections xl apart: the header, then the two columns. */}
         <Stack gap="xl">
@@ -178,7 +181,7 @@ function ProjectOverview() {
         field={{ kind: "name", label: "Task name", placeholder: "Review the savings goals flow" }} submitLabel="Create task" confirm={() => "Task created"} onSubmit={addTask} />
       <DemoFieldDialog open={dialog === "invite"} onOpenChange={(open) => setDialog(open ? "invite" : null)} title="Invite to the team"
         field={{ kind: "email", label: "Email address", placeholder: "name@dizai.studio" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} onSubmit={invite} />
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -220,7 +223,7 @@ function AnnotatedSettings() {
     onSubmit: (values, { reset }) => { reset(values); toast({ type: "positive", title: "Settings saved" }); },
   });
   return (
-    <Box className="px-layout-page">
+    <PreviewPage margin="block">
       {/* A form reads best at a readable width: Container md (960) centres it with the page margin outside. */}
       <Container maxWidth="md">
         <Stack gap="xl">
@@ -249,7 +252,7 @@ function AnnotatedSettings() {
           </Form>
         </Stack>
       </Container>
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -605,12 +608,12 @@ function ElevatedPanels() {
   return (
     // A Canvas/Default page beside the default Sidebar (Surface + Shadow/Bottom/Level-1, no border): every Surface on the
     // screen takes the same elevation.
-    <div className="pe-shell" data-canvas="default">
+    <PreviewShell>
       <Sidebar logo={<Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text>} sections={shellSections} selectedId={page}
         onItemClick={(item) => setPage(item.id as ShellPage)} />
       {/* Page body padded xl (Margin-Comfortable); sections xl apart. */}
       <Stack ref={measure} gap="xl" padding="xl" width="fill">{content}</Stack>
-    </div>
+    </PreviewShell>
   );
 }
 

@@ -118,7 +118,7 @@ function InvoiceToolbarExample() {
       <Stack direction="row" gap="xs" align="center" justify="between" wrap>
         {/* Search grows up to 320px; the filters sit beside it and wrap under it when the toolbar is narrow. */}
         <Stack direction="row" gap="xs" align="center" wrap className="px-search-toolbar">
-          <Box className="px-search-toolbar-field">
+          <Box width="fill" minWidth={240} maxWidth={320}>
             <Search ref={searchRef} placeholder="Search invoices" value={query} onValueChange={setQuery} />
           </Box>
           <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">

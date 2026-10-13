@@ -29,7 +29,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { ChatDemoNote, useChatDemo } from "../../chatDemo";
 import { PlatformChatHeader } from "../../PlatformChatHeader";
-import { ThreadHeader, headerActions } from "../../PlatformChatDesktopShowcases";
+import { ChatWindow, ChatWindowList, ChatWindowMain, ChatWindowSplit, ThreadHeader, headerActions } from "../../PlatformChatDesktopShowcases";
 import { platformMedia, type PlatformPhoto } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -505,39 +505,25 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
  */
 function DesktopHeader({ m }: { m: Messenger }) {
   const conv = m.conv!;
-  if (!conv.group) return <ThreadHeader person={conv.person ?? { name: conv.title }} status={conv.status} actions={headerActions} onAction={m.desktopHeaderAction} />;
-  return (
-    <>
-      <div className="pe-chat-desktop__header">
-        <ChatAvatarGroup people={conv.group} size="md" online={conv.online} />
-        <div className="pe-chat-desktop__who">
-          <Text as="span" textStyle="Body/Base/Bold" className="pe-chat-desktop__name">{conv.title}</Text>
-          <Text as="span" textStyle="Body/Small/Regular" tone="light" className="pe-chat-desktop__status">{conv.status}</Text>
-        </div>
-        <div className="pe-chat-desktop__actions">
-          {headerActions.map((a) => <IconButton key={a.label} appearance="flat" level="primary" size="md" aria-label={a.label} icon={<Icon name={a.icon} />} onClick={() => m.desktopHeaderAction(a.label)} />)}
-        </div>
-      </div>
-      <Divider decorative />
-    </>
-  );
+  const avatar = conv.group ? <ChatAvatarGroup people={conv.group} size="md" online={conv.online} /> : undefined;
+  return <ThreadHeader person={conv.person ?? { name: conv.title }} avatar={avatar} status={conv.status} actions={headerActions} onAction={m.desktopHeaderAction} />;
 }
 
 /** One desktop chat window: the thread header over the desktop thread and Chat-Control. */
 function DesktopThread({ m }: { m: Messenger }) {
   const conv = m.conv!;
   return (
-    <div className="pe-chat-desktop px-chat-single px-chat-window" data-domain={conv.domain}>
-      <section className="pe-chat-desktop__main" aria-label={`Chat with ${conv.title}`}>
+    <ChatWindow layout="thread" domain={conv.domain} fit>
+      <ChatWindowMain label={`Chat with ${conv.title}`}>
         {/* The window's one h1 names the open chat; the header bar shows it. */}
         <VisuallyHidden as="h1">{conv.title}</VisuallyHidden>
         <DesktopHeader m={m} />
         <Thread key={conv.id} m={m} />
         <Composer m={m} />
         <ChatDemoNote note={m.demo.note} />
-      </section>
+      </ChatWindowMain>
       <DesktopPanels m={m} />
-    </div>
+    </ChatWindow>
   );
 }
 
@@ -551,14 +537,15 @@ function TeamMessenger() {
   const shown = m.convs.filter((c) => c.title.toLowerCase().includes(q));
   const conv = m.conv!;
   return (
-    <div className="pe-chat-desktop px-chat-window">
+    <ChatWindow fit>
       {/* The screen's one h1 names the open chat (the header bar shows it); the chat list is its h2. */}
       <VisuallyHidden as="h1">{conv.title}</VisuallyHidden>
-      <aside className="pe-chat-desktop__list" aria-labelledby={headingId}>
-        <div className="pe-chat-desktop__list-head">
+      <ChatWindowList aria-labelledby={headingId} head={(
+        <>
           <Heading level={2} id={headingId} textStyle="Heading/4">Chats</Heading>
           <Search ref={searchRef} placeholder="Search chats" aria-label="Search chats" value={query} onValueChange={setQuery} clearable />
-        </div>
+        </>
+      )}>
         {shown.length ? (
           // The pane scrolls under its sticky head; the rows pad 12px above and below and keep their own 16px sides
           // (Conversation-List), so their fill stays 4px inside the pane.
@@ -572,16 +559,16 @@ function TeamMessenger() {
             No person or group is called “{query.trim()}”.
           </EmptyState>
         )}
-      </aside>
-      <Divider orientation="vertical" decorative className="pe-chat-desktop__split" />
-      <section className="pe-chat-desktop__main" aria-label={`Chat with ${conv.title}`}>
+      </ChatWindowList>
+      <ChatWindowSplit />
+      <ChatWindowMain label={`Chat with ${conv.title}`}>
         <DesktopHeader m={m} />
         <Thread key={conv.id} m={m} />
         <Composer m={m} />
         <ChatDemoNote note={m.demo.note} />
-      </section>
+      </ChatWindowMain>
       <DesktopPanels m={m} />
-    </div>
+    </ChatWindow>
   );
 }
 

@@ -29,7 +29,6 @@ import {
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
-import "./bottom-sheet.css";
 
 export const page: PlatformPage = "bottom-sheet";
 
@@ -313,7 +312,7 @@ function LogTimeExample() {
               return (
                 <ListItem key={entry.id} title={project.name} caption={[dayOf(entry.day), entry.note].filter(Boolean).join(" · ")}
                   leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-sheet-hours">{hoursLabel(entry.hours)}</Text>} />
+                  trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{hoursLabel(entry.hours)}</Text>} />
               );
             })}
           </List>

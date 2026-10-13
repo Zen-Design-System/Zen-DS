@@ -1142,6 +1142,36 @@
 /* Room under the last row so the floating bar (56px) never covers it: the bar overlaps the area's bottom padding. */
 .pe-bulk-list__area { min-width: 0; padding-bottom: var(--zen-spacing-padding-3-xlarge, 40px); }
 
+/* ── Example frames (PlatformFrames.tsx): what the docs draw around an example. A window of a set height fills the
+   card in Full screen. ── */
+.pf-app-frame, .pf-window[data-height="set"] { height: clamp(var(--pf-height-min), calc(100dvh - var(--pf-height-offset)), var(--pf-height-max)); }
+.pf-app-frame { overflow: hidden; contain: layout; container-type: size; }
+.pf-app-frame__scroll { height: 100%; overflow: auto; overscroll-behavior: contain; }
+.pf-app-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+.pf-browser-window { width: min(100%, var(--pf-window-width)); margin-inline: auto; overflow: clip; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-xlarge, 20px); }
+/* zen-allow-canvas-layer: the example window stands in for the app page */
+.pf-window { overflow: hidden; background: var(--zen-color-background-canvas-default); }
+.pf-window[data-clip="false"] { overflow: visible; }
+/* Its parts may shrink below their content: the one that fills (height="fill" scroll="y") scrolls instead. */
+.pf-window > * { min-width: 0; min-height: 0; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > :is(.pf-app-frame, .pf-window[data-height="set"]) { flex: 1 1 0; height: auto; min-height: 0; }
+.pf-page { box-sizing: border-box; background: var(--zen-color-background-canvas-default); }
+.pf-page[data-canvas="false"] { background: none; }
+.pf-page[data-margin="all"] { padding: var(--zen-margin-comfortable, 24px); }
+.pf-page[data-margin="block"] { padding-block: var(--zen-margin-comfortable, 24px); }
+.pf-page[data-fill="true"] { min-height: 100%; }
+.pf-shell-main { min-width: 0; min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 620px) { .pe-shell[data-keep-row="true"] { flex-direction: row; } }
+.pf-shell-page { padding-block: var(--zen-margin-comfortable, 24px); }
+.zen-app-shell__header ~ .zen-app-shell__main .pf-shell-page { padding-top: var(--zen-spacing-padding-small, 12px); }
+.pf-studio-logo { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.pf-studio-logo > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+/* In a phone the scrollbars are overlay ones: a row that scrolls sideways (Stack / Box scroll="x") shows none. */
+.platform-phone :is(.zen-stack, .zen-box)[data-scroll="x"] { scrollbar-width: none; }
+.platform-phone :is(.zen-stack, .zen-box)[data-scroll="x"]::-webkit-scrollbar { display: none; }
+.pf-phone-toasts { position: absolute; right: 0; bottom: 100%; left: 0; padding: 0 var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-xsmall, 8px); pointer-events: none; }
+.pf-studio-mark { display: block; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+
 /* ── Desktop chat examples (Figma Chat Device=Desktop): list pane + thread pane in one Surface window. ── */
 .pe-chat-desktop { display: grid; width: 100%; max-width: 960px; height: 600px; grid-template-columns: 320px auto minmax(0, 1fr); overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); }
 /* Lines only where they separate something: no frame on the two-pane messenger (its Surface already reads on the
@@ -1155,6 +1185,8 @@
 /* Business sits on Canvas/Default so its Surface bubbles read (Figma 6349:59878). */
 /* zen-allow-canvas-layer: the example window stands in for the app page */
 .pe-chat-desktop[data-domain="business"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* ChatWindow layout="thread": the thread pane alone at the window's width. */
+.pe-chat-desktop[data-layout="thread"] { grid-template-columns: minmax(0, 1fr); }
 .pe-chat-desktop__list { display: flex; min-height: 0; flex-direction: column; overflow: auto; overscroll-behavior: contain; }
 .pe-chat-desktop__list-head { position: sticky; z-index: 1; top: 0; display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-color-background-surface-default, #fff); }
 .pe-chat-desktop__title { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
@@ -1180,6 +1212,10 @@
   .platform-mobile-preview:has(.pe-chat-desktop) { overflow-x: auto; overscroll-behavior-x: contain; justify-content: flex-start; }
   .pe-chat-desktop { min-width: 560px; }
   .pe-chat-demo:has(> .pe-chat-desktop) { width: auto; justify-items: start; }
+  /* ChatWindow fit: the window fits the card instead (the desktop thread wraps its bubbles and keeps its hover toolbar,
+     the composer keeps its controls on one row), and the chat's name, the window's title, wraps. */
+  .pe-chat-desktop[data-fit="true"] { min-width: 0; }
+  .pe-chat-desktop[data-fit="true"] .pe-chat-desktop__name { white-space: normal; }
 }
 
 /* Desktop chat examples: the last hover-toolbar action, read out politely. */
