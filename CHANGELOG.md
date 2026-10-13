@@ -19,6 +19,20 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio ↔ Figma keeps more of a page through a push and a pull. This was tested by placing the examples in the
+  real Zen file and reading them back. Fixes:
+  - A Checkbox, Toggle or Radio keeps its label and caption (Figma moved them into the Content primitive).
+  - An emoji Dock-Icon keeps its emoji.
+  - Fields keep their label, value and help text.
+  - List rows keep their title, caption, leading and trailing.
+  - Text keeps its tone.
+  - Headings keep their level.
+  - A Type=Main header comes back as a PageHeader.
+  - A Sidebar's logo replaces Figma's sample logo, and its collapse button is no longer pulled in as content.
+  - Breadcrumbs keep `master`.
+  - A DescriptionList keeps its terms and values.
+  - A swapped-in file icon is read back.
+  - Figma cannot resize an icon nested inside a List-Item, so the push says so instead of failing silently.
 - A Badge keeps its width in a row (it shrank to its 28px minimum beside long text, so examples had to pin it), and a
   Text or Heading that takes focus after an action (tabIndex -1) draws the focus ring with room around its words.
 - The examples lost 107 of their last 219 classNames: their frames (an app window, a page on the Canvas, a desktop

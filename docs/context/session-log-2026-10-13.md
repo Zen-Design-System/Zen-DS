@@ -63,3 +63,29 @@
 - Left (BACKLOG): page-margin and per-side padding, component internals, Skeleton / `ch` widths, media, bespoke
   responsive rules.
 - Gate: `npm run qa -- --isolated --files=…`; browser tests 620 passed; studio, layout, usage, MCP selftests pass.
+
+
+## Studio ↔ Figma round trip on every example (P6; branch zen/feat/figma-roundtrip, tier M)
+
+- User: "tiếp vụ test và improve export import". Snapshot of 353 example frames → push → pull (matched by push key) to
+  find losses, then real placements in the Zen file (stashed importer and reader on QA holder 15342:11) read back.
+  Only real reads count; the harness only points.
+- Fixed (push / pull / reader / plugin):
+  - Checkbox / Toggle / Radio label and caption go through the nested Content (Figma dropped Checkbox's Caption
+    property; map skips it, variantSets regenerated).
+  - Emoji Dock-Icon text.
+  - Field label / value / help read.
+  - ListItem title / caption / leading / trailing read; ListBox header / footer slots; a column of ListItems → List.
+  - Text tone from its Content variable; `Heading N` layer names ↔ Heading level.
+  - Type=Main → PageHeader; DashboardHeader search placeholder; a `texts.find` crash.
+  - Sidebar `logo` → Header-Content (Figma's sample LOGO and Collapse dropped both ways, noted on pull).
+  - Breadcrumbs `master` / `emphasis` from the crumbs' Item.
+  - DescriptionList term / description / emphasis.
+  - Reader: swapped nested icons/avatars told from the owner's main component (Figma lists no override for a swap
+    inside slot content).
+- Figma limit, checked live: a nested instance's size cannot be overridden ("cannot be overridden in an instance:
+  size") → a ListItem's FileIcon xl shows at 20; push notes it, the plugin's nested-size code went.
+- Contract drift: 14 sets differ from component-properties.json (2026-10-05); list sent to the session editing
+  figma-props.map (they map List-Box Theme, ProgressBar Layout, SidePanel). Not changed here.
+- Fixtures: figma-parts.json (+ swapped FileIcon row), figma-shell.json (breadcrumbs page, frame 15448:3). Push
+  selftest 187, pull 52, studio:selftest all pass. Spec §8 "P6". P6b (key-based round trip) proposed; BACKLOG.
