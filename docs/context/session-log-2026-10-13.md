@@ -229,3 +229,10 @@
   Element-Size/Popular/Base Wrapper, −6 each side, sidebar.css): my Hug change was reverted, and the audit harness now
   skips a centred instance spilling evenly from a non-clipping single-child wrapper (`isBleed`; audit-rules.md updated;
   ai-kit:check ✓). Audit 0 errors; a full clipping scan (inside instances too) found nothing cut.
+- Shadow clipping (user: "vẫn đang bị cắt shadow card. Nên ghi vào skill để luôn kiểm tra cái này"): my `KPIs` and
+  `Members` frames (createAutoLayout → Clip content on) cut the Metric-Cards' shadows (top 2, side 4, bottom 8) and the
+  Search / page-size shadows; Clip content off on every frame I made, in both frames. My earlier "nothing clipped" scan
+  was wrong: `absoluteRenderBounds` is already clipped. Harness: `checkShadowClips` measures each drop shadow from its
+  effects against every clipping frame above it (inside instances too); `bounds/shadow-clipped` is now an error (screen
+  frame), `bounds/shadow-clipped-in-component` a warning. Negative test (KPIs clip on) → 4 errors; restored → 0.
+  SKILL.md hard rule, screen-rules §4/§5, figma-gotchas "Clipping", audit-rules rows; ai-kit:check 92 ✓.

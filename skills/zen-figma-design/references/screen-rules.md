@@ -96,12 +96,17 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
   error under a field, a ± delta). Emphasise with weight, quiet with the level, never with opacity or a bigger size.
 - **Icon-only actions** have a Tooltip (it shows after 1 s of hover).
 
+- **Card shadows.** A row or section frame you add around Shadow cards (Metric-Card, Card, Chart-Card) must not clip:
+  `createAutoLayout()` turns Clip content on, and the cards' shadows were cut on a dashboard (user, 2026-10-13). The
+  page pattern's own frames leave room (Body padding); your frames must not take it away.
+
 ## 5. Checklist after the audit passes (look at the screenshot)
 
 - One clear main action per area; the eye lands on the title, then the main content.
 - Left edges line up: the header, the content and every section share one margin.
 - The spacing ladder holds: nothing cramped, nothing floating; groups read as groups.
-- Nothing clipped (layers or shadows), nothing overflowing its parent, no crushed or badly wrapped text, no truncated
+- Nothing clipped (layers or shadows: every frame you added has Clip content off, the audit's `bounds/shadow-clipped`
+  is 0), nothing overflowing its parent, no crushed or badly wrapped text, no truncated
   label that matters.
 - Real copy everywhere, in one language and one tone; numbers formatted the same way (dates, currency, units).
 - Light mode first; if the brief asks for dark, switch the Mode Colors (Semantic) mode on the frame and check again.

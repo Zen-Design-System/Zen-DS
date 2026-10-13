@@ -54,6 +54,10 @@ Files in this skill:
   shadows to a Zen effect style. No raw hex, px or font settings; no primitive ramps (`Light/Neutral/3`, `dm-16`).
 - **Auto layout everywhere** something stacks or sits side by side. Absolute positioning only for overlays that float
   (a popover on a state frame, a floating action).
+- **No shadow is ever cut.** Frames made with `createFrame()` / `createAutoLayout()` clip their content by default, so
+  set `clipsContent = false` on every frame you add (rows, sections, toolbars, wrappers) unless it must hide something;
+  a Shadow card's shadow reaches past the card (about 8px below, 4px aside). Check every screen with the audit's
+  `bounds/shadow-clipped`; `absoluteRenderBounds` cannot show it (it is already cut by the clip).
 - **Real states, not look-alikes.** A field that shows a value is `State=Inputted` (Default and Focused are the empty
   placeholder look); a menu's open trigger is `State=Pressed` (Chip/Advanced: `Press`), not Focused; a disabled control
   is `State=Disabled` with a reason in its help text. Pick nested states before calling something a library gap.

@@ -3,6 +3,15 @@
 Plugin API behaviours that broke Zen screens built by AI agents, and what works instead. Figma's own `figma-use`
 skill covers the general API rules (fonts, pages, auto-layout sizing); these are the Zen-specific ones.
 
+## Clipping
+
+- **New frames clip.** `figma.createFrame()` and `figma.createAutoLayout()` start with `clipsContent = true`. A row of
+  Shadow cards inside one loses the shadows' edges. Set `clipsContent = false` right after creating a layout frame.
+- **`absoluteRenderBounds` is already clipped.** It returns what is drawn after the parents' clips, so comparing it
+  with a clipping parent never finds a cut shadow. Compute the shadow's reach from `effects` (offset, radius, spread),
+  as the audit does, and compare it with every clipping frame above the layer, including frames inside instances.
+- **The screenshot hides it too.** `node.screenshot()` of a card row crops at the row's edge; look at the whole screen.
+
 ## Instances
 
 - **INSTANCE_SWAP re-set = lost colour.** Setting an icon swap property (`Leading-Icon-Src`, `Icon-Src`…) to the value

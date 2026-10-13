@@ -25,7 +25,9 @@
 //   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
 //                                     button bleeding out of a non-clipping icon-size wrapper is Zen's design)
 //   bounds/clipped           error    a layer cut off by a clipping parent
-//   bounds/shadow-clipped    warning  a shadow cut off by a clipping parent
+//   bounds/shadow-clipped    error    a drop shadow (also one inside an instance, like a Shadow card's) cut by a
+//                                     clipping frame of the screen: frames made with createFrame/createAutoLayout clip
+//   bounds/shadow-clipped-in-component  warning  the same, cut by a frame of the component itself
 //   text/overflow            error    text taller than its fixed box, or sticking out of its instance
 //   text/crushed             error    text squeezed into a box narrower than a few characters
 //   copy/placeholder         warning  lorem ipsum or a bare default label left in the screen
@@ -190,8 +192,58 @@ function checkBounds(node) {
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
   }
-  if (parent.clipsContent && node.absoluteRenderBounds && "effects" in node && node.effects.some((effect) => effect.visible !== false && effect.type === "DROP_SHADOW") && sticksOut(node.absoluteRenderBounds, frame)) {
-    report("bounds/shadow-clipped", WARNING, node, `shadow cut on the ${side(node.absoluteRenderBounds, frame)} by ${parent.name}`);
+}
+
+/** Where a layer's drop shadows reach, from the effects themselves: absoluteRenderBounds is already cut by its clipping parents. */
+function shadowBounds(node) {
+  const own = box(node);
+  const shadows = "effects" in node ? node.effects.filter((effect) => effect.visible !== false && effect.type === "DROP_SHADOW") : [];
+  if (!own || !shadows.length) return null;
+  let left = own.x, top = own.y, right = own.x + own.width, bottom = own.y + own.height;
+  for (const shadow of shadows) {
+    const reach = (shadow.radius ?? 0) + (shadow.spread ?? 0);
+    left = Math.min(left, own.x + shadow.offset.x - reach);
+    top = Math.min(top, own.y + shadow.offset.y - reach);
+    right = Math.max(right, own.x + own.width + shadow.offset.x + reach);
+    bottom = Math.max(bottom, own.y + own.height + shadow.offset.y + reach);
+  }
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+/** True when `node` is the screen's own (a frame you made, or anything in a slot), false when a component owns it. */
+function authored(node) {
+  if (node.type === "INSTANCE") return false;
+  for (let current = node.parent; current && !rootIds.has(current.id); current = current.parent) {
+    if (current.type === "SLOT") return true;
+    if (current.type === "INSTANCE") return false;
+  }
+  return true;
+}
+
+/**
+ * Drop shadows cut by any clipping frame above them, inside instances too (a Shadow card's shadow sits on a layer of
+ * the Card instance). The screen frame itself is the viewport and does not count. A clipping frame of the screen is an
+ * error (createFrame/createAutoLayout frames clip by default: set clipsContent = false); one of a component a warning.
+ */
+function checkShadowClips(root) {
+  const stack = [[root, []]];
+  while (stack.length) {
+    const [node, clippers] = stack.pop();
+    if (!node.visible) continue;
+    const shadow = shadowBounds(node);
+    if (shadow) {
+      for (const clipper of clippers) {
+        const frame = box(clipper);
+        if (!frame || !sticksOut(shadow, frame)) continue;
+        const cut = `shadow cut on the ${side(shadow, frame)} by ${clipper.name}`;
+        if (authored(clipper)) report("bounds/shadow-clipped", ERROR, node, `${cut} (turn its Clip content off or give the shadow room)`);
+        else report("bounds/shadow-clipped-in-component", WARNING, node, cut);
+        break;
+      }
+    }
+    if (!("children" in node)) continue;
+    const next = node !== root && "clipsContent" in node && node.clipsContent ? [node, ...clippers] : clippers;
+    for (const child of node.children) stack.push([child, next]);
   }
 }
 
@@ -326,6 +378,7 @@ if (page && page !== figma.currentPage) await figma.setCurrentPageAsync(page);
 rootIds = new Set(roots.map((root) => root.id));
 
 for (const root of roots) await walk(root, root.type === "INSTANCE" ? root : null, true);
+for (const root of roots) checkShadowClips(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {
