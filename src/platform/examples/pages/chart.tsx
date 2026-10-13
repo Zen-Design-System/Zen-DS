@@ -498,7 +498,7 @@ const [range, setRange] = useState("3m");
   },
   {
     title: "A line and its comparison",
-    description: "The line chart with one dashed comparison: what was invoiced keeps its Accent line and area, what was collected runs dashed in Chart/Sector/Primary, and the legend above names both. The Tooltip reads both values for the active month.",
+    description: "The line chart with one dashed comparison: what was invoiced keeps its Accent line and area, what was collected runs dashed in Border/Neutral/Solid, and the legend above names both. The Tooltip reads both values for the active month.",
     render: () => <CashFlowCard />,
     code: `const invoiced = [{ label: "Apr", value: 82300 }, /* … */ { label: "Sep", value: 105700 }];
 const collected = { label: "Collected", values: [79500, /* … */ 88300] };
@@ -533,7 +533,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
   },
   {
     title: "Against a target",
-    description: "Horizontal bars suit long category names. Each team's capacity is a hatched track behind its bar, the Tooltip reads \"1,990 h of 2,240 h\", and the average runs down the plot under its tag. ↑/↓ move between teams.",
+    description: "Horizontal bars suit long category names. Each team's capacity is a hatched track behind its bar, every row ends with its value (the active one in Strongest, nothing floats over the bars), and the average runs down the plot under its tag. ↑/↓ move between teams; the summary reads \"1,990 h of 2,240 h\".",
     render: () => <CapacityCard />,
     code: `<ChartCard title="Hours against capacity" icon="icon-clock-line" description="Billable hours in September" value="5,900 h">
   <BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026" format={hours} showAverage

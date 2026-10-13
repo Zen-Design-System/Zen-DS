@@ -11558,7 +11558,7 @@
           "type": "ChartCompare",
           "required": false,
           "default": null,
-          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart\n Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid\n line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
           "deprecated": null
         },
         {

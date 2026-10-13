@@ -12,7 +12,7 @@ import "./chart.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import {
-  ChartBlock, ChartLegend, PlotFrame, SeriesValues, chartPalette, colourAt, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartSelection,
+  ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartSelection,
   type ChartCompare, type ChartDatum, type ChartFill, type ChartPoint, type ChartSeries,
 } from "./chartCore";
 
@@ -29,9 +29,9 @@ function linePath(pts: readonly (readonly [number, number])[], curve: "smooth" |
   }).join(" ");
 }
 
-/** The line's Accent/Solid and the comparison's Color Chart Sector/Primary. */
+/** The line's Accent/Solid and the comparison's Border/Neutral/Solid (a neutral reference, the user's Figma call). */
 const LINE_COLOUR = "var(--zen-color-border-accent-solid-default, #ff66d4)";
-const COMPARE_COLOUR = chartPalette[0];
+const COMPARE_COLOUR = "var(--zen-color-border-neutral-solid-default, #111)";
 
 export interface LineChartProps {
   /** One point per period (`{ label, value }`). Keep 4–12 periods. */
@@ -39,8 +39,8 @@ export interface LineChartProps {
   /** What the line measures ("Invoiced"), named in the legend and the summary once there is a `compare`. Default: the
    *  aria-label. */
   label?: string;
-  /** A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart
-   *  Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. */
+  /** A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid
+   *  line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. */
   compare?: ChartCompare;
   /** Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. */
   format?: (value: number) => string;

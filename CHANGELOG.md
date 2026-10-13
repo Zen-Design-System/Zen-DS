@@ -67,8 +67,8 @@ removed (four unused colour ramps were, see Removed).
   five Support/Brand steps, 2D keys). `LineChart` takes `compare` (the line chart plus one dashed comparison line and a
   legend, Figma Chart/Multi-Line-Chart); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
   and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
-  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean with an
-  "Avg" tag (Figma Show Average). DonutChart slices are parted by even, straight 4px gaps, and
+  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean (plain dots, no ring) with an
+  "Avg" tag (Figma Show Average). Horizontal bars end each row with its value instead of a Tooltip over the bars. DonutChart slices are parted by even, straight 4px gaps, and
   `totalPosition="start"` puts the total beside the ring above the legend. Stacked columns now take Corner-Radius/Small
   on every corner, like the bars; projected bars and target tracks take the Figma hatch (Support/Neutral/Pale under
   Border/Neutral/Pale stripes). Zen

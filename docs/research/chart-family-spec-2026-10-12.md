@@ -38,7 +38,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Ring and donut tracks | Dotted ring: Border/Neutral/Subtle, dash 0 × 6 round caps |
 | Donut % pill | Surface/Default, Label/Small/Medium · Content/Neutral/Strongest, Corner-Radius/Rounded; shown when the slice ≥ 6% |
 | Centre figure (Donut, Radial) | Heading/4 · Content/Neutral/Strongest, caption Caption/Regular · Content/Neutral/Light |
-| Average line (`showAverage`: Line, Bar, Stack bar) | 2px Border/Neutral/Solid dots every 6px, each ringed in Surface/Default; tag Label/Small/Medium · Content/Inverse/Strongest on Background/Neutral/Solid, Corner-Radius/XSmall, 6px tip pointing along the rule; at the plot's start (vertical), on top (horizontal bars). Mean of the first series · closed bars · column totals |
+| Average line (`showAverage`: Line, Bar, Stack bar) | 2px Border/Neutral/Solid dots every 6px, no ring (the user, 2026-10-13: the Surface ring went); tag Label/Small/Medium · Content/Inverse/Strongest on Background/Neutral/Solid, Corner-Radius/XSmall, 6px tip pointing along the rule; at the plot's start (vertical), on top (horizontal bars). Mean of the first series · closed bars · column totals |
 | Card header | [Icon 20 Content/Neutral/Strongest] Heading/Subheading title … chevron IconButton (main tertiary 2xs); description Body/Small/Regular · Content/Neutral/Base; value Heading/3 (Metric medium) |
 
 Geometry: plot lanes 36px top (Tooltip) / 28px bottom (X labels); bar column = 2px side padding, bar width ≤ 40px
@@ -159,3 +159,19 @@ Description, Show Value, Value, Show Ranges, Show Open, Show Average, Average (#
 
 Same day, the user's edit: the comparison line is Color Chart Sector/Primary at 40% opacity, dash 4 / 5 (was 100%, 6 / 6);
 its dot stays full colour. Moved from the cover instance into the main component (15426:2663), chart.css follows.
+
+2026-10-13, the user: the average line drops its white ring. Code: the dots are plain Border/Neutral/Solid (no Surface
+ring); Figma: the `Rule-Ring` layer is deleted from every Average (Bar 15335:2420 and 15335:2456, Multi-Line 15426:2667,
+Line-Chart 15336:2475, Stack-Bar 15336:2487); `Rule` stays.
+
+2026-10-13, the user: on horizontal bars the active Tooltip covered the bars → a value column at the end of the rows
+instead (every row's value, Label/Small/Medium, Neutral/Light; the active row Strongest); the summary still reads
+"value of target". The down Average tag is a rounded body over a centred 10 × 6 tip (code ::after; Figma Body radius on
+all corners, Tip 10 × 6). The chart playground covers the whole family (7 kinds, Compare, Average) at 520px.
+
+2026-10-13, the user's next edit: the comparison line and its dot take Color/Border/Neutral/Solid (a neutral reference,
+like the Trend primitive's History line), not the Chart Sector/Primary style; 40% and dash 4 / 5 stay. Moved from the
+cover instance into the main (15426:2663, 15426:2665); code follows. The legend's "Collected" item is still Legend-Item
+Color=Primary (the same black in the Neutral themes; a Brand theme would tint it — flagged to the user).
+Figma: Bar Horizontal's Tooltip 15321:83482 removed; `Values` column 15435:2521 (Value rows 15435:2522 … 2528,
+Label/Small/Medium, Neutral/Light, the active row Strongest); the Chart row's end padding removed, as in code.

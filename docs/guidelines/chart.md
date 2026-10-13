@@ -25,8 +25,8 @@ One chart family in one style: how a value changes over time (Line), compares ac
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition` | Accent/Solid 2px line + Accent area; compare: a 2px Color Chart Sector/Primary line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart) |
-| Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small |
+| Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition` | Accent/Solid 2px line + Accent area; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart) |
+| Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched (Support/Neutral/Pale under Border/Neutral/Pale stripes); Corner-Radius/Small; horizontal bars end each row with its value instead of a Tooltip |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small |
 | Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/3 figure) |
 | Radial | `RadialChart data[] {id, label, value} · max · value · label · size · legendPosition` | 10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first |
@@ -45,7 +45,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | --- | --- | --- | --- |
 | `data` (required) | `ChartPoint[]` | — | One point per period (`{ label, value }`). Keep 4–12 periods. |
 | `label` | `string` | — | What the line measures ("Invoiced"), named in the legend and the summary once there is a `compare`. Default: the aria-label. |
-| `compare` | `ChartCompare` | — | A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. |
+| `compare` | `ChartCompare` | — | A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. |
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)` | Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. |
 | `height` | `number` | `280` | Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). |
@@ -59,7 +59,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the line (not the comparison), tagged "Avg $95.4K" (Figma Show Average). |
 
 ### BarChart
-Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a category column, 24px bars and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
+Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

@@ -31,7 +31,7 @@
           "type": "ChartCompare",
           "required": false,
           "default": null,
-          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart\n Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid\n line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
           "deprecated": null
         },
         {
@@ -127,7 +127,7 @@
     {
       "name": "BarChart",
       "file": "src/components/Chart/BarChart.tsx",
-      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a\ncategory column, 24px bars and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.",
+      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a\ncategory column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.",
       "deprecated": null,
       "extends": null,
       "props": [
