@@ -197,7 +197,7 @@ export interface ChartCardProps {
   icon?: IconName | ReactNode;
   /** One line under the title that says what the figure is ("Available revenue in your wallet"), Body/Small/Regular. */
   description?: ReactNode;
-  /** The headline figure the chart explains ("$4,346.00"), Heading/3 like a medium Metric. */
+  /** The headline figure the chart explains ("$4,346.00"), Heading/2 (Figma Chart-Card Heading > Value). */
   value?: ReactNode;
   /** Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. */
   onOpen?: () => void;
@@ -243,7 +243,7 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
             {onOpen ? nest("Open", <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} />) : null}
           </div>
           {description ? <p className={`zen-chart-card__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
-          {value !== undefined && value !== null && value !== false ? <p className={`zen-chart-card__value ${typographyStyles["Heading/3"]}`}>{value}</p> : null}
+          {value !== undefined && value !== null && value !== false ? <p className={`zen-chart-card__value ${typographyStyles["Heading/2"]}`}>{value}</p> : null}
         </div>
         {ranges?.length ? nest("Ranges", <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} />) : null}
         <EmptyStateCardContext.Provider value={headingLevel}>{nest.slot(children)}</EmptyStateCardContext.Provider>

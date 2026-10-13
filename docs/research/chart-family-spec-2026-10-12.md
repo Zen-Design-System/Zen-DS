@@ -39,7 +39,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Donut % pill | Surface/Default, Label/Small/Medium · Content/Neutral/Strongest, Corner-Radius/Rounded; shown when the slice ≥ 6% |
 | Centre figure (Donut, Radial) | Heading/4 · Content/Neutral/Strongest, caption Caption/Regular · Content/Neutral/Light |
 | Average line (`showAverage`: Line, Bar, Stack bar) | 2px Border/Neutral/Solid dots every 6px, no ring (the user, 2026-10-13: the Surface ring went); tag Label/Small/Medium · Content/Inverse/Strongest on Background/Neutral/Solid, Corner-Radius/XSmall, 6px tip pointing along the rule; at the plot's start (vertical), on top (horizontal bars). Mean of the first series · closed bars · column totals |
-| Card header | [Icon 20 Content/Neutral/Strongest] Heading/Subheading title … chevron IconButton (main tertiary 2xs); description Body/Small/Regular · Content/Neutral/Base; value Heading/3 (Metric medium) |
+| Card header | [Icon 20 Content/Neutral/Strongest] Heading/Subheading title … chevron IconButton (main tertiary 2xs); description Body/Small/Regular · Content/Neutral/Base; value Heading/2 (Figma Heading > Value, 2026-10-14) |
 
 Geometry: plot lanes 36px top (Tooltip) / 28px bottom (X labels); bar column = 2px side padding, bar width ≤ 40px
 (vertical); horizontal bars 24px thick, gap Spacing/Gap/Medium (16); heatmap cells gap Spacing/Gap/2XSmall (4), 24px
@@ -122,7 +122,7 @@ and "$0".
 - Gaps: the slices meet exactly and a mask cuts a straight 4px line along each edge, so every gap has parallel sides
   (the angular gaps were wedges, wider at the rim: "spacing giữa các pie không đều nhau nhìn xấu").
 - `totalPosition="start"` (Figma `Total=Start`): the total (Body/Small/Regular caption in Content/Neutral/Base,
-  Heading/3 figure — the Chart Card's description and value) leads a start column, the legend lists down at its foot,
+  Heading/2 figure — the Chart Card's description and value) leads a start column, the legend lists down at its foot,
   the ring stands at the end with an empty hole; a picked slice takes the total's place. Narrow boxes wrap: the column,
   then the ring.
 - Figma (Chart/Donut-Chart 15324:80365): each `Slice` is now a SUBTRACT boolean of its exact `Arc` (innerRadius 0.56,

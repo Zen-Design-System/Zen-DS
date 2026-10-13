@@ -321,7 +321,7 @@
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -645,7 +645,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/3 like a medium Metric.",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
           "deprecated": null
         },
         {

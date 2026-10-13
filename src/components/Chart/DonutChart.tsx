@@ -62,7 +62,7 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
  * Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,
  * parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %
  * pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)
- * — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as
+ * — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as
  * the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump
  * to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365
  * (Legend=Bottom · Start).
@@ -139,7 +139,7 @@ export function DonutChart({ data, format = defaultFormat, size = 200, "aria-lab
         <div className="zen-chart__side">
           <div className="zen-chart__total" aria-hidden="true">
             <span className={`zen-chart__total-label ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
-            <span className={`zen-chart__total-value ${typographyStyles["Heading/3"]}`}>{figure}</span>
+            <span className={`zen-chart__total-value ${typographyStyles["Heading/2"]}`}>{figure}</span>
           </div>
           {legend}
         </div>

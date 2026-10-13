@@ -19,6 +19,8 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Chart values are larger, as in Figma: the `ChartCard` value and the `DonutChart` total beside the ring
+  (`totalPosition="start"`) are Heading/2 (were Heading/3).
 - Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
   and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
 - Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
