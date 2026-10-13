@@ -64,14 +64,15 @@ removed (four unused colour ramps were, see Removed).
 - **Chart family in one style, with motion** (the user, 2026-10-12; spec `docs/research/chart-family-spec-2026-10-12.md`):
   new `BarChart` (vertical or `orientation="horizontal"`, `projected` bars hatched, a `target` track), `DonutChart`
   (% pills, the total in the centre), `RadialChart` (ring gauges over dotted tracks) and `HeatmapChart` (row × column on
-  five Support/Brand steps, 2D keys). `LineChart` takes `series` (a `dashed` comparison, a `gradient` or `hatch` fill,
-  a legend); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
+  five Support/Brand steps, 2D keys). `LineChart` takes `compare` (the line chart plus one dashed comparison line and a
+  legend, Figma Chart/Multi-Line-Chart); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
   and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
   motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean with an
   "Avg" tag (Figma Show Average). DonutChart slices are parted by even, straight 4px gaps, and
   `totalPosition="start"` puts the total beside the ring above the legend. Stacked columns now take Corner-Radius/Small
-  on every corner, like the bars. Zen
-  Studio's Charts palette gains Bar, Horizontal bar, Line (two series), Donut, Radial and Heatmap. Harness:
+  on every corner, like the bars; projected bars and target tracks take the Figma hatch (Support/Neutral/Pale under
+  Border/Neutral/Pale stripes). Zen
+  Studio's Charts palette gains Bar, Horizontal bar, Line with comparison, Donut, Radial and Heatmap. Harness:
   `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
 - Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
   and Max width on the instance): a card can fill its column up to a readable width and centre itself without a

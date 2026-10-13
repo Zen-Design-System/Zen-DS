@@ -280,10 +280,10 @@ export const rows = [
     },
   },
   {
-    id: "LB-15", feature: "Assets › Components › Charts: Bar, Horizontal bar, Line (two series), Donut, Radial and Heatmap each add into the selected layout and draw on the canvas", wp: "chart family 2026-10-12",
+    id: "LB-15", feature: "Assets › Components › Charts: Bar, Horizontal bar, Line with comparison, Donut, Radial and Heatmap each add into the selected layout and draw on the canvas", wp: "chart family 2026-10-12",
     async run(ctx) {
       const { page, id } = await newPage(ctx, { device: "desktop" });
-      const charts = [["Bar chart", "BarChart"], ["Horizontal bar chart", "BarChart"], ["Line chart, two series", "LineChart"], ["Donut chart", "DonutChart"], ["Radial chart", "RadialChart"], ["Heatmap", "HeatmapChart"]];
+      const charts = [["Bar chart", "BarChart"], ["Horizontal bar chart", "BarChart"], ["Line chart with comparison", "LineChart"], ["Donut chart", "DonutChart"], ["Radial chart", "RadialChart"], ["Heatmap", "HeatmapChart"]];
       const drawn = () => page.locator('.studio-viewport [aria-roledescription="chart"]').count();
       for (const [index, [label, tag]] of charts.entries()) {
         await selectStack(page, id);

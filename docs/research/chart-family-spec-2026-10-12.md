@@ -12,7 +12,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 
 | Component | What it shows | Moodboard card |
 | --- | --- | --- |
-| `LineChart` (extended) | One measure over time (unchanged default), or 2–4 series (`series`, `dashed`, `fill`) | Analytics 2, Analytics 3, Balance statistics |
+| `LineChart` (extended) | One measure over time (unchanged default), plus an optional dashed comparison (`compare`, 2026-10-13: the user wanted the Line chart with one compare line, not several series) | Analytics 2, Analytics 3, Balance statistics |
 | `BarChart` (new) | One measure per category or period; vertical or horizontal; projected (hatched) bars; a target track | Revenue 2, Revenue 3 |
 | `StackBarChart` (restyled) | Part-to-whole per period | — |
 | `DonutChart` (new) | Shares of one total, with % pills and a centre figure | Transfer history 2 |
@@ -32,8 +32,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Legend | 12px dot (Element-Size/Popular/2XSmall), Spacing/Gap/2XSmall to its label, Caption/Regular · Content/Neutral/Strongest; items gap 4/8; `legendPosition` bottom (default) or top |
 | Categorical colours (series, slices, rings) | `chartPalette` = the Figma colour styles Color Chart Sector/Primary · Secondary · Tertiary (Support Cyan) · Quaternary (Violet) · Quinary (Yellow) · Senary (Orange Solid) · Septenary (Red Soft). In Figma, chart marks take these **styles**, never the variables directly (the user, 2026-10-13) |
 | Single measure | Line: Border/Accent/Solid + Accent area (unchanged). Bars: Chart/Sector/Primary, the active bar Chart/Sector/Secondary |
-| Projected bar, target track | Hatch: 45° stripes of Border/Neutral/Subtle on transparent |
-| Hatched area (`fill="hatch"`) | The series colour, 1px stripes every 6px at 32% |
+| Projected bar, target track | Hatch (the user's Figma edit, 2026-10-13): Support/Neutral/Pale under 1.5px Border/Neutral/Pale stripes at 45°, 6px apart along the axis, no outline |
 | Heatmap ramp (5 levels, low → high) | Support/Brand Pale · Subtle · Soft · Solid · Deep |
 | Bars, heatmap cells | Corner-Radius/Small on every corner (stack: the column, outer corners) |
 | Ring and donut tracks | Dotted ring: Border/Neutral/Subtle, dash 0 × 6 round caps |
@@ -82,7 +81,7 @@ header properties).
 | Figma | Node | Variants | Code |
 | --- | --- | --- | --- |
 | Chart/Bar-Chart | 15321:84071 | Orientation=Vertical 15321:80574 · Horizontal 15321:82941 | `BarChart` `orientation` |
-| Chart/Multi-Line-Chart | 15323:80980 | Fill=Hatch 15322:962 · None 15323:80892 | `LineChart` `series` (`fill`, `dashed`) |
+| Chart/Multi-Line-Chart | 15426:2521 (rebuilt 2026-10-13, §5.4; the old set 15323:80980 is deleted) | — | `LineChart` `compare` |
 | Chart/Donut-Chart | 15324:80365 | Legend=Bottom 15324:984 · Start 15324:1057 | `DonutChart` `legendPosition` |
 | Chart/Radial-Chart | 15325:1135 | Legend=Bottom 15325:1029 · End 15325:1086 | `RadialChart` `legendPosition` |
 | Chart/Heatmap-Chart | 15326:1043 | — | `HeatmapChart` |
@@ -141,3 +140,19 @@ Septenary` (fill/stroke style ids, no direct variable): Bar 13, Multi-Line 9, Do
 Before/after PNGs identical. `.Chart/Legend-Item` `Color` options renamed to the style names (Primary, Secondary,
 Tertiary, Quaternary, Quinary, Senary, Septenary); the old Green option (unused, no style) became Septenary (Red Soft),
 as the code palette. The original Stack-Bar already used the styles; Line-Chart has no sector paint (Border/Accent).
+
+### 5.4 Multi-line = the Line chart + one dashed comparison (2026-10-13, the user)
+
+"multi-line chart nên làm lại dựa trên line chart đang có, chỉ thêm 1 dash line compare". Code: `LineChart` loses
+`series` and the hatch fill and takes `compare` ({ label, values }) and `label`: the line keeps its Accent/Solid line and
+gradient area, the comparison is a dashed 2px Color Chart Sector/Primary line with its own active dot, the Tooltip reads
+both values and a legend names both. Figma: Chart/Multi-Line-Chart rebuilt from Chart/Line-Chart plus the dashed line.
+The same day the user's own Figma edit to `.Chart/Hatch` and the projected bars/target tracks (Support/Neutral/Pale fill,
+Border/Neutral/Pale stripes, no outline) is mirrored in chart.css.
+
+Figma as built: Chart/Multi-Line-Chart 15426:2521 (one component, 297 wide like Line-Chart): Line-Chart's Heading,
+Segmented and `.Chart/Line-Chart/Trend` plot, a `Legend` row 15426:2587 (Legend-Item Secondary "Invoiced", Primary
+"Collected"), the compare frame 15426:2662 (`Line` 15426:2663, 2px dash 6/6 round caps, style Color Chart
+Sector/Primary; `Dot` 15426:2665) and `Average` 15426:2666. Properties: Show Icon, Icon, Title, Show Description,
+Description, Show Value, Value, Show Ranges, Show Open, Show Average, Average (#15426:0–10). MULTI-LINE cover instance
+15426:2883. Deleted: the old set 15323:80980 and its Fill=Hatch / Fill=None variants.

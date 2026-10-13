@@ -8,7 +8,8 @@ import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { BarChart, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart, ZenProvider } from "../../src/index";
 
-const wrap = (node: ReactNode, width = 480) => <ZenProvider><div style={{ width }}>{node}</div></ZenProvider>;
+// pointer-events: none keeps the runner's resting mouse from hovering an item (CI saw "Jan" picked under it).
+const wrap = (node: ReactNode, width = 480) => <ZenProvider><div style={{ width, pointerEvents: "none" }}>{node}</div></ZenProvider>;
 const summaryOf = (plot: Element) => document.getElementById(plot.getAttribute("aria-describedby") ?? "")?.textContent ?? "";
 
 async function focusChart(name: string) {
@@ -45,11 +46,14 @@ describe("chart family keyboard", () => {
     expect(summaryOf(plot)).toBe("Delivery: 7 of 9 (2 of 2)");
   });
 
-  it("LineChart with series: the summary reads every series", async () => {
-    await render(wrap(<LineChart aria-label="Cash" series={[{ id: "in", label: "Invoiced" }, { id: "out", label: "Collected", dashed: true }]} data={[{ label: "Aug", values: { in: 9, out: 8 } }, { label: "Sep", values: { in: 10, out: 7 } }]} />));
+  it("LineChart compare: the line chart plus one dashed comparison, both in the summary and the legend", async () => {
+    await render(wrap(<LineChart aria-label="Cash" label="Invoiced" compare={{ label: "Collected", values: [8, 7] }} data={[{ label: "Aug", value: 9 }, { label: "Sep", value: 10 }]} />));
     const plot = await focusChart("Cash");
     expect(summaryOf(plot)).toBe("Sep: Invoiced 10, Collected 7 (2 of 2)");
     expect(document.querySelectorAll(".zen-chart__legend li")).toHaveLength(2);
+    expect(plot.querySelectorAll(".zen-chart__line")).toHaveLength(2);
+    expect(plot.querySelector(".zen-chart__line[data-compare]")).not.toBeNull();
+    expect(plot.querySelectorAll(".zen-chart__area")).toHaveLength(1); // the gradient stays under the line only
   });
 
   it("DonutChart: the overview first, then ←/→ pick a slice and the centre follows", async () => {
@@ -120,10 +124,10 @@ describe("average line", () => {
     expect(line.style.bottom).toBe("15%");
   });
 
-  it("LineChart and StackBarChart: off by default, the first series / the totals when on", async () => {
+  it("LineChart and StackBarChart: off by default, the line (not its comparison) / the totals when on", async () => {
     await render(wrap(<>
       <LineChart aria-label="No avg" data={[{ label: "A", value: 2 }, { label: "B", value: 4 }]} />
-      <LineChart aria-label="Line avg" showAverage series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "x", values: { a: 2, b: 9 } }, { label: "y", values: { a: 4, b: 9 } }]} />
+      <LineChart aria-label="Line avg" showAverage compare={{ label: "B", values: [9, 9] }} data={[{ label: "x", value: 2 }, { label: "y", value: 4 }]} />
       <StackBarChart aria-label="Stack avg" showAverage series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "x", values: { a: 2, b: 2 } }, { label: "y", values: { a: 4, b: 4 } }]} />
     </>));
     expect(document.querySelector('[aria-label="No avg"] .zen-chart__average')).toBeNull();

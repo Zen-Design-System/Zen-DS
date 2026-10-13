@@ -41,12 +41,12 @@ export const Card: Story = {
   },
 };
 
-/** Two series: the measured one hatched, the comparison dashed, the legend on top. */
-export const TwoSeries: Story = {
+/** The line chart with one dashed comparison and a legend (Figma Chart/Multi-Line-Chart). */
+export const WithComparison: Story = {
   render: () => (
-    <LineChart aria-label="Invoiced and collected" legendPosition="top"
-      series={[{ id: "invoiced", label: "Invoiced", fill: "hatch" }, { id: "collected", label: "Collected", dashed: true }]}
-      data={["Apr", "May", "Jun", "Jul", "Aug", "Sep"].map((label, i) => ({ label, values: { invoiced: 82 + i * 4, collected: 79 + i * 3 } }))} />
+    <LineChart aria-label="Invoiced and collected" legendPosition="top" label="Invoiced"
+      data={["Apr", "May", "Jun", "Jul", "Aug", "Sep"].map((label, i) => ({ label, value: 82 + i * 4 }))}
+      compare={{ label: "Collected", values: [79, 82, 85, 88, 91, 94] }} />
   ),
 };
 

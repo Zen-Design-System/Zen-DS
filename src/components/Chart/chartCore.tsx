@@ -13,21 +13,19 @@ export interface ChartPoint {
   /** BarChart: the goal for this bar, drawn as a hatched track behind it; the Tooltip reads "value of target". */
   target?: number;
 }
-/** How a LineChart series fills the area under its line. */
-export type ChartFill = "gradient" | "hatch" | "none";
+/** How a LineChart fills the area under its line. */
+export type ChartFill = "gradient" | "none";
 export interface ChartSeries {
   id: string;
   label: string;
   /** CSS colour; defaults walk the Figma colour styles Color Chart Sector/Primary · Secondary · Tertiary … Septenary. */
   color?: string;
-  /** LineChart: a dashed line, for a comparison (last year, a plan) next to the measured series. */
-  dashed?: boolean;
-  /** LineChart: the area under the line. Default: none when the chart has several series. */
-  fill?: ChartFill;
 }
-/** One period of a multi-series chart: a value per series id. */
+/** A LineChart comparison: a dashed line over the same periods (last year, the plan), one value per point, in order. */
+export interface ChartCompare { label: string; values: number[] }
+/** One period of a stacked chart: a value per series id. */
 export interface ChartDatum { label: string; values: Record<string, number> }
-/** @deprecated Use ChartDatum (the same shape, shared by StackBarChart and multi-series LineChart). */
+/** @deprecated Use ChartDatum (the same shape). */
 export type ChartStack = ChartDatum;
 /** One share of a DonutChart, or one ring of a RadialChart. */
 export interface ChartSlice { id: string; label: string; value: number; color?: string }

@@ -314,3 +314,8 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
 - 2026-10-13 (the user): chart colours from the "Color Chart Sector" paint styles, not variables. Code `chartPalette`
   follows the 7 styles (6th/7th now Orange Solid, Red Soft; was Green, Orange). Figma: 65 sector paints re-pointed to
   the styles (no visual change), Legend-Item options renamed to the style names. Memory: figma-chart-colours-use-styles.
+- 2026-10-13 (the user): "multi-line = the Line chart + one dashed compare line". LineChart `series`/hatch fill →
+  `compare` + `label` (Accent line and area kept, dashed Chart/Sector/Primary comparison, legend, both values in the
+  Tooltip); examples, story, palette item, harness (chart/shares-need-legend reads `compare`), tests updated. The user's
+  Figma hatch edit (projected bars, target tracks) mirrored in chart.css. CI's "Jan picked" failure: the runner's
+  resting mouse hovered the first sector — the test wrapper now has pointer-events: none. Merged main (#35) again.

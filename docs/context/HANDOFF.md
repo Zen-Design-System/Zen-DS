@@ -131,7 +131,7 @@ Last updated: 2026-10-12.
   `zen/fix/chip-figma-names`); Date field waits on the Figma rename.
 - **Chart family (2026-10-12, branch `zen/feat/charts`, PR #33, worktree `Zen-CodeBase/Zen-DS-charts`):** the user's moodboard
   in Zen tokens, one style for every chart, with motion. New BarChart (vertical/horizontal, projected, target),
-  DonutChart, RadialChart, HeatmapChart; LineChart `series`; ChartCard `icon`/`description`/`value`; shared
+  DonutChart, RadialChart, HeatmapChart; LineChart `compare`; ChartCard `icon`/`description`/`value`; shared
   `chartCore.tsx`; `showAverage` (Line, Bar, Stack-bar); Studio palette items; harness `chart/*`. Spec
   `docs/research/chart-family-spec-2026-10-12.md`; the Figma side (❖ Chart page, IDs in spec §5.1) is built from it in
   the official file at the user's request. Open: Export › Figma mapping and Figma contracts (BACKLOG).

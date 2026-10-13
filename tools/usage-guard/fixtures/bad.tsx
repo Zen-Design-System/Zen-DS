@@ -239,7 +239,7 @@ export const Bad = () => <>
   {/* expect: chart/shares-need-legend */}
   <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} showLegend={false} />
   {/* expect: chart/shares-need-legend */}
-  <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} series={series} showLegend={false} />
+  <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} compare={compare} showLegend={false} />
   {/* expect: chart/heatmap-needs-scale */}
   <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} showLegend={false} />
   {/* expect: table/media-size-by-subtext */}

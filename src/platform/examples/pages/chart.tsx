@@ -2,7 +2,7 @@
    hours and a project's budget through ChartCard, LineChart and StackBarChart; the phone example is Alex's own hours in
    the studio app. Charts and KPI tiles may abbreviate ("$105.7K"); the report behind a chart never does. */
 import { useEffect, useId, useRef, useState } from "react";
-import { BarChart, ChartCard, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart, type ChartDatum, type ChartPoint, type ChartSlice, type ChartStack } from "../../../components/Chart";
+import { BarChart, ChartCard, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart, type ChartPoint, type ChartSlice, type ChartStack } from "../../../components/Chart";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { InlineMessage } from "../../../components/InlineMessage";
@@ -299,14 +299,14 @@ function RevenueBarsCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   );
 }
 
-/** Invoiced and collected, Apr – Sep 2026: the measured series is hatched, the comparison dashed. */
-const cashSeries = [{ id: "invoiced", label: "Invoiced", fill: "hatch" as const }, { id: "collected", label: "Collected", dashed: true }];
-const cashMonths: ChartDatum[] = studioMonths.slice(-6).map((m) => ({ label: m.label, values: { invoiced: m.invoiced, collected: m.collected } }));
+/** Invoiced per month, Apr – Sep 2026, against what was collected (the dashed comparison). */
+const cashMonths: ChartPoint[] = studioMonths.slice(-6).map((m) => ({ label: m.label, value: m.invoiced }));
+const collected = { label: "Collected", values: studioMonths.slice(-6).map((m) => m.collected) };
 
 function CashFlowCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
     <ChartCard title="Invoiced and collected" headingLevel={headingLevel} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
-      <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={cashMonths} series={cashSeries} legendPosition="top" format={formatCompactMoney} height={240} />
+      <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={cashMonths} label="Invoiced" compare={collected} legendPosition="top" format={formatCompactMoney} height={240} />
     </ChartCard>
   );
 }
@@ -451,7 +451,7 @@ const [reportOpen, setReportOpen] = useState(false);
   {
     title: "Studio analytics",
     screen: true,
-    description: "The whole chart family on one canvas, every card flat with its title as an h2 under the page title: bars with a hatched forecast, two series with a dashed comparison, a donut, a heatmap, bars against capacity and ring gauges. Each chart draws itself in as it mounts.",
+    description: "The whole chart family on one canvas, every card flat with its title as an h2 under the page title: bars with a hatched forecast, a line with a dashed comparison, a donut, a heatmap, bars against capacity and ring gauges. Each chart draws itself in as it mounts.",
     render: () => <StudioAnalyticsExample />,
     code: `<PageHeader title="Analytics" description="How Đìzai Studio earns, bills and spends its time." />
 <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
@@ -459,7 +459,8 @@ const [reportOpen, setReportOpen] = useState(false);
     <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240} showAverage />
   </ChartCard>
   <ChartCard title="Invoiced and collected" headingLevel={2} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
-    <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={months} series={cashSeries} legendPosition="top" height={240} />
+    <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoiced} label="Invoiced"
+      compare={{ label: "Collected", values: collected }} legendPosition="top" height={240} />
   </ChartCard>
   {/* Revenue by client (DonutChart), When the studio logs time (HeatmapChart),
       Hours against capacity (BarChart orientation="horizontal"), Budget used (RadialChart) */}
@@ -496,15 +497,15 @@ const [range, setRange] = useState("3m");
 </ChartCard>`,
   },
   {
-    title: "Two series and a comparison",
-    description: "Invoiced and collected share one plot: the measured series keeps a hatched area, the comparison is dashed, and the legend above names both. The Tooltip reads both values for the active month.",
+    title: "A line and its comparison",
+    description: "The line chart with one dashed comparison: what was invoiced keeps its Accent line and area, what was collected runs dashed in Chart/Sector/Primary, and the legend above names both. The Tooltip reads both values for the active month.",
     render: () => <CashFlowCard />,
-    code: `const series = [{ id: "invoiced", label: "Invoiced", fill: "hatch" }, { id: "collected", label: "Collected", dashed: true }];
-const months = [{ label: "Apr", values: { invoiced: 82300, collected: 79500 } }, /* … */];
+    code: `const invoiced = [{ label: "Apr", value: 82300 }, /* … */ { label: "Sep", value: 105700 }];
+const collected = { label: "Collected", values: [79500, /* … */ 88300] };
 
 <ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
-  <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={months} series={series}
-    legendPosition="top" format={formatCompactMoney} height={240} />
+  <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoiced} label="Invoiced"
+    compare={collected} legendPosition="top" format={formatCompactMoney} height={240} />
 </ChartCard>`,
   },
   {

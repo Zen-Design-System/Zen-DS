@@ -6397,7 +6397,7 @@
     "title": "Chart",
     "purpose": "One chart family in one style: how a value changes over time (Line), compares across periods or categories (Bar), splits a total (Stack bar, Donut), measures against a maximum (Radial) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
     "use": [
-      "A trend over 4–12 periods → LineChart; two to four measures over the same periods → LineChart series (a dashed comparison, a hatched or gradient area).",
+      "A trend over 4–12 periods → LineChart; against last year, the plan or a second measure over the same periods → LineChart compare (one dashed comparison line, with a legend).",
       "Compare periods or categories → BarChart (vertical); long category names or a goal per bar → BarChart orientation=\"horizontal\" with target; a forecast → projected bars.",
       "Part-to-whole across periods → StackBarChart with a legend.",
       "Shares of one total (2–7) → DonutChart.",
@@ -6415,8 +6415,8 @@
     "api": [
       [
         "Line",
-        "LineChart data[] {label, value} · series[] {id, label, color, dashed, fill} with data[] {label, values} · curve · fill · showLegend · legendPosition",
-        "Accent/Solid 2px line + Accent area for one measure; series in palette order, a dashed comparison, gradient or hatch area"
+        "LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition",
+        "Accent/Solid 2px line + Accent area; compare: a dashed 2px Color Chart Sector/Primary line over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart)"
       ],
       [
         "Bar",
@@ -6534,7 +6534,7 @@
       {
         "id": "chart/shares-need-legend",
         "severity": "error",
-        "summary": "Donut slices, radial rings and the series of a multi-series line chart keep their legend so colour is never the only key.",
+        "summary": "Donut slices, radial rings and a line chart's comparison keep their legend so colour is never the only key.",
         "allow": "chart-legend"
       },
       {

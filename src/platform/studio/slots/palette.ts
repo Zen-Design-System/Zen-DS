@@ -428,15 +428,11 @@ export const PALETTE: readonly PaletteItem[] = [
     ),
   },
   {
-    id: "multi-line-chart", label: "Line chart, two series", group: "Charts", caption: "Dashed comparison", root: "LineChart", components: ["LineChart"], interactive: false, input: false,
+    id: "multi-line-chart", label: "Line chart with comparison", group: "Charts", caption: "Dashed compare line", root: "LineChart", components: ["LineChart"], interactive: false, input: false,
     build: () => lines(
-      `<LineChart aria-label="Invoiced and collected per month, Jul – Sep 2026" height={220} legendPosition="top"`,
-      `  series={[{ id: "invoiced", label: "Invoiced", fill: "hatch" }, { id: "collected", label: "Collected", dashed: true }]}`,
-      `  data={[`,
-      `    { label: "Jul", values: { invoiced: 94100, collected: 91700 } },`,
-      `    { label: "Aug", values: { invoiced: 97000, collected: 95800 } },`,
-      `    { label: "Sep", values: { invoiced: 105700, collected: 88300 } },`,
-      `  ]} />`,
+      `<LineChart aria-label="Invoiced and collected per month, Jul – Sep 2026" height={220} legendPosition="top" label="Invoiced"`,
+      `  data={[{ label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 }]}`,
+      `  compare={{ label: "Collected", values: [91700, 95800, 88300] }} />`,
     ),
   },
   {

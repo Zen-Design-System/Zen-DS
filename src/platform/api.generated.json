@@ -11539,18 +11539,26 @@
       "props": [
         {
           "name": "data",
-          "type": "ChartPoint[] | ChartDatum[]",
+          "type": "ChartPoint[]",
           "required": true,
           "default": null,
-          "description": "One point per period (`{ label, value }`) for one measure, or with `series` one value per series per period\n (`{ label, values: { income: 320, expenses: 210 } }`). Keep 4–12 periods.",
+          "description": "One point per period (`{ label, value }`). Keep 4–12 periods.",
           "deprecated": null
         },
         {
-          "name": "series",
-          "type": "ChartSeries[]",
+          "name": "label",
+          "type": "string",
           "required": false,
           "default": null,
-          "description": "Two to four series drawn in palette order (Chart/Sector/Primary, Secondary, Support Cyan…), with a legend. Mark a\n comparison `dashed`; give the measured one a `fill`. Omit for one measure: an Accent line over an Accent area.",
+          "description": "What the line measures (\"Invoiced\"), named in the legend and the summary once there is a `compare`. Default: the\n aria-label.",
+          "deprecated": null
+        },
+        {
+          "name": "compare",
+          "type": "ChartCompare",
+          "required": false,
+          "default": null,
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a dashed 2px line in Color\n Chart Sector/Primary with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
           "deprecated": null
         },
         {
@@ -11603,10 +11611,10 @@
         },
         {
           "name": "fill",
-          "type": "\"gradient\" | \"hatch\" | \"none\"",
+          "type": "\"gradient\" | \"none\"",
           "required": false,
-          "default": null,
-          "description": "One measure: the area under the line — `gradient` (default, Accent/Solid → Accent/Subtle), `hatch` or `none`.",
+          "default": "\"gradient\"",
+          "description": "The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`.",
           "deprecated": null
         },
         {
@@ -11614,7 +11622,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Series legend (default on when there are series; colour is never the only key).",
+          "description": "The legend of the line and its comparison (default on with `compare`; colour is never the only key).",
           "deprecated": null
         },
         {
@@ -11638,7 +11646,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "A dotted line at the mean of the series (the first one with `series`), tagged \"Avg $95.4K\" (Figma Show Average).",
+          "description": "A dotted line at the mean of the line (not the comparison), tagged \"Avg $95.4K\" (Figma Show Average).",
           "deprecated": null
         }
       ]

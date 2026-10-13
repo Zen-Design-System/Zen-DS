@@ -20,9 +20,10 @@
 .zen-chart__marks { position: absolute; inset: 0; }
 .zen-chart__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .zen-chart__line { fill: none; stroke: var(--zen-color-border-accent-solid-default, #ff66d4); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
-.zen-chart__line[data-dashed="true"] { stroke-dasharray: 6 6; }
-/* A hatched area: the series colour in 45° stripes, cut to the area by a mask (Chart.tsx areaMask). */
-.zen-chart__hatch { position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, var(--zen-chart-colour, var(--zen-color-border-accent-solid-default)) 0 1px, transparent 1px 6px); opacity: .32; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+/* The comparison (LineChart compare, Figma Chart/Multi-Line-Chart): a dashed 2px line in Color Chart Sector/Primary.
+   zen-allow-dashed-color: a data series drawn dashed (the comparison), in its chart colour — not a container edge. */
+.zen-chart__line[data-compare="true"] { stroke: var(--zen-chart-sector-primary, #111); stroke-dasharray: 6 6; }
+.zen-chart__dot[data-compare="true"] { border-color: var(--zen-chart-sector-primary, #111); }
 .zen-chart__dot { position: absolute; width: 10px; height: 10px; box-sizing: border-box; border: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); pointer-events: none; transform: translate(-50%, -50%); }
 
 /* Sectors: one column per X value; a 1px rule (Active/Accent/Subtle, Solid when active) and the X label (a pill when active). */
@@ -65,9 +66,10 @@
 .zen-chart__column:not([data-active="true"]) .zen-chart__stack { opacity: .88; }
 .zen-chart__bar { min-height: 2px; background: var(--zen-chart-bar, var(--zen-chart-sector-primary, #111)); }
 .zen-chart__column[data-active="true"] .zen-chart__bar, .zen-chart__htrack[data-active="true"] .zen-chart__bar { background: var(--zen-chart-bar-active, var(--zen-chart-sector-secondary, #ff66d4)); }
-/* Projected bars and target tracks: 45° stripes of Border/Neutral/Subtle (the active projected bar takes its colour). */
-.zen-chart__bar[data-projected="true"], .zen-chart__target { --zen-chart-hatch: var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 14%)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 6px); box-shadow: inset 0 0 0 1px var(--zen-chart-hatch); }
-.zen-chart__column[data-active="true"] .zen-chart__bar[data-projected="true"], .zen-chart__htrack[data-active="true"] .zen-chart__bar[data-projected="true"] { --zen-chart-hatch: var(--zen-chart-bar-active, var(--zen-chart-sector-secondary, #ff66d4)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 6px); }
+/* Projected bars and target tracks (Figma .Chart/Hatch, the user's 2026-10-13 edit): Support/Neutral/Pale under 1.5px
+   Border/Neutral/Pale stripes at 45°, 6px apart along the axis; no outline. The active projected bar stripes in its colour. */
+.zen-chart__bar[data-projected="true"], .zen-chart__target { --zen-chart-hatch: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 7%)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 4.25px), var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
+.zen-chart__column[data-active="true"] .zen-chart__bar[data-projected="true"], .zen-chart__htrack[data-active="true"] .zen-chart__bar[data-projected="true"] { --zen-chart-hatch: var(--zen-chart-bar-active, var(--zen-chart-sector-secondary, #ff66d4)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 4.25px), var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
 
 /* Horizontal bars: category pills · 24px bars on a dashed vertical grid · the value axis below (Label/Small/Medium). The
    end padding keeps the last axis label inside the chart. */

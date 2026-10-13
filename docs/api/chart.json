@@ -6,24 +6,32 @@
     {
       "name": "LineChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. With `series`: one 2px line per series in palette order (a\n`dashed` comparison, a gradient or hatched `fill`) and a legend: Figma Chart/Multi-Line-Chart 15323:80980 (Fill=Hatch ·\nNone). ←/→, Home/End move between points.",
+      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same\nchart plus one dashed Color Chart Sector/Primary line, both values in the Tooltip and a legend. ←/→, Home/End move\nbetween points.",
       "deprecated": null,
       "extends": null,
       "props": [
         {
           "name": "data",
-          "type": "ChartPoint[] | ChartDatum[]",
+          "type": "ChartPoint[]",
           "required": true,
           "default": null,
-          "description": "One point per period (`{ label, value }`) for one measure, or with `series` one value per series per period\n (`{ label, values: { income: 320, expenses: 210 } }`). Keep 4–12 periods.",
+          "description": "One point per period (`{ label, value }`). Keep 4–12 periods.",
           "deprecated": null
         },
         {
-          "name": "series",
-          "type": "ChartSeries[]",
+          "name": "label",
+          "type": "string",
           "required": false,
           "default": null,
-          "description": "Two to four series drawn in palette order (Chart/Sector/Primary, Secondary, Support Cyan…), with a legend. Mark a\n comparison `dashed`; give the measured one a `fill`. Omit for one measure: an Accent line over an Accent area.",
+          "description": "What the line measures (\"Invoiced\"), named in the legend and the summary once there is a `compare`. Default: the\n aria-label.",
+          "deprecated": null
+        },
+        {
+          "name": "compare",
+          "type": "ChartCompare",
+          "required": false,
+          "default": null,
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a dashed 2px line in Color\n Chart Sector/Primary with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
           "deprecated": null
         },
         {
@@ -76,10 +84,10 @@
         },
         {
           "name": "fill",
-          "type": "\"gradient\" | \"hatch\" | \"none\"",
+          "type": "\"gradient\" | \"none\"",
           "required": false,
-          "default": null,
-          "description": "One measure: the area under the line — `gradient` (default, Accent/Solid → Accent/Subtle), `hatch` or `none`.",
+          "default": "\"gradient\"",
+          "description": "The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`.",
           "deprecated": null
         },
         {
@@ -87,7 +95,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Series legend (default on when there are series; colour is never the only key).",
+          "description": "The legend of the line and its comparison (default on with `compare`; colour is never the only key).",
           "deprecated": null
         },
         {
@@ -111,7 +119,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "A dotted line at the mean of the series (the first one with `series`), tagged \"Avg $95.4K\" (Figma Show Average).",
+          "description": "A dotted line at the mean of the line (not the comparison), tagged \"Avg $95.4K\" (Figma Show Average).",
           "deprecated": null
         }
       ]
@@ -732,10 +740,10 @@
     }
   ],
   "types": {
+    "ChartCompare": "interface ChartCompare { label: string; values: number[] }",
     "ChartDatum": "interface ChartDatum { label: string; values: Record<string, number> }",
-    "ChartFill": "type ChartFill = \"gradient\" | \"hatch\" | \"none\"",
     "ChartPoint": "interface ChartPoint { label: string; value: number; projected?: boolean; target?: number; }",
-    "ChartSeries": "interface ChartSeries { id: string; label: string; color?: string; dashed?: boolean; fill?: ChartFill; }",
+    "ChartSeries": "interface ChartSeries { id: string; label: string; color?: string; }",
     "ChartSlice": "interface ChartSlice { id: string; label: string; value: number; color?: string }",
     "SegmentedOption": "type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; \"aria-label\"?: string; }",
     "SegmentedState": "type SegmentedState = \"default\" | \"hover\" | \"focused\" | \"disabled\""
