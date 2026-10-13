@@ -2142,6 +2142,38 @@
         }
       },
       {
+        "name": "Color/Focus/Positive/Solid",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Positive/9}",
+          "Dark": "{Dark/Positive/9}"
+        }
+      },
+      {
+        "name": "Color/Focus/Positive/Subtle",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Positive-Alpha/4}",
+          "Dark": "{Dark/Positive-Alpha/4}"
+        }
+      },
+      {
+        "name": "Color/Focus/Negative/Solid",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Negative/9}",
+          "Dark": "{Dark/Negative/9}"
+        }
+      },
+      {
+        "name": "Color/Focus/Negative/Subtle",
+        "type": "COLOR",
+        "valuesByMode": {
+          "Light": "{Light/Negative-Alpha/4}",
+          "Dark": "{Dark/Negative-Alpha/4}"
+        }
+      },
+      {
         "name": "Color/Border/Overlay/Pale/Default",
         "type": "COLOR",
         "valuesByMode": {

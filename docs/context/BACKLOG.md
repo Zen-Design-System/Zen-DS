@@ -372,8 +372,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (same session, for the designer): ~~Neutral-S7 focus is faint by design~~ — resolved 2026-10-03 evening: the designer
   set `Input/Border/Focus` in Neutral-S7 to Focus/Neutral/Solid (export synced). Still open: `Input/Border/Popover-Search` stores "Focus/Neutral/Solid at
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also
-  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px
-  Border/Active/Neutral/Subtle one (code uses the 3px ring on both).
+  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px one (both
+  Focus/Neutral/Subtle since 2026-10-13; code uses the 3px ring on both). Also 2026-10-13: Field-Only's
+  Inputted-Error/Blank-Error border is Color/Focus/Negative/Solid but Text-Area's is still Color/Border/Negative/Solid/Default
+  (same colour; code uses Focus/Negative/Solid on both).
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.

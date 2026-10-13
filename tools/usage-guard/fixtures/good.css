@@ -60,8 +60,8 @@
 /* Focus keeps its own look: the error field adds the ring, the selected option draws the Focus/Accent ring inside the row;
    a Figma Focused preview may share the real focus rule. */
 .x-field[data-state="error"] .x-field__control { --x-field-border: var(--zen-color-border-negative-solid-default); box-shadow: none; }
-.x-field[data-state="error"] .x-field__control:focus-within { box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle); }
-.x-field[data-state="focused"] .x-field__control, .x-field .x-field__control:focus-within { box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle); }
+.x-field[data-state="error"] .x-field__control:focus-within { box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle); }
+.x-field[data-state="focused"] .x-field__control, .x-field .x-field__control:focus-within { box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle); }
 .x-option.is-selected { background: var(--zen-color-background-active-neutral-subtle); }
 .x-option:hover, .x-option:focus-visible { background: var(--zen-color-background-neutral-flat-hover); }
 .x-option:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid); outline-offset: -3px; }
@@ -69,3 +69,6 @@
 .chip-ok { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 .toast-ok { animation: zen-motion-fade-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
 .pulse-ok { animation: zen-skeleton-pulse 1.6s ease-in-out infinite; }
+/* A 1px focus-within ring is a border (a skip link pill), and a focus pseudo inside :not() is no focus state. */
+.x-skip:focus-within { box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default); }
+.x-reveal .x-hidden:not(:focus-within) { outline: 1px solid var(--zen-color-border-neutral-subtle-default); }

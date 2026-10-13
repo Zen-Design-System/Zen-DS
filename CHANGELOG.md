@@ -19,6 +19,17 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Focus rings (2026-10-13, live Figma): four new tokens, `--zen-color-focus-positive-solid|subtle` and
+  `--zen-color-focus-negative-solid|subtle` (Color/Focus/Positive|Negative/*, the same steps as the Accent pair). Button
+  (Main, Flat, Icon-Main, Icon-Flat) now draws its 3px ring in Focus/Accent/Solid (was Accent/Subtle); Danger levels use
+  Focus/Negative/Solid and Positive levels Focus/Positive/Solid. Input's Inputted-Error / Blank-Error border reads
+  Focus/Negative/Solid (same colour as before). Top Navigation actions keep a 3px clear gap to their ring (was 2px).
+  The 3px field ring of Input (Focused/Typing, and the code-only error-focus and read-only-focus rings) is
+  Focus/Neutral/Subtle, a step lighter than Border/Active/Neutral/Subtle; AiChatField and the Chat composer, which take
+  the Input ring, follow. Stepper: Focused ring Focus/Neutral/Subtle, Error ring Focus/Negative/Subtle. New harness rule
+  `focus/ring-token` (error): a focus ring's colour comes from `--zen-color-focus-*`.
+- Text on a Zen accent solid (2026-10-13, live Figma): Base Colors On-Brand-Default (Light, Dark) and Light/On-Brand-Hover
+  are black 86% instead of white, so `--zen-color-content-on-accent-*` passes contrast on Zen pink (white was 2.5:1).
 - Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
   and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
 - Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as

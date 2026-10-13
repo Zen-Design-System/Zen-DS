@@ -81,7 +81,7 @@
       "Don't use XSmall / 2XSmall text buttons for ordinary actions (examples, cards, toolbars, forms, footers) — use sm or larger. XSmall/2XSmall are only for special compact pills beside a row, like the App Store's Get · Install · Open (harness: button/compact-size-special)."
     ],
     "a11y": [
-      "Native <button>; Enter/Space activate. Focus ring is Focus/Accent (3px).",
+      "Native <button>; Enter/Space activate. Focus ring is 3px Focus/Accent/Solid; Danger levels take Focus/Negative/Solid and Positive levels Focus/Positive/Solid.",
       "IconButton requires aria-label; add a Tooltip with the same text for sighted users.",
       "Toggle buttons expose aria-pressed.",
       "Minimum hit target 24px (2xs); prefer ≥ 32px (sm) for pointer, 40px (md) for touch."
@@ -199,8 +199,14 @@
       {
         "id": "focus/visible-ring",
         "severity": "error",
-        "summary": "Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element.",
+        "summary": "Removing the outline on focus requires a replacement ring (Color/Focus/*: Accent, or Negative/Positive on a danger or positive action) on the same element.",
         "allow": "focus-ring"
+      },
+      {
+        "id": "focus/ring-token",
+        "severity": "error",
+        "summary": "A focus ring (an outline, or a box-shadow ring of 2px or more, on a focus state) takes its colour from Color/Focus/* (Accent, Neutral, Negative or Positive; Solid or Subtle), as every Focus-Ring in Figma does — not from a Border, Background or Content token.",
+        "allow": "focus-ring-token"
       },
       {
         "id": "api/deprecated-prop",

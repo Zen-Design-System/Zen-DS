@@ -12,7 +12,7 @@
   --zen-button-border-current: var(--zen-button-border);
   /* No-shadow is a transparent shadow (not "none") so it composes with the stroke list. */
   --zen-button-shadow: var(--zen-style-shadow-action-basic-shadow, 0 1px 1px var(--zen-color-shadow-neutral-light, #0000000a));
-  --zen-button-ring: var(--zen-color-focus-accent-subtle, #ff01a02f);
+  --zen-button-ring: var(--zen-color-focus-accent-solid, #ff6bd5);
   --zen-button-focus-radius: var(--zen-corner-radius-action-focus-medium, 1000px);
 
   position: relative;
@@ -373,7 +373,10 @@
   --zen-button-background-disabled: var(--zen-color-background-subtle-disabled);
   --zen-button-content-disabled: var(--zen-color-content-disabled);
 }
-.zen-button:not(.zen-button--icon-only)[data-appearance="main"][data-level="surface"] { --zen-button-ring: var(--zen-color-focus-accent-solid); }
+/* Figma Focus-Ring of the Danger and Positive levels (Button/Main, Icon-Main, Icon-Flat): Color/Focus/Negative|Positive/Solid.
+   Every other level, Overlay included, keeps the root's Color/Focus/Accent/Solid. */
+.zen-button:is([data-level="danger"], [data-level="danger-subtle"], [data-level="danger-secondary"]) { --zen-button-ring: var(--zen-color-focus-negative-solid, #e5532e); }
+.zen-button:is([data-level="positive"], [data-level="positive-subtle"], [data-level="positive-secondary"]) { --zen-button-ring: var(--zen-color-focus-positive-solid, #3a9c4c); }
 
 /* Figma Button/Flat and Button/Icon-Flat. Flat owns no surface or shadow; the
    level changes content color only. */
@@ -397,7 +400,7 @@
 
 /* Figma Button/Overlay and Button/Icon-Overlay. */
 /* Figma Button/Overlay + Icon-Overlay carry Effect/Overlay (background blur 100 → CSS 50px). */
-.zen-button[data-appearance="overlay"] { --zen-button-shadow: 0 0 #0000; --zen-button-ring: var(--zen-color-focus-accent-solid); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+.zen-button[data-appearance="overlay"] { --zen-button-shadow: 0 0 #0000; backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 .zen-button--icon-only[data-appearance="overlay"]:is([data-level="inverse"], [data-level="white"]):not(:disabled, [data-state="disabled"]) { --zen-button-shadow: var(--zen-style-shadow-action-basic-shadow); backdrop-filter: none; }
 /* 1px INSIDE linear gradient (top → bottom) from the Figma paint; drawn as a masked ring. */
 .zen-button[data-appearance="overlay"]:is([data-level="white-overlay"], [data-level="black-overlay"])::after {

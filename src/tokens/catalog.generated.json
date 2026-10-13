@@ -28,7 +28,7 @@
         "Light",
         "Dark"
       ],
-      "variableCount": 427
+      "variableCount": 431
     },
     "component-colors-theme": {
       "name": "Component Theme",
@@ -17686,7 +17686,7 @@
       "name": "Light/On-Brand-Default",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF"
+        "Zen": "#000000DB"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17698,7 +17698,7 @@
       "name": "Dark/On-Brand-Default",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF"
+        "Zen": "#000000DB"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17758,7 +17758,7 @@
       "name": "Light/On-Brand-Hover",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF"
+        "Zen": "#000000DB"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -21616,6 +21616,62 @@
       "valuesByMode": {
         "Light": "{Light/Neutral-Alpha/4}",
         "Dark": "{Dark/Neutral-Alpha/4}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Positive/Solid",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Positive/9}",
+        "Dark": "{Dark/Positive/9}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Positive/Subtle",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Positive-Alpha/4}",
+        "Dark": "{Dark/Positive-Alpha/4}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Negative/Solid",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Negative/9}",
+        "Dark": "{Dark/Negative/9}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Negative/Subtle",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Negative-Alpha/4}",
+        "Dark": "{Dark/Negative-Alpha/4}"
       },
       "collectionSlug": "mode-colors-semantic",
       "collectionName": "Mode Colors (Semantic)",

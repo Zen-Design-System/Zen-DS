@@ -437,6 +437,24 @@ const restingOf = (sel) => {
   const is = s.match(/:is\(((?:[^()]|\([^()]*\))*)\)/);
   return is ? selectorParts(is[1]).map((alt) => normSelector(s.replace(is[0], alt))) : [normSelector(s)];
 };
+/** A rule that styles a focus state (real focus or a Figma Focused/Typing preview); a focus pseudo inside :not(…) is not one. */
+const stylesFocus = (selector) => selectorParts(selector).some((part) => {
+  const s = part.replace(/:not\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)/g, "");
+  return FOCUS_PSEUDO.test(s) || FOCUS_PREVIEW.test(s);
+});
+/** The colour token of each focus-ring layer in a rule: every outline, and box-shadow rings of 2px or more (a 1px ring
+ *  is a border, e.g. a skip link's pill outline). The first var() of a layer is its colour. */
+const focusRingTokens = (body) => {
+  const out = [];
+  for (const [, prop, value] of body.matchAll(/(?:^|[;{\s])(outline(?:-color)?|box-shadow)\s*:([^;}]*)/g)) {
+    for (const layer of prop === "box-shadow" ? selectorParts(value) : [value]) {
+      if (prop === "box-shadow" && !/^\s*(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+(?:[2-9]|\d{2,})(?:\.\d+)?px\b/.test(layer)) continue;
+      const token = layer.match(/var\((--zen-[a-z0-9-]+)/);
+      if (token) out.push(token[1]);
+    }
+  }
+  return out;
+};
 const hasFill = (body) => /(^|[;{\s])background(-color)?\s*:/.test(body);
 /** Draws a focus indicator other than a fill: an outline with a width, a box-shadow ring, a border. */
 const drawsRing = (body) => /(^|[;{\s])outline\s*:(?!\s*(?:0|none)\b)[^;]*\d/.test(body) || /(^|[;{\s])outline-(width|style|color)\s*:/.test(body)
@@ -1142,8 +1160,15 @@ export const rules = [
     summary: "Component CSS uses --zen-* colour tokens (raw values only as var() fallbacks); raw colours break theme and mode switching.",
     check: (css) => { if (/src\/(platform|styles)\//.test(css.file)) return null; const d = rawColour(css.body); return d && `uses a raw colour in \`${d.slice(0, 70)}\` — use a --zen-color-* token (raw values only as var() fallbacks).`; } },
   { id: "focus/visible-ring", css: true, components: [], severity: "error", allow: "focus-ring", guideline: "docs/guidelines/button.md",
-    summary: "Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element.",
+    summary: "Removing the outline on focus requires a replacement ring (Color/Focus/*: Accent, or Negative/Positive on a danger or positive action) on the same element.",
     check: (css) => dropsFocus(css) && "removes the focus outline and nothing in this file draws a replacement ring — keyboard users lose their place." },
+  { id: "focus/ring-token", css: true, components: [], severity: "error", allow: "focus-ring-token", guideline: "docs/guidelines/button.md",
+    summary: "A focus ring (an outline, or a box-shadow ring of 2px or more, on a focus state) takes its colour from Color/Focus/* (Accent, Neutral, Negative or Positive; Solid or Subtle), as every Focus-Ring in Figma does — not from a Border, Background or Content token.",
+    check: ({ selector, body }) => {
+      if (!stylesFocus(selector)) return null;
+      const bad = focusRingTokens(body).find((token) => /^--zen-color-(border|background|content)-/.test(token));
+      return bad && `draws its focus ring with \`${bad}\` — focus rings use a --zen-color-focus-* token (Accent, Neutral, Negative or Positive).`;
+    } },
   { id: "motion/reduced-motion", css: true, components: [], severity: "warn", allow: "motion", guideline: "docs/guidelines/skeleton.md",
     summary: "Every animation, and every transition that moves (transform, translate, scale, rotate), has a reduced-motion fallback in the same file: a prefers-reduced-motion block, or distances multiplied by --zen-motion-movement (0 under reduced motion). Fades and colour changes need none.",
     check: (css) => {

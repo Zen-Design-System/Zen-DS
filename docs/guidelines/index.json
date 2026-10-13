@@ -87,6 +87,7 @@
         "button/one-primary",
         "button/compact-size-special",
         "focus/visible-ring",
+        "focus/ring-token",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "icon/unknown-name",

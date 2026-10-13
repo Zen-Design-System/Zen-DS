@@ -406,7 +406,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF"
+  "expected": "#000000DB"
  },
  {
   "name": "Button-Primary/Content/Default",
@@ -934,7 +934,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF"
+  "expected": "#000000DB"
  },
  {
   "name": "Checkbox/Icon-Check/Default",
@@ -1104,21 +1104,21 @@
   "expected": 3
  },
  {
-  "name": "Color/Background/Black-Overlay/Hover",
+  "name": "Color/Background/Neutral/Pale/Hover",
   "context": {},
   "type": "COLOR",
-  "expected": "#00000080"
+  "expected": "#02020213"
  },
  {
-  "name": "Color/Background/Black-Overlay/Hover",
+  "name": "Color/Background/Neutral/Pale/Hover",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#00000080"
+  "expected": "#FDFDFD16"
  },
  {
-  "name": "Color/Background/Black-Overlay/Hover",
+  "name": "Color/Background/Neutral/Pale/Hover",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -1126,20 +1126,20 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#00000080"
+  "expected": "#FDFDFD16"
  },
  {
-  "name": "Color/Background/Black-Overlay/Hover",
+  "name": "Color/Background/Neutral/Pale/Hover",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#00000080"
+  "expected": "#FDFDFD16"
  },
  {
-  "name": "Color/Background/Black-Overlay/Hover",
+  "name": "Color/Background/Neutral/Pale/Hover",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -1149,7 +1149,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#00000080"
+  "expected": "#02020213"
  },
  {
   "name": "Color/Background/Positive/Flat/Default",
@@ -1248,21 +1248,21 @@
   "expected": "#3A9C4C"
  },
  {
-  "name": "Color/Background/Support/Brown/Soft",
+  "name": "Color/Background/Support/Blue/Soft",
   "context": {},
   "type": "COLOR",
-  "expected": "#EBC8AC"
+  "expected": "#B3D0FF"
  },
  {
-  "name": "Color/Background/Support/Brown/Soft",
+  "name": "Color/Background/Support/Blue/Soft",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#503721"
+  "expected": "#173B74"
  },
  {
-  "name": "Color/Background/Support/Brown/Soft",
+  "name": "Color/Background/Support/Blue/Soft",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -1270,20 +1270,20 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#503721"
+  "expected": "#173B74"
  },
  {
-  "name": "Color/Background/Support/Brown/Soft",
+  "name": "Color/Background/Support/Blue/Soft",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#503721"
+  "expected": "#173B74"
  },
  {
-  "name": "Color/Background/Support/Brown/Soft",
+  "name": "Color/Background/Support/Blue/Soft",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -1293,7 +1293,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#EBC8AC"
+  "expected": "#B3D0FF"
  },
  {
   "name": "Color/Background/Support/Cyan/Solid",
@@ -1344,21 +1344,21 @@
   "expected": "#12A2CE"
  },
  {
-  "name": "Color/Background/Support/Green/Deep",
+  "name": "Color/Background/Support/Indigo/Deep",
   "context": {},
   "type": "COLOR",
-  "expected": "#003512"
+  "expected": "#0F0075"
  },
  {
-  "name": "Color/Background/Support/Green/Deep",
+  "name": "Color/Background/Support/Indigo/Deep",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#CAFFD2"
+  "expected": "#E4EBFF"
  },
  {
-  "name": "Color/Background/Support/Green/Deep",
+  "name": "Color/Background/Support/Indigo/Deep",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -1366,20 +1366,20 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#CAFFD2"
+  "expected": "#E4EBFF"
  },
  {
-  "name": "Color/Background/Support/Green/Deep",
+  "name": "Color/Background/Support/Indigo/Deep",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#CAFFD2"
+  "expected": "#E4EBFF"
  },
  {
-  "name": "Color/Background/Support/Green/Deep",
+  "name": "Color/Background/Support/Indigo/Deep",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -1389,24 +1389,24 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#003512"
+  "expected": "#0F0075"
  },
  {
-  "name": "Color/Background/Support/Mint/Solid",
+  "name": "Color/Background/Support/Sky/Pale",
   "context": {},
   "type": "COLOR",
-  "expected": "#40E7AD"
+  "expected": "#02C0F214"
  },
  {
-  "name": "Color/Background/Support/Mint/Solid",
+  "name": "Color/Background/Support/Sky/Pale",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "COLOR",
-  "expected": "#40E7AD"
+  "expected": "#12DAFE0E"
  },
  {
-  "name": "Color/Background/Support/Mint/Solid",
+  "name": "Color/Background/Support/Sky/Pale",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -1414,20 +1414,20 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#40E7AD"
+  "expected": "#12DAFE0E"
  },
  {
-  "name": "Color/Background/Support/Mint/Solid",
+  "name": "Color/Background/Support/Sky/Pale",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "COLOR",
-  "expected": "#40E7AD"
+  "expected": "#12DAFE0E"
  },
  {
-  "name": "Color/Background/Support/Mint/Solid",
+  "name": "Color/Background/Support/Sky/Pale",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -1437,7 +1437,55 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "COLOR",
-  "expected": "#40E7AD"
+  "expected": "#02C0F214"
+ },
+ {
+  "name": "Color/Background/White-Overlay/Default",
+  "context": {},
+  "type": "COLOR",
+  "expected": "#FFFFFF66"
+ },
+ {
+  "name": "Color/Background/White-Overlay/Default",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF66"
+ },
+ {
+  "name": "Color/Background/White-Overlay/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF66"
+ },
+ {
+  "name": "Color/Background/White-Overlay/Default",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF66"
+ },
+ {
+  "name": "Color/Background/White-Overlay/Default",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "COLOR",
+  "expected": "#FFFFFF66"
  },
  {
   "name": "Color/Border/Accent/Solid/Pressed",
@@ -1678,54 +1726,6 @@
   },
   "type": "COLOR",
   "expected": "#4A2BA4"
- },
- {
-  "name": "Color/Shadow/Inverse/Strongest",
-  "context": {},
-  "type": "COLOR",
-  "expected": "#121212"
- },
- {
-  "name": "Color/Shadow/Inverse/Strongest",
-  "context": {
-   "mode-colors-semantic": "Dark"
-  },
-  "type": "COLOR",
-  "expected": "#FDFDFD"
- },
- {
-  "name": "Color/Shadow/Inverse/Strongest",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "component-colors-theme": "Brand - S1",
-   "component-size": "Compact",
-   "corner-radius": "Smooth"
-  },
-  "type": "COLOR",
-  "expected": "#FDFDFD"
- },
- {
-  "name": "Color/Shadow/Inverse/Strongest",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "typography-configuration": "Mobile",
-   "corner-radius": "Standard"
-  },
-  "type": "COLOR",
-  "expected": "#FDFDFD"
- },
- {
-  "name": "Color/Shadow/Inverse/Strongest",
-  "context": {
-   "mode-colors-semantic": "Light",
-   "component-colors-theme": "Neutral - S4",
-   "component-size": "Comfortable",
-   "corner-radius": "Luxury",
-   "emphasis-level": "Strong",
-   "breakpoint-grids": "Mobile"
-  },
-  "type": "COLOR",
-  "expected": "#121212"
  },
  {
   "name": "Container/Border",
@@ -3142,7 +3142,7 @@
    "corner-radius": "Smooth"
   },
   "type": "COLOR",
-  "expected": "#FFFFFF"
+  "expected": "#000000DB"
  },
  {
   "name": "Date-Picker-Item/Content/Selected",
