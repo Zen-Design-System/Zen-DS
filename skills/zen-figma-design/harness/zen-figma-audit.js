@@ -31,6 +31,16 @@
 //   text/overflow            error    text taller than its fixed box, or sticking out of its instance
 //   text/crushed             error    text squeezed into a box narrower than a few characters
 //   copy/placeholder         warning  lorem ipsum or a bare default label left in the screen
+//   theme/box-on-canvas      error    a box (Card, List-Box, a standalone chart) whose fill does not belong to the
+//                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
+//                                     Semi-Pale, Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Semi-Pale,
+//                                     Surface/Flat with a Pale border
+//   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
+//                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
+//                                     Bottom-Navigation be a Surface/Default panel
+//   theme/mixed-elevation    error    a shadow on a Canvas/Alt or Canvas/Flat screen, or on Canvas/Default some of the
+//                                     Sidebar, bars and boxes cast one and others do not
+//   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale, Semi-Pale)
 
 const ROOT_IDS = [];
 const MAX_PER_RULE = 25;
@@ -247,6 +257,100 @@ function checkShadowClips(root) {
   }
 }
 
+// ---- Theme pairing (Canvas → Surface, one elevation per screen). Read from the paints actually drawn, so overrides count.
+const CANVAS_TWIN = { Default: "Surface/Alt", Alt: "Surface/Default", Flat: "Surface/Flat" }; // same colour in both modes
+const OVERLAY = /^(Modal|Side-Panel|Bottom-Sheet|Popover|Dialog|Tooltip)/;
+const STANDALONE_CHART = /^Chart\/(Bar|Donut|Radial|Heatmap)/;
+const varNames = new Map();
+async function paintVar(paint) {
+  const id = paint && paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id;
+  if (!id) return null;
+  if (!varNames.has(id)) varNames.set(id, (await figma.variables.getVariableByIdAsync(id))?.name ?? null);
+  return varNames.get(id);
+}
+const setOf = (node) => { const main = node.mainComponent; return main ? (main.parent && main.parent.type === "COMPONENT_SET" ? main.parent.name : main.name) : ""; };
+const dropShadow = (node) => "effects" in node && node.effects.some((effect) => effect.visible !== false && effect.type === "DROP_SHADOW");
+/** What a surface node draws: Pale, Semi-Pale, Gradient, Solid, Surface/<x>, Canvas/<x>, none or another colour. */
+async function surfaceKind(node) {
+  if (typeof node.fillStyleId === "string" && node.fillStyleId) {
+    const style = await figma.getStyleByIdAsync(node.fillStyleId);
+    if (style && /Semi-Pale/.test(style.name)) return "Semi-Pale";
+    if (style && /Gradients\/Card\/Gradient/.test(style.name)) return "Gradient";
+  }
+  const paints = visiblePaints(node.fills);
+  if (!paints.length) return "none";
+  if (paints.some((paint) => paint.type.startsWith("GRADIENT"))) return "Gradient";
+  const name = await paintVar(paints.find((paint) => paint.type === "SOLID"));
+  if (!name) return "raw";
+  if (/\/Pale(\/Default)?$/.test(name)) return "Pale";
+  const surface = name.match(/Background\/(Surface|Canvas)\/(Default|Alt|Flat)$/);
+  if (surface) return `${surface[1]}/${surface[2]}`;
+  if (/Solid/.test(name)) return "Solid";
+  return name.replace("Color/Background/", "");
+}
+async function hasBorder(node) {
+  const strokes = visiblePaints(node.strokes);
+  if (!strokes.length) return false;
+  const weights = [node.strokeWeight, node.strokeTopWeight, node.strokeRightWeight, node.strokeBottomWeight, node.strokeLeftWeight];
+  if (!weights.some((weight) => typeof weight === "number" && weight > 0)) return false;
+  return /Border\/Neutral\/(Pale|Subtle)/.test((await paintVar(strokes[0])) ?? "");
+}
+async function canvasOf(root) {
+  for (const node of [root, ...root.children.slice(0, 3)]) {
+    const kind = await surfaceKind(node);
+    if (kind.startsWith("Canvas/")) return kind.slice(7);
+  }
+  return null;
+}
+async function checkThemePairing(root) {
+  const canvas = await canvasOf(root);
+  if (!canvas) return;
+  const boxes = []; const bars = []; const families = new Set();
+  const stack = [[root, false]];
+  while (stack.length) {
+    const [node, inOverlay] = stack.pop();
+    if (!node.visible) continue;
+    const set = node.type === "INSTANCE" ? setOf(node) : "";
+    const overlay = inOverlay || OVERLAY.test(set) || OVERLAY.test(node.name);
+    if (!overlay && (set === "Card" || set === "Component/List-Box" || STANDALONE_CHART.test(set))) boxes.push(node);
+    if (node.name === "Component/Side-Bar/Placeholder") bars.push({ node, role: "Sidebar", panel: true });
+    if (set === "Header/Dashboard" || set === "Primitives/Dashboard/Header") bars.push({ node, role: "Header", panel: false });
+    if (/^Top-Navigation\/Mobile/.test(set)) bars.push({ node, role: "Top-Navigation", panel: false });
+    if (/^Bottom-Navigation\/Mobile/.test(set)) bars.push({ node, role: "Bottom-Navigation", panel: true });
+    if ("children" in node && !(node.type === "INSTANCE" && (set === "Card" || STANDALONE_CHART.test(set)))) for (const child of node.children) stack.push([child, overlay]);
+  }
+  const elevated = []; const flat = [];
+  for (const box of boxes) {
+    const kind = await surfaceKind(box);
+    const border = await hasBorder(box);
+    const shadow = dropShadow(box);
+    (shadow ? elevated : flat).push(box);
+    if (kind === "Gradient" || kind === "Solid") continue; // a highlight widget, one per row (Card rules)
+    const family = kind === "Pale" || kind === "Semi-Pale" ? kind : border ? "Border" : "Flat";
+    families.add(family);
+    const allowed = {
+      Default: kind === "Surface/Default",
+      Alt: kind === "Pale" || kind === "Semi-Pale" || kind === "Surface/Alt" || (kind === "Surface/Default" && border),
+      Flat: kind === "Pale" || kind === "Semi-Pale" || (kind === "Surface/Flat" && border),
+    }[canvas];
+    if (!allowed) {
+      const fix = { Default: "Surface/Default (Theme Flat, Shadow or Border)", Alt: "Pale, Semi-Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Pale, Semi-Pale or Theme=Border with Surface=Flat" }[canvas];
+      report("theme/box-on-canvas", ERROR, box, `${kind}${border ? " with a border" : ""} on Canvas/${canvas}: use ${fix}`);
+    }
+  }
+  for (const { node, role, panel } of bars) {
+    const kind = await surfaceKind(node);
+    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas];
+    const allowedPanel = panel && canvas === "Default" && kind === "Surface/Default";
+    if (!seamless && !allowedPanel) report("theme/navigation-surface", ERROR, node, `${role} is ${kind} on Canvas/${canvas}: match the canvas (no fill or ${CANVAS_TWIN[canvas]})${panel ? "; only on Canvas/Default may it be a Surface/Default panel" : ""}`);
+    if (panel && kind !== "none" && !seamless) (dropShadow(node) ? elevated : flat).push(node);
+    else if (dropShadow(node)) elevated.push(node);
+  }
+  if (canvas !== "Default") for (const node of elevated) report("theme/mixed-elevation", ERROR, node, `a shadow on Canvas/${canvas}: nothing on a Canvas/Alt or Canvas/Flat screen casts one`);
+  else if (elevated.length && flat.length) for (const node of flat) report("theme/mixed-elevation", ERROR, node, `no shadow while ${elevated.length} other surface(s) on this screen cast Shadow/Bottom/Level-1: all or none`);
+  if (families.size > 1) report("theme/mixed-boxes", WARNING, root, `boxes mix ${[...families].join(", ")}: keep one family per screen (colours may vary)`);
+}
+
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
 const DEFAULT_LABELS = new Set(["Text", "Label", "Title", "Heading", "Subheading", "Description", "Caption", "Button", "Value", "Placeholder text"]);
 
@@ -379,6 +483,7 @@ rootIds = new Set(roots.map((root) => root.id));
 
 for (const root of roots) await walk(root, root.type === "INSTANCE" ? root : null, true);
 for (const root of roots) checkShadowClips(root);
+for (const root of roots) await checkThemePairing(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {

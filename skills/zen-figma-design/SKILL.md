@@ -54,6 +54,9 @@ Files in this skill:
   shadows to a Zen effect style. No raw hex, px or font settings; no primitive ramps (`Light/Neutral/3`, `dm-16`).
 - **Auto layout everywhere** something stacks or sits side by side. Absolute positioning only for overlays that float
   (a popover on a state frame, a floating action).
+- **Theme by Canvas.** The page's Canvas picks the navigation, the boxes and the elevation (screen-rules §1): bars and
+  headers match the canvas, boxes take the Theme / Surface / Color allowed for it, and shadows are all-or-nothing
+  (only on Canvas/Default). The audit's `theme/*` rules check it.
 - **No shadow is ever cut.** Frames made with `createFrame()` / `createAutoLayout()` clip their content by default, so
   set `clipsContent = false` on every frame you add (rows, sections, toolbars, wrappers) unless it must hide something;
   a Shadow card's shadow reaches past the card (about 8px below, 4px aside). Check every screen with the audit's

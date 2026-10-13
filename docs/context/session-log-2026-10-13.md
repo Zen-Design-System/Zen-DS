@@ -344,6 +344,32 @@
   effects against every clipping frame above it (inside instances too); `bounds/shadow-clipped` is now an error (screen
   frame), `bounds/shadow-clipped-in-component` a warning. Negative test (KPIs clip on) → 4 errors; restored → 0.
   SKILL.md hard rule, screen-rules §4/§5, figma-gotchas "Clipping", audit-rules rows; ai-kit:check 92 ✓.
+- Theme pairing review (user: rules for harness + skill on Canvas → Surface pairing and one elevation per screen; "demo
+  vài case … dark và light … để duyệt và chốt rule", on the Performance page, with mobile top/bottom navigation). Section
+  "Theme pairing — review" (15513:10239): desktop A–H (A/B Canvas/Default shadow vs flat ✓, C mixed elevation ✗, D
+  Surface/Alt boxes on Canvas/Default ✗, E Canvas/Flat + Surface/Flat Sidebar ✓, F Surface/Default Sidebar on Flat ✗, G
+  Canvas/Alt with Surface/Alt + Pale-bordered boxes ✓, H borderless boxes + lone shadow ✗) and mobile MA–ME, each light and
+  dark. Resolved colours: Canvas Default #f7f7f7/#121212, Alt #fff/#1c1c1c, Flat #fff/#121212; Surface Default
+  #fff/#1c1c1c, Alt #f7f7f7/#121212, Flat #fff/#121212. Library gaps (demo overrides): Side-Bar/Master/Basic has no
+  background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile no Flat type, Bottom-Navigation
+  no surface choice, Card/List-Box no Surface/Alt theme. Real screens: the standalone Bar-Chart now takes
+  Shadow/Bottom/Level-1 like the Shadow cards. Bound paints on instances must copy the existing paint before
+  setBoundVariableForPaint (a bare {0,0,0} paint rendered black / was dropped). Rules await the user's approval.
+- Theme rules rebuilt from the user's sections Theme-01 … 08 on ◆ Performance (read from node paints, not screenshots):
+  Canvas/Default → Flat/Shadow boxes, Sidebar on the canvas or a Surface/Default panel (shadow only all together);
+  Canvas/Alt → Pale / Semi-Pale (hues) / Border on Surface/Default; Canvas/Flat → Pale / Semi-Pale / Border on
+  Surface/Flat; headers and bars match the canvas (Default↔Surface/Alt, Alt↔Surface/Default, Flat↔Surface/Flat); no
+  shadow on Alt/Flat. Mobile adaptation (light + dark) added to every Theme section (20 frames; top bar = header, bottom
+  bar = Sidebar); Theme-02…05 mobiles sit under the desktop frames (sections no longer overlap). Audit 0/0.
+- Library (user-approved: Surface property, expose nested Card, Blue + Purple, Figma first): Card +Surface
+  Default|Alt|Flat (Flat/Alt, Border/Alt, Border/Flat) and Pale/Semi-Pale Blue + Purple (styles
+  Gradients/Card/Semi-Pale/Blue|Purple) → 92 variants; List-Box +Color, +Surface, +Semi-Pale → 100 variants (3 slots
+  restored per clone, List-Item content checked on all); Metric-Card (7 types) and Chart-Card expose their Card;
+  descriptions rewritten. Theme frames switched to Color=Blue…/Surface=Flat/Theme=Semi-Pale instead of overrides.
+- Harness: theme/box-on-canvas, theme/navigation-surface, theme/mixed-elevation (errors), theme/mixed-boxes (warning);
+  screen-rules §1 table, SKILL.md hard rule, audit-rules rows; ai-kit:check 100 ✓. Live: 36/36 user theme frames clean,
+  the old review board flags as expected; it caught the Team performance chart card left Flat beside Shadow cards
+  (fixed). Old review section renamed "superseded".
 
 ## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
 

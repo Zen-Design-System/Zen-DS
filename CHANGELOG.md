@@ -150,10 +150,11 @@ removed (four unused colour ramps were, see Removed).
 - AI kit for Figma (2026-10-13, user): Installation › AI kit for Figma downloads `zen-figma-ai-kit.zip` (built in the
   browser from the repo) so Claude or ChatGPT/Codex can design in a Zen Figma file through Figma's MCP server: the skill
   `skills/zen-figma-design` (setup, hard rules, build steps, screen rules, Plugin API gotchas), the read-only audit
-  harness `harness/zen-figma-audit.js` (18 rules: unbound colours/spacing/radii, text and effect styles, paint
+  harness `harness/zen-figma-audit.js` (22 rules: unbound colours/spacing/radii, text and effect styles, paint
   overrides and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller
   non-clipping wrapper like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured
-  from the effect; an error on the screen's own frames), crushed text, placeholder copy), the generated
+  from the effect; an error on the screen's own frames), crushed text, placeholder copy, and theme pairing: boxes and
+  navigation surfaces that clash with the Canvas, one elevation per screen), the generated
   Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
   writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
 - Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)

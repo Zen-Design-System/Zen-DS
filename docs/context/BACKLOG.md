@@ -8,6 +8,16 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
+  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale/Semi-Pale hues), Metric-Card and Chart-Card
+  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `theme` semi-pale + `surface` +
+  `color`, MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
+  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation).
+  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
+  background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
+  Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
+  until then (screen-rules §1).
 - **P1 · Widget themes phase 2 — code + Studio (user, 2026-10-13; waits for the user's review of phase 1):** mirror the
   Figma build in code and Studio: Card `color` + themes `gradient`/`solid` (Solid sets `data-theme`), MetricCard `type`
   (7), chart components Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel, Bar-List, Bullet, the new paint styles in
