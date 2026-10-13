@@ -30,7 +30,8 @@ removed (four unused colour ramps were, see Removed).
   `voiceMutedGuidance`, `voiceMutedNote`) and Mute shows its Pressed look. Review: `docs/research/voice-usability-review-2026-10-13.md`.
 - Chart sectors (2026-10-13, repo + live Figma): `Chart/Sector/Primary` is Support/Brand/Solid and
   `Chart/Sector/Secondary` Support/Neutral/Deep in every Component Theme mode, as Brand - S1 (the Neutral modes had them
-  the other way round), so a chart's first series is the brand colour everywhere.
+  the other way round), so a chart's first series is the brand colour everywhere. LineChart's `compare` line is
+  Border/Neutral/Solid at 40% (Figma Multi-Line Compare), a neutral reference that no longer turns brand with it.
 - Chart sector style (2026-10-13, live Figma): "Color Chart Sector/Septenary" now references Support/Green/Soft (was
   Red/Soft); `--zen-style-color-chart-sector-septenary-fill` and `.zen-fill-color-chart-sector-septenary` follow.
   `chartPalette` now walks the seven styles in order: a 6th series is Support/Orange/Solid (was Green/Solid) and a 7th

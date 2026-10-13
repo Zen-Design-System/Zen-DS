@@ -370,3 +370,15 @@
 - Boards "Widget themes" on the Chart page (8 charts in Card themes) and the Metric Widget page (10 Metric-Cards).
   Audit (own layers + slot content): every fill/stroke/text/gap/padding/radius on a token or style; one stray default
   vector stroke (Hero area) removed. Scratch board deleted. Repo unchanged in this phase (BACKLOG P1 = phase 2).
+
+## Shared-checkout gathering: LineChart compare colour, BottomNavigation test (session "Giám sát", tier S)
+
+- PR #42 (the shared checkout's later work) made Chart/Sector/Primary brand pink, so LineChart's `compare` (sector-primary)
+  read the same colour as its Accent line: legend and tooltip dots matched. Fix taken verbatim from the "Performance"
+  session's branch zen/feat/chart-grid-lanes so both merge cleanly: compare is Border/Neutral/Solid at 40% (Figma
+  Multi-Line Compare), COMPARE_COLOUR Background/Neutral/Solid; JSDoc, chart guideline note and CHANGELOG follow. The
+  chart example's caption still says Chart/Sector/Primary; that branch rewrites it with the lane work.
+- Gate flake (2 of 3 runs on this branch): "BottomNavigation idle labels" compared an idle item's colour with its label's,
+  but the pointer can rest on that item from an earlier test, and a hovered idle item on the Default bar takes the
+  label's colour. The test now unhovers the bar and measures an idle item the pointer is not on (a forced hover
+  reproduces the old failure). Gate PASS (chart, bottom-navigation; full Vitest 57/57).
