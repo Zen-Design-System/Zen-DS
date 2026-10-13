@@ -26,6 +26,7 @@ import {
   type AlignSelfValue, type AxisView, type HeldValue, type LimitProp, type LiveSizing, type ParentLayout, type SizingAxis, type SizingInput,
 } from "./sizingModel";
 import "./sizing.css";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * The Design tab's Size group (spec: docs/research/studio-inspector-redesign-2026-10-03.md, "SIZE" and the control
@@ -52,7 +53,7 @@ export function hasSizing(component: string): boolean {
 }
 
 export function SizingSection(props: LayoutGroupProps) {
-  const src = props.host?.getAttribute("data-zen-src") || null;
+  const src = srcAttr(props.host) || null;
   // Another selection starts fresh: no draft, no added min / max field, no open popover.
   return <SizeGroup key={src ?? `${props.component}:no-source`} {...props} src={src} />;
 }

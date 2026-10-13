@@ -14,6 +14,7 @@ import { cellDataTarget } from "../table/tableCells";
 import { writeAtUse } from "./callSite";
 import { inspectorStatus } from "./status";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, toEditValue, type WritePlan } from "./writePlan";
+import { srcProp } from "../select/srcIds";
 
 /*
  * Figma's nested instance properties: the properties of the Zen components the selected element renders from its props
@@ -72,8 +73,8 @@ function propSources(props: Record<string, unknown>): { sources: Map<string, str
     if (seen.has(value as object)) return;
     seen.add(value as object);
     if (isElement(value)) {
-      const src = value.props["data-zen-src"];
-      if (typeof src === "string" && !sources.has(src)) sources.set(src, prop);
+      const src = srcProp(value.props);
+      if (src && !sources.has(src)) sources.set(src, prop);
       for (const inner of Object.values(value.props)) visit(inner, prop, depth + 1);
       return;
     }

@@ -97,8 +97,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
   browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
-- **P3 · Figma usability — Studio-made wrappers (2026-10-10):** the blank page's body Stack and ⇧A wrap Stacks are
-  layers the designer did not draw; make them transparent to the first click and in Layers.
 - **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar
   (24) and gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
   ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Designer: add

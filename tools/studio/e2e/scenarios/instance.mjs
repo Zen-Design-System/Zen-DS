@@ -106,9 +106,45 @@ export const rows = [
       await until(async () => (await groups.count()) >= 3, { message: "Default, Used in this file and All icons" });
       const read = await groups.evaluateAll((els) => els.map((el) => ({ id: el.getAttribute("data-icon-group"), first: el.querySelector(".zen-popover__item")?.textContent?.trim() ?? "" })));
       await page.keyboard.press("Escape");
+      // Recent and Related tiles (IN-20) may sit between them: the rows are found by group.
+      const file = read.find((group) => group.id === "file");
       if (read[0].id !== "default" || !read[0].first.includes("icon-plus-line")) throw new Error(`first group ${JSON.stringify(read[0])}`);
-      if (read[1].id !== "file" || !read[1].first.includes("icon-heart-line")) throw new Error(`second group ${JSON.stringify(read[1])}`);
-      return `Default in Figma: icon-plus-line · Used in this file: ${read[1].first} · ${read.at(-1).id}`;
+      if (!file?.first.includes("icon-heart-line")) throw new Error(`Used in this file ${JSON.stringify(file ?? read)}`);
+      if (read.at(-1).id !== "all") throw new Error(`last group ${JSON.stringify(read.at(-1))}`);
+      return `Default in Figma: icon-plus-line · Used in this file: ${file.first} · ${read.at(-1).id}`;
+    },
+  },
+  {
+    id: "IN-20", feature: "Icon picker: Related tiles (the icon's family) and Recent (the last picks) need no typing", wp: "user 2026-10-14",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-button", { frame: FRAME });
+      await page.evaluate(() => window.localStorage.removeItem("zen-studio:recent-icons"));
+      const open = async (step, group = "related") => {
+        await page.locator('#studio-right [data-prop="startIcon"] .studio-icon-control button').first().click();
+        await page.locator(`[data-icon-group="${group}"]`).waitFor({ state: "visible", timeout: 3000 }).catch(async () => {
+          const shown = await page.locator("[data-icon-group]").evaluateAll((els) => els.map((el) => el.getAttribute("data-icon-group")));
+          const field = await page.locator('#studio-right [data-prop="startIcon"] .studio-icon-control button').first().getAttribute("aria-label").catch(() => "no field");
+          throw new Error(`${step}: no ${group} group (groups: ${shown.join(", ") || "none"}; field ${field})`);
+        });
+      };
+      const tiles = (group) => page.locator(`[data-icon-group="${group}"] [role=option]`).evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+      await open("first open");
+      const related = await tiles("related");
+      if (!related.includes("icon-plus-circle-line") || !related.includes("icon-plus-square-line")) throw new Error(`Related for icon-plus-line: ${related.join(" ")}`);
+      await page.locator('[data-icon-group="related"] [role=option][aria-label="icon-plus-circle-line"]').click();
+      await expectSource(ctx, "inst-button", (el) => el.attr("startIcon") === "icon-plus-circle-line", 'startIcon="icon-plus-circle-line"');
+      await open("after the first pick");
+      await page.locator('[data-icon-group="related"] [role=option][aria-label="icon-plus-square-line"]').click();
+      await expectSource(ctx, "inst-button", (el) => el.attr("startIcon") === "icon-plus-square-line", 'startIcon="icon-plus-square-line"');
+      // The icon shown (plus-square) is left out; the pick before it leads. Related is gone: the plus family is all in
+      // Default (plus) and Recent (plus-circle), and an icon shows in one group only.
+      await open("after the second pick", "recent");
+      const recent = await tiles("recent");
+      const groups = await page.locator("[data-icon-group]").evaluateAll((els) => els.map((el) => el.getAttribute("data-icon-group")));
+      await page.keyboard.press("Escape");
+      if (recent[0] !== "icon-plus-circle-line" || recent.includes("icon-plus-square-line")) throw new Error(`Recent: ${recent.join(" ")}`);
+      if (groups.includes("related")) throw new Error(`Related repeats an icon shown above: ${groups.join(", ")}`);
+      return `Related: ${related.slice(0, 3).join(" ")} … · two tile picks, no typing · Recent: ${recent.join(" ")}`;
     },
   },
   {

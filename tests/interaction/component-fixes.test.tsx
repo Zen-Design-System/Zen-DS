@@ -131,6 +131,22 @@ describe("Badge remove", () => {
   });
 });
 
+describe("Badge Leading-Icon", () => {
+  // Figma's Leading-Icon boolean hides the leading layer whatever its swap holds (2026-10-13 Studio boolean sweep).
+  it("hides a custom leading icon when leadingIcon is false, and shows it otherwise", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <Badge data-testid="shown" leading="icon-check-line">Paid</Badge>
+        <Badge data-testid="hidden" leading="icon-check-line" leadingIcon={false}>Paid</Badge>
+        <Badge data-testid="dot">Paid</Badge>
+      </ZenProvider>,
+    );
+    expect(screen.getByTestId("shown").element().querySelectorAll("svg").length).toBe(1);
+    expect(screen.getByTestId("hidden").element().querySelectorAll("svg").length).toBe(0);
+    expect(screen.getByTestId("dot").element().querySelectorAll("svg").length).toBe(1);
+  });
+});
+
 describe("Chat built-in labels", () => {
   it("reads in sentence case (en)", async () => {
     const screen = await render(

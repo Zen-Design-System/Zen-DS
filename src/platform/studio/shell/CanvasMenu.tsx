@@ -34,7 +34,10 @@ import "./shell.css";
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 type MenuTarget = { kind: "node"; selection: NodeSelection } | { kind: "frame"; frameId: string } | { kind: "canvas" };
-type MenuState = { x: number; y: number; target: MenuTarget; at: number };
+/** A layer under the pointer that "Select layer" offers (Figma's submenu): its name and how to select it. */
+export type LayerUnderPointer = { name: string; component: boolean; selected: boolean; select: () => void };
+/** `listing`: the menu shows only the layers under the pointer ("Select layer ›" chosen). */
+type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean };
 /** What Menu's placement keeps between the anchor and the window edge: its 8px margin, its 4px gap and the 1px anchor
  * (.studio-canvas-menu__anchor). Leaving out the gap and the anchor made Menu find 5px too little room below the moved
  * anchor and open the menu above it, cut off by the window's top (2026-10-09). */
@@ -47,9 +50,10 @@ const listeners = new Set<() => void>();
 const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 const set = (next: MenuState | null) => { state = next; listeners.forEach((listener) => listener()); };
 
-/** Opens the canvas menu for `selection` (and the other selected layers) at a client point. */
-export function openCanvasMenu(x: number, y: number, selection: NodeSelection) {
-  set({ x, y, target: { kind: "node", selection }, at: Date.now() });
+/** Opens the canvas menu for `selection` (and the other selected layers) at a client point; `layers`: every layer under
+ *  the pointer, deepest first, for "Select layer". */
+export function openCanvasMenu(x: number, y: number, selection: NodeSelection, layers?: readonly LayerUnderPointer[]) {
+  set({ x, y, target: { kind: "node", selection }, at: Date.now(), layers });
 }
 
 /** Opens the frame menu at a client point (right-click on a frame's empty area or its label). */
@@ -140,10 +144,20 @@ export function CanvasMenu() {
     { type: "separator", id: "canvas-separator" },
     { id: "canvas-ui", label: "Hide or show UI", icon: "icon-layout-alt-04-line", shortcut: "⌘\\", onSelect: () => toggleSidePanels() },
   ];
-  const entries: MenuEntry[] = menu?.target.kind === "canvas" ? canvasItems
+  // Figma's "Select layer ›": every layer under the pointer, deepest first, so any of them is two steps away however
+  // deep it sits (user, 2026-10-13: "khó click vào element muốn hơn so với figma"). One item opens the list in place
+  // (the Menu has no submenus), each layer with its Layers icon; the selected one says so.
+  const under = menu?.layers ?? [];
+  const selectLayer: MenuEntry[] = under.length > 1 && menu ? [
+    { id: "select-layer", label: "Select layer", icon: "icon-layers-three-01-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, listing: true, at: Date.now() }), 0); } },
+    { type: "separator", id: "select-layer-separator" },
+  ] : [];
+  const layerItems: MenuEntry[] = [{ type: "group", id: "select-layer-list", label: "Select layer", items: under.map((layer, index) => ({ id: `select-layer-${index}`, label: layer.name, icon: layer.component ? "icon-cube-line" as const : "icon-code-02-line" as const, caption: layer.selected ? "Selected" : undefined, onSelect: layer.select })) }];
+  const entries: MenuEntry[] = menu?.listing ? layerItems
+    : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, detach, ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, detach, ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 
@@ -183,7 +197,7 @@ export function CanvasMenu() {
         <Menu
           open={Boolean(menu)}
           onOpenChange={(open) => { if (!open) set(null); }}
-          aria-label={menu?.target.kind === "canvas" ? "Canvas actions" : frame ? `${frame.label} actions` : several ? "Selection actions" : selection ? `${selection.name} actions` : "Layer actions"}
+          aria-label={menu?.listing ? "Select layer" : menu?.target.kind === "canvas" ? "Canvas actions" : frame ? `${frame.label} actions` : several ? "Selection actions" : selection ? `${selection.name} actions` : "Layer actions"}
           items={items}
           trigger={<button type="button" tabIndex={-1} aria-label="Canvas menu" className="studio-canvas-menu__anchor" style={{ left: point.x, top: anchorY ?? point.y }} />}
         />

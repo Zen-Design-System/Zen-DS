@@ -66,17 +66,19 @@ export const rows = [
     },
   },
   {
-    id: "AP-06", feature: "A Card shows the effect its theme draws, read-only, with Edit theme", wp: "backlog 2026-10-07",
+    id: "AP-06", feature: "A Card's Effects row shows the effect its theme draws; picking another effect picks its theme (Figma's style row, 2026-10-13)", wp: "backlog 2026-10-07",
     async run(ctx) {
       const page = await freshSelect(ctx, "card", { frame: 2, position: { dx: 8, dy: 8 } });
       const panel = page.locator("#studio-right");
-      const row = inspectorRow(page, "effectStyle");
+      const row = page.locator('#studio-right [data-prop="effectStyle"]').first();
       await until(async () => (await row.innerText().catch(() => "")).includes("Shadow/Bottom/Level-1"), { message: "the Card's theme effect" });
-      if (!(await row.innerText()).includes("From Card theme · Shadow")) throw new Error(`no theme caption (${(await row.innerText()).replace(/\s+/g, " ")})`);
+      if (!(await panel.innerText()).includes("Set by Theme · Shadow")) throw new Error("no theme caption");
       if (await panel.getByRole("button", { name: "Remove effect" }).count()) throw new Error("the theme effect can be removed");
-      await row.getByRole("button", { name: "Edit theme" }).click();
-      await until(async () => page.evaluate(() => Boolean(document.activeElement?.closest('.studio-inspector__row[data-prop="theme"]'))), { message: "focus on the Theme property" });
-      return "Shadow/Bottom/Level-1 from theme; Edit theme focuses Theme";
+      await row.getByRole("button", { name: /Shadow\/Bottom\/Level-1/ }).click();
+      await page.getByRole("menuitem", { name: /No effect/ }).click();
+      await expectSource(ctx, "card", (el) => el.attr("theme") === "flat", 'theme="flat" written');
+      await until(async () => (await row.innerText().catch(() => "")).includes("No effect"), { timeout: 8000, message: "the row shows No effect" });
+      return "Shadow/Bottom/Level-1 from the Shadow theme; No effect writes theme flat";
     },
   },
   {

@@ -19,6 +19,36 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio's icon picker leads with tiles you can click without typing: **Recent** (your last picks) and **Related**
+  (the icon's own family and the icons that mean the same as it and as the words beside it: a Revenue card's coins →
+  wallet, bank, card, currency, receipt). A nested icon's picker (a Metric card's dock icon) lists the icons the page
+  uses again, under "Used in this file".
+- Zen Studio, round 3: ⌘-click lands on every text as Figma's deep select (a Button's, Badge's or Chip's label too; a
+  picture's initials stay the picture), ⇧Enter / Esc go up one layer inside an instance; Layers shows an instance's own
+  layers by their Figma names and texts by their words, with no "Parts" folder, no empty slots and no slot row that
+  only repeats its layer's name. Edits on a page you made reach the canvas in 35–60 ms (was 160–260 before these
+  rounds): its elements are marked by their stable document ids, so an added line no longer redraws the page below it,
+  and the Studio's own panels redraw after the canvas has painted.
+- Zen Studio, Figma parity round 2: Layers lists what the canvas selects (no Container, a card's content Stack, a list's
+  `<ul>` or Parts row under a Stack / Grid); ⌘-click goes into an instance to its text or nested instance (a KPI value,
+  a list title, a table cell's name, an icon, a Badge), a text layer edits in the Inspector (Text) or with Enter in
+  place; a nested boolean switched back off removes its override; Metric's Trend is a boolean; a button added to a page
+  header's actions joins its row; a Sidebar item or a trend label renames in place on a page you made.
+- Zen Studio edits reach the canvas about twice as fast (45–120 ms, was 160–260 on a template page): the page is parsed
+  in the render that brings it, unchanged parts are not rendered again, parses and hashes are reused, and size probes
+  wait until the canvas has painted.
+- Zen Studio clicks like Figma on pages made from templates: layout wrappers that draw nothing (a Stack, Grid or
+  Container around one layer, a card's content column, a list's `<ul>`) are passed through, and AppShell and the page's
+  body count as the frame, so a KPI card is three double-clicks away instead of seven (5.6 → 2.5 on average over six
+  templates). Right-click › **Select layer ›** lists every layer under the pointer.
+- Zen Studio booleans that did nothing now work or hide: Metric's Counter shows on Icon-Highlight only, Hint and
+  Label-Icon on Title-Highlight XLarge–Medium; Metric / Metric card **Custom** and DashboardHeader's Search, Controls,
+  Actions, Center and Trailing open their slot (they had no slot, and a page from a template never opened the picker);
+  an Advanced Chip's Dropdown switched off writes `dropdown={false}`; switches that cannot draw in the current state
+  (Line chart legend without a comparison, an action's dot under a count, the workspace bar) say why.
+- Badge: `leadingIcon={false}` hides a custom `leading` icon too, as Figma's Leading-Icon boolean hides the layer.
+- Zen Studio: the insert picker says "N not available here" in one line (the reasons in its tooltip, in design words);
+  a card's Effects row is one Figma style row — the effect's swatch and name, which picks the theme that draws it.
 - Charts take their card from Card (2026-10-14, user, live Figma): Bar, Donut, Radial and Heatmap no longer paint their
   own surface; like every chart they sit in Chart-Card's Content slot, so Theme, Surface and Color work on them. The
   AI kit for Figma no longer treats a standalone chart as a box (`theme/box-on-canvas`, `theme/mixed-elevation`).

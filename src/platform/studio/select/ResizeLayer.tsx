@@ -19,6 +19,7 @@ import { instanceSizing, type InstanceAxis, type InstanceSizingInput } from "./i
 import type { ParentLayout } from "../inspector/sizingModel";
 import { ladderOf } from "../position/PositionSection";
 import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type PositionAxis, type Snap } from "../position/positionModel";
+import { srcAttr, srcProp } from "./srcIds";
 
 /*
  * Resize handles on the selected element (Figma-like): 4 corner squares and 4 edge strips on its outline (Text and
@@ -335,6 +336,18 @@ function restoreDrag(drag: Pick<Drag, "host" | "saved" | "grid">) {
  * Reads the element under transient inline styles, restored before returning: one synchronous task, so nothing paints
  * in between (no flash). Its own inline styles (a held preview) come back as they were.
  */
+/** Runs `run` once the browser painted the next frame and has nothing else to do (a measurement that resizes elements
+ *  must not hold up an edit on its way to the canvas); returns the cancel, for an effect's cleanup. */
+function afterPaint(run: () => void): () => void {
+  let idle = 0;
+  let timer = 0;
+  const frame = requestAnimationFrame(() => {
+    if (typeof window.requestIdleCallback === "function") idle = window.requestIdleCallback(run, { timeout: 300 });
+    else timer = setTimeout(run, 0) as unknown as number;
+  });
+  return () => { cancelAnimationFrame(frame); if (idle) window.cancelIdleCallback(idle); window.clearTimeout(timer); };
+}
+
 function measureWith<T>(host: HTMLElement, apply: (saved: Saved) => void, read: () => T): T {
   const saved: Saved = new Map();
   try {
@@ -410,7 +423,7 @@ function handsOn(children: unknown, src: string, through: string[], depth = 0): 
   if (Array.isArray(children)) return through.includes("array") && children.some((child) => handsOn(child, src, through, depth + 1));
   if (!isElementLike(children)) return false;
   if (children.type === Fragment) return through.includes("fragment") && handsOn(children.props?.children, src, through, depth + 1);
-  return children.props?.["data-zen-src"] === src;
+  return srcProp(children.props) === src;
 }
 
 /**
@@ -438,8 +451,8 @@ function clonedWhere(hit: FiberHit): string | null {
       const held = cloningProp(cloningList, owner, fiber.memoizedProps, srcs);
       if (held) return cloneReason(held, `<${hit.name}>`, owner);
       if (componentSchema(owner)) return null;
-      const src: unknown = fiber.memoizedProps?.["data-zen-src"];
-      if (typeof src === "string") srcs.add(src);
+      const src = srcProp(fiber.memoizedProps);
+      if (src) srcs.add(src);
     }
   } catch {
     return null;
@@ -663,7 +676,7 @@ function fixedReason(name: string, axes: ResizeAxis[], host?: HTMLElement | null
 function gridCell(host: HTMLElement, wrapperSrc: string | null, props: Record<string, unknown>): { src: string; element: HTMLElement; index: number } | null {
   const item = wrapperSrc && host.parentElement ? host.parentElement : host;
   const grid = layoutParent(item);
-  const src = grid?.classList.contains("zen-grid") ? grid.getAttribute("data-zen-src") : null;
+  const src = grid?.classList.contains("zen-grid") ? srcAttr(grid) : null;
   if (!grid || !src) return null;
   if (item.getAttribute("data-w") === "fixed" || (item === host && typeof props.width === "number")) return null;
   const sole = soleColumn(grid, item);
@@ -706,12 +719,16 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const [cell, setCell] = useState<{ host: HTMLElement; key: string; grid: { src: string; element: HTMLElement; index: number } | null } | null>(null);
   const cellKey = `${hit?.src ?? ""}|${wrapperSrc ?? ""}|${updates}`;
   const cellOn = Boolean(enabled && !specimen && host && base);
-  useLayoutEffect(() => {
-    if (!cellOn || !host || dragRef.current) return;
-    const grid = gridCell(host, wrapperSrc, hit?.props ?? {});
-    setCell((last) => (last && last.host === host && last.key === cellKey && last.grid?.src === grid?.src && last.grid?.index === grid?.index ? last : { host, key: cellKey, grid }));
+  useEffect(() => {
+    if (!cellOn || !host || dragRef.current) return undefined;
+    // Measured when the browser is idle, never on an edit's way to the canvas; the last measure holds meanwhile.
+    return afterPaint(() => {
+      if (!host.isConnected || dragRef.current) return;
+      const grid = gridCell(host, wrapperSrc, hit?.props ?? {});
+      setCell((last) => (last && last.host === host && last.key === cellKey && last.grid?.src === grid?.src && last.grid?.index === grid?.index ? last : { host, key: cellKey, grid }));
+    });
   }, [cellOn, host, wrapperSrc, hit, cellKey]);
-  const gridCellNow = cellOn && cell && cell.host === host && cell.key === cellKey ? cell.grid : null;
+  const gridCellNow = cellOn && cell && cell.host === host ? cell.grid : null;
   const gridElement = useSourceElement(gridCellNow?.src ?? null, Boolean(gridCellNow));
   if (target && gridCellNow) {
     // Until the Grid is read there is nothing to drag (a drag must never wrap what should resize its column).
@@ -733,15 +750,19 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const probeAxes = target && enabled && host ? stackAxes(target).join(",") : "";
   const [probe, setProbe] = useState<{ host: HTMLElement; key: string; fixed: ResizeAxis[] } | null>(null);
   const probeKey = `${hit?.src ?? ""}|${probeAxes}|${updates}`;
-  useLayoutEffect(() => {
-    if (!host || !probeAxes) return;
-    // Never under a drag's preview (its sizes are the drag's, not the element's).
-    if (dragRef.current) return;
-    const mainAxis = mainAxisOf(host);
-    const fixed = (probeAxes.split(",") as ResizeAxis[]).filter((axis) => growsVisibly(host, axis, mainAxis) === false);
-    setProbe((last) => (last && last.host === host && last.key === probeKey && last.fixed.join(",") === fixed.join(",") ? last : { host, key: probeKey, fixed }));
+  useEffect(() => {
+    if (!host || !probeAxes) return undefined;
+    // After the canvas painted the edit (the probe resizes the element to measure it: ~10 ms a layer, user 2026-10-13
+    // found every edit slow); never under a drag's preview (its sizes are the drag's, not the element's).
+    return afterPaint(() => {
+      if (dragRef.current || !host.isConnected) return;
+      const mainAxis = mainAxisOf(host);
+      const fixed = (probeAxes.split(",") as ResizeAxis[]).filter((axis) => growsVisibly(host, axis, mainAxis) === false);
+      setProbe((last) => (last && last.host === host && last.key === probeKey && last.fixed.join(",") === fixed.join(",") ? last : { host, key: probeKey, fixed }));
+    });
   }, [host, probeAxes, probeKey]);
-  const fixed = probe && probe.host === host && probe.key === probeKey ? probe.fixed : [];
+  // The last probe of this element holds until the next one lands (no handle flickers in after an edit).
+  const fixed = probe && probe.host === host ? probe.fixed : [];
   // A Tooltip's anchor passes no size to the child it clones unless its CSS does (a class that makes the child fill
   // it): the probe tells, cloning.json's words say why.
   if (target && fixed.length && hit) target = withoutAxes(target, fixed, anchorParents.has(hit.name) ? anchorReason(hit, fixed) : fixedReason(hit.name, fixed, host));
@@ -1124,8 +1145,14 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       return;
     }
     if (dragRef.current || heldRef.current) return;
+    // Measured after the canvas painted the edit (crossFits resizes the element to see whether it fills).
+    return afterPaint(() => publishSizing());
+  }, [sizingKey, setSize]);
+  /** The Inspector's W / H rows: what the selected instance does by itself, measured, and how to set it. */
+  const publishSizing = () => {
+    if (dragRef.current || heldRef.current) return;
     const { shown: target, hit: picked, host: node } = latest.current;
-    if (!target || !picked || !node) return;
+    if (!target || !picked || !node || !node.isConnected) return;
     const filler = target.wrapper && node.parentElement instanceof HTMLElement ? node.parentElement : node;
     const fits = crossFits(filler);
     // Unwritten: what it does by itself, as Figma names it (it fills its parent there, or takes its own size).
@@ -1139,7 +1166,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const wait = waiting.current;
     waiting.current = null;
     if (wait && wait.src === picked.src) setSize(wait.axis, wait.input);
-  }, [sizingKey, setSize]);
+  };
   useEffect(() => () => { window.clearTimeout(unpublish.current); instanceSizing.publish(null); }, []);
 
   // The pill's rendered width, so a long reason stays inside the canvas (read after each render; set only on a change).

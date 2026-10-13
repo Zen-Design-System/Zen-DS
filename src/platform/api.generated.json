@@ -3257,7 +3257,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "",
+          "description": "Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included.",
           "deprecated": null
         },
         {

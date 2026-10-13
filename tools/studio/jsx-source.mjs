@@ -51,12 +51,23 @@ export function isAnnotatedFile(rel) {
 
 /* ── parsing and walking ─────────────────────────────────────────────────────────────────────────────────────────── */
 
+/** The last sources parsed: an edit and the reads after it (the Inspector, the slots, the data origins) parse the same
+ *  page text several times. Studio code only reads the trees (edits are text splices), so one tree serves them all. */
+const parsed = new Map();
+const PARSED = 6;
+
 export function parseSource(code) {
+  const known = parsed.get(code);
+  if (known !== undefined) return known;
+  let tree = null;
   try {
-    return parse(code, { sourceType: "module", plugins: PLUGINS, errorRecovery: true });
+    tree = parse(code, { sourceType: "module", plugins: PLUGINS, errorRecovery: true });
   } catch {
-    return null;
+    tree = null;
   }
+  parsed.set(code, tree);
+  if (parsed.size > PARSED) parsed.delete(parsed.keys().next().value);
+  return tree;
 }
 
 const stripBom = (code) => (code.startsWith(BOM) ? code.slice(1) : code);
