@@ -387,6 +387,9 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  * Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of
  * Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).
  * Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
+ * Rows are FIXED at Table/Cell/Size (the header at Table/Header/Size): each body cell holds one line of content in its
+ * Content layer, and long text ends in an ellipsis instead of growing the row. Long, multi-line content (a sheet-like
+ * grid) is not this component's job.
  */
 export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, editable: editableProp = false, onCellCommit, className, overrides, ...rest }: TableProps<T>) {
   const t = useZenLabels();
@@ -538,7 +541,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                 } : undefined}>
                 {selectable ? (
                   <td className="zen-table__cell zen-table__select">
-                    {rowNest("Checkbox", <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectRow(index + 1)}</VisuallyHidden>} checked={isSelected} onCheckedChange={() => toggle(id)} />)}
+                    <div className="zen-table__content">{rowNest("Checkbox", <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectRow(index + 1)}</VisuallyHidden>} checked={isSelected} onCheckedChange={() => toggle(id)} />)}</div>
                   </td>
                 ) : null}
                 {columns.map((column) => {
@@ -550,7 +553,9 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                     <span className="zen-table__open">{/* zen-allow-compact-button: an App Store-style "Open" pill that appears on row hover inside a 52px cell. */}{cellNest("Open", <Button appearance="main" level="tertiary" size="xs" onClick={(event) => { event.stopPropagation(); column.onOpen!(row); }}>{column.openLabel ?? t.open}</Button>)}</span>
                   ) : null;
                   const editor = editors.get(column.id);
-                  if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{cellOf(column, row, index, cellNest)}{open}</td>;
+                  // Figma Table/Cell/Default › Content: the one-line slot that keeps the row at Table/Cell/Size.
+                  const content = <div className="zen-table__content">{cellOf(column, row, index, cellNest)}</div>;
+                  if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{content}{open}</td>;
                   return (
                     <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-editable={editable ? "true" : "false"} data-editing={isEditing ? "true" : undefined} data-open={open ? "true" : undefined}
                       data-cell={`${id}::${column.id}`} tabIndex={editable && !isEditing ? 0 : undefined} aria-describedby={editable ? hintId : undefined}
@@ -569,10 +574,10 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                       {isEditing
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
-                        ? <><span className="zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest)}</span><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                        ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
-                        : <>{cellOf(column, row, index, cellNest)}{open}</>}
+                        : <>{content}{open}</>}
                     </td>
                   );
                 })}

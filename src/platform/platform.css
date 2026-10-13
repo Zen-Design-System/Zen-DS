@@ -948,6 +948,12 @@
 /* Narrow screens scroll the table sideways (.zen-table overflow-x) instead of squeezing four columns into 342px. */
 .platform-ref__component .zen-table__table { min-width: 680px; }
 .platform-ref__component .platform-ref__code { overflow-wrap: break-word; white-space: normal; }
+/* Docs-only exception (user, 2026-10-13): the Props, API and Keyboard references hold long types and descriptions, so
+   their rows grow with the text. A Zen Table row is FIXED at Table/Cell/Size and cuts long text with an ellipsis;
+   these references move to the sheet-like component for long content once it exists (BACKLOG). */
+.platform-ref .zen-table__content { height: auto; min-height: var(--zen-table-slot, 28px); white-space: normal; }
+.platform-ref .zen-table-text { grid-template-columns: auto; }
+.platform-ref .zen-table-text > * { overflow: visible; white-space: normal; }
 
 /* ───────────── Mobile / conversation / chart batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) ───────────── */
 .platform-mobile-preview { justify-content: center; }

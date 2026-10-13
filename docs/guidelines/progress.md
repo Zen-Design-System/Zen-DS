@@ -19,25 +19,28 @@ Show determinate progress of a task or a step.
 | Theme | `theme` | bar: neutral · accent · status; circle: neutral · accent · red · orange · yellow · green · blue |
 | Value | `value` | 0–100 |
 | Label | `label` | true = percentage |
+| Layout | `layout · valueLabel` | bar: inline (default, the label trails the bar) · stacked (a Label · Value row above the bar; valueLabel replaces the percentage, e.g. "3 of 5 steps") |
 | Scale | `scale` | status only: completion (default, low = red) · quota (usage against a limit: ≥75% Warning, ≥90% Negative) |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/progress.json`.
 
 ### ProgressBar
-Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular label, gap 8.
+Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular text, gap XSmall. Layout=Inline puts the label after the bar; Layout=Stacked (15304:45…) puts a Header row (Label Body/Base/Bold fills, Value Body/Base/Regular hugs, baseline-aligned) above the full-width track.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `value` (required) | `number` | — | 0–100. |
 | `theme` | `"neutral" \| "accent" \| "status"` | `"neutral"` |  |
-| `label` | `ReactNode \| true` | — | Trailing label (Figma Label=Yes). `true` shows the rounded percentage. |
+| `layout` | `"inline" \| "stacked"` | `"inline"` | Figma Layout: `inline` (default: the label trails the bar) · `stacked` (a Label · Value row above a full-width bar). |
+| `label` | `ReactNode \| true` | — | The label (Figma Text, shown with Label=Yes). Inline: trails the bar, and `true` shows the rounded percentage. Stacked: leads the row above the bar and names it; `true` leaves only the value. |
+| `valueLabel` | `ReactNode` | — | Stacked only: the text at the end of the row (Figma Value), such as "3 of 5 steps". Default: the rounded percentage. |
 | `aria-label` | `string` | — | Accessible name when there is no visible label. |
 | `scale` | `"completion" \| "quota"` | `"completion"` | Status theme only: `quota` for usage against a limit (high = bad); default `completion`. |
 | `className` | `string` | — |  |
 
 ### ProgressCircle
-Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on Neutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc + 12px icon-check-solid.
+Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on Neutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px icon-check-solid.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -53,6 +56,7 @@ Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px rin
 - Switch to Status/green or Done when complete.
 - Keep the value a percentage from 0 to 100 (harness: progress/value-range).
 - Pair the percentage with the unit that matters ("12 / 48 MB", "3 of 5 steps").
+- Use layout="stacked" when the bar needs a name: label names it and valueLabel carries the unit ("Storage" · "68 GB of 100 GB"), on one row above the track.
 - Use scale="quota" for storage, seats or credits measured against a limit, so a nearly full quota turns Warning/Negative instead of green (harness: progress/quota-scale).
 
 ## ❌ Don't
@@ -60,6 +64,7 @@ Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px rin
 - Don't use colour alone to convey state.
 - Don't use a progress bar for unknown durations → Skeleton or a spinner.
 - Don't stop at 99% without explaining what's left.
+- Don't build your own name + value row above an inline bar → layout="stacked" with label and valueLabel.
 
 ## Accessibility
 - role=progressbar with aria-valuenow/min/max and valuetext.

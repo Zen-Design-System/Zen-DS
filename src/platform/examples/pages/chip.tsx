@@ -43,7 +43,7 @@ const taskProjects = projects.filter((project) => tasks.some((task) => task.proj
 
 const filterColumns: TableColumn<Task>[] = [
   { id: "task", header: "Task", cell: (task) => <TableText bold caption={task.key}>{task.title}</TableText> },
-  { id: "project", header: "Project", width: "220px", cell: (task) => { const project = projectById(task.project); return <TableMedia bold={false} media={<DockIcon size="xs" icon={project.icon} theme={project.theme} background="subtle" />}>{project.name}</TableMedia>; } },
+  { id: "project", header: "Project", width: "240px", cell: (task) => { const project = projectById(task.project); return <TableMedia bold={false} media={<DockIcon size="xs" icon={project.icon} theme={project.theme} background="subtle" />}>{project.name}</TableMedia>; } },
   { id: "assignee", header: "Assignee", width: "170px", cell: (task) => <TableMedia bold={false} media={<Avatar size="xs" {...avatarOf(people[task.assignee])} />}>{people[task.assignee].name}</TableMedia> },
   { id: "priority", header: "Priority", width: "110px", cell: (task) => <Badge theme={priorityTheme[task.priority]} background="subtle">{task.priority}</Badge> },
   { id: "status", header: "Status", width: "130px", cell: (task) => <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge> },

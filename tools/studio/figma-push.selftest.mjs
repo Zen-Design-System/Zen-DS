@@ -336,6 +336,9 @@ export default function Page() {
   check("Segmented: as wide as its items (not fullWidth), its items its Level and Size, the selected one Select Yes", [seg.hugW, seg.slots[0].hugW, seg.slots[0].children.map((item) => [item.text, item.props.Level, item.props.Size, item.props.Select])], [true, true, [["Day", "Primary", "Small", "No"], ["Week", "Primary", "Small", "Yes"]]]);
   const listBox = fixed.children[0];
   check("ListBox: Header on, its header row one frame filling Header-Slot, the List filling Body-Slot", { header: listBox.props.Header, slots: listBox.slots.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.layout?.mode, child.fillW])]) }, { header: true, slots: [["Header-Slot", [["FRAME", "HORIZONTAL", true]]], ["Body-Slot", [["FRAME", "VERTICAL", true]]]] });
+  const bordered = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const onContainer = find(push(DASH.replace("<ListBox header=", '<ListBox theme="on-container" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  check("ListBox theme: Figma's Theme (Flat by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Flat", "Border", "On-Container"]);
   const [withAvatar, withDock] = listBox.slots[1].children[0].children;
   check("ListItem: Title and Subtitle, its leading Avatar (theme, initials) in Figma's Avatar", [withAvatar.texts, withAvatar.nested[0].set.name, withAvatar.nested[0].props.Theme, withAvatar.nested[0].text], [{ Title: "Checkout shared", Subtitle: "Bao Nguyen" }, "Avatar/Single", "Green", "BN"]);
   check("ListItem: a Dock Icon swaps in for the Avatar; no caption hides Subtitle", [withDock.nested[0].set.name, withDock.nested[0].props["Icon-Src"], withDock.hide], ["Dock-Icon", "icon-file-check-line", ["Subtitle"]]);

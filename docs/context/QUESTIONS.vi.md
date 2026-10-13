@@ -122,6 +122,11 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   Header-Slot / Footer-Slot căn giữa; code tự co theo số hàng và căn trái chữ ở header, nút ở footer. Nhờ designer sửa
   master sang Hug và căn trái.
 
+- **Side-Panel (P3, 2026-10-12):** Back-Container đang ẩn (1573:3127 và 3 variant còn lại) báo kích thước 32×32,
+  trong khi padding 2XSmall + Wrapper 20px chỉ ra 28×28 (Close-Container của Modal bên cạnh là 28). Code vẽ 28 như nút
+  close. 28 có đúng ý không? Ngoài ra: icon heading của Modal (Icon-Wrapper) đã bị bỏ; code giữ `icon` ở dạng
+  deprecated cho đến khi được xác nhận.
+
 ## Cho bạn (quyết định và việc cần làm)
 
 **Đã trả lời ngày 09/10/2026:**

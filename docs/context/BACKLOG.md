@@ -8,6 +8,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P3 · Sheet-style table for long content (user, 2026-10-13):** Table rows are FIXED at Table/Cell/Size (one line,
+  ellipsis). The docs Props / API / Keyboard references still need multi-line rows: a temporary `.platform-ref`
+  override in `src/platform/platform.css` lets them grow. Replace it with the planned sheet component (needs the user's
+  approval and a Figma source).
 - **P1 · Studio → Figma coverage, P4 (user approved 2026-10-12; P1–P3 done, branch zen/feat/figma-map-p3 2026-10-13):**
   P3 mapped TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat (ChatThread,
   reactions, read list), FileIcon, Flag, icon sizes and fixed Metric (spec §8 "P3"). P4 (examples' raw HTML and

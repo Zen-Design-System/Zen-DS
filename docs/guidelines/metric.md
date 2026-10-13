@@ -78,7 +78,7 @@ Also accepts `MetricProps`.
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale" \| "on-container"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |
 
 ### Types

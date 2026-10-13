@@ -30,3 +30,8 @@ export const Shadow: Story = { args: { theme: "shadow" } };
 export const Border: Story = { args: { theme: "border" } };
 /** Pale: a tinted box; it never casts a shadow. */
 export const Pale: Story = { args: { theme: "pale" } };
+/** On-Container: Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet — shown here on their Container fill. */
+export const OnContainer: Story = {
+  args: { theme: "on-container" },
+  decorators: [(Story) => <div style={{ padding: "var(--zen-spacing-padding-large, 20px)", background: "var(--zen-color-background-container)" }}><Story /></div>],
+};

@@ -6,7 +6,7 @@
     {
       "name": "SidePanel",
       "file": "src/components/SidePanel/SidePanel.tsx",
-      "description": "Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered\nin place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the\nopener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container\nborder, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.\nHeader (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close\nbutton is pinned to the header's top-right corner; Contents; Modal/Actions footer.",
+      "description": "Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered\nin place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the\nopener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container\nborder, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.\nSections, each Modal-Padding on every side: Top-Customize (optional) · Header (Header-Contents, gap XSmall: the row\nback · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents\n(gap Medium, scrolls) · Modal/Actions footer.",
       "deprecated": null,
       "extends": "OverlayOpenProps",
       "props": [
@@ -67,6 +67,38 @@
           "deprecated": null
         },
         {
+          "name": "headerContent",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header-Contents slot: more header content under the caption (a status row, tabs, a search field), gap XSmall.",
+          "deprecated": null
+        },
+        {
+          "name": "top",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Customize slot, rendered above the header (e.g. a Stepper, a banner or a cover).",
+          "deprecated": null
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Back-Container: a back button (Button/Icon-Flat Small, icon-arrow-narrow-left-line) before the title, for a\n panel that drilled into a detail. Called on click; without it there is no back button.",
+          "deprecated": null
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the back button. Default: the locale's “Back”.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"standard\" | \"modal\"",
           "required": false,
@@ -87,8 +119,8 @@
           "type": "IconName | ReactElement",
           "required": false,
           "default": null,
-          "description": "Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element.",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Figma's Side-Panel no longer draws a heading icon (removed on 2026-10-12). Modal only: a 44px icon above\n the title, still drawn for now; put an icon in `top` or `headerContent` instead."
         },
         {
           "name": "children",
@@ -143,7 +175,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "description": "Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets onBack / the actions.",
           "deprecated": null
         }
       ]

@@ -1,5 +1,85 @@
 # Session log 2026-10-13
 
+## Progress re-read from the official Figma file (tier S, user: "Update lại Progress từ Figma")
+
+- Read-only use_figma on `9nZv4uW2LT21yuHabMTCh1`: Progress-Bar 1536:260 (30 variants), Progress-Circle/Icon 6915:62964
+  (14), Progress-Circle 1531:13954 (1), Table Progress-Cell 4081:19727 (nests Bar Neutral/Done/Inline). Properties
+  unchanged since the 2026-10-12 capture (Text, Label, Theme, Progress, Layout).
+- One change: Layout=Stacked Label is now **Body/Base/Bold** (Value stays Body/Base/Regular; Inline label Regular).
+  `ProgressBar` picks the style by layout; JSDoc and CSS comment cite it; guidelines/props rebuilt.
+- Re-checked and equal to code: track Neutral/Subtle 8px Rounded; fills Active/Neutral|Accent/Solid, Status
+  Low 20% Negative · Medium 40% Warning · Good 80% / Done Positive, None hides the fill; Stacked V gap XSmall, Header
+  baseline gap XSmall (Label FILL, Value HUG); Circle ring 2px Support/*/Subtle on Neutral/Subtle, 12px pie, Done 20px
+  disc + 12px check On-Colors (Neutral: Support/Neutral/Deep + Inverse/Strongest).
+
+## AI kit for Figma (tier S, user: "Thêm một chỗ tải bộ skill, harness, markdown… để Claude hoặc ChatGPT làm việc với file Zen trên Figma")
+
+- New skill `skills/zen-figma-design` (SKILL.md, references screen-rules / figma-gotchas / audit-rules, agents/openai.yaml):
+  the Figma-side rules from the usage rules §1–16 and the 2026-10-12 Pokeslide lessons (sidebar selection, control bar,
+  tables, Solid avatars/dock icons, Side-Panel content, instance-swap colour loss, clone/slot gotchas, use_figma limits).
+- Harness `skills/zen-figma-design/harness/zen-figma-audit.js` (read-only, run via use_figma). Calibrated on the live file:
+  HR template page 7378:38418 → 0 errors after making it slot-aware (SLOT children are authored), measuring text by its
+  ink (3px tolerance) and comparing an instance's re-bound colour with the main component's (skipping icon-swap slots);
+  1 real warning left (Chip/Advanced chevron Neutral/Light vs Strongest). Studio export "Dashboard" 15279:3 → real
+  findings: raw #ffffff root fill, unbound paddings, Button/Icon-Main icons bound to Neutral/Strongest instead of
+  Button-Tertiary/Content/Default (the 2026-10-12 colour-loss bug). Wrapped-line count now uses the ink height (a fixed
+  32×35 "$25K" label was a false crushed-text error).
+- Kit builder `tools/ai-kit/kit.mjs` (isomorphic) + `build.mjs` (`npm run ai-kit:build` / `ai-kit:check`, 90 checks);
+  generates figma-components.md (contract) and figma-tokens.md (variables resolved to px, repo-only Studio modes left
+  out). Platform: `src/platform/PlatformAiKit.tsx` on Installation (lazy `aiKit.ts`). Browser zip == CLI zip (78 files).
+- QA: `npm run qa -- --pages=installation --files=… --isolated` PASS (the page has no example cards, so no contact
+  sheet: section shot at 1512/390 with Playwright and reviewed).
+
+## Typography letter-spacing re-sync (tier XS, user: "Update tokens này vào platform và studio")
+
+- `Typography Configuration.json` (mode Dashboard only, 78 tokens, no names added/removed): nine Letter-Spacing values
+  tighter — Display-1 -1.52 → -1.58, Display-2 -1.21 → -1.2, Display-3 -0.98 → -1.08, Display-4 -0.76 → -0.96,
+  Heading-1 -0.56 → -0.84, Heading-2 -0.5 → -0.75, Heading-3 -0.44 → -0.66, Heading-4 -0.4 → -0.6, Body-Small 0 → -0.12.
+  Popular / Mobile unchanged; the repo-only Studio mode re-derived (Dashboard ratio × Studio size, 2 dp, as 2026-10-09).
+- Text-style snapshots re-derived (`text-styles.json`, `styles.json`, `figma-styles.full.json`: 11 styles) and the
+  Heading/1 · Heading/3 text nodes of the `dashboard-header` / `input-search` contracts. `platform.css`'s Zen-Platform
+  block is a different Figma mode (not in this export): untouched. Consumers all read the `--zen-typography-letter-spacing-*`
+  variables (Sidebar, Rating, Input rich text, Dialog, platform, Studio inspector/board): nothing hard-coded.
+- `tokens:build` / `tokens:check` (2201/2201), `styles:build` / `styles:check` (36/36), `tokens:native:check` PASS.
+
+## Figma descriptions + Content-Hierarchy (tier M, user: "vào Figma để viết description cho các component, variables và style… Bổ sung thêm nội dung của Content typography outline cho trang typography")
+
+- User choices (AskUserQuestion): rewrite from the repo rules (keep specific ones), English, a new section.
+- `tools/figma-docs/`: `component-descriptions.mjs` (hand-written per set from guidelines + usage rules),
+  `variable-descriptions.mjs` / `style-descriptions.mjs` (rule functions sent as source), `build.mjs` (prints the
+  use_figma code: `pages`, `batch <n>`, `sets "<a;b>"`, `variables`, `styles`, `preview`). Sets whose old text is
+  specific (> 150 chars, not the generated "**Overview:** … Original Notes" set) are kept: the 2026-10-12 Chart sets.
+- Written to `9nZv4uW2LT21yuHabMTCh1`: 168/168 public sets (descriptionMarkdown), 592 variables (Mode Colors 426,
+  Spacing 22, Corner Radius 25, Breakpoint 11, Emphasis 6, Global Dimensions 33; entity fixes / fills elsewhere),
+  36 text + 18 effect + 35 paint styles. `figma.saveVersionHistoryAsync` is not supported in use_figma, so each call
+  first copied the replaced text as JSON into frame "Description backup 2026-10-13" on 🔒 ARCHIVED (15372:3796):
+  delete it once reviewed. Read-back: 168 public sets, 0 empty, 0 generic.
+- 🔤 Typography: section Content-Hierarchy (15381:943, frame 15381:592) cloned from Type-Configuration's look
+  (.Ops header + table header), four tables (desktop, phone, every screen, overlays) and 10 outline rules, cells on
+  Zen text styles and variables. Zen audit: 6 findings, all from the doc template; header radii bound to
+  Corner-Radius/Base, the 56px frame corner and the BT Solisiert title kept like the page's other doc frames.
+- The library still needs a Publish in Figma (the user's step) before consuming files see the descriptions.
+
+## Table rows fixed at the token (tier S, user: "table row hiện tại fixed height theo tokens")
+
+- Figma (read-only use_figma): Table/Cell/Default 1603:23604 FIXED height bound to `Table/Cell/Size`, Table/Cell/Header
+  1604:12968 bound to `Table/Header/Size`; Text-Cell label one text node; Badge-Cell / Tag-Cell `Items` NO_WRAP.
+- Measured before (Playwright, the platform's sign-in gate opens only for webdriver): every body row 53px (Compact) /
+  57px (Comfortable) — the 1px bottom border sat inside the `<td>` box (12 + 28 + 12 + 1); long text wrapped (73px at
+  390, a test row 117px). A `<td>` height is only a minimum.
+- Fix: each body cell holds a `.zen-table__content` slot (Figma Content: flex, centred, height Table/Cell/Size − 2 ×
+  Padding/Small, nowrap); the divider is an inset 1px hairline (`--zen-table-divider`, Figma stroke inside) on th and
+  td; Text-Cell is an inline-grid `minmax(0, max-content)` track so a narrow column ends it in an ellipsis
+  (right-aligned values stay whole); Items no longer wrap; the Subtext margin hack and slot heights on media/actions
+  went (the slot centres overflow). A surface's last row clears `--zen-table-divider`.
+- After: 0 rows off the token on table, templates, app-shell, chip, slider, dashboard-header (1512 and 390), 0 content
+  outside its cell. Examples whose FIXED column was too narrow for its text now that it no longer grows: timesheet
+  Person 150 → 176px, chip Project 220 → 240px.
+- Docs reference tables (Props, API, Keyboard) keep growing rows through a `.platform-ref` override in platform.css
+  (user chose the temporary docs exception; BACKLOG P3 until the sheet component exists).
+- Guideline (Rows, Columns, avoid, don't) says rows are one line at the token; test `tests/interaction/table-row-height`
+  (Compact + Comfortable + ellipsis) fails on the old code ([117, 53]) and passes now.
+
 ## Studio → Figma coverage P3: the Figma components the push drew as frames (session "Studio export", branch zen/feat/figma-map-p3, tier M)
 
 - User: "làm luôn" (P3, then P4). Worktree `Zen-CodeBase/Zen-DS-p3` from main 6083159; plugin commits in

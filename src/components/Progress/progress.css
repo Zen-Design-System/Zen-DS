@@ -15,6 +15,13 @@
 /* zen-allow-motion-layout: the fill animates width until scaleX() (P2-8 in the motion review). */
 .zen-progress-bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--zen-progress-fill); transition: width var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-standard, ease); }
 .zen-progress-bar__label { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
+/* Figma Layout=Stacked (15304:45…): a Header row (Label Body/Base/Bold fills and wraps, Value Body/Base/Regular hugs,
+   baseline, gap XSmall) above the full-width 8px track, gap XSmall. */
+.zen-progress-bar[data-layout="stacked"] { flex-direction: column; align-items: stretch; }
+.zen-progress-bar__header { display: flex; min-width: 0; align-items: baseline; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-progress-bar[data-layout="stacked"] .zen-progress-bar__label { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
+.zen-progress-bar[data-layout="stacked"] .zen-progress-bar__track { flex: 0 0 auto; }
+.zen-progress-bar__value { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
 
 .zen-progress-circle {
   --zen-progress-ring: var(--zen-color-border-support-brand-subtle);
@@ -39,15 +46,15 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  /* Figma Progress-Circle/Icon Done=No (6915:62964): only the 2px Base ring and the Progress pie — no fill. */
-  background: transparent;
+  /* Figma Progress-Circle/Icon (6915:62964) Base: Neutral/Subtle fill inside the 2px ring. */
+  background: var(--zen-color-background-neutral-subtle-default);
   box-shadow: inset 0 0 0 2px var(--zen-progress-ring);
   color: var(--zen-progress-check);
 }
 /* 12px pie centred in the ring, starting at 12 o'clock, clockwise. */
 .zen-progress-circle__icon::before { position: absolute; inset: 4px; border-radius: 50%; background: conic-gradient(var(--zen-progress-solid) calc(var(--zen-progress-value, 0) * 1%), transparent 0); content: ""; }
-.zen-progress-circle__icon[data-done="true"] { background: var(--zen-progress-solid); }
-.zen-progress-circle[data-tone="neutral"] .zen-progress-circle__icon[data-done="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-support-neutral-solid); }
+/* Done=Yes: the 20px Progress disc sits over Base, so its ring does not show. */
+.zen-progress-circle__icon[data-done="true"] { background: var(--zen-progress-solid); box-shadow: none; }
 .zen-progress-circle__icon[data-done="true"]::before { display: none; }
 .zen-progress-circle__icon > .zen-icon { position: relative; width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); }
 .zen-progress-circle__label { color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
