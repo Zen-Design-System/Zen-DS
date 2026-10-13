@@ -7,7 +7,7 @@ import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/s
 import "./card.css";
 import "../Icon/core";
 
-export const cardThemes = ["shadow", "flat", "pale", "border", "semi-pale"] as const;
+export const cardThemes = ["shadow", "flat", "pale", "border", "semi-pale", "on-container"] as const;
 export const cardSpacings = ["medium", "small"] as const;
 export type CardTheme = (typeof cardThemes)[number];
 /** CSS / Figma key (the `data-spacing` value). */
@@ -34,7 +34,9 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
   /** The root element. */
   ref?: Ref<HTMLElement>;
   children?: ReactNode;
-  /** Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient). */
+  /** Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale
+   *  (Pale→Subtle gradient) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their
+   *  Container fill; harness card/on-container-in-overlay). */
   theme?: CardTheme;
   /** Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. */
   spacing?: CardSpacing;
@@ -46,7 +48,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    */
   active?: boolean;
   /** Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface
-   *  (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme="shadow",
+   *  (a page scope can set it once), else Surface/Default. Pale / Semi-Pale / On-Container keep their own fill. With theme="shadow",
    *  `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)
    *  on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. */
   surface?: CardSurface;
@@ -65,7 +67,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
 }
 
 /**
- * Figma Card (6643:51021): a Content slot on one of five surfaces, padded Card-padding-medium/small.
+ * Figma Card (6643:51021): a Content slot on one of six surfaces, padded Card-padding-medium/small.
  * A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
  */
 export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, overrides, width, minWidth, maxWidth, alignSelf, style, ...rest }: CardProps) {

@@ -290,6 +290,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   },
   "SidePanel": {
     "Actions": "ModalActions",
+    "Back": "IconButton",
     "Close": "IconButton",
     "Icon": "Icon"
   },

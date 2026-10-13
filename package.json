@@ -88,6 +88,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "mcp:selftest": "node mcp/selftest.mjs",
+    "ai-kit:build": "node tools/ai-kit/build.mjs",
+    "ai-kit:check": "node tools/ai-kit/build.mjs --check",
     "platform:behaviour": "node tools/platform-audit/behaviour.mjs",
     "style:check": "node tools/style-guard/check-styles.mjs",
     "style:selftest": "node tools/style-guard/selftest.mjs",

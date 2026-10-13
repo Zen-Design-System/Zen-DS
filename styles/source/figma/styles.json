@@ -241,7 +241,7 @@
         "fontWeight": "700",
         "fontSize": "45px",
         "lineHeight": "52px",
-        "letterSpacing": "-1.5199999809265137px"
+        "letterSpacing": "-1.5800000429153442px"
       },
       {
         "name": "Display/2",
@@ -252,7 +252,7 @@
         "fontWeight": "700",
         "fontSize": "40px",
         "lineHeight": "44px",
-        "letterSpacing": "-1.2100000381469727px"
+        "letterSpacing": "-1.2000000476837158px"
       },
       {
         "name": "Display/3",
@@ -263,7 +263,7 @@
         "fontWeight": "700",
         "fontSize": "36px",
         "lineHeight": "44px",
-        "letterSpacing": "-0.9800000190734863px"
+        "letterSpacing": "-1.0800000429153442px"
       },
       {
         "name": "Display/4",
@@ -274,7 +274,7 @@
         "fontWeight": "700",
         "fontSize": "32px",
         "lineHeight": "40px",
-        "letterSpacing": "-0.7599999904632568px"
+        "letterSpacing": "-0.9599999785423279px"
       },
       {
         "name": "Heading/1",
@@ -285,7 +285,7 @@
         "fontWeight": "700",
         "fontSize": "28px",
         "lineHeight": "36px",
-        "letterSpacing": "-0.5600000023841858px"
+        "letterSpacing": "-0.8399999737739563px"
       },
       {
         "name": "Heading/2",
@@ -296,7 +296,7 @@
         "fontWeight": "700",
         "fontSize": "25px",
         "lineHeight": "32px",
-        "letterSpacing": "-0.5px"
+        "letterSpacing": "-0.75px"
       },
       {
         "name": "Heading/3",
@@ -307,7 +307,7 @@
         "fontWeight": "700",
         "fontSize": "22px",
         "lineHeight": "28px",
-        "letterSpacing": "-0.4399999976158142px"
+        "letterSpacing": "-0.6600000262260437px"
       },
       {
         "name": "Heading/4",
@@ -318,7 +318,7 @@
         "fontWeight": "700",
         "fontSize": "20px",
         "lineHeight": "28px",
-        "letterSpacing": "-0.4000000059604645px"
+        "letterSpacing": "-0.6000000238418579px"
       },
       {
         "name": "Heading/Subheading",
@@ -406,7 +406,7 @@
         "fontWeight": "400",
         "fontSize": "12px",
         "lineHeight": "16px",
-        "letterSpacing": "0px"
+        "letterSpacing": "-0.11999999731779099px"
       },
       {
         "name": "Body/Small/Medium",
@@ -417,7 +417,7 @@
         "fontWeight": "500",
         "fontSize": "12px",
         "lineHeight": "16px",
-        "letterSpacing": "0px"
+        "letterSpacing": "-0.11999999731779099px"
       },
       {
         "name": "Body/Small/Bold",
@@ -428,7 +428,7 @@
         "fontWeight": "700",
         "fontSize": "12px",
         "lineHeight": "16px",
-        "letterSpacing": "0px"
+        "letterSpacing": "-0.11999999731779099px"
       },
       {
         "name": "Body/Code/Regular",

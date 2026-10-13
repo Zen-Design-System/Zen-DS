@@ -698,7 +698,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",

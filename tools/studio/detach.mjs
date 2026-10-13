@@ -496,6 +496,7 @@ function cardBox(r, { theme, spacing, surface }, rootProps) {
   if (theme === "shadow") r.approx("Card theme shadow: Shadow/Bottom/Level-1 is dropped (Box has no shadow).");
   if (theme === "pale") r.approx("Card theme pale: Support/Neutral/Pale with the overlay blur becomes Box surface pale (Neutral/Pale).");
   if (theme === "semi-pale") r.approx("Card theme semi-pale: the Pale→Subtle gradient with the overlay blur becomes Box surface pale.");
+  if (theme === "on-container") r.approx("Card theme on-container: Surface/Flat becomes Box surface (Surface/Default): the same white in light mode, one step lighter in dark.");
   const padding = boxPadding(r, small ? "md" : "xl");
   if (!small) r.approx(`Card padding is fixed at ${padding.map((prop) => prop.value).join(" × ")} (Card-padding-medium follows the breakpoint: 24 desktop, 20 tablet and phone).`);
   return [
@@ -553,7 +554,7 @@ function withSubAction(r, content, sub) {
   return [el(r.use("Stack"), [str("direction", "row"), str("align", "start"), str("gap", "xs")], [body, sub])];
 }
 
-const CARD_THEMES = ["shadow", "flat", "pale", "border", "semi-pale"];
+const CARD_THEMES = ["shadow", "flat", "pale", "border", "semi-pale", "on-container"];
 const spacingKey = (value) => (value === "sm" || value === "small" ? "sm" : "md");
 
 const RECIPES = {

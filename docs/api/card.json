@@ -6,7 +6,7 @@
     {
       "name": "Card",
       "file": "src/components/Card/Card.tsx",
-      "description": "Figma Card (6643:51021): a Content slot on one of five surfaces, padded Card-padding-medium/small.\nA clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).",
+      "description": "Figma Card (6643:51021): a Content slot on one of six surfaces, padded Card-padding-medium/small.\nA clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">, LayoutWidthProps",
       "props": [
@@ -60,10 +60,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient).",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale\n (Pale→Subtle gradient) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their\n Container fill; harness card/on-container-in-overlay).",
           "deprecated": null
         },
         {
@@ -95,7 +95,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
