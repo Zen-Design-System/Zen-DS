@@ -1899,6 +1899,31 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "UploaderFileItem": {
+    "figma": "1581:22739",
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Overlay": "overlay"
+        }
+      },
+      {
+        "prop": "thumbnail",
+        "label": "Thumbnail",
+        "type": "VARIANT",
+        "options": {
+          "None": "none",
+          "File": "file",
+          "Photo": "photo"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "FileUpload": {
     "figma": "1581:22708",
     "own": [
@@ -2217,6 +2242,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "DatePickerSheet": {
+    "figma": "9923:3576",
+    "own": [],
+    "toggles": []
+  },
   "Stepper": {
     "figma": "1625:8328",
     "own": [
@@ -2489,6 +2519,20 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Default": "default",
           "Success": "success",
           "Wrong": "wrong"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "InputConditions": {
+    "figma": "373:97663",
+    "own": [
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default"
         }
       }
     ],

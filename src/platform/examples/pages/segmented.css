@@ -1,8 +1,5 @@
 /* Segmented examples (src/platform/examples/pages/segmented.tsx). Tokens only. */
 
-/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
-.px-segmented-card { width: 100%; max-width: 440px; margin-inline: auto; }
-
 /* A control that hugs its options inside a stretching column. */
 .px-segmented-start { align-self: flex-start; }
 

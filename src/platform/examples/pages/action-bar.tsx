@@ -220,7 +220,7 @@ function PhoneApprovalsExample() {
       <Stack padding="lg" gap="lg">
         <Stack direction="column" gap="md" align="center">
           <Avatar size="3xl" {...avatarOf(person)} />
-          <Stack gap="2xs" className="px-action-bar-grow" width="fill">
+          <Stack gap="2xs" height="fill" width="fill">
             <Heading level={2} textStyle="Heading/2" align="center" width="fill">{person.name}</Heading>
             <Text textStyle="Body/Small/Regular" tone="light" align="center">{person.role}</Text>
           </Stack>

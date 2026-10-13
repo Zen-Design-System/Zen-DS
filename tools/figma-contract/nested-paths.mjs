@@ -53,6 +53,7 @@ const ALLOWED = {
   Toast: { Action: "unnamed in Figma: Button/Overlay or Button/Main by the toast's type", Leading: "Zen's Leading holds the icon or any node (icon prop); Figma draws icon-Container › Icon" },
   InlineMessage: { Leading: "Zen's Leading holds the icon or any visual (icon prop); Figma draws Icon-Wrapper › Icon, or the Visual slot for Theme=Custom" },
   FileUpload: { Retry: "Figma's File-Item shows Replace and Remove; Retry is the code's, for a failed upload" },
+  DatePickerSheet: { Apply: "unnamed in Figma: Date-Picker/Mobile's Footer › Buttons (.Primitives/Bottom-Sheet/Actions) › Button/Main (read 2026-10-13)" },
 };
 
 /** Every layer name in a contract set, by name → the layer types it has there. */

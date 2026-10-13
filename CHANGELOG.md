@@ -19,6 +19,19 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
+  and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
+- Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
+  Top-Navigation/Mobile (its Type, the parts the page shows, the titles, the leading action, each row's actions as
+  Nav-Slot/Action in the Button its Type draws, the control bar), ColorSelector as Color-Selector swatches bound to the
+  colour variables, Tabs written with TabItem children (and tab badges), InputConditions as Input-Conditions (the items'
+  labels), UploaderFileItem as File-Item (state, name, size, caption, error, progress), DatePickerSheet as
+  Date-Picker/Mobile, and chat: ChatThread as Chat/Section/Conversation runs, a ChatMessage's author, reactions pill and
+  read list, FileIcon as icon-media-file and Flag as Flag, and an Icon's size (its Element-Size/Popular variable; every
+  icon was 20px). Each comes back from Figma the same (pull), and a phone Screen's top and bottom navigation come back
+  as its chrome. Fixed on the way: a Segmented's selected item and fullWidth, a Tab-Item read as "True", a
+  Condition-Item's label, a Metric's label, value, trend and default icon (Figma hid it), MetricCard read back as a Card,
+  and a chat message's text read from the avatar.
 - Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
   In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
   as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
@@ -60,6 +73,9 @@ removed (four unused colour ramps were, see Removed).
   on every corner, like the bars. Zen
   Studio's Charts palette gains Bar, Horizontal bar, Line (two series), Donut, Radial and Heatmap. Harness:
   `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
+- Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
+  and Max width on the instance): a card can fill its column up to a readable width and centre itself without a
+  className. Unset, they render nothing new. The push to Figma writes them on the instance and a pull reads them back.
 - Zen Studio → Figma (core rebuild Q4): Export › **Figma** downloads a page as `<page>.figma.json`; in the Zen Figma
   plugin, Import › **Import from Studio** places it on the page "Studio exports" as a frame of library instances
   (variants, nested overrides, slot content, auto layout bound to the Spacing variables, text styles), and importing it

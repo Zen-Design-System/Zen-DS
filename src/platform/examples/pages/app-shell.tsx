@@ -108,7 +108,7 @@ function AccountPage({ id, card }: { id: "profile" | "settings"; card: CardTheme
     <Page>
       <PageHeader title="Profile" description={`${me.role} · ${me.team} team`} />
       {/* A readable width keeps each term near its value. */}
-      <Card theme={card} className="px-app-shell-details">
+      <Card theme={card} width="fill" maxWidth={440}>
         <DescriptionList items={[
           { term: "Name", description: me.name },
           { term: "Email", description: me.email },
@@ -120,7 +120,7 @@ function AccountPage({ id, card }: { id: "profile" | "settings"; card: CardTheme
   ) : (
     <Page>
       <PageHeader title="Settings" description={`The ${studio.name} workspace`} />
-      <Card theme={card} className="px-app-shell-details">
+      <Card theme={card} width="fill" maxWidth={440}>
         <DescriptionList items={[
           { term: "Workspace", description: studio.name },
           { term: "Domain", description: studio.domain },

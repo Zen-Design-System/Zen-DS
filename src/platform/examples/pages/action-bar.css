@@ -7,8 +7,5 @@
 .px-action-bar-frame__scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
 .pe-card[data-fullscreen="true"] .pe-card__preview > .px-action-bar-frame { flex: 1 1 0; height: auto; min-height: 0; }
 
-/* A text column that takes the room beside an Avatar and a Badge. */
-.px-action-bar-grow { min-width: 0; flex: 1 1 auto; }
-
 /* Quantity between − and +: the width of two digits, so the buttons don't move as the number changes. */
 .px-action-bar-qty { min-width: 2ch; font-variant-numeric: tabular-nums; text-align: center; }

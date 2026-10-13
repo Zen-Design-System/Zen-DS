@@ -323,7 +323,7 @@ export default function Page() {
   const [metricCard, lineCard, barCard] = fit.children;
   const metric = metricCard.slots[0].children[0];
   check("MetricCard: a Card (Shadow, no ⋮) around Metric-Inline, its Label and Metric-Number, Trend, Dock-Icon and Action on", { card: [metricCard.set.name, metricCard.props.Theme, metricCard.props["Sub-Action"]], metric: [metric.set.name, metric.texts, metric.props.Trend, metric.props["Dock-Icon"], metric.props.Action] }, { card: ["Card", "Shadow", false], metric: ["Primitives/Metric/Metric-Inline/Title-Highlight", { Label: "Revenue", "Metric-Number": "$541.4K" }, true, true, true] });
-  check("MetricCard: its trend badge, Dock Icon and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
+  check("MetricCard: its trend badge, Dock Icon (its background written too: Metric's Subtle) and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", Background: "Subtle", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
   const line = lineCard.slots[0].children[0];
   check("ChartCard: a Card around Figma's chart of its kind, the title its Label, ranges as Segmented items, no open button without onOpen", { set: line.set.name, texts: line.texts, items: line.slots?.[0]?.children.map((item) => `${item.text}:${item.props.Select}`), hide: line.hide }, { set: "Chart/Line-Chart", texts: { Label: "Revenue" }, items: ["Revenue:Yes", "Profit:No"], hide: ["Button/Icon-Main"] });
   check("ChartCard without ranges: its Segmented hidden", barCard.slots[0].children[0].hide, ["Segmented", "Button/Icon-Main"]);
@@ -587,6 +587,342 @@ export default function Page() {
   ok("AiChatBlock: no note of a frame drawn for it", !notes.some((note) => /AiChatBlock: no Figma component/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("round trip: AiChatBlock comes back with its greeting, suggestions and field (no wrapper Stack)", /<AiChatBlock[^>]*greeting="Good morning, Alex\. How can I help\?"/.test(back) && back.includes('{ label: "Request time off", icon: "icon-calendar-plus-line" }') && /<AiChatField[^>]*fieldStyle="surface"/.test(back) && !/<Stack[^>]*align="center"[^>]*>\s*<AiChatBlock/.test(back));
+}
+
+// 15. TopNavigation as Figma's Top-Navigation/Mobile (figma-top-nav.mjs, 2026-10-13): the Type and the parts the page
+//     shows, the titles in their Heading-Text layers, the leading Action, the actions in each row's Trailing-Slot (by
+//     `within`) in the Button the Type draws, the control bar padded in Control-Slot; the Screen's mobile chrome round trip.
+{
+  const nav = `// @zen-page {"format":1,"title":"Inbox"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Segmented, Stack, Text, TopNavigation } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox" device="phone" topNavigation={<TopNavigation type="liquid-glass" largeTitle="Inbox" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-search-medium-line", label: "Search" }, { icon: "icon-bell-01-line", label: "Alerts", dot: true }]} largeTitleAction={{ icon: "icon-plus-line", label: "New" }} controlBar={<Segmented options={[{ id: "all", label: "All" }, { id: "unread", label: "Unread" }]} fullWidth defaultValue="all" />} />}>
+        <Stack>
+          <TopNavigation type="compact" largeTitle="Home" trailing={[{ icon: "icon-search-medium-line", label: "Search" }, { icon: "icon-bell-01-line", label: "Alerts" }]} />
+          <TopNavigation type="default-overlay" margin="compact" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call", group: "call" }, { icon: "icon-video-line", label: "Video", group: "call" }]} />
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(nav);
+  const [inbox] = frame.children;
+  const [home, ava] = frame.children[1].children[0].children;
+  check("TopNavigation: Top-Navigation/Mobile, its Type, no Status-bar, the parts the page shows", [inbox.set.id, inbox.props.Type, inbox.props["Status-Bar"], inbox.props["Top-bar"], inbox.props["Top-Heading-Text"], inbox.props["Expand-Heading"], inbox.props["Expand-Trailing"], inbox.props["Control-Bar"]], ["12014:45167", "Liquid Glass", false, true, false, true, true, true]);
+  check("TopNavigation: the large title and the leading Action (named by its label, its glyph)", [inbox.nested[0], inbox.nested[1]], [{ path: "Main-Heading-Text", props: { Type: "H1" }, texts: { "Header-Text": "Inbox" } }, { path: "Top-Leading/Action", name: "Back", props: { "Noti-Dot": false }, swapIcon: "icon-chevron-left-line-medium" }]);
+  check("TopNavigation: each row's actions in its own Trailing-Slot, as Nav-Slot/Action in the Type's Button", inbox.slots.slice(0, 2).map((slot) => [slot.within, slot.children.map((item) => [item.name, item.set.id, item.props.Style, item.props["Noti-Dot"], item.nested[0].set.name, item.nested[0].props.Level, item.nested[0].swapIcon])]), [["Navigator-bar", [["Search", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-search-medium-line"], ["Alerts", "6340:42675", "Default", true, "Nav-Action/Liquid-Glass", "Secondary", "icon-bell-01-line"]]], ["Expand-Heading", [["New", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-plus-line"]]]]);
+  check("TopNavigation: the control bar in Control-Slot, padded as the code pads it (Padding/2XSmall, Large, XSmall)", [inbox.slots[2].name, inbox.slots[2].children[0].name, inbox.slots[2].children[0].layout.padding, inbox.slots[2].children[0].children[0].set.name], ["Control-Slot", "Control", [4, 20, 8, 20], "Segmented"]);
+  check("TopNavigation: a compact root folds its bar into the large-title row (Top-bar off, the actions beside the title, Flat › Icon-Flat)", [home.props["Top-bar"], home.props["Top-Leading"], home.props["Expand-Trailing"], home.slots.map((slot) => [slot.within, slot.children.map((item) => [item.props.Style, item.nested[0].set.name, item.nested[0].props.Level])])], [false, false, true, [["Expand-Heading", [["Flat", "Nav-Action/Icon-Flat", "Primary"], ["Flat", "Nav-Action/Icon-Flat", "Primary"]]]]]);
+  check("TopNavigation: an identity's title and subtitle in Top-Heading-Text, Margin Compact, an overlay's Icon-Overlay", [ava.props.Margin, ava.props["Expand-Heading"], ava.nested[0].props, ava.nested[0].texts, ava.slots[0].children[0].nested[0].props.Level], ["Compact", false, { Type: "Sub", Header: true, Subheading: true, Leading: false }, { "Header-Text": "Ava Chen", Subheading: "Active now" }, "Black Overlay"]);
+  ok("TopNavigation: a note for actions that share a pill (Figma has none)", notes.some((note) => /share a pill/.test(note)));
+  const back = shape(pageFromFigma(frame, { mapping }).text);
+  check("round trip: the Screen's topNavigation and the page's TopNavigations come back the same", back, shape(nav.replace(/, group: "call"/g, "")));
+}
+
+// 16. A Top-Navigation/Mobile as the pull reads it in Figma (readTopNav; the instance an import placed, 2026-10-13).
+{
+  const read = { type: "FRAME", name: "Chat", width: 390, layout: { mode: "VERTICAL" }, children: [{ type: "INSTANCE", name: "Ava Chen", set: { id: "12014:45167", name: "Top-Navigation/Mobile" },
+    props: { "Top-Leading": true, "Top-Heading-Text": true, "Control-Bar": false, "Top-Trailing": true, "Expand-Trailing": false, "Status-Bar": false, "Top-bar": true, "Expand-Heading": false, Device: "Mobile", Margin: "Comfortable", Type: "Default-Overlay" },
+    topNav: { bar: { props: { Leading: false, Header: true, Subheading: true, Type: "Sub" }, texts: { Label: "A", "Header-Text": "Ava Chen", Subheading: "Active now" } }, large: { props: { Type: "H1" }, texts: { "Header-Text": "Heading" } },
+      leading: { props: { Style: "Liquid Glass", Type: "Action" }, action: { name: "Back", icon: "icon-chevron-left-line-medium" } },
+      barActions: [{ name: "Call", icon: "icon-phone-line" }, { name: "Video", icon: "icon-video-line", dot: true }], titleActions: [{ name: "Action", icon: "icon-plus-line" }], control: [] } }] };
+  const text = pageFromFigma(read, { mapping }).text;
+  ok("pull: Top-Navigation/Mobile → TopNavigation with its type, identity, leading and trailing (hidden rows left out)", text.includes('<TopNavigation type="default-overlay" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call" }, { icon: "icon-video-line", label: "Video", dot: true }]} />') && !text.includes("Heading\""));
+}
+
+// 17. ColorSelector as a row of Color-Selector swatches (2026-10-13): each its colour's variable as its own fill, the
+//     chosen one Select=Yes, a colour that is no token noted; the pull gives the ColorSelector back.
+{
+  const page = `// @zen-page {"format":1,"title":"Labels"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { ColorSelector, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Labels" device="desktop">
+        <Stack gap="md">
+          <ColorSelector aria-label="Label colour" colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" />
+          <ColorSelector colors={[{ value: "#123456", label: "Custom" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [row] = frame.children;
+  check("ColorSelector: a wrapping row (Gap/Small) of Color-Selector swatches, named, their fill the colour's variable, the chosen one Select=Yes", [row.name, row.layout.gapVar, row.layout.wrap, row.children.map((swatch) => [swatch.set.id, swatch.name, swatch.fill, swatch.props.Select])], ["Label colour", "Spacing/Gap/Small", true, [["373:97252", "Red", "Background/Support/Red/Solid", "No"], ["373:97252", "Blue", "Background/Support/Blue/Solid", "Yes"]]]);
+  ok("ColorSelector: a colour that is no Zen token keeps the sample colour, with a note", !frame.children[1].children[0].fill && notes.some((note) => /#123456 is no Zen token/.test(note)));
+  const back = pageFromFigma({ ...frame, children: [row] }, { mapping }).text;
+  ok("round trip: the swatches come back as the ColorSelector (colours, value, aria-label)", back.includes('<ColorSelector colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" aria-label="Label colour" />'));
+}
+
+// 18. Tabs written with TabItem children (2026-10-13): the same Tab-Items as `items` (the chosen one Select=Yes), a
+//     badge's count in its Badge-Counter; the pull reads the labels (not the Label variant's True), badges and Size.
+{
+  const page = `// @zen-page {"format":1,"title":"Inbox"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Stack, TabItem, Tabs } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox" device="desktop">
+        <Stack gap="md">
+          <Tabs aria-label="Inbox" value="reviews">
+            <TabItem value="assigned" label="Assigned" badge={3} />
+            <TabItem value="reviews" label="Reviews" icon="icon-home-03-line" />
+          </Tabs>
+          <Tabs aria-label="Views" variant="subtle" size="sm" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [inbox, views] = frame.children;
+  check("Tabs with TabItem children: Tab-Items in Item-List (label, Select, icon, Badge with its count)", inbox.slots[0].children.map((item) => [item.text, item.props.Select, item.props["Icon-Src"] ?? null, item.props.Badge, item.nested?.[0] ?? null]), [["Assigned", "No", null, true, { path: "Badge-Counter", text: "3" }], ["Reviews", "Yes", "icon-home-03-line", false, null]]);
+  ok("Tabs: no TabItem left out", !notes.some((note) => /TabItem/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: the tabs come back as items with their labels and badges, the chosen one the default", back.includes('<Tabs items={[{ id: "assigned", label: "Assigned", badge: 3 }, { id: "reviews", label: "Reviews", icon: "icon-home-03-line" }]} defaultValue="reviews" />'));
+  ok("round trip: a small subtle Tabs keeps its size (read from its items)", back.includes('<Tabs variant="subtle" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} defaultValue="list" size="sm" />') && views.slots[0].children[0].props.Size === "Small");
+}
+
+// 19. InputConditions as Figma's Input-Conditions (2026-10-13): its Condition-Items in the Item-List slot, each one's
+//     label its text (the set has no text property); the pull gives the labels back.
+{
+  const page = `// @zen-page {"format":1,"title":"Password"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { InputConditionItem, InputConditions, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Password" device="desktop">
+        <Stack>
+          <InputConditions>
+            <InputConditionItem label="At least 8 characters" state="success" />
+            <InputConditionItem label="One symbol" />
+          </InputConditions>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [list] = frame.children;
+  check("InputConditions: Input-Conditions, its Condition-Items in Item-List with their state and label", [list.set.id, list.slots[0].name, list.slots[0].children.map((item) => [item.set.id, item.props.State, item.text])], ["373:97663", "Item-List", [["373:97437", "Success", "At least 8 characters"], ["373:97437", "Default", "One symbol"]]]);
+  check("round trip: InputConditions comes back with its items' labels", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
+// 20. UploaderFileItem as Figma's Primitives/Uploader/File-Item (2026-10-13): its file's State, Name, Size and caption,
+//     an alert's error in Help-Text, an upload's progress as the Progress-Bar step, the buttons it has no handler for
+//     hidden; the pull gives the file back.
+{
+  const page = `// @zen-page {"format":1,"title":"Files"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Stack, UploaderFileItem } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Files" device="desktop">
+        <Stack>
+          <UploaderFileItem thumbnail="file" file={{ id: "brief-pdf", name: "Brief.pdf", size: "1.2 MB", state: "uploading", caption: "7 seconds left", progress: 50 }} />
+          <UploaderFileItem theme="overlay" file={{ id: "notes-docx", name: "Notes.docx", size: "320 KB", state: "alert", error: "Upload failed" }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [upload, alert] = frame.children;
+  check("UploaderFileItem: File-Item with its file's State, Name, Size, caption and Thumbnail", [upload.set.id, upload.name, upload.props.State, upload.props["✏️ Name"], upload.props["✏️ Size"], upload.props["✏️ Additional Caption"], upload.props.Thumbnail, upload.nested], ["1581:22739", "Brief.pdf", "Uploading", "Brief.pdf", "1.2 MB", "7 seconds left", "File", [{ path: "Progress-Bar", props: { Progress: "Medium" } }]]);
+  check("UploaderFileItem: an alert's error in its Help-Text; Remove and Retry hidden without their handlers", [alert.props.State, alert.props.Theme, alert.nested, alert.hide], ["Alert", "Overlay", [{ path: "Help-Text", props: {}, text: "Upload failed" }], ["Remove", "Retry"]]);
+  ok("UploaderFileItem: no note of its file as unwritten data", !notes.some((note) => /file is data/.test(note)));
+  check("round trip: the file items come back with their files", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
+// 21. DatePickerSheet as Figma's Date-Picker/Mobile (2026-10-13): Variant Single / Multiple-Default / Multiple-Selected,
+//     its title in the heading; a closed sheet is not pushed; the pull opens it again.
+{
+  const page = `// @zen-page {"format":1,"title":"Stay"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { DatePickerSheet, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Stay" device="phone">
+        <Stack>
+          <DatePickerSheet open selectionMode="range" title="Your stay" />
+          <DatePickerSheet open />
+          <DatePickerSheet title="Closed" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  check("DatePickerSheet: Date-Picker/Mobile, its Variant and its title in Main-Heading-Text (the locale's by default)", frame.children.map((sheet) => [sheet.set.id, sheet.props.Variant, sheet.nested[0].texts["Header-Text"]]), [["9923:3576", "Multiple-Default", "Your stay"], ["9923:3576", "Single", "Choose date"]]);
+  ok("DatePickerSheet: a closed sheet is not pushed, with a note", notes.some((note) => /DatePickerSheet.*closed/.test(note)));
+  check("round trip: the open sheets come back (range, title)", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('\n          <DatePickerSheet title="Closed" />', "")));
+}
+
+// 22. Chat (2026-10-13): ChatThread as Chat/Section/Conversation runs, a ChatMessage's author (a one-letter Avatar: small
+//     avatars show one; user, 2026-10-13), its text in the bubble's Message, its reactions pill and its read list; the
+//     pull gives the same page back, from the push and from the real Figma read of the import (fixtures/figma-chat.json).
+{
+  const page = `// @zen-page {"format":1,"title":"Chat"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { ChatMessage, ChatThread } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Chat" device="phone">
+        <ChatThread>
+          <ChatMessage author={{ name: "Ava Chen" }} reactions={[{ kind: "heart", count: 2 }, { kind: "lol" }]}>See you at 6?</ChatMessage>
+          <ChatMessage side="you" reactions={[{ kind: "🎉" }]} seenBy={[{ name: "Ava Chen" }, { name: "Bao Tran", theme: "blue" }]}>Yes, on my way</ChatMessage>
+        </ChatThread>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const thread = frame.children[0];
+  const [others, you] = thread.children;
+  const ava = others.slots[0].children[0];
+  check("ChatThread: a column (Gap/Medium, Padding/Medium) of Chat/Section/Conversation runs by side", [thread.layout.gapVar, thread.layout.paddingVar, thread.children.map((run) => [run.set.id, run.props.Side, run.slots[0].name])], ["Spacing/Gap/Medium", "Spacing/Padding/Medium", [["6182:57707", "Others", "Conversations"], ["6182:57707", "You", "Conversations"]]]);
+  check("ChatMessage: its text in Message, its author's Avatar named and one letter, the reactions pill (Count, Emoji-Items)", [ava.texts, ava.props.Reaction, ava.nested, ava.slots[0].within, ava.slots[0].children.map((emoji) => emoji.props.Emoji)], [{ Message: "See you at 6?" }, "Yes", [{ path: "Avatar", name: "Ava Chen", props: { Theme: "Neutral", Background: "Subtle" }, text: "A" }, { path: "Bubble/Chat", props: { Counter: "Yes" }, texts: { Count: "3" } }], "Chat/Reaction/Status/No", ["Heart", "LOL"]]);
+  const [message, readList] = you.slots[0].children[0].children;
+  check("ChatMessage: a picked emoji in Message; the read list under it (Seen by, each reader named, one letter)", [message.slots[0].children[0].texts, readList.set.id, readList.props["Seen by"], readList.nested.map((avatar) => [avatar.path, avatar.name, avatar.text, avatar.props.Theme])], [{ Message: "🎉" }, "6101:61545", "2", [["Avatar[0]", "Ava Chen", "A", "Neutral"], ["Avatar[1]", "Bao Tran", "B", "Blue"]]]);
+  ok("Chat: nothing unwritten", !notes.some((note) => /ChatMessage|ChatThread/.test(note)));
+  // (The pulled Screen holds its ChatThread in a Stack: a Screen's content is a Stack.)
+  check("round trip: the chat comes back the same from the push", shape(pageFromFigma(frame, { mapping }).text).children[0].children[0].children[0], shape(page).children[0].children[0]);
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-chat.json", import.meta.url), "utf8")).frame;
+  const fromFigma = pageFromFigma(read, { mapping });
+  check("round trip: the same chat from Figma's own read of the import (names from the avatars' layers, reactions from the nested slot)", shape(fromFigma.text).children[0].children[0].children[0], shape(page).children[0].children[0]);
+  check("round trip from Figma: no notes", fromFigma.notes, []);
+}
+
+// 23. Small avatars show one letter (Avatar.tsx: XSmall and 2XSmall; user, 2026-10-13): an Avatar element and a Table's
+//     avatar cell without a caption.
+{
+  const page = `// @zen-page {"format":1,"title":"People"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Avatar, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="People" device="desktop">
+        <Stack>
+          <Avatar size="xs" alt="Ava Chen">AC</Avatar>
+          <Avatar size="md" alt="Ava Chen">AC</Avatar>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  check("Avatar: one letter at XSmall, two at Medium", push(page).frame.children.map((avatar) => avatar.text), ["A", "AC"]);
+}
+
+// 24. Metric and MetricCard (2026-10-13): the Dock Icon shows by default (MetricWidget.tsx: icon-home-02-solid, Neutral,
+//     Subtle) as the code draws it; the pull gives a lone Metric-Inline back as a Metric and a Card holding one as the
+//     MetricCard (label, value, trend, icon), from the push and from Figma's read of the import (fixtures/figma-metric.json,
+//     the trend's override on its Badge).
+{
+  const page = `// @zen-page {"format":1,"title":"KPIs"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Metric, MetricCard, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="KPIs" device="desktop">
+        <Stack>
+          <MetricCard label="Revenue" value="$12,400" icon="icon-wallet-02-line" iconTheme="green" theme="border" trend={{ direction: "negative", label: "-3%" }} />
+          <Metric label="Orders" value="320" />
+          <Metric label="Refunds" value="4" icon={false} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [, orders, refunds] = frame.children;
+  check("Metric: its default Dock Icon shows (home, Neutral, Subtle); icon={false} hides it", [orders.props["Dock-Icon"], orders.nested?.find((nested) => nested.path === "Metric-Icon")?.props, refunds.props["Dock-Icon"]], [true, { Theme: "Neutral", Background: "Subtle", "Icon-Src": "icon-home-02-solid" }, false]);
+  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-metric.json", import.meta.url), "utf8")).frame;
+  const fromFigma = pageFromFigma(read, { mapping });
+  check("round trip: the same MetricCard and Metric from Figma's read of the import", shape(fromFigma.text).children[0].children[0].children.slice(0, 2), shape(page).children[0].children[0].children.slice(0, 2));
+  check("round trip from Figma: no notes", fromFigma.notes, []);
+}
+
+// 25. Icon sizes, FileIcon and Flag (2026-10-13): an Icon's size as its Element-Size/Popular variable (Base, the
+//     components' 20px, writes nothing), FileIcon as icon-media-file (Format), Flag as Flag (Name, Image-Size); the pull
+//     reads them back.
+{
+  const page = `// @zen-page {"format":1,"title":"Icons"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { FileIcon, Flag, Icon, Stack } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Icons" device="desktop">
+        <Stack direction="row">
+          <Icon name="icon-plus-line" />
+          <Icon name="icon-plus-line" size="lg" />
+          <FileIcon format="pdf" />
+          <FileIcon format="sheet" size="xl" />
+          <Flag name="Vietnam" />
+          <Flag name="Japan" size="large" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  check("Icons: the size variable, icon-media-file by Format, Flag by Name and Image-Size", frame.children.map((icon) => [icon.set.name, icon.props.Format ?? icon.props.Name ?? null, icon.sizeVar ?? null]), [["icon-plus-line", null, null], ["icon-plus-line", null, "Element-Size/Popular/Large"], ["icon-media-file", "PDF", null], ["icon-media-file", "Sheet", "Element-Size/Popular/XLarge"], ["Flag", "Vietnam", null], ["Flag", "Japan", "Image-Size/Small"]]);
+  ok("Icons: no FileIcon or Flag drawn as a frame", !notes.some((note) => /FileIcon|Flag/.test(note)));
+  check("round trip: icons, file icons and flags come back with their sizes", shape(pageFromFigma(frame, { mapping }).text), shape(page));
 }
 
 if (failures.length) {

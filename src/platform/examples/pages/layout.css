@@ -7,9 +7,6 @@
 .px-layout-template > .zen-card__content { flex: 1 1 auto; }
 .px-layout-template-body { flex: 1 1 auto; }
 
-/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
-.px-layout-profile, .px-layout-cover { width: min(100%, 440px); margin-inline: auto; }
-
 /* The cover: a panel of fixed height whose middle grows, so an empty state sits in its optical centre and the footnote
    stays at the bottom. */
 .px-layout-cover { min-height: 26rem; }

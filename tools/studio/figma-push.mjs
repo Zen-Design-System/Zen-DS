@@ -15,8 +15,10 @@
 import { docFromText } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
+import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
+import { tokens } from "../../src/tokens/generated.ts";
 
 /** A spacing step's Figma variable name: md → Medium ("Spacing/Gap/Medium"). */
 const STEP_NAMES = { "3xs": "3XSmall", "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge", "4xl": "4XLarge", giant: "Giant", xgiant: "XGiant", "2xgiant": "2XGiant" };
@@ -42,13 +44,40 @@ const SETS = {
   descriptionItem: { id: "14859:78890", name: ".Primitives/Description-List/Item" },
   tabItem: { id: "1576:2090", name: "Primitives/Tab-Item" },
   stepVertical: { id: "4034:11389", name: ".Primitives/Stepper/Step-Vertical" },
+  // One colour swatch (its own fill is the colour); ColorSelector is a row of them.
+  colorSwatch: { id: "373:97252", name: "Color-Selector" },
+  // Iconography (🍑): a file's type icon (Format) and a country's flag (Name), 20 and 24px.
+  fileIcon: { id: "5727:22537", name: "icon-media-file" },
+  flag: { id: "7063:63834", name: "Flag" },
+  // A ChatMessage's reaction emojis (in its bubble's Chat/Reaction/Status) and the read list under it.
+  reactionEmoji: { id: "6263:67248", name: "Chat/Reaction/Emoji/Static" },
+  readList: { id: "6101:61545", name: "Chat/Section/Read-List" },
+  // A run of messages from one side (its Conversations slot, Gap/2XSmall); ChatThread is a column of them.
+  chatSection: { id: "6182:57707", name: "Chat/Section/Conversation" },
 };
+/** A quick reaction (Chat.tsx chatReactionEmojis) → Figma Chat/Reaction/Emoji's Emoji option. */
+const EMOJI_OPTION = { like: "Like", heart: "Heart", lol: "LOL", surprised: "Surprised", sad: "Sad", angry: "Angry" };
+/** A token's CSS value → its Figma variable ("var(--zen-color-background-support-blue-solid)" → "Color/Background/Support/Blue/Solid"). */
+const VARIABLE_OF_CSS = new Map(Object.entries(tokens).filter(([, value]) => typeof value === "string" && value.startsWith("var(")).map(([name, value]) => [value.replace(/\s+/g, ""), name]));
 /** Form fields drawn as Figma's Input/…-Field: the label in Label, the value (else the placeholder) in Text, help in Message. */
 const FIELDS = new Set(["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"]);
 /** A data value as the text it shows (a string or number; anything else draws nothing). */
 const textValue = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
 /** A ChartCard's chart (its child) → the Figma chart card that draws that kind. */
 const CHART_SETS = { LineChart: SETS.lineChart, StackBarChart: SETS.stackBarChart };
+/**
+ * An icon's size (icon.css: Element-Size/Popular, the icon components' 20px is Base) as its Figma size variable, or a
+ * px size; Base writes nothing.
+ */
+const ICON_SIZE = { "2xs": "2XSmall", xs: "XSmall", sm: "Small", md: "Medium", lg: "Large", xl: "XLarge", "2xl": "2XLarge", "3xl": "3XLarge" };
+const iconSizing = (size) => (typeof size === "number" ? { size } : ICON_SIZE[size] ? { sizeVar: `Element-Size/Popular/${ICON_SIZE[size]}` } : {});
+/** FileIcon format → icon-media-file's Format option. */
+const FILE_FORMAT = { doc: "Doc", pdf: "PDF", sheet: "Sheet", zip: "Zip", photo: "Photo", video: "Video", music: "Music", sound: "Sound", record: "Record", figma: "Figma" };
+/** Flag size (flag.css, Image-Size) → its size variable; Medium is the component's 24px. */
+const FLAG_SIZE = { small: "Image-Size/3XSmall", large: "Image-Size/Small" };
+const scaleOf = (size) => ({ sm: "small", md: "medium", lg: "large" })[size] ?? size;
+/** Metric's icon when it sets none (MetricWidget.tsx). */
+const METRIC_ICON = "icon-home-02-solid";
 /** MetricCard trend.direction → Figma .Primitives/Metrics/Metric-Trend's Trend option. */
 const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal", neutral: "Normal" };
 /** A Table column's content cell (Figma Table/Cell/Default › Content) by the column's `content`. */
@@ -84,7 +113,7 @@ const SLOT_OF_PROP = {
  */
 const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]) };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]) };
+const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -96,6 +125,10 @@ const SURFACES = new Set(["Card", "ChartCard", "MetricCard", "Accordion", "SideP
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
 const ITEM_ICON = { Segmented: "leading" };
+/** A 0–100 value as Figma Progress-Bar's fill step (None, Low, Medium, Good, Done). */
+const progressStep = (value) => (value <= 0 ? "None" : value < 40 ? "Low" : value < 70 ? "Medium" : value < 100 ? "Good" : "Done");
+/** Components whose text prop is a plain text layer of their set (no Figma text property): it is the instance's text. */
+const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
 const PICTURED = new Set(["Avatar", "Image", "Thumbnail", "AppShellAccount"]);
 /** Heading's text style when it sets none (src/components/Text/Text.tsx headingStyleByLevel). */
@@ -135,6 +168,9 @@ const literal = (value) => ({ kind: "literal", value });
 const elementOf = (name, props, children = []) => ({ kind: "element", name, props: Object.fromEntries(Object.entries(props).filter(([, value]) => value)), children });
 /** "Ava Chen" → "AC": the first letters of the first two words, as Avatar draws a name without a photo (Avatar.tsx). */
 const initialsOf = (name) => String(name ?? "").split(/\s+/).filter(Boolean).slice(0, 2).map((part) => Array.from(part)[0]).join("").toUpperCase() || "?";
+/** An Avatar's initials as Avatar.tsx draws them: up to two letters, one on a small avatar (XSmall, 2XSmall; user, 2026-10-13). */
+const SMALL_AVATAR = new Set(["xs", "2xs", "xsmall", "2xsmall", "XSmall", "2XSmall"]);
+const avatarInitials = (text, size) => Array.from(String(text ?? "").trim()).slice(0, SMALL_AVATAR.has(size) ? 1 : 2).join("").toUpperCase() || "?";
 
 const short = (step) => LONG_TO_SHORT[step] ?? step;
 const pxOf = (step, table) => table.find(([, key]) => key === short(step))?.[0];
@@ -253,6 +289,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    // A component sized like a layout layer (Card, ListBox: width / minWidth / maxWidth): the instance's min and max width.
+    if (node?.type === "INSTANCE" && element.kind === "element") {
+      const own = codeProps(element);
+      if (typeof own.minWidth === "number") node.minW ??= own.minWidth;
+      if (typeof own.maxWidth === "number") node.maxW ??= own.maxWidth;
+    }
     return node;
   };
   const images = new Set();
@@ -280,13 +322,27 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const textStyle = code.textStyle ?? (element.name === "Heading" ? HEADING_STYLE[code.level ?? 2] : "Body/Base/Regular");
       const fill = contentToneToken(code.tone ?? "strongest");
       node = { type: "TEXT", ...(id ? { id } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}) };
-    } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {} };
+    } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {}, ...iconSizing(code.size) };
+    // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
+    else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
+    else if (element.name === "Flag" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: SETS.flag, props: { Name: code.name }, ...(FLAG_SIZE[scaleOf(code.size)] ? { sizeVar: FLAG_SIZE[scaleOf(code.size)] } : {}) };
     else if (element.name === "SidebarMenuItem") node = itemNode(SETS.menuItem, code, { id });
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id, parent);
     else if (element.name === "AppShell") node = appShellNode(element, code, id, parent);
     else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
+    else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
+    else if (element.name === "ColorSelector") node = colorSelectorNode(element, code, id);
+    else if (element.name === "UploaderFileItem") node = uploaderFileItemNode(element, code, id, parent);
+    else if (element.name === "DatePickerSheet") node = datePickerSheetNode(element, code, id, parent);
+    else if (element.name === "ChatMessage") node = chatMessageNode(element, code, id, parent);
+    else if (element.name === "ChatThread") node = chatThreadNode(element, code, id);
+    // Tabs written with TabItem children: the same Item-List of Tab-Items as its `items` (Tabs.tsx renders either).
+    else if (element.name === "Tabs" && !element.props.items && element.children.some((child) => child.kind === "element" && child.name === "TabItem")) {
+      const tabs = tabsOfChildren(element);
+      node = instanceNode(tabs, codeProps(tabs), id, parent);
+    }
     else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_SETS[child.name])) node = chartCardNode(element, code, id);
     else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
@@ -505,6 +561,227 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return frame;
   }
 
+  /**
+   * ChatMessage as Figma's Chat/Conversation/Bubble, with what Chat.tsx draws around the bubble: the author's Avatar
+   * (initials on its theme; hidden on a run's later message) and name, the reactions pill (Reaction=Yes: the total in
+   * Count, up to three Chat/Reaction/Emoji/Static in Emoji-Items) and the read list under it (Chat/Section/Read-List:
+   * Seen by, each reader's initials, "+N" past five), in a column aligned to the message's side (chat.css, Gap/2XSmall).
+   */
+  function chatMessageNode(element, code, id, parent) {
+    const node = instanceNode(element, code, id, parent);
+    if (node?.type !== "INSTANCE") return node;
+    const where = `ChatMessage${id ? ` (${id})` : ""}`;
+    const side = code.side === "you" ? "you" : "others";
+    const people = (value) => (Array.isArray(value) ? value : []).filter((person) => person && typeof person === "object" && typeof person.name === "string");
+    const avatar = (person, path) => {
+      if (person.src) notes.push(`${where}: ${person.name}'s photo keeps Figma's sample picture`);
+      const theme = person.src ? "Photo" : String(person.theme ?? "neutral").replace(/^./, (char) => char.toUpperCase());
+      // The layer takes the person's name (Figma has no field for it): the pull reads it back.
+      return { path, name: person.name, props: { Theme: theme, Background: "Subtle" }, ...(person.src ? {} : { text: avatarInitials(initialsOf(person.name), "XSmall") }) };
+    };
+    const author = people([plain(element.props.author)])[0];
+    // Its text in the bubble's Message (the Avatar's initials are the first text layer once shown).
+    if (typeof node.text === "string") { node.texts = { ...(node.texts ?? {}), Message: node.text }; delete node.text; }
+    const nested = [];
+    if (side === "others" && author) {
+      node.props = { ...node.props, ...onlyOwn(node.set, { Avatar: code.continued !== true }) };
+      if (code.continued !== true) nested.push(avatar(author, "Avatar"));
+      if (code.showName === true) node.texts = { ...(node.texts ?? {}), Name: author.name };
+    }
+    const reactions = (plain(element.props.reactions) ?? []).filter((reaction) => reaction && typeof reaction.kind === "string");
+    if (reactions.length) {
+      const total = reactions.reduce((sum, reaction) => sum + (Number(reaction.count) || reaction.by?.length || 1), 0);
+      node.props = { ...node.props, ...onlyOwn(node.set, { Reaction: "Yes" }) };
+      nested.push({ path: "Bubble/Chat", props: { Counter: total > 1 ? "Yes" : "No" }, ...(total > 1 ? { texts: { Count: String(total) } } : {}) });
+      const emojis = reactions.slice(0, 3).map((reaction) => (EMOJI_OPTION[reaction.kind]
+        ? { type: "INSTANCE", name: reaction.kind, set: SETS.reactionEmoji, props: { Emoji: EMOJI_OPTION[reaction.kind] } }
+        : { type: "INSTANCE", name: reaction.kind, set: SETS.reactionEmoji, props: {}, texts: { Message: reaction.kind } }));
+      node.slots = [...(node.slots ?? []), { name: "Emoji-Items", within: "Chat/Reaction/Status/No", children: emojis }];
+    }
+    if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
+    const seenBy = people(plain(element.props.seenBy));
+    if (!seenBy.length) return node;
+    const readList = { type: "INSTANCE", name: "Seen by", set: SETS.readList, props: { "Seen by": seenBy.length > 5 ? "5+" : String(seenBy.length) },
+      nested: [...(seenBy.length > 5 ? [{ path: "Badge", props: {}, text: `+${seenBy.length - 5}` }] : []), ...seenBy.slice(0, 5).map((person, index) => avatar(person, `Avatar[${index}]`))] };
+    const { id: _own, fillW: _fill, ...message } = node;
+    return { type: "FRAME", ...(id ? { id } : {}), name: "ChatMessage", layout: { mode: "VERTICAL", gap: 4, gapVar: "Spacing/Gap/2XSmall", padding: [0, 0, 0, 0], counter: side === "you" ? "MAX" : "MIN", primary: "MIN" }, children: [message, readList] };
+  }
+
+  /**
+   * ChatThread (chat.css: Padding/Medium, 4px within a run, 16px between sides) as Figma draws a conversation: a column
+   * (Gap/Medium) of Chat/Section/Conversation, one per run of messages from one side, the messages hugging in its
+   * Conversations slot (Gap/2XSmall, a You run at the right); its other layers (a date divider) between them.
+   */
+  function chatThreadNode(element, code, id) {
+    const layers = [];
+    let run = null;
+    for (const child of element.children.filter((item) => item.kind === "element")) {
+      if (child.name !== "ChatMessage") {
+        run = null;
+        const layer = convert(child, { direction: "column", stretch: true });
+        if (layer) layers.push({ ...layer, fillW: true });
+        continue;
+      }
+      const side = literalOf(child.props.side) === "you" ? "You" : "Others";
+      if (run?.props.Side !== side) {
+        run = { type: "INSTANCE", name: side, set: SETS.chatSection, props: { Side: side }, slots: [{ name: "Conversations", children: [] }], fillW: true };
+        layers.push(run);
+      }
+      const layer = convert(child, { direction: "column", stretch: false });
+      if (layer) { const { fillW: _fill, ...hugging } = layer; run.slots[0].children.push(hugging); }
+    }
+    return { type: "FRAME", ...(id ? { id } : {}), name: "ChatThread", layout: { mode: "VERTICAL", gap: 16, gapVar: "Spacing/Gap/Medium", padding: [16, 16, 16, 16], paddingVar: "Spacing/Padding/Medium", counter: "MIN", primary: "MIN" }, children: layers };
+  }
+
+  /**
+   * DatePickerSheet as Figma's Date-Picker/Mobile: Variant Single, or Multiple (Selected once a range is chosen), its
+   * title in the heading (the locale's "Choose date" / "Choose dates" by default, labels.ts en). The calendar keeps
+   * Figma's sample month: the page's dates are not literals.
+   */
+  function datePickerSheetNode(element, code, id, parent) {
+    // A closed sheet shows nothing on the page (the Studio draws it only while open).
+    if (code.open !== true && code.isOpen !== true) {
+      notes.push(`DatePickerSheet${id ? ` (${id})` : ""}: closed (open is not set): not pushed`);
+      return null;
+    }
+    const node = instanceNode(element, code, id, parent);
+    if (node?.type !== "INSTANCE") return node;
+    const range = code.selectionMode === "range";
+    const chosen = range && (element.props.range ?? element.props.defaultRange) !== undefined;
+    node.props = { ...node.props, ...onlyOwn(node.set, { Variant: range ? (chosen ? "Multiple-Selected" : "Multiple-Default") : "Single" }) };
+    const title = typeof code.title === "string" ? code.title : layerWords(element.props.title) || (range ? "Choose dates" : "Choose date");
+    node.nested = [...(node.nested ?? []), { path: "Main-Heading-Text", props: {}, texts: { "Header-Text": title } }];
+    if (node.name === node.set.name) node.name = title;
+    return node;
+  }
+
+  /**
+   * UploaderFileItem as Figma's Primitives/Uploader/File-Item: its theme and thumbnail (photo when the file has a preview,
+   * Uploader.tsx), its file's State, Name, Size and Additional Caption (the upload's caption, or the error of an alert).
+   */
+  function uploaderFileItemNode(element, code, id, parent) {
+    const node = instanceNode(element, code, id, parent);
+    if (node?.type !== "INSTANCE") return node;
+    const file = plain(element.props.file) ?? {};
+    const state = ["uploading", "uploaded", "replaceable", "alert"].includes(file.state) ? file.state : "uploaded";
+    const thumbnail = code.thumbnail ?? (file.previewUrl ? "photo" : "none");
+    const caption = textValue(state === "uploading" ? file.caption : "");
+    // An alert's error in its Help-Text; an upload's progress as the Progress-Bar's step.
+    const error = state === "alert" ? textValue(file.error) : "";
+    const nested = [...(error ? [{ path: "Help-Text", props: {}, text: error }] : []), ...(state === "uploading" ? [{ path: "Progress-Bar", props: { Progress: progressStep(Number(file.progress) || 0) } }] : [])];
+    if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
+    // Its buttons show only with their handler (Uploader.tsx): Remove (onRemove), Retry (an alert's onRetry).
+    const hide = [...(element.props.onRemove ? [] : ["Remove"]), ...(state === "alert" && !element.props.onRetry ? ["Retry"] : [])];
+    if (hide.length) node.hide = [...(node.hide ?? []), ...hide];
+    if (thumbnail === "photo") notes.push(`UploaderFileItem "${textValue(file.name)}": its photo thumbnail keeps Figma's sample picture`);
+    Object.assign(node.props, onlyOwn(node.set, { State: state[0].toUpperCase() + state.slice(1), Thumbnail: thumbnail[0].toUpperCase() + thumbnail.slice(1), "✏️ Name": textValue(file.name), "✏️ Size": textValue(file.size), "✏️ Additional Caption": caption }));
+    if (typeof file.name === "string" && node.name === node.set.name) node.name = file.name;
+    return node;
+  }
+
+  /** Tabs with TabItem children as Tabs with `items` (each tab's value, else its position, as the id; a selected one the default). */
+  function tabsOfChildren(element) {
+    const tabs = element.children.filter((child) => child.kind === "element" && child.name === "TabItem");
+    const items = tabs.map((tab, index) => ({ kind: "object", fields: { id: literal(literalOf(tab.props.value) ?? String(index)), ...Object.fromEntries(["label", "icon", "badge"].filter((name) => tab.props[name]?.kind === "literal").map((name) => [name, tab.props[name]])) } }));
+    const chosen = tabs.find((tab) => literalOf(tab.props.selected) === true);
+    const props = { ...element.props, items: { kind: "array", items } };
+    if (chosen && !props.value && !props.defaultValue) props.defaultValue = literal(literalOf(chosen.props.value) ?? String(tabs.indexOf(chosen)));
+    return { ...element, props, children: element.children.filter((child) => !(child.kind === "element" && child.name === "TabItem")) };
+  }
+
+  /**
+   * ColorSelector as a row of Figma Color-Selector swatches (color-selector.css: wrap, Gap/Small, centred): each named by
+   * its label, its fill the colour's variable, Select=Yes on the chosen one. A colour that is no Zen token keeps Figma's
+   * sample fill.
+   */
+  function colorSelectorNode(element, code, id) {
+    const colors = (plain(element.props.colors) ?? []).filter((color) => color && typeof color === "object");
+    const swatches = colors.map((color) => {
+      const variable = typeof color.value === "string" ? VARIABLE_OF_CSS.get(color.value.replace(/\s+/g, "")) : undefined;
+      if (!variable) notes.push(`ColorSelector: the colour ${color.value} is no Zen token: its swatch keeps Figma's sample colour`);
+      if (color.contrast === "dark" && color.value === code.value) notes.push(`ColorSelector: the chosen ${color.label}'s dark check (contrast) is drawn in Figma's check colour`);
+      return { type: "INSTANCE", name: typeof color.label === "string" ? color.label : String(color.value), set: SETS.colorSwatch, props: { Select: color.value === code.value ? "Yes" : "No", Status: "Default" }, ...(variable ? { fill: variable.replace(/^Color\//, "") } : {}) };
+    });
+    return { type: "FRAME", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : "ColorSelector", layout: { mode: "HORIZONTAL", gap: 12, gapVar: "Spacing/Gap/Small", padding: [0, 0, 0, 0], counter: "CENTER", primary: "MIN", wrap: true }, children: swatches };
+  }
+
+  /**
+   * TopNavigation as Figma's Top-Navigation/Mobile (figma-top-nav.mjs): its Type and Margin, the parts the static page
+   * shows (TopNavigation.tsx), the bar and large titles in their Heading-Text layers, the leading action in Top-Leading,
+   * the actions as Nav-Slot/Action instances in the bar's or the large-title row's Trailing-Slot (each in the Button the
+   * Type draws), the control bar in Control-Slot. No Status-bar: the Studio's Screen draws none. A banner sits under it.
+   */
+  function topNavigationNode(element, code, id) {
+    const look = TOP_NAV_TYPES[code.type ?? "default"] ?? TOP_NAV_TYPES.default;
+    const where = `TopNavigation${id ? ` (${id})` : ""}`;
+    const words = (prop) => {
+      const value = plain(element.props[prop]);
+      return typeof value === "string" || typeof value === "number" ? String(value) : layerWords(element.props[prop]);
+    };
+    const title = words("title"), largeTitle = words("largeTitle"), subtitle = words("subtitle");
+    const leading = element.props.leading;
+    const layout = topNavLayout({ largeTitle, title, subtitle, titleLeading: element.props.titleLeading, leading, topBar: code.topBar, collapsed: code.collapsed === true });
+    // Folded (a root's large title showing): one row, the large title with the actions beside it (Top-bar=false).
+    const folded = layout.barFolds && layout.showLarge;
+    const actionsOf = (prop) => {
+      const value = plain(element.props[prop]);
+      return (Array.isArray(value) ? value : value ? [value] : []).filter((action) => action && typeof action === "object");
+    };
+    const titleActions = actionsOf("largeTitleAction");
+    const flat = look.style === "Flat";
+    const bar = topNavActions(layout.barFolds ? titleActions : [], actionsOf("trailing"), { flat, firstTwo: code.trailingGroup === true });
+    const beside = folded ? bar : layout.showLarge ? topNavActions(titleActions, [], { flat }) : { actions: [] };
+    const barActions = folded ? [] : bar.actions;
+    if (bar.grouped) notes.push(`${where}: actions that share a pill are drawn one by one (Figma's Trailing-Slot has no shared pill)`);
+    const navAction = (action, part, index) => {
+      const icon = typeof action.icon === "string" ? action.icon : null;
+      if (!icon) notes.push(`${where}: an action whose icon is not an icon name keeps Figma's sample glyph`);
+      return {
+        type: "INSTANCE", ...(element.id ? { key: `${element.id}/${part}.${index}` } : {}), name: typeof action.label === "string" ? action.label : "Action", set: NAV_ACTION_SET,
+        props: { Style: look.style, "Noti-Dot": Boolean(action.dot) },
+        nested: [{ path: "Button", set: look.button, props: { Level: look.level }, ...(icon ? { swapIcon: icon } : {}) }],
+      };
+    };
+    const props = {
+      Device: "Mobile", Type: look.option, Margin: code.margin === "compact" ? "Compact" : "Comfortable", "Status-Bar": false,
+      "Top-bar": !folded, "Top-Leading": !folded && Boolean(leading), "Top-Heading-Text": !folded && layout.barShowsTitle, "Top-Trailing": barActions.length > 0,
+      "Expand-Heading": layout.showLarge, "Expand-Trailing": beside.actions.length > 0, "Control-Bar": element.props.controlBar?.kind === "element",
+    };
+    // A bar title under a showing large title appears only once it scrolls away: Figma's bar title is hidden then.
+    if (title && layout.showLarge && !layout.identity) notes.push(`${where}: title shows once the large title scrolls away (Figma shows the large title; the bar title is not pushed)`);
+    const nested = [];
+    if (props["Top-Heading-Text"]) {
+      const titleLeading = element.props.titleLeading?.kind === "element";
+      if (titleLeading) notes.push(`${where}: titleLeading is drawn as Heading-Text's Leading sample`);
+      nested.push({ path: "Top-Heading-Text", props: { Type: "Sub", Header: true, Subheading: Boolean(subtitle), Leading: titleLeading }, texts: { "Header-Text": layout.identity ? title : layout.barTitle, ...(subtitle ? { Subheading: subtitle } : {}) } });
+    }
+    if (layout.showLarge) nested.push({ path: "Main-Heading-Text", props: { Type: TOP_NAV_HEADING[code.headingLevel ?? "h1"] ?? "H1" }, texts: { "Header-Text": largeTitle } });
+    if (props["Top-Leading"]) {
+      const action = leading.kind === "object" ? plain(leading) : null;
+      // The Action layer takes the action's label (its name, read back by the pull).
+      if (action && typeof action.icon === "string") nested.push({ path: "Top-Leading/Action", ...(typeof action.label === "string" ? { name: action.label } : {}), props: { "Noti-Dot": Boolean(action.dot) }, swapIcon: action.icon });
+      else if (!action) {
+        nested.push({ path: "Top-Leading", props: { Type: "Visual", Style: "Avatar Small" } });
+        notes.push(`${where}: leading is drawn as Figma's Nav-Slot/Visual sample (Avatar Small)`);
+      }
+    }
+    const slots = [];
+    if (barActions.length) slots.push({ name: "Trailing-Slot", within: "Navigator-bar", children: barActions.map((action, index) => navAction(action, "bar", index)) });
+    if (beside.actions.length) slots.push({ name: "Trailing-Slot", within: "Expand-Heading", children: beside.actions.map((action, index) => navAction(action, "title", index)) });
+    if (props["Control-Bar"]) {
+      // top-navigation.css .zen-top-nav__control: Padding/2XSmall above, Padding/XSmall below, the bar's side margin
+      // (Padding/Large, Medium when compact) on the sides; Figma's Control-Bar has none of its own.
+      const control = convert(element.props.controlBar.node, { direction: "column", stretch: true });
+      const side = code.margin === "compact" ? 16 : 20;
+      if (control) slots.push({ name: "Control-Slot", children: [{ type: "FRAME", name: "Control", layout: { mode: "VERTICAL", gap: 0, padding: [4, side, 8, side], counter: "MIN", primary: "MIN" }, children: [{ ...control, fillW: true }], fillW: true }] });
+    }
+    const node = { type: "INSTANCE", ...(id ? { id } : {}), name: title || largeTitle || "TopNavigation", set: TOP_NAV_SET, props, ...(nested.length ? { nested } : {}), ...(slots.length ? { slots } : {}) };
+    const banner = element.props.banner?.kind === "element" ? convert(element.props.banner.node, { direction: "column", stretch: true }) : null;
+    if (!banner) return node;
+    const { id: _id, ...inner } = node;
+    return { type: "FRAME", ...(id ? { id } : {}), name: "TopNavigation", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ ...inner, fillW: true }, { ...banner, fillW: true }] };
+  }
+
   const fills = (element, parent) => {
     const code = codeProps(element);
     const row = parent?.direction === "row";
@@ -610,6 +887,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const align = code.align ?? (row ? "center" : "stretch");
     if (!grid) {
       layout.counter = { start: "MIN", center: "CENTER", end: "MAX", baseline: "BASELINE" }[align] ?? "MIN";
+      // Figma aligns a frame's children, not one child: children that all align themselves the same way (alignSelf, a
+      // card centred at its maxWidth) set the frame's alignment.
+      const selves = element.children.filter((child) => child.kind === "element").map((child) => literalOf(child.props.alignSelf));
+      if (selves.length && selves.every((value) => value && value === selves[0]) && selves[0] !== "stretch") layout.counter = { start: "MIN", center: "CENTER", end: "MAX" }[selves[0]] ?? layout.counter;
       layout.primary = { center: "CENTER", end: "MAX", between: "SPACE_BETWEEN" }[code.justify] ?? "MIN";
       if (code.wrap) layout.wrap = true;
     } else if (fit) Object.assign(layout, { counter: "MIN", primary: "MIN", wrap: true });
@@ -667,7 +948,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     Tabs: { items: (list, code) => {
       const selected = code.value ?? code.defaultValue ?? list[0]?.id;
       return list.map((item) => ({ type: "INSTANCE", name: textValue(item?.label) || "Tab", set: SETS.tabItem, ...(textValue(item?.label) ? { text: textValue(item.label) } : {}), ...(code.fullWidth ? { fillW: true } : {}),
-        props: { Style: code.variant === "subtle" ? "Subtle" : "Indicator", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium", Select: item?.id === selected ? "Yes" : "No", Label: textValue(item?.label) ? "True" : "False", Icon: typeof item?.icon === "string" ? "True" : "False", ...(typeof item?.icon === "string" ? { "Icon-Src": item.icon } : {}), Badge: item?.badge !== undefined && item?.badge !== null && item?.badge !== false } }));
+        props: { Style: code.variant === "subtle" ? "Subtle" : "Indicator", Size: ["sm", "small"].includes(code.size) ? "Small" : "Medium", Select: item?.id === selected ? "Yes" : "No", Label: textValue(item?.label) ? "True" : "False", Icon: typeof item?.icon === "string" ? "True" : "False", ...(typeof item?.icon === "string" ? { "Icon-Src": item.icon } : {}), Badge: item?.badge !== undefined && item?.badge !== null && item?.badge !== false },
+        // Its count in the Badge-Counter Badge=Yes shows.
+        ...(textValue(item?.badge) ? { nested: [{ path: "Badge-Counter", text: textValue(item.badge) }] } : {}) }));
     } },
     Stepper: { steps: (list, code) => {
       if (code.orientation !== "vertical") return null;
@@ -690,7 +973,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (!items) return null;
     const labelKey = /\btitle:/.test(dataSlot.newItem(0).code) ? "title" : "label";
     const iconKey = ITEM_ICON[owner] ?? "icon";
-    const selectedId = code[SELECTED_PROP[owner]];
+    // A Segmented shows `value`, else `defaultValue`, else its first option selected (Segmented.tsx).
+    const selectedId = owner === "Segmented" ? code.value ?? code.defaultValue ?? (Array.isArray(value) ? value[0]?.id : undefined) : code[SELECTED_PROP[owner]];
     // A Segmented's items take its Level and Size (Figma's item starts Small Primary); they split a full-width one.
     const look = owner === "Segmented" ? segmentLook(code) : {};
     const fill = owner === "Segmented" && code.fullWidth === true ? { fillW: true } : {};
@@ -849,7 +1133,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
         const mine = own("Avatar");
         const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: "subtle", theme: photo ? "photo" : "neutral", ...mine }, where);
         // The page's own initials (an override's children: "Bich Ngoc Ha" → BH) win over the label's first two words.
-        if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(photo ? {} : { text: typeof mine.children === "string" ? mine.children : initialsOf(label) }) });
+        if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(photo ? {} : { text: avatarInitials(typeof mine.children === "string" ? mine.children : initialsOf(label), mine.size ?? (caption ? "sm" : "xs")) }) });
       }
       if ((kind === "avatar" || kind === "photo") && typeof media === "string") { node.image = media; images.add(media); }
       return node;
@@ -876,12 +1160,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
     const trend = plain(element.props.trend);
     const action = layerOf(element, "action");
-    Object.assign(node.props, onlyOwn(node.set, { "Metric-Title": Boolean(texts.Label), Trend: Boolean(trend), "Dock-Icon": typeof code.icon === "string", Action: Boolean(action) }));
+    // Its Dock Icon shows unless icon={false} (MetricWidget.tsx: icon-home-02-solid, Neutral, Subtle by default).
+    const icon = code.icon === false || code.iconEmoji ? null : typeof code.icon === "string" ? code.icon : METRIC_ICON;
+    Object.assign(node.props, onlyOwn(node.set, { "Metric-Title": Boolean(texts.Label), Trend: Boolean(trend), "Dock-Icon": code.icon !== false && Boolean(icon || code.iconEmoji), Action: Boolean(action) }));
     const nested = [];
     if (trend && typeof trend === "object") nested.push({ path: "Trend", props: TREND_OPTION[trend.direction] ? { Trend: TREND_OPTION[trend.direction] } : {}, ...(typeof trend.label === "string" ? { textList: [trend.label] } : {}) });
-    const dock = typeof code.icon === "string" ? entryFor("DockIcon", {}, byCode, mapping) : null;
+    const dock = icon ? entryFor("DockIcon", {}, byCode, mapping) : null;
     if (dock) {
-      const fields = { icon: code.icon, ...(code.iconTheme ? { theme: code.iconTheme } : {}), ...(code.iconBackground ? { background: code.iconBackground } : {}) };
+      const fields = { icon, theme: code.iconTheme ?? "neutral", background: code.iconBackground ?? "subtle" };
       nested.push({ path: "Metric-Icon", props: figmaProps(dock, fields, mapping, notes, `${where} › Metric-Icon`, new Set(Object.keys(fields))) });
     }
     const actionIcon = action?.name === "IconButton" ? literalOf(action.props.icon) : undefined;
@@ -941,8 +1227,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const filled = new Set(Object.entries(element.props).filter(([name, value]) => name !== "overrides" && ["element", "array", "object"].includes(value.kind)).map(([name]) => name));
     const props = figmaProps(entry, code, mapping, notes, where, null, filled);
     const node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : entry.name, set: { id: entry.id, name: entry.name }, props };
-    const label = textOf(element);
-    if (label) node.text = label;
+    const label = textOf(element) || (TEXT_PROP[element.name] && typeof code[TEXT_PROP[element.name]] === "string" ? code[TEXT_PROP[element.name]] : "");
+    // An Avatar's initials as it draws them (one letter when small).
+    if (label) node.text = element.name === "Avatar" ? avatarInitials(label, code.size ?? "md") : label;
     const slots = [];
     const dataSlots = mapping.dataSlots?.[element.name] ?? [];
     const slotProps = SLOT_OF_PROP[element.name] ?? {};
@@ -987,7 +1274,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (element.name === "ProgressBar" || element.name === "ProgressCircle") {
       const value = Math.max(0, Math.min(100, Number(code.value) || 0));
       const label = typeof code.label === "string" ? code.label : code.label ? `${Math.round(value)}%` : null;
-      Object.assign(node.props, onlyOwn(node.set, { ...(label ? { Text: label } : {}), ...(element.name === "ProgressBar" ? { Progress: value <= 0 ? "None" : value < 40 ? "Low" : value < 70 ? "Medium" : value < 100 ? "Good" : "Done" } : {}) }));
+      Object.assign(node.props, onlyOwn(node.set, { ...(label ? { Text: label } : {}), ...(element.name === "ProgressBar" ? { Progress: progressStep(value) } : {}) }));
     }
     if (element.name === "AiChatField" && typeof code.placeholder === "string") node.texts = { ...(node.texts ?? {}), Text: code.placeholder };
     // Its model switch shows only with `model` (Figma's Model starts on).

@@ -26,7 +26,8 @@ Last updated: 2026-10-12.
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
   labels (en/vi), `data-tone` variants and the harness are described in `HANDOFF-details.md` ("Vibe-code readiness").
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·
-  px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`).
+  px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`);
+  since 2026-10-13 Card and ListBox take the width half (`width`, `minWidth`, `maxWidth`, `alignSelf`).
   Since 2026-10-05 Text/Heading/Icon `tone` takes every resting Color/Content token by its path (81 tones, old names are
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
 - **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode
@@ -117,7 +118,10 @@ Last updated: 2026-10-12.
   a design copy keeps its Table cells; sessions "Lỗi UI" / "Kết nối file Figma Pokeslide" made the Dashboard and the
   templates import as they look (tried in the live file, page "Studio exports — QA"; even fit grids, metric / chart
   cards, table checkbox / sort / avatar cells, Table last-row rule in surfaces). Test any export change by running the
-  real importer in the Zen file. Next: P3 mapping gaps, P4 examples cleanup (BACKLOG).
+  real importer in the Zen file. P3–P4 (2026-10-13, branch `zen/feat/figma-map-p3`, spec §8 "P3" / "P4"):
+  TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat, FileIcon, Flag and
+  icon sizes map both ways (shared module `tools/studio/figma-top-nav.mjs`, fixtures `figma-chat.json`,
+  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. Left: BACKLOG P1 item.
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,

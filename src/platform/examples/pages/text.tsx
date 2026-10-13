@@ -156,7 +156,7 @@ function SecurityChecks() {
             // under its own line, aligned with the words.
             <Stack as="li" key={check.id} direction="row" gap="2xs" align="start">
               <Text as="span" tone={check.tone} className="px-text-icon"><Icon name={check.icon} size="sm" decorative /></Text>
-              <Stack gap="xs" className="px-text-grow">
+              <Stack gap="xs" width="fill">
                 <Text as="span" tone={check.tone}>{check.text}</Text>
                 {check.action ? <Button level="tertiary" size="sm" className="px-text-start" onClick={check.action.onClick}>{check.action.label}</Button> : null}
               </Stack>
@@ -205,7 +205,7 @@ function CommentItem({ comment }: { comment: Comment }) {
   return (
     <Stack as="li" direction="row" gap="sm" align="start">
       <Avatar size="md" {...avatarOf(author)} />
-      <Stack gap="xs" className="px-text-grow">
+      <Stack gap="xs" width="fill">
         {/* Weight sets the name apart and tone quiets the time; the sizes stay. */}
         <Stack direction="row" gap="2xs" align="baseline" wrap>
           <Text as="span" textStyle="Body/Small/Bold">{author.name}</Text>

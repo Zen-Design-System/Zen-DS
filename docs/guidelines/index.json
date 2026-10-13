@@ -2080,6 +2080,10 @@
       ],
       "props": {
         "Card": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "children?: ReactNode",
           "theme?: shadow|flat|pale|border|semi-pale = shadow",
@@ -2285,6 +2289,10 @@
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ListBox": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "header?: ReactNode",
           "children: ReactNode",

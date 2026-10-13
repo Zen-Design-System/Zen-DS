@@ -284,3 +284,40 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
 - Stack và Grid có `clip` như Box; Studio hiện Clip content (dưới Padding) cho Stack, Grid, Box; pull đọc clipsContent
   thành `clip` (trừ frame trang). E2E L-12.
 
+
+### P3 — các khoảng trống map (2026-10-13, nhánh `zen/feat/figma-map-p3`; plugin 5121b91 … b7a328d)
+
+Mỗi mục: push (Studio → Figma), pull (Figma → Studio), selftest (`figma-push.selftest.mjs` §15–25) và import thật vào
+file Zen (trang "Studio exports", frame thử của phiên này: 15342:11, 15351:17949, 15354:3, 15356:3, 15357:3, 15361:3,
+15366:3, 15380:492, 15385:3).
+
+| Code | Figma | Ghi chú |
+| --- | --- | --- |
+| TopNavigation | Top-Navigation/Mobile (12014:45167) + Nav-Slot/Action, Nav-Action/* | `figma-top-nav.mjs`: Type → Type, Status-bar tắt (Screen của Studio không có), Top-bar tắt khi large title gập bar, tiêu đề vào Heading-Text, action vào Trailing-Slot của từng hàng (`within`), Button theo Type; Control-Bar có lề như CSS. Pull: `readTopNav` trong bộ đọc. |
+| ColorSelector | Color-Selector (373:97252) | Hàng swatch, fill = biến màu của token (plugin: `fill` trên instance). |
+| Tabs › TabItem | Primitives/Tab-Item | TabItem con thành item; số badge vào Badge-Counter. Pull: nhãn không còn đọc nhầm "True". |
+| InputConditions | Input-Conditions (373:97663) | Map trong figma-props.map; nhãn Condition-Item là text của instance. |
+| UploaderFileItem | Primitives/Uploader/File-Item | State, Name, Size, caption; lỗi vào Help-Text; tiến độ = bậc Progress-Bar; ẩn Remove/Retry khi không có handler. |
+| DatePickerSheet | Date-Picker/Mobile (9923:3576) | Single / Multiple-Default / Multiple-Selected, tiêu đề; sheet đóng thì không đẩy. Nút OK giữ tên Zen "Apply" (Figma: Button/Main không tên). |
+| Metric, MetricCard | Metric-Inline (trong Card) | Pull trước đây ra MetricCard rỗng / Card bọc MetricCard: nay ra Metric và MetricCard đủ nhãn, số, trend (đọc ở Badge), icon. Push hiện icon mặc định như code (trước bị ẩn). Fixture `figma-metric.json`. |
+| Icon (size), FileIcon, Flag | icon-*, icon-media-file (5727:22537), Flag (7063:63834) | Cỡ icon = biến Element-Size/Popular (trước luôn 20px); FileIcon theo Format; Flag theo Name, cỡ Image-Size. Plugin: `size` / `sizeVar`. |
+| ChatThread, ChatMessage | Chat/Section/Conversation, Chat/Reaction/Status + Emoji/Static, Chat/Section/Read-List | Thread = các run theo phía; tác giả (Avatar mang tên người), reactions, danh sách đã xem. Pull đọc lại đủ từ bản đọc thật (fixture `figma-chat.json`). |
+
+- Plugin: slot theo `within` (hai Trailing-Slot), `nested.name` (đặt tên lớp lồng) và tìm lại lớp đã đổi tên theo
+  component, `fill` trên instance.
+- User (2026-10-13): "các ava nhỏ chỉ nên dùng viết tắt 1 chữ" → avatar XSmall/2XSmall 1 chữ ở cả code (ChatMessage hết
+  lách quy tắc của Avatar) lẫn push.
+- Bộ đọc của pull: `firstText` bỏ text trong lớp ẩn; slot của instance lồng (`innerSlots`); Avatar đổi tên được đọc.
+- Còn lại (không làm trong P3): primitive con mà component cha tự vẽ (Popover/Item, Sheet-Actions/Item trong overlay chưa
+  đẩy; Checkbox/Radio Mark; Empty-State Illustration; Progress-Circle/Icon); Metric-Card (6643:64008) — push vẽ MetricCard
+  bằng Card + Metric-Inline như trước.
+
+### P4 — className trong ví dụ (2026-10-13, cùng nhánh)
+
+- Đo 350 className theo CSS của chúng: ~110 chỉ để chỉnh độ rộng Card/ListBox. User chọn thêm prop: Card và ListBox nhận
+  width / minWidth / maxWidth / alignSelf như Stack (Figma Fill container, Min/Max width). Push ghi min/max width của
+  instance; các con cùng alignSelf đặt căn của frame cha; pull đọc lại (`Stack align="center"` + `width="fill"`).
+- 90 className thành prop, CSS của chúng bị xoá; 40 gốc ví dụ căn giữa nằm trong `<Stack>`. Visual diff 430 panel: giống
+  hệt (một panel khác vì ảnh lazy). Còn 260 className: container query (cần API Grid, chờ user), chi tiết chỉ cho docs,
+  màu / display.
+

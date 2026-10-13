@@ -98,7 +98,7 @@ function ProjectTable() {
   const [sort, setSort] = useState<TableSort | null>({ columnId: "due", direction: "asc" });
   return (
     // A section of the page: its h4 names the table, which lies on the page with no container.
-    <Stack as="section" gap="xs" aria-labelledby={titleId} className="px-dock-icon-fill">
+    <Stack as="section" gap="xs" aria-labelledby={titleId} width="fill">
       <Heading level={4} id={titleId} textStyle="Heading/4">Client projects</Heading>
       <Table aria-labelledby={titleId} rows={sortProjects(clientProjects, sort)} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
       columns={[
@@ -146,7 +146,7 @@ function Notifications() {
   };
   return (
     // A ListBox: the title, its counter and Mark all as read in its Header-Slot, the notifications in its Body-Slot.
-    <ListBox className="px-dock-icon-fill"
+    <ListBox width="fill"
       header={<Stack direction="row" align="center" justify="between" gap="xs" wrap>
         <Stack direction="row" align="center" gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Notifications</Heading>
@@ -177,7 +177,7 @@ const leaveTypes = [
 
 function LeaveBalance() {
   return (
-    <ListBox className="px-dock-icon-fill" header={<Heading level={4} textStyle="Heading/Subheading">Leave balance</Heading>}>
+    <ListBox width="fill" header={<Heading level={4} textStyle="Heading/Subheading">Leave balance</Heading>}>
       <List aria-label="Leave balance">
         {leaveTypes.map((t) => (
           <ListItem key={t.id} title={t.name} caption={t.caption} leading={<DockIcon theme="emoji" emoji={t.emoji} size="md" />} />

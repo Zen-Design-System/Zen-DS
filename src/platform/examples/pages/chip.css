@@ -1,8 +1,5 @@
 /* Chip examples (src/platform/examples/pages/chip.tsx). Tokens only. */
 
-/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
-.px-chip-card { width: 100%; max-width: 440px; margin-inline: auto; }
-
 /* Phone filter row: one line that scrolls sideways, no scrollbar, the screen margin on both ends (Margin/Comfortable,
    20 on a phone), so the first chip lines up with the bar title and the list rows (example-patterns §2). */
 .px-chip-scroll {

@@ -2651,6 +2651,44 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "UploaderFileItem": [
+    {
+      "name": "Primitives/Uploader/File-Item",
+      "figma": "1581:22739",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Default",
+            "Overlay"
+          ],
+          "values": [
+            "default",
+            "overlay"
+          ],
+          "default": "default"
+        },
+        {
+          "prop": "thumbnail",
+          "label": "Thumbnail",
+          "names": [
+            "None",
+            "File",
+            "Photo"
+          ],
+          "values": [
+            "none",
+            "file",
+            "photo"
+          ],
+          "default": "none"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "FileUpload": [
     {
       "name": "Uploader/File-Upload",
