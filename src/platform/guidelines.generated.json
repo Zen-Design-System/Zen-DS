@@ -6416,7 +6416,7 @@
       [
         "Line",
         "LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition",
-        "Accent/Solid 2px line + Accent area; compare: a dashed 2px Color Chart Sector/Primary line over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart)"
+        "Accent/Solid 2px line + Accent area; compare: a 2px Color Chart Sector/Primary line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart)"
       ],
       [
         "Bar",

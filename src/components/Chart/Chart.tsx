@@ -39,8 +39,8 @@ export interface LineChartProps {
   /** What the line measures ("Invoiced"), named in the legend and the summary once there is a `compare`. Default: the
    *  aria-label. */
   label?: string;
-  /** A comparison over the same periods — last year, the plan, what was collected — drawn as a dashed 2px line in Color
-   *  Chart Sector/Primary with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. */
+  /** A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart
+   *  Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. */
   compare?: ChartCompare;
   /** Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. */
   format?: (value: number) => string;

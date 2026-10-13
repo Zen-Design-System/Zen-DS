@@ -20,9 +20,10 @@
 .zen-chart__marks { position: absolute; inset: 0; }
 .zen-chart__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .zen-chart__line { fill: none; stroke: var(--zen-color-border-accent-solid-default, #ff66d4); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
-/* The comparison (LineChart compare, Figma Chart/Multi-Line-Chart): a dashed 2px line in Color Chart Sector/Primary.
+/* The comparison (LineChart compare, Figma Chart/Multi-Line-Chart, the user's 2026-10-13 edit): a 2px line in Color
+   Chart Sector/Primary at 40%, dashed 4 / 5, round caps; its active dot and legend dot stay full colour.
    zen-allow-dashed-color: a data series drawn dashed (the comparison), in its chart colour — not a container edge. */
-.zen-chart__line[data-compare="true"] { stroke: var(--zen-chart-sector-primary, #111); stroke-dasharray: 6 6; }
+.zen-chart__line[data-compare="true"] { stroke: var(--zen-chart-sector-primary, #111); stroke-dasharray: 4 5; stroke-opacity: .4; }
 .zen-chart__dot[data-compare="true"] { border-color: var(--zen-chart-sector-primary, #111); }
 .zen-chart__dot { position: absolute; width: 10px; height: 10px; box-sizing: border-box; border: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); pointer-events: none; transform: translate(-50%, -50%); }
 

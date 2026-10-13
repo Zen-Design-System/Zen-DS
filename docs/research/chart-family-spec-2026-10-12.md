@@ -156,3 +156,6 @@ Segmented and `.Chart/Line-Chart/Trend` plot, a `Legend` row 15426:2587 (Legend-
 Sector/Primary; `Dot` 15426:2665) and `Average` 15426:2666. Properties: Show Icon, Icon, Title, Show Description,
 Description, Show Value, Value, Show Ranges, Show Open, Show Average, Average (#15426:0–10). MULTI-LINE cover instance
 15426:2883. Deleted: the old set 15323:80980 and its Fill=Hatch / Fill=None variants.
+
+Same day, the user's edit: the comparison line is Color Chart Sector/Primary at 40% opacity, dash 4 / 5 (was 100%, 6 / 6);
+its dot stays full colour. Moved from the cover instance into the main component (15426:2663), chart.css follows.

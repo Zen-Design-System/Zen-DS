@@ -319,3 +319,5 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
   Tooltip); examples, story, palette item, harness (chart/shares-need-legend reads `compare`), tests updated. The user's
   Figma hatch edit (projected bars, target tracks) mirrored in chart.css. CI's "Jan picked" failure: the runner's
   resting mouse hovered the first sector — the test wrapper now has pointer-events: none. Merged main (#35) again.
+- 2026-10-13 (the user): Multi-Line's comparison at 40% and dash 4 / 5 (their edit on the cover instance) → moved into
+  the main component 15426:2663, instance override cleared; chart.css `stroke-opacity: .4; stroke-dasharray: 4 5`.
