@@ -88,3 +88,6 @@
 - Code lives only on PR #38's branch (worktree Zen-DS-charts, `zen/fix/chart-average-dots`; main has no DonutChart):
   `DonutChart` total-value and `ChartCard` value Heading/3 → Heading/2 (ChartCard's Figma Value moved earlier today),
   guideline source, chart spec, CHANGELOG, guidelines rebuilt. Studio renders the code components, so it follows.
+  Committed 18a4e38 on that branch (not pushed); its older examples/pages/chart.tsx edit is not ours, left out.
+- Centre figure differs on purpose: Figma `Centre > Value` Heading/Subheading, code Heading/4. User: "giữ nguyên"
+  (keep both as they are); don't "fix" it.
