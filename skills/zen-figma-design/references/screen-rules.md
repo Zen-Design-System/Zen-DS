@@ -16,17 +16,18 @@ and a standalone chart (Bar, Donut, Radial, Heatmap): one `Theme`, `Surface` and
 | Canvas (light / dark) | Header, top bar | Sidebar, bottom bar | Boxes | Shadow |
 | --- | --- | --- | --- | --- |
 | `Canvas/Default` (#f7f7f7 / #121212) | on the canvas (top bar `Type=Alt` = Surface/Alt) | on the canvas, or a Surface/Default panel | `Theme=Flat` or `Shadow` (Surface=Default); `Border` allowed | only all together: Sidebar `Shadow=Yes` (bottom bar Shadow/Top/Level-1), every box `Theme=Shadow`, standalone charts Shadow/Bottom/Level-1 |
-| `Canvas/Alt` (#ffffff / #1c1c1c) | on the canvas (top bar `Type=Default` = Surface/Default) | on the canvas | `Pale`, `Semi-Pale` (any `Color`), `Border` (Surface=Default + Pale border), or `Flat` with `Surface=Alt` | none |
-| `Canvas/Flat` (#ffffff / #121212) | on the canvas (Surface/Flat) | on the canvas (Surface/Flat) | `Pale`, `Semi-Pale`, or `Border` with `Surface=Flat` | none |
+| `Canvas/Alt` (#ffffff / #1c1c1c) | on the canvas (top bar `Type=Default` = Surface/Default) | on the canvas | `Pale` (any `Color`), `Border` (Surface=Default + Pale border), or `Flat` with `Surface=Alt` | none |
+| `Canvas/Flat` (#ffffff / #121212) | on the canvas (Surface/Flat) | on the canvas (Surface/Flat) | `Pale`, or `Border` with `Surface=Flat` | none |
 | Inside a Modal, Side-Panel or Bottom-Sheet | — | — | `Theme=On-Container` | none |
 
 - "On the canvas" = no fill (desktop Sidebar: the Placeholder fill hidden) or the Surface of the canvas's colour in both
   modes: Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat. A bar on Surface/Default
   over Canvas/Flat melts in light but turns into a #1c1c1c block in dark.
 - Why the boxes: Surface/Alt equals Canvas/Default (boxes vanish), Surface/Default equals Canvas/Alt (needs the Pale
-  border), Surface/Default equals Canvas/Flat in light (use Pale / Semi-Pale or a bordered Surface=Flat box).
-- One family per screen (Flat, Border, Pale or Semi-Pale); colours may vary inside Pale / Semi-Pale (KPI hues).
-  Gradient / Solid are highlight widgets, one per row.
+  border), Surface/Default equals Canvas/Flat in light (use Pale or a bordered Surface=Flat box).
+- One family per screen (Flat, Border or Pale); colours may vary inside Pale (KPI hues).
+- No gradient boxes (Card Semi-Pale, Gradient) and no Solid colour box (user, 2026-10-14): colour is Pale. One widget
+  per row may stand out with a `Support/<Hue>/Subtle` fill or Solid Neutral.
 - A dark widget is `Theme=Solid, Color=Neutral`: `Background/Neutral/Solid` with its content in the Inverse tokens
   (Content/Inverse, Border/Inverse, Button `Level=Inverse`). Never set a colour mode on a component, a card or any layer
   inside a screen to make it dark or light: the screen frame's Light/Dark mode is the only mode switch (user,

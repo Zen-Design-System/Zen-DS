@@ -386,6 +386,16 @@
   Metric-Card Hero's Card no longer set a colour mode; Solid/Neutral fills Background/Neutral/Solid/Default and its
   header icon takes Content/Inverse/Light (the Hero Neutral "⋮" was black 49% on #121212). Card description and the
   Metric board caption rewritten; skill: SKILL.md hard rule "One colour mode per screen" + screen-rules §1 bullet.
+- Follow-up (user, 2026-10-14: "1. thử 2. OK 3. Thử rồi duyệt sau", then "bỏ hết gradient chỉ dùng màu pale … hoặc subtle
+  nếu muốn nhấn mạnh"): styles On-Color/Secondary → Content/Neutral/Light, /Tertiary → Border/Neutral/Subtle/Pressed
+  (they now draw 49% / 18%; awaiting review, BACKLOG). Chart page board "Widget themes" (15559:2870) rebuilt on
+  Canvas/Alt: Border, Flat/Alt, Pale Brand, Subtle Cyan (Pale + Support/Cyan/Subtle fill), Pale Violet, Pale Orange,
+  Solid Neutral (Inverse text, icon and marks: Background/Inverse/Solid, Content/Inverse/Light, Inverse/Subtle track),
+  Pale Green; the Metric board's Gradient/Semi-Pale cards → Pale; both captions rewritten. Dark check (a temporary
+  Dark frame, removed): Solid Neutral turns light with dark content, the Pale marks flip too. Harness: new
+  `theme/mode-override` (error; a probe frame with a Dark child was caught), `theme/box-on-canvas` now flags Semi-Pale,
+  Gradient and Solid colour boxes, Subtle and Solid Neutral are the highlights; audit-rules, screen-rules §1, Card
+  description. ai-kit:check 104 ✓; the chart board audits clean (one mixed-boxes warning: a showcase).
 
 ## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
 
