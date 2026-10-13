@@ -656,11 +656,11 @@ return (async function () {
     s.strokes = [await zpaint('subtle')]; s.strokeWeight = 1; s.clipsContent = true; fixW(s, w);
     return s;
   }
-  // red spec marker for the vertical gap between the bottom of a and the top of b, inside scr at x
+  // spec marker (Zen accent text colour) for the vertical gap between the bottom of a and the top of b, inside scr at x
   async function redline(scr, a, b, x, label) {
     const sb = scr.absoluteBoundingBox, ab = a.absoluteBoundingBox, bb = b.absoluteBoundingBox;
     const y1 = Math.round(ab.y + ab.height - sb.y), h = Math.max(Math.round(bb.y - sb.y) - y1, 2);
-    const red = await zpaint('red');
+    const red = await zpaint('accentText');
     const g = figma.createFrame(); g.name = 'Redline ' + (label || h); g.fills = []; g.clipsContent = false;
     scr.appendChild(g); g.layoutPositioning = 'ABSOLUTE'; g.resize(12, h); g.x = x; g.y = y1;
     const ln = figma.createRectangle(); g.appendChild(ln); ln.resize(2, h); ln.x = 5; ln.y = 0; ln.fills = [red];
@@ -673,7 +673,7 @@ return (async function () {
   async function pin(scr, node, num, color) {
     const sb = scr.absoluteBoundingBox, nb = node.absoluteBoundingBox;
     const p = al('HORIZONTAL', 'Pin ' + num); p.primaryAxisAlignItems = 'CENTER'; p.counterAxisAlignItems = 'CENTER';
-    p.resize(26, 26); p.primaryAxisSizingMode = 'FIXED'; p.counterAxisSizingMode = 'FIXED'; p.cornerRadius = 13; p.fills = [await zpaint(color || 'red')];
+    p.resize(26, 26); p.primaryAxisSizingMode = 'FIXED'; p.counterAxisSizingMode = 'FIXED'; p.cornerRadius = 13; p.fills = [await zpaint(color || 'accentText')];
     p.appendChild(await Z(String(num), 14, 'Bold', 'white'));
     scr.appendChild(p); p.layoutPositioning = 'ABSOLUTE'; p.x = Math.round(nb.x - sb.x + nb.width - 14); p.y = Math.round(nb.y - sb.y - 12);
     return p;
