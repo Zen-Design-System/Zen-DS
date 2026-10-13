@@ -19,6 +19,8 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio: the icon picker of a nested icon (a Metric card's dock icon) lists the icons the page already uses again,
+  under "Used in this file".
 - Zen Studio, round 3: ⌘-click lands on every text as Figma's deep select (a Button's, Badge's or Chip's label too; a
   picture's initials stay the picture), ⇧Enter / Esc go up one layer inside an instance; Layers shows an instance's own
   layers by their Figma names and texts by their words, with no "Parts" folder, no empty slots and no slot row that

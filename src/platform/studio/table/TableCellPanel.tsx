@@ -220,7 +220,12 @@ export function TablePartPanel({ selection, controlsSlot }: { selection: PartSel
   if (name === TABLE_PARTS.row) return resolved ? <DataRowPanel selection={selection} part={resolved} /> : <Finding name={name} />;
   if (cell && cell.src === selection.src) return <CellPanel selection={selection} part={resolved!} cell={cell} />;
   if (tablePart) return <Finding name={name} />;
-  return <PartPanel selection={selection} controlsSlot={controlsSlot} />;
+  // The file the part's owner is written in: the icon picker's "Used in this file" reads it (iconSuggestions.ts).
+  return (
+    <InspectorFileContext.Provider value={parseSrc(selection.src)?.file ?? null}>
+      <PartPanel selection={selection} controlsSlot={controlsSlot} />
+    </InspectorFileContext.Provider>
+  );
 }
 
 function Finding({ name }: { name: string }) {
