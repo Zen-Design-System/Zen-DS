@@ -8,6 +8,25 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
+  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale/Semi-Pale hues), Metric-Card and Chart-Card
+  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `theme` semi-pale + `surface` +
+  `color`, MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
+  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation).
+  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
+  background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
+  Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
+  until then (screen-rules §1).
+- **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
+  studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
+  so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in
+  tools/studio/figma-push.mjs leaves Figma's sample data. Next, once the user confirms the scope: pick Sector 4/6/7/12 by
+  the point count and write X labels, the six Y ticks and the active tooltip (push; pull has no chart mapping yet).
+- **P3 · Sheet-style table for long content (user, 2026-10-13):** Table rows are FIXED at Table/Cell/Size (one line,
+  ellipsis). The docs Props / API / Keyboard references still need multi-line rows: a temporary `.platform-ref`
+  override in `src/platform/platform.css` lets them grow. Replace it with the planned sheet component (needs the user's
+  approval and a Figma source).
 - **P2 · Studio ↔ Figma P6b: round trip by push key (2026-10-13, needs the user's approval):** P6 (spec §8) fixed what
   pulls lose part by part. Still lost on a pull, as code-only detail:
   - Container / Box / Form come back as Stack.
@@ -389,8 +408,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (same session, for the designer): ~~Neutral-S7 focus is faint by design~~ — resolved 2026-10-03 evening: the designer
   set `Input/Border/Focus` in Neutral-S7 to Focus/Neutral/Solid (export synced). Still open: `Input/Border/Popover-Search` stores "Focus/Neutral/Solid at
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also
-  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px
-  Border/Active/Neutral/Subtle one (code uses the 3px ring on both).
+  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px one (both
+  Focus/Neutral/Subtle since 2026-10-13; code uses the 3px ring on both). Also 2026-10-13: Field-Only's
+  Inputted-Error/Blank-Error border is Color/Focus/Negative/Solid but Text-Area's is still Color/Border/Negative/Solid/Default
+  (same colour; code uses Focus/Negative/Solid on both).
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.

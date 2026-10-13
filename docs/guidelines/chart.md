@@ -158,7 +158,7 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `range` | `string` | — |  |
 | `onRangeChange` | `(id: string) => void` | — |  |
 | `rangesFullWidth` | `boolean` | `true` | The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale" \| "on-container"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
 | `surface` | `"default" \| "alt"` | — |  |
 | `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |

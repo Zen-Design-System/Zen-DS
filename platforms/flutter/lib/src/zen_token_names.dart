@@ -1591,6 +1591,10 @@ abstract final class ZenToken {
   static const String colorBorderNeutralPalePressed = 'Color/Border/Neutral/Pale/Pressed';
   static const String colorFocusNeutralSolid = 'Color/Focus/Neutral/Solid';
   static const String colorFocusNeutralSubtle = 'Color/Focus/Neutral/Subtle';
+  static const String colorFocusPositiveSolid = 'Color/Focus/Positive/Solid';
+  static const String colorFocusPositiveSubtle = 'Color/Focus/Positive/Subtle';
+  static const String colorFocusNegativeSolid = 'Color/Focus/Negative/Solid';
+  static const String colorFocusNegativeSubtle = 'Color/Focus/Negative/Subtle';
   static const String colorBorderOverlayPaleDefault = 'Color/Border/Overlay/Pale/Default';
   static const String colorBorderOverlayPaleHover = 'Color/Border/Overlay/Pale/Hover';
   static const String colorBorderOverlayPalePressed = 'Color/Border/Overlay/Pale/Pressed';

@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-12.
+Last updated: 2026-10-13.
 
 ## Read order
 
@@ -23,6 +23,11 @@ Last updated: 2026-10-12.
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
+  every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
+  approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user
+  reviews and publishes the library. 🔤 Typography has a Content-Hierarchy section. Installation › AI kit for Figma
+  downloads the skill `skills/zen-figma-design` + its audit harness (`npm run ai-kit:check`).
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
   labels (en/vi), `data-tone` variants and the harness are described in `HANDOFF-details.md` ("Vibe-code readiness").
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zen Figma design"
+  short_description: "Design screens in a Zen Figma file with Zen components, tokens and the Zen audit"
+  default_prompt: "Use $zen-figma-design to design the requested screens in the Zen Figma file: only Zen components, variables and text styles, Zen's screen rules, and the Zen audit (harness/zen-figma-audit.js) after every screen."

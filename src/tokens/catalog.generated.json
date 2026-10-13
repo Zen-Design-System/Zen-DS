@@ -28,7 +28,7 @@
         "Light",
         "Dark"
       ],
-      "variableCount": 427
+      "variableCount": 431
     },
     "component-colors-theme": {
       "name": "Component Theme",
@@ -17686,7 +17686,7 @@
       "name": "Light/On-Brand-Default",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF"
+        "Zen": "#000000DB"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17698,7 +17698,7 @@
       "name": "Dark/On-Brand-Default",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF"
+        "Zen": "#000000DB"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -17758,7 +17758,7 @@
       "name": "Light/On-Brand-Hover",
       "type": "COLOR",
       "valuesByMode": {
-        "Zen": "#FFFFFF"
+        "Zen": "#000000DB"
       },
       "collectionSlug": "base-colors-project",
       "collectionName": "Base Colors (Project)",
@@ -21616,6 +21616,62 @@
       "valuesByMode": {
         "Light": "{Light/Neutral-Alpha/4}",
         "Dark": "{Dark/Neutral-Alpha/4}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Positive/Solid",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Positive/9}",
+        "Dark": "{Dark/Positive/9}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Positive/Subtle",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Positive-Alpha/4}",
+        "Dark": "{Dark/Positive-Alpha/4}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Negative/Solid",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Negative/9}",
+        "Dark": "{Dark/Negative/9}"
+      },
+      "collectionSlug": "mode-colors-semantic",
+      "collectionName": "Mode Colors (Semantic)",
+      "modes": [
+        "Light",
+        "Dark"
+      ]
+    },
+    {
+      "name": "Color/Focus/Negative/Subtle",
+      "type": "COLOR",
+      "valuesByMode": {
+        "Light": "{Light/Negative-Alpha/4}",
+        "Dark": "{Dark/Negative-Alpha/4}"
       },
       "collectionSlug": "mode-colors-semantic",
       "collectionName": "Mode Colors (Semantic)",
@@ -31370,10 +31426,10 @@
       "name": "Typography/Letter-Spacing/Display-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -1.5199999809265137,
+        "Dashboard": -1.5800000429153442,
         "Popular": -3,
         "Mobile": -2.0799999237060547,
-        "Studio": -1.36
+        "Studio": -1.4
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31424,10 +31480,10 @@
       "name": "Typography/Letter-Spacing/Display-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -1.2100000381469727,
+        "Dashboard": -1.2000000476837158,
         "Popular": -2.0799999237060547,
         "Mobile": -1.840000033378601,
-        "Studio": -1.09
+        "Studio": -1.08
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31478,10 +31534,10 @@
       "name": "Typography/Letter-Spacing/Display-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.9800000190734863,
+        "Dashboard": -1.0800000429153442,
         "Popular": -1.840000033378601,
         "Mobile": -1.6399999856948853,
-        "Studio": -0.86
+        "Studio": -0.96
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31532,10 +31588,10 @@
       "name": "Typography/Letter-Spacing/Display-4",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.7599999904632568,
+        "Dashboard": -0.9599999785423279,
         "Popular": -1.600000023841858,
         "Mobile": -1.0800000429153442,
-        "Studio": -0.66
+        "Studio": -0.84
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31586,10 +31642,10 @@
       "name": "Typography/Letter-Spacing/Heading-1",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.5600000023841858,
+        "Dashboard": -0.8399999737739563,
         "Popular": -1.2599999904632568,
         "Mobile": -0.9599999785423279,
-        "Studio": -0.48
+        "Studio": -0.72
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31640,10 +31696,10 @@
       "name": "Typography/Letter-Spacing/Heading-4",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.4000000059604645,
+        "Dashboard": -0.6000000238418579,
         "Popular": -0.7200000286102295,
         "Mobile": -0.6899999976158142,
-        "Studio": -0.36
+        "Studio": -0.54
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -31802,10 +31858,10 @@
       "name": "Typography/Letter-Spacing/Body-Small",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": 0,
+        "Dashboard": -0.11999999731779099,
         "Popular": -0.2800000011920929,
         "Mobile": -0.14000000059604645,
-        "Studio": 0
+        "Studio": -0.12
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -32288,10 +32344,10 @@
       "name": "Typography/Letter-Spacing/Heading-3",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.4399999976158142,
+        "Dashboard": -0.6600000262260437,
         "Popular": -0.8399999737739563,
         "Mobile": -0.7799999713897705,
-        "Studio": -0.4
+        "Studio": -0.6
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",
@@ -32396,10 +32452,10 @@
       "name": "Typography/Letter-Spacing/Heading-2",
       "type": "FLOAT",
       "valuesByMode": {
-        "Dashboard": -0.5,
+        "Dashboard": -0.75,
         "Popular": -0.9599999785423279,
         "Mobile": -0.8700000047683716,
-        "Studio": -0.44
+        "Studio": -0.66
       },
       "collectionSlug": "typography-configuration",
       "collectionName": "Typography Configuration",

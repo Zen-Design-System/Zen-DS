@@ -41,7 +41,7 @@
       "fontSize": 45,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -1.5199999809265137
+        "value": -1.5800000429153442
       },
       "textCase": "ORIGINAL"
     },
@@ -52,7 +52,7 @@
       "fontSize": 40,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -1.2100000381469727
+        "value": -1.2000000476837158
       },
       "textCase": "ORIGINAL"
     },
@@ -63,7 +63,7 @@
       "fontSize": 36,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -0.9800000190734863
+        "value": -1.0800000429153442
       },
       "textCase": "ORIGINAL"
     },
@@ -74,7 +74,7 @@
       "fontSize": 32,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -0.7599999904632568
+        "value": -0.9599999785423279
       },
       "textCase": "ORIGINAL"
     },
@@ -85,7 +85,7 @@
       "fontSize": 28,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -0.5600000023841858
+        "value": -0.8399999737739563
       },
       "textCase": "ORIGINAL"
     },
@@ -96,7 +96,7 @@
       "fontSize": 25,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -0.5
+        "value": -0.75
       },
       "textCase": "ORIGINAL"
     },
@@ -107,7 +107,7 @@
       "fontSize": 22,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -0.4399999976158142
+        "value": -0.6600000262260437
       },
       "textCase": "ORIGINAL"
     },
@@ -118,7 +118,7 @@
       "fontSize": 20,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": -0.4000000059604645
+        "value": -0.6000000238418579
       },
       "textCase": "ORIGINAL"
     },
@@ -206,7 +206,7 @@
       "fontSize": 12,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": 0
+        "value": -0.11999999731779099
       },
       "textCase": "ORIGINAL"
     },
@@ -217,7 +217,7 @@
       "fontSize": 12,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": 0
+        "value": -0.11999999731779099
       },
       "textCase": "ORIGINAL"
     },
@@ -228,7 +228,7 @@
       "fontSize": 12,
       "letterSpacing": {
         "unit": "PIXELS",
-        "value": 0
+        "value": -0.11999999731779099
       },
       "textCase": "ORIGINAL"
     },

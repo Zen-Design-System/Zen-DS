@@ -97,7 +97,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 - Don't use XSmall / 2XSmall text buttons for ordinary actions (examples, cards, toolbars, forms, footers) — use sm or larger. XSmall/2XSmall are only for special compact pills beside a row, like the App Store's Get · Install · Open (harness: button/compact-size-special).
 
 ## Accessibility
-- Native `<button>`; Enter/Space activate. Focus ring is Focus/Accent (3px).
+- Native `<button>`; Enter/Space activate. Focus ring is 3px Focus/Accent/Solid; Danger levels take Focus/Negative/Solid and Positive levels Focus/Positive/Solid.
 - IconButton requires aria-label; add a Tooltip with the same text for sighted users.
 - Toggle buttons expose aria-pressed.
 - Minimum hit target 24px (2xs); prefer ≥ 32px (sm) for pointer, 40px (md) for touch.
@@ -124,7 +124,8 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `button/vague-label` | warn | Labels start with a verb and name the outcome ("Save changes"), never "OK", "Submit" or "Click here". | `zen-allow-vague-label: <reason>` |
 | `button/one-primary` | warn | One Main Primary per surface: never two Primary buttons side by side (Flat/Overlay levels are exempt). | `zen-allow-two-primary: <reason>` |
 | `button/compact-size-special` | warn | Text buttons at XSmall/2XSmall are for special compact pills only — like the App Store's Get / Install / Open next to a list row. Actions in examples, cards, toolbars and forms use sm or larger. | `zen-allow-compact-button: <reason>` |
-| `focus/visible-ring` | error | Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element. | `zen-allow-focus-ring: <reason>` |
+| `focus/visible-ring` | error | Removing the outline on focus requires a replacement ring (Color/Focus/*: Accent, or Negative/Positive on a danger or positive action) on the same element. | `zen-allow-focus-ring: <reason>` |
+| `focus/ring-token` | error | A focus ring (an outline, or a box-shadow ring of 2px or more, on a focus state) takes its colour from Color/Focus/* (Accent, Neutral, Negative or Positive; Solid or Subtle), as every Focus-Ring in Figma does — not from a Border, Background or Content token. | `zen-allow-focus-ring-token: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |

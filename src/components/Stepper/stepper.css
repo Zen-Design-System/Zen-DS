@@ -65,9 +65,9 @@ button.zen-stepper__hit:focus-visible { outline: 3px solid var(--zen-color-focus
   color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
 }
 .zen-stepper-item > .zen-icon { width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); }
-.zen-stepper-item[data-state="focused"] { background: var(--zen-color-background-neutral-solid-default, #111); color: var(--zen-color-content-inverse-strongest, #fff); outline: 3px solid var(--zen-color-border-active-neutral-subtle); outline-offset: 3px; }
+.zen-stepper-item[data-state="focused"] { background: var(--zen-color-background-neutral-solid-default, #111); color: var(--zen-color-content-inverse-strongest, #fff); outline: 3px solid var(--zen-color-focus-neutral-subtle, #0000001a); outline-offset: 3px; }
 .zen-stepper-item[data-state="passed"] { background: var(--zen-color-background-inverse-solid-default, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-active-neutral-solid, #111); color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-stepper-item[data-state="error"] { background: var(--zen-color-background-negative-subtle-default); color: var(--zen-color-content-negative-light); outline: 3px solid var(--zen-color-border-negative-subtle-default); outline-offset: 3px; }
+.zen-stepper-item[data-state="error"] { background: var(--zen-color-background-negative-subtle-default); color: var(--zen-color-content-negative-light); outline: 3px solid var(--zen-color-focus-negative-subtle, #ff370038); outline-offset: 3px; }
 /* The ring needs 6px clear on each side; the marker takes it as margin so the lines still meet the next step.
    zen-allow-raw-spacing: 6px is the ring's overhang, not a Spacing token — Figma .Primitives/Stepper/Item (1625:4827)
    draws the Focus-Ring as an absolute 36px rectangle at −6px (3px inside stroke) around the 24px marker. */
