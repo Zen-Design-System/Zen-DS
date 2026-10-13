@@ -154,9 +154,9 @@ removed (four unused colour ramps were, see Removed).
   and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller non-clipping wrapper
   like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured from the effect; an
   error on the screen's own frames), crushed or shifted text, placeholder copy, and theme pairing: boxes and navigation
-  surfaces that clash with the Canvas, one elevation and one colour mode per screen), the generated Figma
-  component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build` writes
-  the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
+  surfaces that clash with the Canvas, one elevation and one colour mode per screen, no gradient boxes), the generated
+  Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
+  writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
 - Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)
   and `onBack` / `backLabel` (Figma Back-Container: a back button before the title).
 - ProgressBar `layout="stacked"` (Figma Layout=Stacked): the label and the value on a row above the bar; `valueLabel`

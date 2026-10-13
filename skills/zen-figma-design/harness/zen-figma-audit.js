@@ -36,8 +36,8 @@
 //   theme/box-on-canvas      error    a box (Card, List-Box, a standalone chart) whose fill does not belong to the
 //                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
 //                                     Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Surface/Flat with a
-//                                     Pale border. No gradient (Semi-Pale, Gradient) or Solid colour box: one box per
-//                                     row stands out with a Support/<Hue>/Subtle fill or Solid Neutral
+//                                     Pale border. No gradient box (Semi-Pale, Gradient): one box per row stands out
+//                                     with Solid or a Support/<Hue>/Subtle fill
 //   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
 //                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
 //                                     Bottom-Navigation be a Surface/Default panel
@@ -332,12 +332,12 @@ async function checkThemePairing(root) {
     const border = await hasBorder(box);
     const shadow = dropShadow(box);
     (shadow ? elevated : flat).push(box);
-    // No gradient or bright colour box (user, 2026-10-14): colour is Pale, a stand-out box Subtle or Solid Neutral.
-    if (kind === "Gradient" || kind === "Semi-Pale" || kind === "Solid") {
-      report("theme/box-on-canvas", ERROR, box, `${kind} box: colour boxes are Pale; to stand out use a Support/<Hue>/Subtle fill or Solid Neutral`);
+    // No gradient box (user, 2026-10-14: "Giữ solid, xoá gradient"): colour is Pale, a stand-out box Solid or Subtle.
+    if (kind === "Gradient" || kind === "Semi-Pale") {
+      report("theme/box-on-canvas", ERROR, box, `${kind} box: no gradients, colour boxes are Pale; to stand out use Solid or a Support/<Hue>/Subtle fill`);
       continue;
     }
-    if (kind === "Subtle" || kind === "Solid Neutral") continue; // a highlight widget, one per row (Card rules)
+    if (kind === "Subtle" || kind === "Solid" || kind === "Solid Neutral") continue; // a highlight widget, one per row (Card rules)
     const family = kind === "Pale" ? kind : border ? "Border" : "Flat";
     families.add(family);
     const allowed = {

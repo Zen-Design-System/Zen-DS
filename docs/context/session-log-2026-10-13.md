@@ -396,6 +396,13 @@
   `theme/mode-override` (error; a probe frame with a Dark child was caught), `theme/box-on-canvas` now flags Semi-Pale,
   Gradient and Solid colour boxes, Subtle and Solid Neutral are the highlights; audit-rules, screen-rules §1, Card
   description. ai-kit:check 104 ✓; the chart board audits clean (one mixed-boxes warning: a showcase).
+- Gradients deleted (user, 2026-10-14: "Giữ solid, xoá gradient"): Card set −30 variants (Gradient ×14, hue Semi-Pale
+  ×16; none had instances) → 62, grid 13 rows (Figma closes empty grid rows itself; a same-run setGridChildPosition
+  fails and the run rolls back); List-Box −36 Semi-Pale → 64 (4 instances in my Theme-01/03 mobile frames moved to Pale,
+  frames renamed), rows re-stacked; 15 Gradients/Card/* styles deleted (their only consumers were the page-less deleted
+  variants). Semi-Pale Neutral kept: code Card `theme="semi-pale"`, the Studio map and the Card example use it (BACKLOG).
+  Solid stays a highlight next to Subtle (harness + skill wording). Card, List-Box, Chart-Card and Metric-Card
+  descriptions decoded: each read-then-write had stacked one more HTML-escape level (`&amp;amp;#39;`).
 
 ## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
 

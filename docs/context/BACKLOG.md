@@ -14,10 +14,14 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   60% dark) and Border/Neutral/Subtle/Pressed (18% / 23%); the Bullet-Chart main's Track and the widget boards use them.
   If the user rejects it, restore the old binding (and the layer-opacity workaround). Session log 2026-10-13.
 - **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
-  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale/Semi-Pale hues), Metric-Card and Chart-Card
-  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `theme` semi-pale + `surface` +
-  `color`, MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
-  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation).
+  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale hues), Metric-Card and Chart-Card
+  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `surface` + `color`,
+  MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
+  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation, one
+  colour mode, no gradient box). Gradient themes are gone in Figma (user 2026-10-14 "Giữ solid, xoá gradient"):
+  Card Gradient + hue Semi-Pale and List-Box Semi-Pale deleted. Open question for the user: retire code's Card
+  `theme="semi-pale"` too (deprecated alias → pale, Studio map, examples, style-effects) and then delete Figma's
+  Semi-Pale Neutral variants, which stay only because code and Studio still use them.
   Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
 - **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
   background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,

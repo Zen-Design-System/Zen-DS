@@ -26,8 +26,9 @@ and a standalone chart (Bar, Donut, Radial, Heatmap): one `Theme`, `Surface` and
 - Why the boxes: Surface/Alt equals Canvas/Default (boxes vanish), Surface/Default equals Canvas/Alt (needs the Pale
   border), Surface/Default equals Canvas/Flat in light (use Pale or a bordered Surface=Flat box).
 - One family per screen (Flat, Border or Pale); colours may vary inside Pale (KPI hues).
-- No gradient boxes (Card Semi-Pale, Gradient) and no Solid colour box (user, 2026-10-14): colour is Pale. One widget
-  per row may stand out with a `Support/<Hue>/Subtle` fill or Solid Neutral.
+- No gradient boxes (user, 2026-10-14: the Card Gradient and hue Semi-Pale variants are deleted; Semi-Pale Neutral stays
+  only until code drops it): colour is Pale. One widget per row may stand out with `Theme=Solid` or a
+  `Support/<Hue>/Subtle` fill.
 - A dark widget is `Theme=Solid, Color=Neutral`: `Background/Neutral/Solid` with its content in the Inverse tokens
   (Content/Inverse, Border/Inverse, Button `Level=Inverse`). Never set a colour mode on a component, a card or any layer
   inside a screen to make it dark or light: the screen frame's Light/Dark mode is the only mode switch (user,
