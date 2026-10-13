@@ -172,3 +172,108 @@ const r26c = await L.slide(sec, 22, Object.assign({}, base, {
   ],
 }));
 return await done(r26c);
+
+// ===== PAGE 026d · Closure =====
+L.docCard = async function (name, spec, info, theme, w) {
+  const c = await L.card(name, w, { gap: 6, pad: 12, radius: 16 });
+  c.appendChild(await L.zi('avatar', { Shape: 'Circle', Size: 'Medium', Theme: theme, Background: 'Subtle' }, { Initials: name.split(' ').slice(-2).map(x => x[0]).join('') }));
+  for (const [t, sz, wt, col] of [[name, 14, 'Semi Bold', 'ink'], [spec, 14, 'Regular', 'base'], [info, 14, 'Regular', 'base']]) c.appendChild(L.wrapText(await L.Z(t, sz, wt, col), w - 24));
+  return c;
+};
+L.dClosure = async function (good) {
+  const s = await L.screen(good ? 'Do' : 'Dont', 380, { pad: 20, padTop: 24, padBottom: 28, gap: 16 }); s.paddingRight = 0;
+  const add = (n) => { s.appendChild(n); n.layoutSizingHorizontal = 'FILL'; n.paddingRight = 20; return n; };
+  const head = add(L.al('VERTICAL', 'Header', 4));
+  head.appendChild(await L.Z('Hi, Minh Anh', 14, 'Regular', 'base')); head.appendChild(await L.Z('Find a doctor', 22, 'Bold'));
+  const sh = add(L.al('HORIZONTAL', 'Section head', 8)); sh.primaryAxisAlignItems = 'SPACE_BETWEEN'; sh.counterAxisAlignItems = 'CENTER';
+  sh.appendChild(await L.Z('Doctors near you', 16, 'Semi Bold')); sh.appendChild(await L.Z('See all', 14, 'Medium', 'accentText'));
+  const row = L.al('HORIZONTAL', 'Carousel', 12); s.appendChild(row); row.clipsContent = false;
+  const w = good ? 140 : 164;
+  const docs = [['Dr. Lan Nguyen', 'Cardiology', '4.8 · 1.2 km', 'Accent'], ['Dr. Minh Tran', 'Dermatology', '4.7 · 2.0 km', 'Blue'], ['Dr. Hoa Pham', 'Paediatrics', '4.9 · 2.4 km', 'Green']];
+  const cards = [];
+  for (const d of docs.slice(0, good ? 3 : 2)) { const c = await L.docCard(d[0], d[1], d[2], d[3], w); row.appendChild(c); cards.push(c); }
+  const rv = add(L.al('VERTICAL', 'Reviews', 14));
+  rv.appendChild(await L.Z('Patient reviews', 16, 'Semi Bold'));
+  if (good) {
+    for (const k of [0, 1]) {
+      const r = L.al('HORIZONTAL', 'Skeleton row', 12); r.counterAxisAlignItems = 'CENTER'; rv.appendChild(r);
+      r.appendChild(await L.zi('skeleton', { Shape: 'Round', Size: 'Medium - 40px' }));
+      const col = L.al('VERTICAL', 'Lines', 8); r.appendChild(col);
+      for (const bw of [200, k ? 120 : 150]) { const b = await L.zi('skeleton', { Shape: 'Pill', Size: 'XSmall' }); col.appendChild(b); b.resize(bw, 12); }
+    }
+  } else {
+    const ld = L.al('HORIZONTAL', 'Loading', 10); ld.counterAxisAlignItems = 'CENTER'; rv.appendChild(ld);
+    const sp = figma.createEllipse(); sp.name = 'Spinner'; sp.resize(22, 22); sp.arcData = { startingAngle: 0, endingAngle: 4.6, innerRadius: 0.78 }; sp.fills = [await L.zpaint('base')]; ld.appendChild(sp);
+    ld.appendChild(await L.Z('Loading…', 14, 'Regular', 'base'));
+  }
+  const sb = s.absoluteBoundingBox, last = cards[cards.length - 1].absoluteBoundingBox;
+  const p1 = await L.pin(s, cards[cards.length - 1], 1); if (good) { p1.x = 380 - 34; }
+  await L.pin(s, good ? rv.children[1] : rv.children[1].children[1], 2);
+  return s;
+};
+const r26d = await L.slide(sec, 23, Object.assign({}, base, {
+  name: '026d · Closure in a carousel', ref: 'UIF-04/26d', page: '26d', note: 'example 4 of 5',
+  title: 'Closure in\na carousel',
+  deck: 'The eye completes what is cut off. A card cut at the edge says: there is more to scroll.',
+  points: ['Let the next card peek out.', 'A skeleton shows the layout early.', 'Peek enough: about a third.'],
+  photos: [
+    { label: 'not this', illo: { kind: 'custom', draw: 'return api.dClosure(false)' }, caption: 'Fig. 3g — Cards fit exactly: is that all?' },
+    { label: 'do this', illo: { kind: 'custom', draw: 'return api.dClosure(true)' }, caption: 'Fig. 3h — A card peeks out; a skeleton loads.' },
+  ],
+  kn: [
+    ['Mục tiêu trang', 'Học viên hiểu nguyên lý khép kín (closure): mắt tự hoàn thiện hình còn thiếu, và dùng nó để báo hiệu còn nội dung hoặc nội dung sắp đến.'],
+    ['Lời giảng', 'Ở trang Gestalt, vòng tròn đứt đoạn vẫn được nhìn là một vòng tròn. Trong giao diện, closure có ba ứng dụng thường gặp:\n· Card bị cắt ở mép màn hình (peek): người dùng hiểu hàng này còn tiếp và có thể vuốt ngang. Nếu các card vừa khít màn hình, họ nghĩ đã hết.\n· Skeleton: các khối xám có hình dạng giống nội dung thật (avatar tròn, các dòng chữ). Mắt ghép chúng thành một bố cục, nên lúc chờ tải người dùng đã biết thứ gì sắp hiện ra. Zen có component Skeleton với các hình Round, Pill, Square, Rectangle.\n· Icon nét mảnh có khoảng hở vẫn được đọc là hình kín, nên vẽ icon không cần khép hết mọi nét.\n\nVí dụ QuickClinic: hàng “Doctors near you” ở trang chủ. Thay vì hai card vừa khít, cho card thứ ba lộ khoảng một phần ba ở mép phải. Phần đánh giá đang tải hiện bằng skeleton đúng hình dạng của một đánh giá: avatar tròn và hai dòng chữ.'],
+    ['Minh hoạ', 'Bên trái: (1) hai card vừa khít, lề hai bên bằng nhau, không có gì gợi ý còn bác sĩ khác; (2) phần đánh giá chỉ có vòng xoay và chữ “Loading…”, không biết sắp hiện ra cái gì. Bên phải: (1) card thứ ba bị mép màn hình cắt, mắt tự vẽ nốt phần còn lại và hiểu là vuốt được; (2) hai dòng skeleton cho thấy trước bố cục của đánh giá.'],
+    ['Lỗi hay gặp', '· Hàng cuộn ngang mà card vừa khít màn hình: người dùng không biết vuốt.\n· Phần lộ ra quá ít (vài pixel), trông như lỗi giao diện.\n· Skeleton không giống bố cục thật: lúc nội dung hiện ra, mọi thứ nhảy chỗ.\n· Cắt icon quá nhiều chỗ, đến mức không nhận ra hình.'],
+    ['Hỏi lớp', '“Ứng dụng nào trên máy bạn có hàng card lộ ở mép?” Để lớp tự kể; thường là các ứng dụng nghe nhạc, xem phim, mua sắm, gọi xe.'],
+    ['Chuyển ý', 'Mắt tự vẽ nốt hình; trang cuối của nhóm này, mắt tự chọn cái gì nằm trước, cái gì nằm sau.'],
+  ],
+}));
+return await done(r26d);
+
+// ===== PAGE 026e · Figure and ground (+ 026 transition, reflow) =====
+L.dFigure = async function (good) {
+  const s = await L.screen(good ? 'Do' : 'Dont', 380, { pad: 20, padTop: 24, padBottom: 24, gap: 14 });
+  const add = (n) => { s.appendChild(n); n.layoutSizingHorizontal = 'FILL'; return n; };
+  add(await L.Z('My visits', 22, 'Bold'));
+  for (const [who, when, where, tag, theme] of [['Dr. Lan Nguyen · Cardiology', 'Tue 15 Oct, 09:30', '12 Tran Hung Dao', 'Upcoming', 'Green'],
+    ['Dr. Minh Tran · Dermatology', 'Fri 18 Oct, 14:00', '45 Le Loi', 'Upcoming', 'Green'], ['Dr. Hoa Pham · Paediatrics', 'Mon 7 Oct, 10:00', '8 Hang Bai', 'Done', 'Neutral']]) {
+    const c = add(await L.card(who, null, { gap: 6, pad: 16, radius: 16 }));
+    c.appendChild(await L.zi('badge', { Size: 'Small', Theme: theme, Background: 'Subtle' }, { Text: tag }));
+    c.appendChild(await L.Z(who, 15, 'Semi Bold')); c.appendChild(await L.Z(when + ' · ' + where, 14, 'Regular', 'base'));
+  }
+  const H = s.height;
+  if (good) { const sc = figma.createRectangle(); sc.name = 'Scrim'; s.appendChild(sc); sc.layoutPositioning = 'ABSOLUTE'; sc.resize(380, H); sc.x = 0; sc.y = 0; sc.fills = [await L.zpaint('ink')]; sc.opacity = 0.45; }
+  const d = await L.card('Dialog', 332, { gap: 12, pad: 20, radius: 20, stroke: good ? false : 'subtle' });
+  s.appendChild(d); d.layoutPositioning = 'ABSOLUTE';
+  d.appendChild(await L.Z('Cancel this visit?', 18, 'Bold'));
+  d.appendChild(L.wrapText(await L.Z('Dr. Lan Nguyen, Tue 15 Oct at 09:30. You can book again later.', 14, 'Regular', 'base'), 292));
+  const bt = L.al('HORIZONTAL', 'Actions', 8); d.appendChild(bt); bt.layoutSizingHorizontal = 'FILL';
+  for (const [t, lv] of [['Keep', 'Secondary'], ['Cancel visit', 'Danger']]) { const b = await L.zi('button', { Size: 'Medium (Base)', Level: lv, State: 'Default' }, { Text: t }); bt.appendChild(b); b.layoutSizingHorizontal = 'FILL'; }
+  d.x = 24; d.y = Math.round(H / 2 - d.height / 2 + 20);
+  if (good) { const st = await figma.importStyleByKeyAsync(L.ZEFFECT['Level-4']); await d.setEffectStyleIdAsync(st.id); }
+  else { await L.pin(s, d, 1); }
+  return s;
+};
+const r26e = await L.slide(sec, 24, Object.assign({}, base, {
+  name: '026e · Figure and ground', ref: 'UIF-04/26e', page: '26e', note: 'example 5 of 5',
+  title: 'Figure and\nground',
+  deck: 'We see one layer in front and the rest behind. A scrim and a shadow put the dialog in front.',
+  points: ['Dim the page behind: a scrim.', 'Lift the dialog with a shadow.', 'One layer in front at a time.'],
+  photos: [
+    { label: 'not this', illo: { kind: 'custom', draw: 'return api.dFigure(false)' }, caption: 'Fig. 3i — Same white, no shadow: it blends in.' },
+    { label: 'do this', illo: { kind: 'custom', draw: 'return api.dFigure(true)' }, caption: 'Fig. 3j — Scrim and shadow: one clear figure.' },
+  ],
+  kn: [
+    ['Mục tiêu trang', 'Học viên dùng nguyên lý hình và nền (figure and ground) để làm rõ lớp nào đang ở trước: dialog, bottom sheet, menu.'],
+    ['Lời giảng', 'Mắt luôn tách cảnh thành một hình ở trước và nền ở sau. Khi hình và nền quá giống nhau, người dùng không biết nên nhìn vào đâu.\n\nCác lớp nổi như dialog, bottom sheet, menu cần được tách khỏi nền bằng hai công cụ:\n· Scrim: một lớp màu tối phủ lên trang phía sau, thường đậm khoảng 30 đến 50 %. Nó đẩy trang xuống làm nền và báo rằng phải xử lý dialog trước.\n· Độ nổi (elevation): bóng đổ theo các mức shadow của Zen, card dùng mức thấp như Level 1, dialog dùng mức cao như Level 4. Bóng càng lớn, lớp càng gần người nhìn.\n\nVí dụ QuickClinic: người dùng bấm hủy một lịch khám. Dialog hỏi lại “Cancel this visit?” với hai nút: Keep (Secondary) và Cancel visit (Danger). Phía sau là danh sách lịch khám bị phủ scrim.\n\nMaterial 3 phân biệt hai loại bottom sheet: standard (không có scrim, vẫn dùng được nội dung phía sau) và modal (có scrim, phải xử lý trước). Có scrim hay không chính là câu trả lời cho câu hỏi “lớp nào đang ở trước”.\n\nNguyên lý này cũng áp dụng cho chữ trên ảnh: chữ trắng đặt thẳng lên một ảnh nhiều chi tiết sẽ chìm vào nền; thêm một lớp phủ tối hoặc đặt chữ vào một khối nền.'],
+    ['Minh hoạ', 'Bên trái: (1) dialog trắng, viền mảnh, không bóng, không scrim, nằm trên các card cũng trắng và cũng viền mảnh; mắt không biết cái nào ở trước, chữ của card phía sau còn lẫn vào dialog. Bên phải: trang phía sau tối đi dưới scrim, dialog có bóng Level 4, hai nút rõ vai trò. Cùng một dialog, chỉ thay nền mà hình hiện rõ.'],
+    ['Lỗi hay gặp', '· Dialog không có scrim trên một trang nhiều card trắng.\n· Bóng đổ quá đậm, đen kịt, trông như lỗi in.\n· Mọi card đều đổ bóng lớn: không còn lớp nào nổi hơn.\n· Chữ trắng trên ảnh sáng, không có lớp phủ.'],
+    ['Hỏi lớp', '“Khi nào bottom sheet không cần scrim?” Khi người dùng vẫn cần thao tác với nội dung phía sau, ví dụ bản đồ phía sau danh sách địa điểm.'],
+    ['Chuyển ý', 'Năm nguyên lý đã có ví dụ trên màn hình thật; trang sau là căn lề (alignment): giữ các nhóm thẳng hàng với nhau.'],
+  ],
+}));
+await L.knSet('791:3563', [['Chuyển ý', 'Năm trang tiếp theo, mỗi nguyên lý một ví dụ trên màn hình QuickClinic (26a đến 26e), bắt đầu với proximity trong form đặt lịch.']]);
+L.reflow(sec);
+const f = await figma.getNodeByIdAsync(r26e.slide);
+return [r26e, sec.children.filter(n => n.type === 'FRAME').map(n => n.name + ' @' + n.x).join(' | '), await f.screenshot({ scale: 0.4 })];

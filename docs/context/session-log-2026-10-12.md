@@ -285,3 +285,8 @@
   navigation bar and rail). New `images` builder and `knSet` keynote editor in `deck-lib.js` (stored copy patch4).
   058 point 1 corrected to the HIG table: 44 × 44 pt default, 28 × 28 pt minimum. Sources and licences in
   `figma/real-images.md`; the image files stay out of git.
+- 2026-10-13: Lesson 04 example pages 026a–026e (user: one detailed UI example per Gestalt principle, one page each):
+  proximity (booking form, 14/14/14 vs 6/20/36 with spec markers), similarity (time-slot chip states), common region
+  (booking summary: ruled list vs three cards), closure (peeking carousel card, skeleton), figure and ground (dialog
+  without vs with scrim and Level-4 shadow). New `example` layout, `reflow`, `screen`, `redline`, `pin` in
+  `deck-lib.js` (stored patch6); build scripts in `figma/pages/l04-gestalt-examples.js`. Audit clean on all five.

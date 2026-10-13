@@ -111,6 +111,17 @@ Neutral/Info/Positive/Warning/Negative), `dialog` (Theme, Device Desktop/Mobile)
 Indicator/Subtle), `checkbox` (State, Select Yes/No, Check-Side), `skeleton` (Shape Pill/Round/Square/Rectangle, Size).
 Zen shadow styles: `api.ZEFFECT['Level-1' | 'Level-3' | 'Level-4']` (style keys, `figma.importStyleByKeyAsync`).
 
+## Example pages (`layout: 'example'`)
+
+The user wants one detailed UI example per principle (2026-10-13), as sub-pages numbered after the page they illustrate
+(`'026a · Proximity in a form'`, ref `UIF-04/26a`, page `26a`). Layout: text column `textW` (712 fits the longest
+two-line titles at 112 px) and `photos: [{ label: 'not this', illo, caption }, { label: 'do this', illo, caption }]`,
+`photoH: 620`; the margin note says `example N of 5`. Each photo holds a QuickClinic screen built with
+`L.screen(name, 380, opts)` from Zen components (`zi`) and Inter text (`Z`), with `L.redline(scr, a, b, x)` for spacing
+and `L.pin(scr, node, n)` for numbered notes the keynote refers to. Build at any index, then `L.reflow(sec)` orders the
+section by name (`026` < `026a` < `027`) and moves the keynotes. The scripts for Lesson 04 are in
+[`pages/l04-gestalt-examples.js`](pages/l04-gestalt-examples.js) (one block per `use_figma` call, after COMMON).
+
 ## Real images (platform guidelines, tool screenshots)
 
 The user wants real images wherever a page shows a platform's own guidelines (Apple HIG, Material 3) or the Figma UI.

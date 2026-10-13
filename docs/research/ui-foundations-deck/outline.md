@@ -1,7 +1,8 @@
 # UI Foundations — curriculum outline (approved 2026-10-12, + DesignOps and AI workflow)
 
 The content source for the deck in Figma and for the HTML slides later. 5 parts, 17 lessons, 116 pages; page 1 is the
-cover, page 2 the contents. Headlines are the English slide titles; "Ý chính · Minh hoạ" is the key point and the
+cover, page 2 the contents. Example pages carry a letter after the page they illustrate (26a–26e) and do
+not change the numbering. Headlines are the English slide titles; "Ý chính · Minh hoạ" is the key point and the
 illustration (Zen DS components and tokens). Written in Vietnamese, as agreed with the user.
 
 **Quy ước chung:**
@@ -58,6 +59,11 @@ Trang 10 là trang mở Phần 2.
 | 24 | How eyes read a screen | Mở bài |
 | 25 | Hierarchy decides reading order | Cỡ, độ đậm, màu, vị trí, khoảng cách · card đánh số thứ tự đọc |
 | 26 | Gestalt: the brain groups for you | Proximity, similarity, common region, closure, figure-ground · chấm tròn |
+| 26a | Proximity in a form | Ví dụ 1/5: form đặt lịch, khoảng cách đều 14 so với 6 / 20 / 36 · hai ảnh not this / do this |
+| 26b | Similarity of states | Ví dụ 2/5: ô giờ khám, trống / đang chọn / đã đặt mỗi loại một hình thức · chip Zen |
+| 26c | Common region | Ví dụ 3/5: màn xác nhận lịch, 8 dòng kẻ đường so với 3 card Doctor / Visit / Payment |
+| 26d | Closure in a carousel | Ví dụ 4/5: card lộ ở mép màn hình, skeleton khi tải |
+| 26e | Figure and ground | Ví dụ 5/5: dialog hủy lịch, không scrim so với scrim + bóng Level 4 |
 | 27 | Align everything to something | Đường căn, nhịp lặp, mẫu đọc F/Z · layout có đường căn |
 | 28 | White space is content | Khoảng trong ≤ khoảng ngoài · card chật so với card thoáng |
 | 29 | One loud thing per screen | Một CTA chính · Button Primary so với Flat |

@@ -82,6 +82,10 @@ Nothing of the new concept is built in Figma yet.
   Lesson 02 (pp. 12–16) will use real Figma UI screenshots the user uploads. Built with the `images` illustration
   kind + `upload_assets`; see [`figma/README.md`](figma/README.md).
 
+- Example pages (user, 2026-10-13: "Cần ví dụ chi tiết UI từ những principle này. mỗi cái là 1 slide"): 026a–026e,
+  one QuickClinic screen per Gestalt principle, "not this" next to "do this", built from Zen components. Pilot for
+  review before other lessons get the same treatment. Layout and helpers in [`figma/README.md`](figma/README.md).
+
 ## Zen keys (ZEN Kaiz Official-Sep2026)
 
 Variables (import with `importVariableByKeyAsync`): ink `405d6d45bf73d56595d2c4f5fd31e174329af48e` · base
