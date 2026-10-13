@@ -70,3 +70,12 @@
   own"); Bar/Donut/Radial/Heatmap open "… chart:" with a note to sit in Chart-Card. AI kit: `theme/box-on-canvas` and
   `theme/mixed-elevation` no longer count a standalone chart as a box (harness, audit-rules, screen-rules §1);
   `npm run ai-kit:check` 104 ✓. Library not published.
+
+## Donut total Value Heading/3 → Heading/2, Figma → code/Studio (tier S, user: "Update font size Value của Donut chart từ Heading 3 lên heading 2" · "Update từ Figma lên Studio")
+
+- Figma (live file): Chart/Donut-Chart `Legend=Start, Total=Start` → `Total > Value` (15392:2498) was still Heading/3
+  (the visible figure there; its `Heading > Value` is hidden). Set to Heading/2; read back: every Value in the set is
+  Heading/2 except the `Centre > Value` (Heading/Subheading, unchanged). The one placed instance on ❖ Chart follows.
+- Code lives only on PR #38's branch (worktree Zen-DS-charts, `zen/fix/chart-average-dots`; main has no DonutChart):
+  `DonutChart` total-value and `ChartCard` value Heading/3 → Heading/2 (ChartCard's Figma Value moved earlier today),
+  guideline source, chart spec, CHANGELOG, guidelines rebuilt. Studio renders the code components, so it follows.
