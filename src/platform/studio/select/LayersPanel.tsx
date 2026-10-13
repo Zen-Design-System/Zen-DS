@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, startTransition } from "react";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
 import { IconButton } from "../../../components/Button";
@@ -17,6 +17,7 @@ import { dataItemRootOf, itemParts, renderedItemTitle } from "../slots/dataItems
 import { itemSelection, useItemSelection } from "../slots/itemSelection";
 import { dataSlotsOf } from "../slots/dataSlots";
 import { studioStore, useStudio } from "../store";
+import { componentSchema } from "../inspector/propSchema";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, nestedPathOf, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
 import { bodyRows, rowCells, TABLE_PARTS } from "../table/tableCells";
@@ -151,8 +152,9 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
         }
         continue;
       }
-      // A DOM node or a named component inside a component (not annotated): the component has parts of its own.
-      if (parent?.kind === "node" && parent.isComponent && !parent.hasParts && (isHostFiber(current) || isComponentFiber(current))) parent.hasParts = true;
+      // A DOM node or a named component inside a component (not annotated): the component has parts of its own. A
+      // layout layer (Stack, Grid, Box, Container) draws only its own box, a Figma frame's: no "Parts" row (2026-10-13).
+      if (parent?.kind === "node" && parent.isComponent && !parent.hasParts && !LAYOUT.has(parent.name) && (isHostFiber(current) || isComponentFiber(current))) parent.hasParts = true;
       visit(current.child, parent, inherited, frame, depth + 1);
     }
   };
@@ -367,24 +369,50 @@ function isStudioWrap(node: LayerNode, only: LayerNode): boolean {
   return props.fillChildren === true && Object.keys(props).every((key) => WRAP_PROPS.has(key) || key.startsWith("data-"));
 }
 
+/** Layers that only lay out their children (clickTarget.ts LAYOUT_ONLY): they draw nothing of their own. */
+const LAYOUT_ONLY = new Set(["Stack", "Grid", "Container", "div", "section"]);
+const LAYOUT = new Set([...LAYOUT_ONLY, "Box"]);
+
+const sameRect = (a: DOMRect | null, b: DOMRect | null) => Boolean(a && b && Math.abs(a.left - b.left) < 1.5 && Math.abs(a.top - b.top) < 1.5 && Math.abs(a.right - b.right) < 1.5 && Math.abs(a.bottom - b.bottom) < 1.5);
+const nodeRect = (node: LayerNode) => (node.fiber ? rectOf(hostsOf(node.fiber)) : null);
+
 /*
- * Folds the wrappers that only add depth: an anonymous div/section with a single child, any element whose single
- * child is a playground panel (the panel group stands for it), and the Stack the Studio wrapped a component in to size
- * it (its row stands for both, as Figma shows an instance's sizing on the instance). They stay selectable on the canvas.
+ * Folds the layers a click passes through (select/clickTarget.ts `folded`, so Layers lists what the canvas selects; user,
+ * 2026-10-13: "Panel Layers vẫn hiện các lớp mà click đã bỏ qua"): a Stack, Grid, Container, div or section holding one
+ * layer, a Box exactly as large as its one child, the one layout layer inside a Zen component (a Card's content Stack:
+ * its layers are the Card's; an example's own component keeps its root Stack), a List's <ul> (its rows are its parent's), any element whose single child is a playground
+ * panel (the panel group stands for it), and the Stack the Studio wrapped a component in to size it (its row stands for
+ * both, as Figma shows an instance's sizing on the instance). A folded layer's selection shows on the row that stands
+ * for it (`aliases`); "Show all layers" lists them again, and they stay selectable on the canvas.
  */
-function simplify(nodes: LayerNode[], aliases: Map<string, string>): LayerNode[] {
+function simplify(nodes: LayerNode[], aliases: Map<string, string>, owner: LayerNode | null = null): LayerNode[] {
   return nodes.flatMap((node) => {
-    node.children = simplify(node.children, aliases);
-    if (node.kind !== "node" || node.children.length !== 1) return [node];
+    node.children = simplify(node.children, aliases, node);
+    if (node.kind !== "node") return [node];
+    // A List's rows sit in its parent, as Figma's List-Box holds its List-Items.
+    if (node.name === "List" && node.children.length) {
+      if (owner) aliases.set(node.id, owner.id);
+      return node.children;
+    }
+    // The one layout layer inside a component is that slot's auto layout: its layers are the component's.
+    if (LAYOUT_ONLY.has(node.name) && owner?.kind === "node" && owner.isComponent && !LAYOUT.has(owner.name) && componentSchema(owner.name) && nodes.length === 1 && node.children.length > 1) {
+      aliases.set(node.id, owner.id);
+      return node.children;
+    }
+    if (node.children.length !== 1) return [node];
     const only = node.children[0];
     if (only.kind === "panel") {
       only.stand ??= node;
       aliases.set(node.id, only.id);
       return [only];
     }
-    if (node.name === "div" || node.name === "section") return [only];
+    // The Studio's sizing Stack first: its child's row stands for both and says so (`wrap`).
     if (isStudioWrap(node, only)) {
       only.wrap = node.src ?? undefined;
+      aliases.set(node.id, only.id);
+      return [only];
+    }
+    if (LAYOUT_ONLY.has(node.name) || (node.name === "Box" && sameRect(nodeRect(node), nodeRect(only)))) {
       aliases.set(node.id, only.id);
       return [only];
     }
@@ -577,7 +605,8 @@ export function LayersPanel() {
   const [showAll, setShowAll] = useState(readShowAll);
   const server = useStudioServer();
   const treeRef = useRef<HTMLDivElement>(null);
-  const refresh = useCallback(() => setVersion((value) => value + 1), []);
+  // A source update rebuilds the tree after the canvas has shown the edit (a transition: never on an edit's way there).
+  const refresh = useCallback(() => startTransition(() => setVersion((value) => value + 1)), []);
 
   // Build (and rebuild) the tree; retried while the page is still rendering.
   useEffect(() => {
@@ -646,7 +675,9 @@ export function LayersPanel() {
   const part = selection?.kind === "node" ? selection.part : undefined;
   const selectionId = selection ? (selection.kind === "frame" ? `frame:${selection.frameId}` : selection.kind === "variant" ? `variant:${variantKey(selection)}` : `${selection.src}#${selection.instance}${part ? `/part:${partKey(part.path, part.name)}` : ""}`) : null;
   // A folded panel wrapper shows as its panel row.
-  const selectedId = selectionId ? tree.aliases.get(selectionId) ?? selectionId : null;
+  // A folded layer shows on the row that stands for it, which may itself be folded (a List in a Card's content Stack).
+  let selectedId = selectionId;
+  for (let guard = 0; selectedId && tree.aliases.has(selectedId) && guard < 20; guard++) selectedId = tree.aliases.get(selectedId) ?? null;
 
   // Reveal the selection: open its ancestors, then scroll its row into view. A part's rows are computed on the way
   // down from its owner's "Parts" folder, following the DOM node the part starts at.

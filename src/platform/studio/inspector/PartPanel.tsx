@@ -7,7 +7,7 @@ import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { currentFiber, nameOf, onSourceUpdate, shortSrc, type Fiber } from "../select/picker";
 import { useWords } from "../useWords";
-import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { nestedPathOf, ownsText, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { OverrideProperties } from "./OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
@@ -15,7 +15,7 @@ import { componentGroupsOf } from "./componentGroups";
 import { forwardedProps } from "./partForwarding";
 import { PART_PROPS } from "./partProps.generated";
 import { entryLabel, entryOptions, entryProp, type PropEntry } from "./propGroups";
-import { PropField } from "./PropField";
+import { PropField, TextControl } from "./PropField";
 import { componentSlug, propLabel, propSpecs, type Literal, type PropSpec } from "./propSchema";
 import { objectSchemaOf, useApiTypes } from "./objectSchema";
 import { displayValueOf, planPropReset, planPropWrite } from "./writePlan";
@@ -84,7 +84,7 @@ function useItemFields(owner: string, slot: DataSlot | null): ReadonlySet<string
  * writes the owner's prop in the source, one undo step each, as the owner's own Properties would. `itemName` (a data-slot
  * item: a crumb, a tab, a segment): the rows join the item's Properties, and the note says every item follows.
  */
-function PartProperties({ selection, part, passes, itemName }: { selection: PartSelection; part: PartHit; passes: ReturnType<typeof partPasses>; itemName?: string }) {
+function PartProperties({ selection, part, passes, itemName, title = "Properties" }: { selection: PartSelection; part: PartHit; passes: ReturnType<typeof partPasses>; itemName?: string; title?: string }) {
   const parsed = parseSrc(selection.src);
   const server = useStudioServer();
   const role = useStudio((state) => state.role);
@@ -109,14 +109,16 @@ function PartProperties({ selection, part, passes, itemName }: { selection: Part
     if (!element || !plan.ops.length) return;
     void applyEdit({ file: element.file, loc: element.loc, name: owner, ops: plan.ops, hash: element.hash }, label);
   };
-  const note = `Written to ${owner}: ${passes.map((pass) => pass.ownerProp).join(", ")}${itemName ? ` (every ${itemName} follows)` : ""}.`;
+  // A text layer says it in design words (its owner's property), the forwarded props say where they are written.
+  const note = title === "Text" ? `Changes ${owner}'s ${passes.map((pass) => propLabel(pass.ownerProp, owner)).join(", ")}`
+    : `Written to ${owner}: ${passes.map((pass) => pass.ownerProp).join(", ")}${itemName ? ` (every ${itemName} follows)` : ""}.`;
   const rows = passes.map(({ prop, ownerProp, spec }) => {
     const entry = entryOf(prop);
     return (
       <PropField
         key={prop}
         spec={spec}
-        label={entry ? entryLabel(entry) ?? propLabel(prop, part.name) : propLabel(prop, part.name)}
+        label={entry ? entryLabel(entry) ?? propLabel(prop, part.name) : part.isComponent ? propLabel(prop, part.name) : propLabel(ownerProp, owner)}
         optionLabels={(entry ? entryOptions(entry) : undefined) ?? titledOptions(spec)}
         value={element ? displayValueOf(owner, element.attributes, ownerProp, live) : { state: "unset" }}
         disabled={!editable}
@@ -127,7 +129,43 @@ function PartProperties({ selection, part, passes, itemName }: { selection: Part
     );
   });
   if (itemName) return <>{rows}<p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{note}</p></>;
-  return <InspectorSection title="Properties" note={note}>{rows}</InspectorSection>;
+  return <InspectorSection title={title} note={note}>{rows}</InspectorSection>;
+}
+
+/**
+ * A text layer whose words the owner holds as its own text child (a Button's label: `<Button>New project</Button>`):
+ * edited as the element's Content text is (op setText), one undo step.
+ */
+function PartTextChild({ selection, text }: { selection: PartSelection; text: string }) {
+  const parsed = parseSrc(selection.src);
+  const server = useStudioServer();
+  const role = useStudio((state) => state.role);
+  const undoCount = useStudio((state) => state.undo.length);
+  const [element, setElement] = useState<SourceElement | null>(null);
+  const [version, setVersion] = useState(0);
+  useEffect(() => onSourceUpdate(() => setVersion((value) => value + 1)), []);
+  useEffect(() => {
+    if (!parsed) return undefined;
+    let alive = true;
+    void studioApi.element(parsed.file, parsed.loc).then((next) => { if (alive) setElement(next); });
+    return () => { alive = false; };
+  }, [parsed?.file, parsed?.loc, version, undoCount]);
+  const child = element?.children.find((candidate) => candidate.kind === "text" && candidate.value.trim() === text);
+  if (!element || !child || child.kind !== "text") return null;
+  const editable = canEdit() && role === "admin" && server.writable;
+  return (
+    <InspectorSection title="Text">
+      <InspectorRow label="Text">
+        <TextControl
+          label="Text"
+          value={child.value.trim()}
+          fallback={undefined}
+          disabled={!editable}
+          onSet={(next) => { void applyEdit({ file: element.file, loc: element.loc, name: selection.name, ops: [{ op: "setText", index: child.index, value: String(next) }], hash: element.hash }, `${selection.name} text → ${String(next).slice(0, 40)}`); }}
+        />
+      </InspectorRow>
+    </InspectorSection>
+  );
 }
 
 /** Re-reads the canvas after it changes (playground properties, HMR, preview modes), at most every 250ms. */
@@ -308,6 +346,17 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   // Figma's nested instance, written as the owner's instance overrides (OverrideProperties).
   const layerPath = resolved && !item && !group ? nestedPathOf(resolved) : null;
   const overridable = Boolean(layerPath) && Boolean(parseSrc(selection.src)?.file.startsWith("local:"));
+  // A text layer inside the instance (⌘-click, Figma's deep select): its words are the owner's prop that holds exactly
+  // them (a MetricCard's value), edited here as Figma edits a text layer's content (2026-10-13).
+  const textPasses = resolved && !resolved.isComponent && !item && !group && ownsText(resolved.element)
+    ? driving.flatMap((prop) => {
+      const spec = propSpecs(owner).find((candidate) => candidate.name === prop);
+      return spec && typeof ownerProps[prop] === "string" && (ownerProps[prop] as string).trim() === text && (spec.editor.kind === "string" || spec.editor.kind === "node") ? [{ prop, ownerProp: prop, spec }] : [];
+    }).slice(0, 1)
+    : [];
+  // …or its own text child (a Button's label).
+  const childText = resolved && !resolved.isComponent && !item && !group && !textPasses.length && ownsText(resolved.element) && driving.includes("children") && typeof ownerProps.children === "string" && ownerProps.children.trim() === text;
+  const textLayer = textPasses.length > 0 || Boolean(childText);
 
   return (
     <div className="studio-inspector__panel">
@@ -315,11 +364,11 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           <Heading level={2} textStyle="Body/Small/Bold" className="studio-part__title">
-            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : name}
+            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : textLayer ? "Text" : name}
             <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
-        {item || group ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
+        {item || group || textLayer ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
@@ -331,7 +380,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           </Button>
         </div>
         {inside ? <DataItemBanner item={inside} /> : null}
-        {driving.length && !item && !inside && !group && !overridable ? (
+        {driving.length && !item && !inside && !group && !overridable && !textLayer ? (
           <p className={`studio-inspector__note studio-part__edit ${typographyStyles["Body/Small/Regular"]}`}>
             Edit via the owner&apos;s {driving.map((prop, index) => (
               <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{say(prop)}</span></span>
@@ -346,8 +395,10 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           {resolved && passes.length ? <PartProperties selection={selection} part={resolved} passes={passes} itemName={item.slot.itemName} /> : null}
         </DataItemSections>
       ) : null}
+      {resolved && textPasses.length ? <PartProperties selection={selection} part={resolved} passes={textPasses} title="Text" /> : null}
+      {resolved && childText ? <PartTextChild selection={selection} text={text} /> : null}
       {resolved && overridable && layerPath ? <OverrideProperties selection={selection} part={resolved} path={layerPath} /> : resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
-      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable && !textLayer} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

@@ -150,6 +150,22 @@ export async function selectAt(page, rect, x = rect.x + rect.width / 2, y = rect
   } finally {
     if (deep) await page.keyboard.up("ControlOrMeta");
   }
+  if (deep) await ownerOfLayer(page);
+}
+
+/**
+ * ⌘-click goes on into an instance's text or nested instance (Figma's deep select, 2026-10-13); a row that ⌘-clicks to
+ * select the element itself climbs back to it with ⇧Enter, as a person does in Figma.
+ */
+export async function ownerOfLayer(page) {
+  const part = await page.evaluate(async () => {
+    try { return Boolean((await import("/src/platform/studio/store.ts")).studioStore.getState().selection?.part); } catch { return false; }
+  });
+  if (!part) return false;
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Shift+Enter");
+  await sleep(150);
+  return true;
 }
 
 /**
@@ -164,7 +180,8 @@ export async function clickLoc(page, file, loc, { modifiers, clickCount, positio
   const x = position === "center" ? rect.x + rect.width / 2 : rect.x + (position.dx ?? 2);
   const y = position === "center" ? rect.y + rect.height / 2 : rect.y + (position.dy ?? 2);
   const selected = await outlines(page, rect);
-  const keys = [...(modifiers ?? []), ...((deep ?? (!selected && !(clickCount > 1))) ? ["ControlOrMeta"] : [])];
+  const deepSelect = deep ?? (!selected && !(clickCount > 1));
+  const keys = [...(modifiers ?? []), ...(deepSelect ? ["ControlOrMeta"] : [])];
   // page.mouse.click has no `modifiers`: hold the keys around the click.
   for (const key of keys) await page.keyboard.down(key);
   try {
@@ -172,6 +189,8 @@ export async function clickLoc(page, file, loc, { modifiers, clickCount, positio
   } finally {
     for (const key of [...keys].reverse()) await page.keyboard.up(key);
   }
+  // The element itself is wanted (not its text inside): ⇧Enter from a layer the ⌘-click went on to.
+  if (deepSelect && !(modifiers ?? []).includes("Shift")) await ownerOfLayer(page);
   return rect;
 }
 

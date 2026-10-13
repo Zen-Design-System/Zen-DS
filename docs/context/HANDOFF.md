@@ -72,7 +72,11 @@ Last updated: 2026-10-12.
 - **Zen Studio clicks and booleans (2026-10-13, branch `zen/fix/studio-toggles-click`, worktree `Zen-DS-click`):**
   clicks pass through layout wrappers and AppShell / the page body (template pages 5.6 → 2.5 double-clicks to a layer),
   right-click › Select layer ›; every Figma boolean on template pages works or says why (slot toggles open their picker,
-  set-specific booleans show on their set only, `inspector/computedDefaults.ts`). Session log 2026-10-13.
+  set-specific booleans show on their set only, `inspector/computedDefaults.ts`). Round 2 the same day: Layers folds
+  what clicks pass through, ⌘-click reaches texts and nested instances (`select/parts.ts deepLayerAt`), text layers edit
+  (Inspector Text, Enter), nested booleans off drop their override, edits ~2× faster (render cache in
+  `builder/render/renderPage.tsx`, sync parse, parse/sha1 caches, deferred size probes); Figma walk 14/14 tasks at
+  Figma's step count (scripts in the session log). Session log 2026-10-13.
 - **Zen Studio, Figma usability round 1 (2026-10-10):** pictures replace like Figma everywhere (Assets › Photos click or
   a drop on an Avatar/Image/Thumbnail/account, the Inspector's Picture; data rows and factories write that row,
   `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:

@@ -19,6 +19,14 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio, Figma parity round 2: Layers lists what the canvas selects (no Container, a card's content Stack, a list's
+  `<ul>` or Parts row under a Stack / Grid); ⌘-click goes into an instance to its text or nested instance (a KPI value,
+  a list title, a table cell's name, an icon, a Badge), a text layer edits in the Inspector (Text) or with Enter in
+  place; a nested boolean switched back off removes its override; Metric's Trend is a boolean; a button added to a page
+  header's actions joins its row; a Sidebar item or a trend label renames in place on a page you made.
+- Zen Studio edits reach the canvas about twice as fast (45–120 ms, was 160–260 on a template page): the page is parsed
+  in the render that brings it, unchanged parts are not rendered again, parses and hashes are reused, and size probes
+  wait until the canvas has painted.
 - Zen Studio clicks like Figma on pages made from templates: layout wrappers that draw nothing (a Stack, Grid or
   Container around one layer, a card's content column, a list's `<ul>`) are passed through, and AppShell and the page's
   body count as the frame, so a KPI card is three double-clicks away instead of seven (5.6 → 2.5 on average over six

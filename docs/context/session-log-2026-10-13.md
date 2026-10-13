@@ -66,3 +66,28 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   Edit theme, a white swatch that read as a checkbox) → one style row whose menu picks the theme, grey swatch tile.
 - E2E: SP-13 (Custom → picker → slot), SP-14 (first click, double-clicks, Select layer), SP-15 (Chip Dropdown false);
   AP-06 rewritten for the new Effects row.
+
+### Round 2 (same session; user: "Xử hết" the four gaps + a Figma task walk)
+- Layers (`select/LayersPanel.tsx simplify`) folds what `clickTarget.ts` passes through: single-layer Stack / Grid /
+  Container / div / section, a Box as large as its child, a Zen component's one layout child (an example's own
+  component keeps its root Stack: E2E SE-08), List's `<ul>`; no Parts row under Stack / Grid / Box / Container; the
+  Studio sizing Stack is recognised first (IN-16); aliases resolve in chains.
+- ⌘-click (`parts.ts deepLayerAt`, SelectionLayer pointer + hover): into the instance to the innermost text or nested
+  instance; a one-text instance (Button, Badge, Chip, Avatar) stays the layer (NO-10), a text inside a one-text nested
+  instance gives that instance, data rows stay the row (SP-10); Table cells: the text, or its Badge (`tableDeep`). The
+  part named by its own component (MetricCard's Metric was "MetricCard"). Text layers: PartPanel "Text" section writes
+  the owner's prop or text child; Enter edits in place (`startTextEditOnPart`, live part after a re-render); in-place
+  edits write a field of an object written in place (`shapeFieldOf`: Sidebar sections › items › label, a trend label)
+  and a ReactNode `value` (MetricCard). E2E helpers climb back with ⇧Enter (`ownerOfLayer`).
+- Overrides: a nested boolean off removes the override it added (`OverrideProperties toggleOverride`), `false` only
+  when the owner passes the prop itself.
+- Speed (Dashboard page, headless dev): switch → canvas 160–260 ms → 45–120 ms. CPU profile: `usePageTree` parsed in an
+  effect (two renders, a turn between) → parsed in render; `parseSource` / `sha1` LRU caches (Inspector re-parsed the
+  page ~4× per edit); `propSpecs` memoised; ResizeLayer probes (growsVisibly, crossFits, gridCell) after paint in idle
+  time, last result held; Layers rebuild as a transition; `renderPage` element cache by node signature (in-place value
+  edits re-render only the edited path; a new attribute line shifts later locs, so those re-render).
+- Figma walk (scripts: walk.mjs / walk3.mjs in the session scratchpad; Dashboard 10 + Admin list 4 tasks): first run 7/10
+  and 1/4; fixed on the way: Trend boolean (map), Action-Slots insert into the row Stack (registry insertTargetFor +
+  actions.ts read the frame for prop slots: was refused), Enter on a text layer, table cell text, Sidebar label in place.
+  Now 14/14 at Figma's step count (icon swap +1 for typing a search).
+- E2E: SP-16…SP-20 new; O-04, SE-30 updated; full run before the last fixes: 7 regressions, all fixed and rerun.

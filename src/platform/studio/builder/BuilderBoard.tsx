@@ -11,7 +11,12 @@ import { ProtoLinks } from "./proto/ProtoLinks";
 import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
 import { frameOf } from "./render/frames";
 import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
-import { renderFrame, type PageNode } from "./render/renderPage";
+import { cacheGeneration, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
+
+/** A stable number per prototype-actions object (the canvas's inert set, Interact's live one) for the render cache. */
+const protoKeys = new WeakMap<object, number>();
+let protoCount = 0;
+const protoKey = (proto: object) => { if (!protoKeys.has(proto)) protoKeys.set(proto, (protoCount += 1)); return protoKeys.get(proto); };
 import { Button } from "../../../components/Button";
 import { useStudio } from "../store";
 import { pageFile, pagesPersist, restorePage, usePage, useStorage, useTrash } from "./store/pageStore";
@@ -61,7 +66,7 @@ export function BuilderBoard({ id }: { id: string }) {
   const text = page?.text;
   const tree = usePageTree(text);
   // Uploaded photos resolve once they have loaded (the frames render again); one this browser lacks is named.
-  useUploadsVersion();
+  const uploads = useUploadsVersion();
   const assets = text ? assetIdsOf(text).join(" ") : "";
   useEffect(() => {
     if (!assets) return undefined;
@@ -75,10 +80,16 @@ export function BuilderBoard({ id }: { id: string }) {
   useEffect(() => { if (tree) notifySourceUpdate(); }, [tree]);
 
   const file = pageFile(id);
+  // Elements of unchanged nodes are reused from the last render (renderPage.tsx renderCache): an edit renders what it
+  // changed, not the whole page. What the nodes do not say starts the cache anew.
+  const cacheRef = useRef<RenderCache | null>(null);
+  cacheRef.current ??= renderCache();
+  const mockKey = useMemo(() => JSON.stringify(tree?.mock ?? null), [tree]);
+  if (tree) cacheGeneration(cacheRef.current, tree, `${file}|${protoKey(proto)}|${uploads}|${mockKey}`);
   const frames = useMemo(() => {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
-    const ctx = { file, mock: tree.mock, proto };
+    const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined };
     return tree.board.children.filter((child): child is PageNode => child.kind === "element").map((node) => {
       const frame = frameOf(node);
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => renderFrame(node, ctx) };

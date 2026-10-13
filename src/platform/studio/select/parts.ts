@@ -1,6 +1,6 @@
 import { studioStore } from "../store";
 import type { StudioPartRef, StudioSelection } from "../types";
-import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit } from "./picker";
+import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit, typeNameOf } from "./picker";
 import { tablePartName } from "../table/tableCells";
 import { NestedContext, type NestedScope } from "../../../components/_shared/nested";
 
@@ -65,7 +65,10 @@ export function partHit(owner: FiberHit, fiber: Fiber): PartHit | null {
     const path = pathOf(owner, element);
     if (!path) return null;
     // A Table's rows and cells go by Figma's names (Data-Row, Cell, Header, Header-Cell), as its Layers list them.
-    const name = (host && tablePartName(element)) || nameOf(live);
+    // A component the owner hands its own props to (MetricCard spreads them on its Metric) carries the owner's builder
+    // label (data-zen-name): the part goes by its own name.
+    const inherited = !host && live.memoizedProps?.["data-zen-src"] === owner.src;
+    const name = (host && tablePartName(element)) || (inherited ? typeNameOf(live) : nameOf(live));
     return { src: owner.src, name, hosts, isComponent: !host, props: live.memoizedProps ?? {}, fiber: live, owner, path, element };
   } catch {
     return null;
@@ -116,6 +119,51 @@ function nearestPart(chain: PartHit[]): PartHit | null {
 /** Cmd/Ctrl-click: the nearest internal component under the cursor (SidebarItem, InputLabel, a Badge in a cell), else the DOM node. */
 export function deepPartAt(owner: FiberHit, element: Element | null): PartHit | null {
   return nearestPart(partChain(owner, element));
+}
+
+/** A DOM node that shows text of its own (a text node directly inside it): Figma's text layer. */
+export function ownsText(element: Element): boolean {
+  for (const node of Array.from(element.childNodes)) if (node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim()) return true;
+  return false;
+}
+
+/** Whether the owner draws more than one text: only then are its texts layers of their own (a MetricCard's title and
+ *  value, a ListItem's title and caption). A one-text instance (a Button's or a Badge's label, an Avatar's initials) is
+ *  its own text, as Figma lists an atom's label as the instance's text property: a ⌘-click selects the instance, whose
+ *  variants are what is changed most (2026-10-13, E2E NO-10). */
+export function manyTexts(owner: FiberHit): boolean {
+  let count = 0;
+  for (const host of owner.hosts) {
+    for (const element of [host, ...Array.from(host.querySelectorAll("*"))]) {
+      if (!element.closest("svg") && ownsText(element) && ++count > 1) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Figma's ⌘-click inside an instance (user, 2026-10-13: "⌘-click mới dừng ở component, chưa vào tới layer chữ hay icon
+ * bên trong như Figma"): the deepest layer under the pointer that is a text (a DOM node showing text of its own) or a
+ * nested instance (an Icon, a Badge, a Dock-Icon), innermost first; null when there is none, or for a text when the
+ * owner draws one text only (then the instance itself is the layer).
+ */
+export function deepLayerAt(owner: FiberHit, element: Element | null): PartHit | null {
+  const chain = partChain(owner, element).filter((part) => !wrapsOwner(part));
+  const index = chain.findIndex((part) => (part.isComponent ? nestedPathOf(part) !== null : ownsText(part.element)));
+  if (index < 0) return null;
+  const layer = chain[index];
+  if (layer.isComponent) return layer;
+  // A text the owner holds as one of its own words (a MetricCard's value, a Button's label) is the layer; a text inside
+  // a nested instance that it does not (a Badge built from a trend object) gives that instance, whose properties change it.
+  const words = (layer.element.textContent ?? "").trim();
+  // The nested instance around the text: one that draws only this text (a Badge's label) is the layer itself.
+  const around = chain.slice(index + 1).find((part) => part.isComponent && nestedPathOf(part) !== null) ?? null;
+  if (around && !manyTexts(around)) return around;
+  // Only the owner's own string props: words from the data it lists (a Sidebar row's label) stay with that row, whose
+  // ⌘-click selects the row (rows are picked several at a time, SP-10) and whose double-click edits its text.
+  const ownWords = Object.entries(owner.props).some(([prop, value]) => prop !== "data-zen-src" && typeof value === "string" && value.trim() === words);
+  if (around && !ownWords) return around;
+  return manyTexts(owner) ? layer : null;
 }
 
 const samePart = (a: PartHit, b: PartHit) => a.fiber === b.fiber || a.fiber === b.fiber.alternate || (a.element === b.element && a.name === b.name);

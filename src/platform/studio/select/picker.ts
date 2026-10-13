@@ -153,6 +153,9 @@ function typeName(type: unknown, depth = 0): string | null {
   return null;
 }
 
+/** The component's own name (forwardRef, memo and lazy unwrapped) or the host tag, never a builder page's label. */
+export const typeNameOf = (fiber: Fiber): string => typeName(fiber.type) ?? typeName(fiber.elementType) ?? "Anonymous";
+
 /** Layer name: the component's display name (forwardRef, memo and lazy unwrapped) or the host tag. */
 export function nameOf(fiber: Fiber): string {
   // A builder page's renderer names each component element (data-zen-name): a build minifies function names.

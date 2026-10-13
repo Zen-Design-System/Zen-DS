@@ -1,4 +1,4 @@
-import { deepPartAt, drillNested, partChain, partForElement, type PartHit } from "../select/parts";
+import { deepPartAt, drillNested, manyTexts, ownsText, partChain, partForElement, type PartHit } from "../select/parts";
 import { fiberOf, hitOf, srcOf, type FiberHit } from "../select/picker";
 import { TABLE_PARTS, tableFiberOf } from "./tableCells";
 
@@ -89,6 +89,15 @@ export function tableDeep(hit: FiberHit | null, target: Element | null): PartHit
   if (!target || !isTableHit(hit)) return null;
   const cell = target.closest("td.zen-table__cell:not(.zen-table__select)");
   if (!cell || !ownTable(hit, cell)) return null;
+  // A text the cell draws (a name, a caption) is the layer, as Figma's ⌘-click lands on a text layer; Enter then edits that
+  // row's data in place (2026-10-13 Figma walk). A nested instance there (an Avatar, a Badge) as before.
+  const chain = partChain(hit, target);
+  const at = chain.findIndex((candidate) => !candidate.isComponent && ownsText(candidate.element) && cell.contains(candidate.element) && candidate.element !== cell);
+  if (at >= 0) {
+    // Inside a one-text instance the cell draws (a status Badge): that instance, as for any atom.
+    const around = chain.slice(at + 1).find((candidate) => candidate.isComponent && cell.contains(candidate.element) && candidate.element !== cell);
+    return around && !manyTexts(around) ? around : chain[at];
+  }
   const part = deepPartAt(hit, target);
   return part && cell.contains(part.element) && part.element !== cell ? part : tablePart(hit, cell, TABLE_PARTS.cell);
 }

@@ -769,11 +769,12 @@ async function runInsert({ selection, element, slot, item, context, warning }: I
   if (content.insertBlock) return fail(content.insertBlock);
   const code = item.build(context ?? paletteFor(slotHostContext(selection, host, slot)).context);
 
-  // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap).
+  // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap). A prop slot
+  // holding one Stack or Grid takes the new layer in it (registry insertTargetFor): its source is read for that too.
   let summary = content.summary;
   let frame: Target | null = null;
   const only = onlyFrame(content);
-  if (only && slot.gap === "none" && slot.kind !== "atom") {
+  if (only && slot.kind !== "atom" && (slot.gap === "none" || slot.prop !== "children")) {
     const child = await studioApi.element(host.file, only.loc);
     if (child && child.name === only.name) {
       summary = { ...summary, only: { name: child.name, props: hostPropsOf(child.attributes) } };

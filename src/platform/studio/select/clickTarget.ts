@@ -1,4 +1,5 @@
 import { childHits, elementFiber, hitOf, parentHit, rectOf, walkAnnotated, type FiberHit } from "./picker";
+import { componentSchema } from "../inspector/propSchema";
 import { wrapperCandidate } from "./resize";
 
 /*
@@ -77,8 +78,9 @@ function folded(hit: FiberHit, next: FiberHit, parent: FiberHit | undefined): bo
   if (hit.name === "List") return true;
   const children = LAYOUT.has(hit.name) ? shownChildren(hit) : [];
   if (children.length === 1 && LAYOUT_ONLY.has(hit.name)) return true;
-  // The one layout layer inside a component (a Card's content Stack) is that slot's own auto layout in Figma.
-  if (LAYOUT_ONLY.has(hit.name) && parent && parent.isComponent && !LAYOUT.has(parent.name) && shownChildren(parent).length === 1) return true;
+  // The one layout layer inside a Zen component (a Card's content Stack) is that slot's own auto layout in Figma; an
+  // example's own component keeps its root Stack.
+  if (LAYOUT_ONLY.has(hit.name) && parent && parent.isComponent && !LAYOUT.has(parent.name) && componentSchema(parent.name) && shownChildren(parent).length === 1) return true;
   if (children.length === 1 && hit.name === "Box" && sameRect(rectOf(hit.hosts), rectOf(children[0].hosts))) return true;
   const host = next.isComponent && next.hosts.length === 1 ? next.hosts[0] : null;
   return Boolean(host && hit.name === "Stack" && hit.isComponent && wrapperCandidate(host) === hit.src);

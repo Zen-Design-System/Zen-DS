@@ -765,8 +765,12 @@ export function insertTargetFor(slot: ContentSlot, content: SlotContentSummary):
       ? { mode: "direct", warning: `${slot.name} holds ${slot.max === 1 ? "one layer" : `${slot.max} layers`} in the component; this adds one more` }
       : { mode: "direct" };
   }
-  if (slot.gap !== "none" || content.count === 0) return { mode: "direct" };
   const only = content.count === 1 ? content.only : undefined;
+  // A prop slot that holds one Stack or Grid (a page header's actions in a row Stack): that is its row of layers, so a new
+  // one joins it; beside it, the prop would need a fragment, which a page made in the Studio cannot hold (2026-10-13
+  // Figma walk: "Add to Action-Slots › Button" was refused on a page from a template).
+  if (slot.prop !== "children" && (only?.name === "Stack" || only?.name === "Grid")) return { mode: "into", name: only.name };
+  if (slot.gap !== "none" || content.count === 0) return { mode: "direct" };
   if (only?.name === "Grid") return { mode: "into", name: "Grid" };
   // A row Stack is a button or tag row, not the content frame. Without its props the direction is unknown: wrap.
   if (only?.name === "Stack" && only.props && only.props.direction !== "row" && !isBound(only.props.direction)) return { mode: "into", name: "Stack" };

@@ -2359,6 +2359,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": [
       {
+        "label": "Trend",
+        "prop": "trend",
+        "on": {
+          "code": "{ direction: \"positive\", label: \"+12%\" }"
+        }
+      },
+      {
         "label": "Counter",
         "prop": "counter",
         "on": "3",
@@ -2470,6 +2477,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ],
     "toggles": [
+      {
+        "label": "Trend",
+        "prop": "trend",
+        "on": {
+          "code": "{ direction: \"positive\", label: \"+12%\" }"
+        }
+      },
       {
         "label": "Counter",
         "prop": "counter",
