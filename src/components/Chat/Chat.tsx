@@ -305,9 +305,9 @@ export function ChatMessage({ side, domain = "social", author, showName = false,
     <div data-message-id={id} className={["zen-chat-message", className].filter(Boolean).join(" ")} data-side={side} data-domain={domain} data-reacted={reactions?.length ? "true" : undefined} data-continued={continued ? "true" : undefined} data-failed={failed ? "true" : undefined}>
       {side === "others" ? (
         <div className="zen-chat-message__avatar" aria-hidden={continued || undefined}>
-          {/* No photo: two-letter initials (first + last name), as in the conversation list. Avatar keeps one letter for a
-              string at XSmall, so they are passed as an element (Caption/Medium fits two in the 24px circle). */}
-          {!continued && author ? nest("Avatar", <Avatar size="xsmall" theme={author.src ? "photo" : author.theme ?? "neutral"} background="subtle" src={author.src} alt={author.name}>{author.src ? null : <>{initialsOf(author.name)}</>}</Avatar>) : null}
+          {/* No photo: the name's initials, which Avatar cuts to one letter at XSmall (small avatars show one; user,
+              2026-10-13). */}
+          {!continued && author ? nest("Avatar", <Avatar size="xsmall" theme={author.src ? "photo" : author.theme ?? "neutral"} background="subtle" src={author.src} alt={author.name}>{author.src ? null : initialsOf(author.name)}</Avatar>) : null}
         </div>
       ) : null}
       <div className="zen-chat-message__stack">

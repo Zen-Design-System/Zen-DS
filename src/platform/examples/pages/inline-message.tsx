@@ -55,7 +55,7 @@ function SentInvoiceExample() {
         <PageHeader eyebrow="Invoices" title={`Edit ${sentInvoice.number}`}
           meta={<Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>}
           description={`${sentInvoice.client} · ${projectById(sentInvoice.project).name} · Issued ${formatDate(sentInvoice.issued)}`} />
-        <Card theme="flat" className="px-inline-message-measure">
+        <Card theme="flat" width="fill" maxWidth={640}>
           <Form form={form}>
             {/* Context for the whole form, above its first field. Essential, so it has no close button. */}
             <InlineMessage theme="warning" title="Phin & Co already has this invoice">
@@ -99,7 +99,7 @@ function ErrorSummaryExample() {
   });
   const count = Object.keys(form.errors).length;
   return (
-    <Card theme="flat" className="px-inline-message-narrow">
+    <Card theme="flat" width="fill" maxWidth={480}>
       {/* Form moves focus to the first invalid field after a failed submit; the summary counts what is left. */}
       <Form form={form} gap="md" aria-labelledby={titleId}>
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">New client</Heading>
@@ -162,7 +162,7 @@ function VerifyDomainExample() {
   };
   const copy = () => { void navigator.clipboard?.writeText(txtValue).catch(() => undefined); toast({ id: "dns-copied", title: "Value copied" }); };
   return (
-    <Card theme="flat" className="px-inline-message-narrow">
+    <Card theme="flat" width="fill" maxWidth={480}>
       <Stack ref={root} as="section" gap="xl" aria-labelledby={titleId}>
         <Stack gap="xs">
           <Heading level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Email domain</Heading>
@@ -241,7 +241,7 @@ function MoodboardExample() {
   return (
     <>
       {/* A ListBox: the title and the message about its rows in the Header-Slot (16px apart), the tasks in the Body-Slot. */}
-      <ListBox ref={root} as="section" aria-labelledby={titleId} className="px-inline-message-narrow"
+      <ListBox ref={root} as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
         header={<>
           <Stack gap="2xs">
             <Heading level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Brand refresh</Heading>

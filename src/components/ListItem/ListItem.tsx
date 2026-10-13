@@ -2,6 +2,7 @@ import type { HTMLAttributes, MouseEvent, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./list-item.css";
 
@@ -109,8 +110,11 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, trailin
 export const listBoxThemes = ["flat", "shadow", "pale", "border"] as const;
 export type ListBoxTheme = (typeof listBoxThemes)[number];
 
-/** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element (`as`). */
-export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
+/**
+ * Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element (`as`). `width`, `minWidth`,
+ * `maxWidth` and `alignSelf` size the box as Figma auto layout sizes an instance, as on Stack.
+ */
+export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps {
   /** The root element. */
   ref?: Ref<HTMLElement>;
   /** Figma Header-Slot (Header=Yes): what names the box, e.g. a Heading/Subheading title and a caption, or a toolbar.
@@ -140,10 +144,11 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
  * Footer are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow,
  * pale or border.
  */
-export function ListBox({ ref, header, footer, children, theme = "flat", as: Tag = "div", className, ...rest }: ListBoxProps) {
+export function ListBox({ ref, header, footer, children, theme = "flat", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, style, ...rest }: ListBoxProps) {
+  const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });
   return (
     // One ref type for both `as` tags (div, section).
-    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} data-tone={theme} className={["zen-list-box", className].filter(Boolean).join(" ")}>
+    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} style={withSizingVars(style, sizing.vars)} data-tone={theme} className={["zen-list-box", className].filter(Boolean).join(" ")}>
       {header ? <div className="zen-list-box__header">{header}</div> : null}
       <div className="zen-list-box__body">{children}</div>
       {footer ? <div className="zen-list-box__footer">{footer}</div> : null}

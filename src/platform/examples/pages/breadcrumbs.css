@@ -11,8 +11,6 @@
    without a top bar (Home has no trail) it starts a page margin from the top. */
 .px-breadcrumbs-shell-page { padding-block: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px); }
 .zen-app-shell:not(:has(.zen-app-shell__header)) .px-breadcrumbs-shell-page { padding-top: var(--zen-margin-comfortable, 24px); }
-/* Cards in the grid keep a readable width and sit in the middle of the stage. */
-.px-breadcrumbs-doc, .px-breadcrumbs-move { width: min(100%, 480px); margin-inline: auto; }
 /* Studio logo in the Sidebar's logo slot: the mark fills the slot's height (24px, 20px dense), the name sits beside it. */
 .px-breadcrumbs-brand { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
 .px-breadcrumbs-brand > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }

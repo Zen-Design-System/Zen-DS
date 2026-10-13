@@ -51,7 +51,7 @@ function DirectoryExample() {
   const clear = () => { setQuery(""); searchRef.current?.focus(); };
   return (
     // A ListBox: the title, the search and its count in its Header-Slot; the results (or the Empty State) in its Body-Slot.
-    <ListBox className="px-search-card"
+    <Stack><ListBox width="fill" maxWidth={440} alignSelf="center"
       header={<>
         <Heading level={4} textStyle="Heading/Subheading">Studio directory</Heading>
         <Stack gap="xs">
@@ -75,7 +75,7 @@ function DirectoryExample() {
           Try a first name, a team such as Design, or a city.
         </EmptyState>
       )}
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 
@@ -178,7 +178,7 @@ function ClientFilesExample() {
   const clear = () => { setQuery(""); searchRef.current?.focus(); };
   return (
     // A ListBox: the title, the scoped search and its count in its Header-Slot; the results (or the Empty State) in its Body-Slot.
-    <ListBox className="px-search-card"
+    <Stack><ListBox width="fill" maxWidth={440} alignSelf="center"
       header={<>
         <Heading level={4} textStyle="Heading/Subheading">Client files</Heading>
         <Stack gap="xs">
@@ -205,7 +205,7 @@ function ClientFilesExample() {
           {all ? "Try part of the file name or the project." : `Nothing from ${scope} matches. Files of other clients might.`}
         </EmptyState>
       )}
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 
@@ -413,7 +413,7 @@ function ContactImportExample() {
   return (
     // A ListBox: the title and Import contacts, the search, the import status and the count in its Header-Slot; the
     // contacts (or the Empty State) in its Body-Slot.
-    <ListBox ref={cardRef} as="section" aria-labelledby={headingId} className="px-search-card"
+    <Stack><ListBox ref={cardRef} as="section" aria-labelledby={headingId} width="fill" maxWidth={440} alignSelf="center"
       header={<>
         <Stack direction="row" gap="sm" align="center" justify="between">
           <Heading level={4} id={headingId} textStyle="Heading/Subheading">Client contacts</Heading>
@@ -446,7 +446,7 @@ function ContactImportExample() {
           Search by name, role or company.
         </EmptyState>
       )}
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 

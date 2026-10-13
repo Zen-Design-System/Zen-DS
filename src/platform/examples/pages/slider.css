@@ -1,8 +1,5 @@
 /* Slider examples (docs/research/example-rebuild-brief-2026-09-30.md). Tokens only; class prefix .px-slider-. */
 
-/* Cards in the two-column grid keep a readable width and sit in the middle of the stage. */
-.px-slider-card { width: 100%; max-width: 440px; margin-inline: auto; }
-
 /* Photo zoom: a round crop whose photo scales with the slider (--px-slider-zoom, 1–3). */
 .px-slider-crop { overflow: hidden; width: 160px; height: 160px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-pale-default); }
 .px-slider-crop > img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(var(--px-slider-zoom, 1)); transition: transform var(--zen-motion-duration-xfast, 80ms) var(--zen-motion-ease-linear, linear); }

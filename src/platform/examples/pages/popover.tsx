@@ -124,7 +124,7 @@ function AssignPeople() {
   });
   const team = loyaltyTeam.filter((person) => assigned.includes(person.id));
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <CardTitle title={task.title}>{`${task.key} · Due ${formatDate(task.due)}`}</CardTitle>
         <Stack direction="row" align="center" gap="xs" wrap>
@@ -157,7 +157,7 @@ function CreateLabel() {
     focusSoon(() => rowRef.current?.querySelectorAll<HTMLElement>(".zen-tag__remove")[index] ?? rowRef.current?.querySelector<HTMLElement>(".zen-chip"));
   };
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <CardTitle title={task.title}>{`${task.key} · ${formatDue(task.due)}`}</CardTitle>
         <Stack ref={rowRef} direction="row" align="center" gap="xs" wrap>
@@ -185,7 +185,7 @@ function SortFiles() {
   const current = sortOptions.find((option) => option.id === sort)!;
   return (
     // A ListBox: the count and the Sort chip in its Header-Slot, the files in its Body-Slot.
-    <ListBox className="px-popover-fill"
+    <ListBox width="fill"
       header={<Stack direction="row" align="center" justify="between" gap="md">
         <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(studioFiles.length, "file")}</Text>
         <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line" popoverLabel="Sort by"
@@ -256,7 +256,7 @@ function JumpToProject() {
   const project = projectById(projectId);
   const pick = (id: string) => { setProjectId(id); setQuery(""); setOpen(false); };
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         {/* ↓ from the field moves into the results; Escape or a click outside closes them. */}
         <Box ref={fieldRef} onKeyDown={(event) => {
@@ -293,7 +293,7 @@ function ReviewTimeZone() {
   const zone = timeZones.find((z) => z.id === zoneId)!;
   const { day, time } = reviewIn(zone.offset);
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <CardTitle title="Design review with Lumen Bank">{`${projectById("lumen-banking").name} · hosted by ${personName("alex")}`}</CardTitle>
         <Stack direction="row" align="center" justify="between" gap="md" wrap>
@@ -341,7 +341,7 @@ function BulkFileActions() {
   return (
     // The table is the section's content, so it lies on the page with no card. The bar's row keeps its height, so the
     // page doesn't jump when a selection starts.
-    <Stack ref={sectionRef} gap="md" className="px-popover-fill">
+    <Stack ref={sectionRef} gap="md" width="fill">
       <Stack direction="row" align="center" justify="between" gap="md">
         <Heading level={4} textStyle="Heading/4">Recent files</Heading>
         <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{picked.length ? `${count} selected` : plural(rows.length, "file")}</Text>

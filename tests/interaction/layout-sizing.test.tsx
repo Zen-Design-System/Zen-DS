@@ -6,7 +6,7 @@
 import type { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import { Badge, Box, Button, Chip, Grid, Heading, Segmented, Stack, Text } from "../../src/index";
+import { Badge, Box, Button, Card, Chip, Grid, Heading, ListBox, Segmented, Stack, Text } from "../../src/index";
 
 /** 80 × 20 px of content, so Hug has something to measure. */
 const Content = () => <div style={{ width: 80, height: 20 }} />;
@@ -449,5 +449,36 @@ describe("An absolute layer is out of the flow (position.css): parent-aware sizi
       "layer",
     );
     expect(layer.width).toBe(70);
+  });
+});
+
+describe("Layout sizing on Card and ListBox (user, 2026-10-13: sized like a Stack, Figma Fill / Max width)", () => {
+  it("fills a column up to its maxWidth, centred with alignSelf, and fills a row's free space", async () => {
+    const [column, card, box, row, fill] = await measure(
+      <Stack gap="none" width={800} data-testid="column">
+        <Card width="fill" maxWidth={440} alignSelf="center" data-testid="card"><Content /></Card>
+        <ListBox width="fill" maxWidth={360} data-testid="box"><Content /></ListBox>
+        <Stack direction="row" gap="none" width={600} data-testid="row">
+          <Box width={200}><Content /></Box>
+          <Card width="fill" spacing="sm" data-testid="fill"><Content /></Card>
+        </Stack>
+      </Stack>,
+      "column", "card", "box", "row", "fill",
+    );
+    expect(card.width).toBe(440);
+    expect(card.left - column.left).toBe((800 - 440) / 2);
+    expect(box.width).toBe(360);
+    expect(box.left).toBe(column.left);
+    expect(fill.width).toBe(600 - 200);
+    expect(fill.right).toBe(row.right);
+  });
+
+  it("renders no sizing attribute on a Card or ListBox that sets none", async () => {
+    const screen = await render(<Stack><Card data-testid="card"><Content /></Card><ListBox data-testid="box"><Content /></ListBox></Stack>);
+    for (const id of ["card", "box"]) {
+      const element = screen.getByTestId(id).element() as HTMLElement;
+      expect([...element.attributes].map((attribute) => attribute.name).filter((name) => /^data-(w|h|min|max|self)/.test(name))).toEqual([]);
+      expect(element.getAttribute("style")).toBeNull();
+    }
   });
 });

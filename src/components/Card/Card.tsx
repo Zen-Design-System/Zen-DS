@@ -3,6 +3,7 @@ import { IconButton } from "../Button";
 import type { IconName } from "../Icon";
 import { scaleKey } from "../_shared/scale";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
 import "./card.css";
 import "../Icon/core";
 
@@ -25,8 +26,11 @@ export interface CardSubAction {
 
 const isSubActionConfig = (value: unknown): value is CardSubAction => typeof value === "object" && value !== null && !isValidElement(value) && "label" in value;
 
-/** Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element. */
-export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" | "onClick"> {
+/**
+ * Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element. `width`, `minWidth`, `maxWidth`
+ * and `alignSelf` size the card as Figma auto layout sizes an instance (Fill container, a max width…), as on Stack.
+ */
+export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" | "onClick">, LayoutWidthProps {
   /** The root element. */
   ref?: Ref<HTMLElement>;
   children?: ReactNode;
@@ -64,8 +68,9 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
  * Figma Card (6643:51021): a Content slot on one of five surfaces, padded Card-padding-medium/small.
  * A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
  */
-export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, overrides, ...rest }: CardProps) {
+export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, overrides, width, minWidth, maxWidth, alignSelf, style, ...rest }: CardProps) {
   const nest = useNested(overrides);
+  const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });
   const spacing = scaleKey(spacingProp, cardSpacings);
   const active = selected ?? activeProp ?? false;
   const interactive = Boolean(onClick);
@@ -79,6 +84,8 @@ export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "
       // One ref type for every `as` tag (div, article, section, li).
       ref={ref as Ref<HTMLDivElement & HTMLLIElement>}
       className={["zen-card", className].filter(Boolean).join(" ")}
+      {...sizing.attributes}
+      style={withSizingVars(style, sizing.vars)}
       data-tone={theme}
       data-spacing={spacing}
       data-surface={surface}

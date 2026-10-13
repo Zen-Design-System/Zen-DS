@@ -137,7 +137,7 @@ function SendInvoiceExample() {
   });
   const downloadPdf = () => toast({ title: "PDF downloaded" });
   return (
-    <Card theme="flat" className="px-button-card" spacing="md">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center" spacing="md">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
@@ -164,7 +164,7 @@ function SendInvoiceExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -246,7 +246,7 @@ function HandOffExample() {
   useEffect(() => { (handedOff ? messageRef.current : buttonRef.current)?.focus(); }, [handedOff]);
   const handOff = () => { setHandedOff(true); toast({ type: "positive", title: "Designs handed off" }); };
   return (
-    <Card theme="flat" className="px-button-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md" alignSelf="stretch">
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Sprint 14 hand-off</Heading>
@@ -274,7 +274,7 @@ function HandOffExample() {
           </>
         )}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 

@@ -56,7 +56,7 @@ function LabelColourExample() {
     toast({ type: "positive", title: "Label created" });
   };
   return (
-    <Card theme="flat" className="px-color-selector-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       {/* Two groups in one card (lg apart): the labels so far, and the form that adds one. */}
       <Stack gap="lg">
         <Stack gap="xs">
@@ -79,7 +79,7 @@ function LabelColourExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -111,7 +111,7 @@ function CalendarColoursExample() {
     {/* A list on the stage is a ListBox (Surface, no border): the title in its Header-Slot, the rows in its Body-Slot.
         The rows are interactive with no padding of their own: the slots' padding (24px desktop, 20px on a phone) puts
         their text level with the heading, and their fill hangs 12px into it. */}
-    <ListBox className="px-color-selector-card" as="section" aria-labelledby={titleId}
+    <Stack><ListBox width="fill" maxWidth={440} alignSelf="center" as="section" aria-labelledby={titleId}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Team calendars</Heading>}>
       <List aria-labelledby={titleId}>
         {calendars.map((calendar) => (
@@ -120,7 +120,7 @@ function CalendarColoursExample() {
             leading={<DockIcon icon="icon-calendar-line" theme={calendar.hue as DockIconTheme} background="solid" />} />
         ))}
       </List>
-    </ListBox>
+    </ListBox></Stack>
       <Dialog open={Boolean(editing)} onOpenChange={(next) => { if (!next) setEditing(null); }} icon={false}
         title={`${editing?.name ?? ""} colour`} description="Events in this calendar take this colour for everyone at the studio."
         primaryAction={{ label: "Save colour", onClick: save }} secondaryAction={{ label: "Cancel" }}>
@@ -151,7 +151,7 @@ function HighlightExample() {
   // Clear highlight disables itself: focus moves to the swatches, where a new colour can be picked.
   const clear = () => { cardRef.current?.querySelector<HTMLElement>(".zen-color-selector input")?.focus(); setValue(undefined); };
   return (
-    <Card ref={cardRef} theme="flat" className="px-color-selector-card">
+    <Stack><Card ref={cardRef} theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Review notes</Heading>
@@ -167,7 +167,7 @@ function HighlightExample() {
           <Button level="tertiary" disabled={!value} onClick={clear}>Clear highlight</Button>
         </Stack>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -190,7 +190,7 @@ function ChartSeriesExample() {
   const [colours, setColours] = useState<Record<string, Hue>>({ phin: "orange", lumen: "blue", mekong: "blue" });
   const shared = clientSeries.filter((series, index) => clientSeries.some((other, j) => j !== index && colours[other.id] === colours[series.id]));
   return (
-    <Stack gap="md" className="px-color-selector-card">
+    <Stack><Stack gap="md" width="fill" maxWidth={440} alignSelf="center">
       <ChartCard title="Hours by client" headingLevel={4} theme="flat">
         <StackBarChart aria-label="Hours by client, last four weeks" height={200} format={(value) => `${value} h`}
           series={clientSeries.map((series) => ({ ...series, color: swatch(colours[series.id]).value }))} data={weeklyHours} />
@@ -211,7 +211,7 @@ function ChartSeriesExample() {
           ))}
         </Stack>
       </Card>
-    </Stack>
+    </Stack></Stack>
   );
 }
 

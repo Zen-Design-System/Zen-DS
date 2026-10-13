@@ -2080,6 +2080,10 @@
       ],
       "props": {
         "Card": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "children?: ReactNode",
           "theme?: shadow|flat|pale|border|semi-pale = shadow",
@@ -2285,6 +2289,10 @@
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ListBox": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "header?: ReactNode",
           "children: ReactNode",
@@ -3465,41 +3473,112 @@
       "title": "Chart",
       "file": "docs/guidelines/chart.md",
       "apiFile": "docs/api/chart.json",
-      "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528",
-      "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen/design-system\";",
-      "purpose": "Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch.",
+      "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528, Chart/Bar-Chart 15321:84071, Chart/Multi-Line-Chart 15426:2521, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart 15326:1043 (spec docs/research/chart-family-spec-2026-10-12.md)",
+      "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, ChartCard } from \"@zen/design-system\";",
+      "purpose": "One chart family in one style: how a value changes over time (Line), compares across periods or categories (Bar), splits a total (Stack bar, Donut), measures against a maximum (Radial) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
-        "Trends over a few periods (4–12 points) → LineChart.",
+        "A trend over 4–12 periods → LineChart; against last year, the plan or a second measure over the same periods → LineChart compare (one dashed comparison line, with a legend).",
+        "Compare periods or categories → BarChart (vertical); long category names or a goal per bar → BarChart orientation=\"horizontal\" with target; a forecast → projected bars.",
         "Part-to-whole across periods → StackBarChart with a legend.",
-        "Dashboard tiles → ChartCard next to Metric Cards."
+        "Shares of one total (2–7) → DonutChart.",
+        "1–4 measures against the same maximum (budget used, goals) → RadialChart.",
+        "A value per day × hour, or any row × column grid → HeatmapChart.",
+        "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
         "Exact values to compare or export → Table.",
-        "More than ~7 series → split the chart or use a Table."
+        "More than ~7 series or slices → split the chart or use a Table.",
+        "A donut for values over time → LineChart or BarChart.",
+        "One progress value with a label → ProgressBar / ProgressCircle, not a RadialChart."
       ],
       "props": {
         "LineChart": [
-          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "aria-label: string",
-          "height?: number = 280",
-          "className?: string",
           "data: ChartPoint[]",
-          "initialIndex?: number"
+          "label?: string",
+          "compare?: ChartCompare",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "height?: number = 280",
+          "aria-label: string",
+          "className?: string",
+          "initialIndex?: number",
+          "curve?: smooth|linear = smooth",
+          "fill?: gradient|none = gradient",
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom = bottom",
+          "animate?: boolean = true",
+          "showAverage?: boolean = false"
+        ],
+        "BarChart": [
+          "data: ChartPoint[]",
+          "orientation?: vertical|horizontal = vertical",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "height?: number = 280",
+          "aria-label: string",
+          "className?: string",
+          "initialIndex?: number",
+          "color?: string",
+          "activeColor?: string",
+          "animate?: boolean = true",
+          "showAverage?: boolean = false"
         ],
         "StackBarChart": [
-          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "aria-label: string",
-          "height?: number = 236",
-          "className?: string",
-          "data: ChartStack[]",
+          "data: ChartDatum[]",
           "series: ChartSeries[]",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "height?: number = 236",
+          "aria-label: string",
+          "className?: string",
           "initialIndex?: number",
-          "showLegend?: boolean = true"
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom = bottom",
+          "animate?: boolean = true",
+          "showAverage?: boolean = false"
+        ],
+        "DonutChart": [
+          "data: ChartSlice[]",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "size?: number = 200",
+          "aria-label: string",
+          "value?: ReactNode",
+          "label?: ReactNode",
+          "totalPosition?: centre|start = centre",
+          "showPercent?: boolean = true",
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom|start|end = bottom",
+          "className?: string",
+          "animate?: boolean = true"
+        ],
+        "RadialChart": [
+          "data: ChartSlice[]",
+          "max?: number = 100",
+          "format?: (value: number) => string",
+          "size?: number = 200",
+          "aria-label: string",
+          "value?: ReactNode",
+          "label?: ReactNode",
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom|start|end = bottom",
+          "className?: string",
+          "animate?: boolean = true"
+        ],
+        "HeatmapChart": [
+          "rows: string[]",
+          "columns: string[]",
+          "values: number[][]",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "max?: number",
+          "aria-label: string",
+          "showLegend?: boolean = true",
+          "className?: string",
+          "animate?: boolean = true"
         ],
         "ChartCard": [
           "title: ReactNode",
           "headingLevel?: 2|3|4 = 3",
+          "icon?: IconName|ReactNode",
+          "description?: ReactNode",
+          "value?: ReactNode",
           "onOpen?: () => void",
           "openLabel?: string",
           "ranges?: SegmentedOption[]",
@@ -3514,18 +3593,26 @@
         ]
       },
       "do": [
-        "Always give the chart an aria-label that says what it shows and over which range.",
-        "Format values for people (`$23.4K`, `52 GB`) with `format`.",
-        "Keep the legend on stack bars so colour is never the only key (harness: chart/stack-needs-legend).",
-        "Use the Segmented range switch in the card instead of separate charts per range."
+        "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
+        "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
+        "Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).",
+        "Mark a forecast `projected` so it reads as not earned yet; show a goal as a `target` track, not as another series.",
+        "Use the Segmented range switch in the card instead of separate charts per range, and key the chart by the range so it draws in again.",
+        "Turn on showAverage when the question is \"above or below normal?\"; leave it off when the trend itself is the point.",
+        "Lead the card with the figure the chart explains (`value`) and say what it is (`description`)."
       ],
       "dont": [
         "Don't use a line for categories that aren't ordered in time.",
         "Don't pick custom colours outside the chart palette unless a series has a fixed brand colour.",
-        "Don't put a chart where the user needs exact values; add a Table."
+        "Don't put a chart where the user needs exact values; add a Table.",
+        "Don't start a bar's axis above zero or stretch a donut past ~7 slices.",
+        "Don't mix chart styles on one screen: every chart takes the shared grid, labels, Tooltip, legend and motion."
       ],
       "rules": [
         "chart/stack-needs-legend",
+        "chart/needs-name",
+        "chart/shares-need-legend",
+        "chart/heatmap-needs-scale",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"

@@ -153,7 +153,7 @@ function FilteredToNothing() {
   const clear = () => { setOn([]); focusSoon(() => chipsRef.current?.querySelector("button")); };
   return (
     // A ListBox: title, count and quick filters in its Header-Slot; the tasks, or the Empty State, in its Body-Slot.
-    <ListBox className="px-empty-state-card"
+    <ListBox width="fill"
       header={<>
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">My tasks</Heading>
@@ -201,7 +201,7 @@ function AllCaughtUp() {
   const [view, setView] = useState("open");
   return (
     // A ListBox: title and view switch in its Header-Slot; the done reviews, or the Empty State, in its Body-Slot.
-    <ListBox className="px-empty-state-card"
+    <ListBox width="fill"
       header={<Stack direction="row" align="center" justify="between" gap="xs" wrap>
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Reviews</Heading>
@@ -333,7 +333,7 @@ function ClientUploads() {
     <>
     {/* A ListBox: title and Refresh in its Header-Slot; the Skeleton rows, the Inline Message or the Empty State in its
         Body-Slot, in place of the uploads. */}
-    <ListBox className="px-empty-state-card"
+    <ListBox width="fill"
       header={<Stack direction="row" align="start" justify="between" gap="xs">
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Client uploads</Heading>

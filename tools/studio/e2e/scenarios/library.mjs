@@ -279,4 +279,22 @@ export const rows = [
       return "Badge in, selected → ⌘Z → Stack selected";
     },
   },
+  {
+    id: "LB-15", feature: "Assets › Components › Charts: Bar, Horizontal bar, Line with comparison, Donut, Radial and Heatmap each add into the selected layout and draw on the canvas", wp: "chart family 2026-10-12",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      const charts = [["Bar chart", "BarChart"], ["Horizontal bar chart", "BarChart"], ["Line chart with comparison", "LineChart"], ["Donut chart", "DonutChart"], ["Radial chart", "RadialChart"], ["Heatmap", "HeatmapChart"]];
+      const drawn = () => page.locator('.studio-viewport [aria-roledescription="chart"]').count();
+      for (const [index, [label, tag]] of charts.entries()) {
+        await selectStack(page, id);
+        await library(page, "Components", label.toLowerCase());
+        await assets(page).locator("[data-asset]", { hasText: new RegExp(`^${label.replace(/[,()]/g, "\\$&")}`) }).first().click();
+        await until(async () => tagCount(await pageText(page, id), tag) >= charts.slice(0, index + 1).filter(([, t]) => t === tag).length, { message: `a ${tag} in the page (${label})` });
+        await until(async () => (await drawn()) >= index + 1, { message: `${label} drawn on the canvas` });
+      }
+      const marks = await page.locator(".studio-viewport").evaluate((root) => ["zen-chart__bar", "zen-chart__line", "zen-chart__slice", "zen-chart__arc", "zen-chart__cell"].map((c) => root.getElementsByClassName(c).length));
+      if (marks.some((n) => n === 0)) throw new Error(`marks missing (bar, line, slice, arc, cell): ${marks.join(", ")}`);
+      return `6 charts added and drawn (bars ${marks[0]}, lines ${marks[1]}, slices ${marks[2]}, arcs ${marks[3]}, cells ${marks[4]})`;
+    },
+  },
 ];
