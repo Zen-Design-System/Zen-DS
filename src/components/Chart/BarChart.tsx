@@ -1,5 +1,4 @@
 import { Fragment, useMemo, type CSSProperties } from "react";
-import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -34,7 +33,8 @@ export interface BarChartProps {
  * Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with
  * Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched
  * in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a
- * category column, 24px bars and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart
+ * category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over
+ * the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart
  * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
  */
 export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, animate = true, showAverage = false }: BarChartProps) {
@@ -87,12 +87,9 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
                 <span className="zen-chart__htrack" data-active={i === active ? "true" : undefined} aria-hidden="true" style={{ gridRow: i + 1 }} onPointerEnter={() => setActive(i)} onClick={() => setActive(i)}>
                   {d.target !== undefined ? <span className="zen-chart__target" style={{ width: pct(d.target) }} /> : null}
                   <span className="zen-chart__bar" data-projected={d.projected ? "true" : undefined} style={staggerStyle(i, { width: pct(d.value) })} />
-                  {i === active ? (
-                    <span className="zen-chart__htip" data-flip={Math.max(d.value, d.target ?? 0) / top > 0.7 ? "true" : undefined} style={{ left: pct(Math.max(d.value, d.target ?? 0)) }}>
-                      <TooltipSurface color="default" size="medium">{valueText(d)}</TooltipSurface>
-                    </span>
-                  ) : null}
                 </span>
+                {/* The value column: every row's value at its end, the active one in Strongest — nothing floats over the bars. */}
+                <span className={`zen-chart__hvalue ${typographyStyles["Label/Small/Medium"]}`} data-active={i === active ? "true" : undefined} aria-hidden="true" style={{ gridRow: i + 1 }} onPointerEnter={() => setActive(i)}>{format(d.value)}</span>
               </Fragment>
             ))}
           </div>

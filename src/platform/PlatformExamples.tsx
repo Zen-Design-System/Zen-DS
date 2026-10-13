@@ -1788,7 +1788,7 @@ ${code}`} />
     return <ExamplePage page="ai-chat" eyebrow="Components / AI Chat" title="AI Chat" description="Prompting and conversing with an assistant: the Chat-Field (Default, Surface, Liquid Glass), You / AI bubbles with feedback actions, and the empty-state Block with suggestions."><AiChatPlayground /></ExamplePage>;
   }
   if (page === "chart") {
-    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation: a Line chart for trends, a Stack-bar chart for part-to-whole comparisons, and the Chart Card that frames either with a title, range switch and report link."><ChartPlayground /></ExamplePage>;
+    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation in one style: a Line chart for trends (with an optional dashed comparison), Bar charts for periods and categories, a Stack-bar chart for part-to-whole over time, Donut and Radial charts for shares and goals, a Heatmap for day × hour, and the Chart Card that frames any of them with a title, figure, range switch and report link."><ChartPlayground /></ExamplePage>;
   }
   if (page === "voice") {
     return <ExamplePage page="voice" eyebrow="Components / Voice" title="Voice" description="Voice Recorder for notes and takes (Ready, Recording, Paused) and AI Voice Conversation for talking with the assistant (Ready, Listening, Responding): Zen buttons, badges and type around a waveform."><VoicePlayground /></ExamplePage>;

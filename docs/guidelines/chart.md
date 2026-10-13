@@ -14,6 +14,7 @@ One chart family in one style: how a value changes over time (Line), compares ac
 - 1–4 measures against the same maximum (budget used, goals) → RadialChart.
 - A value per day × hour, or any row × column grid → HeatmapChart.
 - Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.
+- A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.
 
 ## Use something else for
 - One number → Metric / MetricCard.
@@ -26,20 +27,20 @@ One chart family in one style: how a value changes over time (Line), compares ac
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition` | Accent/Solid 2px line + Accent area; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart) |
-| Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small |
+| Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched (Support/Neutral/Pale under Border/Neutral/Pale stripes); Corner-Radius/Small; horizontal bars end each row with its value instead of a Tooltip |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small |
-| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/3 figure) |
+| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/2 figure) |
 | Radial | `RadialChart data[] {id, label, value} · max · value · label · size · legendPosition` | 10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first |
 | Heatmap | `HeatmapChart rows · columns · values[row][column] · max · showLegend` | 24px cells on Support/Brand Pale · Subtle · Soft · Solid · Deep, Less → More scale |
 | Every chart | `aria-label · format · animate` | Draw-in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop); reduced motion fades; animate={false} turns it off |
 | Average | `LineChart · BarChart · StackBarChart showAverage` | A dotted Border/Neutral/Solid rule at the mean (the first series; closed bars, projected left out; column totals) with an "Avg $88.7K" tag in the Tooltip colours (Figma Show Average) |
-| Card | `ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/3 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card) |
+| Card | `ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card) |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/chart.json`.
 
 ### LineChart
-Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active) and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same chart plus one dashed Color Chart Sector/Primary line, both values in the Tooltip and a legend. ←/→, Home/End move between points.
+Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active) and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move between points.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -59,7 +60,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the line (not the comparison), tagged "Avg $95.4K" (Figma Show Average). |
 
 ### BarChart
-Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a category column, 24px bars and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
+Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -93,7 +94,7 @@ Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side paddin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the column totals, tagged "Avg 5.9K h" (Figma Show Average). |
 
 ### DonutChart
-Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim (a mask, so the card shows through), a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/3 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
+Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -151,7 +152,7 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline, not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. |
 | `icon` | `IconName \| ReactNode` | — | Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. |
 | `description` | `ReactNode` | — | One line under the title that says what the figure is ("Available revenue in your wallet"), Body/Small/Regular. |
-| `value` | `ReactNode` | — | The headline figure the chart explains ("$4,346.00"), Heading/3 like a medium Metric. |
+| `value` | `ReactNode` | — | The headline figure the chart explains ("$4,346.00"), Heading/2 (Figma Chart-Card Heading > Value). |
 | `onOpen` | `() => void` | — | Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. |
 | `openLabel` | `string` | — | Accessible name of the open button. Default: the locale's “Open report”. |
 | `ranges` | `SegmentedOption[]` | — | Figma Segmented (Secondary) range switch. |

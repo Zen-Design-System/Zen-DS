@@ -973,7 +973,8 @@
 .platform-ai-stage[data-style="liquid-glass"] { background: linear-gradient(160deg, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 0%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 55%, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 100%), var(--zen-color-background-canvas-default, #f7f7f7); }
 .platform-ai-stage .zen-ai-block { align-self: center; }
 
-.platform-chart-preview { width: min(345px, 100%); }
+/* The chart card at a dashboard tile's width (the Figma chart cards are 400–560 wide), never wider than the stage. */
+.platform-chart-preview { width: min(520px, 100%); }
 .platform-chart-preview__bare { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-chart-preview__bare .zen-segmented { width: 100%; }
 .pe-phone-scroll { height: 100%; overflow: auto; }

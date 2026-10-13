@@ -6448,7 +6448,8 @@
       "Shares of one total (2–7) → DonutChart.",
       "1–4 measures against the same maximum (budget used, goals) → RadialChart.",
       "A value per day × hour, or any row × column grid → HeatmapChart.",
-      "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards."
+      "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
+      "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
     ],
     "avoid": [
       "One number → Metric / MetricCard.",
@@ -6466,7 +6467,7 @@
       [
         "Bar",
         "BarChart data[] {label, value, projected, target} · orientation · color · activeColor",
-        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small"
+        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched (Support/Neutral/Pale under Border/Neutral/Pale stripes); Corner-Radius/Small; horizontal bars end each row with its value instead of a Tooltip"
       ],
       [
         "Stack bar",
@@ -6476,7 +6477,7 @@
       [
         "Donut",
         "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)",
-        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/3 figure)"
+        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/2 figure)"
       ],
       [
         "Radial",
@@ -6501,7 +6502,7 @@
       [
         "Card",
         "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/3 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
       ]
     ],
     "keyboard": [

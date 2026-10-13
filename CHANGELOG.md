@@ -53,7 +53,8 @@ removed (four unused colour ramps were, see Removed).
   own surface; like every chart they sit in Chart-Card's Content slot, so Theme, Surface and Color work on them. The
   AI kit for Figma no longer treats a standalone chart as a box (`theme/box-on-canvas`, `theme/mixed-elevation`).
 - Chart card value (2026-10-14, live Figma): the header's Value text is Heading/2 (25/32) on every chart; Line,
-  Stack-Bar, Donut, Radial and Multi-Line were still Heading/3 (22/28). No code change: `ChartCard` has no value yet.
+  Stack-Bar, Donut, Radial and Multi-Line were still Heading/3 (22/28). In code the `ChartCard` value and the
+  `DonutChart` total beside the ring (`totalPosition="start"`) are Heading/2 too (were Heading/3).
 - No gradient surfaces (2026-10-14, user): Card `theme="semi-pale"` is deprecated and renders as `pale` (it stays in
   the type, off the theme list). Figma dropped the Card Gradient and Semi-Pale themes and their styles, so
   `--zen-style-semi-pale-fill` and `.zen-fill-semi-pale` are gone from `style-effects.css`.
@@ -210,8 +211,8 @@ removed (four unused colour ramps were, see Removed).
   five Support/Brand steps, 2D keys). `LineChart` takes `compare` (the line chart plus one dashed comparison line and a
   legend, Figma Chart/Multi-Line-Chart); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
   and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
-  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean with an
-  "Avg" tag (Figma Show Average). DonutChart slices are parted by even, straight 4px gaps, and
+  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean (plain dots, no ring) with an
+  "Avg" tag (Figma Show Average). Horizontal bars end each row with its value instead of a Tooltip over the bars. DonutChart slices are parted by even, straight 4px gaps and have 4px round corners, and
   `totalPosition="start"` puts the total beside the ring above the legend. Stacked columns now take Corner-Radius/Small
   on every corner, like the bars; projected bars and target tracks take the Figma hatch (Support/Neutral/Pale under
   Border/Neutral/Pale stripes). Zen

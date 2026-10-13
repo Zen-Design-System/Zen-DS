@@ -29,9 +29,10 @@ function linePath(pts: readonly (readonly [number, number])[], curve: "smooth" |
   }).join(" ");
 }
 
-/** The line's Accent/Solid and the comparison's Neutral/Solid (Figma Multi-Line Legend and Compare, a neutral reference). */
-const LINE_COLOUR = "var(--zen-color-border-accent-solid-default, #ff66d4)";
-const COMPARE_COLOUR = "var(--zen-color-background-neutral-solid-default, #111)";
+/** The legend and Tooltip dots of the line and its comparison (the lines themselves are drawn in chart.css):
+ *  Background/Accent/Solid and Background/Neutral/Solid, as the user's Figma legend. */
+const LINE_SWATCH = "var(--zen-color-background-accent-solid-default, #ff66d4)";
+const COMPARE_SWATCH = "var(--zen-color-background-neutral-solid-default, #111)";
 
 export interface LineChartProps {
   /** One point per period (`{ label, value }`). Keep 4–12 periods. */
@@ -69,7 +70,7 @@ export interface LineChartProps {
  * Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a
  * dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)
  * and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same
- * chart plus one dashed Color Chart Sector/Primary line, both values in the Tooltip and a legend. ←/→, Home/End move
+ * chart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move
  * between points.
  */
 export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "gradient", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false }: LineChartProps) {
@@ -90,12 +91,12 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
   const current = active === null ? undefined : data[active];
   const position = current ? ` (${t.chartPoint(active! + 1, data.length)})` : "";
   const tooltip = !current ? null : compared
-    ? <SeriesValues items={[{ id: "value", color: LINE_COLOUR, value: format(current.value) }, { id: "compare", color: COMPARE_COLOUR, value: format(compared[active!]) }]} />
+    ? <SeriesValues items={[{ id: "value", color: LINE_SWATCH, value: format(current.value) }, { id: "compare", color: COMPARE_SWATCH, value: format(compared[active!]) }]} />
     : format(current.value);
   const summary = !current ? t.noData : compared
     ? `${current.label}: ${name} ${format(current.value)}, ${compare!.label} ${format(compared[active!])}${position}`
     : `${current.label}: ${format(current.value)}${position}`;
-  const legend = compare && showLegend ? <ChartLegend items={[{ id: "value", label: name, color: LINE_COLOUR }, { id: "compare", label: compare.label, color: COMPARE_COLOUR }]} /> : undefined;
+  const legend = compare && showLegend ? <ChartLegend items={[{ id: "value", label: name, color: LINE_SWATCH }, { id: "compare", label: compare.label, color: COMPARE_SWATCH }]} /> : undefined;
   const mean = showAverage ? meanOf(values) : undefined;
   return (
     <ChartBlock kind="line" legend={legend} position={legendPosition}>
@@ -196,7 +197,7 @@ export interface ChartCardProps {
   icon?: IconName | ReactNode;
   /** One line under the title that says what the figure is ("Available revenue in your wallet"), Body/Small/Regular. */
   description?: ReactNode;
-  /** The headline figure the chart explains ("$4,346.00"), Heading/3 like a medium Metric. */
+  /** The headline figure the chart explains ("$4,346.00"), Heading/2 (Figma Chart-Card Heading > Value). */
   value?: ReactNode;
   /** Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. */
   onOpen?: () => void;
@@ -242,7 +243,7 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
             {onOpen ? nest("Open", <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} />) : null}
           </div>
           {description ? <p className={`zen-chart-card__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
-          {value !== undefined && value !== null && value !== false ? <p className={`zen-chart-card__value ${typographyStyles["Heading/3"]}`}>{value}</p> : null}
+          {value !== undefined && value !== null && value !== false ? <p className={`zen-chart-card__value ${typographyStyles["Heading/2"]}`}>{value}</p> : null}
         </div>
         {ranges?.length ? nest("Ranges", <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} />) : null}
         <EmptyStateCardContext.Provider value={headingLevel}>{nest.slot(children)}</EmptyStateCardContext.Provider>

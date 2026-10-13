@@ -391,3 +391,13 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
   resting mouse hovered the first sector — the test wrapper now has pointer-events: none. Merged main (#35) again.
 - 2026-10-13 (the user): Multi-Line's comparison at 40% and dash 4 / 5 (their edit on the cover instance) → moved into
   the main component 15426:2663, instance override cleared; chart.css `stroke-opacity: .4; stroke-dasharray: 4 5`.
+- 2026-10-13 (the user): the average line loses its white ring — chart.css plain dots; Figma `Rule-Ring` deleted in
+  Bar (both), Multi-Line, Line-Chart, Stack-Bar. Branch zen/fix/chart-average-dots (after #33 merged as f3b0e05).
+- 2026-10-13 (the user): horizontal bars' Tooltip covered the bars → a value column (all rows, active Strongest); the
+  down Average tag gets a centred 10 × 6 tip and rounded corners (code + Figma); the chart playground covers all 7
+  kinds with Compare / Average toggles at 520px (was Line / Stack at 345px).
+- 2026-10-13 (the user): the comparison line and dot → Color/Border/Neutral/Solid (not the Sector style); moved into the
+  Multi-Line main, cover instance cleared; code COMPARE_COLOUR = border-neutral-solid. Memory note: the exception.
+- 2026-10-13 (the user): donut slices 4px round corners (code: rounded sector paths, sweep mask; Figma: Slice booleans
+  flattened, cornerRadius → Corner-Radius/XSmall); Multi-Line legend/Tooltip dots = Background/Accent/Solid and
+  Background/Neutral/Solid (their Figma edit); the phone example drops its Chart Card (one main chart on a phone).
