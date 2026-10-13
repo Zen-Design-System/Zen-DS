@@ -35,8 +35,8 @@ export type ChartLegendPosition = "top" | "bottom" | "start" | "end";
 /** The Figma colour styles "Color Chart Sector/Primary … Septenary", in order: Chart/Sector/Primary, Chart/Sector/Secondary,
  *  Support Cyan, Violet, Yellow and Orange Solid, Support Red Soft. Figma paints chart marks with those styles. */
 export const chartPalette = [
-  "var(--zen-chart-sector-primary, #111)",
-  "var(--zen-chart-sector-secondary, #ff66d4)",
+  "var(--zen-chart-sector-primary, #ff66d4)",
+  "var(--zen-chart-sector-secondary, #111)",
   "var(--zen-color-background-support-cyan-solid, #21b8d8)",
   "var(--zen-color-background-support-violet-solid, #7a5af8)",
   "var(--zen-color-background-support-yellow-solid, #f5b800)",

@@ -55,7 +55,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line.",
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take, which scrolls while\n recording and holds still when paused (still under reduced motion); Ready: a flat line. Yours are drawn as given:\n push one level every 1/7 s and drop the oldest for the same 8-second window.",
           "deprecated": null
         },
         {
@@ -208,7 +208,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7).",
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio.\n Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding\n (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing.",
           "deprecated": null
         },
         {
@@ -216,7 +216,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Mute (the left action, a toggle; off until the conversation starts).",
+          "description": "Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal\n rests while listening, and the guidance and note say the microphone is muted.",
           "deprecated": null
         },
         {

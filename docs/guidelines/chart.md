@@ -25,7 +25,7 @@ One chart family in one style: how a value changes over time (Line), compares ac
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition` | Accent/Solid 2px line + Accent area; compare: a 2px Color Chart Sector/Primary line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart) |
+| Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition` | Accent/Solid 2px line + Accent area; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart) |
 | Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small |
 | Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/3 figure) |
@@ -45,7 +45,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | --- | --- | --- | --- |
 | `data` (required) | `ChartPoint[]` | — | One point per period (`{ label, value }`). Keep 4–12 periods. |
 | `label` | `string` | — | What the line measures ("Invoiced"), named in the legend and the summary once there is a `compare`. Default: the aria-label. |
-| `compare` | `ChartCompare` | — | A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. |
+| `compare` | `ChartCompare` | — | A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. |
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)` | Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. |
 | `height` | `number` | `280` | Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). |
@@ -158,7 +158,7 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `range` | `string` | — |  |
 | `onRangeChange` | `(id: string) => void` | — |  |
 | `rangesFullWidth` | `boolean` | `true` | The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale" \| "on-container"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
 | `surface` | `"default" \| "alt"` | — |  |
 | `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |

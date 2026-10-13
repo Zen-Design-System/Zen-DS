@@ -295,6 +295,9 @@ export type ZenLabels = {
   voiceEnd: string;
   voiceMicOffNote: string;
   voiceConnectedNote: string;
+  /** Listening with the microphone muted: the guidance line and the note. */
+  voiceMutedGuidance: string;
+  voiceMutedNote: string;
   playVoiceMessage: string;
   pauseVoiceMessage: string;
   voiceReadyToPlay: string;
@@ -534,6 +537,8 @@ const en: ZenLabels = {
   voiceEnd: "End",
   voiceMicOffNote: "Your microphone stays off until you start.",
   voiceConnectedNote: "Voice conversation · Microphone connected",
+  voiceMutedGuidance: "Your microphone is muted. Unmute to keep talking.",
+  voiceMutedNote: "Voice conversation · Microphone muted",
   playVoiceMessage: "Play voice message",
   pauseVoiceMessage: "Pause voice message",
   voiceReadyToPlay: "Ready to play",
@@ -769,6 +774,8 @@ const vi: ZenLabels = {
   voiceEnd: "Kết thúc",
   voiceMicOffNote: "Micro của bạn vẫn tắt cho đến khi bạn bắt đầu.",
   voiceConnectedNote: "Trò chuyện bằng giọng nói · Đã kết nối micro",
+  voiceMutedGuidance: "Micro đang tắt tiếng. Bật lại để nói tiếp.",
+  voiceMutedNote: "Trò chuyện bằng giọng nói · Micro đang tắt tiếng",
   playVoiceMessage: "Phát tin nhắn thoại",
   pauseVoiceMessage: "Tạm dừng tin nhắn thoại",
   voiceReadyToPlay: "Sẵn sàng phát",

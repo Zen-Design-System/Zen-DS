@@ -9,8 +9,9 @@ import "./chat-reply.css";
 import "../Icon/core";
 
 /**
- * Reply to a message (no Figma set yet — composed from Zen tokens and the Chat primitives, following the common
- * pattern of Messenger / iMessage / WhatsApp / Slack):
+ * Reply to a message (composed from Zen tokens and the Chat primitives, following the common pattern of Messenger /
+ * iMessage / WhatsApp / Slack; built back into Figma from this code on 2026-10-13, page ❖ Chat › Chat Reply:
+ * Chat/Reply/Quote 15467:1661 (Side × Kind), Chat/Conversation/Reply 15468:1658, Chat/Composer-Reply 15469:1669):
  * - the composer shows a "Replying to …" bar above the field (Escape or × cancels);
  * - the sent reply carries a quote above its bubble — "Ava replied to you" + a muted preview of the original —
  *   and pressing the quote jumps to the original message and flashes it. The quote of a deleted message is plain
@@ -87,14 +88,18 @@ export function chatReplySummary(target: ChatReplyTarget, labels?: Partial<ChatR
   }
 }
 
-/** Shared body of the quote and the composer bar: leading icon / file Dock Icon · summary · trailing photo thumb. */
-function ChatReplyBody({ target, lines = 1 }: { target: ChatReplyTarget; lines?: 1 | 2 }) {
+/**
+ * Shared body of the quote and the composer bar: leading icon / file Dock Icon · summary · trailing photo thumb.
+ * `dock` is the file Dock Icon's size: XSmall in the quote, Small (drawn at 2/3 by chat-reply.css) in the composer bar,
+ * as Figma Chat/Reply/Quote and Chat/Composer-Reply.
+ */
+function ChatReplyBody({ target, lines = 1, dock = "xsmall" }: { target: ChatReplyTarget; lines?: 1 | 2; dock?: "xsmall" | "small" }) {
   const t = useZenLabels();
   const summary = chatReplySummary(target, t);
   return (
     <>
       {summary.thumb ? <img className="zen-chat-reply__thumb" src={summary.thumb.src} alt="" loading="lazy" /> : null}
-      {summary.file ? <DockIcon size="xsmall" theme={fileTheme[summary.file]} background={summary.file === "other" ? "subtle" : "solid"} icon={fileIcon[summary.file]} /> : null}
+      {summary.file ? <DockIcon size={dock} theme={fileTheme[summary.file]} background={summary.file === "other" ? "subtle" : "solid"} icon={fileIcon[summary.file]} /> : null}
       {summary.icon ? <span className="zen-chat-reply__glyph" aria-hidden="true"><Icon name={summary.icon} size="sm" decorative /></span> : null}
       <span className={`zen-chat-reply__text ${typographyStyles["Body/Small/Regular"]}`} data-lines={lines} data-deleted={target.kind === "deleted" ? "true" : undefined}>{summary.text}</span>
     </>
@@ -150,7 +155,7 @@ export function ChatComposerReply({ target, onCancel }: { target: ChatReplyTarge
     <div className="zen-chat-composer-reply" role="status" aria-live="polite">
       <span className="zen-chat-composer-reply__body">
         <span className={`zen-chat-composer-reply__title ${typographyStyles["Body/Small/Medium"]}`}>{label}</span>
-        <span className="zen-chat-composer-reply__preview"><ChatReplyBody target={target} /></span>
+        <span className="zen-chat-composer-reply__preview"><ChatReplyBody target={target} dock="small" /></span>
       </span>
       {onCancel ? <IconButton appearance="flat" level="primary" size="sm" aria-label={t.cancelReply} onClick={onCancel} icon={<Icon name="icon-x-small-line" />} /> : null}
     </div>

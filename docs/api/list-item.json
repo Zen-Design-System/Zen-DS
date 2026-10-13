@@ -55,7 +55,7 @@
     {
       "name": "ListItem",
       "file": "src/components/ListItem/ListItem.tsx",
-      "description": "Figma List-Item (4080:11700): a Wrapper row (gap Medium) of Leading · Contents · Trailing, padded Spacing/Padding/Small\n(12px) above and below and nothing at the sides (one set for every device; Contents = Info-Content, Title and\nSubtitle Spacing/Gap/3XSmall apart).\n- Interactive=Yes (onClick or href): an Interactive-Background Padding/Small (12px) outside the content on every side —\n  the row's height, 12px past it sideways (Interactive-List-Item-Radius: Corner-Radius/Base 12px on desktop, Large 16px\n  on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the\n  container leaves at least 12px at the row's sides.\n- Interactive=No (neither): no background or states.\nNever add padding to the row: the layout around the List decides where it sits.",
+      "description": "Figma List-Item (4080:11700): a Wrapper row (gap Medium) of Leading · Contents · Trailing, padded Spacing/Padding/Small\n(12px) above and below and nothing at the sides (one set for every device; Contents = Info-Content, Title and\nSubtitle Spacing/Gap/3XSmall apart).\n- Interactive=Yes (onClick or href): an Interactive-Background Padding/Small (12px) outside the content on every side —\n  the row's height, 12px past it sideways (Interactive-List-Item-Radius: Corner-Radius/Base 12px on desktop, Large 16px\n  on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the\n  container leaves at least 12px at the row's sides.\n- Interactive=No (neither): no background or states.\n- Value (`value`, `valueCaption`): a right-aligned Info-Content after the title stack, Body/Base/Bold over\n  Body/Small/Regular Content/Neutral/Light, Spacing/Gap/3XSmall apart, tabular figures; it keeps its width and the title\n  truncates (a transaction or a total per row).\nNever add padding to the row: the layout around the List decides where it sits.",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"onClick\">",
       "props": [
@@ -100,11 +100,35 @@
           "deprecated": null
         },
         {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A value at the row's end, read with the title: an amount, a total, a count (\"+94,860,000 VND\", \"92 h\"). Body/Base/Bold\n like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second\n Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's\n button or link, so a clickable row reads it out.",
+          "deprecated": null
+        },
+        {
+          "name": "valueCaption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another\n currency, a date, a unit (\"3,600.00 USD\").",
+          "deprecated": null
+        },
+        {
+          "name": "valueTone",
+          "type": "ContentTone",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "Colour of `value`, a Color/Content tone as Text's `tone`: \"strongest\" (default, like the title); \"positive-light\" /\n \"negative-light\" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too:\n the colour never carries the meaning alone.",
+          "deprecated": null
+        },
+        {
           "name": "trailing",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron.",
+          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`.",
           "deprecated": null
         },
         {
@@ -376,5 +400,7 @@
       ]
     }
   ],
-  "types": {}
+  "types": {
+    "ContentTone": "type ContentTone = (typeof contentTones)[number]"
+  }
 }
