@@ -66,10 +66,16 @@ Nothing of the new concept is built in Figma yet.
   - Slide anatomy (auto layout, ready for HTML): frame 1920×1080, padding 44/84/40/84 → Paper (absolute) · Header ·
     Main (Text column 820, gap 28: Note, Title, Deck, Rule, Points; Figure: Photo 846×640 rotated −1.2° + Clip + Caption)
     · Footer · Stamp (absolute). Keep points ≤ 45 characters and captions under a stamp ≤ 45 characters.
-  - Superseded newspaper concept kept for reference at y = 40000: `_Old · Newspaper template`, `_Old · 00 · Opening
-    (newspaper)`, `_Old · Lesson 01 (newspaper)`, styles `Báo/*`. Delete when the user agrees.
-- Placement: one section per lesson (`y = row × 1500`), slides at `x = 80 + i × 2800`, `y = 140`; the keynote is a
-  GROUP (card rectangle + texts, not a frame, so it never becomes a presentation frame) 720 wide, 60 right of its slide.
+  - The superseded newspaper sections are gone from the file (removed by the user, 2026-10-13); the `Báo/*` text
+    styles remain unused.
+- Placement: one section per lesson, rows 2600 apart (`y = row × 2600`; 00 · Opening row 0, Lesson 01 row 1), slides
+  at `x = 80 + i × 3200`, `y = 140`; section size = content + 80 right / 140 bottom.
+- Keynote (user, 2026-10-13: "note nội dung giảng nên chi tiết hơn"): a GROUP (card rectangle + texts, not a frame, so
+  it never becomes a presentation frame), 1040 wide, 60 right of its slide, height by content (≥ 1080, ~1100–1500).
+  Head `Keynote · NNN · Name`, `Thời lượng: …`, typed rule, then sections (heading in `Typed/Keynote Head`, text in
+  `Typed/Keynote`): Mục tiêu trang · Lời giảng (a speakable script with one running example) · Minh hoạ / Ví dụ ·
+  Lỗi hay gặp · Hỏi lớp / Hoạt động (with minutes) · Chuyển ý (one line into the next page). Exercise pages: Hướng dẫn
+  (timed steps), Tiêu chí, Lỗi hay gặp, Nộp bài, Review buổi sau.
 
 ## Zen keys (ZEN Kaiz Official-Sep2026)
 

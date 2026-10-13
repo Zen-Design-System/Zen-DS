@@ -276,3 +276,6 @@
   version archived at y = 40000. Overflow/overlap audit clean. Node ids and anatomy in the deck HANDOFF.md.
 - Repo: `.claude/settings.json` allows `mcp__Figma` (asks for `generate_image`) and two read-only session lookups.
   The Bohemian TTF stays out of git (non-commercial licence, public repo).
+- 2026-10-13: keynotes for pages 1–9 rewritten as detailed teaching scripts (goal, script with a running example,
+  common mistakes, timed activity, class questions, transition); cards 1040 wide, slides re-spaced to 3200, rows to
+  2600. Structure recorded in the deck HANDOFF.md.
