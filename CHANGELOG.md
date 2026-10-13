@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- A Badge keeps its width in a row (it shrank to its 28px minimum beside long text, so examples had to pin it), and a
+  Text or Heading that takes focus after an action (tabIndex -1) draws the focus ring with room around its words.
+- The examples lost 107 of their last 219 classNames: their frames (an app window, a page on the Canvas, a desktop
+  chat window) are platform components now (`src/platform/PlatformFrames.tsx`), the rest Zen props. Pages look the
+  same (visual diff, 760 panels).
 - Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
   and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
 - Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
@@ -61,6 +66,12 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- Grid `stackBelow={640}`: one column while the Grid itself is narrower than 640px (a side column in a narrow card or
+  window), whatever the breakpoint. Stack and Box `scroll="y" | "x"`: Figma's Overflow scrolling (it clips, and the
+  scroll stays inside). Box `surface="canvas"` for a whole screen drawn inside something else. Text and Heading
+  `wrap={false}` (one line, Figma Auto width) and `tabularNumbers` (Figma Numbers: Tabular). Unset, each renders nothing
+  new. Zen Studio → Figma pushes and pulls them (a Box's surface as its Color/Background fill, scroll as Overflow
+  scrolling, maxHeight as Max height; Numbers: Tabular is read back, the plugin API cannot set it).
 - Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
   and Max width on the instance): a card can fill its column up to a readable width and centre itself without a
   className. Unset, they render nothing new. The push to Figma writes them on the instance and a pull reads them back.

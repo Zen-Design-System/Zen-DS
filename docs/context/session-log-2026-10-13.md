@@ -35,3 +35,31 @@
 - Left (BACKLOG, the user's call): 27 container-query layouts (a Grid API), docs-only details and mixed colour /
   display rules, which stay platform CSS. classNames now 260.
 
+
+## Examples' last classNames: Layout / Text props and docs frames (P5; branch zen/feat/examples-classnames, tier L)
+
+- User: "Xử lý hết" (the 27 container-query layouts and the rest), then chose all four answers: Text wrap /
+  tabularNumbers, Stack/Box scroll, Box surface="canvas", and "no more API, another way" for the rest (docs frames
+  become platform components).
+- Library: Grid `stackBelow` (useStackBelow measures the Grid's own width with a ResizeObserver; `data-stacked`), Stack /
+  Box `scroll` (`data-scroll`, overscroll contained), Box `surface="canvas"` (zen-allow-canvas-layer), Text / Heading
+  `wrap` and `tabularNumbers`, a focus ring for Text with tabIndex -1, Badge `flex-shrink: 0`. Tests:
+  tests/interaction/layout-text-props.test.tsx.
+- Studio ↔ Figma: Box surface ↔ Color/Background fill, scroll ↔ Overflow scrolling (+ clip), maxHeight ↔ Max height,
+  wrap={false} → Auto width, tabularNumbers ← TNUM (one note on push: a plugin cannot set it), stackBelow → one column
+  where the push knows the width; Box frames no longer get a md gap. Pull fixes met: a Figma grid's gap (gridColumnGap)
+  read as none; a layout frame's maxWidth dropped. Plugin 6b823d2 (scroll, max height, auto width, a stale variable fill
+  cleared). Live: Studio exports frame 15417:3, pushed and pulled back. Spec §8 "P5".
+- Examples: 219 → 112 classes. Frames → src/platform/PlatformFrames.tsx (PreviewAppFrame, PreviewWindow, PreviewPage,
+  PreviewShell / ShellMain, ShellPage, StudioLogo / StudioMark, PhoneToastHost) and ChatWindow / ChatWindowList /
+  ChatWindowMain / ChatWindowSplit (PlatformChatDesktopShowcases.tsx; ThreadHeader takes a group avatar). Values in
+  captions keep whole with no-break spaces instead of a nowrap span.
+- Visual diff (worktree server :5195, 55 pages, 760 panels): identical except sub-pixel text shaping where NBSP replaced
+  the nowrap spans (layout captions) and antialiasing noise (gone at tolerance 6). Mistakes caught by it and undone:
+  `ch` widths turned into px (ch follows the typography mode: 12/14/16px), a dead `width: 112px` class whose removal
+  narrowed a NumberField, a flex-basis that may shrink (date-picker) turned into minWidth. The gate's density audit
+  caught `6.5rem` → 104px (2px overflow at Comfortable); min-heights on tokens that change by mode (Badge size, line
+  heights, button size) went back to CSS too.
+- Left (BACKLOG): page-margin and per-side padding, component internals, Skeleton / `ch` widths, media, bespoke
+  responsive rules.
+- Gate: `npm run qa -- --isolated --files=…`; browser tests 620 passed; studio, layout, usage, MCP selftests pass.
