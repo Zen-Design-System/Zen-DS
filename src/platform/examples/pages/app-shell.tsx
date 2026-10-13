@@ -37,6 +37,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, ShellPage, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
   activity, daysFromToday, files, formatBytes, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRelative, formatTime, initials,
   invoiceStatusTheme, invoices, me, people, peopleList, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
@@ -44,7 +45,6 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./app-shell.css";
 
 export const page: PlatformPage = "app-shell";
 
@@ -61,13 +61,15 @@ const taskWhen = (task: Task) => (task.status === "Done" ? `Done ${formatDay(tas
     the object stays whole, so no line ends on a dot and no time or date splits; on a narrow page an unread row leads
     with New, since its Badge steps aside there. */
 const wholeDates = (text: string) => text.split(/([A-Z][a-z]{2} \d{1,2}(?: – [A-Z][a-z]{2} \d{1,2})?, \d{4})/).map((part, index) => (
-  index % 2 ? <span key={index} className="px-app-shell-value">{part}</span> : part
+  index % 2 ? whole(part) : part
 ));
+/** A run of words that never breaks: its spaces are no-break spaces. */
+const whole = (text: string) => text.replace(/ /g, "\u00a0");
 /** Where a notification leads: the invoice list, the profile (leave), or the projects the task belongs to. */
 const notificationTarget = (item: { verb: string; object: string }): "invoices" | "profile" | "projects" =>
   /^INV-/.test(item.object) ? "invoices" : /leave/.test(item.verb) ? "profile" : "projects";
 const activityCaption = (item: { verb: string; object: string; at: Date }, leadNew = false) => (
-  <>{leadNew ? "New ·\u00a0" : null}{wholeDates(`${item.verb[0].toUpperCase()}${item.verb.slice(1)} ${item.object}`)}{" "}<span className="px-app-shell-value">{`· ${formatRelative(item.at)}`}</span></>
+  <>{leadNew ? "New ·\u00a0" : null}{wholeDates(`${item.verb[0].toUpperCase()}${item.verb.slice(1)} ${item.object}`)}{" "}{whole(`· ${formatRelative(item.at)}`)}</>
 );
 
 /** The width of an element, kept current: tables fold their columns when the page beside the Sidebar gets narrow. */
@@ -84,21 +86,21 @@ function useWidth() {
 }
 
 /** A fixed-height app window: the AppShell fills it, and its drawer (below 1024px) covers the window. */
-function AppFrame({ children }: { children: ReactNode }) {
-  return <div className="px-app-shell-frame"><div className="px-app-shell-frame__scroll">{children}</div></div>;
+function AppFrame({ windowWidth, children }: { windowWidth?: number; children: ReactNode }) {
+  return <PreviewAppFrame windowWidth={windowWidth}>{children}</PreviewAppFrame>;
 }
 
 /** The page beside the Sidebar: Container keeps the page margin; one h1 (the PageHeader), then the content xl apart. */
 // maxWidth "full": a page whose content is a non-widget Table spans the page (user rule 2026-10-03); Home and the other pages keep lg.
 function Page({ children, pageRef, maxWidth }: { children: ReactNode; pageRef?: (element: HTMLElement | null) => void; maxWidth?: "lg" | "full" }) {
-  return <Container ref={pageRef} maxWidth={maxWidth}><Stack gap="xl" className="px-app-shell-page">{children}</Stack></Container>;
+  return <ShellPage pageRef={pageRef} maxWidth={maxWidth}>{children}</ShellPage>;
 }
 
 /* The studio's mark and name. The logo slot is 24px high (20px in Small-Density): the mark is an image that fills it. */
-const studioLogo = <span className="px-app-shell-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>;
+const studioLogo = <StudioLogo src={studio.logo} name={studio.name} />;
 const studioMark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
-const denseLogo = <span className="px-app-shell-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Small/Bold">{studio.name}</Text></span>;
-const denseMark = <img className="px-app-shell-mark" src={studio.logo} alt={studio.name} />;
+const denseLogo = <StudioLogo src={studio.logo} name={studio.name} textStyle="Body/Small/Bold" />;
+const denseMark = <StudioMark src={studio.logo} name={studio.name} />;
 
 type CardTheme = "shadow" | "border";
 
@@ -150,13 +152,13 @@ function useAccount(go: (page: "profile" | "settings") => void) {
       primaryAction={{ label: "Sign out", onClick: () => { setConfirming(false); setSignedOut(true); } }} secondaryAction={{ label: "Cancel" }} />
   );
   const screen = signedOut ? (
-    <Stack align="center" justify="center" gap="md" padding="xl" className="px-app-shell-signed-out">
+    <Box surface="canvas" height="fill"><Stack align="center" justify="center" gap="md" padding="xl" height="fill">
       <Stack align="center" gap="xs">
         <Heading level={1} textStyle="Heading/1" align="center">You’re signed out</Heading>
         <Text tone="base" align="center">{`Sign in to get back to ${studio.name}.`}</Text>
       </Stack>
       <Button level="primary" onClick={() => setSignedOut(false)}>Sign in</Button>
-    </Stack>
+    </Stack></Box>
   ) : null;
   return { menu, dialog, screen };
 }
@@ -301,7 +303,7 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
   );
   return (
     <>
-      {narrowWindow ? <div className="px-app-shell-window"><AppFrame>{shell}</AppFrame></div> : <AppFrame>{shell}</AppFrame>}
+      <AppFrame windowWidth={narrowWindow ? 744 : undefined}>{shell}</AppFrame>
       {account.dialog}
       <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New project" field={{ kind: "name", label: "Project name", placeholder: "Saola trail guide" }}
         submitLabel="Create project" confirm={(name) => `${name} created`}

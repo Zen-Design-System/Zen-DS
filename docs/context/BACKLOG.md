@@ -8,6 +8,22 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Studio ↔ Figma P6b: round trip by push key (2026-10-13, needs the user's approval):** P6 (spec §8) fixed what
+  pulls lose part by part. Still lost on a pull, as code-only detail:
+  - Container / Box / Form come back as Stack.
+  - ListItem `titleLines`.
+  - Chip popoverItems, tooltips and aria.
+  Proposal: the reader reads the push's key (shared plugin data), the pull uses it as the element id, and Studio keeps
+  the pushed page as the base. "Update from Figma" then changes only what the designer edited. Session log 2026-10-13
+  "P6".
+- **P2 · Examples' last 112 classNames (2026-10-13, branch zen/feat/examples-classnames):** P1–P5 of the Studio → Figma
+  coverage are done (spec §8). What is left has no Zen prop, so it waits for the user: (1) padding on the page-margin
+  token (Figma Margin/Comfortable: 24, 20 on a phone) and per-side padding (Figma auto layout has both): ai-chat,
+  bottom-navigation safe area, checkbox indent; (2) component internals: Table min-width, ProgressBar label width,
+  Toggle width, a Card's content filling its height, SidePanel height when docked, Segmented hug; (3) Skeleton widths,
+  `ch` / rem widths and min-heights on mode tokens (Badge size, line heights); (4) media (img / video / photo buttons);
+  (5) bespoke responsive rules (divider zoom group, search split borders, image channels, visually-hidden site header).
+  Session log 2026-10-13 "P5".
 - **P2 · Chart family in Studio Export › Figma (2026-10-12, unblocked 2026-10-13):** map `BarChart`, `DonutChart`,
   `RadialChart`, `HeatmapChart` and series `LineChart` in `tools/studio/figma-push.mjs` (SETS / CHART_SETS) to Figma
   Chart/Bar-Chart 15321:84071, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart
@@ -16,13 +32,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   importer in the Zen file (memory: test in real Figma). Needs the user's go-ahead (new scope).
 - **P3 · Chart family Figma contracts (2026-10-12):** capture `docs/figma-contracts/chart-*.json` for the five new sets
   (`tools/figma-contract/mcp-capture`) and add parity suites, so a later Figma edit is caught like the other components.
-- **P1 · Studio → Figma coverage, P4 (user approved 2026-10-12; P1–P3 done, branch zen/feat/figma-map-p3 2026-10-13):**
-  P3 mapped TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat (ChatThread,
-  reactions, read list), FileIcon, Flag, icon sizes and fixed Metric (spec §8 "P3"). P4 (examples' raw HTML and
-  className): Card and ListBox took width / minWidth / maxWidth / alignSelf (user, 2026-10-13) and the sizing classNames
-  became props. Left, waiting for the user: container-query layouts (27 uses: Grid columns that stack below a width of
-  their own — needs a Grid API), and className rules for colour, display and docs-only details (focus targets, video,
-  tabular numbers), which stay platform CSS. The chart family belongs to session "Chart components với animation".
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /

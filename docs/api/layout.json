@@ -171,6 +171,14 @@
           "deprecated": null
         },
         {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls the content vertically, `\"x\"` sideways, inside the stack's own box (it\nneeds a height or a maxHeight for `\"y\"`, a width for `\"x\"`); the scroll stays inside (overscroll-behavior: contain).",
+          "deprecated": null
+        },
+        {
           "name": "fillChildren",
           "type": "boolean",
           "required": false,
@@ -385,6 +393,14 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment of cells. Default stretch (equal-height cards).",
+          "deprecated": null
+        },
+        {
+          "name": "stackBelow",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint:\na two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it.",
           "deprecated": null
         },
         {
@@ -614,10 +630,18 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\"",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
           "default": "\"none\"",
-          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or\nContainer (modals and sheets use Dialog / BottomSheet).",
+          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the\npage itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never\nfor a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).",
+          "deprecated": null
+        },
+        {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside).",
           "deprecated": null
         },
         {

@@ -150,7 +150,7 @@ function SecurityChecks() {
           <Heading ref={titleRef} level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Workspace security</Heading>
           <Text textStyle="Caption/Regular" tone="light">Checked today at 6:00 am</Text>
         </Stack>
-        <Stack ref={listRef} as="ul" gap="md" aria-labelledby={titleId} className="px-text-checks">
+        <Stack ref={listRef} as="ul" gap="md" aria-labelledby={titleId}>
           {checks.map((check) => (
             // The icon takes the text's colour and its own shape, so colour is never the only signal. The fix sits
             // under its own line, aligned with the words.
@@ -158,7 +158,7 @@ function SecurityChecks() {
               <Text as="span" tone={check.tone} className="px-text-icon"><Icon name={check.icon} size="sm" decorative /></Text>
               <Stack gap="xs" width="fill">
                 <Text as="span" tone={check.tone}>{check.text}</Text>
-                {check.action ? <Button level="tertiary" size="sm" className="px-text-start" onClick={check.action.onClick}>{check.action.label}</Button> : null}
+                {check.action ? <Stack align="start"><Button level="tertiary" size="sm" onClick={check.action.onClick}>{check.action.label}</Button></Stack> : null}
               </Stack>
             </Stack>
           ))}
@@ -214,9 +214,9 @@ function CommentItem({ comment }: { comment: Comment }) {
         {/* Clamped, the whole comment stays in the DOM, so a screen reader still reads it in full. */}
         <Text ref={textRef} id={textId} truncate={expanded ? undefined : 3}>{comment.text}</Text>
         {overflow || expanded ? (
-          <Button level="tertiary" size="sm" className="px-text-start" aria-expanded={expanded} aria-controls={textId} onClick={() => setExpanded(!expanded)}>
+          <Stack align="start"><Button level="tertiary" size="sm" aria-expanded={expanded} aria-controls={textId} onClick={() => setExpanded(!expanded)}>
             {expanded ? "Show less" : "Show more"}
-          </Button>
+          </Button></Stack>
         ) : null}
       </Stack>
     </Stack>
@@ -232,7 +232,7 @@ function Comments() {
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Comments</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">PHIN-214 · Design the points history screen</Text>
         </Stack>
-        <Stack as="ul" gap="md" aria-labelledby={titleId} className="px-text-checks">
+        <Stack as="ul" gap="md" aria-labelledby={titleId}>
           {comments.map((comment) => <CommentItem key={comment.id} comment={comment} />)}
         </Stack>
       </Stack>

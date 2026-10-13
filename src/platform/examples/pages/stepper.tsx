@@ -112,7 +112,7 @@ function NewProjectExample() {
           {created ? (
             <Stack gap="md">
               <Stack gap="xs">
-                <Heading ref={headingRef} tabIndex={-1} className="px-stepper-focus-target" level={4} textStyle="Heading/Subheading">Project created</Heading>
+                <Heading ref={headingRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">Project created</Heading>
                 <Text textStyle="Body/Base/Regular" tone="base">{`${draft.name} for ${draft.client} is now in Projects, with a ${formatMoney(budgetOf(draft.budget))} budget.`}</Text>
               </Stack>
               {/* A lone card action that is not a form sits on the right, like FormActions. */}
@@ -123,7 +123,7 @@ function NewProjectExample() {
           ) : (
             <Form onSubmit={next}>
               <Stack gap="md">
-                <Heading ref={headingRef} tabIndex={-1} className="px-stepper-focus-target" level={4} textStyle="Heading/Subheading">{stepHeadings[current]}</Heading>
+                <Heading ref={headingRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">{stepHeadings[current]}</Heading>
                 {current === 0 ? (
                   <Grid minColumnWidth={240} columnGap="lg" rowGap="md">
                     <SelectField label="Client" options={clientOptions} value={draft.client} onValueChange={(value) => edit("client", value)} />
@@ -208,7 +208,7 @@ function FailedCheckExample() {
     <Card theme="flat" as="section" aria-label="Import time entries">
       <Stack ref={contentRef} gap="md">
         <Stack gap="xs">
-          <Heading ref={titleRef} tabIndex={-1} className="px-stepper-focus-target" level={4} textStyle="Heading/Subheading">Import time entries</Heading>
+          <Heading ref={titleRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">Import time entries</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">{IMPORT_FILE}</Text>
         </Stack>
         <Stepper aria-label="Timesheet import" orientation={orientation} steps={steps} current={current} />
@@ -222,7 +222,7 @@ function FailedCheckExample() {
             </InlineMessage>
           )
         ) : (
-          <Text ref={statusRef} tabIndex={-1} className="px-stepper-focus-target" role="status" textStyle="Body/Base/Regular" tone="base">
+          <Text ref={statusRef} tabIndex={-1} role="status" textStyle="Body/Base/Regular" tone="base">
             {phase === "importing" ? `Importing ${plural(IMPORT_ROWS, "entry", "entries")}…` : `${plural(IMPORT_ROWS, "entry", "entries")} added to Loyalty app.`}
           </Text>
         )}
@@ -277,7 +277,7 @@ function InvoiceApprovalExample() {
         </Stepper>
         {/* The card's one action sits on the right, like FormActions. */}
         {approved
-          ? <Text ref={statusRef} tabIndex={-1} className="px-stepper-focus-target" role="status" textStyle="Body/Base/Regular" tone="base">{`Waiting for ${people.mai.name} in Finance.`}</Text>
+          ? <Text ref={statusRef} tabIndex={-1} role="status" textStyle="Body/Base/Regular" tone="base">{`Waiting for ${people.mai.name} in Finance.`}</Text>
           : <Stack direction="row" justify="end"><Button ref={approveRef} level="primary" onClick={approve}>Approve invoice</Button></Stack>}
       </Stack>
     </Card>
@@ -513,7 +513,7 @@ function NewHireOnboardingExample() {
         {scheduled ? (
           <Stack gap="md">
             <Stack gap="xs">
-              <Heading ref={headingRef} tabIndex={-1} className="px-stepper-focus-target" level={4} textStyle="Heading/Subheading">Tam is ready for Monday</Heading>
+              <Heading ref={headingRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">Tam is ready for Monday</Heading>
               <Text textStyle="Body/Base/Regular" tone="base">
                 {`${plural(accounts.length, "invite")} sent${buddy ? `, ${people[buddy as PersonId].name} is the buddy,` : ""} and the welcome message goes out on ${startsAt}.`}
               </Text>
@@ -526,7 +526,7 @@ function NewHireOnboardingExample() {
           <Form onSubmit={next}>
             <Stack gap="md">
               <Stack gap="xs">
-                <Heading ref={headingRef} tabIndex={-1} className="px-stepper-focus-target" level={4} textStyle="Heading/Subheading">{steps[current].title}</Heading>
+                <Heading ref={headingRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">{steps[current].title}</Heading>
                 <Text textStyle="Body/Base/Regular" tone="base">{onboardingCopy[current]}</Text>
               </Stack>
               {current === 0 ? (

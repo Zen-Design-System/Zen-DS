@@ -15,7 +15,7 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { Form, FormActions, FormFieldset } from "../../../components/Form";
 import type { IconName } from "../../../components/Icon";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
-import { Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { Metric } from "../../../components/MetricWidget";
 import { Table, TableBadges, TableMedia, TableText, type TableSort } from "../../../components/Table";
 import { Heading, Text } from "../../../components/Text";
@@ -26,7 +26,6 @@ import {
   projectStatusTheme, projects, type Person, type Project,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
-import "./dock-icon.css";
 
 export const page: PlatformPage = "dock-icon";
 
@@ -55,7 +54,7 @@ function ChooseProjectType() {
   return (
     <>
       {/* Without a pick, Form moves focus to the first type card and announces the group's error. */}
-      <Form className="px-dock-icon-fill" onSubmit={() => (type ? setNaming(true) : setMissing(true))} invalidMessage={() => "Choose a project type to continue"}>
+      <Box width="fill"><Form onSubmit={() => (type ? setNaming(true) : setMissing(true))} invalidMessage={() => "Choose a project type to continue"}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">New project for Mekong Freight</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">The kind of work sets the phases, the team template and the budget lines.</Text>
@@ -77,7 +76,7 @@ function ChooseProjectType() {
           </Grid>
         </FormFieldset>
         <FormActions><Button level="primary" type="submit">Create project</Button></FormActions>
-      </Form>
+      </Form></Box>
       <DemoFieldDialog open={naming} onOpenChange={setNaming} title={type ? `New ${type.name.toLowerCase()} project` : "New project"}
         description="Mekong Freight is the client. You can invite the team next."
         field={{ kind: "name", label: "Project name", placeholder: "Driver app" }} submitLabel="Create project" confirm={(name) => `${name} created`} />

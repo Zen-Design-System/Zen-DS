@@ -25,7 +25,6 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./pagination.css";
 
 export const page: PlatformPage = "pagination";
 
@@ -346,7 +345,7 @@ function MobileExhibitorsExample() {
       {/* Body padding lg (20) = the bar's margin; rows pad 0 at the sides, so they line up with the count. */}
       <Stack padding="lg" gap="md">
         <Stack gap="xs">
-          <Text ref={countRef} tabIndex={-1} className="px-pagination-focus-target" role="status" textStyle="Body/Small/Regular" tone="base">{`${first}–${last} of ${plural(exhibitors.length, "exhibitor")}`}</Text>
+          <Text ref={countRef} tabIndex={-1} role="status" textStyle="Body/Small/Regular" tone="base">{`${first}–${last} of ${plural(exhibitors.length, "exhibitor")}`}</Text>
           <List aria-label="Exhibitors">
             {pageOf(exhibitors, pageNo, EXHIBITORS_PER_PAGE).map((exhibitor) => (
               <ListItem key={exhibitor.id} leading={<DockIcon icon="icon-book-open-line" theme={exhibitor.genre.theme} background="subtle" size="md" />}

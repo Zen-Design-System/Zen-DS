@@ -1,8 +1,5 @@
 /* Table examples (src/platform/examples/pages/table.tsx). Tokens only; class prefix .px-table-. */
 
-/* The search takes a readable width and lets the filter chips sit beside it or wrap under it. */
-.px-table-search { flex: 1 1 220px; max-width: 320px; }
-
 /* A loading placeholder sits on the text line of its cell, so the row keeps the height of the text that replaces it.
    The doubled class outranks the component's own display and width. Widths are in characters of the text. */
 .px-table-skeleton.px-table-skeleton { display: inline-flex; max-width: 100%; vertical-align: middle; }
