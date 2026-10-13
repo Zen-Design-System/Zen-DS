@@ -154,6 +154,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "side": "side"
     }
   },
+  "ChatReplyBody": {
+    "DockIcon": {
+      "size": "dock"
+    }
+  },
   "ChatReplyQuote": {
     "ChatReplyBody": {
       "target": "target"

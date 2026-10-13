@@ -19,6 +19,22 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Chat reply, synced from Figma (2026-10-13, user): a quote that leads with a photo, a file or an icon starts 8px in
+  (text-only quotes keep 12), and the composer's Replying-to bar shows a file as a Small Dock Icon at 2/3 (21px, was 16),
+  as the designer set Chat/Reply/Quote and Chat/Composer-Reply.
+- Voice motion (2026-10-13, user): `VoiceRecorder` without `levels` scrolls its sample take while recording (7 bars a
+  second, so it keeps pace with the 8-second window; a new take enters at the right edge; Paused holds still) and its
+  Recording dot glows; `AiVoiceConversation` bars move like speech (yours irregular, the assistant's steadier) with a
+  halo that swells with the voice; `ChatVoice` bars fade in as playback reaches them. Reduced motion keeps Figma's
+  still frames. Muted while listening, the signal rests, the guidance and note say the microphone is muted (labels
+  `voiceMutedGuidance`, `voiceMutedNote`) and Mute shows its Pressed look. Review: `docs/research/voice-usability-review-2026-10-13.md`.
+- Chart sectors (2026-10-13, repo + live Figma): `Chart/Sector/Primary` is Support/Brand/Solid and
+  `Chart/Sector/Secondary` Support/Neutral/Deep in every Component Theme mode, as Brand - S1 (the Neutral modes had them
+  the other way round), so a chart's first series is the brand colour everywhere.
+- Chart sector style (2026-10-13, live Figma): "Color Chart Sector/Septenary" now references Support/Green/Soft (was
+  Red/Soft); `--zen-style-color-chart-sector-septenary-fill` and `.zen-fill-color-chart-sector-septenary` follow.
+  `chartPalette` now walks the seven styles in order: a 6th series is Support/Orange/Solid (was Green/Solid) and a 7th
+  Support/Green/Soft (was Orange/Solid).
 - Focus rings (2026-10-13, live Figma): four new tokens, `--zen-color-focus-positive-solid|subtle` and
   `--zen-color-focus-negative-solid|subtle` (Color/Focus/Positive|Negative/*, the same steps as the Accent pair). Button
   (Main, Flat, Icon-Main, Icon-Flat) now draws its 3px ring in Focus/Accent/Solid (was Accent/Subtle); Danger levels use
@@ -113,6 +129,18 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- Chat reply in Figma (2026-10-13, user, live file): page ❖ Chat › "Chat Reply" now holds `Chat/Reply/Quote` (Side ×
+  Kind: Text · Photo · File · Call · Voice · Deleted), `Chat/Conversation/Reply` (the reply bubble tucked 12px over its
+  quote, Avatar / Sent / bubble swap as Chat/Conversation/Bubble) and `Chat/Composer-Reply` (the Replying-to bar above
+  Chat-Control), built from `ChatReply` with its tokens and measurements.
+- ListItem `value` · `valueCaption` · `valueTone` (2026-10-13, user): a row that ends in an amount (a transaction, a
+  total) mirrors the title stack on the right — Body/Base/Bold over Body/Small/Regular Light, right-aligned, tabular
+  figures, never cut (the title truncates first); `valueTone` takes a Content tone (`positive-light` for money in).
+  Code-only (Figma: a text stack in the Trailing slot). New example "Transactions on a phone" on List Item.
+- House rule (2026-10-13, user): a See all / Show all at a section head is underlined text, not a button (it takes
+  no more room than its words): `<Link tone="inherit">` in a Body/Base/Medium Text, `href` when it opens the full list,
+  `as="button"` + `aria-expanded` when it expands the list in place. Link and List Item guidelines; Dashboard template
+  "Recent activity" and the Transactions example follow it.
 - Figma descriptions (2026-10-13, user): the live library now describes all 168 public component sets (when to use,
   what instead, properties, rules), 592 variables (semantic colours by layer and role, the spacing ladder, radii,
   breakpoints, emphasis, dimensions) and every text, effect and paint style, written from the guidelines, usage rules
@@ -997,6 +1025,8 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Docs phone previews (2026-10-13): a bar's blur no longer smears the black bezel into the screen's corners (Bottom
+  Navigation Floating). The screen is the backdrop root of its blurs and the bezel is drawn as its own layer.
 - Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
   Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
   caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column

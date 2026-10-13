@@ -267,8 +267,9 @@
 .zen-chat-voice[data-side="you"] { background: var(--zen-bubble-chat-you-background-default); color: var(--zen-bubble-chat-you-content-default); }
 .zen-chat-voice__playback { display: flex; min-width: 0; height: var(--zen-button-size-small, 32px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chat-voice__wave { display: flex; height: 100%; min-width: 0; flex: 1 1 auto; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: hidden; }
+/* Each bar lights up as playback reaches it (a fade, so it stays under reduced motion), like a messenger's voice note. */
 /* zen-allow-slot-size: a waveform bar is a drawn glyph, 3px wide as in Figma; the unplayed share is 30% (Figma's opacity). */
-.zen-chat-voice__bar { width: 3px; min-height: 3px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; opacity: 0.3; }
+.zen-chat-voice__bar { width: 3px; min-height: 3px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; opacity: 0.3; transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear); }
 .zen-chat-voice__bar[data-played] { opacity: 1; }
 /* zen-allow-slot-size: Figma's Playback speed box is 40 wide, so the bubble does not move as "1×" becomes "1.5×". */
 .zen-chat-voice__speed { display: inline-flex; width: 40px; height: 100%; flex: 0 0 auto; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: inherit; cursor: default; font-variant-numeric: tabular-nums; }

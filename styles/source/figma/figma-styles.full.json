@@ -222,9 +222,9 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 0.0667,
-      "g": 0.0667,
-      "b": 0.0667
+      "r": 1,
+      "g": 0.4196,
+      "b": 0.8353
      },
      "bound": {
       "color": "Chart/Sector/Primary"
@@ -249,9 +249,9 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 1,
-      "g": 0.4,
-      "b": 0.8314
+      "r": 0.0706,
+      "g": 0.0706,
+      "b": 0.0706
      },
      "bound": {
       "color": "Chart/Sector/Secondary"
@@ -276,9 +276,9 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 0.0627,
-      "g": 0.6824,
-      "b": 0.8549
+      "r": 0.0706,
+      "g": 0.6353,
+      "b": 0.8078
      },
      "bound": {
       "color": "Color/Background/Support/Cyan/Solid"
@@ -357,8 +357,8 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 0.9294,
-      "g": 0.502,
+      "r": 0.8902,
+      "g": 0.4784,
       "b": 0.0078
      },
      "bound": {
@@ -384,18 +384,18 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 1,
-      "g": 0.7529,
-      "b": 0.6863
+      "r": 0.6745,
+      "g": 0.8549,
+      "b": 0.6824
      },
      "bound": {
-      "color": "Color/Background/Support/Red/Soft"
+      "color": "Color/Background/Support/Green/Soft"
      }
     }
    ],
    "bound": {
     "paints": [
-     "Color/Background/Support/Red/Soft"
+     "Color/Background/Support/Green/Soft"
     ]
    }
   },

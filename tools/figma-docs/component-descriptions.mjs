@@ -599,6 +599,19 @@ export const componentDescriptions = {
     props: [["Side", "You · Others · You-Business · Others-Business"], ["State", "Idle · Playing"]],
     code: "`<ChatVoice>`",
   }),
+  "Chat/Conversation/Reply": card({
+    what: "A message that replies to another: the quote of the original (Chat/Reply/Quote) with the reply bubble tucked 12px over it, the sender's avatar (Others) and the sent mark (You).",
+    props: [["Side", "Others (left, with avatar) · You (right)"], ["Quote › Kind", "what was replied to: Text (2 lines) · Photo · File · Call · Voice · Deleted"]],
+    rules: ["The caption names who replied to whom, so a reply has no name line; it starts its own turn, 16px below the message above.", "Pressing the quote jumps to the original; the quote of a deleted message (Deleted) is plain text."],
+    code: "`<ChatMessage replyTo>`",
+  }),
+  "Chat/Reply/Quote": part("The quote above a reply bubble: who replied to whom and a muted preview of the original (text in 2 lines, photo, file, call, voice or a deleted message).", "Chat/Conversation/Reply"),
+  "Chat/Composer-Reply": card({
+    what: "The Replying-to bar on top of the composer: who you are replying to, a one-line preview of the original and ✕ to cancel.",
+    props: [["Kind", "Text · Photo · File · Call · Voice"]],
+    rules: ["Place it right above Chat-Control, at the same width; ✕ (and Escape) cancels the reply."],
+    code: "`<ChatComposer replyTo onCancelReply>`",
+  }),
 
   // ❖ Top-Navigations (Mobile)
   "Top-Navigation/Mobile": card({

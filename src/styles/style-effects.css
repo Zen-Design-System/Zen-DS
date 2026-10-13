@@ -45,13 +45,13 @@
   --zen-style-semi-pale-fill: linear-gradient(142.02deg, var(--zen-color-background-support-neutral-pale, rgba(5, 5, 5, 0.0314)) 0%, var(--zen-color-background-support-neutral-subtle, rgba(1, 1, 1, 0.0627)) 100%);
   --zen-style-vt-canvas-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 50%, transparent) 0%, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 50%, transparent) 100%), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
   --zen-style-chat-canvas-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 40%, transparent) 0%, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 40%, transparent) 100%), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
-  --zen-style-color-chart-sector-primary-fill: var(--zen-chart-sector-primary, rgba(17, 17, 17, 1));
-  --zen-style-color-chart-sector-secondary-fill: var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1));
-  --zen-style-color-chart-sector-tertiary-fill: var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1));
+  --zen-style-color-chart-sector-primary-fill: var(--zen-chart-sector-primary, rgba(255, 107, 213, 1));
+  --zen-style-color-chart-sector-secondary-fill: var(--zen-chart-sector-secondary, rgba(18, 18, 18, 1));
+  --zen-style-color-chart-sector-tertiary-fill: var(--zen-color-background-support-cyan-solid, rgba(18, 162, 206, 1));
   --zen-style-color-chart-sector-quaternary-fill: var(--zen-color-background-support-violet-solid, rgba(119, 85, 231, 1));
   --zen-style-color-chart-sector-quinary-fill: var(--zen-color-background-support-yellow-solid, rgba(255, 186, 26, 1));
-  --zen-style-color-chart-sector-senary-fill: var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1));
-  --zen-style-color-chart-sector-septenary-fill: var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1));
+  --zen-style-color-chart-sector-senary-fill: var(--zen-color-background-support-orange-solid, rgba(227, 122, 2, 1));
+  --zen-style-color-chart-sector-septenary-fill: var(--zen-color-background-support-green-soft, rgba(172, 218, 174, 1));
   --zen-style-gradients-border-glass-white-overlay-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 49.52%, rgba(255, 255, 255, 0.16) 100%);
   --zen-style-gradients-border-glass-black-overlay-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.07) 50%, rgba(255, 255, 255, 0.04) 100%);
   --zen-style-tool-canvas-fill: linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));

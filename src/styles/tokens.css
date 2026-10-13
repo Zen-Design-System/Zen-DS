@@ -2328,8 +2328,8 @@
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
   --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
@@ -2603,8 +2603,8 @@
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
   --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
@@ -2879,8 +2879,8 @@
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
   --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-neutral-subtle-default);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-secondary);
@@ -3010,8 +3010,8 @@
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-surface-default);
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
@@ -3143,8 +3143,8 @@
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-neutral-flat-default);
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
@@ -3281,8 +3281,8 @@
   --zen-popover-background: var(--zen-color-background-popover-default);
   --zen-input-background-focused: var(--zen-color-background-surface-default);
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-subtle);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);
@@ -3415,8 +3415,8 @@
   --zen-input-background-focused: var(--zen-color-background-neutral-pale-default);
   --zen-input-background-focused-shadow-off: 0 0 #0000;
   --zen-table-cell-background-color: #FFFFFF;
-  --zen-chart-sector-primary: var(--zen-color-background-support-neutral-deep);
-  --zen-chart-sector-secondary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-primary: var(--zen-color-background-support-brand-solid);
+  --zen-chart-sector-secondary: var(--zen-color-background-support-neutral-deep);
   --zen-card-border-active: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-selected: var(--zen-color-border-active-neutral-solid);
   --zen-chip-secondary-border-weigth-active: var(--zen-emphasis-border-weight-active-primary);

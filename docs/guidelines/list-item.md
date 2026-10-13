@@ -23,7 +23,8 @@ One row of a vertical list: a leading visual, a title with an optional caption, 
 | Switch row | `ToggleListItem title · caption · checked · onCheckedChange` | a settings row that is one switch: a press anywhere flips it, the title names it and the caption describes it (composed; no Figma master yet) |
 | Leading | `leading` | Avatar (Image-Size/Medium, 40px), Dock Icon, thumbnail — Figma Leading on/off |
 | Contents | `title · caption · children · titleLines` | Title Body/Base/Bold, one line that truncates (Figma); titleLines={2} lets it wrap to a second line before it truncates; caption Body/Small/Regular Light (may wrap), Spacing/Gap/3XSmall (2px) under the title (Info-Content); children replace the stack |
-| Trailing | `trailing` | Figma Slot-Actions: Button/Icon-Flat Medium (IconButton appearance="flat" size="md", 40px), gap Small; or a passive chevron, value or Badge |
+| Value | `value · valueCaption · valueTone` | an amount, total or count at the row's end, mirrored Info-Content: value Body/Base/Bold level with the title, valueCaption Body/Small/Regular Light level with the caption, right-aligned, tabular figures, never cut (the title truncates). valueTone = a Content tone (strongest default; positive-light / negative-light for a signed amount). Inside the row's button or link, so a clickable row reads it. Code-only: in Figma a text stack in the Trailing slot |
+| Trailing | `trailing` | Figma Slot-Actions: Button/Icon-Flat Medium (IconButton appearance="flat" size="md", 40px), gap Small; or a passive chevron or Badge (after the value) |
 | Interactive | `onClick · href` | Yes = the row has onClick or href; No = neither. Both pad Spacing/Padding/Small (12px) above and below and nothing at the sides (Figma: one set for every device); the container around the List insets it sideways. No only drops the Interactive-Background and its states. Never set or override the row padding yourself |
 | State | `selected · onClick · href` | Interactive=Yes only. Default / Hover / Pressed from real interaction; Selected = Active/Neutral/Subtle — the Interactive-Background covers the row's height and hangs Padding/Small (12px) past it sideways, corners Interactive-List-Item-Radius (Corner-Radius/Base 12px on desktop, Large 16px on tablet and mobile); leave at least 12px at the sides of clickable rows so it is not clipped |
 | List | `<List aria-label>` | ul wrapper. Gap Spacing/Gap/3XSmall (2px) between rows, static and clickable alike (Figma List-Box Body-Slot); each row pads itself 12px above and below. The List sits inside its container's padding; inset is deprecated |
@@ -46,7 +47,7 @@ Also accepts `HTMLAttributes<HTMLUListElement>`.
 | `className` | `string` | — |  |
 
 ### ListItem
-Figma List-Item (4080:11700): a Wrapper row (gap Medium) of Leading · Contents · Trailing, padded Spacing/Padding/Small (12px) above and below and nothing at the sides (one set for every device; Contents = Info-Content, Title and Subtitle Spacing/Gap/3XSmall apart). - Interactive=Yes (onClick or href): an Interactive-Background Padding/Small (12px) outside the content on every side — the row's height, 12px past it sideways (Interactive-List-Item-Radius: Corner-Radius/Base 12px on desktop, Large 16px on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the container leaves at least 12px at the row's sides. - Interactive=No (neither): no background or states. Never add padding to the row: the layout around the List decides where it sits.
+Figma List-Item (4080:11700): a Wrapper row (gap Medium) of Leading · Contents · Trailing, padded Spacing/Padding/Small (12px) above and below and nothing at the sides (one set for every device; Contents = Info-Content, Title and Subtitle Spacing/Gap/3XSmall apart). - Interactive=Yes (onClick or href): an Interactive-Background Padding/Small (12px) outside the content on every side — the row's height, 12px past it sideways (Interactive-List-Item-Radius: Corner-Radius/Base 12px on desktop, Large 16px on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the container leaves at least 12px at the row's sides. - Interactive=No (neither): no background or states. - Value (`value`, `valueCaption`): a right-aligned Info-Content after the title stack, Body/Base/Bold over Body/Small/Regular Content/Neutral/Light, Spacing/Gap/3XSmall apart, tabular figures; it keeps its width and the title truncates (a transaction or a total per row). Never add padding to the row: the layout around the List decides where it sits.
 
 Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 
@@ -57,7 +58,10 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 | `titleLines` | `1 \| 2` | `1` | Lines the title may take before it truncates with an ellipsis. 1 (default) = Figma's one line (Title, textTruncation ENDING, maxLines 1); 2 when the title must be read in full, e.g. a long task or document name in a narrow list. |
 | `caption` | `ReactNode` | — | Figma Info-Content Subtitle (Body/Small/Regular, Content/Neutral/Light). |
 | `leading` | `IconName \| ReactNode` | — | Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`"icon-clock-line"`). |
-| `trailing` | `ReactNode` | — | Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron. |
+| `value` | `ReactNode` | — | A value at the row's end, read with the title: an amount, a total, a count ("+94,860,000 VND", "92 h"). Body/Base/Bold like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's button or link, so a clickable row reads it out. |
+| `valueCaption` | `ReactNode` | — | The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another currency, a date, a unit ("3,600.00 USD"). |
+| `valueTone` | `ContentTone` | `"strongest"` | Colour of `value`, a Color/Content tone as Text's `tone`: "strongest" (default, like the title); "positive-light" / "negative-light" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too: the colour never carries the meaning alone. |
+| `trailing` | `ReactNode` | — | Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`. |
 | `children` | `ReactNode` | — | Figma Contents slot override: replaces the title/caption stack. |
 | `selected` | `boolean` | `false` | Figma State=Selected (Background/Active/Neutral/Subtle). Interactive rows only (Figma has no Selected for Interactive=No): pair it with onClick or href. |
 | `onClick` | `(event: MouseEvent<HTMLButtonElement \| HTMLAnchorElement>) => void` | — | Makes the row one action: Figma Interactive=Yes (an Interactive-Background over the row's height and 12px past it sideways, Interactive-List-Item-Radius corners, Hover / Pressed from real interaction). Without onClick or href the row is Interactive=No: no background or states. Keep trailing buttons out of clickable rows. |
@@ -106,6 +110,13 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the switch and icon it draws, by layer (`{ "Toggle-Button": { size: "sm" } }`). Written by Zen Studio; app code sets toggleSize / leading. |
 
+### Types
+Object shapes the props above refer to.
+
+```ts
+type ContentTone = (typeof contentTones)[number]
+```
+
 ## Keyboard
 | Keys | Action |
 | --- | --- |
@@ -120,6 +131,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 - Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.
 - Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance="flat" size="md") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.
 - Keep to one or two trailing actions; move the rest into a More (…) menu.
+- Make a See all / Show all at a section head (beside a ListBox header title or a kicker) underlined text, not a button (user, 2026-10-13: it takes no more room than its words): <Text as="span" textStyle="Body/Base/Medium"><Link tone="inherit"> — href when it opens the full list, as="button" with aria-expanded when it expands the list in place.
+- Give a row that ends in an amount or total value + valueCaption (a transaction: "+94,860,000 VND" over "3,600.00 USD") instead of a Text stack in trailing: it lines up with the title and caption and keeps its width. Keep the sign in the text (+ / −) when valueTone colours money in or out.
 - Use titleLines={2} when the title must be read in full (long task, document or file names in a narrow list); keep the default one line in dense lists where the caption carries the detail. Keep the caption short (it may wrap to a second line).
 - Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.
 - Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.
@@ -133,6 +146,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 - Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).
 - Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).
 - Don't mix leading sizes in one list — row heights stop lining up.
+- Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).
 - Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).
 - Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.
 - Don't give a static row an onClick just to get hover, and don't mark a static row selected.
