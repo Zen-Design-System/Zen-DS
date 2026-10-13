@@ -8,6 +8,16 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
+  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale/Semi-Pale hues), Metric-Card and Chart-Card
+  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `theme` semi-pale + `surface` +
+  `color`, MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
+  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation).
+  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
+  background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
+  Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
+  until then (screen-rules §1).
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
   studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
   so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in

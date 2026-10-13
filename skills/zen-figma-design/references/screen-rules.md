@@ -9,17 +9,32 @@ with the reasons) and the lessons of screens built with AI in Zen files. Variabl
 Backgrounds stack in five layers, bottom to top: **Canvas → Surface → other colours → Container → Popover**. Pick the
 variable by the layer, never by the look.
 
-| Situation | Page (Canvas) | Boxes on it (Card, List-Box, Metric-Card) |
-| --- | --- | --- |
-| Default, when nothing below applies | `Color/Background/Canvas/Default` | `Theme=Flat`: Surface/Default, no border, no shadow |
-| A screen with a Sidebar (dashboard, admin) | elevation follows the Sidebar: default Sidebar on Canvas/Default | `Theme=Shadow` |
-| A white page (Canvas/Alt, or a white phone screen) | `Color/Background/Canvas/Alt` | `Theme=Border` (Pale border; Subtle when the box is clickable), or a Surface-Alt fill |
-| Inside a Modal, Side-Panel or Bottom-Sheet | the panel's Container fill | `Theme=On-Container` (no border, no shadow) |
+Pick the **Canvas** first; it decides the navigation, the boxes and the elevation (the user's theme set on
+◆ Performance, Theme-01 … 08, 2026-10-13). Box = Card, List-Box, Metric-Card, Chart-Card (their nested Card is exposed)
+and a standalone chart (Bar, Donut, Radial, Heatmap): one `Theme`, `Surface` and `Color` vocabulary for all of them.
+
+| Canvas (light / dark) | Header, top bar | Sidebar, bottom bar | Boxes | Shadow |
+| --- | --- | --- | --- | --- |
+| `Canvas/Default` (#f7f7f7 / #121212) | on the canvas (top bar `Type=Alt` = Surface/Alt) | on the canvas, or a Surface/Default panel | `Theme=Flat` or `Shadow` (Surface=Default); `Border` allowed | only all together: Sidebar `Shadow=Yes` (bottom bar Shadow/Top/Level-1), every box `Theme=Shadow`, standalone charts Shadow/Bottom/Level-1 |
+| `Canvas/Alt` (#ffffff / #1c1c1c) | on the canvas (top bar `Type=Default` = Surface/Default) | on the canvas | `Pale`, `Semi-Pale` (any `Color`), `Border` (Surface=Default + Pale border), or `Flat` with `Surface=Alt` | none |
+| `Canvas/Flat` (#ffffff / #121212) | on the canvas (Surface/Flat) | on the canvas (Surface/Flat) | `Pale`, `Semi-Pale`, or `Border` with `Surface=Flat` | none |
+| Inside a Modal, Side-Panel or Bottom-Sheet | — | — | `Theme=On-Container` | none |
+
+- "On the canvas" = no fill (desktop Sidebar: the Placeholder fill hidden) or the Surface of the canvas's colour in both
+  modes: Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat. A bar on Surface/Default
+  over Canvas/Flat melts in light but turns into a #1c1c1c block in dark.
+- Why the boxes: Surface/Alt equals Canvas/Default (boxes vanish), Surface/Default equals Canvas/Alt (needs the Pale
+  border), Surface/Default equals Canvas/Flat in light (use Pale / Semi-Pale or a bordered Surface=Flat box).
+- One family per screen (Flat, Border, Pale or Semi-Pale); colours may vary inside Pale / Semi-Pale (KPI hues).
+  Gradient / Solid are highlight widgets, one per row.
+- Library gaps until the designer adds them (override by variable, never raw): Side-Bar/Master/Basic has no background
+  variant, Top-Navigation/Mobile has no Flat type, Bottom-Navigation has no surface choice and carries an unstyled
+  shadow (remove it unless the screen is elevated).
 
 - Container is only for Modal/Dialog, Modal/Forms and Bottom-Sheet panels; Popover only for popovers, menus,
   tooltips, pickers and toasts.
-- No drop shadow on a Subtle, Pale or Surface-Alt fill. A white box on a white page needs a border; a shadow alone
-  does not count.
+- No drop shadow on a Subtle, Pale or Surface-Alt fill, and none at all on Canvas/Alt or Canvas/Flat. A white box on a
+  white page needs a border; a shadow alone does not count.
 - What is not a box sits straight on the canvas: a form, a Table, a Segmented with its caption, an Empty-State.
 
 ## 2. Spacing: one ladder, picked by the relationship
