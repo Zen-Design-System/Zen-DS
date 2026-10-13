@@ -57,6 +57,8 @@ Files in this skill:
 - **Theme by Canvas.** The page's Canvas picks the navigation, the boxes and the elevation (screen-rules §1): bars and
   headers match the canvas, boxes take the Theme / Surface / Color allowed for it, and shadows are all-or-nothing
   (only on Canvas/Default). The audit's `theme/*` rules check it.
+- **One colour mode per screen.** Only the screen frame sets Light or Dark; never a component, card or layer inside it.
+  A dark widget is Card `Solid` / `Neutral` (`Background/Neutral/Solid`) with Inverse content tokens (screen-rules §1).
 - **No shadow is ever cut.** Frames made with `createFrame()` / `createAutoLayout()` clip their content by default, so
   set `clipsContent = false` on every frame you add (rows, sections, toolbars, wrappers) unless it must hide something;
   a Shadow card's shadow reaches past the card (about 8px below, 4px aside). Check every screen with the audit's

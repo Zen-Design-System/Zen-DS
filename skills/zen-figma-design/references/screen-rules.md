@@ -27,6 +27,10 @@ and a standalone chart (Bar, Donut, Radial, Heatmap): one `Theme`, `Surface` and
   border), Surface/Default equals Canvas/Flat in light (use Pale / Semi-Pale or a bordered Surface=Flat box).
 - One family per screen (Flat, Border, Pale or Semi-Pale); colours may vary inside Pale / Semi-Pale (KPI hues).
   Gradient / Solid are highlight widgets, one per row.
+- A dark widget is `Theme=Solid, Color=Neutral`: `Background/Neutral/Solid` with its content in the Inverse tokens
+  (Content/Inverse, Border/Inverse, Button `Level=Inverse`). Never set a colour mode on a component, a card or any layer
+  inside a screen to make it dark or light: the screen frame's Light/Dark mode is the only mode switch (user,
+  2026-10-14).
 - Library gaps until the designer adds them (override by variable, never raw): Side-Bar/Master/Basic has no background
   variant, Top-Navigation/Mobile has no Flat type, Bottom-Navigation has no surface choice and carries an unstyled
   shadow (remove it unless the screen is elevated).
