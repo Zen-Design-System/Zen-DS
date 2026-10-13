@@ -347,3 +347,34 @@ container query.
 - Còn lại (không có prop, chờ user): lề theo token Margin/Comfortable và padding từng cạnh, phần bên trong component
   (Table min-width, nhãn ProgressBar, độ rộng Toggle, nội dung Card cao hết thẻ, chiều cao SidePanel khi docked), độ rộng
   Skeleton, độ rộng theo `ch` / rem và min-height theo token đổi theo chế độ, ảnh / video / nút ảnh, bố cục đáp ứng riêng (ẩn nhóm zoom, đổi viền khi xếp chồng).
+
+### P6 — thử khứ hồi trên mọi frame ví dụ (2026-10-13, nhánh `zen/feat/figma-roundtrip`; plugin sau 6b823d2)
+
+Cách thử: chụp Studio của 353 frame ví dụ → push → pull (so theo `key` của push), rồi đặt thật trong file Zen bằng
+importer của plugin và đọc lại bằng bộ đọc của pull. Chỉ tin kết quả đọc thật: harness chỉ để khoanh vùng.
+
+| Phần | Lỗi gặp | Sửa |
+| --- | --- | --- |
+| Checkbox / Toggle / Radio | Figma bỏ thuộc tính Caption của Checkbox/Text; nhãn và chú thích nằm trong `.Primitives/Checkbox/Content` (Label, Subtext) | push ghi Label + Subtext (bật Subtext trước khi ghi) vào Content; pull đọc lại; map bỏ Caption |
+| DockIcon emoji | emoji không được ghi | push ghi emoji vào lớp chữ của Theme=Emoji; pull ra `emoji` |
+| InputField / Select… | pull mất nhãn, giá trị, help | pull đọc Label lồng, Text (Inputted → defaultValue, không thì placeholder), Message → helpText / errorMessage |
+| ListItem / ListBox / List | pull mất title, caption, leading, trailing | pull đọc Info-Content (Title / Subtitle), leading lồng (Avatar, Dock-Icon, FileIcon, Thumbnail, Flag), Actions → trailing; cột ListItem → `<List>`; Header-Slot / Footer-Slot của List-Box |
+| Text tone, Heading | màu chữ và cấp heading mất | bộ đọc lấy biến Color/Content của fill → `tone`; push đặt tên lớp `Heading N`, pull ra `<Heading level>` (bỏ textStyle mặc định của cấp) |
+| PageHeader, DashboardHeader | Type=Main ra DashboardHeader; ô Search mất placeholder; lỗi `texts.find` | Type=Main → PageHeader (Subheading → description); placeholder đọc từ text lồng |
+| Sidebar | logo không được đẩy (Figma giữ logo mẫu "Kaiz"); pull biến nút Collapse thành `brand` | push: `logo` vào Header-Content (thay LOGO mẫu và Collapse; nút Collapse chỉ khi có `onCollapsedChange`); pull bỏ LOGO mẫu và Collapse (có ghi chú) |
+| Breadcrumbs | `master={false}` mất | pull: crumb đầu không phải Master → `master={false}`; mọi crumb Medium → `emphasis` |
+| DescriptionList | pull ra `{ label }` thay cho term / description | pull đọc Term / Value / Emphasis của từng Item |
+| Swap lồng (leading FileIcon) | Figma không liệt kê override cho swap trong nội dung slot → bộ đọc bỏ sót | bộ đọc so lớp với lớp gốc trong main component (`swappedIn`, chỉ cho icon / Dock-Icon / Avatar / Thumbnail / Flag, bỏ qua swap theo thuộc tính) |
+
+- Giới hạn của Figma (đã kiểm): instance lồng trong instance không đổi được cỡ ("This property cannot be overridden in an
+  instance: size") → FileIcon `size="xl"` làm leading của ListItem hiện ở cỡ 20 của component; push ghi chú, plugin bỏ
+  phần đặt cỡ lồng.
+- Contract `component-properties.json` (đọc 2026-10-05) lệch file live ở 14 set (Avatar / Badge / Dock-Icon thêm theme,
+  Card Semi-Pale / On-Container, List-Box Theme, Progress-Bar Layout, Side-Panel, Inline-Message, Tooltip…): đã báo
+  session đang sửa map đó; List-Box Theme sẽ đi theo map của họ.
+- Còn lại: Container / Box / Form về thành Stack; ListItem `titleLines`; dữ liệu chỉ có trong code (Chip popoverItems,
+  tooltip, aria); Image trong logo Sidebar chưa có set Figma. Đề xuất P6b (chờ user): khứ hồi theo `key` — bộ đọc lấy
+  key của push, pull dùng key làm id phần tử, Studio giữ bản gốc lúc export, nên "Update from Figma" chỉ đổi đúng chỗ
+  designer sửa và giữ mọi chi tiết chỉ có trong code.
+- Frame thử (trang "Studio exports"): 15448:3 (breadcrumbs), 15440:3323 (toast), 15440:3809 (dashboard-header), cùng các
+  frame P6 trước: 15438:3, 15440:3, 15440:2284, 15440:2468.
