@@ -20,3 +20,74 @@
   102 ✓ (was 100).
 - Repo contracts unaffected (component-properties.json lists only property names). Open for the user: publish the
   library; the Pokeslide file uses its own fork library, so its List-Boxes are not changed by this.
+
+## Support background Rich (tier XS, user: "thêm 1 token nằm giữa Deep và Solid … tên là Rich dùng step 11")
+
+- Repo: 20 tokens `Color/Background/Support/<colour>/Rich` = `{Light|Dark/<ramp>/11}` (ramp taken from Deep; Brand and
+  Neutral from Base Colors (Project)) in `mode-colors-semantic.json` (431 → 451); each Support background set regrouped
+  as Deep, Rich, Solid, Soft, Subtle, Pale (the live panel order, user's request), no other value changed.
+  `figma.collections.json` count + note. `tokens:build` (2225 tokens, native too), `tokens:check` clean.
+- Figma (live file, user approved): the same 20 variables, scopes and publishing copied from Deep; read back 40/40 hex
+  equal the repo. The Plugin API cannot reorder variables (`variableIds` is read-only), so Rich sits last in each group
+  until dragged under Deep; Sky and Mint are still Solid, Subtle, Soft, Deep, Pale in the panel. Library not published.
+
+## Chart card Value Heading/3 → Heading/2 (tier XS, user: "Update Font size Value của card chart từ Figma (Từ heading 3 lên heading 2)")
+
+- Live file, ❖ Chart page: 32 `Heading > Value` texts; 11 main-component ones were still Heading/3 — Chart/Line-Chart
+  15328:1077, Stack-Bar-Chart 15328:1108, Donut-Chart ×3 (15324:1069, 15324:996, 15392:2450), Radial-Chart ×2
+  (15325:1041, 15325:1098), Multi-Line-Chart ×4 (15426:2533, 15501:2971/3031/3001). Set to the same Heading/2 style the
+  Bar, Area, Heatmap and new charts use (`setTextStyleIdAsync`); read back 11/11 Heading/2 25/32.
+- Check: temporary instances with Value shown (Line, Donut Total=Start, Radial End, Multi-Line), screenshot clean, removed.
+- Repo: no code reads this layer (`ChartCard` has no value prop). Library not published.
+
+## ❖ Chart page tidied (tier XS, Figma only, user: "Sắp xếp các component/element bên Chart ngăn nắp gọn gàng lại")
+
+- Before: one section, 8 covers on a 3 × 3 grid with a hole (Donut set pushed into it), the other sets loose at odd
+  offsets, set paddings 0 / 15-24 / 24 / 40, Multi-Line Sector order 4 · 6 · 12 · 7.
+- Now four sections stacked: **Chart** (7032:8969, kept) = the 8 covers on 4 × 2, all 1400 tall, renamed from
+  "Bottom Sheet" to "Card Chart" … "Heatmap Chart"; **Chart components** (15576:3333) mirrors the cover grid: row 1
+  Chart-Card, Line, Stack-Bar, Bar; row 2 Multi-Line, Donut, Radial, Heatmap; row 3 Area, Grouped-Bar, Combo, Gauge,
+  Funnel, Bar-List, Bullet; **Widget themes**
+  (15576:3334) = the board; **.Primitives** (15576:3335) = Legend-Item, Hatch. Every set auto-layout, padding 40, gap 40
+  (Legend-Item 16), top-aligned; content tops line up per row, 120 between components, 200 between rows and sections.
+- Multi-Line variants reordered 4 · 6 · 7 · 12 (default still 4-Sectors). Checked: no overlap or overflow in any section,
+  screenshots of all four. No component, variant or instance otherwise changed. Library not published.
+- Follow-up (user: "1. Có 2. Có"): Multi-Line `Sector=7 Sectors` → `7-Sectors` (`.Chart/Line-Chart/Trend` already said
+  7-Sectors; nothing in the repo reads the old name). Covers made one shape: Chart-Card 6643:63528, Line-Chart 6643:63324
+  and Stack-Bar-Chart 6643:73471 left their covers for Chart components (IDs unchanged), each cover now shows an
+  instance in an "Examples" frame cloned from the Bar cover's; the Heatmap cover's bare instance got the same frame.
+  Covers screenshot unchanged.
+
+## Charts take their card from Card (tier M, Figma + AI kit, user: "các chart card nên được override từ card chứ ta?" → "Làm cả 4 bước")
+
+- Library (❖ Chart): Bar (2 variants), Donut (3), Radial (2), Heatmap root = no fill, padding 0, radius 0 (unbound from
+  Surface/Default, Card-padding-medium, 2XLarge), width − 48; props and variants unchanged. Probe first (removed): a
+  card-less Bar-Chart in Card Flat/Medium is pixel-identical (400 × 384, title at 24/52); Card's own Sub-Action "⋮" is on
+  by default → off when the chart shows its open button.
+- Placements rebuilt, never moved (moving a chart between slots left its heading layout stale in the probe): a fresh
+  Chart-Card (Sub-Action off, Theme from the old surface: Flat / Shadow / Border / Pale, plus fill/effect overrides when
+  the old look differed) holding a fresh chart; props and every nested override copied, checked by a per-layer
+  signature (name, visible, paints, text, padding, grow) and y/height, then the old instance deleted.
+  ❖ Chart covers 8/8; ◆ Performance 38/38 (10 Flat, 6 Shadow, 8 Border, 14 Pale + override; Case C's "Wrong" Flat
+  chart beside Shadow cards kept as is). The 8 Border ones differ by 1 px: the old chart drew its stroke inside the layout
+  (content at 25), Card Border keeps content at 24 like the Chart-Card beside it. All 38 Charts rows 420 tall (the
+  Multi-Line card's natural height; they read 416 before, 4 px under that card's content).
+- Gotchas: `figma.skipInvisibleInstanceChildren` must be false to map overrides on hidden layers (columns 9–12, Rule);
+  node wrappers from `findAll` are not `===` to `parent.children` items (index by id); size the Chart-Card before
+  filling its slot or it keeps the 345-wide height (1568).
+- Descriptions: Chart-Card from `tools/figma-docs` source (props Card + Content, rule "charts draw no surface of their
+  own"); Bar/Donut/Radial/Heatmap open "… chart:" with a note to sit in Chart-Card. AI kit: `theme/box-on-canvas` and
+  `theme/mixed-elevation` no longer count a standalone chart as a box (harness, audit-rules, screen-rules §1);
+  `npm run ai-kit:check` 104 ✓. Library not published.
+
+## Donut total Value Heading/3 → Heading/2, Figma → code/Studio (tier S, user: "Update font size Value của Donut chart từ Heading 3 lên heading 2" · "Update từ Figma lên Studio")
+
+- Figma (live file): Chart/Donut-Chart `Legend=Start, Total=Start` → `Total > Value` (15392:2498) was still Heading/3
+  (the visible figure there; its `Heading > Value` is hidden). Set to Heading/2; read back: every Value in the set is
+  Heading/2 except the `Centre > Value` (Heading/Subheading, unchanged). The one placed instance on ❖ Chart follows.
+- Code lives only on PR #38's branch (worktree Zen-DS-charts, `zen/fix/chart-average-dots`; main has no DonutChart):
+  `DonutChart` total-value and `ChartCard` value Heading/3 → Heading/2 (ChartCard's Figma Value moved earlier today),
+  guideline source, chart spec, CHANGELOG, guidelines rebuilt. Studio renders the code components, so it follows.
+  Committed 18a4e38 on that branch (not pushed); its older examples/pages/chart.tsx edit is not ours, left out.
+- Centre figure differs on purpose: Figma `Centre > Value` Heading/Subheading, code Heading/4. User: "giữ nguyên"
+  (keep both as they are); don't "fix" it.

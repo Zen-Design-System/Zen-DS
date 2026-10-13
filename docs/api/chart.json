@@ -6,7 +6,7 @@
     {
       "name": "LineChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same\nchart plus one dashed Color Chart Sector/Primary line, both values in the Tooltip and a legend. ←/→, Home/End move\nbetween points.",
+      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same\nchart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move\nbetween points.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -698,7 +698,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",

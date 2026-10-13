@@ -127,6 +127,13 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   close. 28 có đúng ý không? Ngoài ra: icon heading của Modal (Icon-Wrapper) đã bị bỏ; code giữ `icon` ở dạng
   deprecated cho đến khi được xác nhận.
 
+- **Voice (P2, 2026-10-13, bản đánh giá `docs/research/voice-usability-review-2026-10-13.md`):** (a) AI Voice
+  Conversation chưa có trạng thái Thinking giữa Done speaking và lời nói đầu tiên — thêm variant? (b) heading Responding
+  "Here's what I found" không hợp khi trợ lý làm một việc hay nói chuyện phiếm — dùng câu trung tính? (c) Mute khi bật
+  đang dùng dáng Pressed của nút tertiary; Meet/Zoom dùng màu negative — giữ Pressed hay Danger/Subtle? (d) Chat/Bubble/
+  Voice Social không hiện độ dài (Business có) và không có dấu "chưa nghe"; (e) thêm hàng nghe lại khi Paused cho
+  VoiceRecorder (nghe trước khi Finish)?
+
 ## Cho bạn (quyết định và việc cần làm)
 
 **Đã trả lời ngày 09/10/2026:**

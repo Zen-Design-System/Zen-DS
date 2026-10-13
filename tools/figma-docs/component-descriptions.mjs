@@ -110,8 +110,8 @@ export const componentDescriptions = {
     what: "A surface that groups the content about one object: a project, a plan, a KPI, a widget.",
     use: ["Grids of objects people scan and pick.", "Dashboard widgets (title in Heading/Subheading).", "A selectable option with rich content (Active=Yes marks the choice).", "Non-row content inside overlays (Description List, labelled toggles)."],
     instead: ["Page sections that are only spacing → auto layout, no card.", "Rows of List-Items → Component/List-Box.", "Comparable rows → a Table on the canvas.", "Messages → Inline-Message."],
-    props: [["Theme", "pick by where it sits — Flat on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale / Semi-Pale on imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners)"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
-    rules: ["One theme per grid.", "No card inside a card, and no shadow on a Pale or Semi-Pale card.", "A clickable card holds no buttons, links or inputs."],
+    props: [["Theme", "pick by where it sits — Flat on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale on imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners)"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
+    rules: ["One theme per grid.", "No card inside a card, and no shadow on a Pale card.", "A clickable card holds no buttons, links or inputs."],
     code: "`<Card>`",
   }),
 
@@ -599,6 +599,19 @@ export const componentDescriptions = {
     props: [["Side", "You · Others · You-Business · Others-Business"], ["State", "Idle · Playing"]],
     code: "`<ChatVoice>`",
   }),
+  "Chat/Conversation/Reply": card({
+    what: "A message that replies to another: the quote of the original (Chat/Reply/Quote) with the reply bubble tucked 12px over it, the sender's avatar (Others) and the sent mark (You).",
+    props: [["Side", "Others (left, with avatar) · You (right)"], ["Quote › Kind", "what was replied to: Text (2 lines) · Photo · File · Call · Voice · Deleted"]],
+    rules: ["The caption names who replied to whom, so a reply has no name line; it starts its own turn, 16px below the message above.", "Pressing the quote jumps to the original; the quote of a deleted message (Deleted) is plain text."],
+    code: "`<ChatMessage replyTo>`",
+  }),
+  "Chat/Reply/Quote": part("The quote above a reply bubble: who replied to whom and a muted preview of the original (text in 2 lines, photo, file, call, voice or a deleted message).", "Chat/Conversation/Reply"),
+  "Chat/Composer-Reply": card({
+    what: "The Replying-to bar on top of the composer: who you are replying to, a one-line preview of the original and ✕ to cancel.",
+    props: [["Kind", "Text · Photo · File · Call · Voice"]],
+    rules: ["Place it right above Chat-Control, at the same width; ✕ (and Escape) cancels the reply."],
+    code: "`<ChatComposer replyTo onCancelReply>`",
+  }),
 
   // ❖ Top-Navigations (Mobile)
   "Top-Navigation/Mobile": card({
@@ -687,7 +700,14 @@ export const componentDescriptions = {
   "Chart/Chart-Card": card({
     what: "The frame of a dashboard chart: title, range switch and the chart, beside Metric-Cards.",
     instead: ["One number → Metric-Card.", "Exact values to compare or export → Table.", "More than about seven series → split the chart."],
-    rules: ["Title in Heading/Subheading; the card follows the screen's surface pairing."],
+    props: [
+      ["Card", "the nested Card is exposed — set Theme, Surface, Color and Spacing on the instance; they follow the Card rules for the page's Canvas"],
+      ["Content", "the chart: any Chart/* component (Line, Stack-Bar, Multi-Line, Bar, Donut, Radial, Heatmap, Area …), Fill width"],
+    ],
+    rules: [
+      "Title in Heading/Subheading; the card follows the Card rules for the page's Canvas and the screen's one elevation.",
+      "Charts draw no surface of their own: the card always comes from Chart-Card (or a Card), never from the chart. Keep Sub-Action off when the chart shows its own open button.",
+    ],
     code: "`<ChartCard>`",
   }),
   "Chart/Line-Chart": card({ what: "How a value changes over a few periods (4–12 points).", code: "`<LineChart>`" }),

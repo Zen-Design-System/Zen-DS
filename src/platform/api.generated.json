@@ -7563,10 +7563,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale\n (Pale→Subtle gradient) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their\n Container fill; harness card/on-container-in-overlay).",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
           "deprecated": null
         },
         {
@@ -7598,7 +7598,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -7702,7 +7702,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line.",
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take, which scrolls while\n recording and holds still when paused (still under reduced motion); Ready: a flat line. Yours are drawn as given:\n push one level every 1/7 s and drop the oldest for the same 8-second window.",
           "deprecated": null
         },
         {
@@ -7852,7 +7852,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7).",
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio.\n Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding\n (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing.",
           "deprecated": null
         },
         {
@@ -7860,7 +7860,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Mute (the left action, a toggle; off until the conversation starts).",
+          "description": "Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal\n rests while listening, and the guidance and note say the microphone is muted.",
           "deprecated": null
         },
         {
@@ -8086,11 +8086,35 @@
           "deprecated": null
         },
         {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A value at the row's end, read with the title: an amount, a total, a count (\"+94,860,000 VND\", \"92 h\"). Body/Base/Bold\n like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second\n Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's\n button or link, so a clickable row reads it out.",
+          "deprecated": null
+        },
+        {
+          "name": "valueCaption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another\n currency, a date, a unit (\"3,600.00 USD\").",
+          "deprecated": null
+        },
+        {
+          "name": "valueTone",
+          "type": "ContentTone",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "Colour of `value`, a Color/Content tone as Text's `tone`: \"strongest\" (default, like the title); \"positive-light\" /\n \"negative-light\" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too:\n the colour never carries the meaning alone.",
+          "deprecated": null
+        },
+        {
           "name": "trailing",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron.",
+          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`.",
           "deprecated": null
         },
         {
@@ -9311,7 +9335,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",
@@ -12255,7 +12279,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",

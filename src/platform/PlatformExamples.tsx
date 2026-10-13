@@ -1886,7 +1886,7 @@ ${code}`} />
   if (page === "card") {
     const theme = (cardTheme ?? "shadow") as CardTheme;
     const spacing = (cardSpacing ?? "medium") as CardSpacing;
-    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and Semi-Pale — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
+    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and On-Container — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Card</h2>
         <PlaygroundControls aria-label="Card playground controls">

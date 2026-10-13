@@ -11,6 +11,7 @@ Navigates to another page, section or site from inside text or next to it. It us
 - Standalone links to a related page (“View all invoices”, a footer link).
 - Other sites (docs, status page) in a new tab with external.
 - Client-side routes through your router's link: as={RouterLink} to="/x".
+- A section head's See all / Show all (user, 2026-10-13: text takes less room than a button): tone="inherit" (underlined) in a Body/Base/Medium Text; href when it opens the full list, as="button" with aria-expanded when it expands the list in place.
 
 ## Use something else for
 - An action on this page (save, open a dialog, delete) → Button (level="tertiary" or appearance="flat").

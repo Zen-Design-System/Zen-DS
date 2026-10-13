@@ -40,7 +40,7 @@ One chart family in one style: how a value changes over time (Line), compares ac
 Generated from the TypeScript source; full JSON in `docs/api/chart.json`.
 
 ### LineChart
-Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active) and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same chart plus one dashed Color Chart Sector/Primary line, both values in the Tooltip and a legend. ←/→, Home/End move between points.
+Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active) and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move between points.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -159,7 +159,7 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `range` | `string` | — |  |
 | `onRangeChange` | `(id: string) => void` | — |  |
 | `rangesFullWidth` | `boolean` | `true` | The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale" \| "on-container"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"flat"` | Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard). |
 | `surface` | `"default" \| "alt"` | — |  |
 | `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |

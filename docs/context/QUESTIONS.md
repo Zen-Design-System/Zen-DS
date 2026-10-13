@@ -109,6 +109,12 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
   close. Is 28 meant? Also: the Modal heading icon (Icon-Wrapper) was removed; code keeps `icon` as deprecated until
   confirmed.
 
+- **Voice (P2, 2026-10-13, review `docs/research/voice-usability-review-2026-10-13.md`):** (a) AI Voice Conversation
+  has no Thinking state between Done speaking and the first spoken word — add a variant? (b) the Responding heading
+  "Here's what I found" does not fit actions or small talk — a neutral default? (c) Mute on uses the tertiary Pressed
+  look in code; Meet/Zoom use a negative one — keep Pressed or Danger/Subtle? (d) Chat/Bubble/Voice Social shows no
+  length (Business does) and no unheard marker; (e) a Paused playback row for VoiceRecorder (listen before Finish)?
+
 ## For the user (decisions and actions)
 
 Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,

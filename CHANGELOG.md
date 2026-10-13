@@ -19,8 +19,32 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
-- Chart values are larger, as in Figma: the `ChartCard` value and the `DonutChart` total beside the ring
-  (`totalPosition="start"`) are Heading/2 (were Heading/3).
+- Charts take their card from Card (2026-10-14, user, live Figma): Bar, Donut, Radial and Heatmap no longer paint their
+  own surface; like every chart they sit in Chart-Card's Content slot, so Theme, Surface and Color work on them. The
+  AI kit for Figma no longer treats a standalone chart as a box (`theme/box-on-canvas`, `theme/mixed-elevation`).
+- Chart card value (2026-10-14, live Figma): the header's Value text is Heading/2 (25/32) on every chart; Line,
+  Stack-Bar, Donut, Radial and Multi-Line were still Heading/3 (22/28). In code the `ChartCard` value and the
+  `DonutChart` total beside the ring (`totalPosition="start"`) are Heading/2 too (were Heading/3).
+- No gradient surfaces (2026-10-14, user): Card `theme="semi-pale"` is deprecated and renders as `pale` (it stays in
+  the type, off the theme list). Figma dropped the Card Gradient and Semi-Pale themes and their styles, so
+  `--zen-style-semi-pale-fill` and `.zen-fill-semi-pale` are gone from `style-effects.css`.
+- Chat reply, synced from Figma (2026-10-13, user): a quote that leads with a photo, a file or an icon starts 8px in
+  (text-only quotes keep 12), and the composer's Replying-to bar shows a file as a Small Dock Icon at 2/3 (21px, was 16),
+  as the designer set Chat/Reply/Quote and Chat/Composer-Reply.
+- Voice motion (2026-10-13, user): `VoiceRecorder` without `levels` scrolls its sample take while recording (7 bars a
+  second, so it keeps pace with the 8-second window; a new take enters at the right edge; Paused holds still) and its
+  Recording dot glows; `AiVoiceConversation` bars move like speech (yours irregular, the assistant's steadier) with a
+  halo that swells with the voice; `ChatVoice` bars fade in as playback reaches them. Reduced motion keeps Figma's
+  still frames. Muted while listening, the signal rests, the guidance and note say the microphone is muted (labels
+  `voiceMutedGuidance`, `voiceMutedNote`) and Mute shows its Pressed look. Review: `docs/research/voice-usability-review-2026-10-13.md`.
+- Chart sectors (2026-10-13, repo + live Figma): `Chart/Sector/Primary` is Support/Brand/Solid and
+  `Chart/Sector/Secondary` Support/Neutral/Deep in every Component Theme mode, as Brand - S1 (the Neutral modes had them
+  the other way round), so a chart's first series is the brand colour everywhere. LineChart's `compare` line is
+  Border/Neutral/Solid at 40% (Figma Multi-Line Compare), a neutral reference that no longer turns brand with it.
+- Chart sector style (2026-10-13, live Figma): "Color Chart Sector/Septenary" now references Support/Green/Soft (was
+  Red/Soft); `--zen-style-color-chart-sector-septenary-fill` and `.zen-fill-color-chart-sector-septenary` follow.
+  `chartPalette` now walks the seven styles in order: a 6th series is Support/Orange/Solid (was Green/Solid) and a 7th
+  Support/Green/Soft (was Orange/Solid).
 - Focus rings (2026-10-13, live Figma): four new tokens, `--zen-color-focus-positive-solid|subtle` and
   `--zen-color-focus-negative-solid|subtle` (Color/Focus/Positive|Negative/*, the same steps as the Accent pair). Button
   (Main, Flat, Icon-Main, Icon-Flat) now draws its 3px ring in Focus/Accent/Solid (was Accent/Subtle); Danger levels use
@@ -115,6 +139,22 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- Support background Rich (2026-10-14, user): every Support background set (the 18 colours, Brand and Neutral) gains
+  `Color/Background/Support/<colour>/Rich` = ramp step 11, between Solid (9) and Deep (12), as
+  `--zen-color-background-support-<colour>-rich` in Light and Dark; created in the live Figma file too. The foundations
+  page lists each set as Deep, Rich, Solid, Soft, Subtle, Pale.
+- Chat reply in Figma (2026-10-13, user, live file): page ❖ Chat › "Chat Reply" now holds `Chat/Reply/Quote` (Side ×
+  Kind: Text · Photo · File · Call · Voice · Deleted), `Chat/Conversation/Reply` (the reply bubble tucked 12px over its
+  quote, Avatar / Sent / bubble swap as Chat/Conversation/Bubble) and `Chat/Composer-Reply` (the Replying-to bar above
+  Chat-Control), built from `ChatReply` with its tokens and measurements.
+- ListItem `value` · `valueCaption` · `valueTone` (2026-10-13, user): a row that ends in an amount (a transaction, a
+  total) mirrors the title stack on the right — Body/Base/Bold over Body/Small/Regular Light, right-aligned, tabular
+  figures, never cut (the title truncates first); `valueTone` takes a Content tone (`positive-light` for money in).
+  Code-only (Figma: a text stack in the Trailing slot). New example "Transactions on a phone" on List Item.
+- House rule (2026-10-13, user): a See all / Show all at a section head is underlined text, not a button (it takes
+  no more room than its words): `<Link tone="inherit">` in a Body/Base/Medium Text, `href` when it opens the full list,
+  `as="button"` + `aria-expanded` when it expands the list in place. Link and List Item guidelines; Dashboard template
+  "Recent activity" and the Transactions example follow it.
 - Figma descriptions (2026-10-13, user): the live library now describes all 168 public component sets (when to use,
   what instead, properties, rules), 592 variables (semantic colours by layer and role, the spacing ladder, radii,
   breakpoints, emphasis, dimensions) and every text, effect and paint style, written from the guidelines, usage rules
@@ -123,11 +163,11 @@ removed (four unused colour ramps were, see Removed).
 - AI kit for Figma (2026-10-13, user): Installation › AI kit for Figma downloads `zen-figma-ai-kit.zip` (built in the
   browser from the repo) so Claude or ChatGPT/Codex can design in a Zen Figma file through Figma's MCP server: the skill
   `skills/zen-figma-design` (setup, hard rules, build steps, screen rules, Plugin API gotchas), the read-only audit
-  harness `harness/zen-figma-audit.js` (23 rules: unbound colours/spacing/radii, text and effect styles, paint
-  overrides and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller
-  non-clipping wrapper like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured
-  from the effect; an error on the screen's own frames), crushed or shifted text, placeholder copy, and theme
-  pairing: boxes and navigation surfaces that clash with the Canvas, one elevation per screen), the generated
+  harness `harness/zen-figma-audit.js` (24 rules: unbound colours/spacing/radii, text and effect styles, paint overrides
+  and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller non-clipping wrapper
+  like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured from the effect; an
+  error on the screen's own frames), crushed or shifted text, placeholder copy, and theme pairing: boxes and navigation
+  surfaces that clash with the Canvas, one elevation and one colour mode per screen, no gradient boxes), the generated
   Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
   writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
 - Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)
@@ -1005,6 +1045,8 @@ removed (four unused colour ramps were, see Removed).
   fixed at 263px in a centred slot), as `.zen-list-box__header` lays it out; the 30 List-Boxes on ◆ Performance were
   fixed too. Publish the library so files that use it get the change. The AI kit's Figma audit reports the pattern as
   `text/shifted` (fixed-width left-aligned text pushed in by a centred column).
+- Docs phone previews (2026-10-13): a bar's blur no longer smears the black bezel into the screen's corners (Bottom
+  Navigation Floating). The screen is the backdrop root of its blurs and the bezel is drawn as its own layer.
 - Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
   Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
   caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column

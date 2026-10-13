@@ -70,7 +70,7 @@ export interface LineChartProps {
  * Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a
  * dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)
  * and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same
- * chart plus one dashed Color Chart Sector/Primary line, both values in the Tooltip and a legend. ←/→, Home/End move
+ * chart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move
  * between points.
  */
 export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "gradient", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false }: LineChartProps) {

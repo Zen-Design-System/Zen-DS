@@ -2,67 +2,12 @@
   "fileName": "ZEN Kaiz (Official-Sep2026)",
   "extractedAt": "2026-09-24T12:36:57.826Z",
   "counts": {
-    "colors": 35,
+    "colors": 34,
     "textStyles": 36,
     "effectStyles": 18,
     "gridStyles": 0
   },
   "colors": [
-    {
-      "name": "Semi-Pale",
-      "token": "semi-pale",
-      "type": "gradient_linear",
-      "paints": [
-        {
-          "type": "GRADIENT_LINEAR",
-          "visible": true,
-          "opacity": 1,
-          "blendMode": "NORMAL",
-          "gradientStops": [
-            {
-              "position": 0,
-              "color": {
-                "r": 0.0196,
-                "g": 0.0196,
-                "b": 0.0196,
-                "a": 0.0314
-              },
-              "bound": {
-                "color": "Color/Background/Support/Neutral/Pale"
-              }
-            },
-            {
-              "position": 1,
-              "color": {
-                "r": 0.0039,
-                "g": 0.0039,
-                "b": 0.0039,
-                "a": 0.0627
-              },
-              "bound": {
-                "color": "Color/Background/Support/Neutral/Subtle"
-              }
-            }
-          ],
-          "gradientTransform": [
-            [
-              0.37861496210098267,
-              0.5007815957069397,
-              -0.14214131236076355
-            ],
-            [
-              -0.5007815957069397,
-              0.3909904360771179,
-              0.5765672922134399
-            ]
-          ]
-        }
-      ],
-      "cssVariable": "--zen-style-semi-pale-fill",
-      "color": null,
-      "background": "linear-gradient(142.02deg, var(--zen-color-background-support-neutral-pale, rgba(5, 5, 5, 0.0314)) 0%, var(--zen-color-background-support-neutral-subtle, rgba(1, 1, 1, 0.0627)) 100%)",
-      "unsupportedLayers": []
-    },
     {
       "name": ".VT-Canvas",
       "token": "vt-canvas",
@@ -220,9 +165,9 @@
           "opacity": 1,
           "blendMode": "NORMAL",
           "color": {
-            "r": 0.0667,
-            "g": 0.0667,
-            "b": 0.0667
+            "r": 1,
+            "g": 0.4196,
+            "b": 0.8353
           },
           "bound": {
             "color": "Chart/Sector/Primary"
@@ -230,8 +175,8 @@
         }
       ],
       "cssVariable": "--zen-style-color-chart-sector-primary-fill",
-      "color": "var(--zen-chart-sector-primary, rgba(17, 17, 17, 1))",
-      "background": "linear-gradient(var(--zen-chart-sector-primary, rgba(17, 17, 17, 1)), var(--zen-chart-sector-primary, rgba(17, 17, 17, 1)))",
+      "color": "var(--zen-chart-sector-primary, rgba(255, 107, 213, 1))",
+      "background": "linear-gradient(var(--zen-chart-sector-primary, rgba(255, 107, 213, 1)), var(--zen-chart-sector-primary, rgba(255, 107, 213, 1)))",
       "unsupportedLayers": []
     },
     {
@@ -245,9 +190,9 @@
           "opacity": 1,
           "blendMode": "NORMAL",
           "color": {
-            "r": 1,
-            "g": 0.4,
-            "b": 0.8314
+            "r": 0.0706,
+            "g": 0.0706,
+            "b": 0.0706
           },
           "bound": {
             "color": "Chart/Sector/Secondary"
@@ -255,8 +200,8 @@
         }
       ],
       "cssVariable": "--zen-style-color-chart-sector-secondary-fill",
-      "color": "var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1))",
-      "background": "linear-gradient(var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1)), var(--zen-chart-sector-secondary, rgba(255, 102, 212, 1)))",
+      "color": "var(--zen-chart-sector-secondary, rgba(18, 18, 18, 1))",
+      "background": "linear-gradient(var(--zen-chart-sector-secondary, rgba(18, 18, 18, 1)), var(--zen-chart-sector-secondary, rgba(18, 18, 18, 1)))",
       "unsupportedLayers": []
     },
     {
@@ -270,9 +215,9 @@
           "opacity": 1,
           "blendMode": "NORMAL",
           "color": {
-            "r": 0.0627,
-            "g": 0.6824,
-            "b": 0.8549
+            "r": 0.0706,
+            "g": 0.6353,
+            "b": 0.8078
           },
           "bound": {
             "color": "Color/Background/Support/Cyan/Solid"
@@ -280,8 +225,8 @@
         }
       ],
       "cssVariable": "--zen-style-color-chart-sector-tertiary-fill",
-      "color": "var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1))",
-      "background": "linear-gradient(var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1)), var(--zen-color-background-support-cyan-solid, rgba(16, 174, 218, 1)))",
+      "color": "var(--zen-color-background-support-cyan-solid, rgba(18, 162, 206, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-cyan-solid, rgba(18, 162, 206, 1)), var(--zen-color-background-support-cyan-solid, rgba(18, 162, 206, 1)))",
       "unsupportedLayers": []
     },
     {
@@ -345,8 +290,8 @@
           "opacity": 1,
           "blendMode": "NORMAL",
           "color": {
-            "r": 0.9294,
-            "g": 0.502,
+            "r": 0.8902,
+            "g": 0.4784,
             "b": 0.0078
           },
           "bound": {
@@ -355,8 +300,8 @@
         }
       ],
       "cssVariable": "--zen-style-color-chart-sector-senary-fill",
-      "color": "var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1))",
-      "background": "linear-gradient(var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1)), var(--zen-color-background-support-orange-solid, rgba(237, 128, 2, 1)))",
+      "color": "var(--zen-color-background-support-orange-solid, rgba(227, 122, 2, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-orange-solid, rgba(227, 122, 2, 1)), var(--zen-color-background-support-orange-solid, rgba(227, 122, 2, 1)))",
       "unsupportedLayers": []
     },
     {
@@ -370,18 +315,18 @@
           "opacity": 1,
           "blendMode": "NORMAL",
           "color": {
-            "r": 1,
-            "g": 0.7529,
-            "b": 0.6863
+            "r": 0.6745,
+            "g": 0.8549,
+            "b": 0.6824
           },
           "bound": {
-            "color": "Color/Background/Support/Red/Soft"
+            "color": "Color/Background/Support/Green/Soft"
           }
         }
       ],
       "cssVariable": "--zen-style-color-chart-sector-septenary-fill",
-      "color": "var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1))",
-      "background": "linear-gradient(var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1)), var(--zen-color-background-support-red-soft, rgba(255, 192, 175, 1)))",
+      "color": "var(--zen-color-background-support-green-soft, rgba(172, 218, 174, 1))",
+      "background": "linear-gradient(var(--zen-color-background-support-green-soft, rgba(172, 218, 174, 1)), var(--zen-color-background-support-green-soft, rgba(172, 218, 174, 1)))",
       "unsupportedLayers": []
     },
     {

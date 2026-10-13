@@ -33,16 +33,19 @@
 //   text/shifted             error    left-aligned text with a fixed width, narrower than a centred or end-aligned
 //                                     column, pushed in from its edge (a slot's default text kept after a resize)
 //   copy/placeholder         warning  lorem ipsum or a bare default label left in the screen
-//   theme/box-on-canvas      error    a box (Card, List-Box, a standalone chart) whose fill does not belong to the
+//   theme/box-on-canvas      error    a box (Card, List-Box) whose fill does not belong to the
 //                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
-//                                     Semi-Pale, Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Semi-Pale,
-//                                     Surface/Flat with a Pale border
+//                                     Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Surface/Flat with a
+//                                     Pale border. No gradient box (Semi-Pale, Gradient): one box per row stands out
+//                                     with Solid or a Support/<Hue>/Subtle fill
 //   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
 //                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
 //                                     Bottom-Navigation be a Surface/Default panel
 //   theme/mixed-elevation    error    a shadow on a Canvas/Alt or Canvas/Flat screen, or on Canvas/Default some of the
 //                                     Sidebar, bars and boxes cast one and others do not
-//   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale, Semi-Pale)
+//   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale)
+//   theme/mode-override      error    a layer inside the screen (a component, card or frame) sets its own Light/Dark
+//                                     colour mode: only the screen frame does; a dark widget is Card Solid/Neutral
 
 const ROOT_IDS = [];
 const MAX_PER_RULE = 25;
@@ -262,7 +265,6 @@ function checkShadowClips(root) {
 // ---- Theme pairing (Canvas → Surface, one elevation per screen). Read from the paints actually drawn, so overrides count.
 const CANVAS_TWIN = { Default: "Surface/Alt", Alt: "Surface/Default", Flat: "Surface/Flat" }; // same colour in both modes
 const OVERLAY = /^(Modal|Side-Panel|Bottom-Sheet|Popover|Dialog|Tooltip)/;
-const STANDALONE_CHART = /^Chart\/(Bar|Donut|Radial|Heatmap)/;
 const varNames = new Map();
 async function paintVar(paint) {
   const id = paint && paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id;
@@ -272,7 +274,7 @@ async function paintVar(paint) {
 }
 const setOf = (node) => { const main = node.mainComponent; return main ? (main.parent && main.parent.type === "COMPONENT_SET" ? main.parent.name : main.name) : ""; };
 const dropShadow = (node) => "effects" in node && node.effects.some((effect) => effect.visible !== false && effect.type === "DROP_SHADOW");
-/** What a surface node draws: Pale, Semi-Pale, Gradient, Solid, Surface/<x>, Canvas/<x>, none or another colour. */
+/** What a surface node draws: Pale, Subtle, Solid Neutral, Semi-Pale, Gradient, Solid, Surface/<x>, Canvas/<x>, none… */
 async function surfaceKind(node) {
   if (typeof node.fillStyleId === "string" && node.fillStyleId) {
     const style = await figma.getStyleByIdAsync(node.fillStyleId);
@@ -287,6 +289,8 @@ async function surfaceKind(node) {
   if (/\/Pale(\/Default)?$/.test(name)) return "Pale";
   const surface = name.match(/Background\/(Surface|Canvas)\/(Default|Alt|Flat)$/);
   if (surface) return `${surface[1]}/${surface[2]}`;
+  if (/Support\/[\w-]+\/Subtle$/.test(name)) return "Subtle";
+  if (/Background\/Neutral\/Solid\//.test(name)) return "Solid Neutral";
   if (/Solid/.test(name)) return "Solid";
   return name.replace("Color/Background/", "");
 }
@@ -314,12 +318,12 @@ async function checkThemePairing(root) {
     if (!node.visible) continue;
     const set = node.type === "INSTANCE" ? setOf(node) : "";
     const overlay = inOverlay || OVERLAY.test(set) || OVERLAY.test(node.name);
-    if (!overlay && (set === "Card" || set === "Component/List-Box" || STANDALONE_CHART.test(set))) boxes.push(node);
+    if (!overlay && (set === "Card" || set === "Component/List-Box")) boxes.push(node);
     if (node.name === "Component/Side-Bar/Placeholder") bars.push({ node, role: "Sidebar", panel: true });
     if (set === "Header/Dashboard" || set === "Primitives/Dashboard/Header") bars.push({ node, role: "Header", panel: false });
     if (/^Top-Navigation\/Mobile/.test(set)) bars.push({ node, role: "Top-Navigation", panel: false });
     if (/^Bottom-Navigation\/Mobile/.test(set)) bars.push({ node, role: "Bottom-Navigation", panel: true });
-    if ("children" in node && !(node.type === "INSTANCE" && (set === "Card" || STANDALONE_CHART.test(set)))) for (const child of node.children) stack.push([child, overlay]);
+    if ("children" in node && !(node.type === "INSTANCE" && set === "Card")) for (const child of node.children) stack.push([child, overlay]);
   }
   const elevated = []; const flat = [];
   for (const box of boxes) {
@@ -327,16 +331,21 @@ async function checkThemePairing(root) {
     const border = await hasBorder(box);
     const shadow = dropShadow(box);
     (shadow ? elevated : flat).push(box);
-    if (kind === "Gradient" || kind === "Solid") continue; // a highlight widget, one per row (Card rules)
-    const family = kind === "Pale" || kind === "Semi-Pale" ? kind : border ? "Border" : "Flat";
+    // No gradient box (user, 2026-10-14: "Giữ solid, xoá gradient"): colour is Pale, a stand-out box Solid or Subtle.
+    if (kind === "Gradient" || kind === "Semi-Pale") {
+      report("theme/box-on-canvas", ERROR, box, `${kind} box: no gradients, colour boxes are Pale; to stand out use Solid or a Support/<Hue>/Subtle fill`);
+      continue;
+    }
+    if (kind === "Subtle" || kind === "Solid" || kind === "Solid Neutral") continue; // a highlight widget, one per row (Card rules)
+    const family = kind === "Pale" ? kind : border ? "Border" : "Flat";
     families.add(family);
     const allowed = {
       Default: kind === "Surface/Default",
-      Alt: kind === "Pale" || kind === "Semi-Pale" || kind === "Surface/Alt" || (kind === "Surface/Default" && border),
-      Flat: kind === "Pale" || kind === "Semi-Pale" || (kind === "Surface/Flat" && border),
+      Alt: kind === "Pale" || kind === "Surface/Alt" || (kind === "Surface/Default" && border),
+      Flat: kind === "Pale" || (kind === "Surface/Flat" && border),
     }[canvas];
     if (!allowed) {
-      const fix = { Default: "Surface/Default (Theme Flat, Shadow or Border)", Alt: "Pale, Semi-Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Pale, Semi-Pale or Theme=Border with Surface=Flat" }[canvas];
+      const fix = { Default: "Surface/Default (Theme Flat, Shadow or Border)", Alt: "Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Pale or Theme=Border with Surface=Flat" }[canvas];
       report("theme/box-on-canvas", ERROR, box, `${kind}${border ? " with a border" : ""} on Canvas/${canvas}: use ${fix}`);
     }
   }
@@ -351,6 +360,32 @@ async function checkThemePairing(root) {
   if (canvas !== "Default") for (const node of elevated) report("theme/mixed-elevation", ERROR, node, `a shadow on Canvas/${canvas}: nothing on a Canvas/Alt or Canvas/Flat screen casts one`);
   else if (elevated.length && flat.length) for (const node of flat) report("theme/mixed-elevation", ERROR, node, `no shadow while ${elevated.length} other surface(s) on this screen cast Shadow/Bottom/Level-1: all or none`);
   if (families.size > 1) report("theme/mixed-boxes", WARNING, root, `boxes mix ${[...families].join(", ")}: keep one family per screen (colours may vary)`);
+}
+
+// Light/Dark is the screen's choice: a layer inside it that sets the colour mode mixes two palettes (user, 2026-10-14).
+const colourModeSets = new Map();
+async function colourModeSet(collectionId) {
+  if (!colourModeSets.has(collectionId)) {
+    const collection = await figma.variables.getVariableCollectionByIdAsync(collectionId);
+    const names = collection ? collection.modes.map((mode) => mode.name) : [];
+    colourModeSets.set(collectionId, names.includes("Light") && names.includes("Dark") ? collection : null);
+  }
+  return colourModeSets.get(collectionId);
+}
+async function checkModeOverrides(root) {
+  // A section holds screens: each frame in it may pick its mode, the layers inside it may not.
+  const screens = root.type === "SECTION" ? root.children : [root];
+  const stack = screens.flatMap((screen) => ("children" in screen ? [...screen.children] : []));
+  while (stack.length) {
+    const node = stack.pop();
+    for (const [collectionId, modeId] of Object.entries(node.explicitVariableModes ?? {})) {
+      const collection = await colourModeSet(collectionId);
+      if (!collection) continue;
+      const mode = collection.modes.find((candidate) => candidate.modeId === modeId)?.name ?? modeId;
+      report("theme/mode-override", ERROR, node, `sets ${collection.name} = ${mode}: only the screen frame picks Light or Dark; a dark widget is Card Theme=Solid, Color=Neutral (Background/Neutral/Solid + Inverse content)`);
+    }
+    if ("children" in node) stack.push(...node.children);
+  }
 }
 
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
@@ -500,6 +535,7 @@ rootIds = new Set(roots.map((root) => root.id));
 for (const root of roots) await walk(root, root.type === "INSTANCE" ? root : null, true);
 for (const root of roots) checkShadowClips(root);
 for (const root of roots) await checkThemePairing(root);
+for (const root of roots) await checkModeOverrides(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {
