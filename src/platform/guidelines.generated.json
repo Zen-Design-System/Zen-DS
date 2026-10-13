@@ -6533,13 +6533,18 @@
       ],
       [
         "Columns",
-        "columns · minColumnWidth",
-        "a number, a track list for unequal columns (\"2fr 1fr\"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default)"
+        "columns · minColumnWidth · stackBelow",
+        "a number, a track list for unequal columns (\"2fr 1fr\"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint"
       ],
       [
         "Background layer",
         "surface (Box)",
-        "surface · surface-alt · subtle · pale"
+        "surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card)"
+      ],
+      [
+        "Overflow scrolling",
+        "scroll (Stack, Box)",
+        "\"y\" scrolls vertically, \"x\" sideways, inside the frame (Figma Overflow scrolling; it clips, and the scroll stays inside): give a \"y\" frame a height (\"fill\" in a set-height column) or a maxHeight"
       ],
       [
         "Border",
@@ -6764,6 +6769,11 @@
         "Text element (p default, span inline, label…) · true = one line with ellipsis, n = clamp to n lines · start/center/end"
       ],
       [
+        "Line and digits",
+        "wrap · tabularNumbers",
+        "wrap={false}: one line as wide as its words, never cut (Figma Auto width; a time, a price beside a row) · tabularNumbers: every digit one width (Figma Numbers: Tabular), for values that change or line up"
+      ],
+      [
         "Sizing (Figma resizing)",
         "width · minWidth · maxWidth · alignSelf",
         "as on Layout: \"hug\" · \"fill\" · a number (Fixed px); maxWidth caps a line length; alignSelf = the text's alignment in its Stack or Grid"
@@ -6771,6 +6781,7 @@
     ],
     "keyboard": [],
     "do": [
+      "Give a readout that changes in place (a zoom %, \"3 of 12\", a quantity between − and +) tabularNumbers and a minWidth, so the controls beside it stay put; keep a time or amount beside a row on one line with wrap={false}.",
       "Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as=\"span\" textStyle=… tone=\"strongest\">👋</Text>, and keep the words in the light tone (Zen has no Emoji component).",
       "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
       "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
