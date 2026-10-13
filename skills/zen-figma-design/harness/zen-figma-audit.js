@@ -33,7 +33,7 @@
 //   text/shifted             error    left-aligned text with a fixed width, narrower than a centred or end-aligned
 //                                     column, pushed in from its edge (a slot's default text kept after a resize)
 //   copy/placeholder         warning  lorem ipsum or a bare default label left in the screen
-//   theme/box-on-canvas      error    a box (Card, List-Box, a standalone chart) whose fill does not belong to the
+//   theme/box-on-canvas      error    a box (Card, List-Box) whose fill does not belong to the
 //                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
 //                                     Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Surface/Flat with a
 //                                     Pale border. No gradient box (Semi-Pale, Gradient): one box per row stands out
@@ -265,7 +265,6 @@ function checkShadowClips(root) {
 // ---- Theme pairing (Canvas → Surface, one elevation per screen). Read from the paints actually drawn, so overrides count.
 const CANVAS_TWIN = { Default: "Surface/Alt", Alt: "Surface/Default", Flat: "Surface/Flat" }; // same colour in both modes
 const OVERLAY = /^(Modal|Side-Panel|Bottom-Sheet|Popover|Dialog|Tooltip)/;
-const STANDALONE_CHART = /^Chart\/(Bar|Donut|Radial|Heatmap)/;
 const varNames = new Map();
 async function paintVar(paint) {
   const id = paint && paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id;
@@ -319,12 +318,12 @@ async function checkThemePairing(root) {
     if (!node.visible) continue;
     const set = node.type === "INSTANCE" ? setOf(node) : "";
     const overlay = inOverlay || OVERLAY.test(set) || OVERLAY.test(node.name);
-    if (!overlay && (set === "Card" || set === "Component/List-Box" || STANDALONE_CHART.test(set))) boxes.push(node);
+    if (!overlay && (set === "Card" || set === "Component/List-Box")) boxes.push(node);
     if (node.name === "Component/Side-Bar/Placeholder") bars.push({ node, role: "Sidebar", panel: true });
     if (set === "Header/Dashboard" || set === "Primitives/Dashboard/Header") bars.push({ node, role: "Header", panel: false });
     if (/^Top-Navigation\/Mobile/.test(set)) bars.push({ node, role: "Top-Navigation", panel: false });
     if (/^Bottom-Navigation\/Mobile/.test(set)) bars.push({ node, role: "Bottom-Navigation", panel: true });
-    if ("children" in node && !(node.type === "INSTANCE" && (set === "Card" || STANDALONE_CHART.test(set)))) for (const child of node.children) stack.push([child, overlay]);
+    if ("children" in node && !(node.type === "INSTANCE" && set === "Card")) for (const child of node.children) stack.push([child, overlay]);
   }
   const elevated = []; const flat = [];
   for (const box of boxes) {

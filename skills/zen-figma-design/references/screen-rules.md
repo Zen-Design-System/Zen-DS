@@ -10,8 +10,9 @@ Backgrounds stack in five layers, bottom to top: **Canvas → Surface → other 
 variable by the layer, never by the look.
 
 Pick the **Canvas** first; it decides the navigation, the boxes and the elevation (the user's theme set on
-◆ Performance, Theme-01 … 08, 2026-10-13). Box = Card, List-Box, Metric-Card, Chart-Card (their nested Card is exposed)
-and a standalone chart (Bar, Donut, Radial, Heatmap): one `Theme`, `Surface` and `Color` vocabulary for all of them.
+◆ Performance, Theme-01 … 08, 2026-10-13). Box = Card, List-Box, Metric-Card, Chart-Card (their nested Card is exposed):
+one `Theme`, `Surface` and `Color` vocabulary for all of them. A chart (`Chart/*`) draws no surface of its own: it sits
+in a Chart-Card's (or a Card's) Content slot, and the box takes the theme.
 
 | Canvas (light / dark) | Header, top bar | Sidebar, bottom bar | Boxes | Shadow |
 | --- | --- | --- | --- | --- |

@@ -48,3 +48,25 @@
   and Stack-Bar-Chart 6643:73471 left their covers for Chart components (IDs unchanged), each cover now shows an
   instance in an "Examples" frame cloned from the Bar cover's; the Heatmap cover's bare instance got the same frame.
   Covers screenshot unchanged.
+
+## Charts take their card from Card (tier M, Figma + AI kit, user: "các chart card nên được override từ card chứ ta?" → "Làm cả 4 bước")
+
+- Library (❖ Chart): Bar (2 variants), Donut (3), Radial (2), Heatmap root = no fill, padding 0, radius 0 (unbound from
+  Surface/Default, Card-padding-medium, 2XLarge), width − 48; props and variants unchanged. Probe first (removed): a
+  card-less Bar-Chart in Card Flat/Medium is pixel-identical (400 × 384, title at 24/52); Card's own Sub-Action "⋮" is on
+  by default → off when the chart shows its open button.
+- Placements rebuilt, never moved (moving a chart between slots left its heading layout stale in the probe): a fresh
+  Chart-Card (Sub-Action off, Theme from the old surface: Flat / Shadow / Border / Pale, plus fill/effect overrides when
+  the old look differed) holding a fresh chart; props and every nested override copied, checked by a per-layer
+  signature (name, visible, paints, text, padding, grow) and y/height, then the old instance deleted.
+  ❖ Chart covers 8/8; ◆ Performance 38/38 (10 Flat, 6 Shadow, 8 Border, 14 Pale + override; Case C's "Wrong" Flat
+  chart beside Shadow cards kept as is). The 8 Border ones differ by 1 px: the old chart drew its stroke inside the layout
+  (content at 25), Card Border keeps content at 24 like the Chart-Card beside it. All 38 Charts rows 420 tall (the
+  Multi-Line card's natural height; they read 416 before, 4 px under that card's content).
+- Gotchas: `figma.skipInvisibleInstanceChildren` must be false to map overrides on hidden layers (columns 9–12, Rule);
+  node wrappers from `findAll` are not `===` to `parent.children` items (index by id); size the Chart-Card before
+  filling its slot or it keeps the 345-wide height (1568).
+- Descriptions: Chart-Card from `tools/figma-docs` source (props Card + Content, rule "charts draw no surface of their
+  own"); Bar/Donut/Radial/Heatmap open "… chart:" with a note to sit in Chart-Card. AI kit: `theme/box-on-canvas` and
+  `theme/mixed-elevation` no longer count a standalone chart as a box (harness, audit-rules, screen-rules §1);
+  `npm run ai-kit:check` 104 ✓. Library not published.

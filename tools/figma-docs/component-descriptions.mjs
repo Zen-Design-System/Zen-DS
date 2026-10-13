@@ -700,7 +700,14 @@ export const componentDescriptions = {
   "Chart/Chart-Card": card({
     what: "The frame of a dashboard chart: title, range switch and the chart, beside Metric-Cards.",
     instead: ["One number → Metric-Card.", "Exact values to compare or export → Table.", "More than about seven series → split the chart."],
-    rules: ["Title in Heading/Subheading; the card follows the screen's surface pairing."],
+    props: [
+      ["Card", "the nested Card is exposed — set Theme, Surface, Color and Spacing on the instance; they follow the Card rules for the page's Canvas"],
+      ["Content", "the chart: any Chart/* component (Line, Stack-Bar, Multi-Line, Bar, Donut, Radial, Heatmap, Area …), Fill width"],
+    ],
+    rules: [
+      "Title in Heading/Subheading; the card follows the Card rules for the page's Canvas and the screen's one elevation.",
+      "Charts draw no surface of their own: the card always comes from Chart-Card (or a Card), never from the chart. Keep Sub-Action off when the chart shows its own open button.",
+    ],
     code: "`<ChartCard>`",
   }),
   "Chart/Line-Chart": card({ what: "How a value changes over a few periods (4–12 points).", code: "`<LineChart>`" }),
