@@ -19,6 +19,18 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio clicks like Figma on pages made from templates: layout wrappers that draw nothing (a Stack, Grid or
+  Container around one layer, a card's content column, a list's `<ul>`) are passed through, and AppShell and the page's
+  body count as the frame, so a KPI card is three double-clicks away instead of seven (5.6 → 2.5 on average over six
+  templates). Right-click › **Select layer ›** lists every layer under the pointer.
+- Zen Studio booleans that did nothing now work or hide: Metric's Counter shows on Icon-Highlight only, Hint and
+  Label-Icon on Title-Highlight XLarge–Medium; Metric / Metric card **Custom** and DashboardHeader's Search, Controls,
+  Actions, Center and Trailing open their slot (they had no slot, and a page from a template never opened the picker);
+  an Advanced Chip's Dropdown switched off writes `dropdown={false}`; switches that cannot draw in the current state
+  (Line chart legend without a comparison, an action's dot under a count, the workspace bar) say why.
+- Badge: `leadingIcon={false}` hides a custom `leading` icon too, as Figma's Leading-Icon boolean hides the layer.
+- Zen Studio: the insert picker says "N not available here" in one line (the reasons in its tooltip, in design words);
+  a card's Effects row is one Figma style row — the effect's swatch and name, which picks the theme that draws it.
 - Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
   and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
 - Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as

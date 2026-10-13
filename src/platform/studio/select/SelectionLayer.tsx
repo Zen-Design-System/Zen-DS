@@ -6,7 +6,7 @@ import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
 import { chainHas, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
-import { clickTarget, layerInside, sameElement } from "./clickTarget";
+import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
 import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
 import { dataGroupOfPart, dataItemOfPart, dataItemRootOf, groupPartAt, groupTitlePartOf, itemParts, rowPartAtPoint, sectionPartAtPoint } from "../slots/dataItems";
 import { itemSelection } from "../slots/itemSelection";
@@ -758,7 +758,16 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const onExtra = extrasRef.current.some((extra) => extra.hosts.some((host) => host.contains(picked.element)));
     if (!onSelected && !onExtra) choose(targetOf(picked, event.metaKey || event.ctrlKey), false);
     const selection = studioStore.getState().selection;
-    if (selection?.kind === "node") openCanvasMenu(event.clientX, event.clientY, selection);
+    // "Select layer": the layers under the pointer as Layers lists them, from the one under it out to the frame's.
+    const path = layersAt(picked.hit, picked.frame);
+    const selected = selectedRef.current;
+    const layers = (path ? path.path.slice(path.root + 1) : [picked.hit]).reverse().slice(0, 12).map((hit) => ({
+      name: hit.name,
+      component: hit.isComponent,
+      selected: Boolean(selected && sameElement(hit, selected)),
+      select: () => choose(hit, false),
+    }));
+    if (selection?.kind === "node") openCanvasMenu(event.clientX, event.clientY, selection, layers);
   };
 
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {

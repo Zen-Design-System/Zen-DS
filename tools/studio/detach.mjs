@@ -857,9 +857,10 @@ const RECIPES = {
       const textStyle = r.m("textStyle", "textStyle", size === "xs" ? "Caption/Medium" : size === "sm" ? "Body/Small/Medium" : "Body/Base/Medium");
       const leadingAttr = r.attr("leading");
       let leading = null;
-      if (size !== "xs") {
+      // Badge.tsx: leadingIcon={false} hides the leading layer, a custom `leading` icon included (Figma's Leading-Icon).
+      if (size !== "xs" && leadingIcon) {
         if (leadingAttr) leading = r.icon(leadingAttr, size === "md" ? "sm" : "xs");
-        else if (leadingIcon) leading = el(r.use("Icon"), [str("name", "icon-circle-small-solid"), str("size", size === "md" ? "sm" : "xs"), flag("decorative")]);
+        else leading = el(r.use("Icon"), [str("name", "icon-circle-small-solid"), str("size", size === "md" ? "sm" : "xs"), flag("decorative")]);
       }
       if (leading) r.approx("The leading dot or icon takes the label colour (Badge paints it separately).");
       const region = r.region();

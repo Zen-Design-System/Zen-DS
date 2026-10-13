@@ -9,8 +9,9 @@ export type FigmaPropsEntry = {
    *  and Figma option name → code value; an icon swap's `default`: its default icon in Figma. */
   own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>>; default?: string }>;
   /** Figma booleans that show a layer: on writes `on` (a text; "slot": the content-slot picker; { code }: an object or a
-   *  list written as code), off removes the prop. */
-  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;
+   *  list written as code), off removes the prop. `when`: shown only while each prop (or its default) is one of the
+   *  values — the sets that have the boolean, then the layer's own conditions. */
+  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string }; when?: ReadonlyArray<{ prop: string; oneOf: readonly string[]; default?: string }> }>;
   /** Nested layers (an Input's Label): shown while `when` is set, with their properties ("CODE": a code prop the
    *  nested Figma set has no property for, labelled here). */
   nested?: ReadonlyArray<{ name: string; figma?: string; when: string; own: ReadonlyArray<{ prop: string; label?: string; type: string }> }>;
@@ -520,37 +521,103 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "label": "Actions",
         "prop": "actions",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar",
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
       },
       {
         "label": "Nav-Trailing-Block",
         "prop": "trailing",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "navigation",
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
       },
       {
         "label": "Controls",
         "prop": "controls",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar"
+            ],
+            "default": "control-bar"
+          }
+        ]
       },
       {
         "label": "Search",
         "prop": "search",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar"
+            ],
+            "default": "control-bar"
+          }
+        ]
       },
       {
         "label": "Subheading",
         "prop": "subheading",
-        "on": "96 results"
+        "on": "96 results",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar",
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
       },
       {
         "label": "Nav-Center-Block",
         "prop": "center",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "navigation"
+            ],
+            "default": "control-bar"
+          }
+        ]
       },
       {
         "label": "Child-Heading",
         "prop": "childTitle",
-        "on": "2026"
+        "on": "2026",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
       }
     ]
   },
@@ -2294,22 +2361,82 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "label": "Counter",
         "prop": "counter",
-        "on": "3"
+        "on": "3",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "icon-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
       },
       {
         "label": "Hint",
         "prop": "hint",
-        "on": "How this number is worked out"
+        "on": "How this number is worked out",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
       },
       {
         "label": "Label-Icon",
         "prop": "labelIcon",
-        "on": "icon-wallet-02-line"
+        "on": "icon-wallet-02-line",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
       },
       {
         "label": "Custom",
         "prop": "custom",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
       }
     ]
   },
@@ -2346,22 +2473,82 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       {
         "label": "Counter",
         "prop": "counter",
-        "on": "3"
+        "on": "3",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "icon-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
       },
       {
         "label": "Hint",
         "prop": "hint",
-        "on": "How this number is worked out"
+        "on": "How this number is worked out",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
       },
       {
         "label": "Label-Icon",
         "prop": "labelIcon",
-        "on": "icon-wallet-02-line"
+        "on": "icon-wallet-02-line",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
       },
       {
         "label": "Custom",
         "prop": "custom",
-        "on": "slot"
+        "on": "slot",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
       }
     ]
   },

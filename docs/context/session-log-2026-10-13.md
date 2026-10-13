@@ -35,3 +35,34 @@
 - Left (BACKLOG, the user's call): 27 container-query layouts (a Grid API), docs-only details and mixed colour /
   display rules, which stay platform CSS. classNames now 260.
 
+
+## Studio: booleans and clicks on template pages (session "Studio toggles + click", branch zen/fix/studio-toggles-click, worktree Zen-DS-click)
+
+User: (1) clicking the element you want is harder than Figma, (2) on a page made from a template, booleans of an
+overridden component do nothing, "especially booleans with a slot such as Metric card", (3) "still far from Figma".
+Tier M (Studio, several modules; one library line in Badge). Private Studio server on :5197 from the worktree.
+- Repro (2): Counter on a Title-Highlight MetricCard wrote `counter="3"`, nothing drawn (Counter is Icon-Highlight's in
+  Figma); Custom flipped and fell back. Causes: no content slot for Metric/MetricCard `custom` nor DashboardHeader's
+  5 slot booleans (toggle → openSlotPicker for an unknown slot), and SlotLayer loaded the source element only for
+  slots active with *no props* (`activeSlotsOf(name)`), so a slot whose default state is inactive never got its picker.
+- Fixes: figma-props-build gives a toggle `when` = the sets that have it (+ map conditions: Metric Hint/Label-Icon at
+  XL–MD, DashboardHeader per Type); `oneOf` conditions take a default; a toggle's value row shows while it is on;
+  registry: metricCustom, metricCardCustom, dashboardSearch/Controls/Actions/Center/Trailing (palette selftest 1838 ✓);
+  SlotLayer: slotsOf for the source read, host props for insertable slots; slot switches hidden while the slot is
+  inactive (Metric Action below Medium).
+- Sweep (every Inspector switch on one instance per component, Dashboard / HR Home / Detail pages, text + canvas both
+  must change): found Chip Dropdown off = removal, which an Advanced chip renders as on → `inspector/computedDefaults.ts`
+  (write `false`, show the computed default); Badge Leading-Icon off did nothing with a `leading` icon → Badge hides it
+  (Figma's boolean); LineChart Show legend (needs compare), AppShellAction Dot (under a count), Sidebar Workspace-bar
+  (Workspace only) → a note under the switch. Left as they are: Search Clearable / filter, Chip popover options, Icon
+  Decorative (no visual by nature).
+- (1) Measured click depth (double-clicks after the first click to reach each non-layout layer, 6 templates, 263
+  layers): 5.58 avg, max 11; the first click always selected AppShell. Figma Overviews 14243:64878 for comparison:
+  4.6 avg counting slot levels. clickTarget.ts: layout wrappers with one layer, a component's one layout child, List's
+  `<ul>` and a Box as large as its child are passed through; AppShell and the page body extend the frame root →
+  2.54 avg, max 8 (Dashboard KPI card 7 → 3). Canvas menu: "Select layer ›" lists the layers under the pointer.
+- UI notes from the user mid-session: the insert picker's long "Not offered here…" sentence → "N not available here"
+  (reasons in the tooltip, rewritten in design words); the card Effects row (label, two-line "From … theme", floating
+  Edit theme, a white swatch that read as a checkbox) → one style row whose menu picks the theme, grey swatch tile.
+- E2E: SP-13 (Custom → picker → slot), SP-14 (first click, double-clicks, Select layer), SP-15 (Chip Dropdown false);
+  AP-06 rewritten for the new Effects row.

@@ -3,11 +3,12 @@ import { Icon } from "../../../components/Icon";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { dataItemBlock, dataSlotOf, editDataItem, insertIntoSlot, openSlotPicker, slotHostContext, sourceItems, type DataSlot } from "../slots";
 import { paletteFor } from "../slots/palette";
-import { slotOf } from "../slots/registry";
+import { hostPropsOf, isSlotActive, slotOf } from "../slots/registry";
 import type { SourceElement, StudioSelection } from "../types";
 import type { FieldApi } from "./fieldApi";
 import { NestedInstanceGroup } from "./NestedProperties";
 import type { NestedInstances } from "./nestedInstances";
+import { computedDefault, idleNotes } from "./computedDefaults";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
@@ -144,16 +145,26 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
 }) {
   const props = conditionProps(rendered, element);
   const component = element.name;
-  const specOf = (prop: string) => specs.find((spec) => spec.name === prop);
+  // An unset switch whose default the component computes (an Advanced Chip's Dropdown) shows what renders.
+  const specOf = (prop: string) => {
+    const spec = specs.find((candidate) => candidate.name === prop);
+    const computed = spec ? computedDefault(component, prop, props) : undefined;
+    return spec && computed !== undefined ? { ...spec, defaultValue: computed } : spec;
+  };
   const shapedOf = new Map(shaped.map((entry) => [entry.spec.name, entry]));
   const placed = placedProps(groups);
-  // Props no group lists stay in the component's own group, after the code-only ones.
-  const after: PropEntry[] = [...groups.after, ...specs.map((spec) => spec.name).filter((name) => !placed.has(name))];
+  // Props no group lists stay in the component's own group, after the code-only ones. A boolean's own value (Counter's
+  // "3") shows while its boolean is on, and only where its layer exists (as the boolean row itself).
+  const toggleOf = new Map(groups.toggles.map((toggle) => [toggle.prop, toggle]));
+  const after: PropEntry[] = [...groups.after, ...specs.map((spec) => spec.name).filter((name) => !placed.has(name)).map((name): PropEntry => {
+    const toggle = toggleOf.get(name);
+    return toggle ? { prop: name, when: [...(toggle.when ?? []), { prop: name, set: true }] } : name;
+  })];
 
   /** A group's rows: its fields, the list items and objects written in place, the nested Zen instances in its props. */
   const rows = (entries: readonly PropEntry[], key: string) => {
     const shown = entries.filter((entry) => entryShown(entry, props)).map(entryProp);
-    const warnings = new Map(entries.map((entry) => [entryProp(entry), entryWarnings(entry, props)]));
+    const warnings = new Map(entries.map((entry) => [entryProp(entry), [...entryWarnings(entry, props), ...idleNotes(component, entryProp(entry), props)]]));
     // A Figma name for the row when the group gives one (generated from the Figma read), else the prop's label.
     const labels = new Map(entries.map((entry) => [entryProp(entry), entryLabel(entry)]));
     // And its options by their Figma names ("Medium (Base)"), in Figma's order; the file still gets the code value.
@@ -169,6 +180,8 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
             {/* A content slot's prop the Figma booleans do not switch (TopNavigation Title-Leading): a switch that puts a
                 real component in, never a text field (DesignPanel does the same for components without Figma groups). */}
             {spec.editor.kind === "node" && slotOf(component, spec.name) && !groups.toggles.some((toggle) => toggle.prop === spec.name) ? (
+              // A slot this state never draws (Metric's Action below Medium, or on Icon-Highlight) has no switch.
+              !isSlotActive(slotOf(component, spec.name)!, hostPropsOf(element.attributes)) ? null :
               <ToggleRow toggle={{ prop: spec.name, label: labels.get(spec.name) ?? propLabel(spec.name, component), on: { kind: "slot" } }} on={api.valueFor(spec.name).state !== "unset"} value={api.valueFor(spec.name)} api={api} selection={selection} element={element} />
             ) : (
             <PropField

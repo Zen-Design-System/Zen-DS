@@ -69,6 +69,10 @@ Last updated: 2026-10-12.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio clicks and booleans (2026-10-13, branch `zen/fix/studio-toggles-click`, worktree `Zen-DS-click`):**
+  clicks pass through layout wrappers and AppShell / the page body (template pages 5.6 → 2.5 double-clicks to a layer),
+  right-click › Select layer ›; every Figma boolean on template pages works or says why (slot toggles open their picker,
+  set-specific booleans show on their set only, `inspector/computedDefaults.ts`). Session log 2026-10-13.
 - **Zen Studio, Figma usability round 1 (2026-10-10):** pictures replace like Figma everywhere (Assets › Photos click or
   a drop on an Avatar/Image/Thumbnail/account, the Inspector's Picture; data rows and factories write that row,
   `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:

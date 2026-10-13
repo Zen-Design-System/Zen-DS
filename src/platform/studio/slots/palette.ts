@@ -944,9 +944,9 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   };
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
-    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
-    if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "Actions and stateful items need a component to hold their hooks; this code sits outside one";
-    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Images read platformMedia, which only the example pages import";
+    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs live state; pages you make get interactions from the Prototype tab";
+    if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "It runs an action, and this spot cannot run one";
+    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Library pictures work on example pages only";
     return null;
   };
 

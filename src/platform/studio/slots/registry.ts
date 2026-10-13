@@ -486,6 +486,84 @@ const metricAction: ContentSlot = {
   activeWhen: [{ prop: "variant", is: ["title-highlight"], default: "icon-highlight" }, { prop: "size", is: ["xl", "xlarge", "lg", "large", "md", "medium"], default: "xl" }],
 };
 
+/*
+ * Metric Title-Highlight's Custom-Slot (MetricWidget.tsx: `{custom ? <><div className="zen-metric__body">…</div><div
+ * className="zen-metric__custom">{custom}</div></> : body}`; metric-widget.css: a flex column, no gap). Figma Custom (a
+ * BOOLEAN) shows Custom-Slot (a SLOT) on Primitives/Metric/Metric-Inline/Title-Highlight 7523:507049. Switched on in
+ * Properties, it opens the picker as Figma's empty slot waits for content (user, 2026-10-13: "các boolean có slot như
+ * Metric card" did nothing: no slot was registered).
+ */
+const metricCustom: ContentSlot = {
+  component: "Metric", prop: "custom", name: "Custom-Slot", figma: { node: "7523:507049", native: true },
+  kind: "content", container: ":scope > .zen-metric__custom", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-metric__contents", place: "after", flow: "column" }, flow: "column", gap: "none",
+  accepts: { deny: ["Card", "MetricCard", "ChartCard", ...overlayDeny] },
+  activeWhen: [{ prop: "variant", is: ["title-highlight"], default: "icon-highlight" }],
+};
+
+/** MetricCard draws the Metric in its Card's content (MetricWidget.tsx, Card.tsx `zen-card__content`): the same slot. */
+const metricCardCustom: ContentSlot = {
+  ...metricCustom,
+  component: "MetricCard",
+  container: ":scope > .zen-card__content > .zen-metric > .zen-metric__custom",
+  ghostAnchor: { selector: ":scope > .zen-card__content > .zen-metric > .zen-metric__contents", place: "after", flow: "column" },
+};
+
+/*
+ * DashboardHeader (DashboardHeader.tsx), Figma ◇ Master-Layout Primitives/Dashboard/Header 4122:33402: each boolean
+ * shows a slot on some Types (figma-props.map.mjs lists which). Control-Bar and Navigation draw their own containers,
+ * each only while it holds something; Type=Main renders PageHeader, whose actions row takes Action-Slots and
+ * Trailing-Slots (the second selector of a pair). dashboard-header.css: flex rows; Search and Center fill their box.
+ */
+const dashboardSearch: ContentSlot = {
+  component: "DashboardHeader", prop: "search", name: "Search", figma: { node: "4122:33402", native: false },
+  kind: "atom", container: ":scope > .zen-dashboard-header__search", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope", place: "first-child" }, flow: "row", gap: "none", max: 1,
+  accepts: { only: ["Search"] },
+  activeWhen: [{ prop: "type", is: ["control-bar"], default: "control-bar" }],
+};
+
+const dashboardControls: ContentSlot = {
+  component: "DashboardHeader", prop: "controls", name: "Control-Slots", figma: { node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-dashboard-header__controls", mountsWhenEmpty: false,
+  ghostAnchor: [{ selector: ":scope > .zen-dashboard-header__search", place: "after" }, { selector: ":scope", place: "first-child" }],
+  // Figma's Control-Slots hold filter Chips (Chip/Advanced); a Chip group or a Segmented filters the same way.
+  flow: "row", gap: "own",
+  accepts: { only: ["Chip", "ChipGroup", "Segmented"], deny: ["Card", "MetricCard", "ChartCard", ...overlayDeny] },
+  activeWhen: [{ prop: "type", is: ["control-bar"], default: "control-bar" }],
+};
+
+const dashboardActions: ContentSlot = {
+  component: "DashboardHeader", prop: "actions", name: "Action-Slots", figma: { node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-dashboard-header__actions, :scope > .zen-page-header__row > .zen-page-header__actions", mountsWhenEmpty: false,
+  ghostAnchor: [{ selector: ":scope > .zen-page-header__row", place: "last-child" }, { selector: ":scope", place: "last-child" }],
+  parts: ".zen-page-header__trailing", flow: "row", gap: "own",
+  accepts: { only: ["Button", "IconButton", "Menu"], deny: [...overlayDeny] },
+  activeWhen: [{ prop: "type", is: ["control-bar", "main"], default: "control-bar" }],
+};
+
+const dashboardCenter: ContentSlot = {
+  component: "DashboardHeader", prop: "center", name: "Center-Slots", figma: { node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-dashboard-header__center", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope > .zen-dashboard-header__leading", place: "after" }, flow: "row", gap: "own", max: 1,
+  accepts: { only: ["Search", "Segmented"] },
+  activeWhen: [{ prop: "type", is: ["navigation"], default: "control-bar" }],
+};
+
+const dashboardTrailing: ContentSlot = {
+  component: "DashboardHeader", prop: "trailing", name: "Trailing-Slots", figma: { node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-dashboard-header__trailing, :scope > .zen-page-header__row > .zen-page-header__actions > .zen-page-header__trailing", mountsWhenEmpty: false,
+  ghostAnchor: [
+    { selector: ":scope > .zen-dashboard-header__center", place: "after" },
+    { selector: ":scope > .zen-dashboard-header__leading", place: "after" },
+    { selector: ":scope > .zen-page-header__row > .zen-page-header__actions", place: "last-child" },
+    { selector: ":scope > .zen-page-header__row", place: "last-child" },
+  ],
+  flow: "row", gap: "own",
+  accepts: { only: ["AppShellAction", "AppShellAccount", "IconButton", "Avatar", "Menu"] },
+  activeWhen: [{ prop: "type", is: ["navigation", "main"], default: "control-bar" }],
+};
+
 const emptyStateIcon: ContentSlot = {
   // EmptyState.tsx: the placeholder illustration (illustration true) draws {renderIcon(icon)} in
   // <span className="zen-empty-state__icon">, always (its default icon when unset); empty-state.css: inline-flex, an
@@ -523,7 +601,9 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   PageHeader: { root: ".zen-page-header", titleLevel: { prop: "headingLevel", default: 1 }, slots: [pageHeaderBreadcrumbs, pageHeaderMeta, pageHeaderActions, pageHeaderTrailing, pageHeaderTabs] },
   // A builder page's Screen (not a library component): its app frame's header is a free slot.
   Screen: { root: ".studio-builder-screen", titleLevel: null, slots: [screenHeader] },
-  Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction] },
+  Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction, metricCustom] },
+  MetricCard: { root: ".zen-metric-card", titleLevel: null, slots: [metricCardCustom] },
+  DashboardHeader: { root: ".zen-dashboard-header", titleLevel: null, slots: [dashboardSearch, dashboardControls, dashboardActions, dashboardCenter, dashboardTrailing] },
   EmptyState: { root: ".zen-empty-state", titleLevel: null, slots: [emptyStateIcon] },
   // Stack and Grid space their children with their gap prop (default md); Box is a plain block (Layout.tsx, layout.css).
   Stack: { root: ".zen-stack", titleLevel: null, slots: [layout("Stack", "column", "own")] },

@@ -14,7 +14,9 @@
 //     { toggle: "startIcon", on: … }        a Figma boolean that shows a layer = the presence of a code prop: on writes
 //                                           `on` (a text value, "slot" for the content-slot picker, or { code } for an
 //                                           object written as code: `{ label: "Action" }`, or { swap: "Leading-Icon-Src" }
-//                                           for that swap property's default icon in Figma), off removes it
+//                                           for that swap property's default icon in Figma), off removes it. The row shows
+//                                           only on the sets that have the boolean (generated), and while every
+//                                           `when: [{ prop, oneOf, default? }]` holds (the layer exists only at those values)
 //     { skip: "why" }                       Figma-only (a preview state, a device frame, content written elsewhere)
 //   nested: Figma nested layer name → { when, set?, props?, code? }: a group shown while code prop `when` is set, with
 //           the nested set's properties mapped as above, then `code` rows ({ prop, label }) for code props that set has
@@ -53,6 +55,9 @@ const FIELD_NESTED = { Label: LABEL, "Help-Text": HELP_TEXT };
 /** An action written as an object (`action={{ label: "Action" }}`): its label and handler are edited in Object properties. */
 const ACTION = { code: '{ label: "Action" }' };
 
+/** Title-Highlight's title row (Label-Icon, Hint, Action) exists at XLarge–Medium, either spelling. */
+const TITLED = { prop: "size", oneOf: ["xl", "xlarge", "lg", "large", "md", "medium"], default: "xl" };
+
 /** Metric and MetricCard (a card holding a Metric-Inline instance, with the same props). */
 const METRIC = {
   sets: { "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight", "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight" },
@@ -64,8 +69,9 @@ const METRIC = {
     Counter: { toggle: "counter", on: "3" },
     "Dock-Icon": skip("icon={false} hides the dock icon; the icon itself is the Icon row"),
     Action: skip("a node with no content slot yet"),
-    Hint: { toggle: "hint", on: "How this number is worked out" },
-    "Label-Icon": { toggle: "labelIcon", on: "icon-wallet-02-line" },
+    // MetricWidget.tsx draws the hint and the label icon in the title row of XLarge–Medium only.
+    Hint: { toggle: "hint", on: "How this number is worked out", when: [TITLED] },
+    "Label-Icon": { toggle: "labelIcon", on: "icon-wallet-02-line", when: [TITLED] },
     Size: "size",
     Custom: { toggle: "custom", on: "slot" },
     "Custom-Slot": skip("content slot (Slots section)"),
@@ -136,13 +142,14 @@ export const FIGMA_PROPS = {
     sets: { "Primitives/Dashboard/Header": null },
     props: {
       Type: "type",
-      Search: { toggle: "search", on: "slot" },
-      Controls: { toggle: "controls", on: "slot" },
-      Subheading: { toggle: "subheading", on: "96 results" },
-      Actions: { toggle: "actions", on: "slot" },
-      "Nav-Center-Block": { toggle: "center", on: "slot" },
-      "Nav-Trailing-Block": { toggle: "trailing", on: "slot" },
-      "Child-Heading": { toggle: "childTitle", on: "2026" },
+      // Each boolean's layer exists on some Types only (DashboardHeader.tsx): the row shows there.
+      Search: { toggle: "search", on: "slot", when: [{ prop: "type", oneOf: ["control-bar"] }] },
+      Controls: { toggle: "controls", on: "slot", when: [{ prop: "type", oneOf: ["control-bar"] }] },
+      Subheading: { toggle: "subheading", on: "96 results", when: [{ prop: "type", oneOf: ["control-bar", "main"] }] },
+      Actions: { toggle: "actions", on: "slot", when: [{ prop: "type", oneOf: ["control-bar", "main"] }] },
+      "Nav-Center-Block": { toggle: "center", on: "slot", when: [{ prop: "type", oneOf: ["navigation"] }] },
+      "Nav-Trailing-Block": { toggle: "trailing", on: "slot", when: [{ prop: "type", oneOf: ["navigation", "main"] }] },
+      "Child-Heading": { toggle: "childTitle", on: "2026", when: [{ prop: "type", oneOf: ["main"] }] },
       "Leading-Slots": skip("content slot (Slots section)"),
       "Center-Slots": skip("content slot (Slots section)"),
       "Trailing-Slots": skip("content slot (Slots section)"),

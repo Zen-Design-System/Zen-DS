@@ -1,7 +1,7 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
 import { focusFrame, openStudioSpace, showLeftTab, sleep, until } from "../lib/studio.mjs";
-import { clickNamed, focusScreen, pageText } from "./builder.mjs";
+import { clickNamed, focusScreen, pageText, selectedName } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
 /**
@@ -31,6 +31,42 @@ export async function pageFromFrame(ctx, frame, { on } = {}) {
   /** Console errors since the page was made (React's warnings about a copied prop show here). */
   const newErrors = () => errors.slice(errorsBefore).filter((line) => !/Failed to load resource/.test(line));
   return { page, id, text, status, newErrors };
+}
+
+/** New page › a template (the dialog's card, as a person picks it); returns the page id once the canvas shows it. */
+export async function pageFromTemplate(ctx, title) {
+  const { page } = await ctx.studio({ fresh: true });
+  await showLeftTab(page, "pages");
+  await openStudioSpace(page);
+  const from = page.url();
+  await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New page" });
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  await dialog.getByRole("radio", { name: new RegExp(`^${title}`) }).first().check({ force: true });
+  await dialog.getByRole("button", { name: "Create page" }).click();
+  await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { timeout: 40_000, message: `the ${title} page on the canvas` });
+  const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+  await focusScreen(page);
+  return { page, id };
+}
+
+/** ⌘-click (Figma's deep select) at the centre of the first element matching `selector` in the page's Screen. */
+async function deepSelect(page, selector) {
+  const box = await page.locator(`.studio-frame ${selector}`).first().boundingBox();
+  if (!box) throw new Error(`no ${selector} on the canvas`);
+  await page.keyboard.down("Meta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("Meta");
+  await sleep(500);
+  return box;
+}
+
+/** The source of the first `<Name` element of the page, up to the next element of that name. */
+async function firstElementText(page, id, name) {
+  const text = (await pageText(page, id)) ?? "";
+  const start = text.indexOf(`<${name}`);
+  const next = text.indexOf(`<${name}`, start + 1);
+  return start < 0 ? "" : text.slice(start, next < 0 ? undefined : next);
 }
 
 export const rows = [
@@ -342,6 +378,77 @@ export const rows = [
         await sleep(500);
         if ((await text()) !== before) throw new Error("the page changed while only selecting");
         return steps.join(" → ");
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-13", feature: "A page from the Dashboard template, its Metric card (user 2026-10-13: \"bật boolean … không hoạt động, đặc biệt các boolean có slot như Metric card\"): Title-Highlight lists Hint, Label-Icon and Custom but no Counter (Icon-Highlight's); Custom opens the picker and the picked item fills Custom-Slot", wp: "studio toggles 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        const panel = page.locator("#studio-right");
+        const switches = await panel.getByRole("switch").evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+        for (const label of ["Hint", "Label-Icon", "Custom"]) if (!switches.includes(label)) throw new Error(`no ${label} switch (${switches.join(", ")})`);
+        if (switches.includes("Counter")) throw new Error("Counter shows on Title-Highlight, where nothing draws it");
+        await panel.getByRole("switch", { name: "Custom", exact: true }).click();
+        const picker = page.locator(".studio-slots__picker-scope");
+        await picker.waitFor({ state: "visible", timeout: 5000 }).catch(() => { throw new Error("Custom did not open the picker"); });
+        await page.keyboard.type("Progress");
+        await picker.getByRole("option").first().click();
+        await until(async () => /custom=\{<Stack[^]*?<ProgressBar/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "custom={…ProgressBar…} written" });
+        await until(() => page.evaluate(() => Boolean(document.querySelector(".studio-frame .zen-metric-card .zen-metric__custom .zen-progress, .studio-frame .zen-metric-card .zen-metric__custom [role=progressbar]"))), { timeout: 8000, message: "the progress bar drawn in the card" });
+        return "Hint, Label-Icon, Custom (no Counter); Custom → picker → ProgressBar in Custom-Slot";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-14", feature: "A page from the Dashboard template, clicked like Figma (user 2026-10-13: \"khó click vào element muốn hơn so với figma\"): the first click on a KPI value selects a section of the page (never AppShell), three double-clicks reach the MetricCard, and right-click › Select layer › MetricCard selects it in two steps", wp: "studio click 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page } = await pageFromTemplate(ctx, "Dashboard");
+        const value = await page.locator(".studio-frame .zen-metric-card .zen-metric__value").first().boundingBox();
+        const x = value.x + value.width / 2;
+        const y = value.y + value.height / 2;
+        const steps = [];
+        await page.mouse.click(x, y); await sleep(400);
+        steps.push(await selectedName(page));
+        if (steps[0] === "AppShell" || steps[0] === "Screen") throw new Error(`the first click selected ${steps[0]}`);
+        for (let index = 0; index < 4 && steps.at(-1) !== "MetricCard"; index++) { await page.mouse.dblclick(x, y); await sleep(400); steps.push(await selectedName(page)); }
+        if (steps.at(-1) !== "MetricCard" || steps.length > 4) throw new Error(`clicks: ${steps.join(" → ")}`);
+        await page.keyboard.press("Escape"); await page.keyboard.press("Escape"); await sleep(300);
+        await page.mouse.click(x, y, { button: "right" });
+        await page.getByRole("menuitem", { name: /^Select layer/ }).click();
+        const listed = await page.getByRole("menu", { name: "Select layer" }).getByRole("menuitem").allInnerTexts().catch(() => []);
+        await page.getByRole("menu", { name: "Select layer" }).getByRole("menuitem", { name: /^MetricCard/ }).click();
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "Select layer › MetricCard" });
+        return `${steps.join(" → ")}; Select layer lists ${listed.map((item) => item.split("\n")[0]).join(", ")}`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-15", feature: "A page from the Dashboard template: an Advanced Chip's Dropdown switched off writes dropdown={false} and its chevron goes (an unset dropdown is on for Advanced chips)", wp: "studio toggles 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelect(page, ".zen-chip");
+        await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip selected" });
+        const chevrons = () => page.evaluate(() => document.querySelector(".studio-frame .zen-chip")?.querySelectorAll("svg").length ?? 0);
+        const before = await chevrons();
+        await page.locator("#studio-right").getByRole("switch", { name: "Dropdown", exact: true }).click();
+        await until(async () => /dropdown=\{false\}/.test(await firstElementText(page, id, "Chip")), { timeout: 8000, message: "dropdown={false} written" });
+        await until(async () => (await chevrons()) < before, { timeout: 8000, message: "the chevron gone" });
+        return `dropdown={false}; icons ${before} → ${await chevrons()}`;
       } finally {
         await ctx.studio({ fresh: true });
       }
