@@ -130,6 +130,11 @@ export const Good = () => <>
   <ChatMessage side="others" author={{ name: "Ava Chen" }} {...demo.act("m1", "others")}>Hi there</ChatMessage>
   <AiChatBubble side="ai" streaming={busy} actions={busy ? [] : answerActions}>Working</AiChatBubble>
   <StackBarChart aria-label="Budget" data={data} series={series} />
+  <BarChart aria-label="Revenue per month, Jan – Dec 2026" data={data} />
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} />
+  <RadialChart aria-label="Budget used by project" data={slices} legendPosition="end" />
+  <LineChart aria-label="Weekly visits" data={data} showLegend={false} />
+  <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
   <TableMedia media={<Avatar size="xsmall" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="xsmall" />}>Spec.pdf</TableMedia>

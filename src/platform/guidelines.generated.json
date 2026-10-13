@@ -6431,37 +6431,68 @@
   },
   "chart": {
     "title": "Chart",
-    "purpose": "Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch.",
+    "purpose": "One chart family in one style: how a value changes over time (Line), compares across periods or categories (Bar), splits a total (Stack bar, Donut), measures against a maximum (Radial) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
     "use": [
-      "Trends over a few periods (4–12 points) → LineChart.",
+      "A trend over 4–12 periods → LineChart; against last year, the plan or a second measure over the same periods → LineChart compare (one dashed comparison line, with a legend).",
+      "Compare periods or categories → BarChart (vertical); long category names or a goal per bar → BarChart orientation=\"horizontal\" with target; a forecast → projected bars.",
       "Part-to-whole across periods → StackBarChart with a legend.",
-      "Dashboard tiles → ChartCard next to Metric Cards."
+      "Shares of one total (2–7) → DonutChart.",
+      "1–4 measures against the same maximum (budget used, goals) → RadialChart.",
+      "A value per day × hour, or any row × column grid → HeatmapChart.",
+      "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards."
     ],
     "avoid": [
       "One number → Metric / MetricCard.",
       "Exact values to compare or export → Table.",
-      "More than ~7 series → split the chart or use a Table."
+      "More than ~7 series or slices → split the chart or use a Table.",
+      "A donut for values over time → LineChart or BarChart.",
+      "One progress value with a label → ProgressBar / ProgressCircle, not a RadialChart."
     ],
     "api": [
       [
         "Line",
-        "LineChart data[] {label, value} · format · height",
-        "Accent/Solid 2px line, Accent area, dashed Pale grid"
+        "LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition",
+        "Accent/Solid 2px line + Accent area; compare: a 2px Color Chart Sector/Primary line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart)"
+      ],
+      [
+        "Bar",
+        "BarChart data[] {label, value, projected, target} · orientation · color · activeColor",
+        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small"
       ],
       [
         "Stack bar",
-        "StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend",
-        "Figma palette: Sector Primary, Secondary, Cyan, Violet, Yellow…"
+        "StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition",
+        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small"
+      ],
+      [
+        "Donut",
+        "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)",
+        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/3 figure)"
+      ],
+      [
+        "Radial",
+        "RadialChart data[] {id, label, value} · max · value · label · size · legendPosition",
+        "10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first"
+      ],
+      [
+        "Heatmap",
+        "HeatmapChart rows · columns · values[row][column] · max · showLegend",
+        "24px cells on Support/Brand Pale · Subtle · Soft · Solid · Deep, Less → More scale"
+      ],
+      [
+        "Every chart",
+        "aria-label · format · animate",
+        "Draw-in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop); reduced motion fades; animate={false} turns it off"
+      ],
+      [
+        "Average",
+        "LineChart · BarChart · StackBarChart showAverage",
+        "A dotted Border/Neutral/Solid rule at the mean (the first series; closed bars, projected left out; column totals) with an \"Avg $88.7K\" tag in the Tooltip colours (Figma Show Average)"
       ],
       [
         "Card",
-        "ChartCard title · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): Heading/Subheading + chevron, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card); headingLevel is one below the nearest heading above: 3 by default (under a section h2), 2 when the card sits directly under the page title; the style stays Heading/Subheading"
-      ],
-      [
-        "Interaction",
-        "initialIndex",
-        "←/→ Home/End move the active point; the Tooltip shows its value"
+        "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/3 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
       ]
     ],
     "keyboard": [
@@ -6471,30 +6502,41 @@
       ],
       [
         "← / →",
-        "Previous / next point (the Tooltip follows)"
+        "Previous / next point, bar, slice or ring (the Tooltip or the centre follows)"
+      ],
+      [
+        "↑ / ↓",
+        "Previous / next bar (horizontal BarChart); row above / below (HeatmapChart)"
       ],
       [
         "Home / End",
-        "First / last point"
+        "First / last item (the heatmap: first / last cell of the row)"
       ]
     ],
     "do": [
-      "Always give the chart an aria-label that says what it shows and over which range.",
-      "Format values for people (`$23.4K`, `52 GB`) with `format`.",
-      "Keep the legend on stack bars so colour is never the only key (harness: chart/stack-needs-legend).",
-      "Use the Segmented range switch in the card instead of separate charts per range."
+      "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
+      "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
+      "Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).",
+      "Mark a forecast `projected` so it reads as not earned yet; show a goal as a `target` track, not as another series.",
+      "Use the Segmented range switch in the card instead of separate charts per range, and key the chart by the range so it draws in again.",
+      "Turn on showAverage when the question is \"above or below normal?\"; leave it off when the trend itself is the point.",
+      "Lead the card with the figure the chart explains (`value`) and say what it is (`description`)."
     ],
     "dont": [
       "Don't use a line for categories that aren't ordered in time.",
       "Don't pick custom colours outside the chart palette unless a series has a fixed brand colour.",
-      "Don't put a chart where the user needs exact values; add a Table."
+      "Don't put a chart where the user needs exact values; add a Table.",
+      "Don't start a bar's axis above zero or stretch a donut past ~7 slices.",
+      "Don't mix chart styles on one screen: every chart takes the shared grid, labels, Tooltip, legend and motion."
     ],
     "a11y": [
-      "The plot is a focusable group (aria-roledescription=\"chart\") named by aria-label; ←/→, Home/End move between points and a live summary reads \"Q2: $14.8K (2 of 4)\".",
-      "Stack-bar legends label every colour; the summary lists each series' value for the active column."
+      "The plot is a focusable group (aria-roledescription=\"chart\") named by aria-label; a live summary reads the active item (\"Q2: $14.8K (2 of 4)\").",
+      "←/→ and Home/End move between points, bars, slices and rings (↑/↓ for horizontal bars); the heatmap moves in 2D. Pointer hover picks the same item.",
+      "Legends label every colour; Donut and Radial summarise every slice or ring before one is picked.",
+      "The draw-in only fades under reduced motion (Motion/Movement 0); nothing wipes, sweeps or scales."
     ],
     "content": [
-      "Title names the measure (\"Expense Trends\", \"Budget Allocation\"); axis labels are short (Q1, Jan, W1).",
+      "Title names the measure (\"Revenue\", \"Hours against capacity\"); the description says what the figure is and over which range (\"Invoiced so far in 2026\"); axis labels are short (Q1, Jan, 9 am).",
       "Before there is data, keep the card title and put an EmptyState in the card: it takes the next heading level in Body/Extra/Bold, so it never outranks or outsizes the card title."
     ],
     "refs": [
@@ -6505,6 +6547,10 @@
       [
         "W3C — Complex images (charts)",
         "https://www.w3.org/WAI/tutorials/images/complex/"
+      ],
+      [
+        "Material 3 — Motion",
+        "https://m3.material.io/styles/motion/overview"
       ]
     ],
     "file": "docs/guidelines/chart.md",
@@ -6514,6 +6560,24 @@
         "severity": "error",
         "summary": "Stack-bar charts keep their legend so colour is never the only key.",
         "allow": "chart-legend"
+      },
+      {
+        "id": "chart/needs-name",
+        "severity": "error",
+        "summary": "Every chart is named by an aria-label that says what it shows and over which range.",
+        "allow": "chart-name"
+      },
+      {
+        "id": "chart/shares-need-legend",
+        "severity": "error",
+        "summary": "Donut slices, radial rings and a line chart's comparison keep their legend so colour is never the only key.",
+        "allow": "chart-legend"
+      },
+      {
+        "id": "chart/heatmap-needs-scale",
+        "severity": "warn",
+        "summary": "A heatmap keeps its Less → More scale so the five steps can be read.",
+        "allow": "heatmap-scale"
       },
       {
         "id": "api/overrides-studio-only",
