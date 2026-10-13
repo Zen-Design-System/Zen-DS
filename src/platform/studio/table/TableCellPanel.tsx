@@ -11,7 +11,7 @@ import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { PartPanel } from "../inspector/PartPanel";
 import { EnumControl, IconControl, NumberControl, TextControl } from "../inspector/PropField";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
-import { InspectorFileContext } from "../inspector/controls/hostContext";
+import { InspectorFileContext, InspectorHostContext } from "../inspector/controls/hostContext";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
 import { currentFiber, fiberOf, hostsOf, onSourceUpdate, srcOf, type Fiber } from "../select/picker";
@@ -220,10 +220,13 @@ export function TablePartPanel({ selection, controlsSlot }: { selection: PartSel
   if (name === TABLE_PARTS.row) return resolved ? <DataRowPanel selection={selection} part={resolved} /> : <Finding name={name} />;
   if (cell && cell.src === selection.src) return <CellPanel selection={selection} part={resolved!} cell={cell} />;
   if (tablePart) return <Finding name={name} />;
-  // The file the part's owner is written in: the icon picker's "Used in this file" reads it (iconSuggestions.ts).
+  // The file the part's owner is written in and the part on the canvas: the icon picker's "Used in this file" and
+  // "Related" read them (iconSuggestions.ts).
   return (
     <InspectorFileContext.Provider value={parseSrc(selection.src)?.file ?? null}>
-      <PartPanel selection={selection} controlsSlot={controlsSlot} />
+      <InspectorHostContext.Provider value={resolved?.element ?? null}>
+        <PartPanel selection={selection} controlsSlot={controlsSlot} />
+      </InspectorHostContext.Provider>
     </InspectorFileContext.Provider>
   );
 }

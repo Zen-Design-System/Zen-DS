@@ -79,7 +79,8 @@ Last updated: 2026-10-12.
   Figma's step count (scripts in the session log). Round 3: ⌘-click on every text (atoms too), ⇧Enter/Esc one layer
   up (`parts.ts parentLayerOf`), Layers without Parts / empty slots; builder pages mark elements `file:@<doc id>`
   (`select/srcIds.ts` turns them back into file:line:col; BuilderBoard sets it from `locsOf`), edits 35–60 ms.
-  Session log 2026-10-13.
+  2026-10-14: the icon picker leads with Recent and Related tiles (`inspector/iconSuggestions.ts` ICON_TOPICS,
+  relatedIcons; E2E IN-20). PR #43 (CI runs the full gate; merging is the user's step). Session logs 2026-10-13/14.
 - **Zen Studio, Figma usability round 1 (2026-10-10):** pictures replace like Figma everywhere (Assets › Photos click or
   a drop on an Avatar/Image/Thumbnail/account, the Inspector's Picture; data rows and factories write that row,
   `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:
