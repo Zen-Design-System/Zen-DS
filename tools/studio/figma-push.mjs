@@ -132,7 +132,7 @@ const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
 const PICTURED = new Set(["Avatar", "Image", "Thumbnail", "AppShellAccount"]);
 /** Heading's text style when it sets none (src/components/Text/Text.tsx headingStyleByLevel). */
-const HEADING_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
+export const HEADING_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
 /**
  * Code-only components (no Figma set) are drawn as a frame of their layers named by the component, in the layout their
  * CSS gives; any other one is a column with nothing between its layers.
@@ -325,7 +325,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const fill = contentToneToken(code.tone ?? "strongest");
       // wrap={false} is Figma's Auto width (one line, as wide as its words). Numbers: Tabular cannot be set by a plugin.
       if (code.tabularNumbers === true) tabular.push(id ?? element.name);
-      node = { type: "TEXT", ...(id ? { id } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
+      // A Heading's layer is named for its level ("Heading 2"): Figma has no heading level, and the pull reads it back.
+      const name = element.name === "Heading" ? `Heading ${code.level ?? 2}` : null;
+      node = { type: "TEXT", ...(id ? { id } : {}), ...(name ? { name } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
     } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {}, ...iconSizing(code.size) };
     // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
     else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
@@ -1018,6 +1020,22 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   }
 
   /**
+   * An open Sidebar's header as Sidebar.tsx draws it: its brand, else its logo, then the collapse control only with
+   * onCollapsedChange. Figma's Header-Content holds a sample LOGO and a Collapse button, which a page without them drops.
+   */
+  function sidebarHeader(element, slots, surface) {
+    let header = slots.find((slot) => slot.name === "Header-Content");
+    if (!header) {
+      const logo = element.props.logo?.kind === "element" ? convert(element.props.logo.node, { direction: "column", stretch: true, surface }) : null;
+      header = { name: "Header-Content", children: logo ? [{ ...logo, fillW: true }] : [] };
+      slots.unshift(header);
+    }
+    if (!("onCollapsedChange" in element.props)) return;
+    const collapse = elementOf("IconButton", { appearance: literal("flat"), size: literal("small"), icon: literal("icon-layout-left-line"), "aria-label": literal("Collapse sidebar") });
+    header.children.push(instanceNode(collapse, { appearance: "flat", size: "small", icon: "icon-layout-left-line", "aria-label": "Collapse sidebar" }));
+  }
+
+  /**
    * A collapsed Sidebar as Figma's rail (Side-Bar Expand=No; Sidebar.tsx collapsed): its mark alone in the header
    * (logoCollapsed, else the brand's first layer), each row its icon without its label, the groups' titles gone and a
    * Divider opening each later group.
@@ -1233,6 +1251,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const lead = convert(leading, { direction: "row", stretch: false });
     if (lead?.type === "INSTANCE" && lead.set?.id) (node.nested ??= []).push({ path: "Avatar", set: lead.set, props: lead.props, ...(lead.text ? { text: lead.text } : {}), ...(lead.swapIcon ? { swapIcon: lead.swapIcon } : {}) });
     else notes.push(`${where}: leading ${leading.name} has no place in Figma's List-Item (its Avatar)`);
+    // An icon's size is its own size (a variable on its width), which Figma does not let a layer inside an instance
+    // override ("cannot be overridden in an instance: size"): the List-Item shows the icon at the component's size.
+    if (lead?.type === "INSTANCE" && (lead.sizeVar || lead.size)) notes.push(`${where}: its leading ${leading.name} shows at its own size in Figma (a layer inside a List-Item cannot be resized)`);
   }
 
   function instanceNode(element, code, id, parent = null) {
@@ -1266,7 +1287,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
         continue;
       }
       if (name === "search" && element.name === "DashboardHeader") continue;
-      if (name === "logoCollapsed" && element.name === "Sidebar") continue;
+      // A Sidebar's logo is its header (sidebarHeader); its collapsed mark the rail's (sidebarRail).
+      if ((name === "logo" || name === "logoCollapsed") && element.name === "Sidebar") continue;
       if (DRAWN_PARTS[element.name]?.has(name)) continue;
       if (value.kind === "array" || (value.kind === "object" && name !== "overrides")) notes.push(`${where}: ${name} is data with no Figma slot: not written`);
       if (value.kind === "element") notes.push(`${where}: ${name} holds layers with no Figma slot: not written`);
@@ -1294,12 +1316,17 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     if (element.name === "AiChatField" && typeof code.placeholder === "string") node.texts = { ...(node.texts ?? {}), Text: code.placeholder };
     // Its model switch shows only with `model` (Figma's Model starts on).
     if (element.name === "AiChatField") Object.assign(node.props, onlyOwn(node.set, { Model: element.props.model !== undefined }));
-    // Toggle: its label and caption (Subtext hidden without one).
-    if (element.name === "Toggle") {
-      const texts = { ...(typeof code.label === "string" ? { Label: code.label } : {}), ...(typeof code.caption === "string" ? { Subtext: code.caption } : {}) };
-      if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
-      if (texts.Label && !texts.Subtext) node.hide = [...(node.hide ?? []), "Subtext"];
+    // Toggle, Checkbox, RadioButton: their label and caption in the nested Content primitive (its Label and Subtext,
+    // which its Subtext property shows; the live file, 2026-10-13).
+    if (element.name === "Toggle" || element.name === "Checkbox" || element.name === "RadioButton") {
+      // The caption goes with the Content's Subtext: the importer shows the layer, then writes it (a hidden layer is
+      // not found).
+      const caption = typeof code.caption === "string" && code.caption ? code.caption : null;
+      if (typeof code.label === "string") node.texts = { ...(node.texts ?? {}), Label: code.label };
+      if (typeof code.label === "string" || caption) node.nested = [...(node.nested ?? []), { path: "Content", props: { Subtext: Boolean(caption) }, ...(caption ? { texts: { Subtext: caption } } : {}) }];
     }
+    // A DockIcon of the Emoji theme draws its emoji as its text (Dock-Icon Theme=Emoji's text layer).
+    if (element.name === "DockIcon" && code.theme === "emoji" && typeof code.emoji === "string" && code.emoji) node.text = code.emoji;
     if (element.name === "FileUpload") {
       const texts = Object.fromEntries([["Label", code.label], ["Message", code.helpText], ["Text", code.text], ["Internal Caption", code.caption]].filter(([, text]) => typeof text === "string" && text));
       if (Object.keys(texts).length) node.texts = { ...(node.texts ?? {}), ...texts };
@@ -1360,6 +1387,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       slots.push({ name, children: column });
     }
     if (noFooter) slots.push({ name: "Footer-Content", children: [] });
+    if (element.name === "Sidebar" && literalOf(element.props.collapsed) !== true && (code.variant ?? "basic") !== "workspace") sidebarHeader(element, slots, surface);
     if (element.name === "Sidebar" && literalOf(element.props.collapsed) === true && (code.variant ?? "basic") !== "workspace") sidebarRail(element, node, slots);
     if (element.name === "ListBox") for (const slot of slots) if (slot.name === "Body-Slot") slot.hugH = true;
     if (slots.length) node.slots = slots;
