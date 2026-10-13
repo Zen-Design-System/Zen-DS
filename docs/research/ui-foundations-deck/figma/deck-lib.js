@@ -286,7 +286,8 @@ return (async function () {
       const inst = await zi('checkbox', { State: 'Default', Select: it.checked ? 'Yes' : 'No', 'Check-Side': 'Left' });
       const t = inst.findAll(function (n) { return n.type === 'TEXT'; })[0];
       if (t) { await loadFontsIn(t); t.characters = it.text; }
-      c.appendChild(inst);
+      c.appendChild(inst); inst.layoutSizingHorizontal = 'FILL';
+      const box = inst.children[0]; if (box && 'layoutSizingHorizontal' in box) box.layoutSizingHorizontal = 'FILL';
     }
     return c;
   };
@@ -349,7 +350,7 @@ return (async function () {
     const W = p.w || 700, H = p.h || 420;
     const f = figma.createFrame(); f.name = 'Grid ' + p.cols; f.resize(W, H); f.cornerRadius = 14; f.fills = [await zpaint('white')]; f.strokes = [await zpaint('subtle')]; f.strokeWeight = 1; f.clipsContent = true;
     const m = p.margin, g = p.gutter, cw = (W - 2 * m - g * (p.cols - 1)) / p.cols;
-    for (let i = 0; i < p.cols; i++) { const r = figma.createRectangle(); r.resize(cw, H); r.x = m + i * (cw + g); r.y = 0; r.fills = [await zpaint('pink')]; r.opacity = 0.35; r.name = 'Column'; f.appendChild(r); }
+    for (let i = 0; i < p.cols; i++) { const r = figma.createRectangle(); r.resize(cw, H); r.x = m + i * (cw + g); r.y = 0; r.fills = [await zpaint('pink')]; r.opacity = 0.55; r.name = 'Column'; f.appendChild(r); }
     if (p.label) { const t = await T(p.label, 'Typed/Label', VAR.ink, 'Label'); f.appendChild(t); t.x = m; t.y = H - 40; }
     return f;
   };

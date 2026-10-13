@@ -95,6 +95,8 @@ uses Inter (`Z`) or `Typed/Label`. The photo is 846 × 640; an illustration is s
 | `text` | `text`, `size`, `weight`, `typed`, `width` |
 | `custom` | `draw`: a JS function body (string) receiving `api` (`L` itself: `zi, zpaint, Z, T, al, card, svg, recolor, arrowH, arrowV, arrowXY, labelUnder, wrapText, fixW, VAR, ZEFFECT`) and returning a node |
 
+Tip for `custom`: `api` is `L` itself, so you can define a helper in the same call (`L.dGestalt = async () => { … }`) and pass `draw: 'return api.dGestalt()'` instead of writing the whole function as a string.
+
 Zen components (`comp`) and their variants: `button` (Size XLarge/Large/Medium (Base)/Small/XSmall, Level
 Primary/Accent/Secondary/Tertiary/Danger/Danger Subtle/Positive/Positive Subtle, State Default/Hover/Pressed/Focused/Disabled,
 text `Text`), `textField` (Size, State Default/Hover/Focused/Typing/Inputted/Read-Only/Disabled/Inputted-Error/Blank-Error;
