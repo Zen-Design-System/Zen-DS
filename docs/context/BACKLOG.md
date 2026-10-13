@@ -8,14 +8,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
-- **P2 · Studio ↔ Figma P6b: round trip by push key (2026-10-13, needs the user's approval):** P6 (spec §8) fixed what
-  pulls lose part by part. Still lost on a pull, as code-only detail:
-  - Container / Box / Form come back as Stack.
-  - ListItem `titleLines`.
-  - Chip popoverItems, tooltips and aria.
-  Proposal: the reader reads the push's key (shared plugin data), the pull uses it as the element id, and Studio keeps
-  the pushed page as the base. "Update from Figma" then changes only what the designer edited. Session log 2026-10-13
-  "P6".
+- ~~**P2 · Studio ↔ Figma P6b: round trip by push key**~~ done 2026-10-13 (user approved; branch zen/feat/figma-keys,
+  spec §8 "P6b"). Update from Figma on an exported page now lists only the designer's edits and keeps code-only
+  detail. Still open, P3:
+  - A frame a designer made from scratch still pulls without code-only detail (Container / Box / Form come back as
+    Stack). This is inherent, since nothing in Figma holds that detail.
+  - A pull in another browser has no export kept, so it falls back to a two-way comparison.
 - **P2 · Examples' last 112 classNames (2026-10-13, branch zen/feat/examples-classnames):** P1–P5 of the Studio → Figma
   coverage are done (spec §8). What is left has no Zen prop, so it waits for the user: (1) padding on the page-margin
   token (Figma Margin/Comfortable: 24, 20 on a phone) and per-side padding (Figma auto layout has both): ai-chat,
