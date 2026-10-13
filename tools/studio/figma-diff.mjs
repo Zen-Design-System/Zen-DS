@@ -10,13 +10,16 @@
 // Elements the Studio added (ids not from Figma) are never touched. Isomorphic, no imports.
 //
 //   figmaSource(header) → { file, node } | null
-//   figmaChanges({ base, current, incoming }) → { changes, threeWay }
+//   figmaChanges({ base, current, incoming, synced }) → { changes, threeWay }
 //   mergeFigma(current, incoming, changes) → { doc, skipped }    the chosen changes applied to a copy of `current`
 
 /** The Figma frame a page was pulled from (its header's `figma`), or null. */
 export function figmaSource(header) {
   const figma = header?.figma;
-  return figma && typeof figma.node === "string" ? { file: typeof figma.file === "string" ? figma.file : null, node: figma.node } : null;
+  if (!figma || typeof figma.node !== "string") return null;
+  // A frame the Zen plugin placed from a Studio page names that page and the export (its version) it came from.
+  const pushed = typeof figma.page === "string" ? { page: figma.page, ...(typeof figma.version === "string" ? { version: figma.version } : {}) } : {};
+  return { file: typeof figma.file === "string" ? figma.file : null, node: figma.node, ...pushed };
 }
 
 /** Whether two pages come from the same Figma frame. */
@@ -102,15 +105,22 @@ export function showValue(value) {
  * a `kind` (prop · text · add · remove · order · move), the element `id`, a `label` and, three ways, `conflict` when the
  * Studio changed the same spot. Changes already in the page (current = incoming there) are left out.
  */
-export function figmaChanges({ base, current, incoming }) {
+export function figmaChanges({ base, current, incoming, synced = null }) {
   const threeWay = Boolean(base);
   const was = indexDoc(base ?? current);
   const now = indexDoc(current);
   const next = indexDoc(incoming);
+  // `synced`: the page as it stood when Figma's frame matched `base` (the page exported, or the page an update left). A
+  // pushed page holds what Figma cannot (a Container, a titleLines): the Studio changed a spot when it differs from
+  // there, not from the base. Without it, the base stands in (a page pulled from Figma holds what the pull made).
+  const then = synced ? indexDoc(synced) : was;
+  // Figma's layers: ids a pull gave, and (three ways) every id in the base. A frame pushed from a page pulls back with
+  // the page's own ids (its layers' Studio keys), and its base is the pull of that export.
+  const tracked = (id) => isFigmaId(id) || (threeWay && was.has(id));
   const changes = [];
   const add = (change) => changes.push({ ...change, key: `${change.kind}:${change.id}${change.name ? `:${change.name}` : ""}` });
   for (const [id, after] of next) {
-    if (!isFigmaId(id)) continue;
+    if (!tracked(id)) continue;
     const before = was.get(id);
     const here = now.get(id);
     if (!before) {
@@ -131,34 +141,35 @@ export function figmaChanges({ base, current, incoming }) {
       if (canon(mine) === canon(to)) continue;
       // A list of the same length (a Table's rows) says it changed; the rest say from → to.
       const what = from?.kind === "array" && to?.kind === "array" && from.items.length === to.items.length ? "changed" : `${showValue(from)} → ${showValue(to)}`;
-      add({ kind: "prop", id, name, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(from), label: `${describeNode(after.node)} · ${name}: ${what}` });
+      add({ kind: "prop", id, name, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(then.get(id)?.node.props[name]), label: `${describeNode(after.node)} · ${name}: ${what}` });
     }
     // Text.
     const fromText = textOf(before.node);
     const toText = textOf(after.node);
     if (fromText !== toText && textOf(here.node) !== toText) {
-      add({ kind: "text", id, before: fromText, after: toText, current: textOf(here.node), conflict: threeWay && textOf(here.node) !== fromText, label: `${after.node.name}: “${fromText ?? ""}” → “${toText ?? ""}”` });
+      add({ kind: "text", id, before: fromText, after: toText, current: textOf(here.node), conflict: threeWay && textOf(here.node) !== (then.has(id) ? textOf(then.get(id).node) : fromText), label: `${after.node.name}: “${fromText ?? ""}” → “${toText ?? ""}”` });
     }
     // Moved to another parent.
     if (after.place === "children" && before.parent !== after.parent && here.parent !== after.parent && now.has(after.parent)) {
-      add({ kind: "move", id, parent: after.parent, conflict: threeWay && here.parent !== before.parent, label: `${describeNode(after.node)} moved into ${describeNode(next.get(after.parent).node)}` });
+      add({ kind: "move", id, parent: after.parent, conflict: threeWay && here.parent !== (then.get(id)?.parent ?? before.parent), label: `${describeNode(after.node)} moved into ${describeNode(next.get(after.parent).node)}` });
     }
     // The order of its Figma layers.
-    const common = (node, other) => childIds(node).filter((child) => isFigmaId(child) && other.has(child) && next.get(child)?.parent === id);
+    const common = (node, other) => childIds(node).filter((child) => tracked(child) && other.has(child) && next.get(child)?.parent === id);
     const fromOrder = common(before.node, next);
-    const toOrder = childIds(after.node).filter((child) => isFigmaId(child) && was.has(child) && was.get(child).parent === id);
+    const toOrder = childIds(after.node).filter((child) => tracked(child) && was.has(child) && was.get(child).parent === id);
     const hereOrder = childIds(here.node).filter((child) => toOrder.includes(child));
+    const thenOrder = then.has(id) ? childIds(then.get(id).node).filter((child) => hereOrder.includes(child)) : fromOrder.filter((child) => hereOrder.includes(child));
     if (fromOrder.join() !== toOrder.join() && hereOrder.join() !== toOrder.join()) {
-      add({ kind: "order", id, order: toOrder, conflict: threeWay && hereOrder.join() !== fromOrder.filter((child) => hereOrder.includes(child)).join(), label: `${describeNode(after.node)}: its layers in Figma's new order` });
+      add({ kind: "order", id, order: toOrder, conflict: threeWay && hereOrder.join() !== thenOrder.join(), label: `${describeNode(after.node)}: its layers in Figma's new order` });
     }
   }
   // Gone from Figma: one change for the topmost layer gone, while the page still has it.
   for (const [id, before] of was) {
-    if (!isFigmaId(id) || next.has(id) || !now.has(id)) continue;
-    if (before.parent && !next.has(before.parent) && was.has(before.parent) && isFigmaId(before.parent)) continue;
+    if (!tracked(id) || next.has(id) || !now.has(id)) continue;
+    if (before.parent && !next.has(before.parent) && was.has(before.parent) && tracked(before.parent)) continue;
     if (before.place !== "children") continue;
     const here = now.get(id);
-    add({ kind: "remove", id, conflict: threeWay && canon(here.node) !== canon(before.node), label: `${describeNode(before.node)} removed` });
+    add({ kind: "remove", id, conflict: threeWay && canon(here.node) !== canon((then.get(id) ?? before).node), label: `${describeNode(before.node)} removed` });
   }
   return { changes, threeWay };
 }

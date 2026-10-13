@@ -590,4 +590,54 @@ export const rows = [
       }
     },
   },
+  {
+    id: "HO-11", feature: "Round trip by key (figma P6b): Export › Figma keeps the pull of the frame it writes (by the export's version); that frame read back after a designer's edit (a list title, the heading) and imported opens Update from Figma on the same page with just those two changes, and Apply keeps what Figma cannot hold (Container, titleLines, the ListBox theme, aria)", wp: "figma round trip P6b 2026-10-13",
+    timeout: 60000,
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const { printPage } = await import("../../doc.mjs");
+      const fixture = JSON.parse(fs.readFileSync(new URL("../../fixtures/figma-pushed.json", import.meta.url), "utf8"));
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, fixture.page, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+      const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+      await page.keyboard.press("Escape");
+      if (!/^[0-9a-f]{12}$/.test(pkg.page?.version ?? "")) throw new Error(`the export's version: ${pkg.page?.version}`);
+      const kept = await page.evaluate(async (pageId) => {
+        const store = await import("/src/platform/studio/builder/store/pageStore.ts");
+        return (await store.getPage(pageId))?.figmaExports?.map((entry) => entry.version) ?? [];
+      }, id);
+      if (kept[0] !== pkg.page.version) throw new Error(`exports kept: ${kept.join(", ") || "none"}`);
+      // In Figma: the plugin places the frame (its layers keep their keys, the frame its page and version), a designer
+      // renames the first list row and the heading, and the frame is read back (figmaReadCode's shape).
+      const read = JSON.parse(JSON.stringify({ ...pkg.frame, id: `9${Date.now() % 1e6}:3`, file: "9nZv4uW2LT21yuHabMTCh1", page: pkg.page.id, version: pkg.page.version }));
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      nodes(read).find((node) => node.texts?.Title === "Loyalty app").texts.Title = "Loyalty app v2";
+      nodes(read).find((node) => node.type === "TEXT" && node.characters === "Projects").characters = "Your projects";
+      const pulled = printPage(pageFromFigma(read, { mapping: await repoMapping() }).doc, { ids: true });
+      await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}-from-figma.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(pulled, "utf8") });
+      const dialog = page.getByRole("dialog", { name: "Update from Figma" });
+      await dialog.waitFor({ state: "visible", timeout: 15000 });
+      await until(async () => (await dialog.locator("[data-change]").count()) === 2, { timeout: 15000, message: "two changes listed" })
+        .catch(async (error) => { throw new Error(`${error.message} (${(await dialog.innerText()).replace(/\s+/g, " ").slice(0, 400)})`); });
+      await sleep(300);
+      await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-11-dialog.png" }).catch(() => undefined);
+      await dialog.getByRole("button", { name: "Apply 2 changes" }).click();
+      await dialog.waitFor({ state: "hidden", timeout: 15000 });
+      await until(async () => /Your projects/.test((await pageText(page, id)) ?? ""), { timeout: 15000, message: "the update written" });
+      const text = (await pageText(page, id)) ?? "";
+      const landed = {
+        title: /title="Loyalty app v2"/.test(text), heading: />Your projects<\/Heading>/.test(text), container: /<Container>/.test(text),
+        titleLines: (text.match(/titleLines=\{2\}/g) ?? []).length === 2, theme: /<ListBox theme="shadow">/.test(text), aria: /aria-labelledby="chi-projects"/.test(text),
+        onePage: !(await page.evaluate(async (pageId) => (await import("/src/platform/studio/builder/store/pageStore.ts")).getPage(`${pageId}-from-figma`), id)),
+      };
+      if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
+      await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-11.png" }).catch(() => undefined);
+      return `export ${pkg.page.version} kept; the read back: Update from Figma on ${id}, 2 changes applied; Container, titleLines, ListBox theme, aria kept`;
+    },
+  },
 ];

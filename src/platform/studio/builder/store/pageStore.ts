@@ -38,9 +38,20 @@ export type PageRecord = {
    * A page pulled from Figma (tools/studio/figma-pull.mjs, its header names the frame): the document the last pull made,
    * the base a new pull of that frame is compared with (figma-diff.mjs). Kept in this browser only, across edits.
    */
-  figma?: { base: PageDoc };
+  figma?: FigmaBase;
+  /**
+   * Its latest exports to Figma (Export › Figma, newest first, five at most): each the pull of the frame it places (the
+   * base) and the page it came from. A pull of a frame the Zen plugin placed names its page and export (figma-pull.mjs),
+   * and Update from Figma compares with that export.
+   */
+  figmaExports?: Array<FigmaBase & { version: string; at: number }>;
 };
-export type PageMeta = Omit<PageRecord, "text" | "sync" | "doc" | "figma">;
+/**
+ * What a Figma frame is compared with: `base`, the pull of the frame as it was; `synced`, the page as it stood then (a
+ * pushed page holds what Figma cannot, figma-diff.mjs); `version`, the export the frame came from.
+ */
+export type FigmaBase = { base: PageDoc; synced?: PageDoc; version?: string };
+export type PageMeta = Omit<PageRecord, "text" | "sync" | "doc" | "figma" | "figmaExports">;
 export type Revision = { key: number; page: string; text: string; at: number; reason: RevisionReason };
 
 /** A folder that keeps a copy of every page (mirrors.ts). */
@@ -132,7 +143,7 @@ export function run<T>(storeName: string, mode: IDBTransactionMode, work: (store
 const readRecord = (id: string) => run<PageRecord | undefined>(PAGES, "readonly", (store) => store.get(id) as IDBRequest<PageRecord | undefined>).then((record) => record ?? null);
 const writeRecord = (record: PageRecord) => run(PAGES, "readwrite", (store) => store.put(record));
 const isLive = (record: PageRecord) => record.trashedAt === undefined;
-const metaOf = ({ text: _text, sync: _sync, doc: _doc, figma: _figma, ...meta }: PageRecord): PageMeta => meta;
+const metaOf = ({ text: _text, sync: _sync, doc: _doc, figma: _figma, figmaExports: _figmaExports, ...meta }: PageRecord): PageMeta => meta;
 
 /** Whether pages survive a reload (IndexedDB works here). */
 export const pagesPersist = () => persistent;
@@ -216,7 +227,7 @@ export async function setPageDoc(id: string, text: string, doc: PageDoc): Promis
  * (builder/localApi.ts); without it the page has none until it opens again. `figma`: the last Figma pull's document (null
  * forgets it); left out, the page keeps the one it had.
  */
-export async function putPage(id: string, text: string, { title, reason = "edit", folder, doc, figma }: { title?: string; reason?: RevisionReason; folder?: string | null; doc?: PageDoc; figma?: { base: PageDoc } | null } = {}): Promise<PageRecord> {
+export async function putPage(id: string, text: string, { title, reason = "edit", folder, doc, figma }: { title?: string; reason?: RevisionReason; folder?: string | null; doc?: PageDoc; figma?: FigmaBase | null } = {}): Promise<PageRecord> {
   if (!isPageId(id)) throw new Error(`Bad page id ${JSON.stringify(id)}`);
   const now = Date.now();
   const previous = cache.get(id) ?? (await readRecord(id));
@@ -231,6 +242,7 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
   };
   const nextFigma = figma === undefined ? previous?.figma : figma ?? undefined;
   if (nextFigma) record.figma = nextFigma;
+  if (previous?.figmaExports) record.figmaExports = previous.figmaExports;
   // A write keeps the page in its folder unless `folder` moves it (null: out of every folder).
   const nextFolder = folder === undefined ? previous?.folder : folder ?? undefined;
   if (nextFolder) record.folder = nextFolder;
@@ -281,7 +293,7 @@ export async function duplicatePage(id: string): Promise<string> {
 }
 
 /** A page from a file (Import): the file's text byte for byte, under the id its name asks for when free. */
-export async function importPage(text: string, wantedId: string | null, { doc, figma }: { doc?: PageDoc; figma?: { base: PageDoc } } = {}): Promise<string> {
+export async function importPage(text: string, wantedId: string | null, { doc, figma }: { doc?: PageDoc; figma?: FigmaBase } = {}): Promise<string> {
   const title = headerTitle(text) ?? wantedId ?? "Imported page";
   await loadAll();
   const id = wantedId && !cache.has(wantedId) ? wantedId : await freeId(title);
@@ -289,9 +301,19 @@ export async function importPage(text: string, wantedId: string | null, { doc, f
   return id;
 }
 
-/** The live page pulled from this Figma frame (its header's `figma`), or null. */
-export async function findPulledPage(source: { file: string | null; node: string }): Promise<string | null> {
+/**
+ * The live page pulled from this Figma frame (its header's `figma`), or null. A frame the Zen plugin placed from a page
+ * here names that page and its export (`page`, `version`): that page, when this browser exported it.
+ */
+export async function findPulledPage(source: { file: string | null; node: string; page?: string; version?: string }): Promise<string | null> {
   await loadAll();
+  const pushed = source.page ? cache.get(source.page) : undefined;
+  if (pushed && isLive(pushed)) {
+    const exported = source.version
+      ? pushed.figma?.version === source.version || Boolean(pushed.figmaExports?.some((entry) => entry.version === source.version))
+      : Boolean(pushed.figmaExports?.length);
+    if (exported) return pushed.id;
+  }
   for (const record of cache.values()) {
     if (!isLive(record)) continue;
     const own = headerFigma(record.text);
@@ -300,11 +322,21 @@ export async function findPulledPage(source: { file: string | null; node: string
   return null;
 }
 
-/** Keeps `base` as the document of the page's last Figma pull, without writing its text. */
-export async function setFigmaBase(id: string, base: PageDoc): Promise<void> {
+/** Keeps `base` as the document of the page's last Figma pull (with the page it left and its export), without writing its text. */
+export async function setFigmaBase(id: string, base: PageDoc, { synced, version }: { synced?: PageDoc; version?: string } = {}): Promise<void> {
   const record = cache.get(id) ?? (await readRecord(id));
   if (!record) return;
-  const next: PageRecord = { ...record, figma: { base } };
+  const next: PageRecord = { ...record, figma: { base, ...(synced ? { synced } : {}), ...(version ? { version } : {}) } };
+  cache.set(id, next);
+  await writeRecord(next);
+}
+
+/** Keeps an export to Figma (its version, the pull of its frame, the page it came from): the five latest, newest first. */
+export async function keepFigmaExport(id: string, entry: { version: string; base: PageDoc; synced: PageDoc }): Promise<void> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || record.figmaExports?.[0]?.version === entry.version) return;
+  const others = (record.figmaExports ?? []).filter((kept) => kept.version !== entry.version);
+  const next: PageRecord = { ...record, figmaExports: [{ ...entry, at: Date.now() }, ...others].slice(0, 5) };
   cache.set(id, next);
   await writeRecord(next);
 }
