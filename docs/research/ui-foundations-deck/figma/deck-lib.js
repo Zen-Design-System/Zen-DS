@@ -78,7 +78,8 @@ return (async function () {
     }
     if (Object.keys(direct).length) inst.setProperties(direct);
     for (const k in nested) {
-      const t = inst.findAll(function (n) { return n.type === 'TEXT' && n.name === k; })[0];
+      let t = inst.findAll(function (n) { return n.type === 'TEXT' && n.name === k; })[0];
+      if (!t) { const all = inst.findAll(function (n) { return n.type === 'TEXT'; }); if (all.length === 1) t = all[0]; }
       if (!t) continue;
       await loadFontsIn(t);
       t.characters = nested[k];
@@ -157,8 +158,8 @@ return (async function () {
       const it = p.items[i];
       const c = await card(it.title || 'Card', w);
       if (it.tag) c.appendChild(await zi('badge', { Size: 'Small', Theme: it.theme || 'Accent', Background: 'Subtle' }, { Text: it.tag }));
-      if (it.title) c.appendChild(wrapText(await Z(it.title, p.titleSize || 19, 'Bold'), w - 40));
-      if (it.text) c.appendChild(wrapText(await Z(it.text, 15, 'Regular', 'base'), w - 40));
+      if (it.title) c.appendChild(wrapText(await Z(it.title, p.titleSize || 22, 'Bold'), w - 40));
+      if (it.text) c.appendChild(wrapText(await Z(it.text, 17, 'Regular', 'base'), w - 40));
       row.appendChild(c);
     }
     return grid;
@@ -173,9 +174,9 @@ return (async function () {
       const hi = p.highlight === i;
       const c = await card(it.label, w, { fill: hi ? 'accentSoft' : 'white', pad: 14, gap: 6 });
       c.counterAxisAlignItems = 'CENTER';
-      if (p.numbered !== false) c.appendChild(await Z(String(i + 1).padStart(2, '0'), 13, 'Semi Bold', 'accentText'));
-      const t = wrapText(await Z(it.label, 17, 'Bold'), w - 28); t.textAlignHorizontal = 'CENTER'; c.appendChild(t);
-      if (it.sub) { const s = wrapText(await Z(it.sub, 13, 'Regular', 'base'), w - 28); s.textAlignHorizontal = 'CENTER'; c.appendChild(s); }
+      if (p.numbered !== false) c.appendChild(await Z(String(i + 1).padStart(2, '0'), 14, 'Semi Bold', 'accentText'));
+      const t = wrapText(await Z(it.label, 19, 'Bold'), w - 28); t.textAlignHorizontal = 'CENTER'; c.appendChild(t);
+      if (it.sub) { const s = wrapText(await Z(it.sub, 15, 'Regular', 'base'), w - 28); s.textAlignHorizontal = 'CENTER'; c.appendChild(s); }
       row.appendChild(c);
       if (i < n - 1) row.appendChild(await arrowH(aw));
     }
@@ -193,8 +194,8 @@ return (async function () {
     for (const col of p.cols) {
       const c = await card(col.head, w, { gap: 12 });
       if (col.tag) c.appendChild(await zi('badge', { Size: 'Small', Theme: col.theme || 'Neutral', Background: 'Subtle' }, { Text: col.tag }));
-      c.appendChild(wrapText(await Z(col.head, 21, 'Bold'), w - 40));
-      for (const r of col.rows) c.appendChild(wrapText(await Z('·  ' + r, 15, 'Regular', 'base'), w - 40));
+      c.appendChild(wrapText(await Z(col.head, 24, 'Bold'), w - 40));
+      for (const r of col.rows) c.appendChild(wrapText(await Z('·  ' + r, 17, 'Regular', 'base'), w - 40));
       row.appendChild(c);
     }
     return row;
@@ -207,8 +208,8 @@ return (async function () {
       const r = p.rings[i];
       const f = al('VERTICAL', r.label, 10); f.paddingLeft = f.paddingRight = 22; f.paddingTop = 16; f.paddingBottom = 22;
       f.cornerRadius = 22; f.fills = [await zpaint(colors[i % colors.length])]; f.strokes = [await zpaint('subtle')]; f.strokeWeight = 1;
-      f.appendChild(await Z(r.label, 18, 'Bold'));
-      if (r.sub) f.appendChild(await Z(r.sub, 13, 'Regular', 'base'));
+      f.appendChild(await Z(r.label, 20, 'Bold'));
+      if (r.sub) f.appendChild(await Z(r.sub, 15, 'Regular', 'base'));
       if (inner) f.appendChild(inner);
       if (!inner && p.core) { f.minWidth = 180; }
       inner = f;
@@ -239,8 +240,8 @@ return (async function () {
         const chip = figma.createRectangle(); chip.name = 'Swatch'; chip.resize(p.w || 96, p.h || 72); chip.cornerRadius = 10;
         chip.fills = [await zpaint(s.name)]; chip.strokes = [await zpaint('subtle')]; chip.strokeWeight = 1;
         col.appendChild(chip);
-        if (s.label) col.appendChild(await Z(s.label, 13, 'Semi Bold'));
-        if (s.sub) col.appendChild(await Z(s.sub, 12, 'Regular', 'base'));
+        if (s.label) col.appendChild(await Z(s.label, 15, 'Semi Bold'));
+        if (s.sub) col.appendChild(await Z(s.sub, 13, 'Regular', 'base'));
         r.appendChild(col);
       }
       grid.appendChild(r);
@@ -322,8 +323,8 @@ return (async function () {
     const line = figma.createRectangle(); line.resize(w * n - w, 3); line.x = w / 2; line.y = 60; line.fills = [await zpaint('ink')]; wrap.appendChild(line);
     for (let i = 0; i < n; i++) {
       const dot = figma.createEllipse(); dot.resize(22, 22); dot.x = i * w + w / 2 - 11; dot.y = 50; dot.fills = [await zpaint(p.items[i].color || (i === p.highlight ? 'accent' : 'white'))]; dot.strokes = [await zpaint('ink')]; dot.strokeWeight = 3; wrap.appendChild(dot);
-      const lab = wrapText(await Z(p.items[i].label, 16, 'Bold'), w - 12); lab.textAlignHorizontal = 'CENTER'; lab.x = i * w + 6; lab.y = 90; wrap.appendChild(lab);
-      if (p.items[i].sub) { const s = wrapText(await Z(p.items[i].sub, 13, 'Regular', 'base'), w - 12); s.textAlignHorizontal = 'CENTER'; s.x = i * w + 6; s.y = 92 + lab.height; wrap.appendChild(s); }
+      const lab = wrapText(await Z(p.items[i].label, 18, 'Bold'), w - 12); lab.textAlignHorizontal = 'CENTER'; lab.x = i * w + 6; lab.y = 90; wrap.appendChild(lab);
+      if (p.items[i].sub) { const s = wrapText(await Z(p.items[i].sub, 15, 'Regular', 'base'), w - 12); s.textAlignHorizontal = 'CENTER'; s.x = i * w + 6; s.y = 92 + lab.height; wrap.appendChild(s); }
       if (p.items[i].top) { const tp = wrapText(await Z(p.items[i].top, 13, 'Semi Bold', 'accentText'), w - 12); tp.textAlignHorizontal = 'CENTER'; tp.x = i * w + 6; tp.y = 18; wrap.appendChild(tp); }
     }
     return wrap;
@@ -361,8 +362,8 @@ return (async function () {
       const c = await card(nd.label, nd.w || 180, { fill: nd.color || 'white', pad: 14, gap: 6 });
       c.counterAxisAlignItems = 'CENTER';
       if (nd.tag) c.appendChild(await zi('badge', { Size: 'XSmall', Theme: nd.theme || 'Accent', Background: 'Subtle' }, { Text: nd.tag }));
-      const t = wrapText(await Z(nd.label, nd.size || 17, 'Bold'), (nd.w || 180) - 28); t.textAlignHorizontal = 'CENTER'; c.appendChild(t);
-      if (nd.sub) { const s = wrapText(await Z(nd.sub, 13, 'Regular', 'base'), (nd.w || 180) - 28); s.textAlignHorizontal = 'CENTER'; c.appendChild(s); }
+      const t = wrapText(await Z(nd.label, nd.size || 18, 'Bold'), (nd.w || 180) - 28); t.textAlignHorizontal = 'CENTER'; c.appendChild(t);
+      if (nd.sub) { const s = wrapText(await Z(nd.sub, 14, 'Regular', 'base'), (nd.w || 180) - 28); s.textAlignHorizontal = 'CENTER'; c.appendChild(s); }
       f.appendChild(c); c.x = nd.x; c.y = nd.y; pos[nd.id] = c;
     }
     const clipTo = function (c, tx, ty) {
@@ -386,13 +387,15 @@ return (async function () {
     const inst = await zi(p.comp, p.v, p.text);
     const rows = [];
     if (p.rows === 'auto' || !p.rows) {
-      if (inst.layoutMode && inst.layoutMode !== 'NONE') {
-        rows.push(['Direction', inst.layoutMode === 'HORIZONTAL' ? 'Horizontal' : 'Vertical']);
-        rows.push(['Gap', String(inst.itemSpacing)]);
-        rows.push(['Padding', inst.paddingTop + ' / ' + inst.paddingRight + ' / ' + inst.paddingBottom + ' / ' + inst.paddingLeft]);
+      const lay = [inst].concat(inst.findAll(function (n) { return 'layoutMode' in n; })).filter(function (n) { return n.layoutMode && n.layoutMode !== 'NONE'; }).sort(function (a, b) { return (b.paddingLeft + b.paddingTop + b.itemSpacing) - (a.paddingLeft + a.paddingTop + a.itemSpacing); })[0];
+      if (lay) {
+        rows.push(['Direction', lay.layoutMode === 'HORIZONTAL' ? 'Horizontal' : 'Vertical']);
+        rows.push(['Gap', String(lay.itemSpacing)]);
+        rows.push(['Padding', lay.paddingTop + ' / ' + lay.paddingRight + ' / ' + lay.paddingBottom + ' / ' + lay.paddingLeft]);
       }
       rows.push(['Size', Math.round(inst.width) + ' × ' + Math.round(inst.height)]);
-      if (typeof inst.cornerRadius === 'number') rows.push(['Radius', String(inst.cornerRadius)]);
+      const rad = [inst].concat(inst.findAll(function (n) { return 'cornerRadius' in n; })).map(function (n) { return typeof n.cornerRadius === 'number' ? n.cornerRadius : 0; }).filter(function (r) { return r > 0; })[0];
+      rows.push(['Radius', String(rad || 0)]);
     } else for (const r of p.rows) rows.push(r);
     if (p.extra) for (const r of p.extra) rows.push(r);
     const holder = al('VERTICAL', 'Instance', 12); holder.counterAxisAlignItems = 'CENTER';
@@ -403,7 +406,7 @@ return (async function () {
     for (const r of rows) {
       const line = al('HORIZONTAL', r[0], 12);
       const k = await T(r[0], 'Typed/Label', VAR.soft, 'Key'); k.resize(120, k.height); k.textAutoResize = 'HEIGHT';
-      line.appendChild(k); line.appendChild(await Z(r[1], 17, 'Semi Bold'));
+      line.appendChild(k); line.appendChild(await Z(r[1], 19, 'Semi Bold'));
       sheet.appendChild(line);
     }
     row.appendChild(sheet);
@@ -418,7 +421,7 @@ return (async function () {
       if (head) r.fills = [await zpaint('canvas')];
       for (let i = 0; i < cells.length; i++) {
         const cell = al('VERTICAL', 'Cell', 0); cell.paddingLeft = cell.paddingRight = 16; cell.paddingTop = cell.paddingBottom = 12; fixW(cell, widths[i]);
-        cell.appendChild(wrapText(await Z(String(cells[i]), head ? 14 : 15, head ? 'Semi Bold' : 'Regular', head ? 'base' : 'ink'), widths[i] - 32));
+        cell.appendChild(wrapText(await Z(String(cells[i]), head ? 15 : 17, head ? 'Semi Bold' : 'Regular', head ? 'base' : 'ink'), widths[i] - 32));
         r.appendChild(cell);
       }
       return r;
@@ -500,10 +503,30 @@ return (async function () {
   function clearSlide(s, name) {
     for (const c of s.children.filter(function (n) { return n.name === name || n.name === 'Keynote · ' + name; })) c.remove();
   }
+  async function fitTitle(t, maxW) {
+    if (t.width <= maxW) return;
+    const words = t.characters.replace(/\n/g, ' ').split(/\s+/).filter(Boolean);
+    const probe = t.clone(); probe.textAutoResize = 'WIDTH_AND_HEIGHT';
+    const lines = []; let cur = '';
+    for (const wd of words) { const next = cur ? cur + ' ' + wd : wd; probe.characters = next; if (probe.width > maxW && cur) { lines.push(cur); cur = wd; } else cur = next; }
+    if (cur) lines.push(cur);
+    probe.remove(); t.characters = lines.join('\n');
+  }
+  async function reillo(slideId, spec) {
+    const f = await figma.getNodeByIdAsync(slideId);
+    const ph = f.findOne(function (n) { return n.name === 'Photo'; });
+    const old = ph.findOne(function (n) { return n.name === 'Illustration'; }); if (old) old.remove();
+    const rot = ph.rotation; ph.rotation = 0;
+    const n = await build(spec); n.name = 'Illustration'; ph.appendChild(n);
+    const s = Math.min((ph.width - 60) / n.width, (ph.height - 60) / n.height, spec.maxScale || 1.25);
+    if (Math.abs(s - 1) > 0.01) n.rescale(s);
+    ph.rotation = rot;
+    return audit(f);
+  }
   async function textCol(parent, d, w) {
     const col = al('VERTICAL', 'Text', 28); parent.appendChild(col); fixW(col, w || 820);
     if (d.note) { const n = COMP.note.createInstance(); col.appendChild(n); const o = {}; o[P.note] = d.note; n.setProperties(o); n.name = 'Margin note'; }
-    if (d.title) col.appendChild(await T(d.title, d.titleStyle || 'Typed/Title', VAR.ink, 'Title'));
+    if (d.title) { const t = await T(d.title, d.titleStyle || 'Typed/Title', VAR.ink, 'Title'); col.appendChild(t); await fitTitle(t, w || 820); }
     if (d.deck) { const t = await T(d.deck, 'Typed/Deck', VAR.ink, 'Deck'); col.appendChild(t); t.layoutSizingHorizontal = 'FILL'; t.textAutoResize = 'HEIGHT'; }
     if (d.points) {
       const r = COMP.ruleS.createInstance(); col.appendChild(r); r.layoutSizingHorizontal = 'FILL'; r.name = 'Rule';
@@ -583,10 +606,10 @@ return (async function () {
   // part divider: { title: 'Part 2:\nFoundations', deck, lessons: [[num, title, page]], quote: [text, by], note }
   async function part(sec, i, d) {
     const f = await frameFor(sec, i, d);
-    const main = al('VERTICAL', 'Main', 18); f.appendChild(main); main.layoutSizingHorizontal = 'FILL'; main.layoutSizingVertical = 'FILL'; main.paddingTop = 40; main.paddingBottom = 24;
+    const main = al('VERTICAL', 'Main', 12); f.appendChild(main); main.layoutSizingHorizontal = 'FILL'; main.layoutSizingVertical = 'FILL'; main.paddingTop = 32; main.paddingBottom = 24;
     const n = COMP.note.createInstance(); main.appendChild(n); const no = {}; no[P.note] = d.note || 'next part'; n.setProperties(no); n.name = 'Margin note';
-    main.appendChild(await T(d.title, 'Typed/Title Display', VAR.ink, 'Title'));
-    const row = al('HORIZONTAL', 'Row', 72); main.appendChild(row); row.layoutSizingHorizontal = 'FILL'; row.paddingTop = 12;
+    const pt = await T(d.title, 'Typed/Title Display', VAR.ink, 'Title'); main.appendChild(pt); await fitTitle(pt, 1752);
+    const row = al('HORIZONTAL', 'Row', 72); main.appendChild(row); row.layoutSizingHorizontal = 'FILL'; row.paddingTop = 4;
     const col = await textCol(row, { deck: d.deck });
     const r = COMP.ruleS.createInstance(); col.appendChild(r); r.layoutSizingHorizontal = 'FILL'; r.name = 'Rule';
     const list = al('VERTICAL', 'Lessons', 2); col.appendChild(list); list.layoutSizingHorizontal = 'FILL';
@@ -619,6 +642,6 @@ return (async function () {
     if (stamp && cap) { const sb = box(stamp), cb = box(cap); const ink = Math.min(cap.characters.length * 12, cb.width); if (sb.x < cb.x + ink && sb.y < cb.y + cb.height && sb.y + sb.height > cb.y) issues.push('stamp overlaps caption'); }
     return issues;
   }
-  const API = { page: page, VAR: VAR, bind: bind, T: T, Z: Z, zi: zi, zvar: zvar, zpaint: zpaint, setText: setText, boolProp: boolProp, al: al, fixW: fixW, wrapText: wrapText, card: card, svg: svg, recolor: recolor, arrowH: arrowH, arrowV: arrowV, arrowXY: arrowXY, labelUnder: labelUnder, build: build, ILLO: ILLO, ZEFFECT: ZEFFECT, section: section, fit: fit, slide: slide, part: part, audit: audit, loadFontsIn: loadFontsIn };
+  const API = { page: page, VAR: VAR, bind: bind, T: T, Z: Z, zi: zi, zvar: zvar, zpaint: zpaint, setText: setText, boolProp: boolProp, al: al, fixW: fixW, wrapText: wrapText, card: card, svg: svg, recolor: recolor, arrowH: arrowH, arrowV: arrowV, arrowXY: arrowXY, labelUnder: labelUnder, build: build, ILLO: ILLO, ZEFFECT: ZEFFECT, section: section, fit: fit, slide: slide, part: part, audit: audit, loadFontsIn: loadFontsIn, reillo: reillo, fitTitle: fitTitle };
   return API;
 })();
