@@ -77,6 +77,11 @@ Nothing of the new concept is built in Figma yet.
   Lỗi hay gặp · Hỏi lớp / Hoạt động (with minutes) · Chuyển ý (one line into the next page). Exercise pages: Hướng dẫn
   (timed steps), Tiêu chí, Lỗi hay gặp, Nộp bài, Review buổi sau.
 
+- Real images (user, 2026-10-13): pages that show Apple or Material guidelines use images from the official docs,
+  not Zen redraws: 034, 057, 058, 059 (list, URLs and licences in [`figma/real-images.md`](figma/real-images.md)).
+  Lesson 02 (pp. 12–16) will use real Figma UI screenshots the user uploads. Built with the `images` illustration
+  kind + `upload_assets`; see [`figma/README.md`](figma/README.md).
+
 ## Zen keys (ZEN Kaiz Official-Sep2026)
 
 Variables (import with `importVariableByKeyAsync`): ink `405d6d45bf73d56595d2c4f5fd31e174329af48e` · base

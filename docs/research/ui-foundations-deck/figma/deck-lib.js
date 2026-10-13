@@ -475,6 +475,36 @@ return (async function () {
   ILLO.text = async function (p) {
     return wrapText(await (p.typed ? T(p.text, p.style || 'Typed/Deck', VAR.ink, 'Text') : Z(p.text, p.size || 18, p.weight || 'Regular', p.color)), p.width || 600);
   };
+  // real images: { cols, width, boxH, items: [{ src, iw, ih, cover, boxH, mark, tag, theme, title, sub, source }] }
+  // Each image is an empty rectangle named 'Image · <src>' with the image's aspect, fitted (or, with cover, cropped)
+  // in a box; fill it with upload_assets (nodeIds, scaleMode FILL). mark: 'do' | 'dont' adds a Zen badge.
+  ILLO.images = async function (p) {
+    const cols = p.cols || 2, gap = p.gap || 16, pad = p.pad == null ? 16 : p.pad;
+    const w = Math.floor(((p.width || 780) - gap * (cols - 1)) / cols), bw = w - 2 * pad;
+    const grid = al('VERTICAL', 'Images', gap); let row = null;
+    for (let k = 0; k < p.items.length; k++) {
+      if (k % cols === 0) { row = al('HORIZONTAL', 'Row', gap); grid.appendChild(row); }
+      const it = p.items[k];
+      const c = await card(it.title || it.src, w, { gap: 10, pad: pad });
+      const head = al('HORIZONTAL', 'Head', 8); head.counterAxisAlignItems = 'CENTER';
+      if (it.mark) head.appendChild(await zi('badge', { Size: 'Small', Theme: it.mark === 'do' ? 'Green' : 'Red', Background: 'Solid' }, { Text: it.mark === 'do' ? 'Do' : 'Don’t' }));
+      if (it.tag) head.appendChild(await zi('badge', { Size: 'Small', Theme: it.theme || 'Neutral', Background: 'Subtle' }, { Text: it.tag }));
+      if (it.title) head.appendChild(await Z(it.title, p.titleSize || 20, 'Bold'));
+      if (head.children.length) c.appendChild(head); else head.remove();
+      const bh = it.boxH || p.boxH || 220;
+      const box = figma.createFrame(); box.name = 'Box'; box.resize(bw, bh); box.fills = [await zpaint(it.boxFill || 'canvas')];
+      box.cornerRadius = 8; box.clipsContent = true;
+      const im = figma.createRectangle(); im.name = 'Image · ' + it.src;
+      const s = it.cover ? Math.max(bw / it.iw, bh / it.ih) : Math.min(bw / it.iw, bh / it.ih, it.maxScale || 99);
+      im.resize(Math.round(it.iw * s), Math.round(it.ih * s));
+      im.x = Math.round((bw - im.width) / 2); im.y = it.cover && it.top ? 0 : Math.round((bh - im.height) / 2);
+      im.fills = [await zpaint('subtle')]; box.appendChild(im); c.appendChild(box);
+      for (const t of [].concat(it.sub || [])) c.appendChild(wrapText(await Z(t, p.subSize || 17, 'Regular', 'base'), bw));
+      if (it.source) c.appendChild(wrapText(await Z(it.source, 15, 'Regular', 'base', 'Source'), bw));
+      row.appendChild(c); c.layoutAlign = 'STRETCH';
+    }
+    return grid;
+  };
   // custom: { draw: 'js function body string', receives (api) and returns a node }
   ILLO.custom = async function (p) {
     const fn = new Function('api', 'return (async () => {' + p.draw + '})()');
@@ -523,6 +553,26 @@ return (async function () {
     if (Math.abs(s - 1) > 0.01) n.rescale(s);
     ph.rotation = rot;
     return audit(f);
+  }
+  // edit a keynote in place: edits = [[heading, text]]; a heading the keynote lacks is added before 'Chuyển ý'
+  async function knSet(slideId, edits) {
+    const f = await figma.getNodeByIdAsync(slideId), sec = f.parent;
+    const g = sec.children.find(function (n) { return n.name === 'Keynote · ' + f.name; });
+    const card2 = g.children.find(function (n) { return n.name === 'Card'; });
+    const texts = g.children.filter(function (n) { return n.type === 'TEXT'; }).sort(function (a, b) { return a.y - b.y; });
+    const list = texts.map(function (t, i) { return { n: t, gap: i < texts.length - 1 ? Math.round(texts[i + 1].y - t.y - t.height) : 26 }; });
+    for (const e of edits) {
+      const body = g.children.find(function (n) { return n.type === 'TEXT' && n.name === e[0] + ' · text'; });
+      if (body) { await loadFontsIn(body); body.characters = e[1]; continue; }
+      const h = await T(e[0], 'Typed/Keynote Head', VAR.ink, e[0]), b = await T(e[1], 'Typed/Keynote', VAR.ink, e[0] + ' · text');
+      for (const t of [h, b]) { g.appendChild(t); t.resize(card2.width - 80, t.height); t.textAutoResize = 'HEIGHT'; t.x = card2.x + 40; }
+      let at = list.findIndex(function (it) { return it.n.name === 'Chuyển ý'; }); if (at < 0) at = list.length;
+      list.splice(at, 0, { n: h, gap: 8 }, { n: b, gap: 26 });
+    }
+    let cy = list[0].n.y;
+    for (const it of list) { it.n.y = cy; cy += it.n.height + it.gap; }
+    card2.resize(card2.width, Math.max(cy - 26 + 40 - card2.y, 1080));
+    return { keynote: g.id, height: Math.round(card2.height) };
   }
   async function textCol(parent, d, w) {
     const col = al('VERTICAL', 'Text', 28); parent.appendChild(col); fixW(col, w || 820);
@@ -643,6 +693,6 @@ return (async function () {
     if (stamp && cap) { const sb = box(stamp), cb = box(cap); const ink = Math.min(cap.characters.length * 12, cb.width); if (sb.x < cb.x + ink && sb.y < cb.y + cb.height && sb.y + sb.height > cb.y) issues.push('stamp overlaps caption'); }
     return issues;
   }
-  const API = { page: page, VAR: VAR, bind: bind, T: T, Z: Z, zi: zi, zvar: zvar, zpaint: zpaint, setText: setText, boolProp: boolProp, al: al, fixW: fixW, wrapText: wrapText, card: card, svg: svg, recolor: recolor, arrowH: arrowH, arrowV: arrowV, arrowXY: arrowXY, labelUnder: labelUnder, build: build, ILLO: ILLO, ZEFFECT: ZEFFECT, section: section, fit: fit, slide: slide, part: part, audit: audit, loadFontsIn: loadFontsIn, reillo: reillo, fitTitle: fitTitle };
+  const API = { page: page, VAR: VAR, bind: bind, T: T, Z: Z, zi: zi, zvar: zvar, zpaint: zpaint, setText: setText, boolProp: boolProp, al: al, fixW: fixW, wrapText: wrapText, card: card, svg: svg, recolor: recolor, arrowH: arrowH, arrowV: arrowV, arrowXY: arrowXY, labelUnder: labelUnder, build: build, ILLO: ILLO, ZEFFECT: ZEFFECT, section: section, fit: fit, slide: slide, part: part, audit: audit, loadFontsIn: loadFontsIn, reillo: reillo, fitTitle: fitTitle, knSet: knSet };
   return API;
 })();

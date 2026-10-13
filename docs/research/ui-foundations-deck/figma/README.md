@@ -93,6 +93,7 @@ uses Inter (`Z`) or `Typed/Label`. The photo is 846 × 640; an illustration is s
 | `phone` | `title`, `items: [strip items + fill]`, `button`, `navType` |
 | `row` / `column` | `parts: [illo, …]`, `gap` |
 | `text` | `text`, `size`, `weight`, `typed`, `width` |
+| `images` | real images: `cols`, `width`, `boxH`, `items: [{ src, iw, ih, cover, boxH, maxScale, mark: 'do'\|'dont', tag, theme, title, sub, source }]`; builds empty slots, see below |
 | `custom` | `draw`: a JS function body (string) receiving `api` (`L` itself: `zi, zpaint, Z, T, al, card, svg, recolor, arrowH, arrowV, arrowXY, labelUnder, wrapText, fixW, VAR, ZEFFECT`) and returning a node |
 
 Tip for `custom`: `api` is `L` itself, so you can define a helper in the same call (`L.dGestalt = async () => { … }`) and pass `draw: 'return api.dGestalt()'` instead of writing the whole function as a string.
@@ -109,6 +110,19 @@ Neutral/Subtle/Info/Positive/Warning/Negative, texts `Title-Text`, `Caption-Text
 Neutral/Info/Positive/Warning/Negative), `dialog` (Theme, Device Desktop/Mobile), `stepper`, `tabBar` (Style
 Indicator/Subtle), `checkbox` (State, Select Yes/No, Check-Side), `skeleton` (Shape Pill/Round/Square/Rectangle, Size).
 Zen shadow styles: `api.ZEFFECT['Level-1' | 'Level-3' | 'Level-4']` (style keys, `figma.importStyleByKeyAsync`).
+
+## Real images (platform guidelines, tool screenshots)
+
+The user wants real images wherever a page shows a platform's own guidelines (Apple HIG, Material 3) or the Figma UI.
+`images` draws each one as a Zen card with an empty rectangle named `Image · <file>`, sized to the image's aspect
+(`cover` crops it to the box instead). Fill the rectangles with `upload_assets` (`nodeIds` in the same order,
+`scaleMode: 'FILL'`), then POST each file to its `submitUrl` as `-F file=@…`. Give every card a `source` line, and
+the keynote a `Nguồn ảnh` section with the URL. Keep the files out of git; the list and licences are in
+[`real-images.md`](real-images.md).
+
+`L.knSet(slideId, [[heading, text], …])` rewrites a keynote section in place (a heading the keynote lacks is added
+before `Chuyển ý`) and re-spaces the group. `L.reillo(slideId, spec)` swaps only the illustration. After a swap, move
+the clip (`Clip`, x 64 by default) off any card title it covers; x 330 sits over the gap of a 2-column grid.
 
 ## Checks before you move on
 

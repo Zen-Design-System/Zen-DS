@@ -279,3 +279,9 @@
 - 2026-10-13: keynotes for pages 1–9 rewritten as detailed teaching scripts (goal, script with a running example,
   common mistakes, timed activity, class questions, transition); cards 1040 wide, slides re-spaced to 3200, rows to
   2600. Structure recorded in the deck HANDOFF.md.
+- 2026-10-13: real images for the platform-guideline pages (user: "Các ảnh về platform guidelines của Apple và
+  Material nên dùng ảnh thật"): 034 (Material window size classes, Android docs), 057 (Material 3 dialogs, HIG Liquid
+  Glass), 058 (HIG Accessibility spacing do/don't, Android 48 dp targets), 059 (iPhone tab bar, iPad sidebar, Material
+  navigation bar and rail). New `images` builder and `knSet` keynote editor in `deck-lib.js` (stored copy patch4).
+  058 point 1 corrected to the HIG table: 44 × 44 pt default, 28 × 28 pt minimum. Sources and licences in
+  `figma/real-images.md`; the image files stay out of git.
