@@ -522,7 +522,7 @@ function PhoneOrderType() {
                 onClick={() => setType(option.id)}>
                 <Stack direction="row" gap="md" align="center">
                   <DockIcon icon={option.icon} theme="neutral" background="subtle" />
-                  <Stack gap="2xs" className="px-card-grow">
+                  <Stack gap="2xs" width="fill">
                     <Text as="span" textStyle="Body/Base/Bold">{option.name}</Text>
                     <Text as="span" textStyle="Body/Small/Regular" tone="base">{option.detail}</Text>
                   </Stack>

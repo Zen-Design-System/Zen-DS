@@ -22,6 +22,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
 import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
+import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
+import { tokens } from "../../src/tokens/generated.ts";
 
 /* ── layer names ────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -68,17 +70,73 @@ const propsOf = async (instance) => {
   }
   return out;
 };
-const firstText = (node) => { const text = node.findOne ? node.findOne((n) => n.type === "TEXT" && n.visible) : null; return text ? text.characters : null; };
+// The first text a layer shows (a text inside a hidden layer shows nothing); \`name\`: the first so named.
+const firstText = (node, name) => {
+  for (const child of node.children || []) {
+    if (!child.visible) continue;
+    if (child.type === "TEXT" && (!name || child.name === name)) return child.characters;
+    const inner = firstText(child, name);
+    if (inner !== null) return inner;
+  }
+  return null;
+};
 // A composition of library components (Patterns/…, Header/…) is read inside, as a frame.
 const COMPOSITION = /^(Patterns|Header|Templates?|Layouts?|Screens?)\\//;
+// A Nav-Slot/Action: its layer name, the icon it draws (its first visible icon instance's component) and its dot.
+const navActionOf = async (action) => {
+  const props = await propsOf(action);
+  let icon = null;
+  for (const inner of action.findAll((n) => n.type === "INSTANCE" && n.visible)) {
+    const main = await inner.getMainComponentAsync();
+    if (main && /^(icon|ic)-/.test(main.name)) { icon = main.name; break; }
+  }
+  return { name: action.name, ...(icon ? { icon } : {}), ...(props["Noti-Dot"] === true ? { dot: true } : {}) };
+};
+// Top-Navigation/Mobile (figma-top-nav.mjs) by its layer names: the bar and large titles' texts, the leading action, each
+// row's Trailing-Slot actions (both slots share that name) and what the Control-Slot holds.
+const readTopNav = async (instance, set) => {
+  const named = (name) => instance.findOne((n) => n.name === name);
+  const texts = (node) => (node ? Object.fromEntries(node.findAll((n) => n.type === "TEXT" && n.visible).map((text) => [text.name, text.characters])) : {});
+  const actionsIn = async (row) => {
+    const slot = named(row) ? named(row).findOne((n) => n.type === "SLOT" && n.name === "Trailing-Slot") : null;
+    const out = [];
+    for (const child of (slot ? slot.children : []).filter((child) => child.visible && child.type === "INSTANCE")) out.push(await navActionOf(child));
+    return out;
+  };
+  const bar = named("Top-Heading-Text"), large = named("Main-Heading-Text"), lead = named("Top-Leading");
+  const leadAction = lead ? lead.findOne((n) => n.type === "INSTANCE" && n.name === "Action") : null;
+  const controlSlot = instance.findOne((n) => n.type === "SLOT" && n.name === "Control-Slot");
+  const control = [];
+  for (const child of controlSlot ? controlSlot.children : []) { const read_ = await read(child); if (read_) control.push(read_); }
+  const topNav = {
+    bar: { props: bar ? await propsOf(bar) : {}, texts: texts(bar) },
+    large: { props: large ? await propsOf(large) : {}, texts: texts(large) },
+    leading: lead ? { props: await propsOf(lead), ...(leadAction ? { action: await navActionOf(leadAction) } : {}) } : null,
+    barActions: await actionsIn("Navigator-bar"), titleActions: await actionsIn("Expand-Heading"), control,
+  };
+  return { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), topNav };
+};
 const readInstance = async (instance) => {
   const set = await setOf(instance);
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
+  if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), text: firstText(instance), nested: [], slots: [] };
+  // A chat message's text is its bubble's Message (its Avatar's initials come first).
+  if (set && set.name === "Chat/Conversation/Bubble") out.text = firstText(instance, "Message");
   const changed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.some((f) => f === "componentProperties" || f === "characters")).map((o) => o.id));
-  const walk = async (node, trail) => {
+  // Avatars the push named after their person (a chat message's author, a read list's readers).
+  const renamed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.includes("name")).map((o) => o.id));
+  const walk = async (node, trail, owner) => {
     for (const child of node.children || []) {
       if (!child.visible) continue;
+      // A slot of a nested instance (a chat bubble's Chat/Reaction/Status › Emoji-Items): its layers, by the instance it
+      // sits in (figma-push writes it as \`within\`). Its layers are walked on as before.
+      if (child.type === "SLOT" && trail.length && child.children && child.children.length) {
+        const children = [];
+        for (const inner of child.children) { const read_ = await read(inner); if (read_) children.push(read_); }
+        out.innerSlots = out.innerSlots || [];
+        out.innerSlots.push({ name: child.name, within: owner.name, children });
+      }
       // The instance's own slot (Card › Content): its layers are the page's content, read as such.
       if (child.type === "SLOT" && !trail.length) {
         const children = [];
@@ -97,15 +155,31 @@ const readInstance = async (instance) => {
       // Its own texts (not a slot's, not a nested instance's): Dashboard/Header's Subheading count.
       if (child.type === "TEXT" && !trail.length) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters }); }
       const next = child.type === "INSTANCE" ? [...trail, layerKey(child.name)] : trail;
-      if (child.type === "INSTANCE" && changed.has(child.id)) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
-      await walk(child, next);
+      const avatarNamed = child.type === "INSTANCE" && renamed.has(child.id) && (await setOf(child))?.name === "Avatar/Single";
+      if (child.type === "INSTANCE" && (changed.has(child.id) || avatarNamed)) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
+      await walk(child, next, child.type === "INSTANCE" ? child : owner);
     }
   };
-  await walk(instance, []);
+  await walk(instance, [], instance);
   // Empty parts left out: an answer holds 20 KB. With slots, its layout (how they sit, for a set Zen has no component of).
   if (!out.nested.length) delete out.nested;
   if (!out.slots.length) delete out.slots;
   else { const layout = await layoutOf(instance); if (layout) out.layout = layout; }
+  // An icon's size (an Icon, a FileIcon, a Flag): its width's size variable, else its width where it is not the component's.
+  if (set && (/^(icon|ic)-/.test(set.name) || set.name === "Flag")) {
+    // (A file icon keeps its aspect ratio: Figma binds its height only.)
+    const bound = instance.boundVariables || {};
+    const sizeVar = await variableName((bound.width || bound.height || {}).id);
+    const main = await instance.getMainComponentAsync();
+    if (sizeVar) out.sizeVar = sizeVar;
+    else if (main && Math.round(main.width) !== Math.round(instance.width)) out.size = Math.round(instance.width);
+  }
+  // A Color-Selector swatch: the colour variable its own fill is bound to (the colour it offers).
+  if (set && set.name === "Color-Selector") {
+    const paint = (instance.fills || [])[0];
+    const fill = await variableName(paint && paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id);
+    if (fill) out.fill = fill;
+  }
   // A text-less instance (an icon button, Dashboard/Header's Action-Item): the icon it draws, by the icon's own name.
   if (out.text === null) {
     delete out.text;
@@ -161,6 +235,7 @@ const placed = (out, child, parent) => {
   if (child.layoutSizingHorizontal === "FILL") out.fillW = true;
   if (child.layoutSizingVertical === "FILL") out.fillH = true;
   if (child.minWidth) out.minW = child.minWidth;
+  if (child.maxWidth) out.maxW = child.maxWidth;
   return out;
 };
 // A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
@@ -355,6 +430,8 @@ const SLOT_PROPS = {
 const ROW_ELEMENTS = { "Primitives/Side-Bar/Menu-Item/Master": "SidebarMenuItem" };
 /** The prop that names a data slot's selected item (Figma's Select = Yes on the item). */
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
+/** Components whose text prop is a plain text layer of their set (figma-push TEXT_PROP): the instance's text is it. */
+const TEXT_PROP = { InputConditionItem: "label" };
 /** An item's icon field where it is not `icon` (SegmentedOption `leading`). */
 const ITEM_ICON = { Segmented: "leading" };
 /* ── tables ──────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -607,7 +684,9 @@ function actionItem(node, ctx) {
 /** Icon-only controls the harness wants named (icon-button/needs-name): they get an aria-label. */
 const NEEDS_NAME = new Set(["IconButton"]);
 /** The elements that take Figma's resizing (width / height fill), src/components/Layout/sizing.ts. */
-const SIZED = new Set(["Stack", "Grid", "Text"]);
+const SIZED = new Set(["Stack", "Grid", "Text", "Card", "ListBox"]);
+/** Components sized like a layout layer whose Figma min / max width comes back as minWidth / maxWidth (Card.tsx, ListBox). */
+const SIZED_INSTANCES = new Set(["Card", "ListBox"]);
 /** Layers the page has no element for: drawings, kept out with one note. */
 const DRAWINGS = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "BOOLEAN_OPERATION"]);
 
@@ -631,8 +710,10 @@ const iconWords = (icon) => {
  */
 function itemFields(item, ctx, { labelKey = "label", iconKey = "icon", where }) {
   const props = item.props ?? {};
-  const text = Object.entries(props).find(([name, value]) => TEXT_PROPS.test(name) && typeof value === "string")?.[1] ?? item.text ?? "";
-  const label = props.Label === false ? "" : text;
+  // A Label variant (Tab-Item's True / False) shows or hides the label; it is not the label's text.
+  const toggle = (value) => value === "True" || value === "False";
+  const text = Object.entries(props).find(([name, value]) => TEXT_PROPS.test(name) && typeof value === "string" && !toggle(value))?.[1] ?? item.text ?? "";
+  const label = props.Label === false || props.Label === "False" ? "" : text;
   const iconSrc = Object.entries(props).find(([name]) => /^(Leading-)?Icon-Src$/.test(name))?.[1];
   const iconOn = Object.entries(props).find(([name]) => /^(Leading-)?Icon$/.test(name))?.[1];
   const icon = typeof iconSrc === "string" && iconOn !== false ? iconSrc : null;
@@ -663,6 +744,9 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
   const toItem = (item) => {
     const shown = rail ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
     const fields = itemFields(shown, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
+    // A count in its Badge-Counter (a Tab-Item with Badge on).
+    const count = item.props?.Badge === true ? (item.nested ?? []).find((nested) => nested.path === "Badge-Counter")?.text : null;
+    if (count) fields.badge = literal(/^\d+$/.test(count) ? Number(count) : count);
     if (isSelected(item)) selected ??= fields.id.value;
     return { kind: "object", fields };
   };
@@ -888,10 +972,16 @@ function convertNode(node, ctx) {
     if (ROW_ELEMENTS[setName]) return { kind: "element", name: ROW_ELEMENTS[setName], props: itemFields(node, ctx, { where: ROW_ELEMENTS[setName] }), children: [] };
     if (setName === "Primitives/Dashboard/Header/Action-Item") return actionItem(node, ctx);
     if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
+    if (setName === TOP_NAV_SET.name) return topNavigationElement(node, ctx);
+    if (setName === COLOR_SWATCH) return colorSelectorElement([node], null, ctx);
+    // A file's type icon and a country's flag (figma-push FileIcon, Flag), with their size.
+    if (setName === "icon-media-file") return { kind: "element", name: "FileIcon", props: { format: literal(String(node.props?.Format ?? "doc").toLowerCase()), ...iconSizeProps(node) }, children: [] };
+    if (setName === "Flag" && node.props?.Name) return { kind: "element", name: "Flag", props: { name: literal(node.props.Name), ...(FLAG_SIZE_OF[node.sizeVar] ? { size: literal(FLAG_SIZE_OF[node.sizeVar]) } : {}) }, children: [] };
+    if (setName === CHAT_SECTION) return chatThreadElement({ ...node, children: [node] }, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
-      if (isZenIcon(setName, mapping)) return { kind: "element", name: "Icon", props: { name: literal(setName) }, children: [] };
+      if (isZenIcon(setName, mapping)) return { kind: "element", name: "Icon", props: { name: literal(setName), ...iconSizeProps(node) }, children: [] };
       // A primitive with slots (Dashboard/Header): what its slots hold, in its layout.
       // Each slot a Stack in its layout; slots that sit in one frame of the instance, a Stack in that frame's layout.
       const groups = [];
@@ -946,13 +1036,20 @@ function convertNode(node, ctx) {
     // Accent) is left out (figma-push writes it, the other way).
     if (set.code === "IconButton" && props.level?.kind === "literal" && props.level.value === ({ flat: "primary", overlay: "accent" }[props.appearance?.value] ?? "tertiary")) delete props.level;
     for (const slot of node.slots ?? []) {
-      if (handled.has(slot.name)) continue;
+      // A nested instance's slot (figma-push `within`): its owner reads it (a ChatMessage's reactions).
+      if (handled.has(slot.name) || slot.within) continue;
       if (slotsAreChildren) { slotted.push(slot); continue; }
       const dataSlot = dataSlots.find((candidate) => candidate.name === slot.name);
       if (dataSlot) {
         const { value, selected } = dataSlotValue(slot, dataSlot, ctx, where, rail);
         props[dataSlot.prop] = value;
+        // A Segmented whose Item-List fills it splits its width (figma-push: fullWidth → the slot fills).
+        if (set.code === "Segmented" && slot.fillW) props.fullWidth = literal(true);
         if (selected && SELECTED_PROP[set.code]) props[SELECTED_PROP[set.code]] = literal(selected);
+        // Tabs and Segmented draw their look on each item (figma-push): the first item's Size (and a Segmented's Level).
+        const look = rowsOf(slot.children ?? [])[0]?.props ?? {};
+        if ((set.code === "Tabs" || set.code === "Segmented") && look.Size === "Small") props.size = literal("sm");
+        if (set.code === "Segmented" && look.Level === "Primary") props.level = literal("primary");
         continue;
       }
       if (slotProps[slot.name]) {
@@ -963,13 +1060,46 @@ function convertNode(node, ctx) {
       slotted.push(slot);
     }
     ctx.ids = outerIds;
-    let children = props.children && !node.slots?.length ? [{ kind: "text", value: props.children.value }] : [];
+    if (TEXT_PROP[set.code] && typeof node.text === "string" && node.text && !props[TEXT_PROP[set.code]]) props[TEXT_PROP[set.code]] = literal(node.text);
+    // A File-Item's file: its Name, Size, State and Additional Caption (an alert's error, an upload's caption).
+    if (set.code === "UploaderFileItem") {
+      const shown = node.props ?? {};
+      const name = String(shown["✏️ Name"] ?? node.text ?? "File");
+      const state = String(shown.State ?? "Uploaded").toLowerCase();
+      // An alert's error is its Help-Text's; an upload's progress the Progress-Bar's step (its middle value).
+      const caption = state === "alert" ? (node.nested ?? []).find((nested) => nested.path === "Help-Text")?.text : shown["✏️ Additional Caption"];
+      const step = (node.nested ?? []).find((nested) => nested.path === "Progress-Bar")?.props?.Progress;
+      const fields = { id: literal(slug(name)), name: literal(name) };
+      if (shown["✏️ Size"]) fields.size = literal(String(shown["✏️ Size"]));
+      if (state !== "uploaded") fields.state = literal(state);
+      if (caption && (state === "alert" || state === "uploading")) fields[state === "alert" ? "error" : "caption"] = literal(String(caption));
+      if (state === "uploading" && step) fields.progress = literal({ None: 0, Low: 25, Medium: 50, Good: 80, Done: 100 }[step] ?? 0);
+      props.file = { kind: "object", fields };
+    }
+    // A chat message's text is its bubble's Message (figma-push writes it there; the reader reads it as the text).
+    if (set.code === "ChatMessage" && ownText(node, "Message")) props.children = literal(ownText(node, "Message"));
+    let children = props.children && !node.slots?.some((slot) => !slot.within) ? [{ kind: "text", value: props.children.value }] : [];
     const slottedLayers = slotted.flatMap((slot) => slot.children ?? []);
     if (slottedLayers.length && takesChildren) children = slottedLayers.map((child) => convert(child, ctx)).filter(Boolean);
     else if (slottedLayers.length) notes.push(`${where}: what its ${slotted.map((slot) => slot.name).join(", ")} slot holds is left out (the component takes no content)`);
     delete props.children;
     const overrides = {};
-    for (const nested of node.nested ?? []) {
+    // Date-Picker/Mobile: range mode for its Multiple variants, its heading's text the title (unless the default).
+    if (set.code === "DatePickerSheet") {
+      // Figma shows it: the page opens it.
+      props.open = literal(true);
+      if (/^Multiple/.test(node.props?.Variant ?? "")) props.selectionMode = literal("range");
+      const title = (node.nested ?? []).find((nested) => nested.path.split("/").pop() === "Main-Heading-Text");
+      const text = title?.texts?.["Header-Text"] ?? title?.text;
+      if (text && !["Choose date", "Choose dates", "Heading"].includes(text)) props.title = literal(text);
+    }
+    if (set.code === "ChatMessage") chatMessageParts(node, props, ctx);
+    const metric = METRIC_SET.test(setName);
+    if (metric) metricParts(node, props, ctx);
+    // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title, a
+    // chat message's Avatar and reaction pill its author and reactions (read above).
+    const ownParts = (nested) => set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path))) || (metric && /^(Trend|Metric-Icon)(\/|$)/.test(nested.path));
+    for (const nested of (node.nested ?? []).filter((nested) => !ownParts(nested))) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
       const fields = instanceProps(nested, inner, mapping, notes, `${set.code} › ${nested.path}`);
@@ -977,14 +1107,24 @@ function convertNode(node, ctx) {
     }
     if (Object.keys(overrides).length) props.overrides = { kind: "object", fields: overrides };
     // A layer Figma shows with a boolean of its name (Card's Sub-Action) that the code draws only when a prop is set.
-    for (const layer of new Set((node.nested ?? []).map((nested) => nested.path.split("/")[0]))) {
+    for (const layer of new Set((node.nested ?? []).filter((nested) => !ownParts(nested)).map((nested) => nested.path.split("/")[0]))) {
       if (node.props?.[layer] === true && !set.toggles?.some((toggle) => toggle.label === layer)) notes.push(`${where}: ${layer} shows in Figma; set it on the ${set.code} in the Studio (its overrides apply once it is there)`);
     }
-    const element = { kind: "element", name: set.code, props, children };
+    // Metric-Inline alone is a Metric; a Card holding only one is the MetricCard (figma-push draws it so).
+    const lone = children.length === 1 && children[0].kind === "element" && children[0].name === "Metric" ? children[0] : null;
+    if (set.code === "Card" && lone && Object.keys(props).every((name) => name === "theme")) return { kind: "element", name: "MetricCard", props: { ...lone.props, ...props }, children: [] };
+    const element = { kind: "element", name: metric ? "Metric" : set.code, props, children };
     // A row Figma pads (Header/Dashboard's Sections pad each Primitives/Dashboard/Header): a Stack takes its padding, as
     // an AppShell's sections would.
     return PADDED.has(set.code) && node.layout?.padding?.some(Boolean) ? padded(element, node, ctx) : element;
   }
+  // Chat/Section/Conversation runs (figma-push chatThreadNode): a ChatThread; a message over its Read-List: its seenBy.
+  if ((node.children ?? []).some((child) => child.type === "INSTANCE" && child.set?.name === CHAT_SECTION)) return chatThreadElement(node, ctx);
+  const [message, readList] = node.children ?? [];
+  if (node.children?.length === 2 && codeOf(message, ctx) === "ChatMessage" && readList.set?.name === READ_LIST) return withSeenBy(convert(message, ctx), readList, ctx);
+  // A row of Color-Selector swatches (figma-push colorSelectorNode): a ColorSelector.
+  const swatches = node.children ?? [];
+  if (swatches.length && swatches.every((child) => child.type === "INSTANCE" && child.set?.name === COLOR_SWATCH)) return colorSelectorElement(swatches, node.name, ctx);
   // An app frame (Sidebar beside a column under the Dashboard header Type=Navigation): AppShell.
   const shell = appShellElement(node, ctx);
   if (shell) return shell;
@@ -1049,7 +1189,9 @@ function frameElement(node, children, ctx) {
       const across = (source) => (row ? source?.fillH : source?.fillW);
       const along = (source) => (row ? source?.fillW : source?.fillH);
       // A row Stack centres by default (Layout.tsx), a column stretches: each writes only what differs.
-      const stretched = children.length > 0 && sources.every(across);
+      // Fill children stretch the Stack, unless one stops at a max width and the frame places it (centre, end).
+      const placesCapped = layout.counter && layout.counter !== "MIN" && sources.some((source) => source?.maxW);
+      const stretched = children.length > 0 && sources.every(across) && !placesCapped;
       const align = stretched ? "stretch" : { MIN: "start", CENTER: "center", MAX: "end", BASELINE: "baseline" }[layout.counter ?? "MIN"];
       if (align !== (row ? "center" : "stretch") && !(align === "start" && !row)) props.align = literal(align);
       const aligned = row ? align !== "stretch" : Boolean(props.align);
@@ -1058,6 +1200,10 @@ function frameElement(node, children, ctx) {
       if (layout.wrap) props.wrap = literal(true);
       // A layout layer that fills (Fill container): along the Stack it takes the free space; across, it is said when the Stack aligns.
       children.forEach((child, index) => {
+        if (SIZED_INSTANCES.has(child.name)) {
+          if (sources[index]?.minW) child.props.minWidth = literal(sources[index].minW);
+          if (sources[index]?.maxW) child.props.maxWidth = literal(sources[index].maxW);
+        }
         if (!SIZED.has(child.name)) return;
         if (along(sources[index])) child.props[row ? "width" : "height"] = literal("fill");
         if (across(sources[index]) && aligned) child.props[row ? "height" : "width"] = literal("fill");
@@ -1069,6 +1215,234 @@ function frameElement(node, children, ctx) {
   return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
 }
 
+/** An icon's size from Figma (figma-push iconSizing, the other way): its Element-Size/Popular step, else its px. */
+const ICON_SIZE_OF = { "2XSmall": "2xs", XSmall: "xs", Small: "sm", Medium: "md", Large: "lg", XLarge: "xl", "2XLarge": "2xl", "3XLarge": "3xl" };
+const iconSizeProps = (node) => {
+  const step = /^Element-Size\/Popular\/(.+)$/.exec(node.sizeVar ?? "")?.[1];
+  if (ICON_SIZE_OF[step]) return { size: literal(ICON_SIZE_OF[step]) };
+  return typeof node.size === "number" ? { size: literal(node.size) } : {};
+};
+/** A Flag's size variable → its size (flag.css). */
+const FLAG_SIZE_OF = { "Image-Size/3XSmall": "small", "Image-Size/Small": "large" };
+
+/** Figma's Metric-Inline sets (Metric; in a Card, MetricCard). */
+const METRIC_SET = /^Primitives\/Metric\/Metric-Inline\//;
+/** Figma .Primitives/Metrics/Metric-Trend's Trend option → MetricCard trend.direction (figma-push TREND_OPTION). */
+const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "normal" };
+/** Metric-Trend's Badge theme by its Trend (Positive green, Negative red, Normal neutral) → the direction. */
+const BADGE_DIRECTION = { Green: "positive", Red: "negative", Neutral: "normal" };
+
+/**
+ * Metric-Inline's parts as figma-push metricParts writes them: Label and Metric-Number, the Trend badge (direction and
+ * label), the Metric-Icon Dock Icon (icon, theme, background).
+ */
+function metricParts(node, props, ctx) {
+  const label = ownText(node, "Label");
+  const value = ownText(node, "Metric-Number");
+  if (label && node.props?.["Metric-Title"] !== false) props.label = literal(label);
+  if (value) props.value = literal(value);
+  // The trend: its Metric-Trend (the push's own JSON) or the Badge inside it (Figma's read: the override sits there).
+  const trend = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend") : null;
+  const badge = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend/Badge") : null;
+  if (trend || badge) {
+    const fields = { direction: literal(TREND_DIRECTION[trend?.props?.Trend] ?? BADGE_DIRECTION[badge?.props?.Theme] ?? "positive") };
+    const text = trend?.textList?.[0] ?? trend?.text ?? badge?.props?.Text ?? badge?.text;
+    if (text) fields.label = literal(text);
+    props.trend = { kind: "object", fields };
+  }
+  const dock = node.props?.["Dock-Icon"] === true ? (node.nested ?? []).find((nested) => nested.path === "Metric-Icon") : null;
+  const dockSet = dock ? [...ctx.mapping.sets.values()].find((set) => set.code === "DockIcon") : null;
+  // Its Dock Icon: hidden is icon={false}; Metric's defaults (icon-home-02-solid, neutral, subtle) are left out.
+  if (node.props?.["Dock-Icon"] === false) props.icon = literal(false);
+  if (dock && dockSet) {
+    const fields = instanceProps({ ...dock, set: dock.set ?? { id: dockSet.id, name: dockSet.name } }, dockSet, ctx.mapping, ctx.notes, "Metric › Metric-Icon");
+    if (fields.icon && fields.icon.value !== "icon-home-02-solid") props.icon = fields.icon;
+    if (fields.theme && fields.theme.value !== "neutral") props.iconTheme = fields.theme;
+    if (fields.background && fields.background.value !== "subtle") props.iconBackground = fields.background;
+  }
+  delete props.children;
+}
+
+/** Figma's chat sets the push draws around ChatMessage (figma-push chatMessageNode, chatThreadNode). */
+const CHAT_SECTION = "Chat/Section/Conversation";
+const READ_LIST = "Chat/Section/Read-List";
+/** The quick reactions' glyphs (Chat.tsx chatReactionEmojis; Figma's Emoji/Static draws the same, its Message text). */
+const chatReactionEmojis = { like: "👍", heart: "❤️", lol: "😆", surprised: "😮", sad: "😢", angry: "😡" };
+/** Figma Chat/Reaction/Emoji's Emoji option → the quick reaction (Chat.tsx chatReactionEmojis). */
+const REACTION_OF = { Like: "like", Heart: "heart", LOL: "lol", Surprised: "surprised", Sad: "sad", Angry: "angry" };
+/** An instance's own text layer by name: the reader's list, or the push's object. */
+const ownText = (node, name) => (Array.isArray(node.texts) ? node.texts.find((text) => text.name === name)?.characters : node.texts?.[name]);
+/** An Avatar the chat push drew: by its set, its path, or the person's name it carries as its layer name. */
+const isAvatar = (nested) => nested.set?.name === "Avatar/Single" || /^Avatar(\[\d+\])?$/.test(nested.path);
+/** The person's name an Avatar layer carries (figma-push names it), else none. */
+const avatarName = (avatar) => avatar?.name ?? (avatar && !isAvatarPath(avatar.path) ? avatar.path : undefined);
+const isAvatarPath = (path) => /^Avatar(\[\d+\])?$/.test(path ?? "");
+/** A person from an Avatar in Figma: its layer's name (else its initials) the name, its Theme the theme. */
+const personOf = (avatar, name) => {
+  const fields = { name: literal(name ?? avatarName(avatar) ?? avatar?.text ?? "?") };
+  const theme = String(avatar?.props?.Theme ?? "").toLowerCase();
+  if (theme && theme !== "photo" && theme !== "neutral") fields.theme = literal(theme);
+  return { kind: "object", fields };
+};
+
+/**
+ * A chat message's parts as figma-push chatMessageNode draws them: the author from its Avatar (initials) and its Name
+ * text, the reactions from its bubble's Chat/Reaction/Status (Emoji-Items, the total in Count).
+ */
+function chatMessageParts(node, props, ctx) {
+  const where = `ChatMessage "${node.name}"`;
+  const avatar = (node.nested ?? []).find(isAvatar);
+  const name = ownText(node, "Name") ?? avatarName(avatar);
+  if (node.props?.Side !== "You" && node.props?.Avatar !== false && (avatar || name)) {
+    props.author = personOf(avatar, name);
+    if (!name) ctx.notes.push(`${where}: its author is named by the Avatar's initials (${avatar?.text ?? "?"}); give the name in the Studio`);
+  }
+  if (node.props?.Reaction !== "Yes") return;
+  const slot = [...(node.innerSlots ?? []), ...(node.slots ?? [])].find((item) => item.name === "Emoji-Items");
+  // A quick reaction's option, unless its Message shows another emoji (one picked from the "+" panel).
+  const plainGlyph = (text) => String(text ?? "").replace(/\uFE0F/g, "");
+  const kindOf = (item) => {
+    const quick = REACTION_OF[item.props?.Emoji];
+    const glyph = ownText(item, "Message") ?? item.text;
+    return quick && (!glyph || plainGlyph(glyph) === plainGlyph(chatReactionEmojis[quick])) ? quick : glyph ?? quick;
+  };
+  const kinds = (slot?.children ?? []).filter((item) => item.type === "INSTANCE").map(kindOf).filter(Boolean);
+  if (!kinds.length) return;
+  const pill = (node.nested ?? []).find((nested) => nested.path === "Bubble/Chat");
+  const count = pill?.props?.Counter === "Yes" ? Number.parseInt(pill.texts?.Count ?? pill.text ?? "", 10) : 0;
+  props.reactions = { kind: "array", items: kinds.map((kind, index) => ({ kind: "object", fields: { kind: literal(kind), ...(index === 0 && count > kinds.length ? { count: literal(count - kinds.length + 1) } : {}) } })) };
+}
+
+/** A message with the Read-List under it: its seenBy (each reader by the Avatar's initials; "5+" adds the Badge's count). */
+function withSeenBy(element, readList, ctx) {
+  if (element?.name !== "ChatMessage") return element;
+  const avatars = (readList.nested ?? []).filter(isAvatar);
+  const more = readList.props?.["Seen by"] === "5+" ? Number.parseInt(String((readList.nested ?? []).find((nested) => nested.path === "Badge")?.text ?? "").replace(/\D/g, ""), 10) || 0 : 0;
+  const shown = readList.props?.["Seen by"] === "5+" ? 5 : Number(readList.props?.["Seen by"]) || avatars.length;
+  const people = Array.from({ length: shown + more }, (_, index) => personOf(avatars[index], avatarName(avatars[index]) ?? avatars[index]?.text ?? `Reader ${index + 1}`));
+  if (avatars.length < shown + more || avatars.some((avatar) => !avatarName(avatar))) ctx.notes.push(`ChatMessage "${readList.name}": readers Figma does not name are named by their initials (or "Reader N"); give their names in the Studio`);
+  return { ...element, props: { ...element.props, seenBy: { kind: "array", items: people } } };
+}
+
+/** Chat/Section/Conversation runs as one ChatThread: each run's messages (its Conversations slot), the other layers between. */
+function chatThreadElement(node, ctx) {
+  const children = (node.children ?? []).flatMap((child) => (child.type === "INSTANCE" && child.set?.name === CHAT_SECTION
+    ? (child.slots ?? []).flatMap((slot) => slot.children ?? []).map((item) => convert(item, ctx))
+    : [convert(child, ctx)])).filter(Boolean);
+  return { kind: "element", name: "ChatThread", props: {}, children };
+}
+
+/** Figma's colour swatch set; a token's Figma variable → its CSS value ("Color/Background/Support/Blue/Solid" → var(…)). */
+const COLOR_SWATCH = "Color-Selector";
+const CSS_OF_VARIABLE = new Map(Object.entries(tokens).filter(([, value]) => typeof value === "string" && value.startsWith("var(")));
+
+/**
+ * Color-Selector swatches as a ColorSelector (figma-push colorSelectorNode, the other way): each swatch a colour (its
+ * fill's variable as the token's CSS value, its layer name the label), the one with Select=Yes the value; the row's name
+ * (unless Figma's default) the group's aria-label.
+ */
+function colorSelectorElement(swatches, name, ctx) {
+  const colors = [];
+  let value = null;
+  for (const swatch of swatches) {
+    const css = swatch.fill ? CSS_OF_VARIABLE.get(swatch.fill.startsWith("Color/") ? swatch.fill : `Color/${swatch.fill}`) : undefined;
+    if (!css) { ctx.notes.push(`ColorSelector: the swatch "${swatch.name}" is painted with no Zen colour variable: left out`); continue; }
+    colors.push({ kind: "object", fields: { value: literal(css), label: literal(swatch.name && !swatch.name.includes("/") && swatch.name !== COLOR_SWATCH ? swatch.name : swatch.fill.split("/").slice(-2).join(" ")) } });
+    if (swatch.props?.Select === "Yes") value = css;
+  }
+  const props = { colors: { kind: "array", items: colors } };
+  if (value) props.value = literal(value);
+  if (name && !/^(Frame|Stack|ColorSelector)( \d+)?$/.test(name)) props["aria-label"] = literal(name);
+  return { kind: "element", name: "ColorSelector", props, children: [] };
+}
+
+/** The push's own Top-Navigation node (nested, slots) as readTopNav reads the placed instance: the round trip's input. */
+function topNavOfPush(node) {
+  const nested = (path) => (node.nested ?? []).find((entry) => entry.path === path);
+  const actionsIn = (row) => ((node.slots ?? []).find((slot) => slot.name === "Trailing-Slot" && slot.within === row)?.children ?? []).map((item) => {
+    const button = (item.nested ?? []).find((entry) => entry.path === "Button");
+    return { name: item.name, ...(button?.swapIcon ? { icon: button.swapIcon } : {}), ...(item.props?.["Noti-Dot"] === true ? { dot: true } : {}) };
+  });
+  const leadAction = nested("Top-Leading/Action");
+  return {
+    bar: { props: nested("Top-Heading-Text")?.props ?? {}, texts: nested("Top-Heading-Text")?.texts ?? {} },
+    large: { props: nested("Main-Heading-Text")?.props ?? {}, texts: nested("Main-Heading-Text")?.texts ?? {} },
+    leading: { props: { Type: "Action", ...(nested("Top-Leading")?.props ?? {}) }, ...(leadAction ? { action: { name: leadAction.name ?? "Action", ...(leadAction.swapIcon ? { icon: leadAction.swapIcon } : {}), ...(leadAction.props?.["Noti-Dot"] === true ? { dot: true } : {}) } } : {}) },
+    barActions: actionsIn("Navigator-bar"), titleActions: actionsIn("Expand-Heading"),
+    control: (node.slots ?? []).find((slot) => slot.name === "Control-Slot")?.children ?? [],
+  };
+}
+
+/**
+ * Figma's Top-Navigation/Mobile as TopNavigation (figma-push topNavigationNode, the other way; read by readTopNav): its
+ * type and margin, the bar title (an identity's title and subtitle), the large title and its level, the leading action,
+ * the bar's and the large-title row's actions, what its Control-Slot holds. With the bar row hidden (Top-bar=false) the
+ * large-title row's actions are the trailing ones (the code folds them there); a bar row over a large title without a
+ * leading action is `topBar`.
+ */
+function topNavigationElement(node, ctx) {
+  const shown = node.props ?? {};
+  const read = node.topNav ?? topNavOfPush(node);
+  const where = `TopNavigation "${node.name}"`;
+  const props = {};
+  const type = TOP_NAV_TYPE_OF[shown.Type];
+  if (type && type !== "default") props.type = literal(type);
+  if (shown.Margin === "Compact") props.margin = literal("compact");
+  const action = (item) => {
+    const icon = item.icon && isZenIcon(item.icon, ctx.mapping) ? item.icon : null;
+    if (!icon) ctx.notes.push(`${where}: the action "${item.name}" draws ${item.icon ?? "no icon"}, not a Zen icon: it draws icon-plus-line`);
+    const label = item.name && item.name !== "Action" && !item.name.includes("/") ? item.name : iconWords(icon ?? "icon-plus-line");
+    return { kind: "object", fields: { icon: literal(icon ?? "icon-plus-line"), label: literal(label), ...(item.dot ? { dot: literal(true) } : {}) } };
+  };
+  const list = (items) => ({ kind: "array", items: items.map(action) });
+  const bar = shown["Top-bar"] !== false;
+  const barTitle = bar && shown["Top-Heading-Text"] !== false ? read.bar ?? {} : null;
+  if (barTitle?.texts?.["Header-Text"]) props.title = literal(barTitle.texts["Header-Text"]);
+  if (barTitle?.props?.Subheading === true && barTitle.texts?.Subheading) props.subtitle = literal(barTitle.texts.Subheading);
+  const large = shown["Expand-Heading"] === true ? read.large?.texts?.["Header-Text"] : undefined;
+  if (large) {
+    props.largeTitle = literal(large);
+    const level = { H2: "h2", H3: "h3" }[read.large?.props?.Type];
+    if (level) props.headingLevel = literal(level);
+  }
+  const leading = bar && shown["Top-Leading"] !== false ? read.leading : null;
+  if (leading?.props?.Type === "Visual") ctx.notes.push(`${where}: its leading visual (Nav-Slot/Visual) is left out: give the TopNavigation a leading in the Studio`);
+  else if (leading?.action) props.leading = action(leading.action);
+  const barActions = bar && shown["Top-Trailing"] !== false ? read.barActions ?? [] : [];
+  const titleActions = large && shown["Expand-Trailing"] !== false ? read.titleActions ?? [] : [];
+  if (bar) {
+    if (barActions.length) props.trailing = list(barActions);
+    if (titleActions.length) props.largeTitleAction = titleActions.length === 1 ? action(titleActions[0]) : list(titleActions);
+    if (large && !props.leading && !props.subtitle) props.topBar = literal(true);
+  } else if (titleActions.length) props.trailing = list(titleActions);
+  if (shown["Control-Bar"] === true) {
+    // The push pads the control in a "Control" frame (the code's control bar padding): its layer is the control.
+    const layers = (read.control ?? []).flatMap((child) => (child.type === "FRAME" && child.name === "Control" && child.children?.length === 1 ? child.children : [child])).map((child) => convert(child, ctx)).filter(Boolean);
+    if (layers.length) props.controlBar = { kind: "element", node: layers.length === 1 ? layers[0] : { kind: "element", name: "Stack", props: {}, children: layers } };
+  }
+  return { kind: "element", name: "TopNavigation", props, children: [] };
+}
+
+/**
+ * A phone Screen's app frame as the push draws it: Top-Navigation/Mobile, the "Content" frame, a Bottom Navigation
+ * (either bar may be missing, not both). It gives the Screen's `topNavigation` and `bottomNavigation` back and Content's
+ * layers as the page. Anything else: null.
+ */
+function mobileChrome(frame, ctx) {
+  const parts = frame?.children ?? [];
+  const at = parts.findIndex((part) => part.type === "FRAME" && part.name === "Content");
+  if (at < 0 || at > 1 || parts.length > at + 2) return null;
+  const top = at === 1 ? parts[0] : null;
+  const bottom = parts[at + 1] ?? null;
+  if ((!top && !bottom) || (top && top.set?.name !== TOP_NAV_SET.name) || (bottom && codeOf(bottom, ctx) !== "BottomNavigation")) return null;
+  const props = {};
+  if (top) props.topNavigation = { kind: "element", node: convert(top, ctx) };
+  if (bottom) props.bottomNavigation = { kind: "element", node: convert(bottom, ctx) };
+  const layers = (parts[at].children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  const root = layers.length === 1 ? layers[0] : { kind: "element", name: "Stack", props: { gap: literal("none") }, children: layers };
+  return { props, root };
+}
+
 /**
  * A Studio Screen's app frame as the push draws it (figma-push.mjs, screen-chrome.mjs): the frame's one layer "Screen",
  * a row of the Sidebar and "Main" (its "Header" holding the Page header, then "Content"). It gives the Screen's
@@ -1076,6 +1450,8 @@ function frameElement(node, children, ctx) {
  * as the page. Anything else: null.
  */
 function screenChrome(frame, ctx) {
+  const mobile = mobileChrome(frame, ctx);
+  if (mobile) return mobile;
   const [row] = frame?.children ?? [];
   if (frame?.children?.length !== 1 || row.type !== "FRAME" || row.name !== "Screen" || row.layout?.mode !== "HORIZONTAL") return null;
   const sidebarNode = instanceIn(row.children?.[0], "Sidebar", ctx);

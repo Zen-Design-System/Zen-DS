@@ -50,7 +50,7 @@ function PhotoReview() {
     event.preventDefault();
   };
   return (
-    <Card theme="flat" className="px-tooltip-fill" onKeyDown={onKeyDown}>
+    <Card theme="flat" width="fill" onKeyDown={onKeyDown}>
       <Stack gap="md">
         <Stack direction="row" align="center" justify="between" gap="md" wrap>
           <Stack gap="xs">
@@ -95,7 +95,7 @@ function PaymentLink() {
     timer.current = window.setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <Card theme="flat" className="px-tooltip-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <Stack gap="xs">
           <Stack direction="row" align="center" gap="2xs">
@@ -125,7 +125,7 @@ function ActivityTimes() {
   const { toast } = useToast();
   return (
     // A ListBox: the title in its Header-Slot, the activity rows in its Body-Slot.
-    <ListBox className="px-tooltip-fill"
+    <ListBox width="fill"
       header={<Heading level={4} textStyle="Heading/Subheading">Activity</Heading>}>
       <List aria-label="Activity">
         {activity.slice(0, 5).map((item) => {
@@ -180,7 +180,7 @@ function HandoffFile({ file, onOpen }: { file: (typeof handoff)[number]; onOpen:
   return (
     <ListItem leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />} title={file.name}>
       {/* Fills ListItem's Contents slot, so the pair copies the row's own title and caption (gap 2XSmall, caption Light). */}
-      <Stack gap="2xs" className="px-tooltip-fill">
+      <Stack gap="2xs" width="fill">
         {/* The tooltip anchor takes the row's width, so the link inside ends in an ellipsis. */}
         <Tooltip className="px-tooltip-name" content={file.name} disabled={!cut}>
           <Link ref={nameRef} className={`px-tooltip-name__link ${typographyStyles["Body/Base/Bold"]}`} href={`#file-${file.id}`}
@@ -196,7 +196,7 @@ function LongFileNames() {
   const { toast } = useToast();
   return (
     // A ListBox: the title in its Header-Slot, the files (HandoffFile renders a ListItem) in its Body-Slot.
-    <ListBox className="px-tooltip-fill"
+    <ListBox width="fill"
       header={<Heading level={4} textStyle="Heading/Subheading">Shared with Phin & Co</Heading>}>
       <List aria-label="Shared with Phin & Co">
         {handoff.map((file) => <HandoffFile key={file.id} file={file} onOpen={() => toast({ title: "File opened in a new tab" })} />)}
@@ -219,7 +219,7 @@ function BrandFilm() {
   // The tooltip names what a press does now, so it changes with the state: Pause while playing, Play while paused.
   const playLabel = player.playing ? "Pause" : "Play";
   return (
-    <Stack gap="md" className="px-tooltip-fill">
+    <Stack gap="md" width="fill">
       {/* No clip on the frame: the film rounds its own corners, so the tooltips above the controls are never cut off. */}
       <Box>
         <video ref={player.ref} className="px-tooltip-film__video" src={film.src} poster={film.poster} muted loop playsInline preload="metadata"

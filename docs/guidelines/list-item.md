@@ -69,10 +69,14 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 ### ListBox
 Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill: Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and Footer are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow, pale or border.
 
-Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `width` | `"hug" \| "fill" \| number` | — | Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width. `"hug"` (Hug contents): as wide as its content, never grows or stretches. `"fill"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding and may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full width. Fill children in a wrapping row need a `minWidth` to wrap. A number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box). (Container's `maxWidth` is a different prop: a token width, sm…full.) Prefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame). |
+| `minWidth` | `number` | — | Minimum width in px (Figma min width). Wins over fill's shrink-to-0. |
+| `maxWidth` | `number` | — | Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text. |
+| `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
 | `ref` | `Ref<HTMLElement>` | — | The root element. |
 | `header` | `ReactNode` | — | Figma Header-Slot (Header=Yes): what names the box, e.g. a Heading/Subheading title and a caption, or a toolbar. Pads Card-padding-medium on top and at the sides and Padding/XSmall below; its content stacks Spacing/Gap/Medium. |
 | `children` (required) | `ReactNode` | — | Figma Body-Slot: the rows, usually a `<List>` of ListItems. Pads Card-padding-medium sideways and List-Container-Vertical-Padding above and below (12px desktop, 8px tablet and mobile) and stacks its children Spacing/Gap/3XSmall, so a clickable row's fill sits 12px (desktop) or 8px (phone) from every box edge. |

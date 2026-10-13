@@ -199,7 +199,7 @@ function OpenResolvedExample() {
   };
   return (
     // A ListBox: title, caption and the view switch in its Header-Slot (stacked 16px), the comments in its Body-Slot.
-    <ListBox className="px-segmented-card"
+    <Stack><ListBox width="fill" maxWidth={440} alignSelf="center"
       header={<>
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Comments</Heading>
@@ -234,7 +234,7 @@ function OpenResolvedExample() {
           </EmptyState>
         )}
       </Box>
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 
@@ -264,7 +264,7 @@ function BillingPeriodExample() {
     toast({ type: "positive", title: "Billing period changed", action: { label: "Undo", onClick: () => { setBilling(previous); setPeriod(previous); } } });
   };
   return (
-    <Card theme="flat" className="px-segmented-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => switchTo(period, billing)} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">{`${plan.name} plan`}</Heading>
@@ -294,7 +294,7 @@ function BillingPeriodExample() {
           </FormActions>
         ) : null}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 

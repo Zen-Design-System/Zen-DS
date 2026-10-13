@@ -78,7 +78,7 @@ function UndoDeleteExample() {
   };
   return (
     // A ListBox: the title in its Header-Slot, the files (or the Empty State once they are all gone) in its Body-Slot.
-    <ListBox ref={root} as="section" aria-labelledby={titleId} className="px-toast-card"
+    <ListBox ref={root} as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Recent files</Heading>}>
       {list.length ? (
         <List aria-labelledby={titleId}>
@@ -111,7 +111,7 @@ function CopyEmailExample() {
     toast({ id: "email-copied", title: "Email copied", children: person.email });
   };
   return (
-    <ListBox as="section" aria-labelledby={titleId} className="px-toast-card"
+    <ListBox as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Who to ask</Heading>}>
       <List aria-labelledby={titleId}>
         {contacts.map((id) => (
@@ -171,7 +171,7 @@ function BackgroundExportExample() {
   return (
     <>
     {/* A ListBox: the title, the export status and Export CSV in its Header-Slot, the past exports in its Body-Slot. */}
-    <ListBox as="section" aria-labelledby={titleId} className="px-toast-card"
+    <ListBox as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Stack direction="row" justify="between" align="center" gap="xs" wrap>
         <Stack gap="2xs" className="px-toast-grow">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Timesheets</Heading>
@@ -232,7 +232,7 @@ function FailedCommentExample() {
     post(text);
   };
   return (
-    <Card theme="flat" spacing="md" className="px-toast-card">
+    <Card theme="flat" spacing="md" width="fill" maxWidth={480}>
       {/* Two groups in one surface (lg): the thread, then the reply form; each keeps md inside. */}
       <Stack as="section" gap="lg" aria-labelledby={titleId}>
         <Stack gap="md">

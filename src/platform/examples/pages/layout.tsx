@@ -330,7 +330,7 @@ function ProfileSkills() {
     toast({ title: "Skill removed", children: skill, action: { label: "Undo", onClick: () => setSkills((list) => (list.includes(skill) ? list : [...list.slice(0, index), skill, ...list.slice(index)])) } });
   };
   return (
-    <Card as="section" theme="flat" className="px-layout-profile" aria-labelledby={titleId}>
+    <Stack><Card as="section" theme="flat" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}>
       {/* Groups inside one surface lg apart; each kicker xs above its cluster. */}
       <Stack gap="lg">
         <Stack direction="row" gap="md" align="center">
@@ -359,7 +359,7 @@ function ProfileSkills() {
       </Stack>
       <DemoFieldDialog open={adding} onOpenChange={setAdding} title="Add skill" field={{ kind: "name", label: "Skill", placeholder: "Content design" }}
         submitLabel="Add skill" confirm={() => "Skill added"} onSubmit={(skill) => setSkills((list) => (list.includes(skill) ? list : [...list, skill]))} />
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -377,7 +377,7 @@ function ClientInvoices() {
   return (
     // Header at the top, footnote at the bottom; the ListBox body grows. Empty, it centres the empty state; with an
     // invoice the list starts at the top.
-    <ListBox as="section" className="px-layout-cover" aria-labelledby={titleId}
+    <Stack><ListBox as="section" className="px-layout-cover" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}
       header={<Stack gap="xs">
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">Invoices</Heading>
         <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
@@ -396,7 +396,7 @@ function ClientInvoices() {
           </EmptyState>
         )}
       </Stack>
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 

@@ -45,7 +45,7 @@ function ReviewSummaryExample() {
   const [scope, setScope] = useState<RatingScope>("all");
   const data = appRatings[scope];
   return (
-    <Card theme="flat" className="px-rating-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm" wrap>
           <Stack gap="xs">
@@ -75,7 +75,7 @@ function ReviewSummaryExample() {
           ])}
         </Grid>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -102,7 +102,7 @@ function ScorecardExample() {
   };
   // The whole card is the form: header, skills and actions take the Form's gap.
   return (
-    <Card theme="flat" className="px-rating-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={submit}>
         <Stack direction="row" gap="sm" align="center">
           <PersonAvatar person={candidate} size="md" />
@@ -139,7 +139,7 @@ function ScorecardExample() {
           </>
         )}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -270,7 +270,7 @@ function PulseExample() {
   const low = mood === "disappointed";
   // Survey cards are compact (spacing small), as in NPS survey; on a narrow card the faces keep one row and drop their labels.
   return (
-    <Card theme="flat" spacing="small" className="px-rating-card">
+    <Stack><Card theme="flat" spacing="small" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => setSent(true)}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">How was this week's design critique?</Heading>
@@ -292,7 +292,7 @@ function PulseExample() {
           </>
         )}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -307,7 +307,7 @@ function NpsExample() {
   const [sent, setSent] = useState(false);
   // A survey card is small (spacing small), which leaves the 0–10 scale the most room on a narrow card.
   return (
-    <Card theme="flat" spacing="small" className="px-rating-card">
+    <Stack><Card theme="flat" spacing="small" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => setSent(true)}>
         <Heading level={4} textStyle="Heading/Subheading">How likely are you to recommend Zen?</Heading>
         {sent && score !== null ? (
@@ -329,7 +329,7 @@ function NpsExample() {
           </>
         )}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -355,7 +355,7 @@ function FreelancerListExample() {
   const rows = [...freelancers].sort(sorts[sortId].compare);
   const toggle = (id: string) => setShortlist((list) => list.includes(id) ? list.filter((item) => item !== id) : [...list, id]);
   return (
-    <Stack gap="md" className="px-rating-card">
+    <Stack><Stack gap="md" width="fill" maxWidth={440} alignSelf="center">
       <Stack direction="row" justify="between" align="center" gap="sm">
         <Heading level={4} textStyle="Heading/4">Freelance illustrators</Heading>
         <Chip variant="advanced" popoverLabel="Sort by"
@@ -382,7 +382,7 @@ function FreelancerListExample() {
         </List>
       </ListBox>
       <Text role="status" textStyle="Body/Small/Regular" tone="base">{shortlist.length ? `${plural(shortlist.length, "person", "people")} on your shortlist` : ""}</Text>
-    </Stack>
+    </Stack></Stack>
   );
 }
 

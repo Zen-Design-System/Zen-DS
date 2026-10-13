@@ -329,7 +329,7 @@ function LongPathExample() {
   const children = handbook.filter((d) => d.parent === docId);
 
   return (
-    <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
+    <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
       <Stack gap="md">
         {/* Six levels: the first and the last two stay, "…" opens the rest (narrow: the first and the current page). */}
         {/* The trail as BreadcrumbItem children (Figma's Item-List slot); an items array works the same. */}
@@ -351,7 +351,7 @@ function LongPathExample() {
           <Text>{q3Findings}</Text>
         )}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -365,7 +365,7 @@ function NextLevelExample() {
   const path = pathTo(fileTree, folderId);
   const folders = childrenOf(fileTree, folderId).filter(isFolder);
   return (
-    <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
+    <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
       {/* One row: the chevron after the open folder stays beside the menu it points to (narrow: the trail collapses). */}
       <Stack direction="row" gap="xs" align="center">
         <Breadcrumbs
@@ -383,7 +383,7 @@ function NextLevelExample() {
           />
         ) : null}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -408,7 +408,7 @@ function MoveToFolderExample() {
   };
 
   return (
-    <Card theme="flat" className="px-breadcrumbs-move">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <FileIcon format={fileIconFormatOf(file.name)} size="xl" />
@@ -435,7 +435,7 @@ function MoveToFolderExample() {
           )}
         </Stack>
       </Dialog>
-    </Card>
+    </Card></Stack>
   );
 }
 

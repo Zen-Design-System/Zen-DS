@@ -843,8 +843,6 @@
 .pe-card__stage .zen-list { width: 100%; }
 .pe-choice-card .zen-radio-button { width: 100%; }
 .pe-choice-card .zen-radio-button.pe-radio-card__main { width: auto; min-width: 0; flex: 1 1 auto; }
-.pe-theme-scope { width: 100%; }
-.pe-metric-card { width: 100%; }
 
 /* Modal/Forms playground side content. */
 .platform-modal-side { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); color: var(--zen-color-content-neutral-strongest, #111); }
@@ -951,11 +949,9 @@
 .platform-ref__component .zen-table__table { min-width: 680px; }
 .platform-ref__component .platform-ref__code { overflow-wrap: break-word; white-space: normal; }
 
-
 /* ───────────── Mobile / conversation / chart batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) ───────────── */
 .platform-mobile-preview { justify-content: center; }
 /* PlatformPhone: a 390px device frame; the page Canvas follows `canvas`, overlays (inline BottomSheet) anchor to it. */
-
 
 .platform-ai-stage { display: flex; width: 100%; min-height: 420px; box-sizing: border-box; align-items: flex-end; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); }
 /* The stage is the page the chat sits on, so its Canvas follows the Chat-Field Style (background layers):
@@ -1034,7 +1030,6 @@
 .pe-filter-panel__facets { display: flex; flex-direction: column; }
 .pe-filter-panel__facet-title { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-filter-panel__options { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding-bottom: var(--zen-spacing-padding-2-xsmall, 4px); }
-.pe-filter-panel__submit { width: 100%; }
 
 /* ───────────── PlatformPhone: device simulator (iPhone 15 390×844 · Pro Max 430×932 · iPad Air 820×1180) ─────────────
    The "OS" (status bar, Dynamic Island, home indicator) is drawn above the app; the app runs underneath and pads by

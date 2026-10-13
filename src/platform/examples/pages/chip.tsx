@@ -168,7 +168,7 @@ function DigestTopicsExample() {
     toast({ type: "positive", title: "Digest saved" });
   };
   return (
-    <Card theme="flat" className="px-chip-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Weekly digest</Heading>
@@ -190,7 +190,7 @@ function DigestTopicsExample() {
           <Button level="primary" type="submit">Save digest</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -202,7 +202,7 @@ const votes: { person: PersonId; points: number }[] = [{ person: "bao", points: 
 function StoryPointsExample() {
   const [vote, setVote] = useState<number | null>(null);
   return (
-    <Card theme="flat" className="px-chip-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Estimate PHIN-223</Heading>
@@ -228,7 +228,7 @@ function StoryPointsExample() {
           ))}
         </List>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 

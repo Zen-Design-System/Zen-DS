@@ -49,24 +49,24 @@
    Only elements that carry the data attributes are touched; unset props render no attribute. Numbers arrive as the
    element's own --zen-layout-* custom properties, read only next to their attribute (so an inherited value never leaks). */
 /* Sizes include padding and border, as in Figma, whether or not the app loads reset.css. */
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text):is([data-w], [data-h], [data-min-w], [data-max-w], [data-min-h], [data-max-h]) { box-sizing: border-box; }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="fixed"] { width: var(--zen-layout-width); }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-h="fixed"] { height: var(--zen-layout-height); }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="hug"] { width: fit-content; }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-h="hug"] { height: fit-content; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box):is([data-w], [data-h], [data-min-w], [data-max-w], [data-min-h], [data-max-h]) { box-sizing: border-box; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-w="fixed"] { width: var(--zen-layout-width); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-h="fixed"] { height: var(--zen-layout-height); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-w="hug"] { width: fit-content; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-h="hug"] { height: fit-content; }
 /* Fill outside a Stack or Grid: the parent's full size (a height needs a parent with a height). */
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="fill"] { width: 100%; }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-h="fill"] { height: 100%; }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-min-w] { min-width: var(--zen-layout-min-width); }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-max-w] { max-width: var(--zen-layout-max-width); }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-min-h] { min-height: var(--zen-layout-min-height); }
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-max-h] { max-height: var(--zen-layout-max-height); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-w="fill"] { width: 100%; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-h="fill"] { height: 100%; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-min-w] { min-width: var(--zen-layout-min-width); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-max-w] { max-width: var(--zen-layout-max-width); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-min-h] { min-height: var(--zen-layout-min-height); }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-max-h] { max-height: var(--zen-layout-max-height); }
 /* A set max width wins over truncation's max-width: 100% (text.css). */
 .zen-text[data-truncate][data-max-w] { max-width: var(--zen-layout-max-width); }
 /* A Fixed width is fixed on truncating Text too, as on a Box (only a set maxWidth caps it). */
 .zen-text[data-truncate][data-w="fixed"]:not([data-max-w]) { max-width: none; }
 /* Fixed never shrinks in any flex row, also outside a Stack (a component's own slots, a custom flex container). */
-:is(.zen-stack, .zen-grid, .zen-box, .zen-text)[data-w="fixed"] { flex-shrink: 0; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-text, .zen-card, .zen-list-box)[data-w="fixed"] { flex-shrink: 0; }
 /* Inline Text (span, label…) becomes an inline box so a width or height applies; any display rule of its own (truncate) wins. */
 :where(.zen-text:is(span, strong, em, small, label, code, time):is([data-w], [data-min-w], [data-max-w], [data-h], [data-min-h], [data-max-h])) { display: inline-block; }
 

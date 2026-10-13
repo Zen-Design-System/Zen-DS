@@ -1,5 +1,4 @@
 /* Tooltip examples (pages/tooltip.tsx). Tokens only. */
-.px-tooltip-fill { width: 100%; min-width: 0; box-sizing: border-box; }
 
 /* Photo review: the zoom level keeps its width so the buttons don't shift; the viewer scrolls when zoomed in. */
 .px-tooltip-zoom { min-width: 5ch; text-align: center; font-variant-numeric: tabular-nums; }

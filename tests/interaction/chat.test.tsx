@@ -1,7 +1,7 @@
 /**
  * Chat backlog fixes (2026-10-02): Reply moves focus into the composer, the demo's Delete offers Undo, message avatars
- * show two-letter initials, the thread stays pinned to its last message after the fonts settle, and file / call cards
- * hug their text in the mobile type scale.
+ * show their initial (one letter: small avatars show one, user 2026-10-13; two-letter until then), the thread stays
+ * pinned to its last message after the fonts settle, and file / call cards hug their text in the mobile type scale.
  */
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -125,8 +125,8 @@ describe("useChatDemo: Delete acts at once and offers Undo", () => {
 
 describe("ChatMessage avatar without a photo", () => {
   for (const typography of ["dashboard", "mobile"] as const) {
-    // The widest pairs (M / W only, e.g. "MW") measure ~24.6px in the mobile scale's 13px Caption at Compact: reported.
-    it(`shows two-letter initials (first + last name) that fit the XSmall circle (${typography} type)`, async () => {
+    // Small avatars (XSmall, 2XSmall) show one letter (user, 2026-10-13): Avatar cuts the name's initials to the first.
+    it(`shows a one-letter initial that fits the XSmall circle (${typography} type)`, async () => {
       await render(
         <ZenProvider typography={typography}>
           <ChatThread>
@@ -139,7 +139,7 @@ describe("ChatMessage avatar without a photo", () => {
         </ZenProvider>,
       );
       const initials = Array.from(document.querySelectorAll<HTMLElement>(".zen-chat-message__avatar .zen-avatar__initials"));
-      expect(initials.map((node) => node.textContent)).toEqual(["NB", "HD", "L"]);
+      expect(initials.map((node) => node.textContent)).toEqual(["N", "H", "L"]);
       for (const node of initials) {
         const circle = node.closest<HTMLElement>(".zen-avatar")!.getBoundingClientRect();
         const text = node.getBoundingClientRect();

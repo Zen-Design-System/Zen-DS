@@ -7495,8 +7495,40 @@
   "card": [
     {
       "name": "Card",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">, LayoutWidthProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
         {
           "name": "ref",
           "type": "Ref<HTMLElement>",
@@ -8105,8 +8137,40 @@
     },
     {
       "name": "ListBox",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
         {
           "name": "ref",
           "type": "Ref<HTMLElement>",
