@@ -8,6 +8,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
+  studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
+  so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in
+  tools/studio/figma-push.mjs leaves Figma's sample data. Next, once the user confirms the scope: pick Sector 4/6/7/12 by
+  the point count and write X labels, the six Y ticks and the active tooltip (push; pull has no chart mapping yet).
 - **P3 · Sheet-style table for long content (user, 2026-10-13):** Table rows are FIXED at Table/Cell/Size (one line,
   ellipsis). The docs Props / API / Keyboard references still need multi-line rows: a temporary `.platform-ref`
   override in `src/platform/platform.css` lets them grow. Replace it with the planned sheet component (needs the user's

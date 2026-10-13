@@ -200,3 +200,32 @@
   figma-props.map (they map List-Box Theme, ProgressBar Layout, SidePanel). Not changed here.
 - Fixtures: figma-parts.json (+ swapped FileIcon row), figma-shell.json (breadcrumbs page, frame 15448:3). Push
   selftest 187, pull 52, studio:selftest all pass. Spec §8 "P6". P6b (key-based round trip) proposed; BACKLOG.
+
+## ◆ Performance template page in Figma (tier S, Figma only)
+
+- User: analyse a "Team performance" dashboard screenshot (UI, UX, features) and rebuild it with Zen in Figma as a new
+  page under TEMPLATES — "không copy, mà là refactor".
+- Figma `9nZv4uW2LT21yuHabMTCh1`, new page "◆ Performance" (15478:20137, after ◆ Ecommerce), section Canvas-Default:
+  - "Team performance" 15478:20139 — Patterns/Pages/Density-Medium (Floating-Actions off). Sidebar: Overview ·
+    Performance (Select=Yes) · Tasks, footer Settings · Feedback. Header/Dashboard: breadcrumbs Workspace › Performance;
+    Main row Heading + Subheading, Export (Tertiary) + Add member (the one Primary); Control-Bar row: period and team
+    Chip/Advanced (Search and Actions off). Content: 4 Metric-Cards (Title-Highlight XLarge, Solid Dock-Icon, trend vs
+    last week); Chart-Card › Multi-Line-Chart (7 weeks, this team vs company average) beside Chart/Bar-Chart Vertical
+    (8 reps, real values: Column paddingTop + Bar Fill, highest first); Members table on the canvas (Avatar-Cell with
+    email as subtext, Role, Team badges, Progress-Cell, Last active, Actions-Cell) + Pagination Inline.
+  - "Team performance · Member actions open" 15481:87373 — first row Hover, ⋯ Pressed, Popover/Default menu.
+- Refactor decisions: one period/team scope in the Control-Bar instead of per-card pickers; KPIs above charts; the
+  hero time chart became a KPI + a trend with a legend; name and e-mail merged; one Primary (the source had two and an
+  off-topic "Add new shipment"); invalid "7:34:67" → 7h 34m; mixed decimal marks unified.
+- Audit (`skills/zen-figma-design/harness`): 0 errors, 2 warnings (the sidebar workspace chevron is Neutral/Light in
+  the library's default slot content). Screenshots reviewed after each section.
+- Library findings for the designer → BACKLOG (Control-Bar row without side padding, 7-sector Trend Y labels out of
+  order, Bar-Chart's own surface, sidebar Collapse overflow, page pattern taller than 982).
+- Follow-up (user answers): Control-Bar's 0 side padding is deliberate (each page pads it for what it holds); Bar-Chart
+  standing alone is OK; search stays above the table; no AI button on this page. Library fixes the user asked for:
+  `.Chart/Line-Chart/Trend` 6/7-Sectors Y-label layers reordered top → bottom (4395:7803, 4415:8966; switching 4 → 6/7/12
+  on Line-Chart and Multi-Line-Chart now keeps $25K … $0); `Patterns/Pages/Density-Medium` Sidebar Fill height
+  (6040:67698), checked on all 24 instances. The Collapse "overflow" is Zen's bleed (Button Small 32 in a 20px
+  Element-Size/Popular/Base Wrapper, −6 each side, sidebar.css): my Hug change was reverted, and the audit harness now
+  skips a centred instance spilling evenly from a non-clipping single-child wrapper (`isBleed`; audit-rules.md updated;
+  ai-kit:check ✓). Audit 0 errors; a full clipping scan (inside instances too) found nothing cut.

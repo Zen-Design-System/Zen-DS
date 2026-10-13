@@ -22,7 +22,8 @@
 //   layout/absolute          warning  a frame with 2+ children and no auto layout
 //   shape/loose              warning  a hand-drawn shape outside any component (use a Zen component or a local one)
 //   component/detached       warning  a frame named like a Zen component that is not an instance (detached)
-//   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip)
+//   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
+//                                     button bleeding out of a non-clipping icon-size wrapper is Zen's design)
 //   bounds/clipped           error    a layer cut off by a clipping parent
 //   bounds/shadow-clipped    warning  a shadow cut off by a clipping parent
 //   text/overflow            error    text taller than its fixed box, or sticking out of its instance
@@ -162,6 +163,18 @@ function side(inner, outer, tolerance = TOLERANCE) {
   return parts.join(", ");
 }
 
+/**
+ * Zen's bleed: a fixed icon-size wrapper that does not clip holds one larger button, centred, so the layout keeps the
+ * icon's size and the hover plate spills out evenly (Sidebar Collapse: Button Small 32 in a 20 Wrapper, −6 each side;
+ * AppShell toggle and flat actions). Deliberate, so not an overflow.
+ */
+function isBleed(node, own, frame) {
+  const parent = node.parent;
+  if (parent.clipsContent || node.type !== "INSTANCE" || parent.children.filter((child) => child.visible).length !== 1) return false;
+  const spill = [frame.x - own.x, frame.y - own.y, own.x + own.width - frame.x - frame.width, own.y + own.height - frame.y - frame.height];
+  return spill.every((value) => value > TOLERANCE && Math.abs(value - spill[0]) <= TOLERANCE);
+}
+
 /** A layer that sticks out of its frame-like parent; `clipped` when the parent clips it. */
 function checkBounds(node) {
   const parent = node.parent;
@@ -173,6 +186,7 @@ function checkBounds(node) {
   const frame = box(parent);
   if (!own || !frame) return;
   if (sticksOut(own, frame, tolerance)) {
+    if (isBleed(node, own, frame)) return;
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
   }
