@@ -2,11 +2,6 @@
   "styles": {
     "colors": [
       {
-        "name": "Semi-Pale",
-        "token": "semi-pale",
-        "type": "gradient_linear"
-      },
-      {
         "name": ".VT-Canvas",
         "token": "vt-canvas",
         "type": "solid"

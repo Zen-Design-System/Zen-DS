@@ -3,64 +3,6 @@
  "extractedAt": "2026-09-24T12:36:57.826Z",
  "paint": [
   {
-   "id": "S:1656daeb229b54678a573c903e413c053af014aa,",
-   "key": "1656daeb229b54678a573c903e413c053af014aa",
-   "name": "Semi-Pale",
-   "description": "",
-   "paints": [
-    {
-     "type": "GRADIENT_LINEAR",
-     "visible": true,
-     "opacity": 1,
-     "blendMode": "NORMAL",
-     "gradientStops": [
-      {
-       "position": 0,
-       "color": {
-        "r": 0.0196,
-        "g": 0.0196,
-        "b": 0.0196,
-        "a": 0.0314
-       },
-       "bound": {
-        "color": "Color/Background/Support/Neutral/Pale"
-       }
-      },
-      {
-       "position": 1,
-       "color": {
-        "r": 0.0039,
-        "g": 0.0039,
-        "b": 0.0039,
-        "a": 0.0627
-       },
-       "bound": {
-        "color": "Color/Background/Support/Neutral/Subtle"
-       }
-      }
-     ],
-     "gradientTransform": [
-      [
-       0.37861496210098267,
-       0.5007815957069397,
-       -0.14214131236076355
-      ],
-      [
-       -0.5007815957069397,
-       0.3909904360771179,
-       0.5765672922134399
-      ]
-     ]
-    }
-   ],
-   "bound": {
-    "paints": [
-     "Color/Background/Support/Neutral/Subtle",
-     "Color/Background/Support/Neutral/Pale"
-    ]
-   }
-  },
-  {
    "id": "S:637a3cde5b558cc5cad5ac76051e49919da4e876,",
    "key": "637a3cde5b558cc5cad5ac76051e49919da4e876",
    "name": ".VT-Canvas",

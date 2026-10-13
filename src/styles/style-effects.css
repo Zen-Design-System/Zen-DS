@@ -42,7 +42,6 @@
   --zen-style-liquid-glass-normal-shadow: 0 4px 24px -8px var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16));
   --zen-style-liquid-glass-normal-shadow-unclipped: 0 4px 24px 0 var(--zen-color-shadow-neutral-strongest, rgba(0, 0, 0, 0.16));
   --zen-style-liquid-glass-large-shadow: none;
-  --zen-style-semi-pale-fill: linear-gradient(142.02deg, var(--zen-color-background-support-neutral-pale, rgba(5, 5, 5, 0.0314)) 0%, var(--zen-color-background-support-neutral-subtle, rgba(1, 1, 1, 0.0627)) 100%);
   --zen-style-vt-canvas-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 50%, transparent) 0%, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 50%, transparent) 100%), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
   --zen-style-chat-canvas-fill: linear-gradient(180deg, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 40%, transparent) 0%, color-mix(in srgb, var(--zen-color-background-support-yellow-pale, rgba(255, 156, 2, 0.0902)) 40%, transparent) 100%), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
   --zen-style-color-chart-sector-primary-fill: var(--zen-chart-sector-primary, rgba(255, 107, 213, 1));
@@ -135,10 +134,6 @@
 /* Liquid-Glass/Large: the GLASS effect is drawn by useLiquidGlass (glass-styles.ts); CSS keeps its shadows. */
 .zen-effect-liquid-glass-large {
   box-shadow: var(--zen-style-liquid-glass-large-shadow);
-}
-
-.zen-fill-semi-pale {
-  background: linear-gradient(142.02deg, var(--zen-color-background-support-neutral-pale, rgba(5, 5, 5, 0.0314)) 0%, var(--zen-color-background-support-neutral-subtle, rgba(1, 1, 1, 0.0627)) 100%);
 }
 
 .zen-fill-vt-canvas {

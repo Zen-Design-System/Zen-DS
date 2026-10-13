@@ -857,7 +857,7 @@
 .platform-slot--tall { min-height: calc(2 * var(--zen-image-size-3-xlarge, 112px)); }
 .platform-slot--fill { align-self: stretch; height: 100%; }
 .pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-/* 120px: "Theme=semi-pale" in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
+/* 120px: the longest Theme label in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
 .pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .pe-app-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: var(--zen-spacing-gap-medium, 16px); }
 .pe-app-tile { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; }

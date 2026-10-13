@@ -2,67 +2,12 @@
   "fileName": "ZEN Kaiz (Official-Sep2026)",
   "extractedAt": "2026-09-24T12:36:57.826Z",
   "counts": {
-    "colors": 35,
+    "colors": 34,
     "textStyles": 36,
     "effectStyles": 18,
     "gridStyles": 0
   },
   "colors": [
-    {
-      "name": "Semi-Pale",
-      "token": "semi-pale",
-      "type": "gradient_linear",
-      "paints": [
-        {
-          "type": "GRADIENT_LINEAR",
-          "visible": true,
-          "opacity": 1,
-          "blendMode": "NORMAL",
-          "gradientStops": [
-            {
-              "position": 0,
-              "color": {
-                "r": 0.0196,
-                "g": 0.0196,
-                "b": 0.0196,
-                "a": 0.0314
-              },
-              "bound": {
-                "color": "Color/Background/Support/Neutral/Pale"
-              }
-            },
-            {
-              "position": 1,
-              "color": {
-                "r": 0.0039,
-                "g": 0.0039,
-                "b": 0.0039,
-                "a": 0.0627
-              },
-              "bound": {
-                "color": "Color/Background/Support/Neutral/Subtle"
-              }
-            }
-          ],
-          "gradientTransform": [
-            [
-              0.37861496210098267,
-              0.5007815957069397,
-              -0.14214131236076355
-            ],
-            [
-              -0.5007815957069397,
-              0.3909904360771179,
-              0.5765672922134399
-            ]
-          ]
-        }
-      ],
-      "cssVariable": "--zen-style-semi-pale-fill",
-      "color": null,
-      "background": "linear-gradient(142.02deg, var(--zen-color-background-support-neutral-pale, rgba(5, 5, 5, 0.0314)) 0%, var(--zen-color-background-support-neutral-subtle, rgba(1, 1, 1, 0.0627)) 100%)",
-      "unsupportedLayers": []
-    },
     {
       "name": ".VT-Canvas",
       "token": "vt-canvas",

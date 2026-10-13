@@ -21,7 +21,7 @@ A surface that groups related content about one subject — a project, a stat, a
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Theme | `theme` | shadow (default) · flat · border · pale · semi-pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) |
+| Theme | `theme` | shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet); semi-pale is deprecated and renders as pale |
 | Surface | `surface` | default · alt — Surface/Default or Surface/Alt to suit the page Canvas; on a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default |
 | Spacing | `spacing` | medium (Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large) |
 | Active | `selected` | Surface + 2px Card/Border/Active (active is the deprecated alias) |
@@ -44,11 +44,11 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick">, LayoutW
 | `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
 | `ref` | `Ref<HTMLElement>` | — | The root element. |
 | `children` | `ReactNode` | — |  |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale" \| "on-container"` | `"shadow"` | Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness card/on-container-in-overlay). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"shadow"` | Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale. |
 | `spacing` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. |
 | `selected` | `boolean` | — | Figma Active=Yes: the selected card — Surface fill with a 2px Card/Border/Active stroke. |
 | `active` | `boolean` | — | **Deprecated:** Use selected. Figma Active=Yes (the selected card). |
-| `surface` | `"default" \| "alt"` | — | Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / Semi-Pale / On-Container keep their own fill. With theme="shadow", `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. |
+| `surface` | `"default" \| "alt"` | — | Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme="shadow", `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. |
 | `onClick` | `(event: MouseEvent<HTMLElement> \| KeyboardEvent<HTMLElement>) => void` | — | Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards. |
 | `aria-label` | `string` | — | Accessible name for a clickable card when its content does not start with a clear title. |
 | `subAction` | `CardSubAction \| ReactNode` | — | Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮). It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger. |

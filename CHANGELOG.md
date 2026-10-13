@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- No gradient surfaces (2026-10-14, user): Card `theme="semi-pale"` is deprecated and renders as `pale` (it stays in
+  the type, off the theme list). Figma dropped the Card Gradient and Semi-Pale themes and their styles, so
+  `--zen-style-semi-pale-fill` and `.zen-fill-semi-pale` are gone from `style-effects.css`.
 - Chat reply, synced from Figma (2026-10-13, user): a quote that leads with a photo, a file or an icon starts 8px in
   (text-only quotes keep 12), and the composer's Replying-to bar shows a file as a Small Dock Icon at 2/3 (21px, was 16),
   as the designer set Chat/Reply/Quote and Chat/Composer-Reply.

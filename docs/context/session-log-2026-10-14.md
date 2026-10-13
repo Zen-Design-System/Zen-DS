@@ -30,3 +30,21 @@
 - Figma (live file, user approved): the same 20 variables, scopes and publishing copied from Deep; read back 40/40 hex
   equal the repo. The Plugin API cannot reorder variables (`variableIds` is read-only), so Rich sits last in each group
   until dragged under Deep; Sky and Mint are still Solid, Subtle, Soft, Deep, Pale in the panel. Library not published.
+
+## ❖ Chart page tidied (tier XS, Figma only, user: "Sắp xếp các component/element bên Chart ngăn nắp gọn gàng lại")
+
+- Before: one section, 8 covers on a 3 × 3 grid with a hole (Donut set pushed into it), the other sets loose at odd
+  offsets, set paddings 0 / 15-24 / 24 / 40, Multi-Line Sector order 4 · 6 · 12 · 7.
+- Now four sections stacked: **Chart** (7032:8969, kept) = the 8 covers on 4 × 2, all 1400 tall, renamed from
+  "Bottom Sheet" to "Card Chart" … "Heatmap Chart"; **Chart components** (15576:3333) mirrors the cover grid: row 1
+  Chart-Card, Line, Stack-Bar, Bar; row 2 Multi-Line, Donut, Radial, Heatmap; row 3 Area, Grouped-Bar, Combo, Gauge,
+  Funnel, Bar-List, Bullet; **Widget themes**
+  (15576:3334) = the board; **.Primitives** (15576:3335) = Legend-Item, Hatch. Every set auto-layout, padding 40, gap 40
+  (Legend-Item 16), top-aligned; content tops line up per row, 120 between components, 200 between rows and sections.
+- Multi-Line variants reordered 4 · 6 · 7 · 12 (default still 4-Sectors). Checked: no overlap or overflow in any section,
+  screenshots of all four. No component, variant or instance otherwise changed. Library not published.
+- Follow-up (user: "1. Có 2. Có"): Multi-Line `Sector=7 Sectors` → `7-Sectors` (`.Chart/Line-Chart/Trend` already said
+  7-Sectors; nothing in the repo reads the old name). Covers made one shape: Chart-Card 6643:63528, Line-Chart 6643:63324
+  and Stack-Bar-Chart 6643:73471 left their covers for Chart components (IDs unchanged), each cover now shows an
+  instance in an "Examples" frame cloned from the Bar cover's; the Heatmap cover's bare instance got the same frame.
+  Covers screenshot unchanged.

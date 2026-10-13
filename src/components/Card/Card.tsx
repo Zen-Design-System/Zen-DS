@@ -7,9 +7,11 @@ import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/s
 import "./card.css";
 import "../Icon/core";
 
-export const cardThemes = ["shadow", "flat", "pale", "border", "semi-pale", "on-container"] as const;
+export const cardThemes = ["shadow", "flat", "pale", "border", "on-container"] as const;
 export const cardSpacings = ["medium", "small"] as const;
-export type CardTheme = (typeof cardThemes)[number];
+/** A Figma Card theme. `semi-pale` still type-checks but is deprecated: Figma dropped its gradient themes
+ * (2026-10-14) and the card renders it as `pale`. */
+export type CardTheme = (typeof cardThemes)[number] | "semi-pale";
 /** CSS / Figma key (the `data-spacing` value). */
 type CardSpacingKey = (typeof cardSpacings)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
@@ -34,9 +36,9 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
   /** The root element. */
   ref?: Ref<HTMLElement>;
   children?: ReactNode;
-  /** Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale
-   *  (Pale→Subtle gradient) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their
-   *  Container fill; harness card/on-container-in-overlay). */
+  /** Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·
+   *  On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness
+   *  card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale. */
   theme?: CardTheme;
   /** Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. */
   spacing?: CardSpacing;
@@ -48,7 +50,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    */
   active?: boolean;
   /** Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface
-   *  (a page scope can set it once), else Surface/Default. Pale / Semi-Pale / On-Container keep their own fill. With theme="shadow",
+   *  (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme="shadow",
    *  `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)
    *  on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. */
   surface?: CardSurface;
@@ -88,7 +90,8 @@ export function Card({ ref, children, theme = "shadow", spacing: spacingProp = "
       className={["zen-card", className].filter(Boolean).join(" ")}
       {...sizing.attributes}
       style={withSizingVars(style, sizing.vars)}
-      data-tone={theme}
+      // Deprecated semi-pale (Figma has no gradient theme since 2026-10-14) draws as Pale.
+      data-tone={theme === "semi-pale" ? "pale" : theme}
       data-spacing={spacing}
       data-surface={surface}
       data-active={active ? "true" : undefined}

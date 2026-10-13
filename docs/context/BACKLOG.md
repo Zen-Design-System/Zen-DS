@@ -19,9 +19,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
   usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation, one
   colour mode, no gradient box). Gradient themes are gone in Figma (user 2026-10-14 "Giữ solid, xoá gradient"):
-  Card Gradient + hue Semi-Pale and List-Box Semi-Pale deleted. Open question for the user: retire code's Card
-  `theme="semi-pale"` too (deprecated alias → pale, Studio map, examples, style-effects) and then delete Figma's
-  Semi-Pale Neutral variants, which stay only because code and Studio still use them.
+  Card Gradient, every Semi-Pale (Neutral too) and List-Box Semi-Pale deleted; code's Card `theme="semi-pale"` is a
+  deprecated alias of pale (2026-10-14, user "OK"). The Card contract still lists Semi-Pale until this re-capture, so
+  the Studio map keeps offering it (renders pale).
   Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
 - **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
   background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,

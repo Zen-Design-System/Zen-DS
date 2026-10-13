@@ -403,6 +403,16 @@
   variants). Semi-Pale Neutral kept: code Card `theme="semi-pale"`, the Studio map and the Card example use it (BACKLOG).
   Solid stays a highlight next to Subtle (harness + skill wording). Card, List-Box, Chart-Card and Metric-Card
   descriptions decoded: each read-then-write had stacked one more HTML-escape level (`&amp;amp;#39;`).
+- Semi-Pale and chart gradients retired (user, 2026-10-14: "1. OK 2. Bỏ luôn"). Figma: the 4 Card Semi-Pale Neutral
+  variants deleted after 36 nested Cards (Theme-01/03 KPIs, Time worked) moved to Pale and the 4 "Leads by salesperson"
+  charts' Semi-Pale fill became Support/Neutral/Pale; 8 chart area layers (Area-Chart, Metric-Card Sparkline/Hero, board
+  overrides) went from Gradients/Chart/Area/* to their series' solid style at half the layer opacity (0.32 → 0.16; Hero
+  Neutral's raw Inverse gradient → Content/Inverse/Strongest); styles Semi-Pale + 6 Gradients/Chart/Area deleted. Card
+  58 variants. getInstancesAsync only sees loaded pages: load every page before trusting "0 instances". Code (shared
+  tree): Card `semi-pale` off `cardThemes`, kept in `CardTheme` as a deprecated alias drawn as pale; card.css rule,
+  style source entry (+ styles:build: `--zen-style-semi-pale-fill`, `.zen-fill-semi-pale` gone), guideline source,
+  figma-docs sources, example copy, CHANGELOG. Chart worktree (zen/feat/chart-grid-lanes): LineChart `fill="area"`
+  (flat Accent at 16%, default), `gradient` deprecated alias; guideline + docs + CHANGELOG.
 
 ## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
 

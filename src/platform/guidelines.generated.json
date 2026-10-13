@@ -3768,7 +3768,7 @@
       [
         "Theme",
         "theme",
-        "shadow (default) · flat · border · pale · semi-pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet)"
+        "shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet); semi-pale is deprecated and renders as pale"
       ],
       [
         "Surface",

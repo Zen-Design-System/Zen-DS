@@ -7563,10 +7563,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale\n (Pale→Subtle gradient) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their\n Container fill; harness card/on-container-in-overlay).",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
           "deprecated": null
         },
         {
@@ -7598,7 +7598,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -9335,7 +9335,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",
@@ -12279,7 +12279,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\" | \"on-container\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",

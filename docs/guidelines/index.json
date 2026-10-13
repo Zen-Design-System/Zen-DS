@@ -2091,7 +2091,7 @@
           "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "children?: ReactNode",
-          "theme?: shadow|flat|pale|border|semi-pale|on-container = shadow",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "spacing?: md|sm|medium|small = md",
           "selected?: boolean",
           "active?: boolean (deprecated)",
@@ -2649,7 +2649,7 @@
           "hint?: ReactNode",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
-          "theme?: shadow|flat|pale|border|semi-pale|on-container = shadow",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
         ]
       },
@@ -3603,7 +3603,7 @@
           "range?: string",
           "onRangeChange?: (id: string) => void",
           "rangesFullWidth?: boolean = true",
-          "theme?: shadow|flat|pale|border|semi-pale|on-container = flat",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = flat",
           "surface?: default|alt",
           "children: ReactNode",
           "className?: string",
