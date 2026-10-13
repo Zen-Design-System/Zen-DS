@@ -48,7 +48,7 @@ import { TopNavigation } from "../components/TopNavigation";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { ChatMessage, ChatThread } from "../components/Chat";
 import { AiChatBubble } from "../components/AiChat";
-import { LineChart, StackBarChart } from "../components/Chart";
+import { BarChart, DonutChart, LineChart, StackBarChart } from "../components/Chart";
 import { FormFieldset } from "../components/Form";
 import { ActionBar } from "../components/ActionBar";
 import { DescriptionList } from "../components/DescriptionList";
@@ -337,6 +337,10 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide"><StackBarChart aria-label="Budget by quarter" height={180} showLegend={false} series={[{ id: "a", label: "Development" }, { id: "b", label: "Research" }, { id: "c", label: "Marketing" }]} data={[{ label: "Q1", values: { a: 5, b: 2, c: 3 } }, { label: "Q2", values: { a: 6, b: 3, c: 2 } }, { label: "Q3", values: { a: 4, b: 3, c: 3 } }]} /></div>, caption: "Without a legend, colour is the only key." } },
     { do: { preview: <div className="pgv-wide"><LineChart aria-label="Revenue by quarter" height={180} format={(v) => `$${v}K`} data={[{ label: "Q1", value: 9 }, { label: "Q2", value: 15 }, { label: "Q3", value: 13 }, { label: "Q4", value: 23 }]} /></div>, caption: "Formatted values and a named chart the keyboard can explore." },
       dont: { preview: <div className="pgv-wide"><LineChart aria-label="Chart" height={180} data={[{ label: "Design", value: 9 }, { label: "Sales", value: 15 }, { label: "Ops", value: 13 }, { label: "HR", value: 23 }]} /></div>, caption: "A line implies order in time; departments are categories, use bars." } },
+    { do: { preview: <div className="pgv-wide"><BarChart aria-label="Revenue by quarter, Q4 forecast" height={180} format={(v) => `$${v}K`} data={[{ label: "Q1", value: 9 }, { label: "Q2", value: 15 }, { label: "Q3", value: 13 }, { label: "Q4", value: 18, projected: true }]} /></div>, caption: "A forecast is projected: hatched, so it never reads as earned." },
+      dont: { preview: <div className="pgv-wide"><BarChart aria-label="Revenue by quarter" height={180} format={(v) => `$${v}K`} data={[{ label: "Q1", value: 9 }, { label: "Q2", value: 15 }, { label: "Q3", value: 13 }, { label: "Q4", value: 18 }]} /></div>, caption: "Q4 hasn't closed, yet it looks as solid as the quarters that have." } },
+    { do: { preview: <div className="pgv-wide"><DonutChart aria-label="Revenue by client, Q3" size={140} legendPosition="end" format={(v) => `$${v}K`} data={[{ id: "a", label: "Lumen Bank", value: 89 }, { id: "b", label: "Phin & Co", value: 68 }, { id: "c", label: "Mekong Freight", value: 53 }, { id: "d", label: "Other clients", value: 86 }]} /></div>, caption: "Shares of one total, a few slices, each named in the legend." },
+      dont: { preview: <div className="pgv-wide"><DonutChart aria-label="Revenue per month" size={140} legendPosition="end" format={(v) => `$${v}K`} data={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((m, i) => ({ id: m, label: m, value: 70 + i * 5 }))} /></div>, caption: "Months aren't shares of a whole; a trend over time is a line or bars." } },
   ],
   "description-list": [
     { do: { preview: <div className="pgv-field"><DescriptionList items={[{ term: "Subtotal", description: "$134.00" }, { term: "Shipping", description: "$8.00" }, { term: "Total", description: "$142.00", emphasis: true }]} /></div>, caption: "One total closes the sum: Body/Base/Bold under a High rule." },
