@@ -8,3 +8,6 @@ export const LONG_TO_SHORT = { "3-xsmall": "3xs", "3xsmall": "3xs", "2-xsmall": 
 
 /** "medium" and "md" are one step; other values compare as they are. */
 export const sameValue = (a, b) => a === b || (typeof a === "string" && typeof b === "string" && (LONG_TO_SHORT[a] ?? a) === (LONG_TO_SHORT[b] ?? b));
+
+/** Box surface (layout.css) → the Color/Background variable that paints it (figma-push writes it, figma-pull reads it). */
+export const BOX_SURFACE = { surface: "Background/Surface/Default", "surface-alt": "Background/Surface/Alt", subtle: "Background/Neutral/Subtle/Default", pale: "Background/Neutral/Pale/Default", canvas: "Background/Canvas/Default" };

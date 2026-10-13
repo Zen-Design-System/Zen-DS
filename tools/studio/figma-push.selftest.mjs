@@ -925,6 +925,78 @@ export default function Page() {
   check("round trip: icons, file icons and flags come back with their sizes", shape(pageFromFigma(frame, { mapping }).text), shape(page));
 }
 
+// 26. Layout and Text props for the examples' last classNames (2026-10-13): a Box's surface as its Color/Background
+//     variable (canvas too) and no gap, Stack / Box scroll as Overflow scrolling (it clips), Grid stackBelow as one
+//     column on a Screen narrower than it, Text wrap={false} as Auto width (it does not fill its column), and one note
+//     for tabularNumbers (a plugin cannot set Numbers: Tabular). The pull reads the surface, the scroll and a layout
+//     frame's max height back.
+{
+  const layers = (device) => `// @zen-page {"format":1,"title":"Layers"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Box, Grid, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Layers" device="${device}">
+        <Stack>
+          <Box surface="canvas" padding="xl">
+            <Stack scroll="y" maxHeight={120}>
+              <Text>One</Text>
+              <Text>Two</Text>
+            </Stack>
+            <Box surface="subtle" padding="md">
+              <Text>Well</Text>
+            </Box>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const page = layers("desktop");
+  const { frame } = push(page);
+  const canvas = frame.children[0];
+  const [list, well] = canvas.children;
+  check("Box: its surface's variable, no gap; a scrolling Stack clips at its max height", [canvas.fill, canvas.layout.gap, well.fill, list.scroll, list.clip, list.maxH], ["Background/Canvas/Default", 0, "Background/Neutral/Subtle/Default", "VERTICAL", true, 120]);
+  check("round trip: Box surfaces and a scrolling Stack come back", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  // A Box framing a Stack's gap pulls back as a Box around the Stack.
+  const framed = pageFromFigma({ ...frame, children: [{ ...well, layout: { ...well.layout, gap: 12, gapVar: "Spacing/Gap/Small" }, children: [well.children[0], well.children[0]] }] }, { mapping }).text;
+  ok("pull: a surface frame with a gap is a Box around a Stack", /<Box surface="subtle" padding="md">\s*<Stack gap="sm">/.test(framed));
+  const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
+import { Board, Screen } from "@zen/design-system/builder";
+import { Grid, Stack, Text } from "@zen/design-system";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Texts" device="${device}">
+        <Stack gap="lg">
+          <Text wrap={false} tabularNumbers>10:45 am</Text>
+          <Text tabularNumbers>12</Text>
+          <Grid columns="minmax(0, 1fr) minmax(0, 2fr)" stackBelow={640}>
+            <Text>Side</Text>
+            <Text>Main</Text>
+          </Grid>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  // (The Screen's one Stack is its frame's layout.)
+  const desktop = push(texts("desktop"));
+  const [time, count, grid] = desktop.frame.children;
+  check("Text wrap={false}: Auto width, not filling its column; a wrapping one fills", [time.autoWidth, time.fillW, count.autoWidth, count.fillW], [true, undefined, undefined, true]);
+  ok("tabularNumbers: one note for the page", desktop.notes.filter((note) => /Numbers: Tabular/.test(note)).length === 1 && desktop.notes.some((note) => note.startsWith("2 texts")));
+  check("Grid stackBelow: its columns on desktop, one column on a phone", [grid.layout.grid.columns, push(texts("phone")).frame.children[2].layout.grid.columns], [2, 1]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

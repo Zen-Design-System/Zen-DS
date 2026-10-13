@@ -13,7 +13,7 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
-import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
@@ -308,6 +308,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return own ? Object.fromEntries(Object.entries(props).filter(([name]) => own.has(name))) : props;
   };
 
+  // Texts with tabularNumbers (Figma's Numbers: Tabular, which the plugin API only reads): one note for the page.
+  const tabular = [];
   const convertElement = (element, parent) => {
     if (element.kind !== "element") return null;
     // Not on screen: screen-reader text, a tab's panel while another tab is selected.
@@ -321,7 +323,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // Text.tsx's defaults: Body/Base/Regular in Neutral Strongest; a tone paints with its Color/Content variable.
       const textStyle = code.textStyle ?? (element.name === "Heading" ? HEADING_STYLE[code.level ?? 2] : "Body/Base/Regular");
       const fill = contentToneToken(code.tone ?? "strongest");
-      node = { type: "TEXT", ...(id ? { id } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}) };
+      // wrap={false} is Figma's Auto width (one line, as wide as its words). Numbers: Tabular cannot be set by a plugin.
+      if (code.tabularNumbers === true) tabular.push(id ?? element.name);
+      node = { type: "TEXT", ...(id ? { id } : {}), characters: deepText(element), textStyle, ...(fill ? { fill } : {}), ...(align ? { align } : {}), ...(code.wrap === false ? { autoWidth: true } : {}) };
     } else if (element.name === "Icon" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: { id: null, name: code.name }, props: {}, ...iconSizing(code.size) };
     // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
     else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
@@ -855,7 +859,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   function frameNode(element, code, id, parent = null) {
     const grid = element.name === "Grid";
     const row = code.direction === "row";
-    const gap = code.gap ?? "md";
+    // A Box lays its layers out as blocks, without a gap (layout.css); Stack and Grid take md unless told.
+    const gap = code.gap ?? (element.name === "Box" ? "none" : "md");
     const gapPx = pxOf(gap, GAP_PX) ?? 0;
     const pad = (step) => pxOf(step ?? "none", PADDING_PX) ?? 0;
     const x = pad(code.paddingX ?? code.padding);
@@ -866,6 +871,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // Columns that fit (CSS auto-fill / auto-fit) are as many as that width takes, an even Figma grid; with no width
     // known, a wrapping row whose cells fill it, no narrower than the minimum. A column count is Figma's grid.
     let columns = grid ? gridColumns(element, code) : null;
+    // stackBelow: one column while the Grid itself is narrower (Layout.tsx useStackBelow), where the push knows its width.
+    if (grid && typeof code.stackBelow === "number" && self !== null && self < code.stackBelow) columns = { count: 1 };
     if (columns?.min && inner !== null) {
       const fitting = Math.max(1, Math.floor((inner + gapPx) / (columns.min + gapPx)));
       const cells = element.children.filter((child) => child.kind === "element").length;
@@ -915,7 +922,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const shareH = code.fillChildren === true && !row && code.height !== undefined && own.height === undefined;
       // A text in a column wraps at the column's width whatever the Stack aligns (CSS), where Figma's Hug runs on: it
       // fills. A Divider between layers of a row takes the room they leave (divider.css).
-      const wide = fillW || shareW || (node.type === "TEXT" && !row) || (row && child.name === "Divider");
+      // A text on one line (wrap={false}) keeps Auto width unless it is given a width.
+      const oneLine = node.autoWidth && own.width !== "fill";
+      const wide = (fillW && !oneLine) || shareW || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
       return { ...node, ...(wide ? { fillW: true } : {}), ...(fillH || shareH ? { fillH: true } : {}) };
     }).filter(Boolean);
     if (grid && !fit) {
@@ -924,8 +933,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     }
     // maxWidth (a number of px, or "400px"): the frame fills up to it (a sign-in form in its centred row).
     const maxW = Number.parseFloat(String(code.maxWidth ?? "")) || null;
+    // maxHeight in px: Figma's Max height (a scrolling list stops there).
+    const maxH = /^\d+(px)?$/.test(String(code.maxHeight ?? "")) ? Number.parseFloat(String(code.maxHeight)) : null;
+    // A Box's background layer: its Color/Background variable. `scroll` is Figma's Overflow scrolling (it clips, as CSS
+    // overflow does).
+    const fill = element.name === "Box" ? BOX_SURFACE[code.surface] : null;
+    const scroll = { x: "HORIZONTAL", y: "VERTICAL" }[code.scroll];
     // Only a frame with `clip` (Box, Stack or Grid) cuts what overflows it: the importer clips that frame alone.
-    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(code.clip === true ? { clip: true } : {}) };
+    return { type: "FRAME", ...(id ? { id } : {}), name: element.name, layout, children, ...(fill ? { fill } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */
@@ -1426,6 +1441,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     (node.slots ?? []).forEach((slot) => slot.children.forEach(cutIcons));
   };
   cutIcons(frame);
+  if (tabular.length) notes.push(`${tabular.length} text${tabular.length > 1 ? "s" : ""} with tabularNumbers: set Numbers: Tabular by hand in Figma (Type details; a plugin cannot)`);
   // The same note for several layers (a MetricCard's trend on four cards) once, with its count.
   const counted = new Map();
   for (const note of notes) counted.set(note, (counted.get(note) ?? 0) + 1);

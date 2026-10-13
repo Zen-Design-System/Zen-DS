@@ -20,7 +20,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { printPage } from "./doc.mjs";
-import { GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
@@ -194,7 +194,9 @@ const read = async (node) => {
     const style = typeof node.textStyleId === "string" && node.textStyleId ? await figma.getStyleByIdAsync(node.textStyleId) : null;
     // The layer's name only when it is not its text (Figma names a text layer after its words).
     const align = node.textAlignHorizontal && node.textAlignHorizontal !== "LEFT" ? { align: node.textAlignHorizontal } : {};
-    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align };
+    // Numbers: Tabular (Text tabularNumbers; a plugin can read it, not set it).
+    const tabular = node.openTypeFeatures && node.openTypeFeatures.TNUM === true ? { tabular: true } : {};
+    return { type: "TEXT", id: node.id, ...(node.name === node.characters ? {} : { name: node.name }), characters: node.characters, textStyle: style ? style.name : null, ...align, ...tabular };
   }
   if (node.type === "INSTANCE") return readInstance(node);
   return readFrame(node);
@@ -204,8 +206,11 @@ const layoutOf = async (node) => {
   if (!("layoutMode" in node) || node.layoutMode === "NONE") return null;
   const bound = node.boundVariables || {};
   const layout = { mode: node.layoutMode };
-  if (node.itemSpacing) layout.gap = node.itemSpacing;
-  const gapVar = await variableName(bound.itemSpacing && bound.itemSpacing.id);
+  // A grid's gap is its column gap (Figma keeps itemSpacing for stacks).
+  const grid = node.layoutMode === "GRID";
+  const gap = grid ? node.gridColumnGap : node.itemSpacing;
+  if (gap) layout.gap = gap;
+  const gapVar = await variableName(((grid ? bound.gridColumnGap : bound.itemSpacing) || {}).id);
   if (gapVar) layout.gapVar = gapVar;
   const padding = [node.paddingTop, node.paddingRight, node.paddingBottom, node.paddingLeft];
   if (padding.some(Boolean)) layout.padding = padding;
@@ -236,6 +241,7 @@ const placed = (out, child, parent) => {
   if (child.layoutSizingVertical === "FILL") out.fillH = true;
   if (child.minWidth) out.minW = child.minWidth;
   if (child.maxWidth) out.maxW = child.maxWidth;
+  if (child.maxHeight) out.maxH = child.maxHeight;
   return out;
 };
 // A frame of the Table's rows (Primitives/Table/Data-Row instances, Figma's Table): one table, cell by cell. A row of
@@ -291,6 +297,11 @@ const readFrame = async (node, root = false) => {
   const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
   // Clip content: a frame inside the page that clips (the page frame itself is the screen, which always does).
   if (!root && node.clipsContent === true) out.clip = true;
+  // Overflow scrolling (Stack / Box scroll) and a background bound to a colour variable (a Box's surface).
+  if (!root && node.overflowDirection && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
+  const paint = !root && Array.isArray(node.fills) ? node.fills.find((fill) => fill.visible !== false) : null;
+  const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
+  if (fill) out.fill = fill;
   const layout = await layoutOf(node);
   if (layout) out.layout = layout;
   for (const child of node.children || []) {
@@ -684,9 +695,10 @@ function actionItem(node, ctx) {
 /** Icon-only controls the harness wants named (icon-button/needs-name): they get an aria-label. */
 const NEEDS_NAME = new Set(["IconButton"]);
 /** The elements that take Figma's resizing (width / height fill), src/components/Layout/sizing.ts. */
-const SIZED = new Set(["Stack", "Grid", "Text", "Card", "ListBox"]);
+const SIZED = new Set(["Stack", "Grid", "Box", "Text", "Card", "ListBox"]);
 /** Components sized like a layout layer whose Figma min / max width comes back as minWidth / maxWidth (Card.tsx, ListBox). */
 const SIZED_INSTANCES = new Set(["Card", "ListBox"]);
+const LAYOUT_FRAMES = new Set(["Stack", "Grid", "Box"]);
 /** Layers the page has no element for: drawings, kept out with one note. */
 const DRAWINGS = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "BOOLEAN_OPERATION"]);
 
@@ -965,6 +977,7 @@ function convertNode(node, ctx) {
     const characters = (node.characters ?? "").replace(/\u2028/g, " ");
     const align = { CENTER: "center", RIGHT: "end", JUSTIFIED: "justify" }[node.align];
     if (align) props.align = literal(align);
+    if (node.tabular) props.tabularNumbers = literal(true);
     return { kind: "element", name: "Text", props, children: [{ kind: "text", value: characters }] };
   }
   if (node.type === "INSTANCE") {
@@ -1204,16 +1217,38 @@ function frameElement(node, children, ctx) {
           if (sources[index]?.minW) child.props.minWidth = literal(sources[index].minW);
           if (sources[index]?.maxW) child.props.maxWidth = literal(sources[index].maxW);
         }
+        // A layout frame's max width and height (figma-push maxW / maxH: a form at its width, a scrolling list's height).
+        if (LAYOUT_FRAMES.has(child.name)) {
+          if (sources[index]?.maxW) child.props.maxWidth = literal(sources[index].maxW);
+          if (sources[index]?.maxH) child.props.maxHeight = literal(sources[index].maxH);
+        }
         if (!SIZED.has(child.name)) return;
         if (along(sources[index])) child.props[row ? "width" : "height"] = literal("fill");
         if (across(sources[index]) && aligned) child.props[row ? "height" : "width"] = literal("fill");
       });
     }
   } else if (children.length > 1) ctx.notes.push(`Frame "${node.name}" has no auto layout: its layers are stacked in order`);
-  // Figma's Clip content: the Stack or Grid clips too (figmaReadCode leaves it off the page frame).
-  if (node.clip) props.clip = literal(true);
-  return { kind: "element", name: grid ? "Grid" : "Stack", props, children };
+  // Figma's Clip content: the Stack or Grid clips too (figmaReadCode leaves it off the page frame). Overflow scrolling
+  // clips as well: Stack / Box scroll (both ways reads as vertical).
+  const scroll = { VERTICAL: "y", HORIZONTAL: "x", BOTH: "y" }[node.scroll];
+  if (node.scroll === "BOTH") ctx.notes.push(`Frame "${node.name}" scrolls both ways in Figma; the page scrolls it vertically`);
+  if (node.clip && !scroll) props.clip = literal(true);
+  // A background on a Box surface's variable (figma-push BOX_SURFACE): a Box, around the Stack or Grid when the frame
+  // lays its layers out more than a Box does (a Box takes padding, not gap or alignment).
+  const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
+  if (!surface) {
+    if (scroll && !grid) props.scroll = literal(scroll);
+    const frame = { kind: "element", name: grid ? "Grid" : "Stack", props, children };
+    return scroll && grid ? { kind: "element", name: "Box", props: { scroll: literal(scroll) }, children: [frame] } : frame;
+  }
+  const BOX = new Set(["padding", "paddingX", "paddingY", "clip"]);
+  const boxProps = { surface: literal(surface), ...Object.fromEntries(Object.entries(props).filter(([name]) => BOX.has(name))), ...(scroll ? { scroll: literal(scroll) } : {}) };
+  const rest = Object.fromEntries(Object.entries(props).filter(([name]) => !BOX.has(name)));
+  const plain = !grid && !Object.keys(rest).some((name) => name !== "gap") && (children.length <= 1 || rest.gap?.value === "none");
+  return { kind: "element", name: "Box", props: boxProps, children: plain ? children : [{ kind: "element", name: grid ? "Grid" : "Stack", props: rest, children }] };
 }
+/** A Color/Background variable → the Box surface it paints (figma-push BOX_SURFACE, the other way). */
+const SURFACE_OF = Object.fromEntries(Object.entries(BOX_SURFACE).map(([surface, variable]) => [variable, surface]));
 
 /** An icon's size from Figma (figma-push iconSizing, the other way): its Element-Size/Popular step, else its px. */
 const ICON_SIZE_OF = { "2XSmall": "2xs", XSmall: "xs", Small: "sm", Medium: "md", Large: "lg", XLarge: "xl", "2XLarge": "2xl", "3XLarge": "3xl" };
