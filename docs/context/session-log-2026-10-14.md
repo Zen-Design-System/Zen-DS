@@ -31,6 +31,15 @@
   equal the repo. The Plugin API cannot reorder variables (`variableIds` is read-only), so Rich sits last in each group
   until dragged under Deep; Sky and Mint are still Solid, Subtle, Soft, Deep, Pale in the panel. Library not published.
 
+## Chart card Value Heading/3 → Heading/2 (tier XS, user: "Update Font size Value của card chart từ Figma (Từ heading 3 lên heading 2)")
+
+- Live file, ❖ Chart page: 32 `Heading > Value` texts; 11 main-component ones were still Heading/3 — Chart/Line-Chart
+  15328:1077, Stack-Bar-Chart 15328:1108, Donut-Chart ×3 (15324:1069, 15324:996, 15392:2450), Radial-Chart ×2
+  (15325:1041, 15325:1098), Multi-Line-Chart ×4 (15426:2533, 15501:2971/3031/3001). Set to the same Heading/2 style the
+  Bar, Area, Heatmap and new charts use (`setTextStyleIdAsync`); read back 11/11 Heading/2 25/32.
+- Check: temporary instances with Value shown (Line, Donut Total=Start, Radial End, Multi-Line), screenshot clean, removed.
+- Repo: no code reads this layer (`ChartCard` has no value prop). Library not published.
+
 ## ❖ Chart page tidied (tier XS, Figma only, user: "Sắp xếp các component/element bên Chart ngăn nắp gọn gàng lại")
 
 - Before: one section, 8 covers on a 3 × 3 grid with a hole (Donut set pushed into it), the other sets loose at odd

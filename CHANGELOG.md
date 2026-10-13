@@ -22,6 +22,8 @@ removed (four unused colour ramps were, see Removed).
 - Charts take their card from Card (2026-10-14, user, live Figma): Bar, Donut, Radial and Heatmap no longer paint their
   own surface; like every chart they sit in Chart-Card's Content slot, so Theme, Surface and Color work on them. The
   AI kit for Figma no longer treats a standalone chart as a box (`theme/box-on-canvas`, `theme/mixed-elevation`).
+- Chart card value (2026-10-14, live Figma): the header's Value text is Heading/2 (25/32) on every chart; Line,
+  Stack-Bar, Donut, Radial and Multi-Line were still Heading/3 (22/28). No code change: `ChartCard` has no value yet.
 - No gradient surfaces (2026-10-14, user): Card `theme="semi-pale"` is deprecated and renders as `pale` (it stays in
   the type, off the theme list). Figma dropped the Card Gradient and Semi-Pale themes and their styles, so
   `--zen-style-semi-pale-fill` and `.zen-fill-semi-pale` are gone from `style-effects.css`.
