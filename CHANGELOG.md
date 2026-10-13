@@ -130,6 +130,10 @@ removed (four unused colour ramps were, see Removed).
   calendar inside Trailing): no Figma rename is needed.
 
 ### Added
+- Support background Rich (2026-10-14, user): every Support background set (the 18 colours, Brand and Neutral) gains
+  `Color/Background/Support/<colour>/Rich` = ramp step 11, between Solid (9) and Deep (12), as
+  `--zen-color-background-support-<colour>-rich` in Light and Dark; created in the live Figma file too. The foundations
+  page lists each set as Deep, Rich, Solid, Soft, Subtle, Pale.
 - Chat reply in Figma (2026-10-13, user, live file): page ❖ Chat › "Chat Reply" now holds `Chat/Reply/Quote` (Side ×
   Kind: Text · Photo · File · Call · Voice · Deleted), `Chat/Conversation/Reply` (the reply bubble tucked 12px over its
   quote, Avatar / Sent / bubble swap as Chat/Conversation/Bubble) and `Chat/Composer-Reply` (the Replying-to bar above

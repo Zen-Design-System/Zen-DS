@@ -20,3 +20,13 @@
   102 ✓ (was 100).
 - Repo contracts unaffected (component-properties.json lists only property names). Open for the user: publish the
   library; the Pokeslide file uses its own fork library, so its List-Boxes are not changed by this.
+
+## Support background Rich (tier XS, user: "thêm 1 token nằm giữa Deep và Solid … tên là Rich dùng step 11")
+
+- Repo: 20 tokens `Color/Background/Support/<colour>/Rich` = `{Light|Dark/<ramp>/11}` (ramp taken from Deep; Brand and
+  Neutral from Base Colors (Project)) in `mode-colors-semantic.json` (431 → 451); each Support background set regrouped
+  as Deep, Rich, Solid, Soft, Subtle, Pale (the live panel order, user's request), no other value changed.
+  `figma.collections.json` count + note. `tokens:build` (2225 tokens, native too), `tokens:check` clean.
+- Figma (live file, user approved): the same 20 variables, scopes and publishing copied from Deep; read back 40/40 hex
+  equal the repo. The Plugin API cannot reorder variables (`variableIds` is read-only), so Rich sits last in each group
+  until dragged under Deep; Sky and Mint are still Solid, Subtle, Soft, Deep, Pale in the panel. Library not published.
