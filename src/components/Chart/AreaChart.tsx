@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from "react";
+import { useMemo, type CSSProperties, type Ref } from "react";
 import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
@@ -21,6 +21,8 @@ export interface AreaChartProps {
   "aria-label": string;
   /** Extra class on the chart frame (the axes and the plot; the legend sits outside it). */
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The period active at first (its dots, rule and Tooltip show). Default: the last one. */
   initialIndex?: number;
   /** Figma Show Legend: the legend names every series. Default: on for `stacked`, off for a single `area` (the card title
@@ -47,7 +49,7 @@ const pathOf = (pts: readonly Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M
  * the value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items
  * Spacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.
  */
-export function AreaChart({ data, series, type = "area", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true }: AreaChartProps) {
+export function AreaChart({ data, series, type = "area", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, ref }: AreaChartProps) {
   const t = useZenLabels();
   const stacked = type === "stacked";
   const drawn = stacked ? series : series.slice(0, 1);
@@ -55,7 +57,7 @@ export function AreaChart({ data, series, type = "area", format = defaultFormat,
   const tops = drawn.map((_, si) => data.map((d) => drawn.slice(0, si + 1).reduce((sum, s) => sum + Math.max(0, d.values[s.id] ?? 0), 0)));
   const totals = tops.length ? tops[tops.length - 1] : data.map(() => 0);
   const signature = signatureOf([type, drawn.map((s) => s.id), tops]);
-  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [signature]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
   const n = Math.max(1, data.length);
   const pointsOf = (list: number[]): Point[] => list.map((v, i) => [((i + 0.5) / n) * 100, 100 - (v / top) * 100]);
@@ -75,7 +77,7 @@ export function AreaChart({ data, series, type = "area", format = defaultFormat,
   const legend = legendOn && drawn.length ? <ChartLegend gap="small" items={drawn.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si) }))} /> : undefined;
   const peak = active !== null && lines.length ? lines[lines.length - 1][active] : undefined;
   return (
-    <ChartBlock kind="area" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="area" legend={legend} position={legendPosition}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--area", className].filter(Boolean).join(" ")} kind="bar" animate={animate} tooltip={null} summary={summary}>
         <div className="zen-chart__marks" key={signature} data-type={type}>

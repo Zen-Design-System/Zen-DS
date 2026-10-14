@@ -42,6 +42,7 @@ Generated from the TypeScript source; full JSON in `docs/api/radio-button.json`.
 | `name` | `string` | — |  |
 | `value` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLInputElement>` | — | The native radio input (the element that takes focus), e.g. to focus it or read `validity`. |
 
 ## Keyboard
 | Keys | Action |

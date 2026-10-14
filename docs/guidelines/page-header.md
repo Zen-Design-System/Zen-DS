@@ -45,6 +45,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `back` | `PageHeaderBack` | — | A Back control for detail pages (chevron icon, per the navigation rule). |
 | `headingLevel` | `1 \| 2` | `1` | Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: "secondary" } }`). Written by Zen Studio; app code sets back. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root DOM element. |
 
 ### Types
 Object shapes the props above refer to.

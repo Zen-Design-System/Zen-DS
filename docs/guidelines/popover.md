@@ -55,6 +55,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect">`.
 | `align` | `"start" \| "end"` | `"start"` | Preferred horizontal edge against the anchor box; flips when it would overflow the viewport. |
 | `multiple` | `boolean` | `false` | Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[alex]/Avatar": { shape: "square" }, "Item[draft]/Badge": { theme: "accent" } }`). Written by Zen Studio; app code sets the items. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element (the surface). |
 
 ### PopoverItem
 The 240px Popover/Item primitive.
@@ -76,6 +77,7 @@ Also accepts `Omit<HTMLAttributes<HTMLButtonElement>, "onSelect">`.
 | `control` | `"check" \| "checkbox"` | `"check"` | `checkbox`: multi-select row — a trailing Checkbox/Mark shows the selection instead of the Single-Selected fill + check icon. |
 | `itemRole` | `"option" \| "menuitem" \| "menuitemcheckbox" \| "menuitemradio"` | `"option"` | ARIA role of the row. `option` (default) in a listbox, with aria-selected from `selected`; `menuitem` in a Menu (no aria-selected); `menuitemcheckbox` / `menuitemradio` for a checkable menu row, with aria-checked from `selected`. |
 | `onSelect` | `() => void` | — |  |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the row's `<button>` element. |
 
 ### PopoverSearch
 | Prop | Type | Default | Description |

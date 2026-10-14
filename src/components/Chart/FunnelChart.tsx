@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -14,6 +14,8 @@ export interface FunnelChartProps {
   "aria-label": string;
   /** Extra class on the chart (not the legend). */
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The stage picked at first (the others dim). Default none: every stage at full strength until one is hovered or reached
    *  with ↑/↓. */
   initialIndex?: number;
@@ -29,7 +31,7 @@ export interface FunnelChartProps {
  * Spacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and
  * Home/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15486:2497.
  */
-export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex, animate = true }: FunnelChartProps) {
+export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex, animate = true, ref }: FunnelChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const initial = initialIndex ?? null;
@@ -42,7 +44,7 @@ export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLa
     ? `${current.label}: ${format(current.value)}${active! > 0 ? `, ${t.chartShareOf(shareText(current.value), first.label)}` : ""} (${t.chartPoint(active! + 1, data.length)})`
     : data.map((d) => `${d.label} ${format(d.value)} (${shareText(d.value)})`).join(", ");
   return (
-    <ChartBlock kind="funnel">
+    <ChartBlock ref={ref} kind="funnel">
       <div className={["zen-chart", "zen-chart--funnel", className].filter(Boolean).join(" ")} data-kind="funnel" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__funnel" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(initial)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(initial); }}

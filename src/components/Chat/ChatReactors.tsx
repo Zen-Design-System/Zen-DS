@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Avatar } from "../Avatar";
 import { BottomSheet } from "../BottomSheet";
@@ -11,6 +11,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import type { ChatPerson, ChatReaction, ChatReactionKind } from "./Chat";
 import "./chat-reactors.css";
 import { useDismissableLayer } from "../_shared/layers";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 /**
  * Who reacted (no Figma frame — composed from Zen parts, following Messenger / WhatsApp / Slack): pressing the
@@ -32,6 +33,8 @@ export interface ChatReactorsPanelProps {
   onOpenChange: (open: boolean) => void;
   /** The pill: anchors the desktop Popover and finds the device frame's overlay root on mobile. */
   anchorRef: RefObject<HTMLElement | null>;
+  /** Ref to the visible panel's root `<div>`: the desktop popover, or the mobile Bottom Sheet. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 type Row = { key: string; person: ChatPerson; kind: ChatReactionKind; you?: boolean };
@@ -86,8 +89,9 @@ function ChatReactorsList({ reactions, mine, onRemoveMine, glyph, onDone }: Pick
  * its "Reactions" label. Not a <Popover>: that one holds an option list (role="listbox"), and this panel holds emoji
  * tabs and a list of people.
  */
-function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children }: Pick<ChatReactorsPanelProps, "side" | "onOpenChange" | "anchorRef"> & { label: string; children: ReactNode }) {
+function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children, ref }: Pick<ChatReactorsPanelProps, "side" | "onOpenChange" | "anchorRef" | "ref"> & { label: string; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const rootRefs = useMergedRefs<HTMLDivElement>(rootRef, ref);
   const labelId = useId();
   const placement = useAnchoredPosition(rootRef, true, { align: side === "you" ? "end" : "start", anchor: () => anchorRef.current });
   useExclusivePopover(true, () => onOpenChange(false), rootRef, anchorRef);
@@ -118,14 +122,14 @@ function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children }:
     (anchor?.matches("button, a[href], input, [tabindex]") ? anchor : anchor?.querySelector<HTMLElement>("button, a[href], input, [tabindex]"))?.focus();
   };
   return (
-    <div ref={rootRef} role="dialog" aria-labelledby={labelId} className="zen-popover zen-chat-reactors__popover" style={placement.style} data-side={placement.side} data-search="false" data-scroll-bar="true" onKeyDown={handleKeyDown}>
+    <div ref={rootRefs} role="dialog" aria-labelledby={labelId} className="zen-popover zen-chat-reactors__popover" style={placement.style} data-side={placement.side} data-search="false" data-scroll-bar="true" onKeyDown={handleKeyDown}>
       <div id={labelId} className={`zen-popover__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div>
       <div className="zen-popover__items">{children}</div>
     </div>
   );
 }
 
-export function ChatReactorsPanel({ reactions, mine, onRemoveMine, glyph, device, side, open, onOpenChange, anchorRef }: ChatReactorsPanelProps) {
+export function ChatReactorsPanel({ reactions, mine, onRemoveMine, glyph, device, side, open, onOpenChange, anchorRef, ref }: ChatReactorsPanelProps) {
   const t = useZenLabels();
   if (!open) return null;
   const list = <ChatReactorsList reactions={reactions} mine={mine} onRemoveMine={onRemoveMine} glyph={glyph} onDone={() => onOpenChange(false)} />;
@@ -133,12 +137,12 @@ export function ChatReactorsPanel({ reactions, mine, onRemoveMine, glyph, device
     // Portalled so the thread's scroll box never clips it; useAnchoredPosition still attaches it to the pill and flips it.
     return (
       <ZenPortal>
-        <ChatReactorsPopover label={t.reactions} side={side} onOpenChange={onOpenChange} anchorRef={anchorRef}>{list}</ChatReactorsPopover>
+        <ChatReactorsPopover ref={ref} label={t.reactions} side={side} onOpenChange={onOpenChange} anchorRef={anchorRef}>{list}</ChatReactorsPopover>
       </ZenPortal>
     );
   }
   const root = anchorRef.current?.closest<HTMLElement>("[data-zen-overlay-root]") ?? null;
   // A fixed half-screen sheet (chat-reactors.css): switching emoji tabs changes the list, never the sheet's height.
-  const sheet = <BottomSheet className="zen-chat-reactors__sheet" open onOpenChange={onOpenChange} title={t.reactions} inline={Boolean(root)}>{list}</BottomSheet>;
+  const sheet = <BottomSheet ref={ref} className="zen-chat-reactors__sheet" open onOpenChange={onOpenChange} title={t.reactions} inline={Boolean(root)}>{list}</BottomSheet>;
   return root ? createPortal(sheet, root) : sheet;
 }

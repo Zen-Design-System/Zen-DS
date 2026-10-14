@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { createPortal } from "react-dom";
 import { usePortalContainer } from "../Portal";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 import "../Motion/motion.css";
 import { Toast, type ToastProps } from "./Toast";
 
-export interface ToastItem extends Omit<ToastProps, "onClose" | "className"> {
+export interface ToastItem extends Omit<ToastProps, "onClose" | "className" | "ref"> {
   id: string | number;
   /** Auto-dismiss after this many ms; `null` keeps it until closed. Defaults to the stack's duration (longer with an action). */
   duration?: number | null;
@@ -28,11 +29,12 @@ export interface ToastStackProps {
   /** Accessible name of every toast's close button (a toast's own `closeLabel` wins). Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Forwarded to the stack's root `<div>` (portalled into the toast layer unless `inline`). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Drops a closed row if its exit animation never reports its end (a hidden tab); the exit itself is Fast + Base. */
 const EXIT_FALLBACK_MS = 600;
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** How many stacks use each fixed layer; the last one out removes it. */
 const layerUsers = new WeakMap<HTMLElement, number>();
@@ -70,7 +72,7 @@ function useToastLayer(container: HTMLElement | null, placement: ToastPlacement)
  * toast fades and shrinks in place (Fast), then its row closes (Base) so the others slide over. Fixed stacks portal into
  * a shared layer in the ZenPortal container; aria-live is on each Toast.
  */
-export function ToastStack({ toasts, onDismiss, placement = "bottom-center", duration = 5000, max = 3, inline = false, closeLabel, className }: ToastStackProps) {
+export function ToastStack({ toasts, onDismiss, placement = "bottom-center", duration = 5000, max = 3, inline = false, closeLabel, className, ref }: ToastStackProps) {
   // Rendered rows keep their position; a toast removed from `toasts` stays as "closing" until its exit animation ends.
   const [rows, setRows] = useState<Array<{ item: ToastItem; exiting: boolean }>>(() => toasts.map((item) => ({ item, exiting: false })));
   const [paused, setPaused] = useState(false);
@@ -119,6 +121,7 @@ export function ToastStack({ toasts, onDismiss, placement = "bottom-center", dur
 
   const stack = (
     <div
+      ref={ref}
       className={["zen-toast-stack", className].filter(Boolean).join(" ")}
       data-placement={placement}
       data-inline={inline ? "true" : undefined}

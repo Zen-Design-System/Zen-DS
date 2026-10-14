@@ -1,4 +1,4 @@
-import { useContext, useEffect, useId, useRef, type ReactElement, type ReactNode } from "react";
+import { useContext, useEffect, useId, useRef, type ReactElement, type ReactNode, type Ref } from "react";
 import { usePresence } from "../Motion";
 import { IconButton } from "../Button";
 import { ModalActions, type DialogAction } from "../Dialog";
@@ -11,6 +11,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./side-panel.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export type SidePanelType = "standard" | "modal";
 export type SidePanelSize = "default" | "small";
@@ -50,6 +51,8 @@ export interface SidePanelProps extends OverlayOpenProps {
   /** Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets onBack / the actions. */
   overrides?: NestedOverrides;
+  /** Ref to the panel `<aside>` element; set while the panel is open. */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
@@ -61,7 +64,7 @@ export interface SidePanelProps extends OverlayOpenProps {
  * back · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents
  * (gap Medium, scrolls) · Modal/Actions footer.
  */
-export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, headerContent, top, onBack, backLabel: backLabelProp, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides }: SidePanelProps) {
+export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, headerContent, top, onBack, backLabel: backLabelProp, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides, ref }: SidePanelProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -69,6 +72,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const backLabel = backLabelProp ?? t.back;
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLElement>(null);
+  const mergedPanelRef = useMergedRefs(panelRef, ref);
   const modal = type === "modal";
   const inline = useContext(InlineOverlayContext);
   // Stay mounted while the exit animation plays; focus return / scroll unlock already run when `open` goes false.
@@ -78,7 +82,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const host = useOverlayHost(mounted && modal && !inline);
   // Modal: the shared Dialog/ModalForm focus trap (autofocus, Tab trap, Escape, scroll lock, focus return), once it is
   // placed.
-  useModal(open && modal && (inline || host.ready), panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close", { isolate: !inline });
+  useModal(open && modal && (inline || host.ready), panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close", { isolate: !inline, container: host.container });
   // Standard (non-modal): Escape closes the docked panel from inside it and from the page beside it (the row that opened
   // it), unless an inner popup or a modal owns the key or the press was in a text field on the page. Closing returns focus
   // to the opener when focus was in the panel (or fell to the body as it closed). Listeners on window, as useModal's, so
@@ -114,7 +118,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const Title = `h${headingLevel}` as const;
   const panel = (
     <aside
-      ref={panelRef}
+      ref={mergedPanelRef}
       data-state={phase}
       inert={closing}
       aria-hidden={closing || undefined}

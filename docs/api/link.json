@@ -65,6 +65,14 @@
           "default": null,
           "description": "The link text. Name the destination (“Billing settings”), never “click here”. The font comes from the surrounding Text.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLAnchorElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<a>` element (or to the `as` component's element).",
+          "deprecated": null
         }
       ]
     }

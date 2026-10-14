@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverItemData } from "../Popover";
 import { ZenPortal } from "../Portal";
@@ -13,6 +13,8 @@ import "./chip.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useDismissableLayer } from "../_shared/layers";
+import { useMergedRefs } from "../_shared/merge-refs";
+import { composeEventHandlers } from "../_shared/compose-event-handlers";
 
 /** Figma's three Chip/Pill component sets. */
 export const chipVariants = ["advanced", "normal", "number-only"] as const;
@@ -32,6 +34,9 @@ export type ChipState = (typeof chipStates)[number];
 export type ChipSelectionMode = "single" | "multiple";
 
 export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  /** Ref to the chip's `<button>`; a static Number-only count (see the component docs) renders a `<span>`, which it
+   *  then points at. */
+  ref?: Ref<HTMLButtonElement>;
   children?: ReactNode;
   /** Component set: Advanced, Normal, or Number-only. */
   variant?: ChipVariant;
@@ -108,8 +113,8 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
  * and no dead click, and the ref points at that span. Give it `onClick` or `selected` to make it a pressable number
  * (Hover, Focused, Selected). Normal and Advanced chips always do something; Figma: a read-only label is a Tag.
  */
-export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
-  {
+export function Chip({
+    ref,
     children,
     variant = "advanced",
     size: sizeProp = "md",
@@ -149,9 +154,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     onClick,
     onKeyDown,
     ...buttonProps
-  },
-  ref,
-) {
+  }: ChipProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, chipSizes);
   const t = useZenLabels();
@@ -162,6 +165,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   const dropdownRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const mergedButtonRef = useMergedRefs(buttonRef, ref);
   // The portalled layer (popoverPortal): outside the chip in the DOM, so light dismiss checks it as well.
   const layerRef = useRef<HTMLDivElement>(null);
   const isNumberOnly = variant === "number-only";
@@ -233,14 +237,11 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   };
   // One popover at a time: opening this chip's menu closes another object's open popover (and vice versa).
   useExclusivePopover(canOpenPopover && isPopoverOpen, () => setPopoverOpen(false), dropdownRef);
-  const handleClick: NonNullable<ButtonHTMLAttributes<HTMLButtonElement>["onClick"]> = (event) => {
-    onClick?.(event);
+  const handleClick = composeEventHandlers(onClick, (event) => {
     // detail === 0 means the click came from Enter/Space.
-    if (!event.defaultPrevented && canOpenPopover) setPopoverOpen(!isPopoverOpen, { fromKeyboard: event.detail === 0 });
-  };
-  const handleKeyDown: NonNullable<ButtonHTMLAttributes<HTMLButtonElement>["onKeyDown"]> = (event) => {
-    onKeyDown?.(event);
-    if (event.defaultPrevented) return;
+    if (canOpenPopover) setPopoverOpen(!isPopoverOpen, { fromKeyboard: event.detail === 0 });
+  });
+  const handleKeyDown = composeEventHandlers(onKeyDown, (event) => {
     if ((event.key === "Delete" || event.key === "Backspace") && select && onClearSelection) {
       event.preventDefault();
       onClearSelection();
@@ -256,7 +257,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       event.preventDefault();
       setPopoverOpen(true, { fromKeyboard: true });
     }
-  };
+  });
   const handlePopoverSelect = (item: PopoverItemData) => {
     onPopoverSelect?.(item);
     if (!popoverMultiple) setPopoverOpen(false, { restoreFocus: true });
@@ -295,11 +296,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   const button = (
     <button
       {...buttonProps}
-      ref={(node) => {
-        buttonRef.current = node;
-        if (typeof ref === "function") ref(node);
-        else if (ref) ref.current = node;
-      }}
+      ref={mergedButtonRef}
       type={type}
       disabled={isDisabled}
       onClick={handleClick}
@@ -377,4 +374,4 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       {popoverPortal ? <ZenPortal><div ref={layerRef} className="zen-chip__layer">{popover}</div></ZenPortal> : popover}
     </span>
   );
-});
+}

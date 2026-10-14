@@ -50,10 +50,10 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
 }
 
 /** Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon. */
-export function EmptyStateIllustration({ icon = "icon-user-circle-line" }: { icon?: IconName | ReactElement }) {
+export function EmptyStateIllustration({ icon = "icon-user-circle-line", ref }: { icon?: IconName | ReactElement; /** The root `<span>` element. */ ref?: Ref<HTMLSpanElement> }) {
   const nest = useNested();
   return (
-    <span className="zen-empty-state__illustration" aria-hidden="true">
+    <span ref={ref} className="zen-empty-state__illustration" aria-hidden="true">
       <svg viewBox="0 0 240 240" width="240" height="240" className="zen-empty-state__art">
         <g className="zen-empty-state__grid">
           {[40, 93, 146, 199].map((x) => <line key={`v${x}`} x1={x} x2={x} y1={40} y2={200} />)}

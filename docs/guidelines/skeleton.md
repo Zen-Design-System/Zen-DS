@@ -35,6 +35,7 @@ Also accepts `SkeletonBaseProps`.
 | `animated` | `boolean` | `true` | Pulse while loading (off for reduced motion). |
 | `className` | `string` | — |  |
 | `style` | `CSSProperties` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
 | `lines` | `number` | `3` | Figma No. of line: 1 · 2 · 3 · 5 (any positive number works). |
 
 ### SkeletonHeading
@@ -47,6 +48,7 @@ Also accepts `SkeletonBaseProps`.
 | `animated` | `boolean` | `true` | Pulse while loading (off for reduced motion). |
 | `className` | `string` | — |  |
 | `style` | `CSSProperties` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
 | `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Figma Size: Large 32 · Medium 24 · Small 16 high. Short (sm, md…) or Figma (small, medium…) spelling. |
 
 ### SkeletonShape
@@ -59,6 +61,7 @@ Also accepts `SkeletonBaseProps`.
 | `animated` | `boolean` | `true` | Pulse while loading (off for reduced motion). |
 | `className` | `string` | — |  |
 | `style` | `CSSProperties` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
 | `shape` | `"rectangle" \| "pill" \| "round" \| "square"` | `"rectangle"` |  |
 | `size` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large"` | `"md"` | Figma Size: Large 48 · Medium 40 · Small 32 · XSmall 24 · 2XSmall 20 high. Short (sm, md…) or Figma (small, medium…) spelling. |
 

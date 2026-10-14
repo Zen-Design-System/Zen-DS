@@ -11,6 +11,14 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `role=\"tablist\"` element.",
+          "deprecated": null
+        },
+        {
           "name": "items",
           "type": "TabOption[]",
           "required": false,
@@ -250,6 +258,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the panel's root `<div>`.",
           "deprecated": null
         }
       ]

@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { Dialog, ZenProvider } from "../../src/index";
+import { Dialog, ToastStack, ZenPortalProvider, ZenProvider } from "../../src/index";
 import { useControllableState } from "../../src/components/_shared/use-controllable-state";
 import { mergeRefs } from "../../src/components/_shared/merge-refs";
 import { composeEventHandlers } from "../../src/components/_shared/compose-event-handlers";
@@ -122,6 +122,38 @@ describe("modal isolation", () => {
     await userEvent.keyboard("{Escape}");
     await expect.poll(() => Boolean(outside.closest("[inert]"))).toBe(false);
     expect(document.body.style.overflow).toBe("");
+    await screen.unmount();
+  });
+
+  it("leaves an open toast reachable", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <button type="button" data-testid="page">Page</button>
+        <ToastStack toasts={[{ id: 1, title: "Invite sent", duration: null }]} onDismiss={() => undefined} />
+        <Dialog open onOpenChange={() => undefined} title="Delete project?">Body</Dialog>
+      </ZenProvider>,
+    );
+    await expect.poll(() => document.querySelector(".zen-toast-layer")).not.toBeNull();
+    await expect.poll(() => Boolean(screen.getByTestId("page").element().closest("[inert]"))).toBe(true);
+    expect(document.querySelector(".zen-toast-layer")!.closest("[inert]")).toBeNull();
+    await screen.unmount();
+  });
+
+  it("isolates inside an app's own portal container", async () => {
+    function App() {
+      const [container, setContainer] = useState<HTMLDivElement | null>(null);
+      return (
+        <ZenProvider portal={false}>
+          <main><button type="button" data-testid="main-button">Main</button></main>
+          <div ref={setContainer} data-testid="overlays" />
+          {container ? <ZenPortalProvider container={container}><Dialog open onOpenChange={() => undefined} title="Delete project?">Body</Dialog></ZenPortalProvider> : null}
+        </ZenProvider>
+      );
+    }
+    const screen = await render(<App />);
+    const main = screen.getByTestId("main-button").element();
+    await expect.poll(() => Boolean(main.closest("[inert]"))).toBe(true);
+    expect(screen.getByTestId("overlays").element().closest("[inert]")).toBeNull();
     await screen.unmount();
   });
 });

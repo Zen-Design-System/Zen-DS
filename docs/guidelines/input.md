@@ -61,6 +61,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
 
 ### SelectField
 Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
@@ -94,6 +95,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `popoverOpen` | `boolean` | — | Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it. |
 | `onPopoverOpenChange` | `(open: boolean) => void` | — | Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. |
 | `readOnly` | `boolean` | `false` | Figma State=Read-Only: shows the value, keeps the chevron, never opens. |
+| `ref` | `Ref<HTMLSelectElement>` | — | The hidden native `<select>` that holds the value (name, form data, autofill). |
 
 ### DateField
 | Prop | Type | Default | Description |
@@ -115,6 +117,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
 | `datePicker` | `boolean` | `true` |  |
 | `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
 | `onDateChange` | `(date: Date \| null) => void` | — | The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when the field is emptied or a typed date stops being a real day. |
@@ -152,6 +155,7 @@ Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Bu
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
+| `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
 
 ### TextAreaField
 Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
@@ -160,6 +164,7 @@ Also accepts `Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size">`.
 | --- | --- | --- | --- |
 | `size` | `Exclude<InputSize, "xlarge" \| "xl">` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `ref` | `Ref<HTMLTextAreaElement>` | — | The native `<textarea>` element. |
 | `rows` | _HTML attribute_ | `4` |  |
 | `label` | `ReactNode` | — |  |
 | `helpText` | `ReactNode` | — |  |
@@ -204,6 +209,7 @@ Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, T
 | `createLabel` | `ReactNode` | — |  |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio; app code sets label / helpText. |
+| `ref` | `Ref<HTMLDivElement>` | — | The root `<div>` of the field (it has no native text control: tags and the Add button live inside it). |
 
 ### RichTextField
 Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall. The field is a content-editable editor inside the regular Input shell, so hover/focus/Read-only/error states match Text-Area. Output is HTML via `onValueChange(html, text)`. Undo / Redo (the Editor-Bar, ⌘Z, ⇧⌘Z, Ctrl+Y) step through this field's own history and are disabled while there is nothing to undo or redo; a new `value` from outside (clearing the field after it was posted) starts a new history.
@@ -223,6 +229,7 @@ Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) abov
 | `editorBarTheme` | `"subtle" \| "solid" \| "inverse"` | `"subtle"` | Control-Bar/Select-Item Theme of the bar. |
 | `onFocus` | `(event: FocusEvent<HTMLDivElement>) => void` | — |  |
 | `onBlur` | `(event: FocusEvent<HTMLDivElement>) => void` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The content-editable editor element. |
 | `label` | `ReactNode` | — |  |
 | `helpText` | `ReactNode` | — |  |
 | `labelOptional` | `boolean` | — | Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel). |
@@ -249,6 +256,7 @@ Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (l
 | `tooltip` | `boolean \| ReactNode` | `false` | Figma `Tooltip-Icon`: `true` shows the 12px info icon; text/nodes also show it as a hover/focus Tooltip. |
 | `action` | `ReactNode` | — | Figma `Action`: right-aligned Body/Small/Bold slot — a link or a text button (e.g. "Forgot password?"). |
 | `disabled` | `boolean` | `false` | Figma `State=Disabled`: every part (label, optional, icon, action) turns Content/Disabled. |
+| `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>` element. |
 
 ### InputHelpText
 Public implementation of Figma's `.Primitives/Input/Help-Text` owner.
@@ -260,6 +268,7 @@ Public implementation of Figma's `.Primitives/Input/Help-Text` owner.
 | `theme` | `"neutral" \| "negative" \| "warning" \| "positive"` | `"neutral"` |  |
 | `icon` | `boolean` | `true` |  |
 | `characterLimit` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLParagraphElement>` | — | The root `<p>` element. |
 
 ### InputLeadingTrailing
 Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. Three behaviours, chosen per use case: - picker: `options` → a button (label + chevron) that opens the shared Popover; - action: `onClick` → a button that runs the caller's action (filter, show password…); - decorative: neither, or `interactive={false}` → a plain slot; a click on it focuses the field.
@@ -286,6 +295,7 @@ Slot-compatible implementation of `.Primitives/Input/Leading-Trailing`. Three be
 | `aria-label` | `string` | — | Accessible name for a clickable slot; required when it has no visible label (icon-only). |
 | `aria-haspopup` | `ButtonHTMLAttributes<HTMLButtonElement>["aria-haspopup"]` | — | Marks an action slot that opens a menu/popover owned by the caller. |
 | `aria-expanded` | `boolean` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | The root element: a `<span>` for a decorative slot or picker wrapper, a `<button>` for an action slot. |
 
 ### InputContent
 Public implementation of Figma's `.Primitives/Input/Input-Content/Default`.
@@ -296,6 +306,7 @@ Public implementation of Figma's `.Primitives/Input/Input-Content/Default`.
 | `state` | `"default" \| "focused" \| "typing" \| "inputted" \| "disabled"` | `"default"` |  |
 | `text` | `ReactNode` | `"Content"` |  |
 | `cursor` | `boolean` | `true` |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>` element. |
 
 ### ControlBarSelectItem
 Public implementation of Figma's `Control-Bar/Select-Item` primitive.
@@ -322,6 +333,7 @@ Figma `.Primitives/Rich-Text/Editor-Bar`: Undo/Redo · Text style Select (Small)
 | `controls` | `string` | — | id of the editor the bar formats. |
 | `aria-label` | `string` | — | Accessible name of the toolbar. Default: the locale's "Formatting". |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The root toolbar `<div>`. |
 
 ### HeadingField
 Figma Input/Heading (694:13062): an inline-editable heading (no field chrome). Heading/1–3 text, an 8px pad that sits outside the text box (−8px), radius 12, and a Neutral/Subtle surface on hover/focus/typing. One line by default; `multiline` wraps long headings and grows with them (Status=Inputted-Multi-Line).
@@ -332,6 +344,7 @@ Figma Input/Heading (694:13062): an inline-editable heading (no field chrome). H
 | `multiline` | `boolean` | `false` | `false` (default): one line, for short names (a board, a file, a section); a long heading scrolls inside the field. `true`: long headings wrap and the field grows with them (Figma Status=Inputted-Multi-Line), for document, announcement or task titles. It renders a `<textarea>`: Enter never adds a line break (handle it in `onKeyDown`, e.g. to move on) and pasted line breaks become spaces. |
 | `onValueChange` | `(value: string) => void` | — | Called with the text on every change, in both variants. |
 | `status` | `"default" \| "hover" \| "focus" \| "typing" \| "inputted-single-line" \| "inputted-multi-line" \| "inputted-hover"` | — | Deterministic Figma Status for matrices; native hover/focus still apply. |
+| `ref` | `Ref<HTMLInputElement \| HTMLTextAreaElement>` | — | The native `<input>` (or `<textarea>` with `multiline`). |
 
 ### InputConditionItem
 Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular, gap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small).
@@ -340,6 +353,7 @@ Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/
 | --- | --- | --- | --- |
 | `label` (required) | `ReactNode` | — |  |
 | `state` | `"default" \| "success" \| "wrong"` | `"default"` |  |
+| `ref` | `Ref<HTMLLIElement>` | — | The root `<li>` element. |
 
 ### InputConditions
 Figma Input-Conditions: an Item-List slot stacking Condition-Items with gap XSmall.
@@ -348,6 +362,7 @@ Figma Input-Conditions: an Item-List slot stacking Condition-Items with gap XSma
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — |  |
 | `state` | `"default"` | `"default"` |  |
+| `ref` | `Ref<HTMLUListElement>` | — | The root `<ul>` element. |
 
 ### Types
 Object shapes the props above refer to.

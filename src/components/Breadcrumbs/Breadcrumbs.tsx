@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
 import { slotItems } from "../_shared/slots";
@@ -84,10 +84,12 @@ export interface BreadcrumbsProps {
   /** Figma instance overrides: props of the crumbs it draws, by layer (`{ "Crumb[home]/Icon": { name: "icon-home-02-solid" }, "Separator[home]": { name: "icon-minus-line" } }`). Written by Zen Studio;
    *  app code sets the items. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<nav>`. */
+  ref?: Ref<HTMLElement>;
 }
 
 /** Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-right-line-small, Neutral/Light). */
-export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className, overrides }: BreadcrumbsProps) {
+export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className, overrides, ref }: BreadcrumbsProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.breadcrumb;
@@ -111,7 +113,7 @@ export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", 
   const collapse = !expanded && maxItems !== undefined && maxItems >= 2 && items.length > maxItems;
   const visible: Array<BreadcrumbItemData | "ellipsis"> = collapse ? [items[0], "ellipsis", ...items.slice(items.length - (maxItems - 1))] : items;
   return (
-    <nav aria-label={ariaLabel} className={["zen-breadcrumbs", className].filter(Boolean).join(" ")}>
+    <nav ref={ref} aria-label={ariaLabel} className={["zen-breadcrumbs", className].filter(Boolean).join(" ")}>
       <ol ref={listRef} className="zen-breadcrumbs__list">
         {visible.map((entry, index) => {
           const last = index === visible.length - 1;

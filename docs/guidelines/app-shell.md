@@ -65,6 +65,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `layout` | `"auto" \| "sidebar" \| "drawer"` | `"auto"` | Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests. |
 | `children` | `ReactNode` | — | The page. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio; app code keeps the defaults. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the shell's root `<div>`. |
 
 ### AppShellAction
 Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional Primitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on Color/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right. It forwards its ref and props to the button, so it can be a <Menu trigger>.
@@ -81,6 +82,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `appearance` | `"tertiary" \| "flat"` | `"tertiary"` | Figma Theme: `tertiary` (Button/Icon-Main Medium Tertiary, 40px) · `flat` (Button/Icon-Flat Medium Primary: a 20px glyph with a 40px hit area). |
 | `tooltip` | `ReactNode \| false` | — | Tooltip text. Default: `aria-label` (without the count). |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / appearance. |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the icon button element, so the action can be a `<Menu trigger>`. |
 
 ### AppShellAccount
 The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button. Put it in a Menu for the account actions: `<Menu align="end" trigger={<AppShellAccount name="Ava Chen" src={photo} />} items={…} />`. Keyboard focus shows the Avatar's own focus ring.
@@ -93,6 +95,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `src` | `string` | — | Photo URL (Figma Avatar/Single Theme=Photo). |
 | `theme` | `Exclude<AvatarTheme, "photo">` | `"neutral"` | Initials colour without a photo. Default neutral. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio; app code sets src / theme. |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the account button element, so it can be a `<Menu trigger>`. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### Types

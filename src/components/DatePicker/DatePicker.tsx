@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { Icon } from "../Icon";
 import { Button, IconButton } from "../Button";
 import { Checkbox } from "../Checkbox";
@@ -13,6 +13,9 @@ import "./date-picker.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useDismissableLayer } from "../_shared/layers";
+import { useControllableState } from "../_shared/use-controllable-state";
+import { useStableCallback } from "../_shared/use-stable-callback";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export type DatePickerItemState =
   | "default" | "hover" | "single-selected" | "range-selected-start" | "range-selected-end"
@@ -94,6 +97,8 @@ export interface DatePickerHeaderProps {
   /** `mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together
    * at the end; a hidden button leaves no slot. */
   device?: DatePickerDevice;
+  /** Ref to the root `<div>` element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** The month name of `month` ("September", vi "Tháng 9") in `locale`. */
@@ -106,7 +111,7 @@ const weekdayInitials = (locale: string) => {
   return Array.from({ length: 7 }, (_, index) => format.format(new Date(2026, 0, 5 + index)));
 };
 
-export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true, device = "desktop" }: DatePickerHeaderProps) {
+export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true, device = "desktop", ref }: DatePickerHeaderProps) {
   const mobile = device === "mobile";
   const t = useZenLabels();
   const nest = useNested();
@@ -132,7 +137,7 @@ export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, 
   );
   return (
     // A div, not <header>: outside a sectioning element a header is a banner landmark, and the stacked list has one per month.
-    <div className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
+    <div ref={ref} className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
       {!mobile && type !== "display" ? slot(back, "previous") : null}
       {monthLabel}
       {mobile && type !== "display" ? slot(back, "previous") : null}
@@ -156,16 +161,18 @@ export interface DatePickerActionProps {
   cancelDisabled?: boolean;
   /** Submit in its Button/Main Disabled state, e.g. until a range has its end date. */
   applyDisabled?: boolean;
+  /** Ref to the root `<footer>` element. */
+  ref?: Ref<HTMLElement>;
 }
 
 /** `.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall. */
-export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp, cancelDisabled, applyDisabled }: DatePickerActionProps) {
+export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp, cancelDisabled, applyDisabled, ref }: DatePickerActionProps) {
   const t = useZenLabels();
   const nest = useNested();
   const cancelLabel = cancelLabelProp === undefined ? t.cancel : cancelLabelProp;
   const applyLabel = applyLabelProp === undefined ? t.apply : applyLabelProp;
   return (
-    <footer className="zen-date-picker__actions">
+    <footer ref={ref} className="zen-date-picker__actions">
       {action === "dual" ? nest("Cancel", <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button>) : null}
       {nest("Submit", <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>)}
     </footer>
@@ -205,19 +212,18 @@ function WheelColumn({ id, label, value, count, format, onChange, align = "start
   const resolve = (index: number) => (count ? ((index % count) + count) % count : index);
   const [position, setPosition] = useState(value);
   const motion = useRef({ position: value, target: value, frame: 0, last: 0, emitted: value });
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  const resolveRef = useRef(resolve);
-  resolveRef.current = resolve;
+  // Called from animation frames and listeners: always the latest props, without writing refs during render.
+  const emitChange = useStableCallback(onChange);
+  const resolveLatest = useStableCallback(resolve);
 
   const apply = (next: number) => {
     const state = motion.current;
     state.position = next;
     setPosition(next);
-    const selected = resolveRef.current(Math.round(next));
+    const selected = resolveLatest(Math.round(next)) as number;
     if (selected !== state.emitted) {
       state.emitted = selected;
-      onChangeRef.current(selected);
+      emitChange(selected);
     }
   };
   // Frame-rate independent ease towards the target (critically damped feel, ~70ms time constant).
@@ -240,6 +246,7 @@ function WheelColumn({ id, label, value, count, format, onChange, align = "start
   useEffect(() => stop, []);
 
   // Wheel / trackpad: move the target continuously (one mouse notch ≈ one row), snap once input rests.
+  const glideFromWheel = useEffectEvent(glideTo);
   useEffect(() => {
     const list = listRef.current;
     if (!list) return undefined;
@@ -247,13 +254,12 @@ function WheelColumn({ id, label, value, count, format, onChange, align = "start
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
       const rows = Math.max(-1, Math.min(1, event.deltaY / WHEEL_PITCH));
-      glideTo(motion.current.target + rows);
+      glideFromWheel(motion.current.target + rows);
       window.clearTimeout(settle);
-      settle = window.setTimeout(() => glideTo(Math.round(motion.current.target)), 120);
+      settle = window.setTimeout(() => glideFromWheel(Math.round(motion.current.target)), 120);
     };
     list.addEventListener("wheel", handleWheel, { passive: false });
     return () => { list.removeEventListener("wheel", handleWheel); window.clearTimeout(settle); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Press-and-hold drag with momentum. Capture starts after 4px so a plain press still clicks a row.
@@ -353,21 +359,24 @@ export interface DatePickerMonthYearProps {
   month: Date;
   onSubmit?: (month: Date) => void;
   onCancel?: () => void;
+  /** Ref to the month/year wheels `<div>` (the Cancel / Submit row follows it as a sibling). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** `.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a
  * month wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit. */
-export function DatePickerMonthYear({ month, onSubmit, onCancel }: DatePickerMonthYearProps) {
+export function DatePickerMonthYear({ month, onSubmit, onCancel, ref }: DatePickerMonthYearProps) {
   const t = useZenLabels();
   const locale = useZenLocale();
   const monthNames = useMemo(() => monthNamesFor(locale), [locale]);
   const [draftMonth, setDraftMonth] = useState(month.getMonth());
   const [draftYear, setDraftYear] = useState(month.getFullYear());
   const rootRef = useRef<HTMLDivElement>(null);
+  const monthYearRef = useMergedRefs(rootRef, ref);
   useEffect(() => { rootRef.current?.querySelector<HTMLElement>(".zen-date-picker__wheel")?.focus({ preventScroll: true }); }, []);
   return (
     <>
-      <div ref={rootRef} className="zen-date-picker__month-year">
+      <div ref={monthYearRef} className="zen-date-picker__month-year">
         <header className="zen-date-picker__header" data-type="interactive" data-state="focused">
           <button className={`zen-date-picker__month ${typographyStyles["Body/Extra/Bold"]}`} type="button" onClick={onCancel} aria-label={t.backToCalendar}>
             <span>{monthNames[draftMonth]}</span><span>{draftYear}</span>
@@ -510,16 +519,18 @@ export interface DatePickerTimePickerProps {
   onValueChange: (time: DatePickerTime) => void;
   /** `mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`. */
   device?: DatePickerDevice;
+  /** Ref to the root `<div>` element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small times with an AM/PM picker and
  *  Checkbox/Text "All day", Spacing/Gap/Medium apart (Gap/XSmall between a range side's field and its checkbox). */
-export function DatePickerTimePicker({ type = "single", value, onValueChange, device = "desktop" }: DatePickerTimePickerProps) {
+export function DatePickerTimePicker({ type = "single", value, onValueChange, device = "desktop", ref }: DatePickerTimePickerProps) {
   const t = useZenLabels();
   const set = (patch: Partial<DatePickerTime>) => onValueChange({ ...value, ...patch });
   if (type === "range") {
     return (
-      <div className="zen-date-picker__time" data-type="range">
+      <div ref={ref} className="zen-date-picker__time" data-type="range">
         <div className="zen-date-picker__time-side">
           <DatePickerTimeField device={device} label={t.timeFrom} value={value.from} allDay={Boolean(value.fromAllDay)} onValueChange={(from) => set({ from })} />
           <Checkbox label={t.allDay} checked={Boolean(value.fromAllDay)} onCheckedChange={(fromAllDay) => set({ fromAllDay })} />
@@ -533,7 +544,7 @@ export function DatePickerTimePicker({ type = "single", value, onValueChange, de
   }
   const allDay = Boolean(value.fromAllDay);
   return (
-    <div className="zen-date-picker__time" data-type="single">
+    <div ref={ref} className="zen-date-picker__time" data-type="single">
       <div className="zen-date-picker__time-fields">
         <DatePickerTimeField device={device} label={t.timeFrom} value={value.from} allDay={allDay} onValueChange={(from) => set({ from })} />
         <DatePickerTimeField device={device} label={t.timeTo} value={value.to} allDay={allDay} onValueChange={(to) => set({ to })} />
@@ -635,6 +646,8 @@ export interface DatePickerProps {
   /** Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Submit": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio;
    *  app code sets the actions. */
   overrides?: NestedOverrides;
+  /** Ref to the calendar surface (the root `<div>`, a popover or the inline group). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and
@@ -682,6 +695,7 @@ export function DatePicker({
   "aria-labelledby": ariaLabelledBy,
   className,
   overrides,
+  ref,
 }: DatePickerProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
@@ -689,20 +703,21 @@ export function DatePicker({
   const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
   // The app's today when given, else the device clock (read each render, so an open calendar crosses midnight).
   const today = todayProp ?? new Date();
-  const [internalValue, setInternalValue] = useState<Date | null>(defaultValue);
-  const [internalRange, setInternalRange] = useState<DatePickerRange | null>(defaultRange);
+  // The applied value / range / time: the prop when controlled (null = controlled "none"), else kept here. No onChange:
+  // picks call onValueChange / onRangeChange / onTimeChange themselves, also while they are only a draft.
+  const [appliedDate, setAppliedDate] = useControllableState<Date | null>({ value, defaultValue, name: "DatePicker value" });
+  const [appliedRange, setAppliedRange] = useControllableState<DatePickerRange | null>({ value: range, defaultValue: defaultRange, name: "DatePicker range" });
   const [internalMonth, setInternalMonth] = useState<Date>(() => monthStart(value ?? defaultValue ?? range?.start ?? defaultRange?.start ?? today));
   const [view, setView] = useState<"days" | "month-year">("days");
   // The applied selection; with actions, picks are a draft over it until Submit (null: no draft, show the applied one).
-  const applied: DatePickerSelection = { date: value === undefined ? internalValue : value, range: range === undefined ? internalRange : range };
+  const applied: DatePickerSelection = { date: appliedDate, range: appliedRange };
   const [draft, setDraft] = useState<DatePickerSelection | null>(null);
   const shown = showActions && draft ? draft : applied;
   const selected = shown.date;
   const rangeStart = shown.range?.start ?? null;
   const rangeEnd = shown.range?.end ?? null;
   // Times follow the same draft rule as dates.
-  const [internalTime, setInternalTime] = useState<DatePickerTime>(defaultTime);
-  const appliedTime = time ?? internalTime;
+  const [appliedTime, setAppliedTime] = useControllableState<DatePickerTime>({ value: time, defaultValue: defaultTime, name: "DatePicker time" });
   const [draftTime, setDraftTime] = useState<DatePickerTime | null>(null);
   const shownTime = showActions && draftTime ? draftTime : appliedTime;
   const timeDirty = Boolean(timePicker && showActions && draftTime && timeKey(draftTime) !== timeKey(appliedTime));
@@ -714,7 +729,7 @@ export function DatePicker({
   useEffect(() => { setDraftTime(null); }, [appliedTimeKey]);
   const changeTime = (next: DatePickerTime) => {
     if (showActions) setDraftTime(next);
-    else if (time === undefined) setInternalTime(next);
+    else setAppliedTime(next);
     onTimeChange?.(next);
   };
   const currentMonth = controlledMonth ? monthStart(controlledMonth) : internalMonth;
@@ -744,6 +759,7 @@ export function DatePicker({
   };
   // Light dismiss, as a popover: pointer-down outside the surface and its trigger closes it.
   const rootRef = useRef<HTMLDivElement>(null);
+  const surfaceRef = useMergedRefs(rootRef, ref);
   // As a popover (absolutely positioned), sit 4px from the trigger's input box — or above it when
   // the trigger is near the bottom of the viewport. Inline (static) pickers are not moved.
   const placement = useAnchoredPosition(rootRef, open, {
@@ -752,10 +768,6 @@ export function DatePicker({
       return anchor?.querySelector<HTMLElement>(".zen-input__control") ?? anchor;
     },
   });
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
   const hasClose = Boolean(onClose || onOpenChange);
   // Inline: rendered in place (no close callback, no trigger) rather than as a popover. It drops the popover surface.
   const inline = !hasClose && !anchorRef;
@@ -768,7 +780,7 @@ export function DatePicker({
   }, [open, zen?.breakpoint]);
   const device: DatePickerDevice = deviceProp ?? (inline && (domBreakpoint ?? zen?.breakpoint) === "mobile" ? "mobile" : "desktop");
   /** Every close request: `onClose()` and `onOpenChange(false)`. */
-  const requestClose = () => { onCloseRef.current?.(); onOpenChangeRef.current?.(false); };
+  const requestClose = useStableCallback(() => { onClose?.(); onOpenChange?.(false); });
   // One popover at a time (shared with Popover): opening the calendar closes any other object's popover and vice versa.
   useExclusivePopover(open, hasClose ? requestClose : undefined, rootRef, anchorRef);
   const isOutside = useDismissableLayer(open, () => [rootRef.current, anchorRef?.current]);
@@ -796,9 +808,12 @@ export function DatePicker({
   // …and on its month: a date typed into the field while the calendar was closed (or set by the app) is where it opens,
   // else today's month. Before paint, so the old month never flashes. A controlled `month` stays the caller's.
   // Only when it opens (deps: open): browsing months while open is the user's.
+  const syncMonthOnOpen = useEffectEvent(() => {
+    if (!controlledMonth) setInternalMonth(monthStart(applied.date ?? applied.range?.start ?? today));
+  });
   useLayoutEffect(() => {
-    if (open && !controlledMonth) setInternalMonth(monthStart(applied.date ?? applied.range?.start ?? today));
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (open) syncMonthOnOpen();
+  }, [open]);
   const close = () => {
     requestClose();
     // Back to the trigger: the anchor itself, else a field's own input (not a label tooltip or action before it), else
@@ -820,7 +835,7 @@ export function DatePicker({
       const before = rangeStart && !rangeEnd ? dateKey(date) < dateKey(rangeStart) : false;
       const next: DatePickerRange = !rangeStart || rangeEnd ? { start: date, end: null } : { start: before ? date : rangeStart, end: before ? rangeStart : date };
       if (showActions) setDraft({ date: shown.date, range: next });
-      else if (range === undefined) setInternalRange(next);
+      else setAppliedRange(next);
       onValueChange?.(next.end ?? next.start);
       onChange?.(next.end ?? next.start);
       onRangeChange?.(next);
@@ -829,7 +844,7 @@ export function DatePicker({
       return;
     }
     if (showActions) setDraft({ date, range: shown.range });
-    else if (value === undefined) setInternalValue(date);
+    else setAppliedDate(date);
     onValueChange?.(date);
     onChange?.(date);
     if (!showActions && !timePicker) close();
@@ -847,9 +862,9 @@ export function DatePicker({
   };
   // Submit: the draft becomes the applied value (kept here when uncontrolled; a controlled parent follows onApply).
   const apply = () => {
-    if (selectionMode === "range") { if (range === undefined) setInternalRange(shown.range); }
-    else if (value === undefined) setInternalValue(shown.date);
-    if (timePicker && time === undefined) setInternalTime(shownTime);
+    if (selectionMode === "range") setAppliedRange(shown.range);
+    else setAppliedDate(shown.date);
+    if (timePicker) setAppliedTime(shownTime);
     setDraft(null);
     setDraftTime(null);
     onApply?.(selectionMode === "range" ? null : shown.date, selectionMode === "range" ? shown.range : null, timePicker ? shownTime : undefined);
@@ -881,7 +896,7 @@ export function DatePicker({
   const weekdayRow = (className?: string) => <div className={["zen-date-picker__weekdays", className].filter(Boolean).join(" ")} aria-hidden={stacked || undefined}>{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>;
   return (
     <div
-      ref={rootRef}
+      ref={surfaceRef}
       className={["zen-date-picker", className].filter(Boolean).join(" ")}
       // A popover is a dialog over the page; an inline calendar is a group within it.
       role={inline ? "group" : "dialog"}

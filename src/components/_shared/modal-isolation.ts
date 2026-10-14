@@ -7,9 +7,9 @@
 
 const inertCounts = new WeakMap<Element, number>();
 /** Kept reachable: toasts announce and offer actions while a modal is open; non-rendering nodes need nothing. */
-const KEEP = ".zen-toast-stack, script, style, template, link, meta";
+const KEEP = ".zen-toast-layer, .zen-toast-stack, script, style, template, link, meta";
 
-/** Where overlays are portalled: a device frame, a ZenProvider's portal root, or the body. */
+/** Where overlays are portalled when the caller does not say: a device frame, a ZenProvider's portal root, or the body. */
 const PORTAL_CONTAINER = "[data-zen-overlay-root], .zen-provider__portal, body";
 
 /**
@@ -17,9 +17,12 @@ const PORTAL_CONTAINER = "[data-zen-overlay-root], .zen-provider__portal, body";
  * `<body>`, every sibling on the way gets `inert`: the app, other providers, other layers. Popups the modal opens later
  * are added after this runs, so they stay live. Returns the cleanup.
  */
-export function inertOutside(panel: Element): () => void {
+export function inertOutside(panel: Element, container?: Element | null): () => void {
+  // The modal's root is the panel's ancestor directly inside the container it was portalled to. Given that container
+  // (an app's own ZenPortalProvider element included), climb to it; otherwise recognise the usual ones.
+  const isContainer = (element: Element) => (container && container.contains(panel) ? element === container : element.matches(PORTAL_CONTAINER));
   let root: Element = panel;
-  while (root.parentElement && !root.parentElement.matches(PORTAL_CONTAINER)) root = root.parentElement;
+  while (root.parentElement && !isContainer(root.parentElement)) root = root.parentElement;
   const frame = panel.closest("[data-zen-overlay-root]");
   const marked: Element[] = [];
   for (let node: Element = root; node.parentElement && node !== frame && node !== node.ownerDocument.body; node = node.parentElement) {

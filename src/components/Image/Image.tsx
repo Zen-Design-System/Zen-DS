@@ -1,13 +1,13 @@
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ForwardedRef, type ImgHTMLAttributes, type ReactNode, type SyntheticEvent } from "react";
+import { useRef, useState, type CSSProperties, type ImgHTMLAttributes, type ReactNode, type Ref, type SyntheticEvent } from "react";
 import { Icon } from "../Icon";
 import { SkeletonShape } from "../Skeleton";
 import { Text } from "../Text";
 import { normalizeScale, scaleTokenSuffix, type ZenCornerRadius, type ZenScale, type ZenScaleInput } from "../_shared/scale";
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
 import "./image.css";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
+import { useMergedRefs } from "../_shared/merge-refs";
 import "../Icon/core";
-
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export const imageRatios = ["1:1", "4:3", "3:2", "16:9", "3:4"] as const;
 export type ImageRatioName = (typeof imageRatios)[number];
@@ -34,14 +34,6 @@ function useImageStatus(src: string | undefined, onLoad?: ImgAttributes["onLoad"
   const handleLoad = (event: SyntheticEvent<HTMLImageElement>) => { if (src) setResult({ src, status: "loaded" }); onLoad?.(event); };
   const handleError = (event: SyntheticEvent<HTMLImageElement>) => { if (src) setResult({ src, status: "error" }); onError?.(event); };
   return { imgRef, status, handleLoad, handleError };
-}
-
-function useMergedRef<T>(own: { current: T | null }, forwarded: ForwardedRef<T>) {
-  return useCallback((node: T | null) => {
-    own.current = node;
-    if (typeof forwarded === "function") forwarded(node);
-    else if (forwarded) forwarded.current = node;
-  }, [own, forwarded]);
 }
 
 const ratioValue = (ratio: ImageRatio | undefined) => ratio === undefined ? undefined : typeof ratio === "number" ? String(ratio) : ratio.replace(":", " / ");
@@ -91,6 +83,8 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
   className?: string;
   /** On the root (figure or div). */
   style?: CSSProperties;
+  /** Ref to the inner `<img>` element (not the root). */
+  ref?: Ref<HTMLImageElement>;
 }
 
 /**
@@ -100,12 +94,9 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
  *
  *   <Image src={photo} alt="Snowy rooftops of the old town" ratio="16:9" caption="Old town, January" />
  */
-export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
-  { src, alt, ratio, fit = "cover", radius = "md", radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, loading = "lazy", caption, className, style, onLoad, onError, ...imgProps },
-  ref,
-) {
+export function Image({ src, alt, ratio, fit = "cover", radius = "md", radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, loading = "lazy", caption, className, style, onLoad, onError, ref, ...imgProps }: ImageProps) {
   const { imgRef, status, handleLoad, handleError } = useImageStatus(src, onLoad, onError);
-  const setRef = useMergedRef(imgRef, ref);
+  const setRef = useMergedRefs(imgRef, ref);
   const Root = caption ? "figure" : "div";
   const vars = { "--zen-image-ratio": ratioValue(ratio), "--zen-image-radius": cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft }) } as CSSProperties;
   return (
@@ -116,7 +107,7 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
       {caption ? <Text as="figcaption" className="zen-image__caption" textStyle="Body/Small/Regular" tone="base">{caption}</Text> : null}
     </Root>
   );
-});
+}
 
 export const thumbnailShapes = ["rounded", "circle", "square"] as const;
 export type ThumbnailShape = (typeof thumbnailShapes)[number];
@@ -143,6 +134,8 @@ export interface ThumbnailProps extends Omit<ImgHTMLAttributes<HTMLImageElement>
   className?: string;
   /** On the root span. */
   style?: CSSProperties;
+  /** Ref to the inner `<img>` element (not the root). */
+  ref?: Ref<HTMLImageElement>;
 }
 
 /** Radius per size for shape="rounded", following Avatar/Single (Square): 4 → 8 → 12 → 16 → 20 → 28. */
@@ -164,12 +157,9 @@ const thumbnailRadius: Record<ZenScale, string> = {
  *
  *   <ListItem title="Pour-over kettle" caption="$64.00" leading={<Thumbnail src={kettle} alt="" />} />
  */
-export const Thumbnail = forwardRef<HTMLImageElement, ThumbnailProps>(function Thumbnail(
-  { src, alt, size = "md", shape = "rounded", fit = "cover", loading = "lazy", className, style, onLoad, onError, ...imgProps },
-  ref,
-) {
+export function Thumbnail({ src, alt, size = "md", shape = "rounded", fit = "cover", loading = "lazy", className, style, onLoad, onError, ref, ...imgProps }: ThumbnailProps) {
   const { imgRef, status, handleLoad, handleError } = useImageStatus(src, onLoad, onError);
-  const setRef = useMergedRef(imgRef, ref);
+  const setRef = useMergedRefs(imgRef, ref);
   const step = normalizeScale(size) as ZenScale;
   const known = step in scaleTokenSuffix;
   const vars = {
@@ -181,4 +171,4 @@ export const Thumbnail = forwardRef<HTMLImageElement, ThumbnailProps>(function T
       <ImageMedia src={src} alt={alt} loading={loading} fit={fit} status={status} imgRef={setRef} handleLoad={handleLoad} handleError={handleError} imgProps={imgProps} />
     </span>
   );
-});
+}

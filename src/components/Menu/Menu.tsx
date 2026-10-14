@@ -30,6 +30,9 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./menu.css";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { useDismissableLayer } from "../_shared/layers";
+import { useMergedRefs } from "../_shared/merge-refs";
+import { useControllableState } from "../_shared/use-controllable-state";
+import { useStableCallback } from "../_shared/use-stable-callback";
 
 /** One action in a Menu. */
 export type MenuItemData = {
@@ -196,9 +199,8 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
  */
 export function Menu({ trigger, items, children, onSelect, align = "start", open: openProp, defaultOpen = false, onOpenChange, "aria-label": ariaLabel, className, overrides }: MenuProps) {
   const nest = useNested(overrides);
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
-  const controlled = openProp !== undefined;
-  const open = controlled ? openProp : uncontrolledOpen;
+  // onOpenChange is called by setOpen below, on every request as before (the hook would skip a repeated value).
+  const [open, setOpenState] = useControllableState({ value: openProp, defaultValue: defaultOpen, name: "Menu open" });
   const baseId = idFrom(useId());
   const triggerProps = (isValidElement(trigger) ? trigger.props : {}) as TriggerProps;
   const triggerId = triggerProps.id ?? `zen-menu-trigger-${baseId}`;
@@ -211,13 +213,13 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
   /** Set when a press outside closes the menu: focus then stays where the user clicked. */
   const closedOutside = useRef(false);
   const typeahead = useRef<{ text: string; timer?: number }>({ text: "" });
-  const latest = useRef({ onOpenChange, onSelect });
-  latest.current = { onOpenChange, onSelect };
+  const emitOpenChange = useStableCallback(onOpenChange);
+  const emitSelect = useStableCallback(onSelect);
 
   const setOpen = useCallback((next: boolean) => {
-    if (!controlled) setUncontrolledOpen(next);
-    latest.current.onOpenChange?.(next);
-  }, [controlled]);
+    setOpenState(next);
+    emitOpenChange(next);
+  }, [setOpenState, emitOpenChange]);
 
   const placement = useMenuPlacement(surfaceRef, triggerRef, open, align);
   // Closing keeps the surface for its Fast exit fade (popover.css), inert so it takes no clicks or focus meanwhile.
@@ -263,7 +265,7 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
 
   const choose = (item: MenuItemData) => {
     item.onSelect?.();
-    latest.current.onSelect?.(item);
+    emitSelect(item);
     setOpen(false);
     // Back to the trigger, unless the action already moved focus somewhere else (an inline editor, a dialog).
     const active = document.activeElement;
@@ -338,12 +340,8 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     if (next && !surfaceRef.current?.contains(next) && !triggerRef.current?.contains(next)) setOpen(false);
   };
 
-  const mergedTriggerRef = useCallback((node: HTMLElement | null) => {
-    triggerRef.current = node;
-    const own = triggerProps.ref;
-    if (typeof own === "function") own(node);
-    else if (own) (own as { current: HTMLElement | null }).current = node;
-  }, [triggerProps.ref]);
+  // React 19 keeps the trigger's own ref at props.ref; it is fed alongside the menu's.
+  const mergedTriggerRef = useMergedRefs(triggerRef, triggerProps.ref);
 
   const triggerElement = isValidElement<TriggerProps & Record<string, unknown>>(trigger)
     ? cloneElement(trigger, {

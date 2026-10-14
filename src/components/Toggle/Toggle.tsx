@@ -1,4 +1,5 @@
-import { useRef, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from "react";
+import { useRef, type ChangeEvent, type InputHTMLAttributes, type ReactNode, type Ref } from "react";
+import { useControllableState } from "../_shared/use-controllable-state";
 import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./toggle.css";
@@ -30,18 +31,19 @@ export interface ToggleButtonProps extends Omit<InputHTMLAttributes<HTMLInputEle
   state?: ToggleState;
   /** @deprecated Use onCheckedChange (or read event.target.checked). */
   onSelectedChange?: (selected: boolean, event: ChangeEvent<HTMLInputElement>) => void;
+  /** The element with role="switch" (the one that takes focus); the native checkbox inside only carries the form value. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
-export function ToggleButton({ checked, defaultChecked, onCheckedChange, selected, defaultSelected, size: sizeProp = "md", state = "default", disabled, className, onSelectedChange, onChange, "aria-labelledby": labelledBy, "aria-describedby": describedBy, ...inputProps }: ToggleButtonProps) {
+export function ToggleButton({ checked, defaultChecked, onCheckedChange, selected, defaultSelected, size: sizeProp = "md", state = "default", disabled, className, onSelectedChange, onChange, "aria-labelledby": labelledBy, "aria-describedby": describedBy, ref, ...inputProps }: ToggleButtonProps) {
   const size = scaleKey(sizeProp, toggleSizes);
   // `checked` / `defaultChecked` are the canonical names; `selected` / `defaultSelected` still work (the new name wins).
-  const controlled = checked ?? selected;
-  const [internalSelected, setInternalSelected] = useState(defaultChecked ?? defaultSelected ?? false);
+  const [isSelected, setSelected] = useControllableState({ value: checked ?? selected, defaultValue: defaultChecked ?? defaultSelected ?? false, onChange: onCheckedChange, name: "ToggleButton checked" });
   const inputRef = useRef<HTMLInputElement>(null);
-  const isSelected = controlled ?? internalSelected;
   const isDisabled = disabled || state === "disabled";
   return (
     <span
+      ref={ref}
       className={["zen-toggle-button", className].filter(Boolean).join(" ")}
       data-size={size}
       data-selected={isSelected ? "true" : "false"}
@@ -90,9 +92,8 @@ export function ToggleButton({ checked, defaultChecked, onCheckedChange, selecte
         aria-hidden="true"
         hidden
         onChange={(event) => {
-          if (controlled === undefined) setInternalSelected(event.target.checked);
           onChange?.(event);
-          onCheckedChange?.(event.target.checked);
+          setSelected(event.target.checked);
           onSelectedChange?.(event.target.checked, event);
         }}
       />

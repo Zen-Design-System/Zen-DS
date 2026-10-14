@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./visually-hidden.css";
 
@@ -23,6 +23,8 @@ export interface VisuallyHiddenProps extends HTMLAttributes<HTMLElement> {
   htmlFor?: string;
   /** The text for assistive technology (and for the visible pill while a focusable one has focus). */
   children?: ReactNode;
+  /** Ref to the rendered DOM element (the `as` element when set). */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
@@ -34,10 +36,7 @@ export interface VisuallyHiddenProps extends HTMLAttributes<HTMLElement> {
  *   <VisuallyHidden>Actions</VisuallyHidden>
  *   <VisuallyHidden as="a" href="#main" focusable>Skip to main content</VisuallyHidden>
  */
-export const VisuallyHidden = forwardRef<HTMLElement, VisuallyHiddenProps>(function VisuallyHidden(
-  { as: Element = "span", focusable = false, className, children, ...rest },
-  ref,
-) {
+export function VisuallyHidden({ as: Element = "span", focusable = false, className, children, ref, ...rest }: VisuallyHiddenProps) {
   return (
     <Element
       {...rest}
@@ -48,4 +47,4 @@ export const VisuallyHidden = forwardRef<HTMLElement, VisuallyHiddenProps>(funct
       {children}
     </Element>
   );
-});
+}

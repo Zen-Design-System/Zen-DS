@@ -22,13 +22,14 @@ export function useDismissableLayer(open: boolean, nodes: () => Array<Element | 
   // (effects run the other way round). Set once per opening: the lazy-initialisation form React allows for refs.
   if (open && entry.current === null) entry.current = { order: ++opened, nodes: () => getNodes() ?? [] };
   useEffect(() => {
-    if (!open) return undefined;
-    // StrictMode runs this cleanup and effect again on mount: the entry is re-created then, after its children's.
+    // Closed: the next opening takes a new order.
+    if (!open) { entry.current = null; return undefined; }
+    // The entry made while rendering keeps its order through StrictMode's cleanup-and-replay, so a parent stays below
+    // the child that opened with it.
     const current = entry.current ?? (entry.current = { order: ++opened, nodes: () => getNodes() ?? [] });
     layers.add(current);
     return () => {
       layers.delete(current);
-      entry.current = null;
     };
   }, [open, getNodes]);
   return useCallback((target: Node | null) => {

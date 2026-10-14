@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { BadgeCounter } from "../Badge";
 import type { IconName } from "../Icon";
@@ -8,6 +8,8 @@ import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
 import "./segmented.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useControllableState } from "../_shared/use-controllable-state";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export const segmentedLevels = ["primary", "secondary"] as const;
 // The Figma component set only contains Small and Medium.  Keep the public
@@ -36,6 +38,8 @@ export type SegmentedOption = {
 };
 
 export interface SegmentedProps {
+  /** Ref to the root `role="group"` element. */
+  ref?: Ref<HTMLDivElement>;
   options?: SegmentedOption[];
   value?: string;
   defaultValue?: string;
@@ -64,19 +68,19 @@ export interface SegmentedProps {
  * 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
  */
-export function Segmented({ options, value, defaultValue, onValueChange, onChange, level = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides }: SegmentedProps) {
+export function Segmented({ ref, options, value, defaultValue, onValueChange, onChange, level = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides }: SegmentedProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.segmentedControl;
   const size = scaleKey(sizeProp, segmentedSizes);
-  const [internalValue, setInternalValue] = useState(defaultValue ?? options?.[0]?.id);
-  const selectedValue = value ?? internalValue;
-  const select = (next: string) => {
-    if (value === undefined) setInternalValue(next);
-    onValueChange?.(next);
-    onChange?.(next);
-  };
+  const [selectedValue, select] = useControllableState<string | undefined>({
+    value,
+    defaultValue: () => defaultValue ?? options?.[0]?.id,
+    onChange: (next) => { if (next === undefined) return; onValueChange?.(next); onChange?.(next); },
+    name: "Segmented value",
+  });
   const groupRef = useRef<HTMLDivElement>(null);
+  const rootRef = useMergedRefs(ref, groupRef);
   const shownRef = useRef<Element | null>(null);
   // A Segmented wider than its container scrolls sideways (segmented.css). When the selection changes (or on mount),
   // bring the selected segment into view inside the group only; scrollIntoView would scroll the page as well.
@@ -96,7 +100,7 @@ export function Segmented({ options, value, defaultValue, onValueChange, onChang
     else if (rect.right > box.right - inset) group.scrollLeft += (rect.right - (box.right - inset)) / scale;
   });
   return (
-    <div ref={groupRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
+    <div ref={rootRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
       {options ? options.map((option) => nest("Item", <SegmentedItem key={option.id} level={level} selected={selectedValue === option.id} disabled={disabled || option.disabled || option.state === "disabled"} leading={option.leading} badge={option.badge} state={disabled ? "disabled" : option.state} size={size} aria-label={option["aria-label"]} onClick={() => select(option.id)}>{option.label}</SegmentedItem>, option.id)) : nest.slot(children)}
     </div>
   );

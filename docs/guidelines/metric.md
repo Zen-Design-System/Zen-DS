@@ -51,6 +51,7 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 
 ### MetricCard
@@ -77,6 +78,7 @@ Also accepts `MetricProps`.
 | `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 | `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |

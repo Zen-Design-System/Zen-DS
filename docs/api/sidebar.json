@@ -249,6 +249,14 @@
           "default": null,
           "description": "Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the sidebar's root `<nav>`.",
+          "deprecated": null
         }
       ]
     },
@@ -273,6 +281,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the row it draws, by layer (`{ \"Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets counter / icon.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the row's root `<div>` (the item group holding the row and its nested rows).",
           "deprecated": null
         },
         {
@@ -419,6 +435,14 @@
           "default": null,
           "description": "The section's `<SidebarMenuItem>` rows.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the section's root `<section>`.",
+          "deprecated": null
         }
       ]
     },
@@ -475,6 +499,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the flyout content's root `<div>`.",
           "deprecated": null
         }
       ]

@@ -55,14 +55,14 @@ Related: definition of done (`AGENTS.md` §B, `docs/component-usage-rules.md`), 
 
 ## 3. Security
 
-- [ ] No `dangerouslySetInnerHTML` with any value a consumer can pass. Allowed only for build-time generated, trusted markup (as in `Icon` and `Flag`), with a comment saying where the markup comes from.
+- [ ] No `dangerouslySetInnerHTML` / `innerHTML` with any value a consumer can pass. Allowed only for build-time generated, trusted markup (as in `Icon` and `Flag`), with a comment saying where it comes from; HTML from outside goes through `sanitizeHtml` (`_shared/sanitize-html.ts`), as RichTextField does.
 - [ ] Props that become URLs (`href`, `src`, `action`, `formAction`) don't execute `javascript:` / `data:` URLs from untrusted input; document the expectation in JSDoc or sanitise.
-- [ ] `target="_blank"` (e.g. `Link external`) always sets `rel="noopener noreferrer"`.
+- [ ] `target="_blank"` always sets `rel="noopener noreferrer"` (Link adds it for `external` and for any new-tab `target`).
 - [ ] No `eval`, `new Function`, string `setTimeout`, or inline event-handler strings.
 - [ ] User content is rendered as text (React children), never concatenated into HTML, CSS (`style` built from user strings) or selectors.
 - [ ] File inputs (`Uploader`) treat `accept` as a hint only; the component never reads file contents itself, and any preview made with `URL.createObjectURL` is revoked on unmount/remove.
 - [ ] No secrets, tokens, internal URLs or `console.log` of user data in shipped code.
-- [ ] Rest props spread onto DOM (`{...rest}`) can't override security-relevant attributes set by the component (spread first, then the component's own `rel`, `type`, `role`).
+- [ ] Rest props spread onto DOM (`{...rest}`) can't override security-relevant attributes set by the component (spread first, then the component's own `rel`, `type`, `role`). Consumer and built-in handlers on one event combine with `composeEventHandlers` (consumer first; `preventDefault()` opts out).
 - [ ] `<button>` inside forms sets `type` explicitly so it doesn't submit by accident.
 - [ ] No new runtime dependency without review (license, size, maintenance, known CVEs: `npm audit`).
 
@@ -70,10 +70,10 @@ Related: definition of done (`AGENTS.md` §B, `docs/component-usage-rules.md`), 
 
 **API design** (`AGENTS.md` §B "API conventions")
 - [ ] Props follow the house names: `value`/`defaultValue`/`onValueChange`, `checked`/`defaultChecked`/`onCheckedChange`, `selected`, `open`/`onOpenChange`, `size` through `scaleKey()`, icons through `renderIcon()`.
-- [ ] Supports both controlled and uncontrolled use; switching between them doesn't happen silently (one hook for it, no state that drifts from the prop).
+- [ ] Controlled and uncontrolled use go through `useControllableState` (`_shared/use-controllable-state.ts`): `undefined` = uncontrolled, `null` = controlled "none"; onChange only on a real change; a mode switch warns in dev.
 - [ ] Renamed props stay as `@deprecated` aliases and the harness warns (`api/deprecated-prop`).
 - [ ] Accepts `className` and passes remaining DOM props to the root element; merges `className`/`style` instead of replacing them.
-- [ ] `ref` reaches the root DOM node. New components take `ref` as a prop (React 19); `forwardRef` only where existing code already uses it.
+- [ ] `ref` reaches the root DOM node, taken as a plain prop (React 19, no `forwardRef`) with JSDoc. Several refs on one node go through `useMergedRefs`. **[gate]** `tests/smoke/conformance.test.tsx`
 - [ ] Every prop has a type and JSDoc (props docs are generated). Union string literals, not `string`, for variants.
 - [ ] No `any`; no non-null `!` without a reason. **[gate]** `npx tsc --noEmit -p .`
 - [ ] Exported from `src/index.ts`; types exported too.
@@ -84,18 +84,18 @@ Related: definition of done (`AGENTS.md` §B, `docs/component-usage-rules.md`), 
 - [ ] Effects only sync with external systems (DOM, listeners, timers, observers) and clean up everything they start.
 - [ ] Event listeners on `window`/`document` are added once and removed on unmount; `ResizeObserver`/`IntersectionObserver` disconnected.
 - [ ] List keys are stable IDs, never array index for reorderable or filterable lists.
-- [ ] Stable callbacks/objects where they feed effects or memoised children; no `useMemo`/`useCallback` sprinkled where it buys nothing.
-- [ ] No reading `window`, `document`, `localStorage` during render (SSR safe); use effects or `useSyncExternalStore`.
+- [ ] Consumer callbacks read in effects or listeners go through `useStableCallback` (or `useEffectEvent` inside an effect); never `ref.current = x` while rendering. No `useMemo`/`useCallback` sprinkled where it buys nothing.
+- [ ] No reading `window`, `document`, `localStorage` during render (SSR safe); use effects or `useSyncExternalStore`, and `useIsomorphicLayoutEffect` from `_shared`, not a local copy.
 - [ ] Works under `StrictMode` (double effects, double render) without duplicate listeners, toasts or requests.
 - [ ] Context values are memoised so providers don't re-render every consumer on each render.
-- [ ] Overlays render through the Provider's portal (`Portal`) and still work with nested overlays.
+- [ ] Overlays render through the Provider's portal (`Portal`). Light dismiss uses `useDismissableLayer` (`_shared/layers.ts`), so a press in a nested, portalled popup doesn't close its parent. Portalled modals pass `{ isolate: true }` to `useModal` (page `inert`, ref-counted scroll lock).
 - [ ] No large component re-renders on every keystroke/scroll where a ref or `useDeferredValue` would do.
 
 ## 5. Code quality
 
 - [ ] File layout: `src/components/<Name>/{Name.tsx, name.css, index.ts, Name.stories.tsx}`.
 - [ ] Reuses `_shared` helpers (`scale.ts`, `icon.tsx`, `overlay.ts`, `status.ts`, `slots.ts`, `contentTone.ts`) instead of re-implementing them.
-- [ ] CSS classes follow the `zen-<name>__<part>--<modifier>` naming; no global selectors, no `!important` without a `zen-allow-*` reason.
+- [ ] CSS classes follow the `zen-<name>__<part>--<modifier>` naming and state is styled through `data-*` attributes; no global selectors. `!important` only to beat an inline style or inside a reduced-motion override, with a comment on the block saying why.
 - [ ] Deliberate exceptions to a harness rule carry `zen-allow-<allow>: <reason>` right above.
 - [ ] No dead code, commented-out code, unused props or leftover debug output.
 - [ ] Functions small enough to read; no copy-pasted blocks between variants.

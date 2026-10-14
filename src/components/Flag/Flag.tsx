@@ -1,4 +1,4 @@
-import { useEffect, useState, type SVGAttributes } from "react";
+import { useEffect, useState, type Ref, type SVGAttributes } from "react";
 import { scaleKey } from "../_shared/scale";
 import type { FlagName } from "./flagNames";
 import "./flag.css";
@@ -15,6 +15,8 @@ export type FlagProps = Omit<SVGAttributes<SVGSVGElement>, "children" | "name"> 
   size?: FlagSize;
   /** Accessible name for a flag that stands alone. Omit it when the country name sits next to the flag (decorative). */
   label?: string;
+  /** Forwarded to the root `<svg>`. */
+  ref?: Ref<SVGSVGElement>;
 };
 
 // The 260 flags (≈330 KB of SVG) load once, on first use, so apps that never show a flag don't ship them.
@@ -27,7 +29,7 @@ const loadFlags = () => (loading ??= import("./flagData").then((module) => (flag
  * country next to its name (locale pickers, phone codes, addresses, holiday calendars); it is never the only label.
  * Until the flag data has loaded, the same circle shows in Neutral/Subtle.
  */
-export function Flag({ name, size: sizeProp = "md", label, className, ...svgProps }: FlagProps) {
+export function Flag({ name, size: sizeProp = "md", label, className, ref, ...svgProps }: FlagProps) {
   const size: FlagSizeKey = scaleKey(sizeProp, flagSizes);
   const [markup, setMarkup] = useState<string | null>(() => flagData?.[name] ?? null);
   useEffect(() => {
@@ -39,6 +41,7 @@ export function Flag({ name, size: sizeProp = "md", label, className, ...svgProp
   return (
     <svg
       {...svgProps}
+      ref={ref}
       className={["zen-flag", className].filter(Boolean).join(" ")}
       data-size={size}
       data-loading={markup ? undefined : "true"}

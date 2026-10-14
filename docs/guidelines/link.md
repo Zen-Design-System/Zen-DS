@@ -47,6 +47,7 @@ Also accepts `Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "color">`.
 | `visited` | `boolean` | `false` | Show the Content/Hyperlink/Visited colour once the destination has been visited. Default false: in-app links keep one colour; turn it on for content links people scan repeatedly (search results, articles, docs). `hyperlink` tone only. |
 | `as` | `ElementType` | `"a"` | Element or router component rendered instead of `<a>`, e.g. `as={RouterLink} to="/settings"` (React Router, Next.js Link). Every other prop, the ref included, is forwarded to it. |
 | `children` | `ReactNode` | — | The link text. Name the destination (“Billing settings”), never “click here”. The font comes from the surrounding Text. |
+| `ref` | `Ref<HTMLAnchorElement>` | — | Ref to the rendered `<a>` element (or to the `as` component's element). |
 
 ## Keyboard
 | Keys | Action |

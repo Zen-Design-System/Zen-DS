@@ -58,6 +58,7 @@ Also accepts `OverlayOpenProps`.
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close panel”. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets onBack / the actions. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the panel `<aside>` element; set while the panel is open. |
 
 ### Types
 Object shapes the props above refer to.
