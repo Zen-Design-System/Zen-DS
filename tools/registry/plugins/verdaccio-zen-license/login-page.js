@@ -5,7 +5,7 @@
  * SDK, then hand the PocketBase token to the registry, which checks the seat and finishes the npm login.
  *
  * The markup and its stylesheet are Zen DS itself, built by `scripts/build-login-page.mjs` into `login/` (real
- * components rendered to HTML, the CSS they use, the Inter font). This file adds the behaviour.
+ * components rendered to HTML in the light theme, the CSS they use, the Inter font). This file adds the behaviour.
  */
 
 const fs = require('node:fs');
@@ -18,17 +18,6 @@ const STATIC = { 'zen.css': 'text/css; charset=utf-8', 'InterVariable.woff2': 'f
 const read = (name) => fs.readFileSync(path.join(DIR, name), 'utf8');
 const templates = { signin: read('signin.html'), expired: read('expired.html') };
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c');
-
-// ZenProvider renders theme "system" as light on the server; follow the device here, as it does in the browser.
-const THEME_SCRIPT = `<script>
-(() => {
-  const provider = document.querySelector('.zen-provider');
-  const media = matchMedia('(prefers-color-scheme: dark)');
-  const apply = () => { const t = media.matches ? 'dark' : 'light'; provider.dataset.theme = t; provider.style.colorScheme = t; };
-  apply();
-  media.addEventListener('change', apply);
-})();
-</script>`;
 
 function signInScript(storeUrl) {
   return `<script src="${SDK}"></script>
@@ -74,8 +63,8 @@ function signInScript(storeUrl) {
 
 function loginPage({ storeUrl, expired }) {
   return expired
-    ? templates.expired.replace('<!--ZEN_SCRIPT-->', THEME_SCRIPT)
-    : templates.signin.replace('<!--ZEN_SCRIPT-->', THEME_SCRIPT + signInScript(storeUrl));
+    ? templates.expired.replace('<!--ZEN_SCRIPT-->', '')
+    : templates.signin.replace('<!--ZEN_SCRIPT-->', signInScript(storeUrl));
 }
 
 /** The page's stylesheet and font, or null. */

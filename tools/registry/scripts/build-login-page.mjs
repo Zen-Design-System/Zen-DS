@@ -38,7 +38,7 @@ const bold = (text) => h(Z.Text, { as: "span", textStyle: "Body/Base/Bold" }, te
 
 /** The page frame of Zen's SignInTemplate: a flat Card centred on the Canvas, a caption under it. */
 function frame(card, footer) {
-  return h(Z.ZenProvider, { theme: "system" },
+  return h(Z.ZenProvider, { theme: "light" },
     h(Z.Container, { maxWidth: "sm" },
       h(Z.Stack, { gap: "lg", justify: "center", paddingY: "xl", style: { minHeight: "100vh", boxSizing: "border-box" } },
         h(Z.Card, { theme: "flat" },
