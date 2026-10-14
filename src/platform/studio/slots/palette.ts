@@ -914,34 +914,7 @@ const sentence = (names: readonly string[]) => (names.length < 2 ? names.join(""
  * Inside BottomSheet / PlatformPhone the Toggle is size lg (ctx.mobile is set from the chain as well).
  */
 export function paletteFor(ctx: PaletteHostContext): PaletteResult {
-  const chain = [ctx.host, ...ctx.ancestors];
-  const inChain = (names: Set<string>) => chain.find((name) => names.has(name));
-  const context: PaletteContext = { host: ctx.host, slot: ctx.slot, headingLevel: ctx.headingLevel, mobile: ctx.mobile || Boolean(inChain(MOBILE_HOSTS)), uid: ctx.uid };
-  const insideCard = Boolean(inChain(CARD_SURFACES));
-  const overlayHost = inChain(OVERLAY_HOSTS);
-  const formHost = inChain(FORM_HOSTS);
-  const clickTarget = (ctx.slot.accepts?.noInteractiveWhen ?? []).some((prop) => isSet(ctx.hostProps[prop])) ? ctx.host : ctx.clickableAncestor;
-  const only = ctx.slot.accepts?.only?.length ? ctx.slot.accepts.only : null;
-  const deny = new Set(ctx.slot.accepts?.deny ?? []);
-  const clickableRow = ctx.host === "ListItem" && (isSet(ctx.hostProps.onClick) || isSet(ctx.hostProps.href));
-
-  const warningFor = (item: PaletteItem): PaletteWarning | null => {
-    if (only && !only.includes(item.root)) return { short: `${ctx.slot.name} prefers others`, reason: `${ctx.slot.name} takes ${sentence(only)}` };
-    if (SIDEBAR_ROWS.has(item.root) && !inChain(SIDEBAR_HOSTS)) return { short: "Sidebar rows only", reason: "Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout" };
-    if (item.components.includes("Accordion") && (deny.has("Accordion") || chain.includes("Accordion"))) return { short: "Accordion in an Accordion", reason: "Accordions are one level deep" };
-    if (insideCard && item.components.some((name) => CARD_SURFACES.has(name))) return { short: "Card inside a card", reason: "A card never goes inside a card" };
-    const denied = item.components.find((name) => deny.has(name));
-    if (denied) return { short: `${ctx.slot.component} avoids ${denied}`, reason: `${ctx.slot.component} does not take ${denied}` };
-    if (clickTarget && (item.interactive || item.input)) {
-      const what = clickTarget === "ListItem" ? "row" : "card";
-      return { short: `Inside a clickable ${what}`, reason: `The ${what} is one click target, so it holds no controls or fields` };
-    }
-    if (overlayHost && (item.id === "button-primary" || item.id === "button-row")) return { short: `${overlayHost} actions are props`, reason: `${overlayHost} actions are props (primaryAction, secondaryAction)` };
-    if (formHost && item.id === "toggle") return { short: "A form takes a Checkbox", reason: "A form saves on submit: a Checkbox fits it" };
-    if (clickableRow && ctx.slot.prop === "trailing" && CHOICE_CONTROLS.has(item.id)) return { short: "Inside a clickable row", reason: "A clickable row holds no switch or checkbox" };
-    if (item.id === "divider" && (ctx.previousSibling === "Divider" || ctx.nextSibling === "Divider")) return { short: "Next to a Divider", reason: "A Divider is next to it already" };
-    return null;
-  };
+  const { context, insideCard, warningFor } = hostRules(ctx);
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
     if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs live state; pages you make get interactions from the Prototype tab";
@@ -975,6 +948,72 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
     if (warning) warnings[item.id] = warning;
   }
   return { items, warnings, hidden, context };
+}
+
+/** What the host rules read of an item: the palette's own items, or pasted code (warningForCode). */
+type RuleItem = Pick<PaletteItem, "id" | "root" | "components" | "interactive" | "input">;
+
+/** paletteFor's host rules for `ctx`: the build context and the warning an item gets there. */
+function hostRules(ctx: PaletteHostContext) {
+  const chain = [ctx.host, ...ctx.ancestors];
+  const inChain = (names: Set<string>) => chain.find((name) => names.has(name));
+  const context: PaletteContext = { host: ctx.host, slot: ctx.slot, headingLevel: ctx.headingLevel, mobile: ctx.mobile || Boolean(inChain(MOBILE_HOSTS)), uid: ctx.uid };
+  const insideCard = Boolean(inChain(CARD_SURFACES));
+  const overlayHost = inChain(OVERLAY_HOSTS);
+  const formHost = inChain(FORM_HOSTS);
+  const clickTarget = (ctx.slot.accepts?.noInteractiveWhen ?? []).some((prop) => isSet(ctx.hostProps[prop])) ? ctx.host : ctx.clickableAncestor;
+  const only = ctx.slot.accepts?.only?.length ? ctx.slot.accepts.only : null;
+  const deny = new Set(ctx.slot.accepts?.deny ?? []);
+  const clickableRow = ctx.host === "ListItem" && (isSet(ctx.hostProps.onClick) || isSet(ctx.hostProps.href));
+
+  const warningFor = (item: RuleItem): PaletteWarning | null => {
+    if (only && !only.includes(item.root)) return { short: `${ctx.slot.name} prefers others`, reason: `${ctx.slot.name} takes ${sentence(only)}` };
+    if (SIDEBAR_ROWS.has(item.root) && !inChain(SIDEBAR_HOSTS)) return { short: "Sidebar rows only", reason: "Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout" };
+    if (item.components.includes("Accordion") && (deny.has("Accordion") || chain.includes("Accordion"))) return { short: "Accordion in an Accordion", reason: "Accordions are one level deep" };
+    if (insideCard && item.components.some((name) => CARD_SURFACES.has(name))) return { short: "Card inside a card", reason: "A card never goes inside a card" };
+    const denied = item.components.find((name) => deny.has(name));
+    if (denied) return { short: `${ctx.slot.component} avoids ${denied}`, reason: `${ctx.slot.component} does not take ${denied}` };
+    if (clickTarget && (item.interactive || item.input)) {
+      const what = clickTarget === "ListItem" ? "row" : "card";
+      return { short: `Inside a clickable ${what}`, reason: `The ${what} is one click target, so it holds no controls or fields` };
+    }
+    if (overlayHost && (item.id === "button-primary" || item.id === "button-row")) return { short: `${overlayHost} actions are props`, reason: `${overlayHost} actions are props (primaryAction, secondaryAction)` };
+    if (formHost && item.id === "toggle") return { short: "A form takes a Checkbox", reason: "A form saves on submit: a Checkbox fits it" };
+    if (clickableRow && ctx.slot.prop === "trailing" && CHOICE_CONTROLS.has(item.id)) return { short: "Inside a clickable row", reason: "A clickable row holds no switch or checkbox" };
+    if (item.id === "divider" && (ctx.previousSibling === "Divider" || ctx.nextSibling === "Divider")) return { short: "Next to a Divider", reason: "A Divider is next to it already" };
+    return null;
+  };
+  return { context, insideCard, warningFor };
+}
+
+/** Layouts: an item rooted in one is judged by what it holds (button-row: Buttons). */
+const LAYOUT_ROOTS = new Set(["Stack", "Grid", "Box"]);
+/** Components that are controls (a click target) or fields: the palette items' own roots, and the parts of its rows. */
+const CONTROL_ROOTS = new Set([...PALETTE.filter((item) => (item.interactive || item.input) && !LAYOUT_ROOTS.has(item.root)).map((item) => item.root), "Chip", "RadioButton"]);
+const FIELD_ROOTS = new Set([...PALETTE.filter((item) => item.input && !LAYOUT_ROOTS.has(item.root)).map((item) => item.root), "Chip", "RadioButton"]);
+
+/**
+ * Why pasted code goes against the host rules here (user, 2026-10-12: ⌘V warns as an insert does), or null. The code
+ * is read as the palette item it matches: its components (the first one its root), controls and fields among them, and
+ * the item id the rules name (a `level="primary"` Button is button-primary). It still pastes; the status says why.
+ */
+export function warningForCode(ctx: PaletteHostContext, code: string): PaletteWarning | null {
+  const names = [...code.matchAll(/<([A-Z][\w$]*(?:\.[\w$]+)*)/g)].map((match) => match[1].slice(match[1].lastIndexOf(".") + 1));
+  if (!names.length) return null;
+  const root = names[0];
+  const components = [...new Set(names)];
+  const primary = root === "Button" && /^<Button\b[^>]*\blevel="primary"/.test(code.trimStart());
+  const sameParts = (item: PaletteItem) => item.components.length === components.length && item.components.every((name) => components.includes(name));
+  const fits = (item: PaletteItem) => item.root === root && (item.id === "button-primary" ? primary : item.id === "button" ? !primary : true);
+  const match = PALETTE.find((item) => fits(item) && sameParts(item)) ?? PALETTE.find(fits);
+  const item: RuleItem = {
+    id: match?.id ?? `pasted:${root}`,
+    root,
+    components,
+    interactive: components.some((name) => CONTROL_ROOTS.has(name)),
+    input: components.some((name) => FIELD_ROOTS.has(name)),
+  };
+  return hostRules(ctx).warningFor(item);
 }
 
 /** The title of the picker's last section: the items that go against the host rules here (they still insert). */

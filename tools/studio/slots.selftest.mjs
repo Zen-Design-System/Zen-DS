@@ -353,6 +353,61 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("prop names that are not slots: refused", ["onClick", "key", "className", "bad name", 3].map((prop) => applySlotOp(props, at("<ListItem title=\"Flag"), "ListItem", ins(NEW, { prop }), options()).code), ["invalid", "invalid", "invalid", "invalid", "invalid"]);
 }
 
+/* ── insertChild paste: ⌘V of a copied layer into a slot (user, 2026-10-12: "copy element khác vào trong slot") ──── */
+{
+  const header = [
+    'import { useState } from "react";',
+    'import { Button } from "../../../components/Button";',
+    'import { Stack } from "../../../components/Layout";',
+    'import { PageHeader } from "../../../components/PageHeader";',
+    "",
+    "export function Invoices() {",
+    "  const [creating, setCreating] = useState(false);",
+    "  return (",
+    "    <Stack gap=\"md\">",
+    "      <PageHeader title=\"Invoices\"",
+    "        actions={<>",
+    "          <Button level=\"tertiary\">Export</Button>",
+    "          <Button level=\"primary\" onClick={() => setCreating(!creating)}>New invoice</Button>",
+    "        </>} />",
+    "      <PageHeader title=\"Reports\" actions={<Button level=\"primary\">Run</Button>} />",
+    "      <PageHeader title=\"Empty\" />",
+    "    </Stack>",
+    "  );",
+    "}",
+    "",
+  ].join("\n");
+  const COPY = '<Button level="secondary" onClick={() => setCreating(true)}>Duplicate</Button>';
+  const after = (needle) => locOf(header, needle);
+  const beside = run("paste after a layer of a fragment slot", header, "<PageHeader title=\"Invoices", "PageHeader", ins(COPY, { prop: "actions", after: after('<Button level="tertiary"'), paste: true }));
+  check("paste after a layer: between Export and New invoice, reading the file's own state", rows(beside, 11, 15), [
+    "        actions={<>",
+    '          <Button level="tertiary">Export</Button>',
+    '          <Button level="secondary" onClick={() => setCreating(true)}>Duplicate</Button>',
+    '          <Button level="primary" onClick={() => setCreating(!creating)}>New invoice</Button>',
+    "        </>} />",
+  ]);
+  check("paste after a layer: no import, no hook added", [importLines(beside).length, beside.code.split("useState(").length], [4, 2]);
+  const last = run("paste after the last layer", header, "<PageHeader title=\"Invoices", "PageHeader", ins(COPY, { prop: "actions", after: after('<Button level="primary" onClick'), paste: true }));
+  check("paste after the last layer: last in the slot", rows(last, 14, 15), ['          <Button level="secondary" onClick={() => setCreating(true)}>Duplicate</Button>', "        </>} />"]);
+  const single = run("paste after a slot's one element", header, "<PageHeader title=\"Reports", "PageHeader", ins(COPY, { prop: "actions", after: after("<Button level=\"primary\">Run"), paste: true }));
+  check("paste after a slot's one element: a fragment, the copy second", rows(single, 15, 15), ['      <PageHeader title="Reports" actions={<><Button level="primary">Run</Button><Button level="secondary" onClick={() => setCreating(true)}>Duplicate</Button></>} />']);
+  const empty = run("paste into an empty slot", header, "<PageHeader title=\"Empty", "PageHeader", ins(COPY, { prop: "actions", paste: true }));
+  check("paste into an empty slot: the prop is written", rows(empty, 16, 16), ['      <PageHeader title="Empty" actions={<Button level="secondary" onClick={() => setCreating(true)}>Duplicate</Button>} />']);
+  const TWO = '<Button level="tertiary">Share</Button>\n<Button level="tertiary">Print</Button>';
+  const twoIn = run("paste two layers after a layer", header, "<PageHeader title=\"Invoices", "PageHeader", ins(TWO, { prop: "actions", after: after('<Button level="tertiary"'), paste: true }));
+  check("paste two layers after a layer: both, in order", rows(twoIn, 12, 14), ['          <Button level="tertiary">Export</Button>', '          <Button level="tertiary">Share</Button>', '          <Button level="tertiary">Print</Button>']);
+  const twoEmpty = run("paste two layers into an empty slot", header, "<PageHeader title=\"Empty", "PageHeader", ins(TWO, { prop: "actions", paste: true }));
+  check("paste two layers into an empty slot: a fragment, the first selected", [rows(twoEmpty, 16, 19), twoEmpty.inserted.loc], [['      <PageHeader title="Empty" actions={<>', '        <Button level="tertiary">Share</Button>', '        <Button level="tertiary">Print</Button>', "      </>} />"], "17:8"]);
+  const host = after("<PageHeader title=\"Invoices");
+  check("an insert (not a paste) still reads Zen components and toast only", applySlotOp(header, host, "PageHeader", ins(COPY, { prop: "actions" }), options()).error, "The code uses `setCreating`, which a slot cannot provide (only Zen components and toast); write the value in the code");
+  check("paste: a name that does not exist where it lands is refused", applySlotOp(header, host, "PageHeader", ins('<Button onClick={() => archive()}>Archive</Button>', { prop: "actions", paste: true }), options()).error, "The pasted layer uses `archive`, which does not exist inside <PageHeader>; paste it in the code");
+  check("paste: a component that is not Zen's is refused", applySlotOp(header, host, "PageHeader", ins("<Invoice />", { prop: "actions", paste: true }), options()).error, "<Invoice> is not a Zen component this file can import; paste it in the code");
+  check("paste: `after` outside the slot is refused", applySlotOp(header, host, "PageHeader", ins(COPY, { prop: "actions", after: after("<Button level=\"primary\">Run"), paste: true }), options()).error, `The slot has no layer at ${after("<Button level=\"primary\">Run")}; select the layer again`);
+  check("`after` with `index`: refused", applySlotOp(header, host, "PageHeader", ins(COPY, { prop: "actions", after: after('<Button level="tertiary"'), index: 0, paste: true }), options()).error, "Send `index` or `after`, not both");
+  check("`paste` must be a boolean", applySlotOp(header, host, "PageHeader", ins(COPY, { prop: "actions", paste: "yes" }), options()).error, "`paste` must be true or false");
+}
+
 /* ── a slot that holds a same-file `const name = <JSX>` (user, 2026-10-09: HR's Sidebar footer={appsButton}) ──────────── */
 {
   const shared = page(

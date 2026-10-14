@@ -214,7 +214,7 @@ export const FIGMA_PROPS = {
       Close: skip("closing is onClose in the code"),
       Caption: skip("the message text is the element's content"),
       Title: { toggle: "title", on: "Title" },
-      Visual: skip("content slot"),
+      Leading: skip("content slot (Theme=Custom's visual)"),
       Content: skip("content slot"),
       Theme: "theme",
     },

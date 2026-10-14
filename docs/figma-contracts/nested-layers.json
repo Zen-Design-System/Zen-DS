@@ -9,7 +9,7 @@
    "l": {
     "Control-Bar": "F",
     "Leading-Actions": "F",
-    "Button/Icon-Flat": "I",
+    "Attach": "I",
     "Container": "F",
     "Leading-Icon": "I",
     "Input-Text": "F",
@@ -20,7 +20,8 @@
     "Elements": "F",
     "Label": "T",
     "Dropdown": "I",
-    "Button/Icon-Main": "I",
+    "Dictate": "I",
+    "Submit": "I",
     "Cursor": "I",
     "Content": "F"
    }
@@ -43,20 +44,16 @@
    "n": "Alert-Banner",
    "v": 10,
    "l": {
-    "Visual": "F",
-    "icon-info-circle-line": "I",
+    "Icon-Wrapper": "F",
+    "Icon": "I",
     "Text": "T",
     "Actions": "F",
-    "Button/Overlay": "I",
+    "Action": "I",
     "Container": "F",
     "Leading-Icon": "I",
     "Label": "T",
     "Trailing-Icon": "I",
-    "icon-x-small-line": "I",
-    "icon-info-circle-solid": "I",
-    "icon-check-solid": "I",
-    "icon-alert-triangle-solid": "I",
-    "icon-x-circle-solid": "I"
+    "icon-x-small-line": "I"
    }
   },
   "9535:33812": {
@@ -94,7 +91,7 @@
     "Icon": "I",
     "Noti": "I",
     "Label": "T",
-    "CTA": "I",
+    "Action": "I",
     ".Primitives/Bottom-Navigation/Items/Default": "F",
     "System/Bottom-Indicator": "I",
     "Indicator": "F"
@@ -112,7 +109,7 @@
     "Icon": "I",
     "Noti": "I",
     "Label": "T",
-    "CTA": "I",
+    "Action": "I",
     ".Primitives/Bottom-Navigation/Items/Default": "F",
     "System/Bottom-Indicator": "I",
     "Indicator": "F"
@@ -257,12 +254,11 @@
     "Message-Text": "F",
     "Message": "T",
     "Time": "T",
-    "Button/Overlay": "I",
+    "Action": "I",
     "Label": "T",
     "Trailing-Icon": "I",
     "Footed": "F",
-    "Duration": "T",
-    "Button/Flat": "I"
+    "Duration": "T"
    }
   },
   "6182:56819": {
@@ -284,7 +280,7 @@
     "Text": "T",
     "Nav-Action/Icon-Flat": "I",
     "Trailing-Actions": "F",
-    "Main": "I",
+    "Send": "I",
     "System/Bottom-Indicator": "I",
     "Indicator": "F",
     "Button/Icon-Flat": "I",
@@ -359,7 +355,7 @@
     "Back-Container": "F",
     "Heading-Div": "F",
     "Icon-Wrapper": "F",
-    "icon-info-circle-solid": "I",
+    "Icon": "I",
     "Content": "F",
     "Heading-Text": "IF",
     "Heading": "T",
@@ -375,10 +371,7 @@
     "Leading-Icon": "I",
     "Label": "T",
     "Trailing-Icon": "I",
-    "Primary": "I",
-    "icon-check-circle-solid": "I",
-    "icon-alert-triangle-solid": "I",
-    "icon-info-hexagon-solid": "I"
+    "Primary": "I"
    }
   },
   "841:17182": {
@@ -398,7 +391,7 @@
     "Leading-Icon": "I",
     "Heading-Div": "F",
     "Icon-Wrapper": "F",
-    "icon-info-circle-solid": "I",
+    "Icon": "I",
     "Content": "F",
     "Heading-Text": "F",
     "Heading": "T",
@@ -406,7 +399,7 @@
     "Caption": "T",
     "Body": "F",
     "Main-Contents": "F",
-    "Footer": "F",
+    "Actions": "F",
     "Buttons": "I",
     "Secondary": "I",
     "Label": "T",
@@ -423,17 +416,18 @@
    "v": 1,
    "l": {
     "Illustration": "I",
-    "icon-user-circle-line": "I",
+    "Icon": "I",
     "Content-Wrapper": "F",
     "Content": "F",
     "Title": "T",
     "Caption": "T",
     "CTA": "I",
-    "Button/Main": "I",
+    "Primary": "I",
     "Container": "F",
     "Leading-Icon": "I",
     "Label": "T",
-    "Trailing-Icon": "I"
+    "Trailing-Icon": "I",
+    "Secondary": "I"
    }
   },
   "595:54857": {
@@ -452,7 +446,7 @@
     "Label-Wrapper": "F",
     "Label": "T",
     "Close": "I",
-    "Visual": "F"
+    "Leading": "F"
    }
   },
   "421:4108": {
@@ -670,13 +664,14 @@
     "8": "I",
     "9": "I",
     "10": "I",
-    "Button/Icon-Main": "I",
+    "Previous": "I",
     "Container": "F",
     "Leading-Icon": "I",
     "Pages": "F",
     "Label": "TI",
     "...": "I",
-    "Chip/Advanced": "I",
+    "Next": "I",
+    "Page-Size": "I",
     "Badge": "I",
     "Text-Wrapper": "F",
     "Remove": "I",
@@ -808,7 +803,7 @@
     "Item-List": "F",
     "Tab-Item/01": "I",
     "Container": "F",
-    "icon-home-03-solid": "I",
+    "Icon": "I",
     "Label": "T",
     "Badge-Counter": "I",
     "Text-Wrapper": "F",
@@ -833,19 +828,18 @@
    "v": 6,
    "l": {
     "\u001dContainer": "F",
-    "icon-Container": "F",
+    "Icon-Wrapper": "F",
     "Icon": "I",
     "Body": "F",
     "Content": "F",
     "Title here": "T",
     "Description text is here": "T",
-    "Button/Overlay": "I",
+    "Action": "I",
     "Container": "F",
     "Leading-Icon": "I",
     "Label": "T",
     "Trailing-Icon": "I",
-    "Close": "I",
-    "Button/Main": "I"
+    "Close": "I"
    }
   },
   "1581:22708": {
