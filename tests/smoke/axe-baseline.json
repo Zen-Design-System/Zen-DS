@@ -66,6 +66,9 @@
   "MetricCard": [
     "color-contrast"
   ],
+  "PopoverManualAddNew": [
+    "color-contrast"
+  ],
   "Segmented": [
     "color-contrast"
   ],

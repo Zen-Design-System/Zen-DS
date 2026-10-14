@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -24,6 +24,8 @@ export interface RadialChartProps {
   /** Legend below (default), above, or beside the rings (start / end). */
   legendPosition?: ChartLegendPosition;
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
 }
@@ -37,7 +39,7 @@ const GAP_PX = 8;
  * (Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump
  * to the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End).
  */
-export function RadialChart({ data, max = 100, format, size = 200, "aria-label": ariaLabel, value, label, showLegend = true, legendPosition = "bottom", className, animate = true }: RadialChartProps) {
+export function RadialChart({ data, max = 100, format, size = 200, "aria-label": ariaLabel, value, label, showLegend = true, legendPosition = "bottom", className, animate = true, ref }: RadialChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, null);
@@ -51,7 +53,7 @@ export function RadialChart({ data, max = 100, format, size = 200, "aria-label":
     : rings.map((ring) => `${ring.d.label} ${show(ring.d.value)}`).join(", ");
   const legend = showLegend ? <ChartLegend items={rings.map((ring) => ({ id: ring.d.id, label: ring.d.label, color: ring.colour }))} /> : undefined;
   return (
-    <ChartBlock kind="radial" legend={legend} position={legendPosition} className="zen-chart-round">
+    <ChartBlock ref={ref} kind="radial" legend={legend} position={legendPosition} className="zen-chart-round">
       <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="radial" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `${size}px` } as CSSProperties}>
         <div className="zen-chart__round" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}

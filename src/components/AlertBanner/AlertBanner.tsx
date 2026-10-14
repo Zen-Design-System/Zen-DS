@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Button } from "../Button";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
@@ -45,6 +45,8 @@ export interface AlertBannerProps {
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Forwarded to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio;
    *  app code sets leading / action. */
   overrides?: NestedOverrides;
@@ -55,7 +57,7 @@ export interface AlertBannerProps {
  * Medium 56px (padding Small/Large, gap Small, 20px icons) · Small 32px (padding XSmall/Medium, gap XSmall, 16px icons).
  * Warning uses Content/On-Brights; Info/Positive/Negative use Content/On-Colors; Default is Neutral/Solid + Inverse.
  */
-export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className, overrides }: AlertBannerProps) {
+export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref }: AlertBannerProps) {
   const nest = useNested(overrides);
   const theme: AlertBannerTheme = themeProp ?? toneFromStatus(status) ?? "default";
   const t = useZenLabels();
@@ -65,7 +67,7 @@ export function AlertBanner({ children, theme: themeProp, status, size: sizeProp
   const urgent = theme === "negative" || theme === "warning";
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
   return (
-    <div className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={theme} data-size={size} role={urgent ? "alert" : "status"}>
+    <div ref={ref} className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={theme} data-size={size} role={urgent ? "alert" : "status"}>
       {leadingNode ? <span className="zen-alert-banner__icon" aria-hidden="true">{leadingNode}</span> : null}
       <span className={`zen-alert-banner__message ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}>{nest.slot(children)}</span>
       {action && size === "medium" ? (

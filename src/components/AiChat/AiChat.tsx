@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactElement, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactElement, type ReactNode, type Ref } from "react";
 import { IconButton } from "../Button";
 import { Chip } from "../Chip";
 import { Icon, type IconName } from "../Icon";
@@ -10,6 +10,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./ai-chat.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 /** Figma AI/Chat-Field Style: Default (Input fill + Effect/Input) · Surface (Surface + Shadow/Bottom/Level-1) · Liquid Glass. */
 export type AiChatFieldStyle = "default" | "surface" | "liquid-glass";
@@ -43,6 +44,8 @@ export interface AiChatFieldProps {
   /** Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio;
    *  app code sets onAttach / onVoice / onVoiceMode. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<form>` element. */
+  ref?: Ref<HTMLFormElement>;
 }
 
 /**
@@ -53,7 +56,7 @@ export interface AiChatFieldProps {
  * their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219):
  * `listening` shows Listening… and turns the microphone into Stop.
  */
-export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className, overrides }: AiChatFieldProps) {
+export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className, overrides, ref }: AiChatFieldProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   // Dictation (State=Voice) shows Listening… in the prompt; the field's accessible name stays the prompt's own.
@@ -70,6 +73,7 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // Figma Style=Liquid Glass: Liquid-Glass/Normal's GLASS effect (frost, refraction at the rim, dispersion).
   const glass = useLiquidGlass("liquid-glass-normal", fieldStyle === "liquid-glass");
+  const formRef = useMergedRefs<HTMLFormElement>(glass, ref);
   const onControl = (target: EventTarget) => target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, [role='button']"));
   const keepCaret = (event: MouseEvent<HTMLFormElement>) => { if (!disabled && !onControl(event.target)) event.preventDefault(); };
   const focusPrompt = (event: MouseEvent<HTMLFormElement>) => {
@@ -86,7 +90,7 @@ export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle
       ? <IconButton appearance="main" level="primary" size="md" type="submit" aria-label={t.send} disabled={disabled || !typing} icon={<Icon name="icon-arrow-up-line" />} />
       : <IconButton appearance="main" level="primary" size="md" aria-label={t.startVoiceMode} disabled={disabled} onClick={voiceMode} icon={<Icon name="icon-recording-02-line" />} />);
   return (
-    <form ref={glass} className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
+    <form ref={formRef} className={["zen-ai-field", className].filter(Boolean).join(" ")} data-style={fieldStyle} data-long={long ? "true" : undefined} data-leading={onAttach ? undefined : "none"} onSubmit={submit} onMouseDown={keepCaret} onClick={focusPrompt}>
       <textarea ref={inputRef} className={`zen-ai-field__input ${typographyStyles["Body/Extra/Medium"]}`} rows={1} value={text} aria-label={prompt} disabled={disabled} onChange={(event) => setText(event.target.value)} onKeyDown={onKeyDown} />
       {/* Figma Text (trunc): one line with an ellipsis — a textarea placeholder can only clip, so it is drawn here. */}
       {text ? null : <span className={`zen-ai-field__placeholder ${typographyStyles["Body/Extra/Medium"]}`} aria-hidden="true">{placeholder}</span>}
@@ -135,20 +139,22 @@ export interface AiChatBubbleProps {
   /** Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there
    *  are several). Written by Zen Studio; app code sets `actions`. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<div>` element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
  * Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padding 12/16, right-aligned, max 560);
  * AI = plain Body/Extra/Regular text across the column. Both use Body/Extra/Regular; actions appear under the bubble on hover.
  */
-export function AiChatBubble({ side, children, actions = [], version, streaming = false, thinking = false, thinkingLabel: thinkingLabelProp, className, overrides }: AiChatBubbleProps) {
+export function AiChatBubble({ side, children, actions = [], version, streaming = false, thinking = false, thinkingLabel: thinkingLabelProp, className, overrides, ref }: AiChatBubbleProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const thinkingLabel = thinkingLabelProp ?? t.thinking;
   const empty = children === undefined || children === null || children === false || children === "";
   const dots = side === "ai" && (thinking || (streaming && empty));
   return (
-    <div className={["zen-ai-bubble", className].filter(Boolean).join(" ")} data-side={side} data-streaming={streaming && !dots ? "true" : undefined} data-thinking={dots ? "true" : undefined} aria-busy={streaming || dots || undefined}>
+    <div ref={ref} className={["zen-ai-bubble", className].filter(Boolean).join(" ")} data-side={side} data-streaming={streaming && !dots ? "true" : undefined} data-thinking={dots ? "true" : undefined} aria-busy={streaming || dots || undefined}>
       {dots
         ? <span className="zen-ai-thinking" role="status" aria-label={thinkingLabel}><i /><i /><i /></span>
         : <div className={`zen-ai-bubble__content ${typographyStyles["Body/Extra/Regular"]}`}>{nest.slot(children)}</div>}
@@ -175,13 +181,13 @@ export interface AiChatSuggestion {
 }
 
 /** Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon). */
-export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, suggestions = [], children, className, overrides }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. */ headingLevel?: 1 | 2 | 3; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string; /** Figma instance overrides of the suggestion chips, by label (`{ "Suggestion[Plan a trip]": { level: "primary" } }`), written by Zen Studio. */ overrides?: NestedOverrides }) {
+export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, suggestions = [], children, className, overrides, ref }: { /** Say-Hi heading (the locale's "How can I help you today?" by default). */ greeting?: ReactNode; /** Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1. */ headingLevel?: 1 | 2 | 3; /** Say-Hi logo: an icon name or your own node (the Zen mark by default). */ logo?: IconName | ReactNode; suggestions?: AiChatSuggestion[]; children: ReactNode; className?: string; /** Figma instance overrides of the suggestion chips, by label (`{ "Suggestion[Plan a trip]": { level: "primary" } }`), written by Zen Studio. */ overrides?: NestedOverrides; /** Ref to the root `<section>` element. */ ref?: Ref<HTMLElement> }) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const greeting = greetingProp === undefined ? t.greeting : greetingProp;
   const Greeting = `h${headingLevel}` as const;
   return (
-    <section className={["zen-ai-block", className].filter(Boolean).join(" ")} aria-label={t.assistant}>
+    <section ref={ref} className={["zen-ai-block", className].filter(Boolean).join(" ")} aria-label={t.assistant}>
       <div className="zen-ai-block__hello">
         <span className="zen-ai-block__logo" aria-hidden="true">{renderIcon(logo ?? "icon-zen")}</span>
         <Greeting className={`zen-ai-block__greeting ${typographyStyles["Heading/1"]}`}>{greeting}</Greeting>
@@ -199,7 +205,7 @@ export function AiChatBlock({ greeting: greetingProp, headingLevel = 2, logo, su
 }
 
 /** Conversation column (max 800, gap 24); the field docks at the bottom. */
-export function AiChatThread({ children, "aria-label": ariaLabelProp, className }: { children: ReactNode; /** Accessible name of the conversation (the locale's "Conversation" by default). */ "aria-label"?: string; className?: string }) {
+export function AiChatThread({ children, "aria-label": ariaLabelProp, className, ref }: { children: ReactNode; /** Accessible name of the conversation (the locale's "Conversation" by default). */ "aria-label"?: string; className?: string; /** Ref to the root `<div role="log">` element. */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
-  return <div className={["zen-ai-thread", className].filter(Boolean).join(" ")} role="log" aria-label={ariaLabelProp ?? t.conversation} aria-live="polite">{children}</div>;
+  return <div ref={ref} className={["zen-ai-thread", className].filter(Boolean).join(" ")} role="log" aria-label={ariaLabelProp ?? t.conversation} aria-live="polite">{children}</div>;
 }

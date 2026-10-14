@@ -1,4 +1,4 @@
-import { type ChangeEvent, type ReactNode } from "react";
+import { type ChangeEvent, type ReactNode, type Ref } from "react";
 import { Icon } from "../Icon";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./radio-button.css";
@@ -27,9 +27,11 @@ export interface RadioButtonProps {
   name?: string;
   value?: string;
   className?: string;
+  /** The native radio input (the element that takes focus), e.g. to focus it or read `validity`. */
+  ref?: Ref<HTMLInputElement>;
 }
 
-export function RadioButton({ checked, defaultChecked = false, onCheckedChange, onChange, label: labelProp, "aria-label": ariaLabel, caption, bold = false, radioSide = "left", state = "default", disabled = false, name, value, className }: RadioButtonProps) {
+export function RadioButton({ checked, defaultChecked = false, onCheckedChange, onChange, label: labelProp, "aria-label": ariaLabel, caption, bold = false, radioSide = "left", state = "default", disabled = false, name, value, className, ref }: RadioButtonProps) {
   // "Content label" stays English on purpose: Figma's demo placeholder, shown only when neither label nor aria-label is set.
   const label = labelProp ?? (ariaLabel ? undefined : "Content label");
   // Uncontrolled radios stay native (defaultChecked) so a group sharing `name` keeps exactly one
@@ -44,7 +46,7 @@ export function RadioButton({ checked, defaultChecked = false, onCheckedChange, 
         {caption ? <span className={`zen-radio-button__caption ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
       </span> : null}
       {radioSide === "right" ? <RadioMark /> : null}
-      <input type="radio" name={name} value={value} {...(checked === undefined ? { defaultChecked } : { checked })} disabled={isDisabled} onChange={(event) => { onCheckedChange?.(event.target.checked); onChange?.(event.target.checked, event); }} aria-label={ariaLabel ?? (typeof label === "string" ? label : undefined)} />
+      <input ref={ref} type="radio" name={name} value={value} {...(checked === undefined ? { defaultChecked } : { checked })} disabled={isDisabled} onChange={(event) => { onCheckedChange?.(event.target.checked); onChange?.(event.target.checked, event); }} aria-label={ariaLabel ?? (typeof label === "string" ? label : undefined)} />
     </label>
   );
 }

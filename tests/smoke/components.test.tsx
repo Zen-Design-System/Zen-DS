@@ -7,7 +7,7 @@
  * for a fixture. Fixing an a11y issue makes its baseline entry stale: the test fails until the baseline is rewritten
  * (ZEN_UPDATE_AXE=1 npm test -- tests/smoke), so the baseline only ever shrinks.
  */
-import { createElement, createRef, isValidElement, type ComponentType, type ReactElement, type ReactNode } from "react";
+import { createElement, isValidElement, type ComponentType, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { commands } from "vitest/browser";
@@ -16,35 +16,7 @@ import * as Zen from "../../src/index";
 import { fixtures } from "./fixtures";
 import baseline from "./axe-baseline.json";
 
-type ApiProp = { name: string; type: string; required: boolean };
-type ApiComponent = { name: string; props: ApiProp[] };
-type ApiFile = { slug: string; components: ApiComponent[] };
-
-const apiFiles = import.meta.glob<ApiFile>("../../docs/api/*.json", { eager: true, import: "default" });
-const components = Object.values(apiFiles)
-  .flatMap((file) => file.components.map((component) => ({ ...component, slug: file.slug })))
-  .sort((a, b) => a.name.localeCompare(b.name))
-  // The same component can be documented by two slugs (DateField: input + date-picker); test it once.
-  .filter((component, index, all) => all.findIndex((other) => other.name === component.name) === index);
-
-const noop = () => undefined;
-
-/** A value that satisfies a react-docgen type string, or `undefined` when a fixture is needed. */
-function synthesise(prop: ApiProp): unknown {
-  const type = prop.type.trim();
-  if (type.includes("=>")) return noop;
-  const literal = type.match(/^"([^"]*)"/);
-  if (literal) return literal[1];
-  if (/^(string|string \| undefined)$/.test(type)) return prop.name.toLowerCase().includes("label") ? "Label" : "Sample text";
-  if (/^number\b/.test(type)) return 1;
-  if (/^boolean\b/.test(type)) return false;
-  if (/^(ReactNode|ReactNode \| .*)$/.test(type)) return "Sample content";
-  if (/^ReactElement\b/.test(type)) return createElement("button", { type: "button" }, "Trigger");
-  if (/^IconName\b/.test(type)) return "icon-check-line";
-  if (/^Date\b/.test(type)) return new Date(2026, 8, 27);
-  if (/^RefObject</.test(type)) return createRef();
-  return undefined;
-}
+import { components, noop, synthesise } from "./api-components";
 
 /** Axe rules that judge the page, not a component rendered alone. */
 const pageRules = { region: { enabled: false }, "landmark-one-main": { enabled: false }, "page-has-heading-one": { enabled: false } };

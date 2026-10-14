@@ -35,6 +35,7 @@ Figma `icon-media-file` (Iconography → Special Icons → File): a coloured fil
 | `format` (required) | _HTML attribute_ | — | Figma `icon-media-file` Format. |
 | `size` | `IconSize \| number` | `"base"` | Same scale as Icon (Element-Size/Popular); Figma draws it at 20 (base). |
 | `title` | `string` | — | Accessible name; without it the icon is decorative (the file name usually sits next to it). |
+| `ref` | `Ref<SVGSVGElement>` | — | Forwarded to the root `<svg>`. |
 
 ### Types
 Object shapes the props above refer to.

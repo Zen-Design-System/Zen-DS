@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type FocusEvent } from "react";
+import { useCallback, useRef, useState, type ChangeEvent, type FocusEvent } from "react";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 import { useZenLabels } from "../_shared/zen-context";
 import { focusFirstInvalidField } from "./focus";
 
@@ -178,8 +179,6 @@ export interface FormState<V extends object> {
 }
 
 type Flags<V> = Partial<Record<FormFieldName<V>, boolean>>;
-
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Drops empty messages, so `{ email: undefined }` or `{ email: "" }` counts as valid. */
 function clean<V>(errors: FormErrors<V> | undefined | null): FormErrors<V> {

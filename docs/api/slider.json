@@ -137,6 +137,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (the wrapper around the range input and the limits).",
+          "deprecated": null
         }
       ]
     }

@@ -44,6 +44,7 @@ Figma Inline-Message (595:54857): a Subtle-surface message inside the content it
 | `onClose` | `() => void` | — | Shows the close control (icon-x-small-line, Content/Neutral/Light). |
 | `closeLabel` | `string` | — | Accessible name of the close control. Default: the locale's “Dismiss”. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / action. |
 
 ## Keyboard

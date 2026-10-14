@@ -44,6 +44,7 @@ Also accepts `Omit<FormHTMLAttributes<HTMLFormElement>, "onSubmit" | "children">
 | `invalidMessage` | `(count: number) => string` | — | Screen-reader message after a failed submit. Default: the locale's "1 field needs attention" / "3 fields need attention". |
 | `noValidate` | `boolean` | `true` | Skip the browser's own validation bubbles; Zen shows errors under each field. Default true. |
 | `children` | `ReactNode` | — | The groups of the form, top to bottom: Stacks or Grids of fields, FormFieldsets, and FormActions last. |
+| `ref` | `Ref<HTMLFormElement>` | — | Ref to the rendered `<form>` element. |
 
 ### FormField
 Label, help text and error for a control that has no built-in ones (Slider, ColorSelector, a custom picker). Zen inputs (InputField, SelectField…) already have label/helpText/error: use them directly. The wrapper is marked invalid while `error` is set, so Form can focus it after a failed submit.
@@ -62,6 +63,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `controlId` | `string` | — | id given to the control (default: generated). The label points at it. |
 | `children` (required) | `ReactElement` | — | Exactly one control. It receives `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` and `aria-required`, so it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five). |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio; app code sets label / helpText. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
 ### FormFieldset
 A `<fieldset>` + `<legend>` for a group of Checkbox, RadioButton or Toggle rows, with one help text and one error for the whole group. `kind="radio"` makes it a radiogroup. The legend uses the field label style (Body/Small/Regular).
@@ -81,6 +83,7 @@ Also accepts `Omit<FieldsetHTMLAttributes<HTMLFieldSetElement>, "children">`.
 | `optional` | `boolean` | `false` | Figma Label `Optional`: appends "(Optional)" to the legend. |
 | `children` | `ReactNode` | — | The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the help text it draws, by layer (`{ "Help-Text": { theme: "warning" } }`). Written by Zen Studio; app code sets helpText. |
+| `ref` | `Ref<HTMLFieldSetElement>` | — | Ref to the rendered `<fieldset>` element. |
 
 ### FormActions
 The footer row of a form. Desktop: Tertiary (cancel) then Primary (submit), on the right. When the form is narrower than 480px, or inside a ZenProvider with breakpoint mobile, the buttons stack full width at size lg with Primary on top (the mobile footer pattern). `sticky` pins the row to the bottom of the scrolling area.
@@ -93,6 +96,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `sticky` | `boolean` | `false` | Keep the bar pinned to the bottom of the scrolling area (Surface background, Pale top line, safe-area padding). |
 | `inset` | `"none" \| ZenScaleInput \| "4xl"` | — | Sticky only: side padding of the bar, e.g. lg on a full-bleed phone screen so the buttons line up with the fields. |
 | `children` | `ReactNode` | — | The buttons: Tertiary (cancel) first, Primary (`type="submit"`, named for the outcome) last. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
 ### Types
 Object shapes the props above refer to.

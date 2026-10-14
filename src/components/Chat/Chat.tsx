@@ -1,4 +1,4 @@
-import { createContext, isValidElement, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from "react";
+import { createContext, isValidElement, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode, type Ref } from "react";
 import { createPortal } from "react-dom";
 import { Avatar, type AvatarTheme } from "../Avatar";
 import { Badge } from "../Badge";
@@ -22,6 +22,7 @@ import { ChatEmojiPicker } from "./ChatEmojiPicker";
 import "./chat.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 /** Figma Side: You (right, Bubble-Chat-You) · Others (left, Surface + Neutral/Subtle, with a 24px avatar). */
 export type ChatSide = "you" | "others";
@@ -88,6 +89,8 @@ export interface ChatMessageProps {
   /** Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio;
    *  app code sets author. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 export interface ChatHoldAction {
@@ -266,7 +269,7 @@ const chatHoverKind = (children: ReactNode): ChatHoverKind =>
   isText(children) ? "text" : isValidElement(children) && children.type === ChatPhotos ? "photo" : isValidElement(children) && children.type === ChatCall ? "call" : "file";
 
 /** Figma Chat/Conversation/Bubble (6349:64085): avatar (others) + bubble + reactions, with time / status / read list under it. */
-export function ChatMessage({ side, domain = "social", author, showName = false, continued = false, time, status, failed = false, onRetry, reactions, seenBy, children, holdActions: holdActionsProp, onHoldAction, reaction, onReact, onMoreReactions, id, replyTo, onJumpToReply, className, overrides }: ChatMessageProps) {
+export function ChatMessage({ side, domain = "social", author, showName = false, continued = false, time, status, failed = false, onRetry, reactions, seenBy, children, holdActions: holdActionsProp, onHoldAction, reaction, onReact, onMoreReactions, id, replyTo, onJumpToReply, className, overrides, ref }: ChatMessageProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const device = useContext(ChatDeviceContext);
@@ -302,7 +305,7 @@ export function ChatMessage({ side, domain = "social", author, showName = false,
     ? <ChatBubble side={side} domain={domain} time={domain === "business" ? time : undefined}>{children}</ChatBubble>
     : <ChatMessageContext.Provider value={{ domain, time: domain === "business" ? time : undefined }}>{children}</ChatMessageContext.Provider>;
   return (
-    <div data-message-id={id} className={["zen-chat-message", className].filter(Boolean).join(" ")} data-side={side} data-domain={domain} data-reacted={reactions?.length ? "true" : undefined} data-continued={continued ? "true" : undefined} data-failed={failed ? "true" : undefined}>
+    <div ref={ref} data-message-id={id} className={["zen-chat-message", className].filter(Boolean).join(" ")} data-side={side} data-domain={domain} data-reacted={reactions?.length ? "true" : undefined} data-continued={continued ? "true" : undefined} data-failed={failed ? "true" : undefined}>
       {side === "others" ? (
         <div className="zen-chat-message__avatar" aria-hidden={continued || undefined}>
           {/* No photo: the name's initials, which Avatar cuts to one letter at XSmall (small avatars show one; user,
@@ -447,9 +450,9 @@ function ChatHoldLayer({ anchor, side, onClose, reaction, onReact, onMoreReactio
 }
 
 /** Figma Chat/Bubble/Text-You · Text-Others: padding 12 (+4 text inset), Body/Base/Regular; the tail corner is 4px. */
-export function ChatBubble({ side, domain = "social", time, children }: { side: ChatSide; domain?: ChatDomain; time?: ReactNode; children: ReactNode }) {
+export function ChatBubble({ side, domain = "social", time, children, ref }: { side: ChatSide; domain?: ChatDomain; time?: ReactNode; children: ReactNode; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
   return (
-    <div className="zen-chat-bubble" data-side={side} data-domain={domain}>
+    <div ref={ref} className="zen-chat-bubble" data-side={side} data-domain={domain}>
       <p className={`zen-chat-bubble__text ${typographyStyles["Body/Base/Regular"]}`}>{children}</p>
       {time ? <span className={`zen-chat-bubble__time ${typographyStyles["Caption/Regular"]}`}>{time}</span> : null}
     </div>
@@ -479,7 +482,7 @@ function ChatCardFooter({ detail, time }: { detail?: ReactNode; time?: ReactNode
  * card is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size. In the mobile (and Popular) type scale
  * the text column hugs its 24 + 20 lines (min Image-Size/Small) instead of Figma's fixed 32px box, so they keep the 12px inset.
  */
-export function ChatFile({ side = "others", kind = "other", name, size, href, onOpen, overrides }: { side?: ChatSide; kind?: ChatFileKind; name: string; size?: ReactNode; href?: string; onOpen?: () => void; /** Figma instance overrides of its Dock Icon (`{ Icon: { theme: "blue" } }`), written by Zen Studio. */ overrides?: NestedOverrides }) {
+export function ChatFile({ side = "others", kind = "other", name, size, href, onOpen, overrides, ref }: { side?: ChatSide; kind?: ChatFileKind; name: string; size?: ReactNode; href?: string; onOpen?: () => void; /** Figma instance overrides of its Dock Icon (`{ Icon: { theme: "blue" } }`), written by Zen Studio. */ overrides?: NestedOverrides; /** Ref to the root element: the `<a>` with `href`, else the `<button>`. */ ref?: Ref<HTMLAnchorElement | HTMLButtonElement> }) {
   const nest = useNested(overrides);
   const { domain, time } = useContext(ChatMessageContext);
   const body = (
@@ -492,8 +495,8 @@ export function ChatFile({ side = "others", kind = "other", name, size, href, on
     </>
   );
   return href
-    ? <a className="zen-chat-card zen-chat-file" data-side={side} data-domain={domain} href={href} download>{body}</a>
-    : <button type="button" className="zen-chat-card zen-chat-file" data-side={side} data-domain={domain} onClick={onOpen}>{body}</button>;
+    ? <a ref={ref as Ref<HTMLAnchorElement>} className="zen-chat-card zen-chat-file" data-side={side} data-domain={domain} href={href} download>{body}</a>
+    : <button ref={ref as Ref<HTMLButtonElement>} type="button" className="zen-chat-card zen-chat-file" data-side={side} data-domain={domain} onClick={onOpen}>{body}</button>;
 }
 
 export type ChatCallState = "in-call" | "in-missed" | "out-call" | "out-missed";
@@ -520,7 +523,7 @@ const businessCallAction = (t: ZenLabels): Partial<Record<ChatCallState, string>
  * the row's Padding/2XSmall 4) in every typography mode. With an action the 32px box stays in Figma's 20/16 scale and hugs
  * in the mobile (and Popular) type scale, so the lines never spill toward the action.
  */
-export function ChatCall({ side = "others", type = "audio", state = "in-call", detail, actionLabel, onAction, overrides }: { side?: ChatSide; type?: "audio" | "video"; state?: ChatCallState; detail?: ReactNode; /** The action's text (the locale's Call back / Call again / Send voice message by default). */ actionLabel?: string; onAction?: () => void; /** Figma instance overrides of its Dock Icon and action (`{ Action: { level: "primary" } }`), written by Zen Studio. */ overrides?: NestedOverrides }) {
+export function ChatCall({ side = "others", type = "audio", state = "in-call", detail, actionLabel, onAction, overrides, ref }: { side?: ChatSide; type?: "audio" | "video"; state?: ChatCallState; detail?: ReactNode; /** The action's text (the locale's Call back / Call again / Send voice message by default). */ actionLabel?: string; onAction?: () => void; /** Figma instance overrides of its Dock Icon and action (`{ Action: { level: "primary" } }`), written by Zen Studio. */ overrides?: NestedOverrides; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const { domain, time } = useContext(ChatMessageContext);
@@ -528,7 +531,7 @@ export function ChatCall({ side = "others", type = "audio", state = "in-call", d
   const action = domain === "business" ? businessCallAction(t)[state] : callAction(t)[state];
   const showAction = Boolean(onAction) && (domain !== "business" || Boolean(action));
   return (
-    <div className="zen-chat-card zen-chat-call" data-side={side} data-domain={domain} data-action={showAction ? "true" : undefined}>
+    <div ref={ref} className="zen-chat-card zen-chat-call" data-side={side} data-domain={domain} data-action={showAction ? "true" : undefined}>
       <div className="zen-chat-call__row">
         {nest("Icon", <DockIcon size="small" theme={alert ? "red" : "neutral"} background={alert ? "solid" : "subtle"} icon={callGlyph[type][state]} />)}
         <span className="zen-chat-file__text">
@@ -570,6 +573,8 @@ export type ChatVoiceProps = {
   /** Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: "accent" } }`). Written by Zen Studio;
    *  app code sets playing. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
 };
 
 /**
@@ -580,7 +585,7 @@ export type ChatVoiceProps = {
  * Label/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing
  * and the time. Hover and the reaction pill come from ChatMessage, as on every bubble.
  */
-export function ChatVoice({ side = "others", duration, elapsed, progress = 0, playing = false, onPlayingChange, speed = 1, onSpeedChange, levels, overrides }: ChatVoiceProps) {
+export function ChatVoice({ side = "others", duration, elapsed, progress = 0, playing = false, onPlayingChange, speed = 1, onSpeedChange, levels, overrides, ref }: ChatVoiceProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const { domain, time } = useContext(ChatMessageContext);
@@ -597,7 +602,7 @@ export function ChatVoice({ side = "others", duration, elapsed, progress = 0, pl
   const next = chatVoiceSpeeds[(chatVoiceSpeeds.indexOf(speed as (typeof chatVoiceSpeeds)[number]) + 1) % chatVoiceSpeeds.length];
   const speedText = `${speed}×`;
   return (
-    <div className="zen-chat-voice" data-side={side} data-domain={domain} data-playing={playing || undefined}>
+    <div ref={ref} className="zen-chat-voice" data-side={side} data-domain={domain} data-playing={playing || undefined}>
       <div className="zen-chat-voice__playback">
         {side === "you"
           ? nest("Play", <IconButton appearance="overlay" level="inverse" {...control} />)
@@ -628,13 +633,13 @@ export function ChatVoice({ side = "others", duration, elapsed, progress = 0, pl
  * the 4th tile shows "+N" (Heading/2 on Background/Overlay). Business wraps the grid in a Surface card (padding 12, radius 24)
  * with the time under it (Figma Chat/Bubble/Photo-*, Domain=Business).
  */
-export function ChatPhotos({ side = "others", photos, onOpen }: { side?: ChatSide; photos: { src: string; alt: string }[]; onOpen?: (index: number) => void }) {
+export function ChatPhotos({ side = "others", photos, onOpen, ref }: { side?: ChatSide; photos: { src: string; alt: string }[]; onOpen?: (index: number) => void; /** Ref to the root `<div>` (the grid, or the Business card around it). */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const { domain, time } = useContext(ChatMessageContext);
   const shown = photos.slice(0, 4);
   const more = photos.length - shown.length;
   const grid = (
-    <div className="zen-chat-photos" data-side={side} data-count={Math.min(photos.length, 4)}>
+    <div ref={domain !== "business" ? ref : undefined} className="zen-chat-photos" data-side={side} data-count={Math.min(photos.length, 4)}>
       {shown.map((photo, index) => (
         <button key={index} type="button" className="zen-chat-photos__tile" onClick={() => onOpen?.(index)} aria-label={index === 3 && more > 0 ? t.andMorePhotos(photo.alt, more) : photo.alt}>
           <img src={photo.src} alt="" />
@@ -645,7 +650,7 @@ export function ChatPhotos({ side = "others", photos, onOpen }: { side?: ChatSid
   );
   if (domain !== "business") return grid;
   return (
-    <div className="zen-chat-card zen-chat-photo-card" data-side={side} data-domain={domain}>
+    <div ref={ref} className="zen-chat-card zen-chat-photo-card" data-side={side} data-domain={domain}>
       {grid}
       {time ? <span className={`zen-chat-photo-card__time ${typographyStyles["Body/Small/Regular"]}`}>{time}</span> : null}
     </div>
@@ -658,10 +663,11 @@ export function ChatPhotos({ side = "others", photos, onOpen }: { side?: ChatSid
  * own `mine`), it is a button that opens the "Reactions" panel (ChatReactorsPanel): tabs by emoji and the people.
  * It stops pointer/key events so pressing it never starts the message's hold-to-react.
  */
-export function ChatReactions({ reactions, mine, onRemoveMine, side = "others", device = "mobile" }: { reactions: ChatReaction[]; mine?: ChatReactionKind; onRemoveMine?: () => void; side?: ChatSide; device?: "mobile" | "desktop" }) {
+export function ChatReactions({ reactions, mine, onRemoveMine, side = "others", device = "mobile", ref }: { reactions: ChatReaction[]; mine?: ChatReactionKind; onRemoveMine?: () => void; side?: ChatSide; device?: "mobile" | "desktop"; /** Ref to the pill: a `<button>` when it opens the reactors panel, else a `<span>`. */ ref?: Ref<HTMLButtonElement | HTMLSpanElement> }) {
   const t = useZenLabels();
   const [open, setOpen] = useState(false);
   const pillRef = useRef<HTMLButtonElement>(null);
+  const pillRefs = useMergedRefs<HTMLButtonElement>(pillRef, ref as Ref<HTMLButtonElement> | undefined);
   const total = reactions.reduce((sum, r) => sum + (r.count ?? r.by?.length ?? 1), 0);
   // English on purpose: the reaction kind ids ("heart", "lol"…) double as their spoken names.
   const label = reactions.map((r) => `${r.count ?? r.by?.length ?? 1} ${r.kind}`).join(", ");
@@ -672,11 +678,11 @@ export function ChatReactions({ reactions, mine, onRemoveMine, side = "others", 
     </>
   );
   if (!reactions.some((r) => r.by?.length) && !mine) {
-    return <span className="zen-chat-reactions" role="img" aria-label={t.reactionsSummary(label)}>{content}</span>;
+    return <span ref={ref as Ref<HTMLSpanElement> | undefined} className="zen-chat-reactions" role="img" aria-label={t.reactionsSummary(label)}>{content}</span>;
   }
   return (
     <>
-      <button ref={pillRef} type="button" className="zen-chat-reactions" aria-label={t.showWhoReacted(label)} aria-haspopup="dialog" aria-expanded={open}
+      <button ref={pillRefs} type="button" className="zen-chat-reactions" aria-label={t.showWhoReacted(label)} aria-haspopup="dialog" aria-expanded={open}
         onPointerDown={(event) => event.stopPropagation()} onContextMenu={(event) => event.stopPropagation()}
         // Keys that would open the hold layer stay on the pill; Escape still reaches the panel to close it.
         onKeyDown={(event) => { if (["Enter", " ", "ContextMenu"].includes(event.key) || (event.key === "F10" && event.shiftKey)) event.stopPropagation(); }}
@@ -692,15 +698,15 @@ export function ChatReactions({ reactions, mine, onRemoveMine, side = "others", 
 /** Figma Chat/Reaction-Bar order: Heart · LOL · Surprised · Sad · Angry · Like. */
 export const chatReactionOrder: ChatQuickReaction[] = ["heart", "lol", "surprised", "sad", "angry", "like"];
 
-export function ChatReactionPicker({ value, onValueChange, label: labelProp, onMore }: { value?: ChatReactionKind; onValueChange: (kind: ChatReactionKind | undefined) => void; /** Accessible name of the bar; defaults to the locale's "React". */ label?: string; /** Figma Reaction-Bar "+": replace the built-in emoji panel with your own full picker. */ onMore?: () => void }) {
+export function ChatReactionPicker({ value, onValueChange, label: labelProp, onMore, ref }: { value?: ChatReactionKind; onValueChange: (kind: ChatReactionKind | undefined) => void; /** Accessible name of the bar; defaults to the locale's "React". */ label?: string; /** Figma Reaction-Bar "+": replace the built-in emoji panel with your own full picker. */ onMore?: () => void; /** Ref to the root `<div>` (the bar, or the emoji panel while it is open). */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const label = labelProp ?? t.react;
   // Figma Chat/Reaction-Bar always ends with "+" (Button/Icon-Main Small Tertiary); without `onMore` it opens the built-in panel.
   const [more, setMore] = useState(false);
   const extra = value !== undefined && !(chatReactionOrder as string[]).includes(value) ? value : undefined;
-  if (more) return <ChatEmojiPicker value={value} onPick={(emoji) => { setMore(false); onValueChange(emoji === value ? undefined : emoji); }} onBack={() => setMore(false)} />;
+  if (more) return <ChatEmojiPicker ref={ref} value={value} onPick={(emoji) => { setMore(false); onValueChange(emoji === value ? undefined : emoji); }} onBack={() => setMore(false)} />;
   return (
-    <div className="zen-chat-picker" role="group" aria-label={label}>
+    <div ref={ref} className="zen-chat-picker" role="group" aria-label={label}>
       {chatReactionOrder.map((kind) => (
         // English on purpose: the kind id ("heart", "lol"…) is the emoji's accessible name.
         <button key={kind} type="button" className="zen-chat-picker__emoji" aria-label={kind} aria-pressed={value === kind} onClick={() => onValueChange(value === kind ? undefined : kind)}>
@@ -715,11 +721,11 @@ export function ChatReactionPicker({ value, onValueChange, label: labelProp, onM
 }
 
 /** Figma Chat/Section/Read-List (6101:61545): 20px avatars (gap 4); more than 5 shows "+N". */
-export function ChatReadList({ people }: { people: ChatPerson[] }) {
+export function ChatReadList({ people, ref }: { people: ChatPerson[]; /** Ref to the root `<span>`. */ ref?: Ref<HTMLSpanElement> }) {
   const t = useZenLabels();
   const shown = people.slice(0, 5);
   return (
-    <span className="zen-chat-read" role="img" aria-label={t.seenBy(people.map((p) => p.name).join(", "))}>
+    <span ref={ref} className="zen-chat-read" role="img" aria-label={t.seenBy(people.map((p) => p.name).join(", "))}>
       {/* Figma Seen by=5+: a "+N" pill leads the row, then the five most recent readers. */}
       {people.length > 5 ? <Badge size="small" theme="neutral" background="subtle" leadingIcon={false}>+{people.length - 5}</Badge> : null}
       {shown.map((person) => <Avatar key={person.name} size="2xsmall" theme={person.src ? "photo" : person.theme ?? "neutral"} background="subtle" src={person.src} alt="">{person.src ? null : initialsOf(person.name)}</Avatar>)}
@@ -728,8 +734,8 @@ export function ChatReadList({ people }: { people: ChatPerson[] }) {
 }
 
 /** Figma Chat/Section Time (7042:24411): a centred Caption/Regular Neutral/Light time stamp between runs ("Sat 17:55") — no rules. */
-export function ChatDateDivider({ children }: { children: ReactNode }) {
-  return <div className={`zen-chat-date ${typographyStyles["Caption/Regular"]}`} role="separator">{children}</div>;
+export function ChatDateDivider({ children, ref }: { children: ReactNode; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
+  return <div ref={ref} className={`zen-chat-date ${typographyStyles["Caption/Regular"]}`} role="separator">{children}</div>;
 }
 
 /** Scrollable thread: messages from different people get 16px, a run from one person 4px. */
@@ -748,10 +754,11 @@ const scrollerOf = (el: HTMLElement) => {
  * after the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction
  * row appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.
  */
-export function ChatThread({ children, device = "mobile", "aria-label": ariaLabelProp, className }: { children: ReactNode; /** Figma Device: text caps at 220 (Mobile) / 516 (Desktop), photo grids at 260 / 400. */ device?: "mobile" | "desktop"; /** Accessible name of the thread; defaults to the locale's "Messages". */ "aria-label"?: string; className?: string }) {
+export function ChatThread({ children, device = "mobile", "aria-label": ariaLabelProp, className, ref: refProp }: { children: ReactNode; /** Figma Device: text caps at 220 (Mobile) / 516 (Desktop), photo grids at 260 / 400. */ device?: "mobile" | "desktop"; /** Accessible name of the thread; defaults to the locale's "Messages". */ "aria-label"?: string; className?: string; /** Ref to the root `<div>` (role="log"). */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.messages;
   const ref = useRef<HTMLDivElement>(null);
+  const threadRefs = useMergedRefs<HTMLDivElement>(ref, refProp);
   const pinned = useRef(true);
   // The reader's last input and scroll position outlive the effect below, which re-runs whenever the messages change.
   const inputAt = useRef(Number.NEGATIVE_INFINITY);
@@ -827,7 +834,7 @@ export function ChatThread({ children, device = "mobile", "aria-label": ariaLabe
     void document.fonts?.ready.then(() => { if (live) requestAnimationFrame(() => { if (live) pin(); }); });
     return () => { live = false; observer?.disconnect(); listen(scroller, false); };
   }, [children]);
-  return <ChatDeviceContext.Provider value={device}><div ref={ref} className={["zen-chat-thread", className].filter(Boolean).join(" ")} data-device={device} role="log" aria-label={ariaLabel} aria-live="polite">{children}</div></ChatDeviceContext.Provider>;
+  return <ChatDeviceContext.Provider value={device}><div ref={threadRefs} className={["zen-chat-thread", className].filter(Boolean).join(" ")} data-device={device} role="log" aria-label={ariaLabel} aria-live="polite">{children}</div></ChatDeviceContext.Provider>;
 }
 
 export interface ChatComposerProps {
@@ -855,6 +862,8 @@ export interface ChatComposerProps {
   /** Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets actions / quickAction. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<form>`. */
+  ref?: Ref<HTMLFormElement>;
 }
 
 /**
@@ -863,7 +872,7 @@ export interface ChatComposerProps {
  * Input/Background/Default + Effect/Input with Body/Base/Medium text ("Aa" in Placeholder); State=Focused only adds the
  * Accent caret, the field itself does not change. The trailing quick action becomes Send while typing (same flat style).
  */
-export function ChatComposer({ onSend, placeholder: placeholderProp, label: labelProp, actions, quickAction: quickActionProp, onEmoji, device = "mobile", disabled = false, replyTo, onCancelReply, className, overrides }: ChatComposerProps) {
+export function ChatComposer({ onSend, placeholder: placeholderProp, label: labelProp, actions, quickAction: quickActionProp, onEmoji, device = "mobile", disabled = false, replyTo, onCancelReply, className, overrides, ref }: ChatComposerProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const placeholder = placeholderProp ?? t.composerPlaceholder;
@@ -892,7 +901,7 @@ export function ChatComposer({ onSend, placeholder: placeholderProp, label: labe
     : <TopNavigationActionButton key={item.label} action={{ ...item, disabled }} variant="flat-chat" />;
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { if (event.key === "Escape" && replyTo && onCancelReply) { event.preventDefault(); onCancelReply(); return; } if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit(); } };
   return (
-    <form className={["zen-chat-composer", className].filter(Boolean).join(" ")} data-device={device} data-typing={typing ? "true" : undefined} data-replying={replyTo ? "true" : undefined} onSubmit={submit}>
+    <form ref={ref} className={["zen-chat-composer", className].filter(Boolean).join(" ")} data-device={device} data-typing={typing ? "true" : undefined} data-replying={replyTo ? "true" : undefined} onSubmit={submit}>
       {replyTo ? <ChatComposerReply target={replyTo} onCancel={onCancelReply} /> : null}
       {/* While typing the extra actions fold away so the field can grow (Figma State=Typing). */}
       <div className="zen-chat-composer__leading">
@@ -935,6 +944,8 @@ export interface ChatConversationItemProps {
   /** Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio;
    *  app code sets person / group. */
   overrides?: NestedOverrides;
+  /** Ref to the root element (the ListItem's row). */
+  ref?: Ref<HTMLElement>;
 }
 
 /** Two-letter initials for people without a photo: first + last name ("Nguyen Van Bao" → "NB"); one word gives one letter. */
@@ -958,11 +969,11 @@ const chatAvatarGroupSizes = ["large", "medium", "small"] as const;
 /** Figma Chat/Avatar-Group (6340:46191): two overlapping photo avatars on the diagonal — Medium 40px frame with 28px
  *  avatars (conversation list), Small 32px with 20px avatars (compact rows, thread headers). Decorative: name the
  *  conversation in the surrounding text. */
-export function ChatAvatarGroup({ people, size: sizeProp = "md", online = false, className, overrides }: { people: ChatPerson[]; /** Short (sm, md…) or Figma (small, medium…) spelling. */ size?: "lg" | "md" | "sm" | "large" | "medium" | "small"; online?: boolean; className?: string; /** Figma instance overrides of its avatars (`{ "Avatar[0]": { theme: "accent" } }`), written by Zen Studio. */ overrides?: NestedOverrides }) {
+export function ChatAvatarGroup({ people, size: sizeProp = "md", online = false, className, overrides, ref }: { people: ChatPerson[]; /** Short (sm, md…) or Figma (small, medium…) spelling. */ size?: "lg" | "md" | "sm" | "large" | "medium" | "small"; online?: boolean; className?: string; /** Figma instance overrides of its avatars (`{ "Avatar[0]": { theme: "accent" } }`), written by Zen Studio. */ overrides?: NestedOverrides; /** Ref to the root `<span>`. */ ref?: Ref<HTMLSpanElement> }) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, chatAvatarGroupSizes);
   return (
-    <span className={["zen-chat-group", className].filter(Boolean).join(" ")} data-size={size} aria-hidden="true">
+    <span ref={ref} className={["zen-chat-group", className].filter(Boolean).join(" ")} data-size={size} aria-hidden="true">
       {people.slice(0, 2).map((p, index) => nest("Avatar", <Avatar key={p.name} size="xsmall" theme={p.src ? "photo" : p.theme ?? "neutral"} background="subtle" src={p.src} alt="">{p.src ? null : initialsOf(p.name)}</Avatar>, index))}
       {online ? <span className="zen-chat-group__status" /> : null}
     </span>
@@ -976,7 +987,7 @@ export function ChatAvatarGroup({ people, size: sizeProp = "md", online = false,
  * a missed call is Negative/Light (Medium) with its 16px icon while unread, Neutral/Light once read; an ongoing call is
  * Positive/Light.
  */
-export function ChatConversationItem({ person, group, preview, call, callLabel, time, unread = false, online = false, selected, onClick, overrides }: ChatConversationItemProps) {
+export function ChatConversationItem({ person, group, preview, call, callLabel, time, unread = false, online = false, selected, onClick, overrides, ref }: ChatConversationItemProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const leading = group?.length
@@ -987,6 +998,7 @@ export function ChatConversationItem({ person, group, preview, call, callLabel, 
   const subtitleStyle = meta ? (unread || meta.tone === "positive" ? "Body/Small/Medium" : "Body/Small/Regular") : unread ? "Body/Small/Bold" : "Body/Small/Regular";
   return (
     <ListItem
+      ref={ref}
       className="zen-chat-convo"
       leading={leading}
       title={<span className="zen-chat-convo__title"><span className={`zen-chat-convo__name ${typographyStyles[unread ? "Body/Base/Bold" : "Body/Base/Medium"]}`}>{person.name}</span><span className={`zen-chat-convo__time ${typographyStyles["Body/Small/Regular"]}`} aria-hidden="true">•</span><span className={`zen-chat-convo__time ${typographyStyles["Body/Small/Regular"]}`}>{time}</span></span>}

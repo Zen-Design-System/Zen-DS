@@ -44,6 +44,7 @@ Figma Rating/Star (1536:26008): a star input — one radio per star (arrow keys 
 | `name` | `string` | — |  |
 | `disabled` | `boolean` | `false` |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element (role="radiogroup"). |
 
 ### RatingDisplay
 Figma Rating-Display (9818:5582): a Rating=None base row with the filled row clipped to the value on top.
@@ -56,6 +57,7 @@ Figma Rating-Display (9818:5582): a Rating=None base row with the filled row cli
 | `theme` | `"default" \| "neutral" \| "accent"` | `"default"` |  |
 | `label` | `string` | — | Accessible text; defaults to the locale's "4.5 out of 5 stars". |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>` element (role="img"). |
 
 ### OpinionScale
 Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoji (32) + Caption/Regular label, padding XSmall, gap 2XSmall, Corner-Radius/Base; Hover Neutral/Flat/Hover, Selected Active/Neutral/Subtle + Caption/Bold. Always one row (Figma: no wrap, items Fill): the scale fills its container and the faces share it equally. When an item gets narrower than its label needs (under 96px per face: 2 faces < 200px, 3 < 304px, 5 < 512px of scale width), the labels are visually hidden (they still name each radio) and the faces shrink, down to about 43px each for five faces in 246px, which keeps every target well above 24×24 (WCAG 2.5.8). A visible label never runs past two lines: longer custom `labels` are clamped with an ellipsis (Figma's item is 68px tall for one Caption line; two lines is the code limit), so the faces keep one height. Figma has no narrow or long-label variant; both are code-only.
@@ -69,6 +71,7 @@ Figma Rating/Opinion-Scale (1536:25762) of .Primitives/Rating/Opinion item: emoj
 | `labels` | `Partial<Record<OpinionEmotion, ReactNode>>` | — | Override option labels. Keep them to one or two short words: a longer label is clamped to two lines (ellipsis), and its full text still names the radio. |
 | `aria-label` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element (role="radiogroup"). |
 
 ### NpsScale
 Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (gap 2XSmall) over two Caption/Regular end labels. One row (Figma: no wrap): the scale is as wide as Figma's (0–10: 11 × Chip/Size/Small + 10 × Gap/2XSmall, 392px) or its container, whichever is narrower. In a narrower container the chips shrink as equal circles; the gap closes only once a chip would drop under the 24×24 minimum target (WCAG 2.5.8), so 0–10 keeps 24px targets in one row down to 264px of width (318px: 25px chips with the 4px gap). The end labels sit under the first and the last chip, the high one aligned to the end. Below 264px, 11 chips cannot keep 24px targets in one row, so 0–10 falls back to two balanced rows, 0–5 over 6–10 (Gap/2XSmall both ways), at full Chip/Size/Small (6 × 32 + 5 × 4 = 212px; still ≥ 24px down to 164px). The low label moves above 0 and the high label stays under 10, so each end label sits next to its value. Code-only (Figma has no narrow variant). Two rows rather than swapping to `scale={5}`: NPS is defined on 0–10 (detractors 0–6, passives 7–8, promoters 9–10), so the component must not change the scale the app collects. 0–5 keeps 24px targets in one row down to 144px.
@@ -84,6 +87,7 @@ Figma Rating/NPS-Scale (1536:26034): Chip/Number-Only Small Secondary buttons (g
 | `aria-label` | `string` | — |  |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the score chips it draws, by layer (`{ "Chip[10]": { level: "primary" } }`). Written by Zen Studio; app code keeps the defaults. |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element (the chips and the end labels). |
 
 ### Types
 Object shapes the props above refer to.

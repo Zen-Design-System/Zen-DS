@@ -30,7 +30,8 @@
           "leftIcon?: IconName|ReactNode (deprecated)",
           "rightIcon?: IconName|ReactNode (deprecated)",
           "children: ReactNode",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLButtonElement>"
         ],
         "IconButton": [
           "icon: IconName|ReactNode",
@@ -40,7 +41,8 @@
           "appearance?: main|flat|overlay = main",
           "state?: default|hover|pressed|focused|disabled",
           "tooltip?: ReactNode|false",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLButtonElement>"
         ]
       },
       "do": [
@@ -115,6 +117,7 @@
       ],
       "props": {
         "Chip": [
+          "ref?: Ref<HTMLButtonElement>",
           "children?: ReactNode",
           "variant?: advanced|normal|number-only = advanced",
           "size?: xs|sm|md|xsmall|small|medium = md",
@@ -240,7 +243,8 @@
           "layout?: stacked|inline",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
-          "onValueChange?: (value: string) => void"
+          "onValueChange?: (value: string) => void",
+          "ref?: Ref<HTMLInputElement>"
         ],
         "SelectField": [
           "label?: ReactNode",
@@ -271,7 +275,8 @@
           "popoverWidth?: fill|hug|number",
           "popoverOpen?: boolean",
           "onPopoverOpenChange?: (open: boolean) => void",
-          "readOnly?: boolean = false"
+          "readOnly?: boolean = false",
+          "ref?: Ref<HTMLSelectElement>"
         ],
         "DateField": [
           "label?: ReactNode",
@@ -292,6 +297,7 @@
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
+          "ref?: Ref<HTMLInputElement>",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
           "onDateChange?: (date: Date|null) => void",
@@ -320,7 +326,8 @@
           "trailing?: IconName|ReactNode",
           "layout?: stacked|inline",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLInputElement>"
         ],
         "NumberField": [
           "align?: left|center = left",
@@ -348,11 +355,13 @@
           "trailing?: IconName|ReactNode",
           "layout?: stacked|inline",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLInputElement>"
         ],
         "TextAreaField": [
           "size?: Exclude<InputSize, xlarge|xl> = md",
           "onValueChange?: (value: string) => void",
+          "ref?: Ref<HTMLTextAreaElement>",
           "label?: ReactNode",
           "helpText?: ReactNode",
           "labelOptional?: boolean",
@@ -391,7 +400,8 @@
           "onCreate?: (label: string) => string|void",
           "createLabel?: ReactNode",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "RichTextField": [
           "id?: string",
@@ -407,6 +417,7 @@
           "editorBarTheme?: subtle|solid|inverse = subtle",
           "onFocus?: (event: FocusEvent<HTMLDivElement>) => void",
           "onBlur?: (event: FocusEvent<HTMLDivElement>) => void",
+          "ref?: Ref<HTMLDivElement>",
           "label?: ReactNode",
           "helpText?: ReactNode",
           "labelOptional?: boolean",
@@ -507,7 +518,8 @@
           "disabled?: boolean = false",
           "shortcut?: string",
           "onClear?: () => void",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLInputElement>"
         ]
       },
       "do": [
@@ -552,6 +564,7 @@
       ],
       "props": {
         "Segmented": [
+          "ref?: Ref<HTMLDivElement>",
           "options?: SegmentedOption[]",
           "value?: string",
           "defaultValue?: string",
@@ -621,6 +634,7 @@
           "size?: sm|md|lg|small|medium|large = sm",
           "state?: default|hover|disabled = default",
           "onSelectedChange?: (selected: boolean, event: ChangeEvent<HTMLInputElement>) => void (deprecated)",
+          "ref?: Ref<HTMLSpanElement>",
           "label: ReactNode",
           "caption?: ReactNode",
           "bold?: boolean = false",
@@ -680,7 +694,8 @@
           "disabled?: boolean = false",
           "name?: string",
           "value?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLInputElement>"
         ]
       },
       "do": [
@@ -731,7 +746,8 @@
           "disabled?: boolean = false",
           "name?: string",
           "value?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLInputElement>"
         ]
       },
       "do": [
@@ -840,6 +856,7 @@
           "remove?: boolean = false",
           "onRemove?: () => void",
           "removeLabel?: string",
+          "ref?: Ref<HTMLSpanElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -887,7 +904,8 @@
           "src?: string",
           "alt?: string = ",
           "children?: ReactNode",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLSpanElement>"
         ],
         "AvatarStack": [
           "items: Array<Pick<AvatarProps, src|alt|children|theme>>",
@@ -954,7 +972,8 @@
           "multiple?: boolean = false",
           "width?: fill|hug|number",
           "maxWidth?: number",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -1032,11 +1051,13 @@
           "workspaceBar?: boolean = true",
           "subMenu?: ReactNode",
           "subMenuLabel?: string",
-          "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void"
+          "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void",
+          "ref?: Ref<HTMLElement>"
         ],
         "SidebarMenuItem": [
           "children?: ReactNode|SidebarItem[]",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>",
           "id: string",
           "label: string",
           "icon?: IconName|ReactNode",
@@ -1055,7 +1076,8 @@
         "SidebarMenuSection": [
           "label?: string",
           "action?: ReactNode",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -1144,7 +1166,8 @@
           "aria-label?: string",
           "aria-labelledby?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "DateField": [
           "label?: ReactNode",
@@ -1165,6 +1188,7 @@
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
+          "ref?: Ref<HTMLInputElement>",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
           "onDateChange?: (date: Date|null) => void",
@@ -1195,7 +1219,8 @@
           "applyLabel?: ReactNode",
           "cancelLabel?: ReactNode",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -1301,6 +1326,7 @@
       ],
       "props": {
         "Tabs": [
+          "ref?: Ref<HTMLDivElement>",
           "items?: TabOption[]",
           "children?: ReactNode",
           "value?: string",
@@ -1374,7 +1400,8 @@
           "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void",
           "aria-label?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ],
         "BreadcrumbItem": [
           "item: { id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`icon-home-03-line`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName|ReactNode; /** Figma Item › Level: Ma…",
@@ -1427,14 +1454,16 @@
           "valueLabel?: ReactNode",
           "aria-label?: string",
           "scale?: completion|quota = completion",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ProgressCircle": [
           "value: number",
           "theme?: neutral|accent|red|orange|yellow|green|blue = accent",
           "label?: ReactNode|true",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -1494,7 +1523,8 @@
           "children?: ReactNode",
           "dismissible?: boolean = true",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ModalForm": [
           "open?: boolean",
@@ -1520,7 +1550,8 @@
           "invalidMessage?: (count: number) => string",
           "dismissible?: boolean = true",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -1582,6 +1613,7 @@
           "onClose?: () => void",
           "closeLabel?: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ToastStack": [
@@ -1592,7 +1624,8 @@
           "max?: number = 3",
           "inline?: boolean = false",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ToastProvider": [
           "placement?: bottom-center|bottom-right|top-center|top-right",
@@ -1655,6 +1688,7 @@
           "onClose?: () => void",
           "closeLabel?: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -1696,6 +1730,7 @@
       ],
       "props": {
         "Accordion": [
+          "ref?: Ref<HTMLDivElement>",
           "title: ReactNode",
           "headingLevel?: 2|3|4|5|6 = 3",
           "children?: ReactNode",
@@ -1757,6 +1792,7 @@
           "size?: xs|sm|xsmall|small = xs",
           "aria-label?: string",
           "className?: string",
+          "ref?: Ref<HTMLElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -1800,18 +1836,21 @@
           "animated?: boolean = true",
           "className?: string",
           "style?: CSSProperties",
+          "ref?: Ref<HTMLSpanElement>",
           "lines?: number = 3"
         ],
         "SkeletonHeading": [
           "animated?: boolean = true",
           "className?: string",
           "style?: CSSProperties",
+          "ref?: Ref<HTMLSpanElement>",
           "size?: sm|md|lg|small|medium|large = md"
         ],
         "SkeletonShape": [
           "animated?: boolean = true",
           "className?: string",
           "style?: CSSProperties",
+          "ref?: Ref<HTMLSpanElement>",
           "shape?: rectangle|pill|round|square = rectangle",
           "size?: 2xs|xs|sm|md|lg|2xsmall|xsmall|small|medium|large = md"
         ]
@@ -1858,7 +1897,8 @@
           "orientation?: horizontal|vertical = horizontal",
           "dashed?: boolean = false",
           "decorative?: boolean = false",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -1908,6 +1948,7 @@
           "onClose?: () => void",
           "closeLabel?: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -2075,7 +2116,8 @@
           "valueText?: (value: number) => string",
           "aria-label?: string",
           "aria-labelledby?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -2194,7 +2236,8 @@
           "theme?: DockIconTheme = neutral",
           "background?: solid|subtle = solid",
           "label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLSpanElement>"
         ]
       },
       "do": [
@@ -2250,6 +2293,7 @@
           "onFinish?: () => void",
           "onDiscard?: () => void",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AiVoiceConversation": [
@@ -2268,6 +2312,7 @@
           "onEnd?: () => void",
           "note?: ReactNode",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -2530,7 +2575,8 @@
           "aria-label?: string",
           "name?: string",
           "disabled?: boolean = false",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "RatingDisplay": [
           "value: number",
@@ -2538,7 +2584,8 @@
           "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge = md",
           "theme?: default|neutral|accent = default",
           "label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLSpanElement>"
         ],
         "OpinionScale": [
           "scale?: 2|3|5 = 5",
@@ -2547,7 +2594,8 @@
           "onChange?: (value: OpinionEmotion) => void (deprecated)",
           "labels?: Partial<Record<OpinionEmotion, ReactNode>>",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "NpsScale": [
           "scale?: 5|10 = 10",
@@ -2558,7 +2606,8 @@
           "highLabel?: ReactNode",
           "aria-label?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -2606,7 +2655,8 @@
           "onChange?: (value: string) => void (deprecated)",
           "aria-label?: string",
           "name?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -2662,7 +2712,8 @@
           "anchorRef?: RefObject<HTMLElement|null>",
           "aria-label?: string",
           "aria-labelledby?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ColorField": [
           "value?: string",
@@ -2685,12 +2736,14 @@
           "trailing?: IconName|ReactNode",
           "layout?: stacked|inline",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLInputElement>"
         ],
         "ColorSwatch": [
           "color: string",
           "size?: sm|md|lg|small|medium|large = md",
-          "aria-label?: string"
+          "aria-label?: string",
+          "ref?: Ref<HTMLSpanElement>"
         ]
       },
       "do": [
@@ -2750,6 +2803,7 @@
           "labelIcon?: IconName|ReactNode",
           "hint?: ReactNode",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MetricCard": [
@@ -2770,6 +2824,7 @@
           "labelIcon?: IconName|ReactNode",
           "hint?: ReactNode",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
@@ -2832,7 +2887,8 @@
           "buttonLabel?: ReactNode",
           "extended?: boolean = true",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "UploaderFileItem": [
           "file: UploaderFile",
@@ -2840,7 +2896,8 @@
           "theme?: default|overlay = default",
           "onRemove?: (file: UploaderFile) => void",
           "onReplace?: (file: UploaderFile) => void",
-          "onRetry?: (file: UploaderFile) => void"
+          "onRetry?: (file: UploaderFile) => void",
+          "ref?: Ref<HTMLLIElement>"
         ]
       },
       "do": [
@@ -2906,7 +2963,8 @@
           "dismissible?: boolean = true",
           "closeLabel?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -3073,7 +3131,8 @@
       "props": {
         "FileIcon": [
           "size?: IconSize|number = base",
-          "title?: string"
+          "title?: string",
+          "ref?: Ref<SVGSVGElement>"
         ]
       },
       "do": [
@@ -3114,7 +3173,8 @@
         "Flag": [
           "name: FlagName",
           "size?: sm|md|lg|small|medium|large = md",
-          "label?: string"
+          "label?: string",
+          "ref?: Ref<SVGSVGElement>"
         ]
       },
       "do": [
@@ -3217,7 +3277,8 @@
           "collapsed?: boolean",
           "sticky?: boolean = false",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -3288,7 +3349,8 @@
           "backdrop?: surface|none = surface",
           "aria-label?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -3354,7 +3416,8 @@
           "inline?: boolean = false",
           "closeLabel?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -3424,7 +3487,8 @@
           "onReact?: (kind: ChatReactionKind|undefined) => void",
           "onMoreReactions?: () => void",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ChatComposer": [
           "onSend: (text: string) => void",
@@ -3438,13 +3502,15 @@
           "replyTo?: ChatReplyTarget",
           "onCancelReply?: () => void",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLFormElement>"
         ],
         "ChatThread": [
           "children: ReactNode",
           "device?: mobile|desktop = mobile",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ChatConversationItem": [
           "person: ChatPerson",
@@ -3457,23 +3523,27 @@
           "online?: boolean = false",
           "selected?: boolean",
           "onClick?: () => void",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ],
         "ChatComposerReply": [
           "target: ChatReplyTarget",
-          "onCancel?: () => void"
+          "onCancel?: () => void",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ChatReplyQuote": [
           "target: ChatReplyTarget",
           "side: you|others",
           "replier?: string",
-          "onJump?: (id: string) => void"
+          "onJump?: (id: string) => void",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ChatEmojiPicker": [
           "value?: string",
           "onPick: (emoji: string) => void",
           "onBack: () => void",
-          "label?: string"
+          "label?: string",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "ChatReactorsPanel": [
           "reactions: ChatReaction[]",
@@ -3484,7 +3554,8 @@
           "side: you|others",
           "open: boolean",
           "onOpenChange: (open: boolean) => void",
-          "anchorRef: RefObject<HTMLElement|null>"
+          "anchorRef: RefObject<HTMLElement|null>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -3557,7 +3628,8 @@
           "thinking?: boolean = false",
           "thinkingLabel?: string",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "AiChatField": [
           "onSubmit: (text: string) => void",
@@ -3575,7 +3647,8 @@
           "disabled?: boolean = false",
           "defaultValue?: string = ",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLFormElement>"
         ],
         "AiChatBlock": [
           "greeting?: ReactNode",
@@ -3584,7 +3657,8 @@
           "suggestions?: AiChatSuggestion[] = []",
           "children: ReactNode",
           "className?: string",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -3664,6 +3738,7 @@
           "height?: number = 280",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "curve?: smooth|linear = smooth",
           "fill?: area|none|gradient = area",
@@ -3679,6 +3754,7 @@
           "height?: number = 280",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "color?: string",
           "activeColor?: string",
@@ -3692,6 +3768,7 @@
           "height?: number = 236",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom = bottom",
@@ -3710,6 +3787,7 @@
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom|start|end = bottom",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "animate?: boolean = true"
         ],
         "RadialChart": [
@@ -3723,6 +3801,7 @@
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom|start|end = bottom",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "animate?: boolean = true"
         ],
         "HeatmapChart": [
@@ -3734,6 +3813,7 @@
           "aria-label: string",
           "showLegend?: boolean = true",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "animate?: boolean = true"
         ],
         "BarList": [
@@ -3742,6 +3822,7 @@
           "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number = 0",
           "animate?: boolean = true"
         ],
@@ -3754,6 +3835,7 @@
           "format?: (value: number, row: ChartBullet) => string",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "animate?: boolean = true"
         ],
@@ -3770,6 +3852,7 @@
           "legendPosition?: top|bottom|start|end = bottom",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "animate?: boolean = true"
         ],
         "FunnelChart": [
@@ -3777,6 +3860,7 @@
           "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "animate?: boolean = true"
         ],
@@ -3788,6 +3872,7 @@
           "height?: number = 280",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "showLegend?: boolean",
           "legendPosition?: top|bottom = bottom",
@@ -3800,6 +3885,7 @@
           "height?: number = 280",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom = bottom",
@@ -3815,6 +3901,7 @@
           "height?: number = 280",
           "aria-label: string",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "initialIndex?: number",
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom = bottom",
@@ -3836,6 +3923,7 @@
           "surface?: default|alt",
           "children: ReactNode",
           "className?: string",
+          "ref?: Ref<HTMLDivElement>",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -3925,7 +4013,8 @@
           "paddingX?: none|ZenScaleInput|4xl",
           "paddingY?: none|ZenScaleInput|4xl",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLElement>"
         ],
         "Grid": [
           "width?: hug|fill|number",
@@ -3952,7 +4041,8 @@
           "padding?: none|ZenScaleInput|4xl",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
           "children?: ReactNode",
-          "clip?: boolean = false"
+          "clip?: boolean = false",
+          "ref?: Ref<HTMLElement>"
         ],
         "Box": [
           "width?: hug|fill|number",
@@ -3983,13 +4073,15 @@
           "border?: none|pale|subtle = none",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLElement>"
         ],
         "Container": [
           "maxWidth?: sm|md|lg|xl|full = lg",
           "gutter?: boolean = true",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -4074,7 +4166,8 @@
           "wrap?: boolean = true",
           "tabularNumbers?: boolean = false",
           "htmlFor?: string",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLElement>"
         ],
         "Heading": [
           "width?: hug|fill|number",
@@ -4092,7 +4185,8 @@
           "verticalAlign?: top|middle|bottom",
           "wrap?: boolean = true",
           "tabularNumbers?: boolean = false",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLHeadingElement>"
         ]
       },
       "do": [
@@ -4169,7 +4263,8 @@
           "mainId?: string",
           "layout?: auto|sidebar|drawer = auto",
           "children?: ReactNode",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "AppShellAction": [
           "icon: IconName|ReactNode",
@@ -4179,13 +4274,15 @@
           "tone?: default|active|accent = default",
           "appearance?: tertiary|flat = tertiary",
           "tooltip?: ReactNode|false",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLButtonElement>"
         ],
         "AppShellAccount": [
           "name: string",
           "src?: string",
           "theme?: Exclude<AvatarTheme, photo> = neutral",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLButtonElement>"
         ]
       },
       "do": [
@@ -4246,7 +4343,8 @@
           "tabs?: ReactNode",
           "back?: PageHeaderBack",
           "headingLevel?: 1|2 = 1",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -4302,7 +4400,8 @@
           "childTitle?: ReactNode",
           "headingLevel?: 1|2 = 1",
           "children?: ReactNode",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [
@@ -4354,7 +4453,8 @@
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = lg",
           "invalidMessage?: (count: number) => string",
           "noValidate?: boolean = true",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLFormElement>"
         ],
         "FormField": [
           "label?: ReactNode",
@@ -4366,7 +4466,8 @@
           "labelAction?: ReactNode",
           "controlId?: string",
           "children: ReactElement",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ],
         "FormFieldset": [
           "legend: ReactNode",
@@ -4379,13 +4480,15 @@
           "required?: boolean = false",
           "optional?: boolean = false",
           "children?: ReactNode",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLFieldSetElement>"
         ],
         "FormActions": [
           "align?: end|start|between = end",
           "sticky?: boolean = false",
           "inset?: none|ZenScaleInput|4xl",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -4448,7 +4551,8 @@
           "tone?: hyperlink|inherit = hyperlink",
           "visited?: boolean = false",
           "as?: ElementType = a",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLAnchorElement>"
         ]
       },
       "do": [
@@ -4646,14 +4750,16 @@
           "layout?: inline|stacked = inline",
           "divider?: boolean = false",
           "stackBelow?: number = 280",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLDListElement>"
         ],
         "DescriptionItem": [
           "term: ReactNode",
           "description: ReactNode",
           "action?: ReactNode",
           "emphasis?: boolean = false",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -4705,7 +4811,8 @@
           "secondaryAction?: ActionBarAction",
           "summary?: ReactNode",
           "children?: ReactNode",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [
@@ -4766,7 +4873,8 @@
           "loading?: lazy|eager = lazy",
           "caption?: ReactNode",
           "className?: string",
-          "style?: CSSProperties"
+          "style?: CSSProperties",
+          "ref?: Ref<HTMLImageElement>"
         ],
         "Thumbnail": [
           "src?: string",
@@ -4776,7 +4884,8 @@
           "fit?: cover|contain = cover",
           "loading?: lazy|eager = lazy",
           "className?: string",
-          "style?: CSSProperties"
+          "style?: CSSProperties",
+          "ref?: Ref<HTMLImageElement>"
         ]
       },
       "do": [
@@ -4828,7 +4937,8 @@
           "focusable?: boolean = false",
           "href?: string",
           "htmlFor?: string",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "ref?: Ref<HTMLElement>"
         ]
       },
       "do": [

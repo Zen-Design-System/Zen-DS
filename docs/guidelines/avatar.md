@@ -40,6 +40,7 @@ Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on
 | `alt` | `string` | `""` | The person's name. With `src` it is the photo's alt text; without it the initials avatar is named by it (`role="img"`, `aria-label`), so screen readers say "Ava Chen", not "AC" (an AvatarStack of initials reads names). `alt=""` makes the avatar decorative: use it only when the name is shown next to it. |
 | `children` | `ReactNode` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
 
 ### AvatarStack
 Figma Avatar/Stack: 1–5 avatars, first on top, no overflow chip (`showMore` is an opt-in extension).

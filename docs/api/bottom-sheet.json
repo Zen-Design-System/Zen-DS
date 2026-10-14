@@ -193,6 +193,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: \"danger\" }, \"Item[delete]/Icon\": { tone: \"negative-base\" } }`). Written by Zen Studio;\n app code sets the actions / items.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open.",
+          "deprecated": null
         }
       ]
     }

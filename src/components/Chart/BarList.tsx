@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -17,6 +17,8 @@ export interface BarListProps {
   "aria-label": string;
   /** Extra class on the chart. */
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The row active at first, its bar at 48% (the others 24%). Default 0: the leader. ↑/↓, Home/End and hover move it. */
   initialIndex?: number;
   /** Grow the bars from the start on mount and when the data changes (default true; reduced motion fades). */
@@ -31,7 +33,7 @@ export interface BarListProps {
  * Content/Neutral/Light). ↑/↓ and Home/End move the active row, hover picks one; the summary reads its name and value.
  * Figma Chart/Bar-List 15487:2473 (the chart body; the header is ChartCard's).
  */
-export function BarList({ data, headers, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex = 0, animate = true }: BarListProps) {
+export function BarList({ data, headers, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex = 0, animate = true, ref }: BarListProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex, "vertical");
@@ -40,7 +42,7 @@ export function BarList({ data, headers, format = defaultFormat, "aria-label": a
   const current = active === null ? undefined : data[active];
   const summary = current ? `${current.label}: ${format(current.value)} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
   return (
-    <ChartBlock kind="bar-list">
+    <ChartBlock ref={ref} kind="bar-list">
       <div className={["zen-chart", "zen-chart--list", className].filter(Boolean).join(" ")} data-kind="bar-list" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__list" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown}>
           {headers ? (

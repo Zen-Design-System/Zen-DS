@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from "react";
+import { useId, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode, type Ref } from "react";
 import { usePresence } from "../Motion";
 import { Button } from "../Button";
 import { type DialogAction } from "../Dialog";
@@ -12,6 +12,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-sheet.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 /** Figma Type: Modal (contents + Actions footer) · Action (a list of Sheet-Actions items). */
 export type BottomSheetType = "modal" | "action";
@@ -74,6 +75,8 @@ export interface BottomSheetProps extends OverlayOpenProps {
   /** Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: "danger" }, "Item[delete]/Icon": { tone: "negative-base" } }`). Written by Zen Studio;
    *  app code sets the actions / items. */
   overrides?: NestedOverrides;
+  /** Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -84,13 +87,14 @@ export interface BottomSheetProps extends OverlayOpenProps {
  * Initial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.
  * Modal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).
  */
-export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides }: BottomSheetProps) {
+export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides, ref }: BottomSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.close;
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLDivElement>(null);
+  const mergedPanelRef = useMergedRefs(panelRef, ref);
   const drag =useRef<{ y: number; id: number } | null>(null);
   const [offset, setOffset] = useState(0);
   // Initial focus: `data-autofocus` inside the sheet wins. A form sheet (Modal + onSubmit) or a sheet with a Search slot
@@ -103,7 +107,7 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
   // frame, as Dialog and Menu do, so it covers that screen only; elsewhere it goes to the page portal. `inline` keeps it
   // in its nearest positioned ancestor.
   const host = useOverlayHost(mounted && !inline);
-  useModal(open && (inline || host.ready), panelRef, dismissible, onOpenChange, startsOnField ? modalFieldSelector : "[data-autofocus]");
+  useModal(open && (inline || host.ready), panelRef, dismissible, onOpenChange, startsOnField ? modalFieldSelector : "[data-autofocus]", { isolate: !inline, container: host.container });
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
 
@@ -166,7 +170,7 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
 
   const sheet = (
     <div
-      ref={panelRef}
+      ref={mergedPanelRef}
       className={["zen-bottom-sheet", className].filter(Boolean).join(" ")}
       data-type={type}
       data-size={size}

@@ -61,6 +61,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `subMenu` | `ReactNode` | — | Figma Side-Bar/Sub: a 260px flyout panel opened beside the sidebar (usually a `<SidebarSubMenu>`). |
 | `subMenuLabel` | `string` | — | Accessible name of the flyout panel. Default: the locale's “Sub menu”. |
 | `onSubMenuClose` | `(event: KeyboardEvent \| globalThis.PointerEvent) => void` | — | Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the sidebar's root `<nav>`. |
 
 ### SidebarMenuItem
 Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children), Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMenu`. It reads the Sidebar's selection (`selectedId`), rail and `onItemClick`, exactly like a `sections` entry with the same fields.
@@ -69,6 +70,7 @@ Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-C
 | --- | --- | --- | --- |
 | `children` | `ReactNode \| SidebarItem[]` | — | Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the row it draws, by layer (`{ "Badge-Counter": { theme: "accent" } }`). Written by Zen Studio; app code sets counter / icon. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the row's root `<div>` (the item group holding the row and its nested rows). |
 | `id` (required) | `string` | — | Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it. |
 | `label` (required) | `string` | — | Figma Label: one or two words. The collapsed rail shows it as the row's tooltip and name. |
 | `icon` | `IconName \| ReactNode` | — | Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail). |
@@ -92,6 +94,7 @@ A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `section
 | `label` | `string` | — | Section title: the Menu-Item section label (Body/Small), as `SidebarSection.label`. |
 | `action` | `ReactNode` | — | Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`. |
 | `children` | `ReactNode` | — | The section's `<SidebarMenuItem>` rows. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the section's root `<section>`. |
 
 ### SidebarSubMenu
 Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small).
@@ -104,6 +107,7 @@ Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master me
 | `onItemClick` | `(item: SidebarItem) => void` | — |  |
 | `children` | `ReactNode` | — | Figma Sub-Item slot content under the item list: `<SidebarMenuItem>` rows (they share `onItemClick`) or anything else. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the flyout content's root `<div>`. |
 
 ### Types
 Object shapes the props above refer to.

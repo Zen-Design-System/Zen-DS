@@ -1,7 +1,8 @@
-import { useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode, type Ref } from "react";
+import { useRef, type HTMLAttributes, type KeyboardEvent, type ReactNode, type Ref } from "react";
 import { Chip, type ChipLevel, type ChipSize } from "../Chip";
 import type { IconName } from "../Icon";
 import "./chip-group.css";
+import { useControllableState } from "../_shared/use-controllable-state";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export interface ChipGroupOption {
@@ -50,15 +51,15 @@ export interface ChipGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "de
  */
 export function ChipGroup({ ref, options, value: valueProp, defaultValue = null, onValueChange, size = "sm", level = "primary", disabled = false, className, overrides, ...rest }: ChipGroupProps) {
   const nest = useNested(overrides);
-  const [inner, setInner] = useState<string | null>(defaultValue);
-  const value = valueProp !== undefined ? valueProp : inner;
+  const [value, pick] = useControllableState<string | null>({
+    value: valueProp,
+    defaultValue,
+    onChange: (next) => { if (next !== null) onValueChange?.(next); },
+    name: "ChipGroup value",
+  });
   const chips = useRef(new Map<string, HTMLButtonElement>());
   const enabled = options.filter((option) => !disabled && !option.disabled);
   const tabStop = enabled.find((option) => option.value === value)?.value ?? enabled[0]?.value;
-  const pick = (next: string) => {
-    if (valueProp === undefined) setInner(next);
-    if (next !== value) onValueChange?.(next);
-  };
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, current: string) => {
     const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
     if (event.key === " ") { event.preventDefault(); pick(current); return; }

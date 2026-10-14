@@ -1,5 +1,6 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useLayoutEffect, useState, type CSSProperties, type RefObject } from "react";
 import { flushSync } from "react-dom";
+import { useStableCallback } from "../_shared/use-stable-callback";
 
 export type AnchoredSide = "bottom" | "top";
 export type AnchoredAlign = "start" | "end";
@@ -77,8 +78,9 @@ function visibleBounds(from: HTMLElement) {
  */
 export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, active: boolean, { anchor, gap = 4, align = "start", trackAnchorWidth = false }: AnchoredPositionOptions = {}) {
   const [placement, setPlacement] = useState<{ side: AnchoredSide; align: AnchoredAlign; style?: CSSProperties }>({ side: "bottom", align });
-  const anchorRef = useRef(anchor);
-  anchorRef.current = anchor;
+  // Stable identity, always the latest `anchor` (updated in an insertion effect, so before this layout effect runs): an
+  // inline anchor function on every render neither re-runs the measuring effect nor is read stale.
+  const getAnchor = useStableCallback(anchor);
 
   useLayoutEffect(() => {
     if (!active) return undefined;
@@ -97,7 +99,7 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       if (getComputedStyle(surface).position !== "absolute") return;
       const container = surface.offsetParent as HTMLElement | null;
       if (!container) return;
-      const target = anchorRef.current?.() ?? surface.parentElement?.closest<HTMLElement>(".zen-input__control") ?? container;
+      const target = getAnchor() ?? surface.parentElement?.closest<HTMLElement>(".zen-input__control") ?? container;
       // A surface sized from its anchor follows the anchor's own resizes too (a field that grows with its column).
       if (anchorObserver && target !== watchedAnchor) {
         if (watchedAnchor) anchorObserver.unobserve(watchedAnchor);
@@ -174,8 +176,7 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       window.removeEventListener("resize", sync);
       window.removeEventListener("scroll", sync, true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, surfaceRef, gap, align, trackAnchorWidth]);
+  }, [active, surfaceRef, gap, align, getAnchor, trackAnchorWidth]);
 
   return placement;
 }

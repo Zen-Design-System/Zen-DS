@@ -54,6 +54,7 @@ Figma .Primitives/Stepper/Item (1625:4827): 24px marker — number (Style=Text) 
 | `state` | `"default" \| "focused" \| "passed" \| "error"` | `"default"` |  |
 | `index` | `number` | `1` |  |
 | `icon` | `IconName \| ReactElement` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Ref to the marker's root `<span>`. |
 
 ### Types
 Object shapes the props above refer to.

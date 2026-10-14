@@ -1,4 +1,4 @@
-import { memo, useId, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { memo, useId, useState, useSyncExternalStore, type CSSProperties, type ReactNode, type Ref } from "react";
 import { Badge } from "../Badge";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
@@ -134,6 +134,8 @@ export type VoiceRecorderProps = {
   /** Throw the take away (Recording, Paused). */
   onDiscard?: () => void;
   className?: string;
+  /** Forwarded to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: "orange" } }`). Written by Zen Studio;
    *  app code sets state. */
   overrides?: NestedOverrides;
@@ -147,16 +149,17 @@ export type VoiceRecorderProps = {
  * the guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and
  * Finish disabled until there is a take), a Border/Neutral/Pale divider and the input details.
  */
-export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className, overrides }: VoiceRecorderProps) {
+export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className, overrides, ref }: VoiceRecorderProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const titleId = useId();
   const ready = state === "ready";
   const moving = useMotionAllowed();
   // A take started here from Ready is new: its bars come in from the right edge. One shown already recording (Figma's
-  // frame, a page that opens mid-take) is full from the start.
-  const startedHere = useRef(ready);
-  if (ready) startedHere.current = true;
+  // frame, a page that opens mid-take) is full from the start. Set while rendering as derived state (React's
+  // "adjust state when a prop changes"), so the same render already sees it.
+  const [startedHere, setStartedHere] = useState(ready);
+  if (ready && !startedHere) setStartedHere(true);
   // Without your levels the sample take moves as a live recorder does (paused, it holds still where it stopped).
   const loop = !ready && !levels && moving;
   const wave = ready ? FLAT_TAKE : levels ?? (loop ? SAMPLE_LOOP : SAMPLE_TAKE);
@@ -167,7 +170,7 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
       : { icon: "icon-microphone-solid" as const, label: t.voiceRecord, onClick: onRecord };
   const said = guidance ?? (state === "recording" ? t.voiceRecordingGuidance : state === "paused" ? t.voicePausedGuidance : t.voiceReadyGuidance);
   return (
-    <div className={["zen-voice", "zen-voice-recorder", className].filter(Boolean).join(" ")} role="group" aria-labelledby={titleId} data-state={state}>
+    <div ref={ref} className={["zen-voice", "zen-voice-recorder", className].filter(Boolean).join(" ")} role="group" aria-labelledby={titleId} data-state={state}>
       <div className="zen-voice__header">
         <span id={titleId} className={`zen-voice__title ${typographyStyles["Body/Base/Medium"]}`}>{title ?? t.voiceNewRecording}</span>
         {state === "recording"
@@ -176,7 +179,7 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
       </div>
       <div className="zen-voice-recorder__monitor">
         <span className={`zen-voice-recorder__time ${typographyStyles["Heading/Subheading"]}`} role="timer" aria-live="off">{elapsed}</span>
-        <Waveform levels={wave} className="zen-voice-recorder__wave" loop={loop} fresh={startedHere.current} />
+        <Waveform levels={wave} className="zen-voice-recorder__wave" loop={loop} fresh={startedHere} />
         <span className={`zen-voice-recorder__timeline ${typographyStyles["Caption/Regular"]}`} aria-hidden="true">
           <span>{start}</span>
           <span>{end}</span>
@@ -238,6 +241,8 @@ export type AiVoiceConversationProps = {
   /** The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing. */
   note?: ReactNode;
   className?: string;
+  /** Forwarded to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: "green" } }`). Written by Zen Studio;
    *  app code sets state / transcript. */
   overrides?: NestedOverrides;
@@ -251,7 +256,7 @@ export type AiVoiceConversationProps = {
  * Corner-Radius/Base, Spacing/Padding/Small: the speaker in Label/Small/Medium Neutral/Light over an AI/Chat-Bubble),
  * the actions (Mute · Start talking / Done speaking / Interrupt · End) and the note.
  */
-export function AiVoiceConversation({ state = "ready", name, heading, headingLevel = 3, guidance, speaker, transcript, levels, muted = false, onMutedChange, onStart, onDone, onInterrupt, onEnd, note, className, overrides }: AiVoiceConversationProps) {
+export function AiVoiceConversation({ state = "ready", name, heading, headingLevel = 3, guidance, speaker, transcript, levels, muted = false, onMutedChange, onStart, onDone, onInterrupt, onEnd, note, className, overrides, ref }: AiVoiceConversationProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const nameId = useId();
@@ -270,7 +275,7 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
   const status = state === "listening" ? t.voiceListening : state === "responding" ? t.voiceResponding : t.voiceReady;
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
   return (
-    <div className={["zen-voice", "zen-ai-voice", className].filter(Boolean).join(" ")} role="group" aria-labelledby={nameId} data-state={state}>
+    <div ref={ref} className={["zen-voice", "zen-ai-voice", className].filter(Boolean).join(" ")} role="group" aria-labelledby={nameId} data-state={state}>
       <div className="zen-voice__header">
         <span id={nameId} className={`zen-voice__title ${typographyStyles["Body/Base/Medium"]}`}>{name ?? t.voiceAssistant}</span>
         {nest("Status", <Badge size="sm" theme={ready ? "neutral" : "accent"} background="subtle">{status}</Badge>)}

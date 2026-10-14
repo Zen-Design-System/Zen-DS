@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
@@ -80,27 +80,27 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`).
    *  Written by Zen Studio; app code sets the icon props. */
   overrides?: NestedOverrides;
+  /** Ref to the rendered `<button>` element. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  {
-    level,
-    variant,
-    size: sizeProp = "md",
-    state,
-    appearance = "main",
-    startIcon: startIconProp,
-    endIcon: endIconProp,
-    leftIcon,
-    rightIcon,
-    children,
-    className,
-    type = "button",
-    overrides,
-    ...buttonProps
-  },
+export function Button({
+  level,
+  variant,
+  size: sizeProp = "md",
+  state,
+  appearance = "main",
+  startIcon: startIconProp,
+  endIcon: endIconProp,
+  leftIcon,
+  rightIcon,
+  children,
+  className,
+  type = "button",
+  overrides,
   ref,
-) {
+  ...buttonProps
+}: ButtonProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, buttonSizes);
   const startIcon = startIconProp ?? leftIcon;
@@ -135,7 +135,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ) : null}
     </button>
   );
-});
+}
 
 export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   /** Figma Button/Icon-Main glyph: an icon name (`"icon-plus-line"`) or a node. The icon-only primitive is intentionally separate from Button/Main. */
@@ -163,29 +163,29 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   /** Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`).
    *  Written by Zen Studio; app code sets the icon props. */
   overrides?: NestedOverrides;
+  /** Ref to the rendered `<button>` element. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
  * Figma Button/Icon-Main: a square, icon-only action that reuses the Button
  * level/state tokens and the shared Icon primitive. Shows its name as a tooltip (see `tooltip`).
  */
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  {
-    icon,
-    level,
-    variant,
-    size: sizeProp = "md",
-    state,
-    appearance = "main",
-    className,
-    type = "button",
-    disabled,
-    tooltip,
-    overrides,
-    ...buttonProps
-  },
+export function IconButton({
+  icon,
+  level,
+  variant,
+  size: sizeProp = "md",
+  state,
+  appearance = "main",
+  className,
+  type = "button",
+  disabled,
+  tooltip,
+  overrides,
   ref,
-) {
+  ...buttonProps
+}: IconButtonProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, buttonSizes);
   // Guideline defaults: Tertiary for everyday icon actions, Flat Primary for close/dismiss (Overlay keeps its old default).
@@ -212,4 +212,4 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       {tip.tooltip}
     </>
   );
-});
+}

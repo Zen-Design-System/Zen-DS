@@ -121,6 +121,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The panel's root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -306,6 +314,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -338,6 +354,14 @@
           "required": false,
           "default": null,
           "description": "Names the swatch for assistive technology (e.g. \"Brand colour, #1F6FEB\"). Without it the swatch is decorative.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The swatch's `<span>`.",
           "deprecated": null
         }
       ]

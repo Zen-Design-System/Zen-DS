@@ -599,6 +599,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "setOpenItems": "setOpenItems"
     }
   },
+  "SidebarMenuItem": {
+    "SidebarItemView": {
+      "rootRef": "ref"
+    }
+  },
   "SidebarMenuSection": {
     "SidebarSectionTitle": {
       "action": "action",

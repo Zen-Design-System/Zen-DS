@@ -2,12 +2,9 @@ import {
   Children,
   Fragment,
   cloneElement,
-  forwardRef,
   isValidElement,
-  useCallback,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -30,14 +27,10 @@ import { afterErrorsRender, focusFirstInvalidField } from "./focus";
 import type { FormSubmitEvent } from "./useFormState";
 import "./form.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
+import { useMergedRefs } from "../_shared/merge-refs";
 
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const cleanId = (id: string) => id.replace(/:/g, "");
-
-function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
-  if (typeof ref === "function") ref(value);
-  else if (ref) (ref as { current: T | null }).current = value;
-}
 
 /* ───────────── Form ───────────── */
 
@@ -66,6 +59,8 @@ export interface FormProps extends Omit<FormHTMLAttributes<HTMLFormElement>, "on
   noValidate?: boolean;
   /** The groups of the form, top to bottom: Stacks or Grids of fields, FormFieldsets, and FormActions last. */
   children?: ReactNode;
+  /** Ref to the rendered `<form>` element. */
+  ref?: Ref<HTMLFormElement>;
 }
 
 /**
@@ -78,17 +73,14 @@ export interface FormProps extends Omit<FormHTMLAttributes<HTMLFormElement>, "on
  *     <FormActions><Button level="tertiary">Cancel</Button><Button level="primary" type="submit">Create account</Button></FormActions>
  *   </Form>
  */
-export const Form = forwardRef<HTMLFormElement, FormProps>(function Form(
-  { form, onSubmit, gap = "lg", invalidMessage: invalidMessageProp, noValidate = true, className, children, ...rest },
-  ref,
-) {
+export function Form({ form, onSubmit, gap = "lg", invalidMessage: invalidMessageProp, noValidate = true, className, children, ref, ...rest }: FormProps) {
   const t = useZenLabels();
   const invalidMessage = invalidMessageProp ?? t.fieldsNeedAttention;
   const [announcement, setAnnouncement] = useState("");
   const frame = useRef(0);
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
-  // Stack forwards an HTMLElement ref; this one is always the <form>.
-  const setRef = useCallback((node: HTMLElement | null) => assignRef(ref, node as HTMLFormElement | null), [ref]);
+  // Stack takes an HTMLElement ref; this one is always the <form>.
+  const formRef = ref as Ref<HTMLElement> | undefined;
 
   const announce = (message: string) => {
     // Clear first so the same message is read again after a second failed submit.
@@ -122,7 +114,7 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(function Form(
     <Stack
       {...formAttributes}
       as="form"
-      ref={setRef}
+      ref={formRef}
       gap={gap}
       className={["zen-form", className].filter(Boolean).join(" ")}
       aria-busy={form?.isSubmitting || undefined}
@@ -132,7 +124,7 @@ export const Form = forwardRef<HTMLFormElement, FormProps>(function Form(
       <VisuallyHidden className="zen-form__live" role="status" aria-live="polite" aria-atomic="true">{announcement}</VisuallyHidden>
     </Stack>
   );
-});
+}
 
 /* ───────────── FormField ───────────── */
 
@@ -161,6 +153,8 @@ export interface FormFieldProps extends Omit<HTMLAttributes<HTMLDivElement>, "ch
   /** Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
    *  app code sets label / helpText. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<div>` element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 type ControlProps = { id?: string; "aria-label"?: string; "aria-labelledby"?: string; "aria-describedby"?: string };
@@ -170,10 +164,7 @@ type ControlProps = { id?: string; "aria-label"?: string; "aria-labelledby"?: st
  * inputs (InputField, SelectField…) already have label/helpText/error: use them directly. The wrapper is marked invalid
  * while `error` is set, so Form can focus it after a failed submit.
  */
-export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function FormField(
-  { label, helpText, error, required = false, optional = false, labelTooltip, labelAction, controlId, className, children, overrides, ...rest },
-  ref,
-) {
+export function FormField({ label, helpText, error, required = false, optional = false, labelTooltip, labelAction, controlId, className, children, overrides, ref, ...rest }: FormFieldProps) {
   const nest = useNested(overrides);
   const generated = cleanId(useId());
   const child = Children.only(children) as ReactElement<ControlProps>;
@@ -198,7 +189,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function For
       {message ? nest("Help-Text", <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error || helpText}</InputHelpText>) : null}
     </div>
   );
-});
+}
 
 /* ───────────── FormFieldset ───────────── */
 
@@ -232,16 +223,15 @@ export interface FormFieldsetProps extends Omit<FieldsetHTMLAttributes<HTMLField
   /** Figma instance overrides: props of the help text it draws, by layer (`{ "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
    *  app code sets helpText. */
   overrides?: NestedOverrides;
+  /** Ref to the rendered `<fieldset>` element. */
+  ref?: Ref<HTMLFieldSetElement>;
 }
 
 /**
  * A `<fieldset>` + `<legend>` for a group of Checkbox, RadioButton or Toggle rows, with one help text and one error
  * for the whole group. `kind="radio"` makes it a radiogroup. The legend uses the field label style (Body/Small/Regular).
  */
-export const FormFieldset = forwardRef<HTMLFieldSetElement, FormFieldsetProps>(function FormFieldset(
-  { legend, hideLegend = false, kind = "group", direction = "column", gap, helpText, error, required = false, optional = false, className, style, children, overrides, ...rest },
-  ref,
-) {
+export function FormFieldset({ legend, hideLegend = false, kind = "group", direction = "column", gap, helpText, error, required = false, optional = false, className, style, children, overrides, ref, ...rest }: FormFieldsetProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const id = `zen-form-fieldset-${cleanId(useId())}`;
@@ -272,7 +262,7 @@ export const FormFieldset = forwardRef<HTMLFieldSetElement, FormFieldsetProps>(f
       {message ? nest("Help-Text", <InputHelpText id={messageId} theme={error ? "negative" : "neutral"}>{error || helpText}</InputHelpText>) : null}
     </fieldset>
   );
-});
+}
 
 /* ───────────── FormActions ───────────── */
 
@@ -291,6 +281,8 @@ export interface FormActionsProps extends Omit<HTMLAttributes<HTMLDivElement>, "
   inset?: ZenPadding;
   /** The buttons: Tertiary (cancel) first, Primary (`type="submit"`, named for the outcome) last. */
   children?: ReactNode;
+  /** Ref to the root `<div>` element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Width below which the actions stack (Primary on top, full-width Large buttons), as on phones. */
@@ -310,14 +302,11 @@ function largeButtons(children: ReactNode): ReactNode {
  * than 480px, or inside a ZenProvider with breakpoint mobile, the buttons stack full width at size lg with Primary on
  * top (the mobile footer pattern). `sticky` pins the row to the bottom of the scrolling area.
  */
-export const FormActions = forwardRef<HTMLDivElement, FormActionsProps>(function FormActions(
-  { align = "end", sticky = false, inset, className, style, children, ...rest },
-  ref,
-) {
+export function FormActions({ align = "end", sticky = false, inset, className, style, children, ref, ...rest }: FormActionsProps) {
   const zen = useZen();
   const rowRef = useRef<HTMLDivElement | null>(null);
   const [narrow, setNarrow] = useState(false);
-  const setRefs = useCallback((node: HTMLDivElement | null) => { rowRef.current = node; assignRef(ref, node); }, [ref]);
+  const setRefs = useMergedRefs(rowRef, ref);
   useIsomorphicLayoutEffect(() => {
     const row = rowRef.current;
     // Measure the container (the form), not the row itself: a stacked row is narrower than a wide one.
@@ -349,4 +338,4 @@ export const FormActions = forwardRef<HTMLDivElement, FormActionsProps>(function
       {stacked ? largeButtons(children) : children}
     </div>
   );
-});
+}

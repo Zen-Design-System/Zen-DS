@@ -42,6 +42,7 @@ Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-che
 | `size` | `"xs" \| "sm" \| "xsmall" \| "small"` | `"xs"` | Page items and the ‹ › arrows: xs = 24px (Figma) · sm = 32px. Short (xs, sm) or Figma (xsmall, small) spelling. |
 | `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Pagination”. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Forwarded to the root `<nav>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the arrows, page items and page-size chip it draws, by layer (`{ Previous: { level: "secondary" }, "Page[3]": { level: "secondary" } }`). Written by Zen Studio; app code keeps the defaults. |
 
 ### PaginationItem
@@ -56,6 +57,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `level` | `"primary" \| "secondary"` | `"primary"` | Selected fill: Primary Active/Neutral/Solid (Inverse label) · Secondary Active/Neutral/Subtle. |
 | `selected` | `boolean` | `false` |  |
 | `optional` | `boolean` | `false` | Narrow screens hide optional pages (everything but first, last and current), keeping `1 … 5 … 12`. |
+| `ref` | `Ref<HTMLButtonElement>` | — | Forwarded to the page `<button>` (the non-interactive ellipsis item takes none). |
 
 ## Keyboard
 | Keys | Action |

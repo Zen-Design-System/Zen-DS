@@ -39,6 +39,7 @@ Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-
 | `aria-label` | `string` | — | Names the navigation landmark (default "Breadcrumb", from the locale's labels). |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the crumbs it draws, by layer (`{ "Crumb[home]/Icon": { name: "icon-home-02-solid" }, "Separator[home]": { name: "icon-minus-line" } }`). Written by Zen Studio; app code sets the items. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root `<nav>`. |
 
 ### BreadcrumbItem
 Figma .Primitives/Breadcrumbs/Item (292:43787): Level × State × Emphasis.

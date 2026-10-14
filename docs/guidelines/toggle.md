@@ -38,6 +38,7 @@ Also accepts `ToggleButtonProps`.
 | `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"sm"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `state` | `"default" \| "hover" \| "disabled"` | `"default"` |  |
 | `onSelectedChange` | `(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
+| `ref` | `Ref<HTMLSpanElement>` | — | The element with role="switch" (the one that takes focus); the native checkbox inside only carries the form value. |
 | `label` (required) | `ReactNode` | — |  |
 | `caption` | `ReactNode` | — | Toggle (1526:5703) Content Subtext: short help under the label (Caption/Regular 11/16, Content/Neutral/Light). |
 | `bold` | `boolean` | `false` |  |
@@ -56,6 +57,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type">`.
 | `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `state` | `"default" \| "hover" \| "disabled"` | `"default"` |  |
 | `onSelectedChange` | `(selected: boolean, event: ChangeEvent<HTMLInputElement>) => void` | — | **Deprecated:** Use onCheckedChange (or read event.target.checked).  |
+| `ref` | `Ref<HTMLSpanElement>` | — | The element with role="switch" (the one that takes focus); the native checkbox inside only carries the form value. |
 
 ## Keyboard
 | Keys | Action |

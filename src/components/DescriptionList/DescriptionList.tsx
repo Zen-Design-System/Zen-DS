@@ -1,8 +1,8 @@
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
+import { useRef, useState, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Text } from "../Text";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
+import { useMergedRefs } from "../_shared/merge-refs";
 import "./description-list.css";
-
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export const descriptionListLayouts = ["inline", "stacked"] as const;
 export type DescriptionListLayout = (typeof descriptionListLayouts)[number];
@@ -32,6 +32,8 @@ export interface DescriptionItemProps {
   emphasis?: boolean;
   /** On the row's div (the dt/dd group). */
   className?: string;
+  /** The row's root `<div>` (the dt/dd group). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -39,9 +41,9 @@ export interface DescriptionItemProps {
  *
  *   <DescriptionItem term="Total" description="$321.90" emphasis />
  */
-export function DescriptionItem({ term, description, action, emphasis = false, className }: DescriptionItemProps) {
+export function DescriptionItem({ term, description, action, emphasis = false, className, ref }: DescriptionItemProps) {
   return (
-    <div className={["zen-description-list__item", className].filter(Boolean).join(" ")} data-emphasis={emphasis ? "true" : undefined} data-action={action ? "true" : undefined}>
+    <div ref={ref} className={["zen-description-list__item", className].filter(Boolean).join(" ")} data-emphasis={emphasis ? "true" : undefined} data-action={action ? "true" : undefined}>
       <Text as="dt" className="zen-description-list__term" textStyle={emphasis ? "Body/Base/Bold" : "Body/Small/Regular"} tone={emphasis ? "strongest" : "base"}>{term}</Text>
       <Text as="dd" className="zen-description-list__description" textStyle={emphasis ? "Body/Base/Bold" : "Body/Base/Medium"}>{description}</Text>
       {action ? <dd className="zen-description-list__action">{action}</dd> : null}
@@ -66,6 +68,8 @@ export interface DescriptionListProps extends Omit<HTMLAttributes<HTMLDListEleme
   stackBelow?: number;
   /** DescriptionItem rows. */
   children?: ReactNode;
+  /** Ref to the rendered `<dl>` element. */
+  ref?: Ref<HTMLDListElement>;
 }
 
 const keyOf = (item: DescriptionListItem, index: number) => item.id ?? (typeof item.term === "string" ? `${item.term}-${index}` : String(index));
@@ -78,17 +82,10 @@ const keyOf = (item: DescriptionListItem, index: number) => item.id ?? (typeof i
  *
  *   <DescriptionList items={[{ term: "Subtotal", description: "$311.90" }, { term: "Total", description: "$321.90", emphasis: true }]} />
  */
-export const DescriptionList = forwardRef<HTMLDListElement, DescriptionListProps>(function DescriptionList(
-  { items = [], layout = "inline", divider = false, stackBelow = 280, className, children, ...rest },
-  ref,
-) {
+export function DescriptionList({ items = [], layout = "inline", divider = false, stackBelow = 280, className, children, ref, ...rest }: DescriptionListProps) {
   const localRef = useRef<HTMLDListElement | null>(null);
   const [narrow, setNarrow] = useState(false);
-  const setRef = useCallback((node: HTMLDListElement | null) => {
-    localRef.current = node;
-    if (typeof ref === "function") ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
+  const setRef = useMergedRefs(localRef, ref);
   // Inline rows stack under `stackBelow` px of their own width (a card, sheet or table cell), not the viewport's.
   useIsomorphicLayoutEffect(() => {
     const element = localRef.current;
@@ -112,4 +109,4 @@ export const DescriptionList = forwardRef<HTMLDListElement, DescriptionListProps
       {children}
     </dl>
   );
-});
+}

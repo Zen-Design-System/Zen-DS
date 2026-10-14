@@ -37,6 +37,7 @@ Figma Divider (460:38361): a 1px INSIDE stroke line. Default (Pale) is the every
 | `dashed` | `boolean` | `false` | Dashed line; a Default dashed line steps up to Border/Neutral/Subtle (Pale is too faint when dashed). |
 | `decorative` | `boolean` | `false` | Purely visual: hidden from assistive tech (e.g. between toolbar groups that are already labelled). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Forwarded to the root element (`<hr>`, or a `<div>` when vertical or decorative). |
 
 ## ✅ Do
 - Use the Default color unless the design explicitly needs more emphasis.

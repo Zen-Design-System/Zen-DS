@@ -107,6 +107,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<nav>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -161,6 +169,14 @@
           "required": false,
           "default": "false",
           "description": "Narrow screens hide optional pages (everything but first, last and current), keeping `1 … 5 … 12`.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the page `<button>` (the non-interactive ellipsis item takes none).",
           "deprecated": null
         }
       ]

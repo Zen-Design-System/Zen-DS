@@ -185,6 +185,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<header>`.",
+          "deprecated": null
         }
       ]
     },
@@ -225,6 +233,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the action's `<button>`.",
           "deprecated": null
         }
       ]

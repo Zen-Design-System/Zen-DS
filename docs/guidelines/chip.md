@@ -39,6 +39,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the chip's `<button>`; a static Number-only count (see the component docs) renders a `<span>`, which it then points at. |
 | `children` | `ReactNode` | — |  |
 | `variant` | `"advanced" \| "normal" \| "number-only"` | `"advanced"` | Component set: Advanced, Normal, or Number-only. |
 | `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"md"` | Medium by default, on desktop and phones (a filter row lines up with Search and Buttons at 40px); small only inside a genuinely narrow component space. Short (sm, md…) or Figma (small, medium…) spelling. |

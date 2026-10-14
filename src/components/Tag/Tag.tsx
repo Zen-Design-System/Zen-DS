@@ -1,4 +1,4 @@
-import type { HTMLAttributes, KeyboardEvent, MouseEvent, ReactNode } from "react";
+import type { HTMLAttributes, KeyboardEvent, MouseEvent, ReactNode, Ref } from "react";
 import { Avatar } from "../Avatar";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
@@ -28,6 +28,8 @@ export interface TagProps extends Omit<HTMLAttributes<HTMLSpanElement>, "childre
   onRemove?: () => void;
   /** Name of the remove button (default "Remove" and the tag text, from the locale's labels). */
   removeLabel?: string;
+  /** Forwarded to the root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
   /** Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio;
    *  app code sets photoSrc / leading. */
   overrides?: NestedOverrides;
@@ -38,7 +40,7 @@ export interface TagProps extends Omit<HTMLAttributes<HTMLSpanElement>, "childre
  * (a filter) also passes `aria-pressed`, and `aria-pressed={true}` draws it selected (code-only: Figma Tag has no Selected
  * state, so it uses the default Chip's selected tokens — Surface fill, Border/Active 2px, Content Strongest).
  */
-export function Tag({ children, leading, photoSrc, state, error = false, disabled = false, remove = false, onRemove, removeLabel, className, onClick, onKeyDown, overrides, ...props }: TagProps) {
+export function Tag({ children, leading, photoSrc, state, error = false, disabled = false, remove = false, onRemove, removeLabel, className, onClick, onKeyDown, overrides, ref, ...props }: TagProps) {
   const nest = useNested(overrides);
   // onClick makes the tag itself an action (filter by it, open it): focusable, Enter / Space activate it.
   const interactive = Boolean(onClick) && !disabled;
@@ -48,7 +50,7 @@ export function Tag({ children, leading, photoSrc, state, error = false, disable
   const removeName = removeLabel ?? (typeof children === "string" ? t.removeItem(children) : t.remove);
   const removeTip = useIconTooltip(remove ? removeName : false);
   return (
-    <span {...props} className={["zen-tag", className].filter(Boolean).join(" ")} data-tone={theme} data-state={resolvedState} aria-disabled={disabled || undefined}
+    <span {...props} ref={ref} className={["zen-tag", className].filter(Boolean).join(" ")} data-tone={theme} data-state={resolvedState} aria-disabled={disabled || undefined}
       data-interactive={interactive || undefined} role={interactive ? "button" : props.role} tabIndex={interactive ? 0 : props.tabIndex}
       onClick={interactive ? onClick : undefined}
       onKeyDown={(event: KeyboardEvent<HTMLSpanElement>) => {

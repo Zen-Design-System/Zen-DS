@@ -33,6 +33,14 @@
           "default": null,
           "description": "Accessible name; without it the icon is decorative (the file name usually sits next to it).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<SVGSVGElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<svg>`.",
+          "deprecated": null
         }
       ]
     }

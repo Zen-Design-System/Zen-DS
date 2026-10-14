@@ -41,6 +41,7 @@ Figma Alert-Banner (6828:9393): a full-width Solid strip for page-level messages
 | `onClose` | `() => void` | — | Shows the close control (icon-x-small-line). |
 | `closeLabel` | `string` | — | Accessible name of the close control. Default: the locale's “Dismiss”. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio; app code sets leading / action. |
 
 ## Keyboard

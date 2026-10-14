@@ -39,6 +39,7 @@ Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padd
 | `thinkingLabel` | `string` | — | Accessible name of the thinking indicator (the locale's "Thinking" by default). |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there are several). Written by Zen Studio; app code sets `actions`. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
 ### AiChatField
 Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219): `listening` shows Listening… and turns the microphone into Stop.
@@ -61,6 +62,7 @@ Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt B
 | `defaultValue` | `string` | `""` |  |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio; app code sets onAttach / onVoice / onVoiceMode. |
+| `ref` | `Ref<HTMLFormElement>` | — | Ref to the root `<form>` element. |
 
 ### AiChatBlock
 Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-Field · Chip/Normal suggestions (Medium, Secondary, Leading-Icon).
@@ -74,6 +76,7 @@ Figma AI/Chat-Block/Pale (7140:115622): Say-Hi (44px logo + Heading/1) · Chat-F
 | `children` (required) | `ReactNode` | — |  |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of the suggestion chips, by label (`{ "Suggestion[Plan a trip]": { level: "primary" } }`), written by Zen Studio. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root `<section>` element. |
 
 ### AiChatThread
 Conversation column (max 800, gap 24); the field docks at the bottom.
@@ -83,6 +86,7 @@ Conversation column (max 800, gap 24); the field docks at the bottom.
 | `children` (required) | `ReactNode` | — |  |
 | `aria-label` | `string` | — | Accessible name of the conversation (the locale's "Conversation" by default). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div role="log">` element. |
 
 ### Types
 Object shapes the props above refer to.

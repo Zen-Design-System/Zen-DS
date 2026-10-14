@@ -1,10 +1,11 @@
-import { forwardRef, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenPadding } from "../_shared/scale";
 import "./layout.css";
 import { layoutSizing, type LayoutSizingProps } from "./sizing";
 import { layoutPosition, type LayoutPositionProps } from "./position";
 import { boxEffects, type BoxEffectProps } from "./effects";
 import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export type { ZenCornerRadius, ZenGap, ZenPadding };
 export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type LayoutSizingProps, type LayoutWidthProps } from "./sizing";
@@ -69,6 +70,8 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
   paddingY?: ZenPadding;
   as?: LayoutElement;
   children?: ReactNode;
+  /** Ref to the rendered DOM element (the `as` element when set). */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
@@ -77,10 +80,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack gap="lg">…sections…</Stack>
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
-export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
-  { direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
-  ref,
-) {
+export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   return (
@@ -103,7 +103,7 @@ export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
       {children}
     </Element>
   );
-});
+}
 
 /* ───────────── Grid ───────────── */
 
@@ -140,6 +140,8 @@ export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProp
    * container).
    */
   clip?: boolean;
+  /** Ref to the rendered DOM element (the `as` element when set). */
+  ref?: Ref<HTMLElement>;
 }
 
 /** grid-template-columns for a column count (equal, shrinkable columns) or a track list as written. */
@@ -149,14 +151,10 @@ const tracks = (value: GridTracks | undefined) => (value === undefined ? undefin
  * Grid `stackBelow`: whether the element is narrower than `below` px, measured before paint and on every resize. The
  * returned ref also fills the forwarded one.
  */
-function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement>) {
+function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | undefined) {
   const [stacked, setStacked] = useState(false);
   const node = useRef<HTMLElement | null>(null);
-  const measure = useCallback((element: HTMLElement | null) => {
-    node.current = element;
-    if (typeof forwarded === "function") forwarded(element);
-    else if (forwarded) (forwarded as { current: HTMLElement | null }).current = element;
-  }, [forwarded]);
+  const measure = useMergedRefs(node, forwarded);
   useLayoutEffect(() => {
     const element = node.current;
     if (!element || typeof below !== "number") { setStacked(false); return undefined; }
@@ -177,10 +175,7 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement>) {
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
-export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
-  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
-  ref,
-) {
+export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
@@ -214,7 +209,7 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
       {children}
     </Element>
   );
-});
+}
 
 /* ───────────── Box ───────────── */
 
@@ -240,16 +235,15 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
   radius?: ZenCornerRadius;
   as?: LayoutElement;
   children?: ReactNode;
+  /** Ref to the rendered DOM element (the `as` element when set). */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
  * A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use
  * Card; for page width use Container.
  */
-export const Box = forwardRef<HTMLElement, BoxProps>(function Box(
-  { padding, paddingX, paddingY, surface = "none", border = "none", scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
-  ref,
-) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
   return (
@@ -275,7 +269,7 @@ export const Box = forwardRef<HTMLElement, BoxProps>(function Box(
       {children}
     </Element>
   );
-});
+}
 
 /* ───────────── Container ───────────── */
 
@@ -290,16 +284,15 @@ export interface ContainerProps extends HTMLAttributes<HTMLElement> {
   gutter?: boolean;
   as?: LayoutElement;
   children?: ReactNode;
+  /** Ref to the rendered DOM element (the `as` element when set). */
+  ref?: Ref<HTMLElement>;
 }
 
 /** Centres page content at a readable width with the breakpoint's page margin. */
-export const Container = forwardRef<HTMLElement, ContainerProps>(function Container(
-  { maxWidth = "lg", gutter = true, as: Element = "div", className, children, ...rest },
-  ref,
-) {
+export function Container({ maxWidth = "lg", gutter = true, as: Element = "div", className, children, ref, ...rest }: ContainerProps) {
   return (
     <Element {...rest} ref={ref as never} className={["zen-container", className].filter(Boolean).join(" ")} data-width={maxWidth} data-gutter={gutter ? "true" : undefined}>
       {children}
     </Element>
   );
-});
+}

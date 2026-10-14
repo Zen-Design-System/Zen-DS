@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Button } from "../Button";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
@@ -39,6 +39,8 @@ export interface InlineMessageProps {
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Forwarded to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets icon / action. */
   overrides?: NestedOverrides;
@@ -48,7 +50,7 @@ export interface InlineMessageProps {
  * Figma Inline-Message (595:54857): a Subtle-surface message inside the content it describes.
  * Padding Medium, gap Small, Corner-Radius/Large. Icon Content/<theme>/Light, title Strongest, caption Base.
  */
-export function InlineMessage({ theme: themeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides }: InlineMessageProps) {
+export function InlineMessage({ theme: themeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref }: InlineMessageProps) {
   const nest = useNested(overrides);
   const theme: InlineMessageTheme = themeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
@@ -59,7 +61,7 @@ export function InlineMessage({ theme: themeProp, status, title, children, icon 
   const urgent = theme === "negative" || theme === "warning";
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
   return (
-    <div className={["zen-inline-message", className].filter(Boolean).join(" ")} data-tone={theme} role={urgent ? "alert" : "status"}>
+    <div ref={ref} className={["zen-inline-message", className].filter(Boolean).join(" ")} data-tone={theme} role={urgent ? "alert" : "status"}>
       <div className="zen-inline-message__container">
         {leading ? <span className="zen-inline-message__icon" aria-hidden="true">{nest("Leading", leading)}</span> : null}
         <div className="zen-inline-message__content">

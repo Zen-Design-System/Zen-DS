@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, Ref } from "react";
 import { scaleKey } from "../_shared/scale";
 import "./skeleton.css";
 
@@ -21,6 +21,8 @@ interface SkeletonBaseProps {
   animated?: boolean;
   className?: string;
   style?: CSSProperties;
+  /** Forwarded to the root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
 const classes = (base: string, animated: boolean, className?: string) => [base, animated ? "zen-skeleton--animated" : "", className].filter(Boolean).join(" ");
@@ -31,9 +33,9 @@ export interface SkeletonTextProps extends SkeletonBaseProps {
 }
 
 /** Figma Skeleton/Body-Text (1556:17566): 8px rounded bars, gap 8; the last of several lines is 40px shorter. */
-export function SkeletonText({ lines = 3, animated = true, className, style }: SkeletonTextProps) {
+export function SkeletonText({ lines = 3, animated = true, className, style, ref }: SkeletonTextProps) {
   return (
-    <span className={classes("zen-skeleton-text", animated, className)} style={style} aria-hidden="true">
+    <span ref={ref} className={classes("zen-skeleton-text", animated, className)} style={style} aria-hidden="true">
       {Array.from({ length: Math.max(1, lines) }, (_, index) => <span key={index} className="zen-skeleton__bar" />)}
     </span>
   );
@@ -45,9 +47,9 @@ export interface SkeletonHeadingProps extends SkeletonBaseProps {
 }
 
 /** Figma Skeleton/Heading-Text (1556:17593): a single rounded bar (Large 99px, Medium/Small 70px wide by default). */
-export function SkeletonHeading({ size: sizeProp = "md", animated = true, className, style }: SkeletonHeadingProps) {
+export function SkeletonHeading({ size: sizeProp = "md", animated = true, className, style, ref }: SkeletonHeadingProps) {
   const size = scaleKey(sizeProp, skeletonHeadingSizes);
-  return <span className={classes("zen-skeleton-heading", animated, className)} data-size={size} style={style} aria-hidden="true" />;
+  return <span ref={ref} className={classes("zen-skeleton-heading", animated, className)} data-size={size} style={style} aria-hidden="true" />;
 }
 
 export interface SkeletonShapeProps extends SkeletonBaseProps {
@@ -57,7 +59,7 @@ export interface SkeletonShapeProps extends SkeletonBaseProps {
 }
 
 /** Figma Skeleton/Shapes (1556:17525): Rectangle/Square Corner-Radius/Base, Pill/Round fully rounded. */
-export function SkeletonShape({ shape = "rectangle", size: sizeProp = "md", animated = true, className, style }: SkeletonShapeProps) {
+export function SkeletonShape({ shape = "rectangle", size: sizeProp = "md", animated = true, className, style, ref }: SkeletonShapeProps) {
   const size = scaleKey(sizeProp, skeletonShapeSizes);
-  return <span className={classes("zen-skeleton-shape", animated, className)} data-shape={shape} data-size={size} style={style} aria-hidden="true" />;
+  return <span ref={ref} className={classes("zen-skeleton-shape", animated, className)} data-shape={shape} data-size={size} style={style} aria-hidden="true" />;
 }

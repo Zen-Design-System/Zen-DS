@@ -49,6 +49,14 @@
           "default": null,
           "description": "The text for assistive technology (and for the visible pill while a focusable one has focus).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
+          "deprecated": null
         }
       ]
     }

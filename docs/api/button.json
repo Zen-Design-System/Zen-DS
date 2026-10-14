@@ -99,6 +99,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<button>` element.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -177,6 +185,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the icon the button draws, by layer (`{ \"Leading-Icon\": { name: \"icon-plus-line\" } }`).\n Written by Zen Studio; app code sets the icon props.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<button>` element.",
           "deprecated": null
         },
         {

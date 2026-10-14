@@ -49,6 +49,14 @@
           "default": null,
           "description": "DescriptionItem rows.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDListElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<dl>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -97,6 +105,14 @@
           "required": false,
           "default": null,
           "description": "On the row's div (the dt/dd group).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The row's root `<div>` (the dt/dd group).",
           "deprecated": null
         }
       ]

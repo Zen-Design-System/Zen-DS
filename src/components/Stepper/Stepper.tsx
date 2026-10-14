@@ -60,10 +60,16 @@ export function StepperStep(_step: StepperStep): null {
 }
 
 /** Figma .Primitives/Stepper/Item (1625:4827): 24px marker — number (Style=Text) or icon (Style=Icon). */
-export function StepperItem({ state = "default", index = 1, icon }: { state?: StepperState; index?: number; icon?: IconName | ReactElement }) {
+export function StepperItem({ state = "default", index = 1, icon, ref }: {
+  state?: StepperState;
+  index?: number;
+  icon?: IconName | ReactElement;
+  /** Ref to the marker's root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
+}) {
   const glyph = state === "passed" ? "icon-check-solid" : state === "error" ? "icon-info-octagon-solid" : icon;
   return (
-    <span className="zen-stepper-item" data-state={state} aria-hidden="true">
+    <span ref={ref} className="zen-stepper-item" data-state={state} aria-hidden="true">
       {glyph ? renderIcon(glyph) : <span className={typographyStyles[state === "focused" ? "Body/Small/Bold" : "Body/Small/Medium"]}>{index}</span>}
     </span>
   );
