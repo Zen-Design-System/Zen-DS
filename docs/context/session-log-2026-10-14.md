@@ -308,7 +308,9 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
 - CurvePreview: role=img named "Motion curve: <type>" (en/vi labels), SVG 320×176 stretched to the width
   (non-scaling strokes), Input surface (Corner-Radius/Input carries zen-allow-radius-role, as Figma binds it);
   `bounce` = 1 − damping ratio. tests/interaction/curve-preview.test.tsx 3/3.
-- Guideline curve-preview, rule curve-preview/bounce-range (+ fixtures), platform page (5 examples, 1 Do/Don't pair),
+- Guideline curve-preview, rule curve-preview/bounce-range (+ fixtures), platform page (6 examples incl. Transition off, 1 Do/Don't pair),
   Studio palette/synonyms/figma-props (Chart/Curve-Preview in the contract).
-- #53 CI fix on the way: vitest optimizeDeps.include pocketbase + react-dom/client (a cold Vite cache re-optimized
-  mid-run and one suite failed to import).
+- #53 CI fix (merged with #53): vitest optimizeDeps.include pocketbase + react-dom/client (a cold Vite cache
+  re-optimized mid-run and one suite failed to import).
+- Gates: slider-field PASS (5 examples), curve-preview PASS (6 examples, 0 warnings); contact sheets reviewed. Under
+  load ~17 (three other gates) unrelated suites timed out; they pass alone and in the rerun.

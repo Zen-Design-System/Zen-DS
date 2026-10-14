@@ -93,7 +93,21 @@ function CompareExample() {
   );
 }
 
-/* ───────────── 5. Mobile: the same settings in a sheet-like screen ───────────── */
+/* ───────────── 5. Transition off: no curve to show ───────────── */
+
+function TransitionOffExample() {
+  const [type, setType] = useState("none");
+  const on = type !== "none";
+  return (
+    <Stack gap="xs" maxWidth={320}>
+      <SelectField layout="inline" label="Transition" value={type} onValueChange={setType} options={[{ value: "none", label: "None" }, ...curveOptions]} />
+      {on ? <CurvePreview type={type as CurvePreviewType} /> : <Text tone="base" textStyle="Body/Small/Regular">No transition: the back photo appears at once.</Text>}
+      <SliderField label="Duration" defaultValue={0.5} min={0.1} max={2} step={0.01} formatValue={seconds} disabled={!on} />
+    </Stack>
+  );
+}
+
+/* ───────────── 6. Mobile: the same settings in a sheet-like screen ───────────── */
 
 function PhoneMotionExample() {
   const [type, setType] = useState<CurvePreviewType>("bounce");
@@ -149,6 +163,16 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `<Segmented aria-label="Easing" size="sm" fullWidth value={choice} onValueChange={setChoice}
   options={[{ id: "ease-out", label: "Ease out" }, { id: "ease-in-out", label: "Ease in and out" }]} />
 <CurvePreview type={choice} />`,
+  },
+  {
+    title: "Transition off",
+    description: "With no transition there is no curve: instead of an empty plot, one line says what happens, and Duration is disabled until a curve is picked again.",
+    render: () => <TransitionOffExample />,
+    code: `<SelectField layout="inline" label="Transition" value={type} onValueChange={setType} options={[{ value: "none", label: "None" }, ...curveOptions]} />
+{type === "none"
+  ? <Text tone="base" textStyle="Body/Small/Regular">No transition: the back photo appears at once.</Text>
+  : <CurvePreview type={type} />}
+<SliderField label="Duration" defaultValue={0.5} min={0.1} max={2} step={0.01} disabled={type === "none"} />`,
   },
   {
     title: "Motion settings on a phone",
