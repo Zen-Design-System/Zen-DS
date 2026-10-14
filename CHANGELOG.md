@@ -232,6 +232,11 @@ removed (four unused colour ramps were, see Removed).
   App Shell and Chart lost their second advice); each advice is its own line now, and the page keeps the full text.
 
 ### Added
+- Popover `width` (2026-10-14, user): unset keeps Figma's Fixed 240; `"fill"` takes the anchor's width (suggestions
+  under a long search bar), `"hug"` grows to the longest row and is never narrower than the anchor (long domains, file
+  paths), a number is a Fixed width; `maxWidth` caps it. All keep Figma's 240 min width and stay inside the window.
+  SelectField passes it as `popoverWidth`. Examples: Popover › Search results (fill), Pick a domain (hug).
+  Fixed with it: a SelectField value longer than the field ends in "…" (it spilled out and was cut off).
 - Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,
   legend, `chartPalette`, draw-in with a reduced-motion fade, keyboard and a live summary): `AreaChart` (one area, or
   `type="stacked"` bands), `GroupedBarChart` (2–3 series side by side), `ComboChart` (bars and a line on two axes),
