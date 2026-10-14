@@ -200,6 +200,15 @@ export const FIGMA_PROPS = {
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
     nested: FIELD_NESTED,
   },
+  ColorField: {
+    sets: { "Input/Color-Field": null },
+    props: { "Help-Text": { toggle: "helpText", on: "Help text" }, Label: { toggle: "label", on: "Label" }, Size: "size", State: "state" },
+    nested: FIELD_NESTED,
+  },
+  ColorPicker: {
+    sets: { "Color-Picker": null },
+    props: { Format: "defaultFormat", Saved: { toggle: "savedColors", on: { code: '["#1F6FEB", "#0E9F8E", "#E07B12", "#E5533D"]' } } },
+  },
   AutocompleteField: {
     sets: { "Input/Autocomplete-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, State: skip("preview state: the code shows it through interaction") },

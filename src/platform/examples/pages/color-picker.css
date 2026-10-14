@@ -1,0 +1,14 @@
+/* Color Picker examples (src/platform/examples/pages/color-picker.tsx). Tokens only; class prefix .px-color-picker-. */
+
+/* The brand preview paints the picked value (the app's own colour, set as a custom property on the element). */
+.px-color-picker-brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-medium, 16px);
+  border-radius: var(--zen-corner-radius-base, 12px);
+  background: var(--px-color-picker-brand, var(--zen-color-background-accent-solid-default));
+}
+
+/* The property panel is as wide as an inspector. */
+.px-color-picker-panel { width: 100%; max-width: 360px; }
