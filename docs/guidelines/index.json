@@ -264,6 +264,7 @@
           "popoverLabel?: ReactNode",
           "popoverSearch?: boolean = false",
           "popoverSearchPlaceholder?: string",
+          "popoverWidth?: fill|hug|number",
           "popoverOpen?: boolean",
           "onPopoverOpenChange?: (open: boolean) => void",
           "readOnly?: boolean = false"
@@ -921,6 +922,8 @@
           "searchClearable?: boolean = true",
           "align?: start|end = start",
           "multiple?: boolean = false",
+          "width?: fill|hug|number",
+          "maxWidth?: number",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
@@ -931,6 +934,7 @@
         "Give it anchorRef + onOpenChange so outside-click and Escape close it and focus returns.",
         "Keep one popover open at a time: opening a popover for another object closes the open one. Popover (with onOpenChange), Chip, Select and DatePicker do this for you; a custom popup joins with useExclusivePopover(open, close, rootRef). A popover opened from inside another popover is nested and keeps its parent open.",
         "Keep single-select popovers closing on select; keep multi-select open.",
+        "Size the list from what it opens under: suggestions under a long search bar take `width=\"fill\"` (as wide as the bar); long values such as domains or file paths take `width=\"hug\"` (SelectField `popoverWidth=\"hug\"`), so each stays whole instead of ending in \"…\". Keep the default 240 for short options under a chip or a button.",
         "Offer Manual-Add-New (onPopoverCreate / onCreate) when users may need a value that isn't listed, e.g. labels, tags or keywords. The Create row appears only for a new value, and Enter creates it.",
         "Use Popover/Bulk-Action (PopoverBulkAction) for quick actions on a selection — text, a canvas element or selected rows: name it with aria-label, group actions with PopoverBulkActionGroup and 40px dividers, Button/Icon-Flat Medium only, 6 actions at most (harness: popover/bulk-action-limit). For list selections, say how many items each action affects."
       ],

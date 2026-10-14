@@ -554,7 +554,8 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "Popover": {
       "label": "popoverLabel",
       "search": "popoverSearch",
-      "searchPlaceholder": "popoverSearchPlaceholder"
+      "searchPlaceholder": "popoverSearchPlaceholder",
+      "width": "popoverWidth"
     },
     "Search": {
       "placeholder": "popoverSearchPlaceholder"

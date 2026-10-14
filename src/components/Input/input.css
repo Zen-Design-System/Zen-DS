@@ -56,6 +56,9 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 
 .zen-input-field--popover-open .zen-input__control { overflow: visible; z-index: 4; }
 .zen-select__trigger { display: flex; align-items: center; border: 0; cursor: pointer; text-align: left; }
+/* A value longer than the field ends in "…" on one line (it spilled out of the box and was cut off by the control);
+   the full value stays in the accessible name. */
+.zen-select__trigger.zen-input__native { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-select__trigger:disabled { cursor: not-allowed; }
 .zen-select__native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; pointer-events: none; }
 /* SelectField `placeholder` while nothing is selected: Content/Placeholder, like a text field's placeholder. */
