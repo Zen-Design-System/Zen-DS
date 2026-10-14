@@ -61,7 +61,19 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
   Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
 - **P2 · BarList leader length (designer, 2026-10-14):** Figma Chart/Bar-List draws the leader bar at 78% of its track
-  (216 of 276px); code fills the track with the leader. Which is meant?
+  (216 of 276px); code fills the track with the leader. Which is meant? (User 2026-10-14: "tính theo tỷ lệ của giá
+  trị cho đúng" — code is proportional; the Figma fix was refused by the tool's shared-library guard: the user edits it
+  or allows the write.)
+- **P2 · Figma chart/widget bugs found in the widgets batch (designer, 2026-10-14; Figma not edited):** Bar-Chart
+  Vertical `Average › Rule` 15335:2421 strokeCap NONE (no dots); Segmented `Item-List` FIXED 114 in Line, Stack-Bar,
+  Multi-Line, Chart-Card and Heatmap (labels overlap); Area fills bound to Background/Accent|Neutral while lines use the
+  Chart Sector styles (drift in a theme where they differ); coloured Solid Cards bind Content/Neutral (fails in dark,
+  Light 2.9:1 on Cyan/Orange — code re-points); Solid hue cards: the series in the card's own hue uses Brand in code
+  (On-Color/Tertiary washes out as an area); white on Solid Yellow 1.7:1; no Border/Inverse/Pale|Subtle token;
+  Metric-Card Hero keeps a Brand Pale fill override on a Solid Brand Card (make it Pale/Brand?). Older chart diffs
+  to settle: X-label pill (16 tall Bold full-width vs 20 Medium hug), Stack-Bar column max 48 vs code 40, bar lanes
+  38/26 vs 36/28, horizontal/heatmap axis gaps 8 vs 16. Detail: `docs/research/widget-patterns-spec-2026-10-14.md`,
+  `docs/research/chart-phase2-spec-2026-10-14.md` §4.
 - **P2 · Older chart sets bake their card (designer, 2026-10-13):** Bar, Donut, Radial, Heatmap (and Multi-Line) draw
   their own Surface/Default card, so they cannot take Card Theme/Color; the new charts are card-less content that sits
   in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).

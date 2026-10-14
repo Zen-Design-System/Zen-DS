@@ -282,3 +282,23 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
 - Guideline: Popover api row Width + one Do line; `guidelines:build`, `part-props-build` rerun.
 - Gate [fit] popover@390: a long SelectField value spilled 16px out of its trigger (no ellipsis) → `input.css`
   `.zen-select__trigger.zen-input__native` ellipsis; the domain row wraps (field min 200, Publish below on phones).
+
+## Widget patterns batch 1 (tier L, user: "Build tiếp các widget pattern cho đa dạng" → "làm mỗi lần 20 cái. Commit, push, merge rồi tính tiếp")
+
+- Choices (AskUserQuestion): a Widgets page on the platform + a Widgets group in Studio's palette; batch 1 = the seven
+  Metric-Card types + thirteen chart widgets. Worktree `../Zen-DS-widgets`, branch `zen/feat/widgets-batch1`. Spec,
+  manifest, as-built: `docs/research/widget-patterns-spec-2026-10-14.md`.
+- Agents: card-color (Card `theme="solid"`, `color`, `surface="flat"`, Solid token re-points incl. chart marks and
+  area fades, Studio mapping + inspector), metric-types (`MetricCard type`, internal MetricMarks, `figma-metric.mjs`),
+  widgets (app-layer page `widgets` + palette group, one source checked by palette.selftest §4b, figma-widgets
+  selftest), chart-sync (re-read the 15 chart sets after the user's Figma edits: Line and Area areas fade Solid →
+  Subtle at 30%, idle sector rules hidden).
+- User mid-batch: the Sparkline bug (area 4px above the line, end dot clipped by Metric-Body) — the Figma write was
+  refused by the tool's shared-library guard; the user rebuilt the Sparkline (and Hero) in Figma with a fade, code
+  follows. "nên học cách làm lớp mờ dần của line chart" → fade on the sparkline and LineChart (AskUserQuestion); the
+  designer then made the Area chart fade too. "Thêm 1 bộ variable background Inverse" → already in Figma and code
+  (Solid, Subtle, Flat): user "Không cần thêm". Design check of the widget charts: spark-bar sample given real weekly
+  variation, This year vs last → six months, Budget rings legend at the bottom.
+- Merged main b399312 (Tung's React 19 refs refactor): ChartCard and MetricCard keep `ref` and gain `color`.
+- Checks: tsc, usage, style, guidelines, studio:selftest, `npm test` 871 passed; QA gate below.
+- Open (BACKLOG P2): Figma bugs and older chart diffs for the designer; BarList leader 78%.
