@@ -14,9 +14,14 @@ export interface AnchoredPositionOptions {
   /** Preferred horizontal edge; flips when the surface would overflow the viewport. When neither edge fits, the surface is
    * shifted into the visible bounds instead (clampAnchoredLeft) and the returned `align` only records the edge it came from. */
   align?: AnchoredAlign;
+  /** Also write the anchor box's width (layout px) to the placement style as `--zen-anchor-width`, kept in step while the
+   * anchor resizes, for a surface sized from its anchor (Popover `width="fill"` / `"hug"`). */
+  trackAnchorWidth?: boolean;
 }
 
 const VIEWPORT_MARGIN = 8;
+const ANCHOR_WIDTH = "--zen-anchor-width";
+const anchorWidthOf = (style: CSSProperties | undefined) => (style as Record<string, unknown> | undefined)?.[ANCHOR_WIDTH];
 
 /**
  * The side an open surface takes. It keeps the side it is on while it still fits there (or while the other side has no
@@ -71,7 +76,7 @@ function visibleBounds(from: HTMLElement) {
  * anchor in a scrolling panel), and keeps the side it opened on until that side would cut it off
  * (resolveAnchoredSide). Surfaces that are not `position: absolute` (inline pickers, Bunk-Action bars) are left alone.
  */
-export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, active: boolean, { anchor, gap = 4, align = "start" }: AnchoredPositionOptions = {}) {
+export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, active: boolean, { anchor, gap = 4, align = "start", trackAnchorWidth = false }: AnchoredPositionOptions = {}) {
   const [placement, setPlacement] = useState<{ side: AnchoredSide; align: AnchoredAlign; style?: CSSProperties }>({ side: "bottom", align });
   // Stable identity, always the latest `anchor` (updated in an insertion effect, so before this layout effect runs): an
   // inline anchor function on every render neither re-runs the measuring effect nor is read stale.
@@ -84,11 +89,23 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
     // Each opening decides its side afresh; while open, the side and edge it took are kept (see resolveAnchoredSide).
     let lastSide: AnchoredSide | null = null;
     let lastAlign: AnchoredAlign | null = null;
-    const update = () => {
+    let watchedAnchor: HTMLElement | null = null;
+    let anchorWidth: string | undefined;
+    let anchorFrame = 0;
+    // Re-measures the anchor a frame later, outside any ResizeObserver callback (see the surface observer below).
+    const remeasureAnchor = () => { cancelAnimationFrame(anchorFrame); anchorFrame = requestAnimationFrame(() => flushSync(() => update())); };
+    // `measureAnchor` false: keep the anchor width already written (a call from the surface's own ResizeObserver).
+    const update = (measureAnchor = true) => {
       if (getComputedStyle(surface).position !== "absolute") return;
       const container = surface.offsetParent as HTMLElement | null;
       if (!container) return;
       const target = getAnchor() ?? surface.parentElement?.closest<HTMLElement>(".zen-input__control") ?? container;
+      // A surface sized from its anchor follows the anchor's own resizes too (a field that grows with its column).
+      if (anchorObserver && target !== watchedAnchor) {
+        if (watchedAnchor) anchorObserver.unobserve(watchedAnchor);
+        anchorObserver.observe(target);
+        watchedAnchor = target;
+      }
       const box = target.getBoundingClientRect();
       const frame = container.getBoundingClientRect();
       // Absolute offsets are measured from the containing block's padding box. A portalled surface (ZenPortal) often has
@@ -114,6 +131,12 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       // It fits on neither edge (wider than the room on both sides of its anchor): shift it into view instead. Not inside a
       // transform-scaled frame (a docs phone preview, the Studio canvas): these measures are screen px while the offsets are
       // written in the frame's layout px, so a shift there misplaced surfaces that fit; they keep the placement they had.
+      if (trackAnchorWidth) {
+        // offsetWidth is layout px, so the width is right inside a transform-scaled frame too.
+        const measured = `${target.offsetWidth}px`;
+        if (measureAnchor || anchorWidth === undefined) anchorWidth = measured;
+        else if (measured !== anchorWidth) remeasureAnchor();
+      }
       const scaled = container.offsetWidth > 0 && Math.abs(container.getBoundingClientRect().width / container.offsetWidth - 1) > 0.01;
       const shifted = scaled || (resolvedAlign === "start" ? fitsStart : fitsEnd)
         ? null
@@ -123,29 +146,37 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
         bottom: side === "top" ? originBottom - box.top + gap : "auto",
         left: shifted !== null ? shifted - originLeft : resolvedAlign === "start" ? box.left - originLeft : "auto",
         right: shifted === null && resolvedAlign === "end" ? originRight - box.right : "auto",
+        ...(anchorWidth ? { [ANCHOR_WIDTH]: anchorWidth } : null),
       };
       setPlacement((current) => (
         current.side === side && current.align === resolvedAlign
           && current.style?.top === style.top && current.style?.bottom === style.bottom
           && current.style?.left === style.left && current.style?.right === style.right
+          && anchorWidthOf(current.style) === anchorWidthOf(style)
           ? current
           : { side, align: resolvedAlign, style }
       ));
     };
-    update();
     // Scroll and resize events arrive outside React: flush the new placement before the frame paints, or a portalled
     // surface trails its anchor by a frame while a panel scrolls.
-    const sync = () => flushSync(update);
-    const observer = new ResizeObserver(sync);
+    const sync = () => flushSync(() => update());
+    // Inside a ResizeObserver callback the surface must not change size: a resize there is a loop the browser reports
+    // ("ResizeObserver loop completed with undelivered notifications"). So the surface's own observer only moves it, and
+    // a new anchor width (from the anchor's observer, or one the surface's observer notices) lands a frame later.
+    const observer = new ResizeObserver(() => flushSync(() => update(false)));
+    const anchorObserver = trackAnchorWidth ? new ResizeObserver(remeasureAnchor) : null;
+    update();
     observer.observe(surface);
     window.addEventListener("resize", sync);
     window.addEventListener("scroll", sync, true);
     return () => {
       observer.disconnect();
+      anchorObserver?.disconnect();
+      cancelAnimationFrame(anchorFrame);
       window.removeEventListener("resize", sync);
       window.removeEventListener("scroll", sync, true);
     };
-  }, [active, surfaceRef, gap, align, getAnchor]);
+  }, [active, surfaceRef, gap, align, getAnchor, trackAnchorWidth]);
 
   return placement;
 }

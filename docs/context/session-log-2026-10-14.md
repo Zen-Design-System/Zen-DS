@@ -176,6 +176,18 @@
     3 created (the custom layers), 139 updated.
 - Not fixed (BACKLOG P3): a Grid in a Grid cell does not stretch to its row in Figma; Swap Project Colors' sync
   `getVariableById`. Charts still draw Figma's sample data (BACKLOG P2, awaiting scope).
+- Follow-up, plugin (reported by session "Donut chart font size update"):
+  - **Grid:** a re-import set `layoutMode = "GRID"` again. Figma resets a grid to 2 × 2 and refuses that when a cell
+    sits in a third row (live: "Cannot set grid row count: Cannot delete occupied row/column"). Caught, the grid fell
+    back to a column. A 2-row grid was not affected (checked live).
+  - **Hide:** a layer an earlier import hid stayed hidden.
+  - **Fix:** a grid stays GRID; `gridTracks` runs once before the cells are placed and again after (it drops emptied
+    rows). The names an import hides are kept on the instance (`hidden`) and shown again when the page no longer hides
+    them.
+  - **Tests:** mock grid semantics as measured; each new test fails without its fix.
+  - **Live:** a 3-row page imported again gives 0 created and stays GRID 2×3. Shrinking 3 → 1 row: GRID, 1 row, 4
+    removed, Segmented shown again. Growing 2 → 3: 2 created. QA frames removed. `npm test` passes, dist is rebuilt
+    (backup `backups/zen-ds-dist-before-grid-hide-import-fix-*.tgz`).
 
 ## Property-panel components in Figma, Accordion spacing + Pale rule (tier S; user: "bổ sung các component thiếu vào Figma", "Spacing giữ Title và list gần nhau quá … set rule luôn", "Accordion tự lo", "Đổi màu border của accordion sang Pale")
 - Figma only (draft sections, ids in memory `property-panel-figma-draft`): Input/Inline-Field, Input/Color-Field,
@@ -254,3 +266,19 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
 - Review (one reviewer agent): fixed open toasts going inert under a modal (`.zen-toast-layer` kept), isolation with an
   app's own ZenPortalProvider container (useModal gets the real container), Tabs focus scoped to its tablist, layer
   order kept through StrictMode's replay. Kept on purpose: Tabs/Segmented no re-fire for the same value (CHANGELOG).
+
+## Popover width variant (tier S, user request)
+
+- User: Popover is a fixed width; wants a variant that scales for long search bars with suggestions and domain pickers
+  with long names. Figma Popover/Default: Fixed 240, min width 240 (contract `checkbox-radio-chip-popover.json`), so the
+  new modes keep 240 as their floor.
+- `Popover width?: "fill" | "hug" | number` + `maxWidth` (`data-width`, rules in `popover.css`); `useAnchoredPosition`
+  option `trackAnchorWidth` writes `--zen-anchor-width` (anchor `offsetWidth`, right in scaled frames). A new anchor
+  width lands a frame later (anchor's own ResizeObserver → rAF); the surface's observer only moves it: reading the new
+  anchor width there resized the surface inside its own callback → "ResizeObserver loop completed with undelivered
+  notifications" (flaky 3/4 in the new fill test, traced by wrapping ResizeObserver). SelectField `popoverWidth`.
+- Examples: Search results now `width="fill"`; new "Pick a domain" (SelectField + Publish, `popoverWidth="hug"`):
+  1512 field 344 → list 377, 0 labels cut. Story `Widths`; 6 tests in `tests/interaction/anchored-position.test.tsx`.
+- Guideline: Popover api row Width + one Do line; `guidelines:build`, `part-props-build` rerun.
+- Gate [fit] popover@390: a long SelectField value spilled 16px out of its trigger (no ellipsis) → `input.css`
+  `.zen-select__trigger.zen-input__native` ellipsis; the domain row wraps (field min 200, Publish below on phones).

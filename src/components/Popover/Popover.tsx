@@ -1,5 +1,5 @@
 import { useExclusivePopover } from "./useExclusivePopover";
-import { useEffect, useId, useRef, useState, type ComponentProps, type HTMLAttributes, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Search } from "../Search";
 import { Badge, type BadgeTheme } from "../Badge";
@@ -127,6 +127,9 @@ export function PopoverItem({ item, label, caption, leading, trailing, selected,
   );
 }
 
+/** Popover horizontal resizing: `"fill"` (the anchor's width), `"hug"` (the longest row) or a Fixed width in px. */
+export type PopoverWidth = "fill" | "hug" | number;
+
 export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect"> {
   /** Whether the surface is shown. Default false: pass `open` (controlled, with `onOpenChange`) to show it. */
   open?: boolean;
@@ -160,6 +163,16 @@ export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   align?: "start" | "end";
   /** Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). */
   multiple?: boolean;
+  /**
+   * Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every
+   * value below stays at least 240px wide, and at most the viewport less 16px on each side.
+   * `"fill"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar.
+   * `"hug"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole.
+   * A number: a Fixed width in px.
+   */
+  width?: PopoverWidth;
+  /** Maximum width in px when `width` is set (never below 240): a longer row ends in "…". */
+  maxWidth?: number;
   /** Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[alex]/Avatar": { shape: "square" }, "Item[draft]/Badge": { theme: "accent" } }`). Written by Zen Studio;
    *  app code sets the items. */
   overrides?: NestedOverrides;
@@ -192,6 +205,8 @@ export function Popover(
     searchClearable = true,
     align = "start",
     multiple = false,
+    width,
+    maxWidth,
     className,
     onKeyDown,
     overrides,
@@ -211,9 +226,11 @@ export function Popover(
   // Attach 4px below the trigger / input box, flipping above it near the bottom of the viewport.
   // Inside an Input the box is the enclosing control (SelectField, field pickers); otherwise the trigger.
   const presence = usePresence(open, 120);
+  const widthMode = width === "fill" || width === "hug" ? width : typeof width === "number" && Number.isFinite(width) ? "fixed" : undefined;
   const placement = useAnchoredPosition(rootRef, open, {
     align,
     anchor: () => rootRef.current?.parentElement?.closest<HTMLElement>(".zen-input__control") ?? anchorRef?.current,
+    trackAnchorWidth: widthMode === "fill" || widthMode === "hug",
   });
   // One popover at a time: opening this one closes another object's open popover (nested ones keep their parent).
   useExclusivePopover(open, onOpenChange ? () => onOpenChange(false) : undefined, rootRef, anchorRef);
@@ -308,8 +325,14 @@ export function Popover(
       {...divProps}
       ref={mergedRef}
       className={["zen-popover", className].filter(Boolean).join(" ")}
-      style={{ ...placement.style, ...divProps.style }}
+      style={{
+        ...placement.style,
+        ...(widthMode === "fixed" ? { "--zen-popover-width": `${width}px` } : null),
+        ...(widthMode && typeof maxWidth === "number" ? { "--zen-popover-max-width": `${maxWidth}px` } : null),
+        ...divProps.style,
+      } as CSSProperties}
       data-side={placement.side}
+      data-width={widthMode}
       data-state={closing ? "closing" : undefined}
       inert={closing || undefined}
       data-search={search ? "true" : "false"}

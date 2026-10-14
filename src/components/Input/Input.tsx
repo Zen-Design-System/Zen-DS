@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useId, useImperative
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { Icon, type IconName } from "../Icon";
-import { Popover, PopoverManualAddNew, useExclusivePopover } from "../Popover";
+import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverWidth } from "../Popover";
 import { Avatar } from "../Avatar";
 import type { BadgeTheme } from "../Badge";
 import { BottomSheet } from "../BottomSheet";
@@ -511,6 +511,9 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
   /** Adds the Popover Search row; options are filtered by the query. */
   popoverSearch?: boolean;
   popoverSearchPlaceholder?: string;
+  /** Width of the option Popover (Popover `width`): unset is Figma's 240px; `"fill"` matches the field's box, `"hug"` grows
+   *  to the longest option (never narrower than the field) so long values such as domains stay whole. */
+  popoverWidth?: PopoverWidth;
   /**
    * Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.
    * On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom
@@ -532,7 +535,7 @@ function selectFocusEvent(event: FocusEvent<HTMLElement>, select: HTMLSelectElem
 }
 
 export function SelectField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, ref, ...selectProps }: SelectFieldProps,
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, popoverWidth, ref, ...selectProps }: SelectFieldProps,
 ) {
   const error = errorProp ?? errorMessage;
   const size = scaleKey(sizeProp, inputSizes);
@@ -710,6 +713,7 @@ export function SelectField(
         aria-label={popoverLabel || label ? undefined : selectProps["aria-label"]}
         search={popoverSearch}
         searchPlaceholder={popoverSearchPlaceholder}
+        width={popoverWidth}
         // The search field takes focus on open, so a mouse-opened list is still typeable.
         autoFocus={openedFromTrigger && (openedFromKeyboard || popoverSearch)}
         onBlur={reportBlur}

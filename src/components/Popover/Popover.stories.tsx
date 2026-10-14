@@ -95,3 +95,26 @@ export const ManualAddNew: Story = {
     },
   },
 };
+
+const domains: PopoverItemData[] = [
+  { id: "short", label: "hanoibookfair.vn", caption: "Main site", selected: true },
+  { id: "long", label: "exhibitors.hanoi-international-book-fair-2026.org.vn", caption: "Exhibitor portal" },
+];
+
+export const Widths: Story = {
+  render: () => (
+    <div style={{ display: "grid", gap: 280, width: 520 }}>
+      {(["fill", "hug"] as const).map((width) => (
+        <div key={width} style={{ position: "relative", width: width === "fill" ? 520 : 200 }}>
+          <div style={{ height: 40, borderRadius: 12, outline: "1px dashed currentColor" }}>{`anchor · width="${width}"`}</div>
+          <Popover open width={width} aria-label={`Domains (${width})`} items={domains} />
+        </div>
+      ))}
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: { story: "`width=\"fill\"` takes the anchor box's width (suggestions under a long search bar); `width=\"hug\"` grows to the longest row and is never narrower than the anchor (long domains). Both keep Figma's 240px min width." },
+    },
+  },
+};

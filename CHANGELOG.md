@@ -228,7 +228,8 @@ removed (four unused colour ramps were, see Removed).
 - Zen plugin, Import from Studio: an imported page now takes every property it sets (variants, booleans, icons, sizes:
   Avatars at their size, Dashboard Header rows, button sizes, badge colours), swaps its icons, and importing it again
   updates the same layers. Before, the plugin set none of them in Figma. Import the page again into the same frame to
-  repair it.
+  repair it. On a re-import, a Grid of three rows or more stays a grid (it fell back to one column), a Grid that lost
+  rows drops them, and a layer an earlier import hid shows again once the page no longer hides it.
 - Zen Studio, Export › Figma: a Table photo cell without a picture draws its square Avatar with initials (Figma's
   Avatar-Cell), not Figma's sample photo; a MetricCard's `custom` content fills Metric-Inline's Custom-Slot.
 - Getting started, CI: the registry token now goes into the CI job's own `~/.npmrc`, not the project's `.npmrc` (a
@@ -248,6 +249,11 @@ removed (four unused colour ramps were, see Removed).
 - `docs/qa/component-review-checklist.md`: the review checklist (Figma, a11y, security, React, code, tests).
 - `tests/smoke/conformance.test.tsx`: every public component renders under StrictMode, forwards `ref`, keeps
   `className` and leaves nothing behind after unmount.
+- Popover `width` (2026-10-14, user): unset keeps Figma's Fixed 240; `"fill"` takes the anchor's width (suggestions
+  under a long search bar), `"hug"` grows to the longest row and is never narrower than the anchor (long domains, file
+  paths), a number is a Fixed width; `maxWidth` caps it. All keep Figma's 240 min width and stay inside the window.
+  SelectField passes it as `popoverWidth`. Examples: Popover › Search results (fill), Pick a domain (hug).
+  Fixed with it: a SelectField value longer than the field ends in "…" (it spilled out and was cut off).
 - Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,
   legend, `chartPalette`, draw-in with a reduced-motion fade, keyboard and a live summary): `AreaChart` (one area, or
   `type="stacked"` bands), `GroupedBarChart` (2–3 series side by side), `ComboChart` (bars and a line on two axes),

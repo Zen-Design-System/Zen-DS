@@ -92,6 +92,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `popoverLabel` | `ReactNode` | — | Popover/Label above the options: it names the option list, not the value (a label, not a heading). On mobile it is the Bottom Sheet's title (default: the field's label). |
 | `popoverSearch` | `boolean` | `false` | Adds the Popover Search row; options are filtered by the query. |
 | `popoverSearchPlaceholder` | `string` | — |  |
+| `popoverWidth` | `"fill" \| "hug" \| number` | — | Width of the option Popover (Popover `width`): unset is Figma's 240px; `"fill"` matches the field's box, `"hug"` grows to the longest option (never narrower than the field) so long values such as domains stay whole. |
 | `popoverOpen` | `boolean` | — | Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it. |
 | `onPopoverOpenChange` | `(open: boolean) => void` | — | Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. |
 | `readOnly` | `boolean` | `false` | Figma State=Read-Only: shows the value, keeps the chevron, never opens. |

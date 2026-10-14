@@ -356,6 +356,14 @@
           "deprecated": null
         },
         {
+          "name": "popoverWidth",
+          "type": "\"fill\" | \"hug\" | number",
+          "required": false,
+          "default": null,
+          "description": "Width of the option Popover (Popover `width`): unset is Figma's 240px; `\"fill\"` matches the field's box, `\"hug\"` grows\n to the longest option (never narrower than the field) so long values such as domains stay whole.",
+          "deprecated": null
+        },
+        {
           "name": "popoverOpen",
           "type": "boolean",
           "required": false,
