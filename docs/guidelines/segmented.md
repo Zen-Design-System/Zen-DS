@@ -18,7 +18,7 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Level | `level` | secondary (default, the common case) · primary (stronger emphasis, e.g. a pricing toggle) |
+| Level | `level` | secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment) |
 | Size | `size` | sm · md (or small · medium) |
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Item | `options[] {id, label, leading, badge, disabled}` | icon, label or both; Badge-Counter |
@@ -31,7 +31,7 @@ Switch between 2–5 mutually exclusive views or sections of the same content.
 Generated from the TypeScript source; full JSON in `docs/api/segmented.json`.
 
 ### Segmented
-Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/ 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false: `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
+Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle segments (Segmented/Size/Small or Medium), Secondary (default, a Neutral/Subtle track) or Primary (an outlined track: no fill, a 2px Color/Border/Neutral/Subtle/Default ring). An icon-only segment (Item Label=false: `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutra
 | `defaultValue` | `string` | — |  |
 | `onValueChange` | `(value: string) => void` | — | Called with the selected option's id. |
 | `onChange` | `(value: string) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
-| `level` | `"primary" \| "secondary"` | `"secondary"` | Secondary (default) is the common case; Primary adds emphasis. |
+| `level` | `"primary" \| "secondary"` | `"secondary"` | Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis. |
 | `size` | `"sm" \| "md" \| "small" \| "medium"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `children` | `ReactNode` | — |  |
 | `className` | `string` | — |  |

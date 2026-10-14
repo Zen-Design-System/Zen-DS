@@ -204,7 +204,12 @@ async function folderIndex() {
       for (const match of text.matchAll(/export (?:function|const) ([A-Z]\w*)/g)) if (!folderOfComponent.has(match[1])) folderOfComponent.set(match[1], folder.name);
     }
   }
-  return (set) => folderOfComponent.get(componentOfSet.get(set.id) ?? componentOfSet.get(set.name)) ?? null;
+  // A set no code component names (a primitive such as Primitives/Segmented/Item) belongs to the folder its name starts
+  // with; without one, every stylesheet would be searched and another component's declaration proposed (Tag's fill for a
+  // Segmented item that used to read Tag/Background/Default).
+  const folders = new Map(fs.readdirSync(path.join(root, "src/components"), { withFileTypes: true }).filter((entry) => entry.isDirectory() && !entry.name.startsWith("_")).map((entry) => [entry.name.toLowerCase(), entry.name]));
+  const folderOfName = (name) => folders.get(String(name ?? "").replace(/^\.?Primitives\//, "").replace(/^\./, "").split("/")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase()) ?? null;
+  return (set) => folderOfComponent.get(componentOfSet.get(set.id) ?? componentOfSet.get(set.name)) ?? folderOfName(set.name);
 }
 
 /** The changes since `base` (a git ref) and their proposals, from the working copy's contracts and stylesheets. */

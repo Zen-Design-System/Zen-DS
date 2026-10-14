@@ -1144,8 +1144,8 @@
         "name": "Segmented/Size/Medium",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{dm-32}",
-          "Comfortable": "{dm-40}",
+          "Compact": "{dm-36}",
+          "Comfortable": "{dm-44}",
           "Studio": "{dm-28}"
         }
       },
@@ -1153,8 +1153,8 @@
         "name": "Segmented/Size/Small",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{dm-24}",
-          "Comfortable": "{dm-32}",
+          "Compact": "{dm-28}",
+          "Comfortable": "{dm-36}",
           "Studio": "{dm-24}"
         }
       },
@@ -1201,15 +1201,6 @@
           "Compact": "{dm-4}",
           "Comfortable": "{dm-4}",
           "Studio": "{dm-4}"
-        }
-      },
-      {
-        "name": "Segmented/Size/XSmall",
-        "type": "FLOAT",
-        "valuesByMode": {
-          "Compact": "{dm-16}",
-          "Comfortable": "{dm-24}",
-          "Studio": "{dm-16}"
         }
       },
       {

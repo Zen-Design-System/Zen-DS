@@ -147,7 +147,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Figma contracts without a suite are out of date (2026-10-08):** the contracts every suite reads were
   re-captured on 2026-10-08 through `use_figma` (button-text, button-icon, checkbox-radio-chip-popover, the Input/Heading
   entry of input-search; all 23 suites match). `avatar-single`, `chat-bubbles`, `datepicker-sidebar`,
-  `input-search-primitives`, the rest of `input-search`, `segmented-toggle-badge-avatarstack` and `table-cells` still
+  `input-search-primitives`, the rest of `input-search`, `segmented-toggle-badge-avatarstack` (but its two Segmented sets,
+  re-captured 2026-10-14) and `table-cells` still
   hold the September capture (26 of the checked sets changed in Figma). No test reads them; re-capture each when its
   suite is written (the same LZ-chunk capture, `tools/figma-contract/README.md`).
 
