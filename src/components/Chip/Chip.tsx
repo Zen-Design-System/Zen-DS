@@ -12,6 +12,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./chip.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useDismissableLayer } from "../_shared/layers";
 
 /** Figma's three Chip/Pill component sets. */
 export const chipVariants = ["advanced", "normal", "number-only"] as const;
@@ -260,11 +261,11 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     onPopoverSelect?.(item);
     if (!popoverMultiple) setPopoverOpen(false, { restoreFocus: true });
   };
+  const isOutside = useDismissableLayer(isPopoverOpen && canOpenPopover, () => [dropdownRef.current, layerRef.current]);
   useEffect(() => {
     if (!isPopoverOpen || !canOpenPopover) return undefined;
     const handleOutsidePointer = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (!dropdownRef.current?.contains(target) && !layerRef.current?.contains(target)) setPopoverOpen(false);
+      if (isOutside(event.target as Node)) setPopoverOpen(false);
     };
     document.addEventListener("pointerdown", handleOutsidePointer);
     return () => document.removeEventListener("pointerdown", handleOutsidePointer);

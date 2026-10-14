@@ -103,7 +103,7 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
   // frame, as Dialog and Menu do, so it covers that screen only; elsewhere it goes to the page portal. `inline` keeps it
   // in its nearest positioned ancestor.
   const host = useOverlayHost(mounted && !inline);
-  useModal(open && (inline || host.ready), panelRef, dismissible, onOpenChange, startsOnField ? modalFieldSelector : "[data-autofocus]");
+  useModal(open && (inline || host.ready), panelRef, dismissible, onOpenChange, startsOnField ? modalFieldSelector : "[data-autofocus]", { isolate: !inline });
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
 

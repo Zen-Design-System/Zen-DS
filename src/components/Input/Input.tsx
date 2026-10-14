@@ -19,6 +19,7 @@ import "./input.css";
 import "../Icon/core";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { sanitizeHtml } from "../_shared/sanitize-html";
+import { useDismissableLayer } from "../_shared/layers";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
 export const headingInputSizes = ["h1", "h2", "h3"] as const;
@@ -551,13 +552,14 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   useEffect(() => { if (!open) setSheetQuery(""); }, [open]);
   useExclusivePopover(open, () => setOpen(false), triggerRef);
   useEffect(() => { if (!open) setOpenedFromTrigger(false); }, [open]);
+  const isOutside = useDismissableLayer(open && !asSheet, () => [triggerRef.current?.closest(".zen-input-field")]);
   useEffect(() => {
     // The Bottom Sheet dismisses itself (scrim, drag, Escape); its taps are outside the field.
     if (!open || asSheet) return undefined;
-    // Pointer down outside the field closes the option list.
+    // Pointer down outside the field (and any layer opened from it) closes the option list.
     const handlePointerDown = (event: PointerEvent) => {
       const field = triggerRef.current?.closest(".zen-input-field");
-      if (!field || field.contains(event.target as Node)) return;
+      if (!field || !isOutside(event.target as Node)) return;
       // Focus inside the list would vanish with it (no blur event): hand it to the trigger first, so leaving the field
       // is reported by the trigger's blur when the click moves focus.
       const active = document.activeElement;

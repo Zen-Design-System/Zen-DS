@@ -14,6 +14,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./sidebar.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useDismissableLayer } from "../_shared/layers";
 
 export type SidebarVariant = "basic" | "workspace" | "small-density";
 /** Layer 2 (Surface) of the page it sits on: default = Surface/Default (on a Canvas/Default page), alt = Surface/Alt
@@ -552,10 +553,11 @@ export function SidebarSubMenu({ search, items = [], sections = [], onItemClick,
 
 /** Flyout surface for the Side-Bar/Sub panel, positioned outside the sidebar's right edge. */
 function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactNode; label: string; onClose?: (event: KeyboardEvent | globalThis.PointerEvent) => void; rootRef: RefObject<HTMLElement | null> }) {
+  const isOutside = useDismissableLayer(Boolean(onClose), () => [rootRef.current]);
   useEffect(() => {
     if (!onClose) return undefined;
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(event); };
-    const onPointer = (event: globalThis.PointerEvent) => { if (!rootRef.current?.contains(event.target as Node)) onClose(event); };
+    const onPointer = (event: globalThis.PointerEvent) => { if (isOutside(event.target as Node)) onClose(event); };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
     return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onPointer); };

@@ -29,6 +29,7 @@ import { usePresence } from "../Motion";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./menu.css";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
+import { useDismissableLayer } from "../_shared/layers";
 
 /** One action in a Menu. */
 export type MenuItemData = {
@@ -241,11 +242,11 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
   }, [open]);
 
   // Light dismiss: a press outside the menu and its trigger closes it (the trigger toggles on its own click).
+  const isOutside = useDismissableLayer(open, () => [surfaceRef.current, triggerRef.current]);
   useEffect(() => {
     if (!open) return undefined;
     const onPointerDown = (event: globalThis.PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target || surfaceRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      if (!isOutside(event.target as Node | null)) return;
       closedOutside.current = true;
       setOpen(false);
     };

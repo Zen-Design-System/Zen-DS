@@ -13,6 +13,7 @@ import { usePresence } from "../Motion";
 import "./popover.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useDismissableLayer } from "../_shared/layers";
 
 /** Data shape exported by the Popover/Default and Popover/Item component sets. */
 export type PopoverItemData = {
@@ -227,12 +228,12 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     // (Sidebar › Switch workspace jumped 3250 → 602 and opened the list off-screen).
     target?.focus({ preventScroll: true });
   }, [open, autoFocus]);
-  // Light dismiss: a pointer-down outside the surface (and its trigger) closes it.
+  // Light dismiss: a pointer-down outside the surface, its trigger and any layer opened from it closes it.
+  const isOutside = useDismissableLayer(open, () => [rootRef.current, anchorRef?.current]);
   useEffect(() => {
     if (!open || !onOpenChange) return;
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target || rootRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
+      if (!isOutside(event.target as Node | null)) return;
       onOpenChange(false);
     };
     // Escape while focus is still on the trigger (the usual case after a mouse click) also closes it;
@@ -252,7 +253,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onOpenChange, anchorRef]);
+  }, [open, onOpenChange, anchorRef, isOutside]);
   // Closing keeps the surface for its Fast exit fade (popover.css), inert so it takes no clicks or focus meanwhile.
   if (!presence.mounted) return null;
   const closing = presence.phase === "closing";

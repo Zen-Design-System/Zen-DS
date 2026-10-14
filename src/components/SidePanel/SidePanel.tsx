@@ -78,7 +78,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const host = useOverlayHost(mounted && modal && !inline);
   // Modal: the shared Dialog/ModalForm focus trap (autofocus, Tab trap, Escape, scroll lock, focus return), once it is
   // placed.
-  useModal(open && modal && (inline || host.ready), panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close");
+  useModal(open && modal && (inline || host.ready), panelRef, dismissible, onOpenChange, "[data-autofocus], .zen-side-panel__close", { isolate: !inline });
   // Standard (non-modal): Escape closes the docked panel from inside it and from the page beside it (the row that opened
   // it), unless an inner popup or a modal owns the key or the press was in a text field on the page. Closing returns focus
   // to the opener when focus was in the panel (or fell to the body as it closed). Listeners on window, as useModal's, so

@@ -12,6 +12,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./date-picker.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useDismissableLayer } from "../_shared/layers";
 
 export type DatePickerItemState =
   | "default" | "hover" | "single-selected" | "range-selected-start" | "range-selected-end"
@@ -770,11 +771,11 @@ export function DatePicker({
   const requestClose = () => { onCloseRef.current?.(); onOpenChangeRef.current?.(false); };
   // One popover at a time (shared with Popover): opening the calendar closes any other object's popover and vice versa.
   useExclusivePopover(open, hasClose ? requestClose : undefined, rootRef, anchorRef);
+  const isOutside = useDismissableLayer(open, () => [rootRef.current, anchorRef?.current]);
   useEffect(() => {
     if (!open || !hasClose) return undefined;
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target || rootRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
+      if (!isOutside(event.target as Node | null)) return;
       requestClose();
     };
     // Escape while focus is still on the trigger (e.g. an input that opened it on focus).

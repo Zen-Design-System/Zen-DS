@@ -13,6 +13,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./dialog.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { inertOutside, lockScroll } from "../_shared/modal-isolation";
 
 export const dialogThemes = ["default", "info", "positive", "warning", "negative"] as const;
 export type DialogTheme = (typeof dialogThemes)[number];
@@ -88,7 +89,10 @@ export const modalIsOpen = () => modalStack.length > 0;
  * role=combobox, read before any handler runs), and when another modal is open on top of it. The key listeners sit on
  * `window`, after every document-level popup listener, so those have had their turn first.
  */
-export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>, dismissible: boolean, onOpenChange: (open: boolean) => void, initialSelector: string) {
+export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>, dismissible: boolean, onOpenChange: (open: boolean) => void, initialSelector: string, { isolate = false }: {
+  /** Portalled modals: make everything outside the panel inert while it is open. Inline previews (docs, Studio) leave it off. */
+  isolate?: boolean;
+} = {}) {
   const openerRef = useRef<Element | null>(null);
   useEffect(() => {
     if (!open) return undefined;
@@ -105,8 +109,8 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
     const field = pick(initialSelector) ?? (hasPreferred ? pick(focusableSelector) : undefined);
     const initial = pick("[data-autofocus]") ?? (field && panel ? tabStopOf(field, panel) : field) ?? panel;
     initial?.focus();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockScroll();
+    const restoreOutside = isolate && panel ? inertOutside(panel) : null;
     // Captured before React or any popup handles the key: a Select trigger closes its list on Escape (aria-expanded turns
     // false) before the bubbling listener below runs, so the open state is read here.
     let popupEscape: Event | null = null;
@@ -140,10 +144,13 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
       window.removeEventListener("keydown", onKey);
       const index = modalStack.lastIndexOf(entry);
       if (index >= 0) modalStack.splice(index, 1);
-      document.body.style.overflow = previousOverflow;
-      (openerRef.current as HTMLElement | null)?.focus?.();
+      restoreOutside?.();
+      unlockScroll();
+      // The opener may be gone (a row deleted from the dialog it opened): focus then stays where the browser puts it.
+      const opener = openerRef.current as HTMLElement | null;
+      if (opener?.isConnected) opener.focus?.({ preventScroll: true });
     };
-  }, [open, dismissible, onOpenChange, panelRef, initialSelector]);
+  }, [open, dismissible, onOpenChange, panelRef, initialSelector, isolate]);
 }
 
 /**
@@ -246,7 +253,7 @@ export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp,
   // Stay mounted for the exit animation; useModal already restored focus/scroll when `open` went false.
   const { mounted, phase } = usePresence(open, 200);
   const host = useOverlayHost(mounted);
-  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`);
+  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`, { isolate: true });
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
   const iconNode = nest("Icon", icon === false ? null : icon === true ? <Icon name={themeIcon[theme]} decorative /> : renderIcon(icon));
@@ -329,7 +336,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const panelRef = useRef<HTMLDivElement>(null);
   const { mounted, phase } = usePresence(open, 200);
   const host = useOverlayHost(mounted);
-  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`);
+  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`, { isolate: true });
   // The blocked-submit announcement (Form's live region): cleared on close, so a reopened modal starts silent.
   const [announcement, setAnnouncement] = useState("");
   const frame = useRef(0);

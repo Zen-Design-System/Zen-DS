@@ -10,6 +10,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import type { ChatPerson, ChatReaction, ChatReactionKind } from "./Chat";
 import "./chat-reactors.css";
+import { useDismissableLayer } from "../_shared/layers";
 
 /**
  * Who reacted (no Figma frame — composed from Zen parts, following Messenger / WhatsApp / Slack): pressing the
@@ -91,10 +92,10 @@ function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children }:
   const placement = useAnchoredPosition(rootRef, true, { align: side === "you" ? "end" : "start", anchor: () => anchorRef.current });
   useExclusivePopover(true, () => onOpenChange(false), rootRef, anchorRef);
   // Light dismiss: a pointer-down outside the panel and the pill, or Escape while focus is still on the pill.
+  const isOutside = useDismissableLayer(true, () => [rootRef.current, anchorRef.current]);
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target || rootRef.current?.contains(target) || anchorRef.current?.contains(target)) return;
+      if (!isOutside(event.target as Node | null)) return;
       onOpenChange(false);
     };
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
