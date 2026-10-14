@@ -10,6 +10,9 @@ import { playwright } from "@vitest/browser-playwright";
 export default defineConfig({
   plugins: [react()],
   define: { __ZEN_UPDATE_AXE__: JSON.stringify(process.env.ZEN_UPDATE_AXE === "1") },
+  // Pre-bundle what the suites import late (Studio's PocketBase client, react-dom/client): found mid-run, Vite re-optimizes
+  // and reloads the page, and the test file loading at that moment fails to import (CI on #53, 2026-10-14).
+  optimizeDeps: { include: ["pocketbase", "react-dom/client"] },
   test: {
     include: ["tests/**/*.test.{ts,tsx}"],
     setupFiles: ["tests/setup.ts"],
