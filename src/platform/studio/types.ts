@@ -338,8 +338,10 @@ export type EditOp =
    * current content and the new element go into `<tag …props>` (gap-less slots). `requires: ["toast"]`: the enclosing
    * component gains `const { toast } = useToast();`. `state`: it gains `const [name, setName] = useState(initial);`
    * per entry, under fresh names (the code is renamed to match). The answer's `inserted.loc` is the new element.
+   * `after` (instead of `index`): the loc of a layer in the slot it follows. `paste`: ⌘V into a slot, so the code may
+   * read names bound where it lands (pasteCode's rule).
    */
-  | { op: "insertChild"; code: string; prop?: string; index?: number; wrap?: { tag?: "Stack" | "Grid" | "Box"; props?: Record<string, EditValue> }; requires?: ("toast" | "media")[]; state?: StateDecl[] }
+  | { op: "insertChild"; code: string; prop?: string; index?: number; after?: string; paste?: boolean; wrap?: { tag?: "Stack" | "Grid" | "Box"; props?: Record<string, EditValue> }; requires?: ("toast" | "media")[]; state?: StateDecl[] }
   /** Remove the element (its lines, the attribute that holds it, or the `&&` around it); `hash` required. Answer: `removed`. */
   | { op: "removeElement" }
   /** The element's source again right after it; the answer's `inserted.loc` is the copy. */

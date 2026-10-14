@@ -352,6 +352,9 @@ export function announceEditStatus(next: NonNullable<StudioEditStatus>) {
   setStatus(next);
 }
 
+/** The edit line now (a paste adds its "Not recommended" line under the outcome the edit set). */
+export const currentEditStatus = (): StudioEditStatus => status;
+
 /** The outcome of the last edit, undo or redo, for the inspector footer. */
 export function useStudioEditStatus(): StudioEditStatus {
   return useSyncExternalStore(

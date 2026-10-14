@@ -1099,6 +1099,12 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- **Zen Studio: ⌘V pastes into a component's slot (2026-10-12):** with a layer of a slot selected (PageHeader ›
+  Actions holds Export), the copy goes right after it in that slot; with the slot's row selected in Layers (the row
+  now shows selected), at the slot's end. Both were refused ("PageHeader can't hold layers", "Stack has no layer inside
+  here"). ⇧⌘R on a slot's layer swaps it. A paste beside a layer that an example's local wrapper (`Page`) lays out goes
+  into that wrapper's JSX instead of failing. A paste now warns as the insert picker does ("Not recommended: The card is
+  one click target…", "A card never goes inside a card"), into a slot or a layout, and goes in all the same.
 - Figma List-Box (2026-10-14, user): a heading no longer starts in from the edge when the box is wider than 311px.
   Header-Slot and Footer-Slot align their content left and the default Heading / Footer texts fill the slot (they were
   fixed at 263px in a centred slot), as `.zen-list-box__header` lays it out; the 30 List-Boxes on ◆ Performance were

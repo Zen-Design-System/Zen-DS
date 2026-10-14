@@ -4,8 +4,10 @@
 // docs/research/studio-slots-spec-2026-10-03.md "Source ops".
 //
 //   applySlotOp(code, loc, name, op, opts?)  → { code, changed, inserted? | removed? | moved?, snippet? } | { error, code }
-//        op "insertChild" { code, prop?, index?, wrap?, requires?, state? }  on the parent (loc/name = the parent element);
-//                                              `inserted` = { loc } of the new element
+//        op "insertChild" { code, prop?, index?, after?, wrap?, requires?, state?, paste? }  on the parent (loc/name = the
+//                                              parent element); `inserted` = { loc } of the new element. `after`: the
+//                                              loc of a layer in the slot it follows; `paste`: ⌘V into a slot, so the
+//                                              code may read names bound where it lands (pasteCode's rule)
 //        op "removeElement" {}                 `removed` = true
 //        op "duplicateElement" {}              `inserted` = { loc } of the copy
 //        op "moveElement" { to: "prev"|"next" } `moved` = { loc } of the element at its new place
@@ -335,14 +337,18 @@ export function patternNames(node, out) {
 /**
  * Validates the client's `code`: one JSX element and nothing else, no data-zen-src, no raw line separators, no free
  * names but Zen components (`folders`), `toast`, `platformMedia` (example pages; mediaImportEdits) and the `allowed`
- * ones (the insert's own state, stateFor). Returns the element, its piece (lines inside strings protected),
- * the components it needs imported and whether it uses `toast`.
+ * ones (the insert's own state, stateFor). `bound`: a paste (insertChild `paste`), whose names may also be bindings
+ * where it lands, as pasteCode allows; `parentName` names that place in its refusal. Returns the element, its piece
+ * (lines inside strings protected), the components it needs imported and whether it uses `toast`.
  */
-function prepareCode(raw, folders, allowed = new Set()) {
+function prepareCode(raw, folders, allowed = new Set(), bound = null, parentName = "") {
   if (typeof raw !== "string" || !raw.trim()) refuse("insertChild needs `code`: one JSX element");
   if (raw.length > 65536) refuse("The code is too long (64 KB at most)");
   if (LINE_SEPARATOR.test(raw)) refuse("The code holds a line separator (U+2028/U+2029); write it as \\u2028");
   const src = raw.replace(/\r\n|\r/g, "\n").replace(/^(?:[ \t]*\n)+/, "").replace(/\s+$/, "");
+  // A paste may hold several layers copied together, side by side (pasteCode's rule): `part` spans them all and
+  // `whole` is them in a fragment, for a place that takes one expression (an empty prop).
+  if (bound) return pastedCode(src, folders, allowed, bound, parentName);
   let node;
   try {
     node = parseExpression(src, { plugins: PLUGINS });
@@ -352,6 +358,35 @@ function prepareCode(raw, folders, allowed = new Set()) {
   if (node.type === "JSXFragment") refuse("The code is a fragment (<>…</>); insert one element (a Stack holds several)");
   if (node.type !== "JSXElement") refuse("The code is not one JSX element");
   if (src.slice(0, node.start).trim() || src.slice(node.end).trim()) refuse("The code must be one JSX element and nothing else");
+  const reads = codeReads(node, folders, allowed, bound, parentName);
+  return { node, src, part: piece(src, node), whole: null, name: jsxName(node.openingElement.name), ...reads };
+}
+
+/** prepareCode for a paste (insertChild `paste`): one JSX element or several side by side. */
+function pastedCode(src, folders, allowed, bound, parentName) {
+  const wrapped = `<>\n${src}\n</>`;
+  let fragment;
+  try {
+    fragment = parseExpression(wrapped, { plugins: PLUGINS });
+  } catch (error) {
+    refuse(`The clipboard is not JSX elements: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
+  }
+  if (fragment.type !== "JSXFragment") refuse("The clipboard is not JSX elements");
+  const elements = fragment.children.filter((child) => !(child.type === "JSXText" && !child.value.trim()));
+  if (!elements.length || elements.some((child) => child.type !== "JSXElement")) refuse("The clipboard must hold JSX elements and nothing else");
+  if (elements.length > 50) refuse("Paste 50 layers at most at once");
+  const reads = codeReads(fragment, folders, allowed, bound, parentName);
+  const node = elements[0];
+  const many = elements.length > 1;
+  const part = piece(wrapped, fragment, node.start, elements.at(-1).end);
+  // The fragment's layers one level in (lines inside strings keep theirs); reindent then moves it all to its place.
+  const inner = part.src.split("\n").map((line, i) => (!line || (i > 0 && part.protect.has(i)) ? line : `${UNIT}${line}`)).join("\n");
+  const whole = many ? { src: `<>\n${inner}\n</>`, base: "", protect: new Set([...part.protect].map((i) => i + 1)) } : null;
+  return { node, src: part.src, part, whole, name: jsxName(node.openingElement.name), ...reads };
+}
+
+/** The names `node` reads: the Zen components it needs imported, `toast`, `platformMedia`; anything else is refused. */
+function codeReads(node, folders, allowed, bound, parentName) {
   const declared = new Set();
   const skip = new WeakSet();
   const tags = new Set();
@@ -376,17 +411,23 @@ function prepareCode(raw, folders, allowed = new Set()) {
   let toast = false;
   let media = false;
   for (const name of [...tags, ...values]) {
-    if (declared.has(name) || allowed.has(name)) continue;
+    // A paste reads what is there where it lands first (the file's own toast, an imported component), as pasteCode does.
+    if (declared.has(name) || allowed.has(name) || bound?.(name)) continue;
     if (name === "toast") { toast = true; continue; }
     if (name === "platformMedia") { media = true; continue; }
     if (name === "undefined" || name === "NaN" || name === "Infinity" || JS_GLOBALS.has(name)) continue;
     if (CHROME_NAMES.includes(name)) refuse(`<${name}> is docs chrome; it cannot be inserted`);
     if (/^[A-Z]/.test(name) && folders.has(name)) { needed.add(name); continue; }
+    if (bound) {
+      refuse(/^[A-Z]/.test(name)
+        ? `<${name}> is not a Zen component this file can import; paste it in the code`
+        : `The pasted layer uses \`${name}\`, which does not exist inside <${parentName}>; paste it in the code`);
+    }
     refuse(/^[A-Z]/.test(name)
       ? `<${name}> is not a Zen component (no src/components folder exports it); inserted code can use Zen components only`
       : `The code uses \`${name}\`, which a slot cannot provide (only Zen components and toast); write the value in the code`);
   }
-  return { node, src, part: piece(src, node), name: jsxName(node.openingElement.name), needed, toast, media };
+  return { needed, toast, media };
 }
 
 /* ── imports (detach.mjs importEdits with a full name → folder map) ───────────────────────────────────────────────── */
@@ -1354,7 +1395,7 @@ function rowComponentPlan(ctx, nodePath, code, state) {
   const holder = ast.program.body.find((statement) => statement.start <= nodePath.at(-1).start && statement.end >= nodePath.at(-1).end);
   if (!holder) refuse("The row's component could not be placed (no top-level statement holds this slot)");
   const lines = [...(code.toast ? [`const { toast } = useToast()${semi}`] : []), ...state.statements];
-  const body = [...lines.map((line) => `${unit}${line}`), `${unit}return (`, `${unit}${unit}${reindent(code.part, unit + unit, eol, unit)}`, `${unit})${semi}`].join(eol);
+  const body = [...lines.map((line) => `${unit}${line}`), `${unit}return (`, `${unit}${unit}${reindent(code.whole ?? code.part, unit + unit, eol, unit)}`, `${unit})${semi}`].join(eol);
   const fn = `/** Zen Studio: one row's <${code.name}> with its own state (a hook in the .map row would share it). */${eol}function ${name}() {${eol}${body}${eol}}${eol}${eol}`;
   const at = lineStartOf(text, holder.leadingComments?.[0]?.start ?? holder.start);
   const needed = new Set(code.needed);
@@ -1369,7 +1410,10 @@ function insertPlan(ctx, nodePath, op) {
   const state = stateFor(ctx, typeof op.code === "string" ? op.code : "", op.state);
   // A builder page (Studio builder GĐ2) has no hooks: its actions are proto.*(…) handlers, which the page imports.
   const builderPage = LOCAL_PAGE.test(ctx.file ?? "");
-  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
+  // ⌘V into a slot (`paste`): a copied layer may read what exists where it lands (a state, a handler), as pasteCode.
+  if (op.paste !== undefined && typeof op.paste !== "boolean") refuse("`paste` must be true or false");
+  const bound = op.paste ? (name) => Boolean(bindingOf(nodePath, name)) : null;
+  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names, bound, parentName);
   if (builderPage && (code.toast || state.statements?.length)) refuse("A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…), and a control keeps its own state");
   if (CHROME_NAMES.includes(code.name)) refuse(`<${code.name}> is docs chrome; it cannot be inserted.`);
   // State in a .map row: a row component holds it (2026-10-08), so the rows do not share one.
@@ -1377,6 +1421,8 @@ function insertPlan(ctx, nodePath, op) {
   if (row) code = row.code;
   if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast" && item !== "media"))) refuse('`requires` lists what the code needs: "toast" or "media"');
   if (op.index !== undefined && op.index !== null && !(Number.isInteger(op.index) && op.index >= 0)) refuse("`index` must be a position in the slot (0 or more)");
+  if (op.after !== undefined && op.after !== null && (typeof op.after !== "string" || !parseLoc(op.after))) refuse('`after` must be the "<line>:<column>" of a layer in the slot');
+  if (op.after && op.index !== undefined && op.index !== null) refuse("Send `index` or `after`, not both");
   const prop = slotProp(op);
   let wrap = null;
   if (op.wrap !== undefined && op.wrap !== null) {
@@ -1392,13 +1438,28 @@ function insertPlan(ctx, nodePath, op) {
     wrap = { tag, attrs };
   }
   const index = op.index ?? null;
+  // `after` (a paste beside a layer of the slot): the position after the entry that is that layer or holds it (a
+  // condition's element). Entries are slotEntries' { node } or the slot's one value node.
+  const afterNode = op.after ? findElement(ctx.ast, parseLoc(op.after)) : null;
+  if (op.after && !afterNode) refuse(`No layer starts at ${op.after}; select the layer again`, "stale");
   let plan = null;
   let usedWrap = false;
   let snippet = null;
   const atIndex = (entries) => {
+    if (afterNode) {
+      const k = entries.findIndex((entry) => { const node = entry.node ?? entry; return node.start <= afterNode.start && afterNode.end <= node.end; });
+      if (k < 0) refuse(`The slot has no layer at ${op.after}; select the layer again`, "stale");
+      return k + 1;
+    }
     if (index === null) return entries.length;
     if (index > entries.length) refuse(`The slot holds ${entries.length} item${entries.length === 1 ? "" : "s"}; position ${index} is past its end (reload the element)`, "stale");
     return index;
+  };
+  // A place that takes one expression (a new or empty prop): several pasted layers go in a fragment; `within` is the
+  // first layer's offset in the text.
+  const alone = (indent) => {
+    const written = reindent(code.whole ?? code.part, indent, eol, ctx.unit);
+    return { text: written, within: code.whole ? Math.max(0, written.indexOf(`<${code.name}`)) : 0 };
   };
   const intoContainer = (container) => {
     const entries = slotEntries(container, text);
@@ -1425,7 +1486,8 @@ function insertPlan(ctx, nodePath, op) {
       const ownLine = last && last.loc.start.line > opening.loc.start.line && startsLine(text, last.start);
       const head = `${ownLine ? `${eol}${indent}` : " "}${prop}={`;
       const at = last ? last.end : (opening.typeArguments ?? opening.typeParameters ?? opening.name).end;
-      plan = placed({ start: at, end: at, text: `${head}${reindent(code.part, indent, eol, ctx.unit)}}` }, head.length);
+      const value = alone(indent);
+      plan = placed({ start: at, end: at, text: `${head}${value.text}}` }, head.length + value.within);
     } else if (!attr.value) {
       refuse(`Its content comes from \`${prop}\` (true); edit it in the code.`);
     } else {
@@ -1433,7 +1495,8 @@ function insertPlan(ctx, nodePath, op) {
       if (value.type === "JSXEmptyExpression" || isNullish(value)) {
         atIndex([]);
         const range = value.type === "JSXEmptyExpression" ? { start: attr.value.start + 1, end: attr.value.end - 1 } : valueRange(text, attr.value.expression);
-        plan = placed({ ...range, text: reindent(code.part, indentAt(text, attr.start), eol, ctx.unit) }, 0);
+        const only = alone(indentAt(text, attr.start));
+        plan = placed({ ...range, text: only.text }, only.within);
       } else if (value.type === "JSXFragment") {
         plan = intoContainer(value);
       } else if (value.type === "JSXElement") {

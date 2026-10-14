@@ -4,7 +4,7 @@
 // carries data-e2e="<id>"; the harness finds its loc in the current text, so edits that move lines never break a row.
 // "Seed <n>" changes on every reseed, so the harness can wait until the canvas shows the new text.
 // Keep it a valid example page module: { page, examples }.
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AlertBanner } from "../../../components/AlertBanner";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
@@ -251,6 +251,25 @@ function HtmlFixture() {
   );
 }
 
+/** A local wrapper that lays its children out in its own Stack, as examples' `Page` does (K-26: a paste beside a child). */
+function Shell({ children }: { children: ReactNode }) {
+  return <Stack gap="sm" padding="lg">{children}</Stack>;
+}
+
+function ShellFixture() {
+  return (
+    <Shell data-e2e="shell">
+      <Text data-e2e="shell-text">Inside a local wrapper</Text>
+      <Button data-e2e="shell-btn" level="secondary">Wrapped</Button>
+      <Card data-e2e="shell-card" theme="border">
+        <Stack gap="sm">
+          <Text data-e2e="shell-card-text">In a card (K-27: a Card pasted here is warned)</Text>
+        </Stack>
+      </Card>
+    </Shell>
+  );
+}
+
 export const examples: ExampleDef[] = [
   { title: "E2E layout", description: "Stacks, buttons, text and a checkbox written as literals.", code: "<LayoutFixture />", render: () => <LayoutFixture /> },
   { title: "E2E data", description: "Rows from a .map over a const and over data.ts, a state-bound and a conditional prop.", code: "<DataFixture />", render: () => <DataFixture /> },
@@ -263,4 +282,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E const", description: "A Segmented whose options a same-file const holds.", code: "<ConstFixture />", render: () => <ConstFixture /> },
   { title: "E2E canvas", description: "A clipping scroll box, a 0 gap, two Headings, floating and flowing Boxes, a wrapped Button.", code: "<CanvasFixture />", render: () => <CanvasFixture /> },
   { title: "E2E table", description: "A Table: sorted rows, a column's cell from a field and from data.ts, a column without cell.", code: "<TableFixture />", render: () => <TableFixture /> },
+  { title: "E2E shell", description: "Layers a local wrapper component lays out in its own Stack, as examples' Page does.", code: "<ShellFixture />", render: () => <ShellFixture /> },
 ];
