@@ -244,3 +244,10 @@
 - Skill (user: "tổng hợp lại cách bạn hiểu Zen … thành skill hoặc harness"): customize-in-code.md,
   customize-without-detach.md, Figma audit `bounds/stroke-clip-gap` (dry run: Input page 0, old swatch shape caught).
 - Batch 2 (SliderField) and 3 (CurvePreview) wait for the user.
+
+## Batch 2: SliderField (tier L, stacked branch zen/feat/slider-field-20261014 on #53, user: "Có")
+- SliderField: Input box (::before background + Effect/Input, ::after border on top, the value as a fill), role=slider
+  on the number area (the label is part of its hit target), click/Enter/F2 → a text input (Enter applies, clamped and
+  on the step; Escape drops), drag scrubs against the whole field; tests/interaction/slider-field.test.tsx 4/4.
+- Guideline slider-field (slider's avoid list points to it), rule slider-field/value-in-range (+ fixtures), platform
+  page (5 examples, 1 Do/Don't pair), Studio palette/synonyms/detach/figma-props (Slider/Field in the contract).

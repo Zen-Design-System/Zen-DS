@@ -116,7 +116,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   AreaChart: "Chart", GroupedBarChart: "Chart", ComboChart: "Chart", GaugeChart: "Chart", FunnelChart: "Chart", BarList: "Chart", BulletChart: "Chart", AlertBanner: "AlertBanner",
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
-  ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch",
+  ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
@@ -656,6 +656,10 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "nps-scale", label: "NPS scale", group: "Inputs", caption: "0 to 10", root: "NpsScale", components: ["NpsScale"], state: [state("score", "null", "number | null")], interactive: true, input: true,
     build: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" value={score} onValueChange={setScore} />`,
     builder: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" />`,
+  },
+  {
+    id: "slider-field", label: "Slider field", group: "Inputs", caption: "A number to scrub or type", root: "SliderField", components: ["SliderField"], interactive: true, input: true,
+    build: () => `<SliderField label="Opacity" defaultValue={0.6} min={0} max={1} step={0.01} />`,
   },
   {
     id: "color-field", label: "Colour field", group: "Inputs", caption: "Hex with a swatch, opens the picker", root: "ColorField", components: ["ColorField"], interactive: true, input: true,

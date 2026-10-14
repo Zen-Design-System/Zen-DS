@@ -1,0 +1,121 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "slider-field",
+  "import": "import { SliderField } from \"@zen-ds/react\";",
+  "components": [
+    {
+      "name": "SliderField",
+      "file": "src/components/SliderField/SliderField.tsx",
+      "description": "Figma Slider/Field (15662:108207): a number that is also a slider. The whole field is the track: the Fill shows the\nvalue inside min–max, the label sits left and the number right. Drag anywhere to scrub (State=Dragging), click\nwithout dragging to type an exact number (State=Typing, the fill hides; Enter or leaving applies, Escape drops it),\narrow keys step (Shift: ten steps, Home / End: the limits). Input tokens: Input/Size Medium 40 · Small 32,\nInput/Spacing paddings and gap, Corner-Radius/Input, Input/Background and Input/Border per state, Effect/Input; the\nfill is Background/Neutral/Subtle/Hover (Dragging: Pressed), Accent: Background/Accent/Subtle/Hover (Pressed); the\nlabel Body/Base/Medium in Content/Neutral/Base, the number in Content/Neutral/Strongest. For a value tuned by feel\nwithout a number use Slider; for an exact quantity with steppers, NumberField.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "What the number is (Figma `Label`), inside the field on the left: \"Offset X\", \"Duration\".",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The number. Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The first number when uncontrolled. Default: min.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new number while scrubbing, on each arrow key and when a typed number is applied.",
+          "deprecated": null
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "The step of arrows and scrubbing; typed numbers round to it too. Default 1.",
+          "deprecated": null
+        },
+        {
+          "name": "formatValue",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": null,
+          "description": "The text of the number (Figma `Value`), e.g. `(v) => \\`${v} px\\``. Default: the number with the step's decimals.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "The fill's colour: neutral (default) or accent.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Input sizes: md 40 (default), sm 32. Short or Figma spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name for assistive technology when `label` is not plain text.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

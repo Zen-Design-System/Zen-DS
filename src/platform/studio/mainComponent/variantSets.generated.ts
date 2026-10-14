@@ -2348,6 +2348,42 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "SliderField": [
+    {
+      "name": "Slider/Field",
+      "figma": "15662:108207",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Neutral",
+            "Accent"
+          ],
+          "values": [
+            "neutral",
+            "accent"
+          ],
+          "default": "neutral"
+        },
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "Sidebar": [
     {
       "name": "Side-Bar/Master/Basic",

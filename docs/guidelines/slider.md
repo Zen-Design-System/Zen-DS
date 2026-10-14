@@ -13,6 +13,7 @@ Pick a value from a continuous or stepped range by dragging, where the relative 
 
 ## Use something else for
 - Exact numbers users type → NumberField.
+- A number in a dense property panel, scrubbed or typed → SliderField.
 - A handful of discrete options → Segmented or RadioButton.
 - On/off → Toggle.
 
