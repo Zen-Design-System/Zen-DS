@@ -91,7 +91,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
       ref={ref}
       href={href}
       target={external ? "_blank" : target}
-      rel={external ? mergeRel(rel, ["noopener", "noreferrer"]) : rel}
+      rel={external || target === "_blank" ? mergeRel(rel, ["noopener", "noreferrer"]) : rel}
       className={["zen-link", className].filter(Boolean).join(" ")}
       data-tone={tone}
       data-underline={underline}

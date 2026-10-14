@@ -18,6 +18,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
+import { sanitizeHtml } from "../_shared/sanitize-html";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
 export const headingInputSizes = ["h1", "h2", "h3"] as const;
@@ -1513,7 +1514,9 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
     if (!el) return;
     const next = value ?? (el.dataset.initialised ? undefined : defaultValue ?? "");
     el.dataset.initialised = "true";
-    if (next !== undefined && next !== el.innerHTML) { el.innerHTML = next; setText(el.textContent ?? ""); resetHistory(); }
+    // The value comes from outside (often stored HTML another user wrote): sanitised before it reaches the DOM. HTML the
+    // field emitted itself equals innerHTML and is skipped, so typing never resets the caret.
+    if (next !== undefined && next !== el.innerHTML) { el.innerHTML = sanitizeHtml(next); setText(el.textContent ?? ""); resetHistory(); }
     else if (history.current.index < 0) resetHistory();
   }, [value, defaultValue]);
   // The browser's Edit menu, context menu and shake-to-undo arrive as historyUndo / historyRedo: use this field's history.
