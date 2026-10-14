@@ -3,6 +3,7 @@
 // stylesheet declaration that reads the old one is proposed reading the new one, once for all the variants it serves;
 // composite values are left to a person, a variable with no CSS token waits for the token sync, and the repo as
 // committed has no change. Run: node tools/studio/binding-diff.selftest.mjs
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { applyProposals, bindingChanges, bindingsOf, cssVar, proposals, repoBindingDiff, repoStyles } from "./binding-diff.mjs";
 
@@ -45,9 +46,12 @@ check("a composite value: manual, not ticked", proposals(paddingChange, { cssFil
 const missing = [{ ...paddingChange[0], to: "Spacing/Padding/Not-A-Token" }];
 check("a variable with no CSS token: token-missing", proposals(missing, { cssFiles: new Map([["src/components/Demo/demo.css", ".demo { padding: var(--zen-spacing-padding-medium); }"]]), tokens }).map((item) => item.status), ["token-missing"]);
 
-// The repo as committed: no binding changed.
+// The repo as committed: no binding changed. A re-capture not committed yet (tools/figma-kit patch) holds Figma's new
+// bindings by design; then only the stylesheets must already follow them: no proposal left.
 const repo = await repoBindingDiff({ base: "HEAD" });
-check("the committed contracts: no change, no proposal", [repo.changes.length, repo.proposals.length], [0, 0]);
+const uncommitted = execFileSync("git", ["status", "--porcelain", "--", "docs/figma-contracts"], { cwd: new URL("../..", import.meta.url), encoding: "utf8" }).trim() !== "";
+if (uncommitted) check("re-captured contracts: the stylesheets follow every binding, no proposal", repo.proposals.length, 0);
+else check("the committed contracts: no change, no proposal", [repo.changes.length, repo.proposals.length], [0, 0]);
 
 if (failures.length) {
   console.error(`✗ binding-diff selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

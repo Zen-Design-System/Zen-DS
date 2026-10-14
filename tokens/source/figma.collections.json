@@ -12,7 +12,7 @@
   },
   "collections": [
     {
-      "slug": "global-colors",
+      "slug": "global-colors Live file read (2026-10-14, Segmented sync): Component Size Segmented/Size/Medium is {dm-36} Compact / {dm-44} Comfortable (was 32 / 40) and Segmented/Size/Small {dm-28} / {dm-36} (was 24 / 32), and Segmented/Size/XSmall is gone from Figma and the repo, so Component Size has 194 variables (167 hidden in the live file) and the repo 2,224; the repo-only Studio mode keeps Medium 28 / Small 24. The Segmented track padding moved to Spacing/Padding/3XSmall at the same time, so a Compact Medium Segmented is still 40 tall. Component Theme Segmented-* tokens unchanged.",
       "name": "Global Colors",
       "layer": "primitive",
       "variableCount": 960,
@@ -70,10 +70,10 @@
       "slug": "component-size",
       "name": "Component Size",
       "layer": "component",
-      "variableCount": 195,
+      "variableCount": 194,
       "modes": ["Compact", "Comfortable", "Studio"],
-      "types": { "FLOAT": 195 },
-      "hiddenVariableCount": 171,
+      "types": { "FLOAT": 194 },
+      "hiddenVariableCount": 167,
       "purpose": "Control heights, paddings, gaps and icon sizes by density.",
       "codeAxis": "data-density"
     },

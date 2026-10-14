@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Segmented follows the live Figma (2026-10-14): items are 4px taller (`Segmented/Size` Medium 36 / 44, Small 28 / 36)
+  in a track padded by Spacing/Padding/3XSmall (2px), so the control keeps its outer height; `level="primary"` has an
+  outlined track (no fill, 2px Border/Neutral/Subtle ring). `Segmented/Size/XSmall` is removed (Figma deleted it, nothing
+  read it). Component Theme `Segmented-Item-*` tokens are unchanged.
 - Every component takes `ref` as a plain React 19 prop and puts it on its root (overlays: the panel; fields: the native
   control, as before). `forwardRef` is gone; component names are unchanged. Tooltip and Menu wrap their trigger, which
   keeps its own ref.

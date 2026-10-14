@@ -795,7 +795,7 @@
       [
         "Level",
         "level",
-        "secondary (default, the common case) · primary (stronger emphasis, e.g. a pricing toggle)"
+        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment)"
       ],
       [
         "Size",

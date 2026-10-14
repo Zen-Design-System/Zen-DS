@@ -53,7 +53,14 @@ export async function waitSeed(page, seed) {
 export const scaleStep = (key) => new RegExp(`^${key}\\s*\\d+(\\.\\d)?px$`);
 
 export async function pickOption(page, prop, label) {
-  await inspectorRow(page, prop).locator("button").first().click();
+  const row = inspectorRow(page, prop);
+  // EnumControl (PropField.tsx) draws a Segmented when every option fits whole at the panel's width, else a select.
+  const segmented = row.locator(".zen-segmented");
+  if (await segmented.count()) {
+    await segmented.getByRole("button", { name: label, exact: typeof label === "string" }).click();
+    return;
+  }
+  await row.locator("button").first().click();
   await page.getByRole("option", { name: label, exact: typeof label === "string" }).click();
 }
 
