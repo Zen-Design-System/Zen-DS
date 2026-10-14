@@ -89,6 +89,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: \"accent\" }, \"Illustration/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets icon / primaryAction / secondaryAction.",
+          "deprecated": null
         }
       ]
     },

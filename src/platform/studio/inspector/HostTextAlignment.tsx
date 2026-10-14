@@ -1,4 +1,3 @@
-import { IconButton } from "../../../components/Button";
 import type { EditOp, SourceElement } from "../types";
 import { TextAlignControl } from "./PropField";
 import { InspectorRow } from "./Section";
@@ -64,9 +63,6 @@ export function HostTextAlignment({ name, element, rendered, disabled, send }: {
             ? [{ op: "setField", name: "style", key: axis.key, value: { kind: "string", value } }]
             : [{ op: "setProp", name: "style", value: { kind: "expression", code: `{ ${axis.key}: ${JSON.stringify(value)} }` } }], label);
         };
-        const reset = () => send(fields?.length === 1
-          ? [{ op: "removeProp", name: "style" }]
-          : [{ op: "setField", name: "style", key: axis.key, value: null }], `${name} ${axis.label.toLowerCase()} reset`);
         const hint = styleBound ? `Set in code: style={${style?.value ?? "…"}}`
           : fieldBound ? `Set in code: ${axis.key}: ${field?.value}`
             : alignmentHint(axis.prop, rendered);
@@ -78,7 +74,6 @@ export function HostTextAlignment({ name, element, rendered, disabled, send }: {
             labelTitle={`${axis.label} · style.${axis.key}`}
             isDefault={!field}
             hint={hint}
-            action={field && !locked ? <IconButton icon="icon-reverse-left-line" aria-label={`Reset ${axis.label.toLowerCase()} to default`} appearance="flat" level="primary" size="xs" onClick={reset} /> : null}
           >
             <TextAlignControl label={axis.label} options={axis.options} value={written} fallback={computed ?? undefined} disabled={locked} onSet={set} />
           </InspectorRow>

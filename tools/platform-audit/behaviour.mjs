@@ -74,6 +74,10 @@ const OUT = arg("out", null);
 const UPDATE = Boolean(arg("baseline-update", false));
 const NO_BASELINE = Boolean(arg("no-baseline", false));
 const BUDGET = Number(arg("budget", 90)) * 1000;
+/** Pages with many phone screens and sheets run past 90s when the full gate shares the machine with other sessions
+ *  (templates, bottom-sheet, chat: ~40s alone, 90s+ under load): they get twice the budget instead of a `timeout`. */
+const HEAVY_PAGES = new Set(["templates", "bottom-sheet", "chat"]);
+const budgetOf = (id) => (HEAVY_PAGES.has(id) ? 2 : 1) * BUDGET;
 const VERBOSE = Boolean(arg("verbose", false));
 const BASELINE = path.join(root, "tools/platform-audit/behaviour-baseline.json");
 
@@ -538,7 +542,10 @@ function installHelpers() {
     let compared = 0;
     for (const [n, s] of m.sigs) {
       if (!n.isConnected) return null; // re-rendered: cannot tell
-      if (now && now !== document.body && (n.contains(now) || now.contains(n))) continue; // the newly focused element and shared ancestors
+      // The newly focused element and shared ancestors are not compared, except that a shared ancestor which changed
+      // carried the previous element's indicator (an AiChatField ring on `:has(> textarea:focus)`, gone when Tab moves
+      // to the field's own + button).
+      if (now && now !== document.body && (n.contains(now) || now.contains(n))) { if (n.contains(now) && n !== now && sig(n) !== s) return null; continue; }
       compared += 1;
       if (sig(n) !== s) return null;
     }
@@ -589,6 +596,8 @@ function installHelpers() {
       o.muts += 1; if (layer) o.layer = true; if (!o.first) o.first = `${rec.type}${rec.attributeName ? `:${rec.attributeName}` : ""} on ${describe(t)}`;
     }
   };
+  /** The point (x, y) still lands on the registered element (nothing moved or covered it since pointAt). */
+  B.hits = (key, x, y) => { const el = B.reg.get(key); const hit = el?.isConnected ? document.elementFromPoint(x, y) : null; return !!hit && (hit === el || el.contains(hit)); };
   B.observeStart = (key) => {
     const el = B.reg.get(key); if (!el?.isConnected || disabled(el) || selectedNoop(el)) return false; // state moved on since collection
     const o = { el, region: regionOf(el) ?? document.body, muts: 0, first: "", active: document.activeElement, href: location.href, anims: new Set(document.getAnimations()), dialogs: new Set(visibleDialogs()) };
@@ -997,14 +1006,28 @@ async function clickPass(S, region) {
     if (reportDead && k.dead.length >= 2 && !k.alive && counts.get(b.kind) >= 4) { k.skipped += 1; continue; }
     // The same button (kind + name) already worked twice on this page, in other examples: skip the repeat.
     if ((S.working.get(`${b.kind}|${b.desc}`) ?? 0) >= 2) continue;
-    const pos = await ev(page, (key) => window.__bhv.pointAt(key), b.key);
+    let pos = await ev(page, (key) => window.__bhv.pointAt(key), b.key);
     if (!pos) continue;
     await page.mouse.move(pos.x, pos.y).catch(() => undefined);
     await page.waitForTimeout(25);
+    // The page can still move after pointAt measured: the previous card's failed submit focuses and scrolls to its first
+    // invalid field a few frames later (later still on a loaded machine), and a click at the old point lands beside the
+    // button (uploader "Retry" read as dead, 2026-10-12). Measure again once the page is still.
+    if (!await ev(page, ([key, x, y]) => window.__bhv.hits(key, x, y), [b.key, pos.x, pos.y])) {
+      if (VERBOSE) console.log(`    ${b.desc} moved after it was measured: measuring again`);
+      await settle(page, 250);
+      pos = await ev(page, (key) => window.__bhv.pointAt(key), b.key);
+      if (!pos) continue;
+      await page.mouse.move(pos.x, pos.y).catch(() => undefined);
+      await page.waitForTimeout(25);
+    }
     if (!await ev(page, (key) => window.__bhv.observeStart(key), b.key)) continue;
     S.errors.length = 0; S.external.hit = false; S.stats.clicks += 1; clicked += 1;
     await page.mouse.down().catch(() => undefined); await page.mouse.up().catch(() => undefined);
     await page.waitForFunction(() => !window.__bhv?.obs || window.__bhv.observeChanged(), null, { timeout: 300, polling: 25 }).catch(() => undefined);
+    // A screen change in a phone (PlatformPhone's screen.go) can take longer than 300ms on a loaded machine (a full gate
+    // beside other sessions): give a click that showed nothing yet one more, longer look before it counts as dead.
+    if (!await ev(page, () => !window.__bhv?.obs || window.__bhv.observeChanged())) await page.waitForFunction(() => !window.__bhv?.obs || window.__bhv.observeChanged(), null, { timeout: 900, polling: 50 }).catch(() => undefined);
     const o = await ev(page, () => window.__bhv?.observeStop?.() ?? { loadId: window.__bhv?.loadId ?? null });
     if (page.url() !== S.url || o?.loadId !== S.loadId) {
       k.alive = true;
@@ -1068,7 +1091,7 @@ async function auditOnce(context, id) {
   const page = await context.newPage();
   const findings = [], keys = new Set();
   const S = {
-    page, id, url: `${BASE}/?page=${id}`, errors: [], external: { hit: false }, deadline: Date.now() + BUDGET, loadId: null, regions: [], closed: false, kinds: new Map(), working: new Map(), env: false, loading: false, stats: { regions: 0, stops: 0, hovers: 0, apg: 0, clicks: 0, dialogs: 0 },
+    page, id, url: `${BASE}/?page=${id}`, errors: [], external: { hit: false }, deadline: Date.now() + budgetOf(id), loadId: null, regions: [], closed: false, kinds: new Map(), working: new Map(), env: false, loading: false, stats: { regions: 0, stops: 0, hovers: 0, apg: 0, clicks: 0, dialogs: 0 },
     add: (check, severity, card, message) => {
       if (S.closed || (!CHECKS.has(check) && check !== "timeout" && check !== "run")) return;
       const k = `${check}|${card}|${message}`; if (keys.has(k)) return; keys.add(k);
@@ -1085,14 +1108,14 @@ async function auditOnce(context, id) {
   page.on("download", (d) => { S.external.hit = true; d.cancel().catch(() => undefined); });
   page.on("popup", (p) => { S.external.hit = true; p.close().catch(() => undefined); });
   page.on("dialog", (d) => { S.external.hit = true; d.dismiss().catch(() => undefined); });
-  const budgetNote = `page exceeded the ${BUDGET / 1000}s behaviour budget (remaining checks skipped)`;
+  const budgetNote = `page exceeded the ${budgetOf(id) / 1000}s behaviour budget (remaining checks skipped)`;
   const work = auditWork(S).then(() => "done", (e) => {
     if (e instanceof OverBudget) S.add("timeout", "warn", "page", budgetNote);
     else if (!S.closed) { S.add("run", "warn", "page", `behaviour run aborted: ${normaliseError(e?.message ?? e)}`); if (VERBOSE) console.error(e); }
     return "failed";
   });
   let timer;
-  const hard = new Promise((resolve) => { timer = setTimeout(resolve, BUDGET + 20000, "hard"); });
+  const hard = new Promise((resolve) => { timer = setTimeout(resolve, budgetOf(id) + 20000, "hard"); });
   const result = await Promise.race([work, hard]);
   clearTimeout(timer);
   if (result === "hard") S.add("timeout", "warn", "page", budgetNote);

@@ -26,6 +26,9 @@ you already have; `__KEY(vp)` builds the variant key. `filter` receives each var
 - **Desktop console** (live file `9nZv4uW2LT21yuHabMTCh1`, **Cmd+Opt+I** → Console): paste the file, run
   `await __RUN(['<set id>', …])`, then on its own line (`copy()` does nothing inside an `await` statement)
   `copy(__OUTS)`, or `copy(__C(i))` for each `i < __N()` above ~230 kB.
+- **Hidden instance children:** the extractor sets `figma.skipInvisibleInstanceChildren = false` first (since
+  2026-10-08), so hidden layers inside instances are captured and hashed like `tools/figma-kit`; a contract captured
+  before that date may show them as added nodes on its next compare — re-capture it.
 - **`use_figma`** (read-only): nothing survives between calls and the result is capped near 20 KB, so each call is the
   whole file plus a `return` line. Hash first, then fetch only what changed:
   1. `return (await __HASHES(['<id>', …])).map(({ v, ...s }) => s);` for many sets (18 sets, 258 variants: ≈5 s),
@@ -40,6 +43,15 @@ you already have; `__KEY(vp)` builds the variant key. `filter` receives each var
      The filtered entry is byte-identical to the stored one with the other variants left out, so patch variants by key.
 
 Save the JSON under `docs/figma-contracts/` and point the suite's `contract` at it.
+
+**Whole contracts through `use_figma` (2026-10-08, `mcp-capture/`):** a call returns at most 20,480 bytes, so a contract
+of ~1 MB needs compressing. `mcp-capture/capture-template.js` is the extractor plus a structural dedupe (`__PACK`: a
+subtree repeated anywhere is stored once) and LZ-string base64 (~13× together). Replace `__FILE__`, `__IDS__` and `__I__`
+and send the whole file as the call's `code`; it returns `ZCAP|file|i|n|hash|chunk`: call `I = 0` to learn `n`, then
+`1 … n-1` (a helper agent can make the calls so the chunks stay out of the main conversation).
+`ZEN_SESSION=<transcript id> node tools/figma-contract/mcp-capture/assemble.cjs out.json` reads the chunks back from the
+session's transcripts (subagents included), checks the hash and writes `{ file: [entries] }`; write each file with the
+serialisation it had (`json.dumps`, with or without `ensure_ascii`) and run `run-all.mjs`.
 
 Local styles (paint/text/effect/grid with bound variables) come from the same console session and
 live in `styles/source/figma/figma-styles.full.json`; `npm run styles:build` generates CSS from it.

@@ -1,17 +1,23 @@
 import { createContext, forwardRef, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type FocusEvent, type FocusEventHandler, type KeyboardEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover } from "../Popover";
-import { DatePicker } from "../DatePicker";
+import { Avatar } from "../Avatar";
+import type { BadgeTheme } from "../Badge";
+import { BottomSheet } from "../BottomSheet";
+import { List, ListItem } from "../ListItem";
+import { Search } from "../Search";
+import { DatePicker, DatePickerSheet } from "../DatePicker";
 import { Button, IconButton } from "../Button";
 import { Tag } from "../Tag";
 import { Tooltip, useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import type { ZenLabels } from "../_shared/labels";
 import { scaleKey } from "../_shared/scale";
-import { useZenLabels } from "../_shared/zen-context";
+import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
+import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
 export const headingInputSizes = ["h1", "h2", "h3"] as const;
@@ -61,6 +67,9 @@ type CommonFieldProps = {
   /** After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). */
   trailing?: IconName | ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio;
+   *  app code sets label / helpText / leading / trailing. */
+  overrides?: NestedOverrides;
 };
 
 export type InputHelpTheme = "neutral" | "negative" | "warning" | "positive";
@@ -282,15 +291,17 @@ export type TextAreaFieldProps = Omit<CommonFieldProps, "size"> & { /** Short (s
   onValueChange?: (value: string) => void;
 };
 
-function FieldLabel({ id, label, required, optional, tooltip, action, disabled }: { id: string; label?: ReactNode; required?: boolean; optional?: boolean; tooltip?: boolean | ReactNode; action?: ReactNode; disabled?: boolean }) {
+function FieldLabel({ id, label, required, optional, tooltip, action, disabled, nest }: { id: string; label?: ReactNode; required?: boolean; optional?: boolean; tooltip?: boolean | ReactNode; action?: ReactNode; disabled?: boolean; nest?: Nest }) {
   if (!label) return null;
-  return <InputLabel id={id} labelId={`${id}-label`} optional={optional} tooltip={tooltip} action={action} disabled={disabled}>{label}{required ? <span aria-hidden="true"> *</span> : null}</InputLabel>;
+  const element = <InputLabel id={id} labelId={`${id}-label`} optional={optional} tooltip={tooltip} action={action} disabled={disabled}>{label}{required ? <span aria-hidden="true"> *</span> : null}</InputLabel>;
+  return nest ? nest("Label", element) : element;
 }
 
-function FieldMessage({ id, error, helpText, helpTheme = "neutral", helpIcon = true, characterLimit }: { id: string; error?: ReactNode; helpText?: ReactNode; helpTheme?: InputHelpTheme; helpIcon?: boolean; characterLimit?: ReactNode }) {
+function FieldMessage({ id, error, helpText, helpTheme = "neutral", helpIcon = true, characterLimit, nest }: { id: string; error?: ReactNode; helpText?: ReactNode; helpTheme?: InputHelpTheme; helpIcon?: boolean; characterLimit?: ReactNode; nest?: Nest }) {
   const hasLimit = characterLimit !== undefined && characterLimit !== null && characterLimit !== false;
   if (!error && !helpText && !hasLimit) return null;
-  return <InputHelpText id={id} theme={error ? "negative" : helpTheme} icon={helpIcon && Boolean(error ?? helpText)} characterLimit={hasLimit ? characterLimit : undefined}>{error ?? helpText}</InputHelpText>;
+  const element = <InputHelpText id={id} theme={error ? "negative" : helpTheme} icon={helpIcon && Boolean(error ?? helpText)} characterLimit={hasLimit ? characterLimit : undefined}>{error ?? helpText}</InputHelpText>;
+  return nest ? nest("Help-Text", element) : element;
 }
 
 /** A consumer's `aria-describedby` plus the field's own help/error message id (space-separated IDREFs). */
@@ -350,31 +361,32 @@ function openFieldFromControl(event: MouseEvent<HTMLDivElement>) {
   if (trigger && !trigger.disabled) trigger.click(); // a Select opens from anywhere in its field
 }
 
-function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAction, required, messageId, error, helpText, helpTheme, helpIcon, characterLimit, size, state, leading, trailing, className }: Omit<CommonFieldProps, "characterLimit" | "size"> & { size?: InputSizeKey; characterLimit?: ReactNode; children: ReactNode; id: string; required?: boolean; messageId: string }) {
+function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAction, required, messageId, error, helpText, helpTheme, helpIcon, characterLimit, size, state, leading, trailing, className, overrides }: Omit<CommonFieldProps, "characterLimit" | "size"> & { size?: InputSizeKey; characterLimit?: ReactNode; children: ReactNode; id: string; required?: boolean; messageId: string }) {
+  const nest = useNested(overrides);
   const resolvedState = normalizeInputState(state, error);
   const disabled = resolvedState === "disabled";
   // Icon names draw at the affordance size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28.
   const iconSize = size === "small" ? "sm" : size === "large" ? "md" : size === "xlarge" ? "lg" : "base";
   return (
     <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState}>
-      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} />
+      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} nest={nest} />
       <FieldDisabledContext.Provider value={disabled}>
       <div className="zen-input__control" onMouseDown={focusFieldFromControl} onClick={openFieldFromControl}>
-        {leading ? <span className="zen-input__affordance zen-input__affordance--leading">{renderIcon(leading, { size: iconSize })}</span> : null}
+        {leading ? <span className="zen-input__affordance zen-input__affordance--leading">{nest("Leading", renderIcon(leading, { size: iconSize }))}</span> : null}
         {children}
-        {trailing ? <span className="zen-input__affordance zen-input__affordance--trailing">{renderIcon(trailing, { size: iconSize })}</span> : null}
+        {trailing ? <span className="zen-input__affordance zen-input__affordance--trailing">{nest("Trailing", renderIcon(trailing, { size: iconSize }))}</span> : null}
         {/* Figma State=Read-Only: 1px INSIDE stroke with dashPattern [2,2]. CSS dashed borders use browser-defined dash
             lengths, so the exact pattern is an SVG rect (stroke 2px centred on the edge → the inner 1px shows). */}
         {resolvedState === "read-only" ? <svg className="zen-input__dash" aria-hidden="true" focusable="false"><rect width="100%" height="100%" /></svg> : null}
       </div>
       </FieldDisabledContext.Provider>
-      <FieldMessage id={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit} />
+      <FieldMessage id={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit} nest={nest} />
     </div>
   );
 }
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, ...inputProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, overrides, ...inputProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -385,7 +397,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const count = useCharacterCount(characterLimit, inputProps.value, inputProps.defaultValue, inputProps.maxLength);
   const message = error ?? helpText ?? count.text;
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, inputProps.readOnly)} leading={leading} trailing={trailing} className={className}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, inputProps.readOnly)} leading={leading} trailing={trailing} className={className} overrides={overrides}>
       <input
         {...inputProps}
         onChange={(event) => { count.track(event.target.value); inputProps.onChange?.(event); onValueChange?.(event.target.value); }}
@@ -404,7 +416,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 });
 
 export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextAreaField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, rows = 4, onValueChange, ...textareaProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, rows = 4, onValueChange, overrides, ...textareaProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -415,7 +427,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const count = useCharacterCount(characterLimit, textareaProps.value, textareaProps.defaultValue, textareaProps.maxLength);
   const message = error ?? helpText ?? count.text;
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, textareaProps.readOnly)} leading={leading} trailing={trailing} className={className}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, textareaProps.readOnly)} leading={leading} trailing={trailing} className={className} overrides={overrides}>
       <textarea
         {...textareaProps}
         onChange={(event) => { count.track(event.target.value); textareaProps.onChange?.(event); onValueChange?.(event.target.value); }}
@@ -433,7 +445,39 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   );
 });
 
-export type SelectFieldOption = { label: string; value: string; disabled?: boolean };
+export type SelectFieldOption = {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  /** Short text at the end of the option's row in the list, on the same line (Body/Small/Regular, Neutral/Base), e.g. the
+   *  value a token stands for: `{ label: "md", meta: "16px" }`. The field itself shows only the label. */
+  meta?: string;
+  /** Figma .Primitives/Popover/Item/Content Theme of the option's row in the list: `icon` (with `leading`), `text-only`,
+   *  `photo-small` / `photo-big` / `avatar-small` / `avatar-big` (with `photoSrc`), `dock-icon`, `badge` (the label on a
+   *  Badge, `badgeTheme`). Default: text only, or icon when `leading` is set. The field itself shows only the label. */
+  theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge";
+  /** Before the label in the list (Theme=Icon): an icon name (`"icon-plane-line"`) or a node. */
+  leading?: IconName | ReactNode;
+  /** Figma Subtext: a second line under the label in the list (Caption/Regular). */
+  caption?: string;
+  /** The picture of a Photo / Avatar theme, and its alt text (default: none, the label names the row). */
+  photoSrc?: string;
+  photoAlt?: string;
+  /** Theme=Badge: the Badge's colour. */
+  badgeTheme?: BadgeTheme;
+};
+
+/** An option's Popover Item content (Figma Item/Content: Theme, Icon-Src, Subtext). */
+const optionContent = (option: SelectFieldOption) => ({
+  theme: option.theme, leading: option.leading, caption: option.caption, photoSrc: option.photoSrc, photoAlt: option.photoAlt, badgeTheme: option.badgeTheme,
+});
+/** The same content in a phone's sheet row: the icon or the picture leads, the Subtext is the row's caption. */
+const optionSheetLeading = (option: SelectFieldOption): ReactNode => {
+  if (option.leading) return renderIcon(option.leading);
+  if (!option.photoSrc) return undefined;
+  const avatar = option.theme === "avatar-small" || option.theme === "avatar-big";
+  return <Avatar size={option.theme === "avatar-big" || option.theme === "photo-big" ? "medium" : "small"} shape={avatar ? "circle" : "square"} theme="photo" src={option.photoSrc} alt={option.photoAlt ?? ""} />;
+};
 export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & {
   options?: SelectFieldOption[];
   /** Called with the picked value and its option, next to the native `onChange(event)` (which still runs). */
@@ -447,12 +491,17 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
   onFocus?: FocusEventHandler<HTMLSelectElement>;
   /** Focus left the field — the trigger and its option list — as on a native select. The event targets the native select. */
   onBlur?: FocusEventHandler<HTMLSelectElement>;
-  /** Popover/Label above the options: it names the option list, not the value (a label, not a heading). */
+  /** Popover/Label above the options: it names the option list, not the value (a label, not a heading). On mobile it
+   *  is the Bottom Sheet's title (default: the field's label). */
   popoverLabel?: ReactNode;
   /** Adds the Popover Search row; options are filtered by the query. */
   popoverSearch?: boolean;
   popoverSearchPlaceholder?: string;
-  /** Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. */
+  /**
+   * Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.
+   * On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom
+   * Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it.
+   */
   popoverOpen?: boolean;
   /** Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. */
   onPopoverOpenChange?: (open: boolean) => void;
@@ -467,7 +516,7 @@ function selectFocusEvent(event: FocusEvent<HTMLElement>, select: HTMLSelectElem
 }
 
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(function SelectField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, ...selectProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, ...selectProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -489,10 +538,21 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   // (popoverOpen) leaves focus where it is.
   const [openedFromTrigger, setOpenedFromTrigger] = useState(false);
   const closeAndRestore = () => { setOpen(false); triggerRef.current?.focus(); };
+  // Mobile: the options open in a Bottom Sheet. The nearest data-breakpoint decides (ZenProvider's, or a phone frame
+  // that only sets the attribute), else the provider's breakpoint; read again whenever the list opens or closes.
+  const zen = useZen();
+  const [domBreakpoint, setDomBreakpoint] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    setDomBreakpoint(triggerRef.current?.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? null);
+  }, [open, zen?.breakpoint]);
+  const asSheet = (domBreakpoint ?? zen?.breakpoint) === "mobile";
+  const [sheetQuery, setSheetQuery] = useState("");
+  useEffect(() => { if (!open) setSheetQuery(""); }, [open]);
   useExclusivePopover(open, () => setOpen(false), triggerRef);
   useEffect(() => { if (!open) setOpenedFromTrigger(false); }, [open]);
   useEffect(() => {
-    if (!open) return undefined;
+    // The Bottom Sheet dismisses itself (scrim, drag, Escape); its taps are outside the field.
+    if (!open || asSheet) return undefined;
     // Pointer down outside the field closes the option list.
     const handlePointerDown = (event: PointerEvent) => {
       const field = triggerRef.current?.closest(".zen-input-field");
@@ -505,7 +565,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
     };
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [open]);
+  }, [open, asSheet]);
   const hasPlaceholder = placeholder !== undefined && placeholder !== "";
   const controlledValue = selectProps.value == null ? undefined : String(selectProps.value);
   // A placeholder keeps the field empty until the user picks; without one the first option is preselected.
@@ -521,6 +581,14 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   const isReadOnly = readOnly || resolvedState === "read-only";
   const ariaDescribedBy = describedBy(selectProps["aria-describedby"], message ? messageId : undefined);
   useImperativeHandle(ref, () => nativeRef.current as HTMLSelectElement);
+  /** A pick from the Popover or the Bottom Sheet: the value, the native select (onChange) and onValueChange. */
+  const pick = (nextValue: string) => {
+    if (controlledValue == null) setSelectedValue(nextValue);
+    if (nativeRef.current) nativeRef.current.value = nextValue;
+    selectProps.onChange?.({ target: nativeRef.current, currentTarget: nativeRef.current } as ChangeEvent<HTMLSelectElement>);
+    const option = options.find((entry) => entry.value === nextValue);
+    if (option) onValueChange?.(nextValue, option);
+  };
   // onFocus / onBlur belong to the whole field — the trigger and its option list — as on a native select (the hidden
   // <select> never takes focus from the user). Each fires once as focus enters / leaves the field.
   const focusReported = useRef(false);
@@ -533,24 +601,25 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   const reportBlur = (event: FocusEvent<HTMLElement>) => {
     // Focus moving inside the field, or to nowhere while the list is open (Safari's mouse-down on an option, the
     // list's scrollbar), does not leave it: picking, Escape and a click outside hand focus on from the trigger.
-    if (!focusReported.current || inControl(event.relatedTarget) || (!event.relatedTarget && open)) return;
+    // The open Bottom Sheet takes the focus and gives it back to the trigger: the field is still in use.
+    if (!focusReported.current || inControl(event.relatedTarget) || (!event.relatedTarget && open) || (asSheet && open)) return;
     focusReported.current = false;
     onBlur?.(selectFocusEvent(event, nativeRef.current));
   };
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
       <button
         id={`${id}-trigger`}
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
         type="button"
         disabled={isDisabled}
-        aria-haspopup="listbox"
+        aria-haspopup={asSheet ? "dialog" : "listbox"}
         // Named by the field's label and its own value ("Project, Online banking redesign"), as a native select is: the
         // <label> points at the hidden <select>, so the button alone read only its value.
         aria-labelledby={label ? `${id}-label ${id}-trigger` : selectProps["aria-labelledby"] ? `${selectProps["aria-labelledby"]} ${id}-trigger` : selectProps["aria-label"] ? `${id}-name ${id}-trigger` : undefined}
         aria-readonly={isReadOnly || undefined}
         aria-expanded={open}
-        aria-controls={`${id}-popover`}
+        aria-controls={asSheet ? undefined : `${id}-popover`}
         aria-invalid={error ? true : undefined}
         aria-describedby={ariaDescribedBy}
         ref={triggerRef}
@@ -558,7 +627,8 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         onFocus={reportFocus}
         onBlur={(event) => {
           reportBlur(event);
-          // Close when focus leaves both the trigger and its popover.
+          // Close when focus leaves both the trigger and its popover (the Bottom Sheet holds the focus while it is open).
+          if (asSheet) return;
           const next = event.relatedTarget as Node | null;
           if (next && event.currentTarget.parentElement?.closest(".zen-input-field")?.contains(next)) return;
           if (next) setOpen(false);
@@ -605,6 +675,21 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         {hasPlaceholder && !options.some((option) => option.value === "") ? <option value="">{placeholder}</option> : null}
         {children ?? options.map((option) => <option key={option.value} value={option.value} disabled={option.disabled}>{option.label}</option>)}
       </select>
+      {asSheet ? (
+        <BottomSheet open={open && !isDisabled} onOpenChange={(next) => { if (!next) setOpen(false); }} title={popoverLabel ?? label ?? selectProps["aria-label"] ?? placeholder ?? ""}
+          search={popoverSearch ? <Search value={sheetQuery} onValueChange={setSheetQuery} placeholder={popoverSearchPlaceholder} /> : undefined}>
+          <List aria-label={typeof (popoverLabel ?? label) === "string" ? String(popoverLabel ?? label) : selectProps["aria-label"]}>
+            {options.filter((option) => !sheetQuery.trim() || option.label.toLowerCase().includes(sheetQuery.trim().toLowerCase())).map((option) => {
+              const picked = option.value === (controlledValue ?? selectedValue);
+              return (
+                <ListItem key={option.value} title={option.label} caption={option.caption} leading={optionSheetLeading(option)} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
+                  trailing={option.meta || picked ? <>{option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : null}{picked ? <Icon name="icon-check-line" size="base" decorative /> : null}</> : undefined}
+                  onClick={option.disabled ? undefined : () => { pick(option.value); setOpen(false); }} />
+              );
+            })}
+          </List>
+        </BottomSheet>
+      ) : (
       <Popover
         id={`${id}-popover`}
         open={open && !isDisabled}
@@ -626,17 +711,10 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
             if (!event.shiftKey) triggerRef.current?.focus({ preventScroll: true });
           }
         }}
-        items={options.map((option) => ({ id: option.value, label: option.label, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
-        onSelect={(item) => {
-          const nextValue = item.value ?? "";
-          if (controlledValue == null) setSelectedValue(nextValue);
-          if (nativeRef.current) nativeRef.current.value = nextValue;
-          selectProps.onChange?.({ target: nativeRef.current, currentTarget: nativeRef.current } as ChangeEvent<HTMLSelectElement>);
-          const option = options.find((entry) => entry.value === nextValue);
-          if (option) onValueChange?.(nextValue, option);
-          closeAndRestore();
-        }}
+        items={options.map((option) => ({ ...optionContent(option), id: option.value, label: option.label, trailing: option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : undefined, value: option.value, disabled: option.disabled, selected: option.value === (controlledValue ?? selectedValue) }))}
+        onSelect={(item) => { pick(item.value ?? ""); closeAndRestore(); }}
       />
+      )}
     </FieldShell>
   );
 });
@@ -648,6 +726,8 @@ export type DateFieldProps = InputFieldProps & {
   /** The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and
    *  Escape keep the date the field had. */
   datePickerActions?: boolean;
+  /** The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when
+   *  the field is emptied or a typed date stops being a real day. */
   onDateChange?: (date: Date | null) => void;
   /** Earliest day the calendar lets people pick (DatePicker `minDate`); earlier days are disabled. A typed date before
    * it stays in the field and reaches `onValueChange` as usual, and the input is marked `aria-invalid` (Form and
@@ -671,6 +751,14 @@ function parseDateFieldValue(value: unknown): Date | null {
   }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+/** A complete MM/DD/YYYY that names a real day (02/31/2026 is not one), as typed into a DateField. */
+function parseTypedDate(text: string): Date | null {
+  const match = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/.exec(text);
+  if (!match) return null;
+  const [month, day, year] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
 }
 const calendarDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 /** A date outside `minDate` / `maxDate`. Text counts once it holds a 4-digit year: "10/01/202" (half-typed) would
@@ -703,6 +791,11 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
     return () => { doc.removeEventListener("keydown", handleTab, true); window.clearTimeout(timer); };
   }, []);
   const canOpen = !props.readOnly && props.state !== "read-only" && !props.disabled && props.state !== "disabled";
+  // Phones (the nearest data-breakpoint, else ZenProvider's) get the Date-Picker/Mobile sheet instead of the desktop
+  // popover (Figma has no mobile popover). A modal sheet opens on a tap or ArrowDown, not on Tab focus.
+  const zenBreakpoint = useZen()?.breakpoint;
+  const [phone, setPhone] = useState(false);
+  useLayoutEffect(() => { setPhone((fieldRef.current?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? zenBreakpoint) === "mobile"); }, [zenBreakpoint]);
   const controlledValue = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
   const currentValue = controlledValue ? value : internalValue;
@@ -710,9 +803,13 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   // Error-ready: a typed date outside the range is kept and reported (onValueChange) like any text, and marked invalid for
   // assistive tech and Form's blocked-submit focus. The app's `error` gives the reason; an explicit aria-invalid wins.
   const outOfRange = isOutOfRange(currentValue, parsedValue, minDate, maxDate);
+  // Typing reports the date too: a complete, real MM/DD/YYYY gives that day; emptying the field or breaking a complete
+  // date gives null (once, not on every keystroke of a half-typed date).
+  const typedDate = useRef<number | null>(parsedValue ? calendarDay(parsedValue) : null);
   const handleDateChange = (date: Date | null) => {
     const text = date ? `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}` : null;
     if (!controlledValue && text) setInternalValue(text);
+    typedDate.current = date ? calendarDay(date) : null;
     onDateChange?.(date);
     // A picked day is a new value too (the text the field shows, MM/DD/YYYY), like typing it.
     if (text) onValueChange?.(text);
@@ -721,6 +818,9 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!controlledValue) setInternalValue(event.target.value);
     onChange?.(event);
+    const date = parseTypedDate(event.target.value);
+    const day = date ? calendarDay(date) : null;
+    if (day !== typedDate.current) { typedDate.current = day; onDateChange?.(date); }
   };
   return (
     <div
@@ -746,7 +846,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         aria-haspopup={props["aria-haspopup"] ?? (datePicker ? "dialog" : undefined)}
         aria-expanded={props["aria-expanded"] ?? (datePicker ? open : undefined)}
         trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" />}
-        onFocus={(event) => { if (canOpen && tabbing.current && !closing.current) setOpen(true); onFocus?.(event); }}
+        onFocus={(event) => { if (canOpen && tabbing.current && !closing.current && !phone) setOpen(true); onFocus?.(event); }}
         onClick={onClick}
         onKeyDown={(event) => {
           onKeyDown?.(event);
@@ -773,7 +873,9 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         aria-invalid={ariaInvalid ?? (outOfRange || undefined)}
       />
       {/* With datePickerActions a pick is a draft: Submit writes it (onApply), Cancel and Escape keep the field's date. */}
-      {datePicker ? <DatePicker open={open} value={parsedValue} onValueChange={datePickerActions ? undefined : handleDateChange} onApply={datePickerActions ? (date) => handleDateChange(date) : undefined} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} minDate={minDate} maxDate={maxDate} today={today} /> : null}
+      {datePicker && phone ? (
+        <DatePickerSheet open={open} onOpenChange={(next) => { if (!next) close(); }} title={typeof props.label === "string" ? props.label : undefined} value={parsedValue} onApply={(date) => handleDateChange(date)} minDate={minDate} maxDate={maxDate} today={today} />
+      ) : datePicker ? <DatePicker open={open} value={parsedValue} onValueChange={datePickerActions ? undefined : handleDateChange} onApply={datePickerActions ? (date) => handleDateChange(date) : undefined} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} minDate={minDate} maxDate={maxDate} today={today} /> : null}
     </div>
   );
 }
@@ -813,6 +915,9 @@ export interface AutocompleteFieldProps {
   onCreate?: (label: string) => string | void;
   createLabel?: ReactNode;
   className?: string;
+  /** Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
+   *  app code sets label / helpText. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -821,7 +926,8 @@ export interface AutocompleteFieldProps {
  * over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag
  * moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
  */
-export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className }: AutocompleteFieldProps) {
+export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className, overrides }: AutocompleteFieldProps) {
+  const nest = useNested(overrides);
   const error = errorProp ?? errorMessage;
   const t = useZenLabels();
   const addLabel = addLabelProp === undefined ? t.addItem : addLabelProp;
@@ -869,7 +975,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
   const messageId = `${id}-message`;
   return (
     <div ref={rootRef} className={["zen-autocomplete", className].filter(Boolean).join(" ")} data-state={disabled ? "disabled" : readOnly ? "view-only" : error ? "error" : open ? "focused" : "default"} aria-describedby={error || helpText ? messageId : undefined}>
-      {label ? <InputLabel id={id} disabled={disabled}>{label}</InputLabel> : null}
+      {label ? nest("Label", <InputLabel id={id} disabled={disabled}>{label}</InputLabel>) : null}
       {selected.length ? (
         <div className="zen-autocomplete__tags" role="list" aria-label={typeof label === "string" ? label : undefined}>
           {selected.map((optionId) => {
@@ -928,7 +1034,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
           )}
         </div>
       ) : null}
-      {error || helpText ? <InputHelpText id={messageId} theme={error ? "negative" : helpTheme} icon={helpIcon}>{error ?? helpText}</InputHelpText> : null}
+      {error || helpText ? nest("Help-Text", <InputHelpText id={messageId} theme={error ? "negative" : helpTheme} icon={helpIcon}>{error ?? helpText}</InputHelpText>) : null}
     </div>
   );
 }
@@ -1292,9 +1398,11 @@ const insertCopy: Record<RichTextInsert, { label: "insertLink" | "insertImage" |
  * outside (clearing the field after it was posted) starts a new history.
  */
 export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(function RichTextField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur, overrides },
   ref,
 ) {
+  // The label sits above the Editor-Bar, outside the shell: its own nest for the Label layer.
+  const labelNest = useNested(overrides);
   const error = errorProp ?? errorMessage;
   const t = useZenLabels();
   const size = scaleKey(sizeProp, inputSizes);
@@ -1526,7 +1634,7 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
   return (
     <div className={["zen-rich-text-field", className].filter(Boolean).join(" ")} data-size={size}>
       {/* The label names the whole composition, so it sits above the Editor-Bar (Figma's Text-Area has Label=false). */}
-      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} />
+      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} nest={labelNest} />
       {editorBar ? (
         <span className="zen-rich-text-field__bar">
           <RichTextEditorBar
@@ -1562,7 +1670,7 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
           </Popover>
         </span>
       ) : null}
-      <FieldShell id={id} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count} size={size} state={resolvedState}>
+      <FieldShell id={id} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count} size={size} state={resolvedState} overrides={overrides}>
         <div
           ref={editorRef}
           id={id}

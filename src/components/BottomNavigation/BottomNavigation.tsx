@@ -1,10 +1,15 @@
-import type { ButtonHTMLAttributes, ReactElement } from "react";
+import type { ButtonHTMLAttributes, ReactElement, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
+import { NotificationDot } from "../_shared/notification-dot";
+import { useLiquidGlass } from "../_shared/liquid-glass";
+import { ProgressiveBlur } from "../_shared/progressive-blur";
+import { slotItems } from "../_shared/slots";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-navigation.css";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /** Figma Bottom-Navigation/Mobile: Default (full-width bar) · Floating (Surface/Glass pill) · Floating-Glass (Liquid-Glass pill). */
 export type BottomNavigationType = "default" | "floating" | "floating-glass";
@@ -26,6 +31,14 @@ export interface BottomNavigationItem {
   dot?: boolean;
 }
 
+/**
+ * One destination as a child of BottomNavigation (Figma Nav-Items slot): `<BottomNavigationItem id="home" label="Home"
+ * icon="icon-home-03-line" />`. It declares the destination and renders nothing on its own; the bar draws it.
+ */
+export function BottomNavigationItem(_item: BottomNavigationItem): null {
+  return null;
+}
+
 export interface BottomNavigationAction {
   /** An icon name (drawn at 24px) or an element. */
   icon: IconName | ReactElement;
@@ -35,7 +48,10 @@ export interface BottomNavigationAction {
 }
 
 export interface BottomNavigationProps {
-  items: BottomNavigationItem[];
+  /** The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items). */
+  items?: BottomNavigationItem[];
+  /** The destinations as BottomNavigationItem elements, in order, when `items` is not given. */
+  children?: ReactNode;
   value: string;
   onValueChange: (id: string) => void;
   type?: BottomNavigationType;
@@ -52,10 +68,13 @@ export interface BottomNavigationProps {
   /** Accessible name of the navigation landmark. Default: the locale's “Main”. */
   "aria-label"?: string;
   className?: string;
+  /** Figma instance overrides: props of the icons it draws, by layer (`{ "Item[home]/Icon": { name: "icon-home-02-solid" }, "Action/Icon": { name: "icon-plus-line" } }`). Written by Zen Studio;
+   *  app code sets the items and action. */
+  overrides?: NestedOverrides;
 }
 
 /** An icon-only nav button that shows its name as a tooltip after 1s hover (Zen rule); `tip={false}` when a label is visible. */
-function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { tip: string | false }) {
+function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { tip: string | false; ref?: Ref<HTMLButtonElement> }) {
   const tooltip = useIconTooltip(tip);
   return <button type="button" {...tooltip.bind(props)}>{children}{tooltip.tooltip}</button>;
 }
@@ -69,16 +88,23 @@ function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonE
  * edge, strongest at the bottom — the mirror of the Top Navigation blur.
  * The home indicator is the OS's; the bar pads `env(safe-area-inset-bottom)`.
  */
-export function BottomNavigation({ items, value, onValueChange, type = "default", theme = "neutral", selection: selectionProp, showLabels = false, action, fixed = false, backdrop = "surface", "aria-label": ariaLabelProp, className }: BottomNavigationProps) {
+export function BottomNavigation({ items: itemsProp, children, value, onValueChange, type = "default", theme = "neutral", selection: selectionProp, showLabels = false, action, fixed = false, backdrop = "surface", "aria-label": ariaLabelProp, className, overrides }: BottomNavigationProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.mainTabs;
+  const items: BottomNavigationItem[] = itemsProp ?? slotItems(children, BottomNavigationItem).map(({ slotKey, ...item }, index) => ({ ...item, id: item.id ?? slotKey ?? String(index) }));
   // Figma defaults: Floating selects on Surface (Neutral-Surface), Floating-Glass on Active/Subtle (Neutral).
   const selection = selectionProp ?? (type === "floating-glass" ? "subtle" : "surface");
   const floating = type !== "default";
   const actionTheme = action?.theme ?? (floating ? "default" : "primary");
+  // Figma Floating-Glass (9017:42257): the container and the CTA are Glass-Floating, the selected item Liquid-Glass/Normal
+  // (GLASS: frost, refraction, dispersion; _shared/liquid-glass.ts).
+  const glassy = type === "floating-glass";
+  const floatingGlass = useLiquidGlass("glass-floating", glassy);
+  const itemGlass = useLiquidGlass("liquid-glass-normal", glassy);
   const actionButton = action ? (
-    <TipButton tip={action.label} className={floating ? "zen-bottom-nav__fab" : "zen-bottom-nav__action"} data-tone={actionTheme} aria-label={action.label} onClick={action.onClick}>
-      {renderIcon(action.icon)}
+    <TipButton ref={glassy && actionTheme === "default" ? floatingGlass : undefined} tip={action.label} className={floating ? "zen-bottom-nav__fab" : "zen-bottom-nav__action"} data-tone={actionTheme} aria-label={action.label} onClick={action.onClick}>
+      {nest.at("Action")("Icon", renderIcon(action.icon))}
     </TipButton>
   ) : null;
   const list = (
@@ -87,10 +113,10 @@ export function BottomNavigation({ items, value, onValueChange, type = "default"
         const selected = item.id === value;
         return (
           <li key={item.id} className="zen-bottom-nav__cell">
-            <TipButton tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
+            <TipButton ref={selected ? itemGlass : undefined} tip={showLabels ? false : item.label} className="zen-bottom-nav__item" aria-current={selected ? "page" : undefined} aria-label={showLabels ? undefined : item.label} data-selected={selected ? "true" : "false"} onClick={() => onValueChange(item.id)}>
               <span className="zen-bottom-nav__icon">
-                {renderIcon(selected && item.selectedIcon ? item.selectedIcon : item.icon)}
-                {item.dot ? <span className="zen-bottom-nav__dot" aria-hidden="true" /> : null}
+                {nest.at("Item", item.id)("Icon", renderIcon(selected && item.selectedIcon ? item.selectedIcon : item.icon))}
+                {item.dot ? <NotificationDot className="zen-bottom-nav__dot" /> : null}
               </span>
               {showLabels ? <span className={`zen-bottom-nav__label ${typographyStyles[floating && selected ? "Label/Small/Bold" : "Label/Small/Medium"]}`}>{item.label}</span> : null}
             </TipButton>
@@ -103,8 +129,8 @@ export function BottomNavigation({ items, value, onValueChange, type = "default"
   return (
     <nav className={["zen-bottom-nav", className].filter(Boolean).join(" ")} aria-label={ariaLabel} data-type={type} data-tone={theme} data-selection={selection} data-labels={showLabels ? "true" : undefined} data-fixed={fixed ? "true" : undefined} data-backdrop={floating && backdrop === "none" ? "none" : undefined}>
       {/* Floating types: Figma progressive background blur, strongest at the bottom edge (see bottom-navigation.css). */}
-      {floating ? <span className="zen-bottom-nav__progressive" aria-hidden="true"><i /><i /><i /><i /><i /></span> : null}
-      {floating ? <div className="zen-bottom-nav__row"><div className="zen-bottom-nav__pill">{list}</div>{actionButton}</div> : list}
+      {floating ? <ProgressiveBlur className="zen-bottom-nav__progressive" strong="bottom" /> : null}
+      {floating ? <div className="zen-bottom-nav__row"><div ref={floatingGlass} className="zen-bottom-nav__pill">{list}</div>{actionButton}</div> : list}
     </nav>
   );
 }

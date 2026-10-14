@@ -51,6 +51,7 @@ Also accepts `Omit<AvatarProps, "children" | "alt" | "src">`.
 | `items` (required) | `Array<Pick<AvatarProps, "src" \| "alt" \| "children" \| "theme">>` | — |  |
 | `max` | `number` | `5` |  |
 | `showMore` | `boolean` | `false` |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of each avatar the stack draws, by layer (`{ "Avatar[0]": { src: "…" } }`, `More` for the overflow chip). Written by Zen Studio; app code sets `items`. |
 | `size` | _HTML attribute_ | `"md"` |  |
 
 ## ✅ Do
@@ -76,6 +77,7 @@ Also accepts `Omit<AvatarProps, "children" | "alt" | "src">`.
 | `avatar/needs-alt` | error | Avatars need alt (the person's name; alt="" only when the name is shown next to it). | `zen-allow-avatar-alt: <reason>` |
 | `avatar/solid-initials-contrast` | warn | Initials on a Solid green, teal, orange or cyan Avatar fall below 3:1 contrast; use background="subtle" or another theme (photos are fine). | `zen-allow-avatar-contrast: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References

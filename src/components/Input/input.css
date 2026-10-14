@@ -61,6 +61,12 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 /* SelectField `placeholder` while nothing is selected: Content/Placeholder, like a text field's placeholder. */
 .zen-select__placeholder { color: var(--zen-color-content-placeholder, #00000045); }
 .zen-input-field[data-state="disabled"] .zen-select__placeholder { color: var(--zen-color-content-disabled, #00000045); }
+/* An option's `meta` (a token's value: "md … 16px") in the item's trailing slot, hugging its text as Menu's shortcut;
+   the selected check moves after it, to the end of the row. */
+.zen-popover__item-trailing:has(> .zen-select__option-meta) { width: auto; height: auto; flex-basis: auto; }
+.zen-popover__item:has(> .zen-popover__item-trailing > .zen-select__option-meta) > .zen-popover__item-check { order: 1; }
+.zen-select__option-meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-popover__item:disabled .zen-select__option-meta { color: inherit; }
 
 /* Keep fill and Effect/Input on ONE painted layer. A child backdrop-filter
    above a parent's inset shadow blurs/obscures that shadow. */
@@ -291,15 +297,16 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
      in every Component Theme (Neutral-S7 too since the 2026-10-03 evening export). */
   --zen-input-field-border: var(--zen-input-border-focus, #111);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
-  /* Field-Only's 3px OUTSIDE stroke surrounds the field, not label/help text. */
-  box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
+  /* Field-Only's 3px OUTSIDE stroke (Color/Focus/Neutral/Subtle, live 2026-10-13) surrounds the field, not label/help text. */
+  box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle, #0000001a);
 }
 
 .zen-input-field[data-state="inputted-error"] .zen-input__control,
 .zen-input-field[data-state="blank-error"] .zen-input__control,
 .zen-input-field[data-state="error"] .zen-input__control {
   --zen-input-field-stroke: 1px;
-  --zen-input-field-border: var(--zen-color-border-negative-solid-default, #e5532e);
+  /* Field-Only Inputted-Error / Blank-Error Container stroke (374:103464, live 2026-10-13): Color/Focus/Negative/Solid. */
+  --zen-input-field-border: var(--zen-color-focus-negative-solid, #e5532e);
   --zen-input-field-background: var(--zen-input-background-focused, #05050508);
   box-shadow: none;
 }
@@ -308,7 +315,7 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
    invalid field used to change nothing (WCAG 2.4.7). Keep the Negative border, so the error stays visible, and add the
    Focused state's 3px outside ring. */
 .zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
-  box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle, #0000001a);
 }
 
 .zen-input-field[data-state="read-only"] .zen-input__control {
@@ -324,12 +331,12 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 
 /* Read-Only + focus (code-only: Field-Only 374:103464 has no Read-Only Focused state). A read-only field still takes
    focus (to read, select or copy its value), so it shows the Focused state's 3px OUTSIDE ring
-   (Color/Border/Active/Neutral/Subtle) and its dashed border keeps the [2,2] pattern in Color/Focus/Neutral/Solid: the
+   (Color/Focus/Neutral/Subtle) and its dashed border keeps the [2,2] pattern in Color/Focus/Neutral/Solid: the
    ring alone is ~1.4:1 against the page, the dashes give the indicator 3:1 or more (WCAG 1.4.11, 2.4.7). The dashes
    use Color/Focus/Neutral/Solid, the value Input/Border/Focus has in every Component Theme. Fill and dash pattern stay
    Read-Only. */
 .zen-input-field[data-state="read-only"] .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
-  box-shadow: 0 0 0 3px var(--zen-color-border-active-neutral-subtle, #00000024);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle, #0000001a);
 }
 .zen-input-field[data-state="read-only"] .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) .zen-input__dash rect {
   stroke: var(--zen-color-focus-neutral-solid, #111);
@@ -481,3 +488,5 @@ textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 /* Hit area ≥ 24×24 (WCAG 2.5.8) around the Figma-sized glyph: an invisible, centred layer; the visual size is unchanged. */
 .zen-input-label__action :is(a, button), button.zen-input-label__tooltip { position: relative; }
 .zen-input-label__action :is(a, button)::after, button.zen-input-label__tooltip::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: max(100%, 24px); content: ""; transform: translate(-50%, -50%); }
+/* Select on mobile: an option that can't be picked, in the Bottom Sheet's List (not clickable, Content/Disabled). */
+.zen-select__sheet-option--disabled .zen-list-item__title { color: var(--zen-color-content-disabled, #00000045); }

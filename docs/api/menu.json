@@ -89,6 +89,14 @@
           "default": null,
           "description": "Extra class on the floating surface.",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[delete]\": { danger: true }, \"Item[duplicate]/Icon\": { tone: \"accent-base\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
         }
       ]
     },

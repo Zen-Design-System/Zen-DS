@@ -24,6 +24,7 @@ Switch between related panels of content at the same level.
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Panels | `idPrefix + TabPanel` | aria-controls wiring |
 | Full width | `fullWidth` | equal-width items that share the bar (min-width 0, centred labels) — e.g. a mobile screen header |
+| Item-List slot | `children: <TabItem value label icon badge disabled />` | instead of items (Figma Item-List); Tabs keeps the selection, keys and ids |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/tabs.json`.
@@ -33,7 +34,8 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `items` (required) | `TabOption[]` | — |  |
+| `items` | `TabOption[]` | — | The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value="general" label="General" />`. |
+| `children` | `ReactNode` | — | The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`, `disabled`, `aria-label`. |
 | `value` | `string` | — |  |
 | `defaultValue` | `string` | — |  |
 | `onValueChange` | `(id: string) => void` | — | Called with the selected tab's id. |
@@ -44,15 +46,17 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 | `aria-label` | `string` | — |  |
 | `idPrefix` | `string` | — | Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab-Item[members]/Badge-Counter": { theme: "accent" }, "Tab-Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets the items. |
 
 ### TabItem
 Figma Primitives/Tab-Item (1576:2090): Size × Style × State × Select × Label × Icon (+ Badge).
 
-Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
+Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "value">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLButtonElement>` | — |  |
+| `value` | `string` | — | As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then its position. |
 | `label` | `ReactNode` | — |  |
 | `icon` | `IconName \| ReactNode` | — | Leading icon (Element-Size/Popular/Base 20): an icon name (`"icon-home-03-line"`) or a node. |
 | `badge` | `number \| string` | — | Figma Badge=Yes: Badge-Counter XSmall · Neutral · Subtle after the label. |
@@ -113,6 +117,7 @@ type TabOption = { id: string; label?: ReactNode; icon?: IconName | ReactNode; b
 | `tabs/needs-label` | error | A tablist needs an aria-label. | `zen-allow-tabs-label: <reason>` |
 | `tabs/item-count` | warn | Tabs hold 2–7 items; more → Sidebar or a SelectField, one → no tabs. | `zen-allow-tab-count: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

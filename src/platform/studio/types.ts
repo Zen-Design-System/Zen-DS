@@ -7,7 +7,8 @@ import type { PlatformShellSettings } from "../PlatformTemplate";
  */
 
 /** Canvas tools: Select (V) picks layers, Hand (H) pans, Interact (I) uses the examples like a real app. */
-export type StudioTool = "select" | "hand" | "interact";
+/** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image). */
+export type StudioTool = "select" | "hand" | "interact" | "screen" | "stack" | "text" | "image";
 
 /** Admin edits source through the dev server; Viewer inspects read-only. Default admin. */
 export type StudioRole = "admin" | "viewer";
@@ -19,7 +20,7 @@ export type StudioViewport = { x: number; y: number; zoom: number };
 export type StudioPreviewSettings = PlatformShellSettings;
 
 /** A frame on the board. Ids are stable per page: "playground", "docs", "document", "example:<n>". */
-export type StudioFrameKind = "playground" | "example" | "docs" | "document";
+export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
 export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };
@@ -46,8 +47,15 @@ export type StudioNodeRef = {
  */
 export type StudioPartRef = { path: number[]; name: string };
 
+/**
+ * A layer of a library component in the Main component frame (spec docs/research/studio-main-component-spec-2026-10-09.md):
+ * one variant of a Figma set (`variant`: code prop → value, its set's `fixed` props included) and, with `path`, an
+ * element inside it ([] = the variant's root; then child-element indices). Not JSX of a page: it has no `src`.
+ */
+export type StudioVariantRef = { component: string; set: string; variant: Readonly<Record<string, string>>; path: readonly number[]; name: string };
+
 /** `src` stays the annotated JSX element (the owner) when `part` names one of its internal parts. */
-export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef);
+export type StudioSelection = { kind: "frame"; frameId: string } | ({ kind: "node"; part?: StudioPartRef } & StudioNodeRef) | ({ kind: "variant"; frameId: string } & StudioVariantRef);
 
 export type StudioLeftTab = "pages" | "layers" | "assets";
 export type StudioInspectorTab = "design" | "code" | "prototype";
@@ -78,12 +86,18 @@ export type StudioEditRecord = {
 };
 
 /** A source write the Studio made (an edit, undo or redo), with the whole file before and after it. */
-export type StudioWrite = { file: string; before: string; after: string; kind: "edit" | "undo" | "redo" };
+/** `locs` (a page kept in this browser, core rebuild M3): where each element of `before` is in `after`, told by its id
+ *  ("line:col" → "line:col", null when it is gone), so a selection follows its element exactly. */
+export type StudioWrite = { file: string; before: string; after: string; kind: "edit" | "undo" | "redo"; locs?: LocMap };
+export type LocMap = Record<string, string | null>;
 
 export type StudioState = {
   page: PlatformPage;
   /** A builder page kept in this browser (Studio builder GĐ2: "?page=local:<id>"), shown instead of `page`; else null. */
   localPage: string | null;
+  /** The toolbar's Document | Studio switch: the docs pages, or the user's folders and pages (a builder page is always
+   *  Studio). */
+  space: "document" | "studio";
   collection: string | null;
   tool: StudioTool;
   role: StudioRole;
@@ -134,11 +148,13 @@ export type SourceAttr = {
   line: number;
   /** An object or array literal written in place (`leading={{ … }}`, `trailing={[{ … }]}`): its fields, edited by op setField. */
   shape?: AttrShape;
+  /** The shape is a same-file const's literal (`options={countries}`): its name and line (op setField edits it there). */
+  shapeVia?: { name: string; line: number };
   /**
    * A bare identifier that reads `const [name, setName] = useState(<literal>)` in an enclosing function: its initial state,
    * which op setStateInit edits (the binding, and so the component's behaviour, stays).
    */
-  state?: { name: string; value: string | number | boolean; line: number };
+  state?: { name: string; value: string | number | boolean | string[]; line: number };
   /**
    * What an expression attribute (not a literal, not `state`) reads, from the identifiers at its root (dev server,
    * 2026-10-05): `bound-state` reads a useState value of an enclosing function directly or through a local const
@@ -150,17 +166,27 @@ export type SourceAttr = {
   origin?: { kind: "bound-state" | "loop-bound" | "bound-value"; reads: string[]; rows?: number };
   /** Where the value is written as data, and whether op setDataField can edit it there (tools/studio/data-source.mjs). */
   dataSource?: DataSource;
+  /**
+   * Only on a SourceElement.savedAttributes entry: the attribute the saved file writes right after this one ("…" for a
+   * spread; absent when it is the last), so setProp `before` puts a restored prop back in its place (a playground).
+   */
+  next?: string;
 };
 
 /**
  * Where an expression's value is written as data (dev server, tools/studio/data-source.mjs, plan WP-C): a `.map` row of a
- * literal list (`row`: the list is `source`, the field `path`), a data const or import read by path (`data`), state,
- * a condition or other code. `editable`: op setDataField can write the value there (`file`: where, maybe data.ts);
- * otherwise `reason` says why it stays read-only.
+ * literal list (`row`: the list is `source`, the field `path`), a Table column cell's row (`cell`: the Table's rows, the
+ * row named by its key), a data const or import read by path (`data`), state, a condition or other code; `rows` is a
+ * Table's own rows (SourceElement.tableRows); `param` is a prop of a component of the file, written where that component
+ * is used. `editable`: op setDataField can write the value there (`file`: where, maybe data.ts); otherwise `reason`
+ * says why it stays read-only.
  */
 export type DataSource = {
-  kind: "row" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
+  kind: "row" | "cell" | "rows" | "param" | "data" | "state" | "conditional" | "expression" | "literal" | "unknown";
   editable: boolean;
+  /** kind "param": a prop of a component of the file (`PersonAvatar`'s `person`, then `path`), written where it is used. */
+  component?: string;
+  prop?: string;
   source?: string;
   path?: string[];
   file?: string;
@@ -174,7 +200,8 @@ export type ShapeField =
   | { key: string; kind: "string"; value: string }
   | { key: string; kind: "boolean"; value: boolean }
   | { key: string; kind: "number"; value: number }
-  | { key: string; kind: "expression" | "spread"; value: string };
+  /** `shape`: a list of objects written in the item (Sidebar `sections[n].items`), read one level further. */
+  | { key: string; kind: "expression" | "spread"; value: string; shape?: AttrShape };
 
 export type ObjectShape = { type: "object"; fields: ShapeField[] };
 /** An array item that is not an object literal (a string, an expression, a spread). */
@@ -208,11 +235,21 @@ export type SourceElement = {
   /** Char offsets of the element in the file's text (without a BOM): its exact code for ⌘C (dev server, 2026-10-03). */
   range?: { start: number; end: number };
   /**
+   * The useState values its code reads from its component (literal initial state, `set` + Name setter): a ⌘C carries
+   * them, so a paste into another file declares them there (op pasteCode `state`; 2026-10-08). Absent when none.
+   */
+  stateReads?: StateDecl[];
+  /**
    * The saved file's version of each attribute the draft changed (GET /element on a drafted file, 2026-10-05): the
    * attribute as saved, or null when the saved element does not write it. Lets a reset put a binding back
    * (`status={one.online}` after a fixed value) and a presence toggle restore what it removed.
    */
   savedAttributes?: Record<string, SourceAttr | null>;
+  /**
+   * A Table (`columns` and `rows`): whether the rows can be edited where they are written (a column without `cell` draws
+   * its row's field, which a cell's text edit writes with op setDataField { field }).
+   */
+  tableRows?: DataSource;
   hash: string;
 };
 
@@ -220,26 +257,47 @@ export type EditValue =
   | { kind: "string"; value: string }
   | { kind: "boolean"; value: boolean }
   | { kind: "number"; value: number }
-  | { kind: "expression"; code: string };
+  | { kind: "expression"; code: string }
+  /** A picture by its repo file (`src/assets/media/avatar-ava.webp`): the engine writes `new URL("<relative>", import.meta.url).href` from the file it lands in (tools/studio/picture.mjs). */
+  | { kind: "picture"; file: string };
 
 /**
  * A useState value inserted code reads (`name` and `set` + Name): `initial` is a literal, `type` built-in type words
  * (`string[]`). The server declares it in the enclosing component (tools/studio/slots.mjs stateFor).
  */
-export type StateDecl = { name: string; initial: string; type?: string };
+export type StateDecl = {
+  name: string;
+  initial: string;
+  type?: string;
+  /** A ref instead (`const name = useRef<type>(null)`, `type` an HTML…Element, `initial` "null"): Popover's anchor. */
+  ref?: true;
+};
 
 export type EditOp =
-  | { op: "setProp"; name: string; value: EditValue }
+  /**
+   * `before` (a new attribute only): it goes in front of that written attribute ("…": the first spread) instead of at the
+   * end, so a prop put back where the saved file had it leaves no reordered draft (playgrounds refuse resetSlot).
+   */
+  | { op: "setProp"; name: string; value: EditValue; before?: string }
   | { op: "removeProp"; name: string }
   /** Attribute `name` reads a useState(<literal>) (SourceAttr.state): `value` becomes that initial state. */
   | { op: "setStateInit"; name: string; value: EditValue }
-  /** Writes a prop's (or an expression child's) value where the data holds it: a `.map` row's item, a data const (WP-C). */
-  | { op: "setDataField"; prop?: string; child?: number; row?: number; value: EditValue }
+  /**
+   * Writes a prop's (or an expression child's) value where the data holds it: a `.map` row's item, a data const (WP-C).
+   * A Table cell (2026-10-10): `row` is the row's place among the Table's rendered rows, `rowKey` its React key
+   * (getRowId), `rowFields` its plain fields as rendered (the row is found by them when the code computes its key),
+   * `table` the Table's loc (the column may be written apart from it); `field` (on the Table itself) names the row field
+   * a column without `cell` draws. `path`: fields after the value (`person={people[row.id]}` then `.theme`).
+   */
+  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; path?: string[]; value: EditValue }
+  /** A fixed prop of an element a `.map` draws, made that row's own (core rebuild M4): the rows get a field, the element reads it. */
+  | { op: "setRowProp"; name: string; row: number; value: EditValue }
   /**
    * One field of the object literal written in attribute `name` (`leading={{ … }}`), or of its `index`-th item when it is
    * an array literal (`trailing={[{ … }]}`): `value` replaces or appends the field, null removes it (SourceAttr.shape).
    */
-  | { op: "setField"; name: string; index?: number; key: string; value: EditValue | null }
+  /** `path`: on into a list the object holds (`[{ key: "items", index: 2 }]`: Sidebar `sections[1].items[2]`). */
+  | { op: "setField"; name: string; index?: number; path?: Array<{ key: string; index?: number }>; key: string; value: EditValue | null }
   /** Replace the index-th text child (as listed in SourceElement.children). */
   | { op: "setText"; index: number; value: string }
   /** Swap a typographyStyles["from"] key for "to" in the element's className. */
@@ -263,7 +321,7 @@ export type EditOp =
    * `with`: the opening-tag locs of more layers of the same JSX parent, wrapped together in source order (Frame selection /
    * Add auto layout on a multi-selection; tools/studio/README.md "Wrap several layers").
    */
-  | { op: "wrap"; tag: "Box" | "Stack" | "Grid"; props: Record<string, EditValue>; with?: string[] }
+  | { op: "wrap"; tag: "Box" | "Stack" | "Grid" | "SidebarMenuSection"; props: Record<string, EditValue>; with?: string[] }
   /**
    * A one-layer wrap undone (the Studio's Ignore auto layout off on a Box it made float): the Box, Stack or Grid that
    * holds exactly one element is replaced by it, the wrapper's props going with it (its `key` back onto the element). Must
@@ -310,8 +368,10 @@ export type EditOp =
   /**
    * A multi-selection in one file, one edit: every element at `locs` removed, duplicated (each copy after it) or given
    * the same setProp / removeProp `ops`. `hash` required. Answer: `removed`, `inserted.loc` (first copy) or `updated`.
+   * Duplicate also answers `inserted.locs` (each original's loc → its copy's) where the server has it; "moveTo" (a
+   * drag of several layers: `parent`, `before` / `after`, `copy` as op moveTo) answers `moved` / `inserted` { loc, locs }.
    */
-  | { op: "many"; action: "remove" | "duplicate" | "setProps"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]> }
+  | { op: "many"; action: "remove" | "duplicate" | "setProps" | "move" | "moveTo"; locs: string[]; ops?: EditOp[]; opsByLoc?: Record<string, EditOp[]>; to?: "prev" | "next"; parent?: string; before?: string; after?: string; copy?: boolean }
   /** Figma "Delete contents": empty the host's `prop` slot (omitted: children); `hash` required. Answer: `cleared`. */
   | { op: "clearSlot"; prop?: string }
   /** Figma "Reset slot": the host's `prop` slot (omitted: children) back to the saved file; `hash` required. Answer: `reset`. */
@@ -352,14 +412,14 @@ export type StudioSnippetSync = { synced: boolean; reason?: string };
  * without drafts, or a draft that matched the disk again and was dropped).
  */
 export type EditResponse =
-  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string }; moved?: { loc: string }; removed?: true; cleared?: true; reset?: true; draft?: boolean }
+  | { ok: true; file: string; hash: string; hashBefore: string; before: string; after: string; changed: { from: number; to: number }; snippet?: StudioSnippetSync; detached?: { component: string; loc: string; approximations: string[] }; wrapped?: { loc: string }; unwrapped?: { loc: string }; inserted?: { loc: string; locs?: Record<string, string> }; moved?: { loc: string; locs?: Record<string, string> }; removed?: true; cleared?: true; reset?: true; draft?: boolean; locs?: LocMap }
   | { ok: false; code: "stale" | "not-found" | "forbidden" | "invalid"; error: string }
   /** A structural edit in shared code waits for the person's yes: `uses` files import it (`users`: the first few). */
   | { ok: false; code: "confirm"; error: string; uses?: number; users?: string[] };
 
 /** `expectHash` is checked against the effective text; the content goes into the draft (`draft: true`), as /edit. */
 export type WriteRequest = { file: string; content: string; expectHash: string };
-export type WriteResponse = { ok: true; hash: string; draft?: boolean } | { ok: false; code: "stale" | "forbidden" | "invalid"; error: string };
+export type WriteResponse = { ok: true; hash: string; draft?: boolean; locs?: LocMap } | { ok: false; code: "stale" | "forbidden" | "invalid"; error: string };
 
 /**
  * `token` is null when the page was not opened on a loopback host (then the Studio is read-only). `drafts`: this server

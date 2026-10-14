@@ -26,7 +26,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { TODAY, daysFromToday, files, formatRelative, people, peopleList, projectById, type Person, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
-import "./tag.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "tag";
 
@@ -265,7 +265,7 @@ function NewGroup() {
   if (view === "groups") {
     return (
       <PlatformPhone key="groups" label="Groups" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Groups" largeTitle="Groups" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Groups" largeTitle="Groups" scrollRef={screenRef}
           trailing={[{ icon: "icon-users-plus-line", label: "New group", onClick: openNew }]} />}>
         {screen.anchor}
         {/* Static rows (nothing opens a group here) sit in the screen margin. */}
@@ -283,7 +283,7 @@ function NewGroup() {
   return (
     // A create screen opens as a modal: Close on the leading edge, the main action in the footer.
     <PlatformPhone key="new" label="New group" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New group" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New group" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Create group", type: "submit", form: formId }} />}>
       {screen.anchor}
@@ -292,10 +292,10 @@ function NewGroup() {
           <InputField label="Group name" size="lg" value={name} error={error.name} onValueChange={(value) => { setName(value); setError((e) => ({ ...e, name: undefined })); }} />
           <FormFieldset ref={membersRef} legend="Members" error={error.members}>
             {members.length ? (
-              <Stack as="ul" direction="row" gap="2xs" wrap className="px-tag-list" aria-label="Members added">
+              <Stack as="ul" direction="row" gap="2xs" wrap aria-label="Members added">
                 {members.map((id) => {
                   const person = people[id];
-                  return <li key={id}><Tag photoSrc={person.photo} remove onRemove={() => removeMember(id)}>{person.name}</Tag></li>;
+                  return <Stack as="li" key={id} direction="row"><Tag photoSrc={person.photo} remove onRemove={() => removeMember(id)}>{person.name}</Tag></Stack>;
                 })}
               </Stack>
             ) : null}
@@ -322,7 +322,7 @@ function NewGroup() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Reviewers",
     description: "People picked for a review are photo Tags inside the field, each removable with ×. After saving, the field turns Read-only: the tags stay, without × or Add.",
@@ -354,7 +354,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New group" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New group" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: () => (isDirty ? setDiscarding(true) : close()) }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Create group", type: "submit", form: formId }} />}>
   <Form id={formId} onSubmit={create}>
@@ -448,4 +448,4 @@ const [keywords, setKeywords] = useState(["Event website", "Ticketing", "Accessi
   </Form>
 </Card>`,
   },
-];
+]);

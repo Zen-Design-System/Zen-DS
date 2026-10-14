@@ -32,6 +32,11 @@ for (const name of ["Button", "icon-button", "IconButton", "Table", "ChatMessage
   expect(!component.isError && /## (Props|✅ Do)/.test(component.body), `get_component(${name})`);
 }
 expect((await text("get_component", { name: "NoSuchThing" })).isError, "get_component on an unknown name is an error result");
+// Brief by default (backlog batch C, 2026-10-07): the named component's props only, no Figma mapping or rule table.
+const brief = await text("get_component", { name: "DateField" });
+const full = await text("get_component", { name: "DateField", detail: "full" });
+expect(/### DateField/.test(brief.body) && !/### DatePickerItem/.test(brief.body) && !/## Figma/.test(brief.body) && !/\d+:\d+\)/.test(brief.body), "get_component brief: the named component's props, no Figma ids");
+expect(brief.body.length * 2 < full.body.length && /## Figma/.test(full.body), `get_component brief is under half of full (${brief.body.length} vs ${full.body.length})`);
 const icons = await text("search_icons", { query: "search" });
 expect(/icon-search-medium-line/.test(icons.body), "search_icons('search') finds icon-search-medium-line");
 const trash = await text("search_icons", { query: "delete" });

@@ -11,6 +11,7 @@ import { useZen, useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./date-picker.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type DatePickerItemState =
   | "default" | "hover" | "single-selected" | "range-selected-start" | "range-selected-end"
@@ -107,12 +108,13 @@ const weekdayInitials = (locale: string) => {
 export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, type = "interactive", back = true, next = true, device = "desktop" }: DatePickerHeaderProps) {
   const mobile = device === "mobile";
   const t = useZenLabels();
+  const nest = useNested();
   const locale = useZenLocale();
   // Shown as two parts, month name then year; the accessible name is the locale's "Month YYYY" ("September 2026").
   const label = [monthName(month, locale), String(month.getFullYear())];
   const fullLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(month);
   const slot = (show: boolean, direction: "previous" | "next") => show
-    ? <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? t.previousMonth : t.nextMonth} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />
+    ? nest(direction === "previous" ? "Previous" : "Next", <IconButton className="zen-date-picker__nav" appearance="main" level="tertiary" size="sm" aria-label={direction === "previous" ? t.previousMonth : t.nextMonth} onClick={direction === "previous" ? onPrevious : onNext} icon={<Icon name={direction === "previous" ? "icon-chevron-left-line-small" : "icon-chevron-right-line-small"} />} />)
     // Mobile has no centred label to balance: a hidden button leaves no slot.
     : mobile ? null : <span className="zen-date-picker__nav-slot" aria-hidden="true" />;
   // Mobile: the month and year in Heading/Subheading at the start (Date-Container 9923:3576), then Back and Next.
@@ -122,15 +124,19 @@ export function DatePickerHeader({ month, onPrevious, onNext, onMonthYearClick, 
       <span>{label[0]}</span><span>{label[1]}</span>
     </button>
   ) : (
-    <span className={`zen-date-picker__month ${labelStyle}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
+    // Display headers (the stacked list) title each month section: a heading under the sheet's h2, read by the outline.
+    type === "display"
+      ? <h3 className={`zen-date-picker__month ${labelStyle}`}><span>{label[0]}</span><span>{label[1]}</span></h3>
+      : <span className={`zen-date-picker__month ${labelStyle}`} aria-live="polite"><span>{label[0]}</span><span>{label[1]}</span></span>
   );
   return (
-    <header className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
+    // A div, not <header>: outside a sectioning element a header is a banner landmark, and the stacked list has one per month.
+    <div className="zen-date-picker__header" data-type={type} data-device={mobile ? "mobile" : undefined}>
       {!mobile && type !== "display" ? slot(back, "previous") : null}
       {monthLabel}
       {mobile && type !== "display" ? slot(back, "previous") : null}
       {type !== "display" ? slot(next, "next") : null}
-    </header>
+    </div>
   );
 }
 
@@ -154,12 +160,13 @@ export interface DatePickerActionProps {
 /** `.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall. */
 export function DatePickerAction({ action = "dual", onCancel, onApply, cancelLabel: cancelLabelProp, applyLabel: applyLabelProp, cancelDisabled, applyDisabled }: DatePickerActionProps) {
   const t = useZenLabels();
+  const nest = useNested();
   const cancelLabel = cancelLabelProp === undefined ? t.cancel : cancelLabelProp;
   const applyLabel = applyLabelProp === undefined ? t.apply : applyLabelProp;
   return (
     <footer className="zen-date-picker__actions">
-      {action === "dual" ? <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button> : null}
-      <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>
+      {action === "dual" ? nest("Cancel", <Button level="tertiary" size="sm" disabled={cancelDisabled} onClick={onCancel}>{cancelLabel}</Button>) : null}
+      {nest("Submit", <Button level="primary" size="sm" disabled={applyDisabled} onClick={onApply}>{applyLabel}</Button>)}
     </footer>
   );
 }
@@ -584,8 +591,12 @@ export interface DatePickerProps {
   action?: "single" | "dual";
   selectionMode?: "single" | "range";
   /** Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by
-   * side; Static headers with Back on the first and Next on the second). */
-  calendar?: "single" | "dual";
+   * side; Static headers with Back on the first and Next on the second). `stacked`: Date-Picker/Mobile Variant=Multiple
+   * (9923:3574) — `monthCount` months one under another, Display headers (no Back / Next: the list scrolls), and one
+   * weekday row that stays at the top of the scrolling box (`.Primitives/Date-Picker` 9923:2323 Option 2). */
+  calendar?: "single" | "dual" | "stacked";
+  /** `calendar="stacked"`: how many months follow the first one shown. Default 12. */
+  monthCount?: number;
   /**
    * Figma Date-Picker/Mobile (9923:3576) primitives: `mobile` days fill the width (square cells in Body/Base/Medium,
    * `.Primitives/Mobile-Date-Picker/Item` 9921:3283) under a Heading/Subheading month with Back / Next at the end,
@@ -620,6 +631,9 @@ export interface DatePickerProps {
   /** id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. */
   "aria-labelledby"?: string;
   className?: string;
+  /** Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Submit": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio;
+   *  app code sets the actions. */
+  overrides?: NestedOverrides;
 }
 
 /** Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` on the shared token and
@@ -654,6 +668,7 @@ export function DatePicker({
   action = "dual",
   selectionMode = "single",
   calendar = "single",
+  monthCount = 12,
   device: deviceProp,
   timePicker = false,
   time,
@@ -665,7 +680,9 @@ export function DatePicker({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
+  overrides,
 }: DatePickerProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const locale = useZenLocale();
   const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
@@ -700,7 +717,7 @@ export function DatePicker({
     onTimeChange?.(next);
   };
   const currentMonth = controlledMonth ? monthStart(controlledMonth) : internalMonth;
-  const months = useMemo(() => (calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth]);
+  const months = useMemo(() => (calendar === "stacked" ? Array.from({ length: Math.max(1, monthCount) }, (_, index) => addMonths(currentMonth, index)) : calendar === "dual" ? [currentMonth, addMonths(currentMonth, 1)] : [currentMonth]), [calendar, currentMonth, monthCount]);
   // Smooth view switch: the viewport height follows the measured content (CSS transitions it) and
   // the incoming view plays its enter animation — only after a switch, not on first open.
   const viewRef = useRef<HTMLDivElement>(null);
@@ -858,7 +875,9 @@ export function DatePicker({
     if (date.getDay() === 0 || date.getDay() === 6) return "weekend";
     return "default";
   };
-  const dual = calendar === "dual";
+  const dual = calendar === "dual" || calendar === "stacked";
+  const stacked = calendar === "stacked";
+  const weekdayRow = (className?: string) => <div className={["zen-date-picker__weekdays", className].filter(Boolean).join(" ")} aria-hidden={stacked || undefined}>{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>;
   return (
     <div
       ref={rootRef}
@@ -898,29 +917,30 @@ export function DatePicker({
             />
           ) : (
             <>
+              {stacked ? <div className={`zen-date-picker__sticky-weekdays ${typographyStyles["Body/Small/Medium"]}`}>{weekdayRow()}</div> : null}
               <div className="zen-date-picker__panels">
                 {months.map((month, index) => (
                   <div className="zen-date-picker__panel" key={month.toISOString()}>
-                    <DatePickerHeader
+                    {nest("Header", <DatePickerHeader
                       month={month}
-                      type={dual ? "static" : "interactive"}
+                      type={stacked ? "display" : dual ? "static" : "interactive"}
                       back={!dual || index === 0}
                       next={!dual || index === months.length - 1}
                       onPrevious={() => setMonth(addMonths(currentMonth, -1))}
                       onNext={() => setMonth(addMonths(currentMonth, 1))}
                       onMonthYearClick={() => switchView("month-year")}
                       device={device}
-                    />
+                    />, index)}
                     <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
-                      <div className="zen-date-picker__weekdays">{weekdays.map((day, dayIndex) => <span key={`${day}-${dayIndex}`}>{day}</span>)}</div>
+                      {stacked ? null : weekdayRow()}
                       <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} device={device} day={date.getDate()} date={date} state={stateFor(date)} aria-current={dateKey(date) === dateKey(today) ? "date" : undefined} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} device={device} state="blank" />)}</div>
                     </div>
                   </div>
                 ))}
               </div>
-              {timePicker ? <><Divider /><DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} /></> : null}
+              {timePicker ? <><Divider />{nest("Time-Picker", <DatePickerTimePicker type={dual ? "range" : "single"} value={shownTime} onValueChange={changeTime} device={device} />)}</> : null}
               {/* Inline there is nothing to close: the actions are live only while there is a draft to apply or drop. */}
-              {showActions ? <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} /> : null}
+              {showActions ? nest("Actions", <DatePickerAction action={action} onCancel={cancel} onApply={apply} cancelDisabled={!dirty && !hasClose} applyDisabled={!complete || (!dirty && !hasClose)} />) : null}
             </>
           )}
         </div>

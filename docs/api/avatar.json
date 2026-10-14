@@ -124,6 +124,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of each avatar the stack draws, by layer (`{ \"Avatar[0]\": { src: \"…\" } }`, `More`\n for the overflow chip). Written by Zen Studio; app code sets `items`.",
+          "deprecated": null
+        },
+        {
           "name": "size",
           "type": "unknown",
           "required": false,

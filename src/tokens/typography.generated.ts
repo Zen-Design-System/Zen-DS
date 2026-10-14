@@ -107,9 +107,9 @@ export const textStyleDefinitions = [
     "fontSize": 45,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -1.5199999809265137
+      "value": -1.5800000429153442
     },
-    "letterSpacingPercent": -3.38,
+    "letterSpacingPercent": -3.51,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -127,9 +127,9 @@ export const textStyleDefinitions = [
     "fontSize": 40,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -1.2100000381469727
+      "value": -1.2000000476837158
     },
-    "letterSpacingPercent": -3.03,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -147,9 +147,9 @@ export const textStyleDefinitions = [
     "fontSize": 36,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.9800000190734863
+      "value": -1.0800000429153442
     },
-    "letterSpacingPercent": -2.72,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -167,9 +167,9 @@ export const textStyleDefinitions = [
     "fontSize": 32,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.7599999904632568
+      "value": -0.9599999785423279
     },
-    "letterSpacingPercent": -2.37,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Display",
@@ -187,9 +187,9 @@ export const textStyleDefinitions = [
     "fontSize": 28,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.5600000023841858
+      "value": -0.8399999737739563
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -208,9 +208,9 @@ export const textStyleDefinitions = [
     "fontSize": 25,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.5
+      "value": -0.75
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -229,9 +229,9 @@ export const textStyleDefinitions = [
     "fontSize": 22,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.4399999976158142
+      "value": -0.6600000262260437
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -250,9 +250,9 @@ export const textStyleDefinitions = [
     "fontSize": 20,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": -0.4000000059604645
+      "value": -0.6000000238418579
     },
-    "letterSpacingPercent": -2,
+    "letterSpacingPercent": -3,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Heading",
@@ -417,9 +417,9 @@ export const textStyleDefinitions = [
     "fontSize": 12,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": 0
+      "value": -0.11999999731779099
     },
-    "letterSpacingPercent": 0,
+    "letterSpacingPercent": -1,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Sans",
@@ -438,9 +438,9 @@ export const textStyleDefinitions = [
     "fontSize": 12,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": 0
+      "value": -0.11999999731779099
     },
-    "letterSpacingPercent": 0,
+    "letterSpacingPercent": -1,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Sans",
@@ -459,9 +459,9 @@ export const textStyleDefinitions = [
     "fontSize": 12,
     "letterSpacing": {
       "unit": "PIXELS",
-      "value": 0
+      "value": -0.11999999731779099
     },
-    "letterSpacingPercent": 0,
+    "letterSpacingPercent": -1,
     "textCase": "ORIGINAL",
     "tokens": {
       "family": "Typography/Font-Family/Sans",

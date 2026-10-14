@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import type { PageNode, PageTree, PageValue } from "../render/renderPage";
+import { srcAttr } from "../../select/srcIds";
 
 /*
  * Prototype links on the canvas (Studio builder GĐ2 M3): while the Inspector's Prototype tab is open, an arrow from each
@@ -45,7 +46,8 @@ export function ProtoLinks({ tree, file, boardRef }: { tree: PageTree | null; fi
       const local = (rect: DOMRect) => ({ left: (rect.left - box.left) / zoom, top: (rect.top - box.top) / zoom, right: (rect.right - box.left) / zoom, bottom: (rect.bottom - box.top) / zoom });
       const next: Path[] = [];
       links.forEach((link, index) => {
-        const from = board.querySelector(`[data-zen-src="${CSS.escape(`${file}:${link.loc}`)}"]`);
+        // Elements are marked by id on a page made in the Studio (srcIds.ts): found by their place.
+        const from = Array.from(board.querySelectorAll("[data-zen-src]")).find((node) => srcAttr(node) === `${file}:${link.loc}`) ?? null;
         const to = board.querySelector(`[data-studio-frame="${CSS.escape(link.target)}"]`);
         if (!from || !to) return;
         const a = local(from.getBoundingClientRect());

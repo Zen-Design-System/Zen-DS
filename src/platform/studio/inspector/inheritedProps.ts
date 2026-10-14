@@ -11,11 +11,9 @@ type Prop = { name: string };
 type Entry<P extends Prop> = { name: string; extends?: string | null; props: P[] };
 
 /** Props types written as an alias (`type NumberFieldProps = Omit<InputFieldProps, …> & {…}`): their Zen part, as the
- *  source writes it. */
-export const ALIAS_EXTENDS: Readonly<Record<string, string>> = {
-  NumberField: 'Omit<InputFieldProps, "value" | "defaultValue" | "type" | "min" | "max" | "step" | "onValueChange">',
-  TextAreaField: 'Omit<CommonFieldProps, "size">',
-};
+ *  source writes it. Empty since 2026-10-07: scripts/build-api.mjs now documents an `Omit<SameFileType, …>` base itself
+ *  (NumberField and TextAreaField list the field props in docs/api), so they are own props here. */
+export const ALIAS_EXTENDS: Readonly<Record<string, string>> = {};
 
 /** Props types no component is named after, and the component whose documented props are theirs (InputField's own props
  *  are CommonFieldProps's, plus onValueChange). */

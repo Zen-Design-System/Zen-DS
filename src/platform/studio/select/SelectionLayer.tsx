@@ -1,22 +1,30 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { canvasApi } from "../canvas/viewport";
+import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
-import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, shortSrc, type FiberHit } from "./picker";
-import { chainHas, deepPartAt, drillPart, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
+import { chainHas, deepLayerAt, ownsText, parentLayerOf, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
+import { tableDeep, tableDrill, tablePress, tableUp } from "../table/tableSelect";
+import { dataGroupOfPart, dataItemOfPart, dataItemRootOf, groupPartAt, groupTitlePartOf, itemParts, rowPartAtPoint, sectionPartAtPoint } from "../slots/dataItems";
+import { itemSelection } from "../slots/itemSelection";
 import { openCanvasMenu, openEmptyCanvasMenu, openFrameMenu } from "../shell/CanvasMenu";
 import { awaitedRender, awaitedRenderShown, awaitingWriteRender, remapPart, remapSelection, sameSelectedElement, writeRendered } from "./remap";
 import { ResizeLayer } from "./ResizeLayer";
 import { SpacingLayer } from "./SpacingLayer";
 import { layerOfHit, multiSelection, toggleLayer, useExtraSelection, type ExtraLayer } from "./multiSelection";
 import { isOffCanvasSelection } from "../slots/actions";
-import { startTextEditOnSelection, tryStartTextEdit } from "../edit/textEdit";
+import { startTextEditOnPart, startTextEditOnSelection, tryStartTextEdit } from "../edit/textEdit";
 import { pressLayer } from "../edit/drag";
 import { pressDataItem } from "../edit/itemDrag";
 import { startMarquee } from "../edit/marquee";
 import { sameAreas, sameOwner, spacingAreas, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { clipBox, clipInside, clipRectOf, type ClipCache } from "./clip";
+import { MAIN_FRAME, variantKey } from "../mainComponent/model";
+import { pickVariant } from "../mainComponent/select";
+import { variantHover } from "../mainComponent/hover";
 import "./select.css";
 
 /*
@@ -28,15 +36,20 @@ import "./select.css";
 /** An outline with its name tag: `meta` is the file:line of an element, "in <Owner>" for a part. */
 type Tagged = Box & { name: string; src: string; meta: string };
 /** `spacing`: the selection's padding and gap areas; `spacingOwner`: the element they belong to. */
-type Overlay = { hover: Tagged | null; selected: Tagged | null; owner: Box | null; instances: Box[]; extras: Box[]; spacing: SpacingArea[]; spacingOwner: SpacingOwner | null };
+type Overlay = { hover: Tagged | null; selected: Tagged | null; owner: Box | null; instances: Box[]; extras: Box[]; items: Box[]; spacing: SpacingArea[]; spacingOwner: SpacingOwner | null };
 type Pick =
   /** `element`: the topmost DOM node under the pointer (deep select starts there). */
   | { kind: "node"; hit: FiberHit; frame: Element; element: Element }
   | { kind: "frame"; frame: Element }
+  /** In the Main component frame: a variant or a layer of it (mainComponent/select.ts), not JSX of the page. */
+  | { kind: "variant"; frame: Element; element: Element }
   | { kind: "chrome"; element: Element }
   | { kind: "empty" };
 
-const emptyOverlay: Overlay = { hover: null, selected: null, owner: null, instances: [], extras: [], spacing: [], spacingOwner: null };
+const emptyOverlay: Overlay = { hover: null, selected: null, owner: null, instances: [], extras: [], items: [], spacing: [], spacingOwner: null };
+
+/** Layers whose text a double-click that lands on them edits at once (Figma's text layers). */
+const TEXT_LAYER = /^(Text|Heading|Link|p|span|label|a|strong|em|small|h[1-6])$/;
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 
@@ -51,6 +64,7 @@ type TrackedPart = { element: WeakRef<Element>; name: string; selection: StudioS
 function selectionKey(selection: StudioSelection | null) {
   if (!selection) return "";
   if (selection.kind === "frame") return `frame:${selection.frameId}`;
+  if (selection.kind === "variant") return `variant:${variantKey(selection)}`;
   return `node:${selection.src}#${selection.instance}${selection.part ? `/${selection.part.path.join(".")}:${selection.part.name}` : ""}`;
 }
 
@@ -88,9 +102,23 @@ function frameElement(world: Element | null, frameId: string | null) {
 const sameBox = (a: Box | null, b: Box | null) => a === b || Boolean(a && b && Math.abs(a.x - b.x) < 0.25 && Math.abs(a.y - b.y) < 0.25 && Math.abs(a.w - b.w) < 0.25 && Math.abs(a.h - b.h) < 0.25);
 const sameList = (a: Box[], b: Box[]) => a.length === b.length && a.every((box, index) => sameBox(box, b[index]));
 const sameTagged = (a: Tagged | null, b: Tagged | null) => a === b || Boolean(a && b && a.src === b.src && a.name === b.name && a.meta === b.meta && sameBox(a, b));
-const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
+const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameList(a.items, b.items) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
 
 /** Capture layer (Select tool) + hover/selection outlines, in canvas-viewport coordinates. */
+/** `part` as drawn now: the same part found again from its path when the canvas drew its element anew. */
+function livePart(owner: FiberHit, part: PartHit): PartHit | null {
+  if (part.element.isConnected) return part;
+  return resolvePart(owner.hosts[0]?.isConnected ? owner : part.owner, { path: part.path, name: part.name });
+}
+
+/** The parts of the items selected with `part` (Shift/⌘+click, itemSelection.ts): none unless `part` is an item of that slot. */
+function itemExtras(part: PartHit | null): PartHit[] {
+  const set = itemSelection.get();
+  const item = part && set ? dataItemRootOf(part) : null;
+  if (!part || !set || !item || set.prop !== item.slot.prop) return [];
+  return itemParts(part.owner, item.slot).filter((candidate, index): candidate is PartHit => Boolean(candidate) && set.indices.includes(index));
+}
+
 export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | null; world: HTMLElement | null }) {
   const tool = useStudio((state) => state.tool);
   const presenting = useStudio((state) => state.presenting);
@@ -132,27 +160,39 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (!root) return;
     const origin = root.getBoundingClientRect();
     const toBox = (rect: DOMRect): Box => ({ x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height });
+    // Outlines and tints stop where a clipping ancestor (a scroll box, the frame) hides the layer (select/clip.ts).
+    const clips: ClipCache = new Map();
     const boxOf = (hit: FiberHit | null) => {
       const rect = hit ? rectOf(hit.hosts) : null;
-      return rect ? toBox(rect) : null;
+      return rect && hit ? clipBox(toBox(rect), clipRectOf(hit.hosts[0], clips), origin) : null;
     };
     const tagged = (hit: FiberHit | null): Tagged | null => {
       const box = boxOf(hit);
       if (!hit || !box) return null;
       const owner = (hit as Partial<PartHit>).owner;
-      return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : shortSrc(hit.src) };
+      // A data-slot item reads as Figma names it (Menu-Item in Body-Content), not its internal component.
+      const item = owner ? dataItemRootOf(hit as PartHit) : null;
+      if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
+      const group = owner ? dataGroupOfPart(hit as PartHit) : null;
+      if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
+      return { ...box, name: hit.name, src: hit.src, meta: owner ? `in ${owner.name}` : "" };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;
     const hover = layerHover.get() ?? (toolRef.current === "select" ? hoverRef.current : null);
     // Padding and gaps: a layout component's edit its props; a part's or a host element's are shown read-only.
-    const layout = selected ? spacingAreas(selected, Boolean(part), toBox) : { owner: null, areas: [] };
+    // Several layers selected: no spacing areas (they would edit the primary alone, and take the press a drag of all needs).
+    const layout = selected && !extrasRef.current.length ? spacingAreas(selected, Boolean(part), toBox) : { owner: null, areas: [] };
+    const inside = layout.areas.length ? clipInside(selected?.hosts[0], clips) : null;
+    if (inside) layout.areas = layout.areas.flatMap((area) => clipBox(area, inside, origin) ?? []);
     const next: Overlay = {
       hover: hover && (!selected || hover.fiber !== selected.fiber) ? tagged(hover) : null,
       selected: tagged(selected),
       owner: part ? boxOf(selectedRef.current) : null,
       instances: toolRef.current === "select" && !part ? instancesRef.current.flatMap((hit) => boxOf(hit) ?? []) : [],
       extras: extrasRef.current.flatMap((hit) => boxOf(hit) ?? []),
+      // Not "extra" layers (single-layer actions still work on the item and its slot): their own kind.
+      items: itemExtras(part).flatMap((hit) => boxOf(hit) ?? []),
       spacing: layout.areas,
       spacingOwner: layout.owner,
     };
@@ -338,6 +378,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   }, [key, resolve, schedule, dropLost]);
 
   /** The extra layers on the canvas: each one's render (`instance`), dropped while the name there differs. */
+  // The other items selected with the selected one (itemSelection.ts): outlined like extra layers.
+  useEffect(() => itemSelection.subscribe(() => schedule(0)), [schedule]);
+
   const resolveExtras = useCallback((layers: ExtraLayer[]) => {
     extrasRef.current = world ? layers.flatMap((layer) => {
       const hit = findBySrc(world, layer.src)[layer.instance] ?? null;
@@ -451,6 +494,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (chrome) return { kind: "chrome", element };
       const frame = element.closest("[data-studio-frame]");
       if (!frame) return { kind: "empty" };
+      if (frame.getAttribute("data-studio-frame") === MAIN_FRAME) return { kind: "variant", frame, element };
       const hit = annotatedAt(element);
       if (hit && hit.hosts.length && frame.contains(hit.hosts[0])) return { kind: "node", hit, frame, element };
       return { kind: "frame", frame };
@@ -472,34 +516,64 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     return onSelected && coveredBy ? { ...picked, hit: selected } : picked;
   }, []);
 
-  /** Whether a click at `picked` reaches the parts: Cmd/Ctrl held, or inside the owner of the selected part. */
+  /**
+   * Whether a press at `picked` reaches the parts: ⌘ / Ctrl on the selected element (elsewhere ⌘ selects the deepest
+   * element, Figma's deep select), or a click inside the owner of the selected part.
+   */
   const deepAt = useCallback((picked: Pick, modifier: boolean) => {
     if (picked.kind !== "node") return false;
-    if (modifier) return true;
     const owner = selectedRef.current;
-    return Boolean(partRef.current && owner && picked.hit.src === owner.src && picked.hit.hosts[0] === owner.hosts[0]);
+    const onOwner = Boolean(owner && picked.hit.src === owner.src && picked.hit.hosts[0] === owner.hosts[0]);
+    return modifier ? onOwner : Boolean(partRef.current && onOwner);
   }, []);
+
+  /**
+   * The layer a press at `picked` selects (user, 2026-10-09: "Bấm như Figma"): ⌘ / Ctrl the deepest element under the
+   * pointer, else the outermost layer in the current context (clickTarget: the selected layer's siblings, or the frame's
+   * top level).
+   */
+  const targetOf = useCallback((picked: Pick & { kind: "node" }, deep: boolean): FiberHit => (
+    deep ? picked.hit : clickTarget(picked.hit, picked.frame, selectedRef.current)
+  ), []);
 
   /** The part a click at `picked` selects: the selected part when the cursor is on it, else the nearest internal component. */
   const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number) => {
     const target = deepestAt(picked.element, x, y);
     const current = partRef.current;
     if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
-    return deepPartAt(picked.hit, target);
+    // A section selected: a click on another section selects that one (the same level, as Figma's siblings).
+    const live = current ? livePart(picked.hit, current) : null;
+    if (live && dataGroupOfPart(live)?.role === "group") {
+      const section = sectionPartAtPoint(picked.hit, x, y);
+      if (section) return section;
+    }
+    // A data-slot item (a TopNavigation action) is the part to land on, not the icon inside it (user, 2026-10-07); a
+    // double-click then drills on into it.
+    const deep = deepPartAt(picked.hit, target);
+    // …and a section's title is the Section-Title, not its label inside (a Sidebar section, 2026-10-10).
+    return dataItemOfPart(deep)?.part ?? groupTitlePartOf(deep) ?? deep;
   }, []);
 
   const hoverAt = useCallback(() => {
     const point = pointerRef.current;
     if (!point || toolRef.current !== "select") return;
-    const picked = pick(point.x, point.y);
+    // Over the selected element under an outer layer, the hover stays on the selection (as a press would keep it).
+    const picked = keepSelected(pick(point.x, point.y), point.x, point.y);
     setPassThrough(picked.kind === "chrome");
-    const hit = picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : picked.hit) : null;
-    setHoverFrame(picked.kind === "node" || picked.kind === "frame" ? picked.frame : null);
+    // The outline shows what a press would select (Figma): the click's layer, ⌘ the deepest, ⌘ on the selection a part.
+    // A Table's row or cell selected: the row or cell under the pointer (the level a click keeps, Figma).
+    const under = picked.kind === "node" ? deepestAt(picked.element, point.x, point.y) : null;
+    const level = picked.kind === "node" ? (deepRef.current ? tableDeep(picked.hit, under) : tablePress(partRef.current, under)) : null;
+    const deepTarget = picked.kind === "node" && deepRef.current ? nestedHitAt(picked.hit, under) ?? picked.hit : null;
+    const deepLayer = deepTarget ? deepLayerAt(deepTarget, under) : null;
+    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : deepTarget ? (deepLayer ? dataItemOfPart(deepLayer)?.part ?? groupTitlePartOf(deepLayer) ?? deepLayer : deepTarget) : targetOf(picked, false)) : null);
+    setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
+    variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
       hoverRef.current = hit;
       schedule(0);
     }
-  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt]);
+  }, [pick, schedule, setHoverFrame, setPassThrough, deepAt, partAt, keepSelected, targetOf]);
 
   const hoverRequest = useRef(0);
   const trackPointer = useCallback((event: PointerEvent | ReactPointerEvent) => {
@@ -512,6 +586,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   const clearHover = useCallback(() => {
     pointerRef.current = null;
     setHoverFrame(null);
+    variantHover.set(null);
     if (hoverRef.current) {
       hoverRef.current = null;
       schedule(0);
@@ -569,8 +644,34 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     }
     if (picked.kind === "node") {
       if (event.detail <= 1) pressSelectionRef.current = studioStore.getState().selection;
-      // Cmd/Ctrl+click anywhere, or a click inside the owner of the selected part: the part under the cursor.
-      if (!event.shiftKey && deepAt(picked, event.metaKey || event.ctrlKey)) {
+      const deep = event.metaKey || event.ctrlKey;
+      // A Table's row or cell selected: a click selects the row or cell under the pointer, the same level (Figma).
+      const level = !event.shiftKey && !deep ? tablePress(partRef.current, deepestAt(picked.element, event.clientX, event.clientY)) : null;
+      if (level) {
+        choosePart(level);
+        return;
+      }
+      // ⌘-click on a cell the Table draws itself: its content, in one click (Figma's deepest layer).
+      const drawn = !event.shiftKey && deep ? tableDeep(picked.hit, deepestAt(picked.element, event.clientX, event.clientY)) : null;
+      if (drawn) {
+        choosePart(drawn);
+        return;
+      }
+      // ⇧+click on another item of the selected item's data slot: it joins the selection (itemSelection.ts; Figma's
+      // Shift+click on instances in a slot, 2026-10-10).
+      // The press counts wherever it lands inside the item's owner (the layer picked there may be an outer one, an AppShell).
+      const under = event.shiftKey && partRef.current ? deepestAt(picked.element, event.clientX, event.clientY) : null;
+      if (under && partRef.current && partRef.current.owner.hosts.some((host) => host.contains(under))) {
+        const current = studioStore.getState().selection;
+        const primaryItem = dataItemRootOf(partRef.current);
+        const clicked = dataItemOfPart(deepPartAt(partRef.current.owner, under));
+        if (current?.kind === "node" && primaryItem && clicked && clicked.slot.prop === primaryItem.slot.prop) {
+          itemSelection.toggle(current, primaryItem.slot.prop, primaryItem.index, clicked.index);
+          return;
+        }
+      }
+      // ⌘ / Ctrl+click on the selected element, or a click inside the owner of the selected part: the part under the cursor.
+      if (!event.shiftKey && deepAt(picked, deep)) {
         const part = partAt(picked, event.clientX, event.clientY);
         if (part) {
           choosePart(part);
@@ -585,18 +686,39 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         const part = partAt(picked, event.clientX, event.clientY);
         if (part && pressDataItem(event.nativeEvent, part, choosePart, () => choose(picked.hit, false))) return;
       }
+      // Figma's click: the outermost layer in the current context; ⌘ / Ctrl the deepest (⇧ adds either one). The deepest
+      // is the innermost written layer under the pointer, even one a row's data passes in (an Avatar built for a
+      // ListItem's leading, whose row covers it on the canvas: nestedHitAt), not only the row itself (2026-10-10).
+      const pointed = deepestAt(picked.element, event.clientX, event.clientY);
+      const target = deep ? nestedHitAt(picked.hit, pointed) ?? picked.hit : targetOf(picked, false);
+      // ⌘ goes on into the instance, as Figma's deep select: its text or nested instance under the pointer (2026-10-13).
+      const layer = deep && !event.shiftKey ? deepLayerAt(target, pointed) : null;
+      if (layer) {
+        // A row of a data slot (a Sidebar's Menu-Item) or a section's title is the layer, as a ⌘-click on its owner gives.
+        choosePart(dataItemOfPart(layer)?.part ?? groupTitlePartOf(layer) ?? layer);
+        return;
+      }
       // A press can drag the layer (Figma; edit/drag.ts): inside the selected layer it drags that one, and a click
-      // without moving still selects what is under the pointer.
-      if (pressLayer(event.nativeEvent, picked.hit, () => choose(picked.hit, event.shiftKey))) return;
-      choose(picked.hit, event.shiftKey);
+      // without moving still selects the layer the click picks.
+      if (pressLayer(event.nativeEvent, target, () => choose(target, event.shiftKey))) return;
+      choose(target, event.shiftKey);
       return;
     }
     pressSelectionRef.current = null;
+    if (picked.kind === "variant") {
+      // A variant of the Main component frame, or one of its layers (⌘ / Ctrl: the deepest); outside the cells, the frame.
+      multiSelection.clear();
+      const next = pickVariant(picked.element, studioStore.getState().selection, event.metaKey || event.ctrlKey ? "deep" : "click");
+      studioStore.setState({ selection: next ?? { kind: "frame", frameId: MAIN_FRAME } });
+      return;
+    }
     if (picked.kind === "frame") {
       const selectFrame = () => {
         multiSelection.clear();
         const frameId = picked.frame.getAttribute("data-studio-frame");
         if (frameId) studioStore.setState({ selection: { kind: "frame", frameId } });
+        // The Docs frame reads at 100%: a click on it below that opens it at 100%, top-aligned (user, 2026-10-07).
+        if (frameId === "docs" && getViewport().zoom < 1 - 1e-3) canvasApi.zoomToRead(picked.frame.getBoundingClientRect());
       };
       // A drag on a frame's background draws a marquee (Figma; edit/marquee.ts); a click selects the frame.
       if (startMarquee(event.nativeEvent, selectFrame)) return;
@@ -633,7 +755,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
   const onContextMenu = (event: ReactMouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     const picked = pick(event.clientX, event.clientY);
-    if (picked.kind === "frame") {
+    if (picked.kind === "frame" || picked.kind === "variant") {
       const frameId = picked.frame.getAttribute("data-studio-frame");
       if (frameId) openFrameMenu(event.clientX, event.clientY, frameId);
       return;
@@ -644,16 +766,55 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const selectedHost = selectedRef.current?.hosts;
     const onSelected = current?.kind === "node" && !current.part && Boolean(selectedHost?.some((host) => host.contains(picked.element)));
     const onExtra = extrasRef.current.some((extra) => extra.hosts.some((host) => host.contains(picked.element)));
-    if (!onSelected && !onExtra) choose(picked.hit, false);
+    if (!onSelected && !onExtra) choose(targetOf(picked, event.metaKey || event.ctrlKey), false);
     const selection = studioStore.getState().selection;
-    if (selection?.kind === "node") openCanvasMenu(event.clientX, event.clientY, selection);
+    // "Select layer": the layers under the pointer as Layers lists them, from the one under it out to the frame's.
+    const path = layersAt(picked.hit, picked.frame);
+    const selected = selectedRef.current;
+    const layers = (path ? path.path.slice(path.root + 1) : [picked.hit]).reverse().slice(0, 12).map((hit) => ({
+      name: hit.name,
+      component: hit.isComponent,
+      selected: Boolean(selected && sameElement(hit, selected)),
+      select: () => choose(hit, false),
+    }));
+    if (selection?.kind === "node") openCanvasMenu(event.clientX, event.clientY, selection, layers);
   };
 
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     const picked = keepSelected(pick(event.clientX, event.clientY), event.clientX, event.clientY);
+    if (picked.kind === "variant") {
+      // One level into the selected variant, towards the pointer (Figma's double-click).
+      const next = pickVariant(picked.element, studioStore.getState().selection, "drill");
+      if (next) studioStore.setState({ selection: next });
+      return;
+    }
     if (picked.kind !== "node" || event.shiftKey) return;
     // A resize handle's double-click (Hug) is ResizeLayer's.
     if (event.target instanceof Element && event.target.closest(".studio-resize__handle, .studio-resize__cover")) return;
+    // Figma's double-click: one level in, from the selected layer to its child under the pointer. Landing on a text
+    // layer (the element under the pointer), its text is edited in place; a component's text waits for the next one.
+    const selected = selectedRef.current;
+    // A Table: Table → Data-Row → Cell → its Content (table/tableSelect.ts), then the text as below.
+    if (!(event.metaKey || event.ctrlKey)) {
+      const step = tableDrill(selected, partRef.current, deepestAt(picked.element, event.clientX, event.clientY));
+      if (step && "edit" in step) {
+        if (tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
+      } else if (step) {
+        if ("part" in step) choosePart(step.part);
+        else choose(step.hit, false);
+        studioStore.setState({ inspectorTab: "design" });
+        return;
+      }
+    }
+    if (!partRef.current && selected && !(event.metaKey || event.ctrlKey)) {
+      const inner = layerInside(picked.hit, picked.frame, selected);
+      if (inner) {
+        choose(inner, false);
+        studioStore.setState({ inspectorTab: "design" });
+        if (sameElement(inner, picked.hit) && TEXT_LAYER.test(inner.name)) tryStartTextEdit(event.clientX, event.clientY, inner.src);
+        return;
+      }
+    }
     // On a component that was already selected (or one of its parts): one level in, like Figma — the nested instance
     // written in the source under the cursor first (editable), else its read-only parts.
     const before = pressSelectionRef.current;
@@ -661,8 +822,27 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (before?.kind === "node" && before.src === picked.hit.src && owner && owner.hosts[0] === picked.hit.hosts[0]) {
       const target = deepestAt(picked.element, event.clientX, event.clientY);
       const current = partRef.current;
+      // From a section: the row or the Section-Title under the pointer (not the section's inner wrappers). The canvas may
+      // have drawn the section again since it was selected: found again from its path.
+      const fromSection = before.part && current ? livePart(picked.hit, current) : null;
+      if (fromSection && dataGroupOfPart(fromSection)?.role === "group") {
+        // The owner as drawn now (the part keeps the one it was selected on, which the canvas may have drawn anew).
+        const row = rowPartAtPoint(picked.hit, event.clientX, event.clientY);
+        if (row) {
+          choosePart(row);
+          return;
+        }
+      }
       if (before.part && current) {
-        const deeper = drillPart(picked.hit, target, current);
+        // A data item or a Section-Title selected (a Sidebar row): its text next, as the double-click that selected it
+        // promised (Figma's text layer inside the instance), not its own frame again.
+        const live = livePart(picked.hit, current);
+        const unit = live && (dataItemRootOf(live) || dataGroupOfPart(live)?.role === "title") ? live : null;
+        if (unit && tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
+        // The next nested instance in it first (Sub-Action › Leading-Icon, as Figma goes one level in), else its parts.
+        let deeper = drillNested(picked.hit, target, current) ?? drillPart(picked.hit, target, current);
+        // Its root node draws the same box: one level more (Figma has no such step).
+        if (unit && deeper && deeper.element === unit.element) deeper = drillPart(picked.hit, target, deeper) ?? deeper;
         if (deeper) choosePart(deeper);
         // The innermost part: its text (the owner's) is edited in place (edit/textEdit.ts).
         else tryStartTextEdit(event.clientX, event.clientY, picked.hit.src);
@@ -674,9 +854,25 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         studioStore.setState({ inspectorTab: "design" });
         return;
       }
+      // A component that draws sections (a Sidebar's `sections`): the section under the pointer first, then its rows.
+      const section = picked.hit.isComponent ? sectionPartAtPoint(picked.hit, event.clientX, event.clientY) : null;
+      if (section) {
+        choosePart(section);
+        studioStore.setState({ inspectorTab: "design" });
+        return;
+      }
+      // A data-slot item under the cursor (a crumb, a tab, a Sidebar row): Figma's nested instance in the slot comes
+      // before its text, which the next double-click edits (user, 2026-10-10: "click nhiều lần còn chưa click vào được").
+      const item = picked.hit.isComponent ? dataItemOfPart(deepPartAt(picked.hit, target)) : null;
+      if (item) {
+        choosePart(item.part);
+        studioStore.setState({ inspectorTab: "design" });
+        return;
+      }
       // Text the selected element writes itself (a text child or a string prop): edit it in place, Figma-like.
       if (tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
-      const part = picked.hit.isComponent ? deepPartAt(picked.hit, target) : null;
+      // One level in: the outermost nested instance under the pointer (Card › Sub-Action), else the deepest part.
+      const part = picked.hit.isComponent ? outerNestedAt(picked.hit, target) ?? deepPartAt(picked.hit, target) : null;
       if (part) {
         choosePart(part);
         return;
@@ -698,6 +894,41 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const state = studioStore.getState();
       if (state.presenting || state.selection?.kind !== "node") return;
       const current = state.selection;
+      // A layer inside a nested instance (a Badge's label) → that instance, one level up as in Figma.
+      const nestedPart = event.key === "Escape" && current.part && partRef.current ? livePart(partRef.current.owner, partRef.current) : null;
+      const parentLayer = nestedPart && !dataItemRootOf(nestedPart) ? parentLayerOf(nestedPart) : null;
+      if (parentLayer && !dataItemOfPart(nestedPart)) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(parentLayer);
+        return;
+      }
+      // A Table's content → its Cell → its Data-Row (then the Table, as any part goes to its owner).
+      const up = event.key === "Escape" ? tableUp(selectedRef.current, partRef.current) : null;
+      if (up) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(up.part);
+        return;
+      }
+      // A layer inside a data item (a Sidebar row's button or label) → the item, one level up as in Figma.
+      const selectedPart = partRef.current ? livePart(partRef.current.owner, partRef.current) : null;
+      const item = event.key === "Escape" && current.part && selectedPart ? dataItemOfPart(selectedPart) : null;
+      if (item && selectedPart && !dataItemRootOf(selectedPart)) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(item.part);
+        return;
+      }
+      // A Sidebar row or Section-Title → its section (Figma's parent frame in the slot), then the section → the Sidebar.
+      const section = event.key === "Escape" && current.part && selectedPart && (dataItemRootOf(selectedPart) || dataGroupOfPart(selectedPart)?.role === "title")
+        ? groupPartAt(selectedPart.owner, selectedPart.element) : null;
+      if (section && selectedPart && section.element !== selectedPart.element) {
+        event.preventDefault();
+        multiSelection.clear();
+        choosePart(section);
+        return;
+      }
       if (event.key === "Escape" && current.part) {
         // A part → its owner.
         event.preventDefault();
@@ -709,7 +940,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         event.preventDefault();
         const hit = selectedRef.current;
         const frame = frameElement(world, current.frameId);
-        const parent = hit ? parentHit(hit, frame) : null;
+        // Several layers selected: their common parent (Figma), the first ancestor holding every one of them.
+        const others = world ? multiSelection.get().map((layer) => findBySrc(world, layer.src)[layer.instance]).filter((other): other is FiberHit => Boolean(other)) : [];
+        const holdsAll = (candidate: FiberHit) => others.every((other) => other.hosts.every((host) => candidate.hosts.some((owner) => owner.contains(host))));
+        let parent = hit ? parentHit(hit, frame) : null;
+        while (parent && others.length && !holdsAll(parent)) parent = parentHit(parent, frame);
         if (parent && parent.hosts.length && (!frame || frame.contains(parent.hosts[0]))) choose(parent, false);
         else {
           multiSelection.clear();
@@ -720,6 +955,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         if (target?.closest("button, a[href], [role='button'], [role='tab'], [role='treeitem'], [role='radio'], [role='option'], [role='menuitem']")) return;
         // A text layer (its source holds only text): Enter edits it, text selected (Figma).
         if (!partRef.current && startTextEditOnSelection()) { event.preventDefault(); return; }
+        // A text layer inside an instance (its owner's prop or text child): Enter edits it in place too.
+        // The part as drawn now (an edit draws the instance anew; the part kept its old node).
+        const current = partRef.current ? livePart(selectedRef.current ?? partRef.current.owner, partRef.current) ?? partRef.current : null;
+        const textPart = current && !current.isComponent && ownsText(current.element) ? current : null;
+        if (textPart && startTextEditOnPart(textPart.element, textPart.owner.src)) { event.preventDefault(); return; }
         const hit = selectedRef.current;
         const part = partRef.current;
         // A part → its first part; an element → its first child element, else (a component) its first part.
@@ -773,6 +1013,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         onPassPointerDown={onPointerDown}
         onPassPointerMove={trackPointer}
         onPassDoubleClick={onDoubleClick}
+        onPassContextMenu={onContextMenu}
       />
       <ResizeLayer
         box={overlay.selected}
@@ -783,6 +1024,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       />
       {overlay.instances.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="instance" style={style(box)} />)}
       {overlay.extras.map((box, index) => <div key={`e${index}`} className="studio-selection__outline" data-kind="extra" style={style(box)} />)}
+      {overlay.items.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="extra-item" style={style(box)} />)}
       {overlay.owner ? <div className="studio-selection__outline" data-kind="owner" style={style(overlay.owner)} /> : null}
       {hover ? (
         <div className="studio-selection__outline" data-kind="hover" style={style(hover)}>
@@ -796,7 +1038,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         <div className="studio-selection__outline" data-kind="selected" style={style(selected)}>
           <span className="studio-selection__tag" data-place={selected.y < 24 ? "below" : "above"}>
             <span className={typographyStyles["Caption/Medium"]}>{selected.name}</span>
-            <span className={`studio-selection__tag-src ${typographyStyles["Caption/Regular"]}`}>{selected.meta}</span>
+            {selected.meta ? <span className={`studio-selection__tag-src ${typographyStyles["Caption/Regular"]}`}>{selected.meta}</span> : null}
           </span>
         </div>
       ) : null}

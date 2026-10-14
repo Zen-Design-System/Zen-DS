@@ -12,32 +12,35 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
-import { Icon, type IconName } from "../../../components/Icon";
+import { InlineMessage } from "../../../components/InlineMessage";
+import type { IconName } from "../../../components/Icon";
 import { Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem, type ListBoxTheme } from "../../../components/ListItem";
 import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
-import { Sidebar, SidebarSubMenu, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
+import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
+import { PlatformPhone } from "../../PlatformPhone";
 import {
   activity, daysFromToday, files, formatBytes, formatDate, formatDay, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme,
   invoices, people, peopleList, plans, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks, workspacePlan,
   type Activity, type Invoice, type Person, type PersonId, type Project, type StudioFile, type Task, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, PreviewShell, ShellMain, ShellPage, StudioLogo, StudioMark } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
-import "./sidebar.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "sidebar";
 
 // ——— Shared page parts: every page in these shells is a PageHeader over one List ——————————————————————————————
 type Row = { id: string; title: string; caption: string; leading: ReactNode; trailing?: ReactNode; onClick?: () => void };
 type Canvas = "default" | "alt" | "flat";
-/** Cards follow the page Canvas: a Surface with a Pale border on Default and Flat (a shadow alone never separates it),
- *  Surface/Alt (flat, no shadow on a tinted fill) on Alt. */
-const cardLook: Record<Canvas, { theme: "flat" | "border"; surface?: "alt" }> = { default: { theme: "border" }, alt: { theme: "flat", surface: "alt" }, flat: { theme: "border" } };
+/** Cards follow the Sidebar's elevation, like the ListBox beside them (listBoxLook): the shadow beside the default
+ *  Sidebar on the grey Default canvas, the Pale border on the white Alt and Flat canvases (usage rules §16). */
+const cardLook: Record<Canvas, { theme: "shadow" | "border" }> = { default: { theme: "shadow" }, alt: { theme: "border" }, flat: { theme: "border" } };
 
 const personAvatar = (p: Person) => p.photo
   ? <Avatar size="medium" theme="photo" src={p.photo} alt="" />
@@ -82,7 +85,7 @@ function RowCard({ label, rows, canvas }: { label: string; rows: Row[]; canvas: 
 
 /** The page beside the Sidebar: Container keeps the page margin; one h1 (the PageHeader title), then its content. */
 function Page({ children, ...header }: { title: string; description?: ReactNode; eyebrow?: string; breadcrumbs?: ReactNode; meta?: ReactNode; actions?: ReactNode; children: ReactNode }) {
-  return <Container><Stack gap="xl" className="px-sidebar-page"><PageHeader {...header} />{children}</Stack></Container>;
+  return <ShellPage><PageHeader {...header} />{children}</ShellPage>;
 }
 
 /** A task opened from a list: the Sidebar keeps the list's destination selected, and the trail leads back to it. */
@@ -102,14 +105,14 @@ function TaskPage({ task, from, project, canvas, onBack }: { task: Task; from: s
 }
 
 /** A fixed-height app window: the AppShell fills it, and its navigation drawer (below 1024px) covers the frame. */
-const AppFrame = ({ children, frameRef }: { children: ReactNode; frameRef?: Ref<HTMLDivElement> }) => <div ref={frameRef} className="px-sidebar-frame"><div className="px-sidebar-frame__scroll">{children}</div></div>;
+const AppFrame = ({ children, frameRef }: { children: ReactNode; frameRef?: Ref<HTMLDivElement> }) => <PreviewAppFrame frameRef={frameRef} height={{ min: 520, max: 760 }}>{children}</PreviewAppFrame>;
 
 /* The studio's mark and name. The logo slot has a fixed height (24px; 20px in Small-Density), so the mark is an image that
    fills it and the name uses a text style whose line fits it: nothing grows past the slot at Comfortable density. */
-const studioLogo = <span className="px-sidebar-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>;
-const handbookLogo = <span className="px-sidebar-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Small/Bold">{studio.name}</Text></span>;
+const studioLogo = <StudioLogo src={studio.logo} name={studio.name} />;
+const handbookLogo = <StudioLogo src={studio.logo} name={studio.name} textStyle="Body/Small/Bold" />;
 const studioMark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
-const handbookMark = <img className="px-sidebar-mark" src={studio.logo} alt={studio.name} />;
+const handbookMark = <StudioMark src={studio.logo} name={studio.name} />;
 const openProjects = projects.filter((p) => p.status !== "Completed");
 const tasksOf = (projectId: string) => tasks.filter((t) => t.project === projectId);
 const filesOf = (projectId: string) => files.filter((f) => f.project === projectId);
@@ -118,16 +121,6 @@ const settingsList = (items: { term: string; description: ReactNode }[], canvas:
 /** The studio's plan, from the shared price list: Business, 48 seats, billed monthly. */
 const studioPlan = plans.find((plan) => plan.id === workspacePlan.plan)!;
 const studioSeats = workspacePlan.seats;
-
-/** A footer destination: the app's own button, an icon and a label. On the collapsed rail the Sidebar hides the label
- *  visually but keeps it as the button's name, and shows it as a tooltip like the rail's own items. */
-function FooterButton({ icon, label, current, onClick }: { icon: IconName; label: string; current: boolean; onClick: () => void }) {
-  return (
-    <button type="button" aria-current={current ? "page" : undefined} onClick={onClick}>
-      <Icon name={icon} size="base" /><span>{label}</span>
-    </button>
-  );
-}
 
 // ——— 1. Studio navigation ——————————————————————————————————————————————————————————————————————————————
 const myTaskIds = ["t5", "t2", "t8"]; // assigned to Alex, or waiting for his review
@@ -184,9 +177,6 @@ function StudioNavigationExample() {
       // A dot for "something new" (a comment Alex hasn't seen), cleared once he opens the project.
       items: list.map((p) => ({ id: p.id, label: p.name, icon: p.icon, notificationDot: p.id === "phin-loyalty" && !seen })) },
   ];
-  const footerButton = (id: string, icon: IconName, label: string) => (
-    <FooterButton icon={icon} label={label} current={page === id} onClick={() => go(id)} />
-  );
 
   const project = list.find((p) => p.id === page);
   const task = [...tasks, ...newTasks].find((t) => t.id === taskId);
@@ -238,7 +228,11 @@ function StudioNavigationExample() {
             sections={sections}
             selectedId={page}
             onItemClick={(item) => go(item.id)}
-            footer={<>{footerButton("settings", "icon-settings-01-line", "Settings")}{footerButton("help", "icon-help-circle-line", "Help")}</>}
+            // Figma Footer-Content: Menu-Items like the body's, selected and handled by the same selectedId / onItemClick.
+            footer={<>
+              <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+              <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
+            </>}
           />
         )}
       >
@@ -302,7 +296,7 @@ function ProjectsFlyoutExample() {
 
   return (
     // Canvas/Alt (a white page) → Sidebar background="alt".
-    <div ref={shellRef} className="pe-shell pe-shell--tall px-sidebar-rail-shell" data-canvas="alt">
+    <PreviewShell shellRef={shellRef} canvas="alt" tall keepRow>
       <Sidebar
         background="alt"
         logo={studioLogo}
@@ -327,8 +321,8 @@ function ProjectsFlyoutExample() {
           </SidebarSubMenu>
         ) : undefined}
       />
-      <div className="px-sidebar-main">{content}</div>
-    </div>
+      <ShellMain>{content}</ShellMain>
+    </PreviewShell>
   );
 }
 
@@ -460,13 +454,6 @@ function HandbookNavigationExample() {
 
   const open = (id: string) => { setPage(id); setQuery(""); };
   const docRow = (doc: (typeof allDocs)[number]): Row => ({ id: doc.id, title: doc.title, caption: `${doc.chapter} · Updated ${formatDate(doc.updated)} by ${people[doc.owner].name}`, leading: itemIcon(doc.icon), onClick: () => open(doc.id) });
-  const sections: SidebarSection[] = [
-    { items: [nav("recent", "Recently updated", "icon-clock-line")] },
-    // Chapters open in place (one level deep); the chapter holding the open page opens by itself.
-    { label: "Handbook", items: handbook.map((chapter) => ({ id: chapter.id, label: chapter.label, icon: chapter.icon, children: chapter.docs.map((doc) => ({ id: doc.id, label: doc.title })) })) },
-    { label: "Teams", items: teams.map((t) => nav(t.id, t.label, t.icon)) },
-  ];
-
   const q = query.trim().toLowerCase();
   const doc = allDocs.find((d) => d.id === page);
   const team = teams.find((t) => t.id === page);
@@ -507,11 +494,24 @@ function HandbookNavigationExample() {
           collapsed={collapsed}
           onCollapsedChange={setCollapsed}
           search={<Search size="small" placeholder="Search handbook" aria-label="Search handbook" value={query} onValueChange={setQuery} />}
-          sections={sections}
           selectedId={q ? undefined : page}
           // A chapter opens in place; on the collapsed rail it expands the Sidebar first so its pages show.
           onItemClick={(item) => { if (!handbook.some((chapter) => chapter.id === item.id)) open(item.id); else if (collapsed) setCollapsed(false); }}
-        />
+        >
+          {/* Figma Body-Content as children: Menu-Items and titled groups, the same rows as a sections array. */}
+          <SidebarMenuItem id="recent" label="Recently updated" icon="icon-clock-line" />
+          {/* Chapters open in place (one level deep); the chapter holding the open page opens by itself. */}
+          <SidebarMenuSection label="Handbook">
+            {handbook.map((chapter) => (
+              <SidebarMenuItem key={chapter.id} id={chapter.id} label={chapter.label} icon={chapter.icon}>
+                {chapter.docs.map((doc) => <SidebarMenuItem key={doc.id} id={doc.id} label={doc.title} />)}
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenuSection>
+          <SidebarMenuSection label="Teams">
+            {teams.map((t) => <SidebarMenuItem key={t.id} id={t.id} label={t.label} icon={t.icon} />)}
+          </SidebarMenuSection>
+        </Sidebar>
       )}>
         {content}
       </AppShell>
@@ -583,7 +583,94 @@ function LinksForRoutingExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+/** On a phone the Sidebar is the AppShell drawer: the menu button slides it in over a scrim; a pick closes it. */
+const phonePages: Record<string, { title: string; caption: string }> = {
+  home: { title: "Home", caption: "Due this week across your projects" },
+  inbox: { title: "Inbox", caption: "Mentions, approvals and comments" },
+  projects: { title: "Projects", caption: "Everything the studio is working on" },
+  reports: { title: "Reports", caption: "Hours and budgets by project" },
+};
+function SidebarOnPhone() {
+  const [page, setPage] = useState("home");
+  const sections: SidebarSection[] = [{ items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line", counter: 3 },
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line" },
+  ] }];
+  const current = phonePages[page];
+  const due = tasks.filter((t) => t.status !== "Done").slice(0, 4);
+  return (
+    <PlatformPhone label="Zen app">
+      <AppShell layout="drawer" sidebar={<Sidebar logo={studioLogo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+        <Container>
+          <Stack gap="lg" paddingY="md">
+            <PageHeader title={current.title} description={current.caption} />
+            <List aria-label={`${current.title} tasks`}>
+              {due.map((t) => <ListItem key={t.id} title={t.title} caption={`${projectById(t.project).name} · ${formatDue(t.due)}`} />)}
+            </List>
+          </Stack>
+        </Container>
+      </AppShell>
+    </PlatformPhone>
+  );
+}
+
+/** A member on the Starter plan: destinations the plan doesn't include stay in the Sidebar, disabled, so people learn
+ *  they exist; an empty Inbox shows no counter. Upgrading turns them on. */
+function SidebarStates() {
+  const { toast } = useToast();
+  const [page, setPage] = useState("home");
+  const [business, setBusiness] = useState(false);
+  const sections: SidebarSection[] = [
+    { items: [
+      { id: "home", label: "Home", icon: "icon-home-03-line" },
+      // Nothing waits in the Inbox, so it has no counter and no dot.
+      { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line" },
+      { id: "projects", label: "Projects", icon: "icon-folder-line" },
+    ] },
+    { label: "Business plan", items: [
+      { id: "invoices", label: "Invoices", icon: "icon-receipt-line", disabled: !business },
+      { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line", disabled: !business },
+    ] },
+  ];
+  const upgrade = () => { setBusiness(true); toast({ type: "positive", title: "Switched to Business", children: "Invoices and Reports are on in the Sidebar." }); };
+  let content: ReactNode;
+  if (page === "inbox") {
+    content = (
+      <Page title="Inbox" description="Mentions, approvals and comments">
+        <EmptyState headingLevel={2} illustration={false} icon="ic-inbox-01-line" title="You're all caught up"
+          secondaryAction={{ label: "Open projects", onClick: () => setPage("projects") }}>New mentions and approvals show up here.</EmptyState>
+      </Page>
+    );
+  } else if (page === "projects") {
+    content = <Page title="Projects" description={plural(openProjects.length, "open project")}><RowCard label="Projects" rows={openProjects.map(projectRow)} canvas="default" /></Page>;
+  } else if (page === "invoices") {
+    content = <Page title="Invoices" description="Sent, paid and overdue this quarter"><RowCard label="Invoices" rows={invoices.map(invoiceRow)} canvas="default" /></Page>;
+  } else if (page === "reports") {
+    content = <Page title="Reports" description="Hours and budgets by project"><RowCard label="Reports" rows={openProjects.map(projectRow)} canvas="default" /></Page>;
+  } else {
+    content = (
+      <Page title="Home" description="Due this week across your projects">
+        {business ? null : (
+          <InlineMessage theme="neutral" title="Invoices and Reports are on the Business plan" action={{ label: "Switch to Business", onClick: upgrade }}>
+            They stay in the Sidebar, disabled, until the workspace switches plans.
+          </InlineMessage>
+        )}
+        <RowCard label="Due this week" rows={dueThisWeek.map((t) => taskRow(t, () => setPage("projects")))} canvas="default" />
+      </Page>
+    );
+  }
+  return (
+    <AppFrame>
+      <AppShell sidebar={<Sidebar logo={studioLogo} logoCollapsed={studioMark} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+        {content}
+      </AppShell>
+    </AppFrame>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio navigation",
     description: "The app’s main Sidebar in an AppShell: counters for things to act on, a dot for something new, New project on the Projects title, and Settings and Help in the footer. A task opened from a list keeps that destination selected; below 1024px the shell opens the Sidebar as a drawer.",
@@ -592,16 +679,6 @@ export const examples: ExampleDef[] = [
     render: () => <StudioNavigationExample />,
     code: `const [page, setPage] = useState("home");
 const [collapsed, setCollapsed] = useState(false); // remember it per person
-
-// A footer destination: icon + label. On the collapsed rail the Sidebar hides the label visually, keeps it as the
-// button's name and shows it as a tooltip.
-function FooterButton({ icon, label, current, onClick }) {
-  return (
-    <button type="button" aria-current={current ? "page" : undefined} onClick={onClick}>
-      <Icon name={icon} size="base" /><span>{label}</span>
-    </button>
-  );
-}
 
 <AppShell sidebar={
   <Sidebar
@@ -622,9 +699,10 @@ function FooterButton({ icon, label, current, onClick }) {
         action: <IconButton appearance="flat" level="primary" size="sm" aria-label="New project" icon="icon-plus-line" onClick={openNewProject} />,
         items: projects.map((p) => ({ id: p.id, label: p.name, icon: p.icon, notificationDot: p.hasUnseenComments })) },
     ]}
+    // Footer-Content takes the same Menu-Items: selectedId and onItemClick cover them too.
     footer={<>
-      <FooterButton icon="icon-settings-01-line" label="Settings" current={page === "settings"} onClick={() => setPage("settings")} />
-      <FooterButton icon="icon-help-circle-line" label="Help" current={page === "help"} onClick={() => setPage("help")} />
+      <SidebarMenuItem id="settings" label="Settings" icon="icon-settings-01-line" />
+      <SidebarMenuItem id="help" label="Help" icon="icon-help-circle-line" />
     </>}
   />
 }>
@@ -709,17 +787,22 @@ const focusProjects = () => projectsItemRef.current?.focus();
     collapsed={collapsed}
     onCollapsedChange={setCollapsed}
     search={<Search size="small" placeholder="Search handbook" aria-label="Search handbook" value={query} onValueChange={setQuery} />}
-    sections={[
-      { items: [{ id: "recent", label: "Recently updated", icon: "icon-clock-line" }] },
-      { label: "Handbook", items: chapters.map((c) => ({
-        id: c.id, label: c.label, icon: c.icon,
-        children: c.docs.map((doc) => ({ id: doc.id, label: doc.title })),
-      })) },
-      { label: "Teams", items: teams },
-    ]}
     selectedId={page} // opens the chapter that holds the page
     onItemClick={(item) => { if (!isChapter(item.id)) setPage(item.id); }}
-  />
+  >
+    {/* Body-Content as children (or the same rows as a sections array) */}
+    <SidebarMenuItem id="recent" label="Recently updated" icon="icon-clock-line" />
+    <SidebarMenuSection label="Handbook">
+      {chapters.map((c) => (
+        <SidebarMenuItem key={c.id} id={c.id} label={c.label} icon={c.icon}>
+          {c.docs.map((doc) => <SidebarMenuItem key={doc.id} id={doc.id} label={doc.title} />)}
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenuSection>
+    <SidebarMenuSection label="Teams">
+      {teams.map((t) => <SidebarMenuItem key={t.id} id={t.id} label={t.label} icon={t.icon} />)}
+    </SidebarMenuSection>
+  </Sidebar>
 }>
   {query ? <SearchResults query={query} /> : <HandbookPage id={page} />}
 </AppShell>`,
@@ -758,4 +841,48 @@ const section = pathname.split("/")[1]; // "/projects/lumen-banking" → "projec
   <Routes />
 </AppShell>`,
   },
+  {
+    title: "Disabled and empty items",
+    description: "On the Starter plan, Invoices and Reports stay in the Sidebar but disabled: people see what the Business plan adds, the items skip clicks and keep their place, and Switch to Business turns them on. An empty Inbox shows no counter or dot, and its page says it is empty instead of showing a blank list.",
+    wide: true,
+    screen: true,
+    render: () => <SidebarStates />,
+    code: `const sections: SidebarSection[] = [
+  { items: [
+    { id: "home", label: "Home", icon: "icon-home-03-line" },
+    { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line" }, // nothing waiting: no counter
+    { id: "projects", label: "Projects", icon: "icon-folder-line" },
+  ] },
+  { label: "Business plan", items: [
+    { id: "invoices", label: "Invoices", icon: "icon-receipt-line", disabled: !business },
+    { id: "reports", label: "Reports", icon: "icon-bar-chart-01-line", disabled: !business },
+  ] },
 ];
+
+<AppShell sidebar={<Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+  <Container>
+    <PageHeader title="Home" description="Due this week across your projects" />
+    {!business && (
+      <InlineMessage theme="neutral" title="Invoices and Reports are on the Business plan"
+        action={{ label: "Switch to Business", onClick: upgrade }}>
+        They stay in the Sidebar, disabled, until the workspace switches plans.
+      </InlineMessage>
+    )}
+    {/* … */}
+  </Container>
+</AppShell>`,
+  },
+  {
+    title: "On a phone",
+    description: "On a phone the same Sidebar is the AppShell drawer: the menu button slides it in, floating over a scrim, with focus on the current page; a pick, Escape or the scrim closes it and the page below changes.",
+    render: () => <SidebarOnPhone />,
+    code: `// Under 1024px the shell does this by itself (layout="auto"); "drawer" pins it for a phone-only app.
+<AppShell layout="drawer"
+  sidebar={<Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />}>
+  <Container>
+    <PageHeader title={current.title} description={current.caption} />
+    <List aria-label={\`\${current.title} tasks\`}>{/* rows */}</List>
+  </Container>
+</AppShell>`,
+  },
+]);

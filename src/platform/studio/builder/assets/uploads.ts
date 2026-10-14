@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { activeMirror, ASSETS, run } from "../store/pageStore";
+import { activeMirror, ASSETS, run, type PageMirror } from "../store/pageStore";
 
 /*
  * Uploaded photos (Studio builder GĐ5 M4, spec docs/research/studio-builder-handoff-spec-2026-10-07.md §3d, the user's Q4:
@@ -86,6 +86,35 @@ export async function uploadPhotos(files: File[]): Promise<{ added: Upload[]; re
     added.push(uploads.get(id) ?? (await putAsset(id, file, file.name)));
   }
   return { added, refused };
+}
+
+/**
+ * Removes an uploaded photo (Assets › Photos): from this browser, and to the connected folder's trash (never deleted
+ * there). A page that still names it shows "Missing photo" until it gets another (Assets › Photos asks before it removes one).
+ */
+export async function removeUpload(id: string): Promise<void> {
+  await loadUploads();
+  await run(ASSETS, "readwrite", (store) => store.delete(id));
+  const known = uploads.get(id);
+  if (known) URL.revokeObjectURL(known.url);
+  uploads.delete(id);
+  notify();
+  await activeMirror()?.trashAsset?.(id).catch(() => undefined);
+}
+
+/** A folder just connected gets every uploaded photo its assets/ lacks (the ones uploaded before it was linked). */
+export async function copyUploadsTo(mirror: PageMirror): Promise<number> {
+  if (!mirror.writeAsset) return 0;
+  await loadUploads();
+  let copied = 0;
+  for (const id of uploads.keys()) {
+    if (await mirror.readAsset?.(id).catch(() => null)) continue;
+    const blob = await assetBlob(id);
+    if (!blob) continue;
+    await mirror.writeAsset(id, blob).catch(() => undefined);
+    copied += 1;
+  }
+  return copied;
 }
 
 /** A photo's object URL in this Studio; null until it has loaded, or when this browser does not have it. */

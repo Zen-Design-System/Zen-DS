@@ -36,22 +36,24 @@ The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcru
 Generated from the TypeScript source; full JSON in `docs/api/app-shell.json`.
 
 ### AppShell
-The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform): Sidebar navigation, a sticky top bar (Header/Dashboard Type=Navigation 4122:33400), the page, and optional banner, docked side panel and floating action, with a "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer. Top bar: Margin-Comfortable top and sides, Spacing/Padding/XSmall bottom, a Button/Size/Medium row; toggle → content Spacing/Gap/XSmall, leading → trailing Spacing/Gap/Medium, trailing actions Spacing/Gap/Small. <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}> `<Container>`<PageHeader title="Team members" /> …`</Container>` `</AppShell>`
+The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform): Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer. Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots, `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on desktop, as Figma's Navigation row). <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}> `<Container>`<PageHeader title="Team members" /> …`</Container>` `</AppShell>`
 
 Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `sidebar` | `ReactNode` | — | Left navigation, usually `<Sidebar>`. When the shell is 1024px or wider it sits beside the content, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. |
-| `header` | `ReactNode` | — | Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
+| `sidebar` | `ReactNode` | — | Left navigation, usually `<Sidebar>`. When the shell is 1024px or wider it sits beside the content, expanded or collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the shell's rail and drawer by itself, also when it is wrapped in a component of your own. |
+| `header` | `ReactNode` | — | Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search. |
+| `headerCenter` | `ReactNode` | — | Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the leading content and the actions, e.g. a Search. |
+| `sections` | `ReactNode` | — | Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main), a toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding (Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page. |
 | `headerActions` | `ReactNode` | — | Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help), then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader. |
 | `banner` | `ReactNode` | — | A full-width message strip above the whole shell, usually `<AlertBanner>` (trial ending, maintenance, offline). It stays in view while the page scrolls. |
 | `aside` | `ReactNode` | — | A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other content stacks under the page. |
-| `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. |
+| `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. |
 | `footer` | `ReactNode` | — | A sticky bar at the bottom of the main column, e.g. an ActionBar. |
 | `canvas` | `"default" \| "alt" \| "flat"` | `"default"` | Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). |
 | `sidebarCollapsed` | `boolean` | — | Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. |
-| `defaultSidebarCollapsed` | `boolean` | — | Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded. |
+| `defaultSidebarCollapsed` | `boolean` | — | Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the Sidebar's `collapsed` moves the rail too. |
 | `onSidebarCollapsedChange` | `(collapsed: boolean) => void` | — | Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits. |
 | `sidebarToggle` | `boolean` | `true` | The collapse toggle at the start of the top bar (Figma HR-Platform: icon-layout-left before the Breadcrumbs). Default true: shown when the shell has a top bar (`header` or `headerActions`) and a Sidebar that can collapse. A Sidebar with its own `onCollapsedChange` keeps its header control instead. |
 | `navOpen` | `boolean` | — | Drawer state when controlled (narrow shells). |
@@ -61,6 +63,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `mainId` | `string` | — | id of `<main>`, the target of the "Skip to content" link. Default: a generated unique id. |
 | `layout` | `"auto" \| "sidebar" \| "drawer"` | `"auto"` | Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests. |
 | `children` | `ReactNode` | — | The page. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio; app code keeps the defaults. |
 
 ### AppShellAction
 Figma Primitives/Dashboard/Header/Action-Item (12280:19532): a top-bar icon action with an optional Primitives/Notification-Dot (4116:21789). Dot 8px, Number Badge/Size/2XSmall high with Label/Small/Medium text, both on Color/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right. It forwards its ref and props to the button, so it can be a <Menu trigger>.
@@ -76,6 +79,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `tone` | `"default" \| "active" \| "accent"` | `"default"` | Figma Notification-Dot Theme: `default` Negative (needs attention) · `active` Positive · `accent`. |
 | `appearance` | `"tertiary" \| "flat"` | `"tertiary"` | Figma Theme: `tertiary` (Button/Icon-Main Medium Tertiary, 40px) · `flat` (Button/Icon-Flat Medium Primary: a 20px glyph with a 40px hit area). |
 | `tooltip` | `ReactNode \| false` | — | Tooltip text. Default: `aria-label` (without the count). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio; app code sets icon / appearance. |
 
 ### AppShellAccount
 The account button at the end of the top bar: Figma Avatar/Single Circle Medium (Image-Size/Medium) as a button. Put it in a Menu for the account actions: `<Menu align="end" trigger={<AppShellAccount name="Ava Chen" src={photo} />} items={…} />`. Keyboard focus shows the Avatar's own focus ring.
@@ -87,6 +91,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `name` (required) | `string` | — | The signed-in person's name: the accessible name (“Account: Ava Chen”), the tooltip and the initials without a photo. |
 | `src` | `string` | — | Photo URL (Figma Avatar/Single Theme=Photo). |
 | `theme` | `Exclude<AvatarTheme, "photo">` | `"neutral"` | Initials colour without a photo. Default neutral. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio; app code sets src / theme. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### Types
@@ -127,10 +132,12 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `icon-button/needs-action` | warn | An IconButton (and AppShell's top-bar AppShellAction / AppShellAccount) does something: it has onClick (or href, or type="submit"), unless it is a Menu trigger (the Menu wires it). | `zen-allow-no-action: <reason>` |
 | `app-shell/primary-in-top-bar` | warn | The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions. | `zen-allow-top-bar-primary: <reason>` |
 | `app-shell/nested` | error | One AppShell per screen: a shell inside another shell repeats the navigation, the top bar and <main>. | `zen-allow-nested-shell: <reason>` |
 | `app-shell/breadcrumbs-once` | warn | Breadcrumbs appear once: in the top bar (header, the HR-Platform pattern) or in the PageHeader, never both. | `zen-allow-breadcrumbs-twice: <reason>` |
 | `app-shell/forced-layout` | warn | An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px); layout="sidebar" or "drawer" is for previews and tests. (App mode only.) | `zen-allow-forced-layout: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

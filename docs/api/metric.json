@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "metric",
-  "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
+  "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Metric",
@@ -95,7 +95,47 @@
           "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
           "required": false,
           "default": null,
-          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": "false",
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
           "deprecated": null
         },
         {
@@ -104,6 +144,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
           "deprecated": null
         }
       ]
@@ -200,7 +248,47 @@
           "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
           "required": false,
           "default": null,
-          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
           "deprecated": null
         },
         {
@@ -212,8 +300,16 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
+          "deprecated": null
+        },
+        {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",
@@ -225,31 +321,6 @@
           "required": false,
           "default": null,
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
-          "deprecated": null
-        }
-      ]
-    },
-    {
-      "name": "MetricTrend",
-      "file": "src/components/MetricWidget/MetricWidget.tsx",
-      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral.",
-      "deprecated": null,
-      "extends": null,
-      "props": [
-        {
-          "name": "trend",
-          "type": "\"positive\" | \"negative\" | \"normal\"",
-          "required": false,
-          "default": "\"normal\"",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "children",
-          "type": "ReactNode",
-          "required": true,
-          "default": null,
-          "description": "",
           "deprecated": null
         }
       ]

@@ -9,6 +9,8 @@ import { Breadcrumbs } from "../components/Breadcrumbs";
 import { Button, IconButton } from "../components/Button";
 import { Checkbox } from "../components/Checkbox";
 import { Chip } from "../components/Chip";
+import { DashboardHeader } from "../components/DashboardHeader";
+import { ChipGroup } from "../components/ChipGroup";
 import { Icon } from "../components/Icon";
 import { InputField } from "../components/Input";
 import { Popover, PopoverItem, PopoverManualAddNew } from "../components/Popover";
@@ -34,8 +36,9 @@ import { EmptyState } from "../components/EmptyState";
 import { Stepper } from "../components/Stepper";
 import { Slider } from "../components/Slider";
 import { Card } from "../components/Card";
+import { AiVoiceConversation, VoiceRecorder } from "../components/Voice";
 import { DockIcon } from "../components/DockIcon";
-import { List, ListItem } from "../components/ListItem";
+import { List, ListItem, ToggleListItem } from "../components/ListItem";
 import { Table, TableText } from "../components/Table";
 import { Rating, RatingDisplay } from "../components/Rating";
 import { ColorSelector } from "../components/ColorSelector";
@@ -45,7 +48,7 @@ import { TopNavigation } from "../components/TopNavigation";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { ChatMessage, ChatThread } from "../components/Chat";
 import { AiChatBubble } from "../components/AiChat";
-import { LineChart, StackBarChart } from "../components/Chart";
+import { BarChart, DonutChart, LineChart, StackBarChart } from "../components/Chart";
 import { FormFieldset } from "../components/Form";
 import { ActionBar } from "../components/ActionBar";
 import { DescriptionList } from "../components/DescriptionList";
@@ -117,6 +120,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide pgv-stack"><Button level="tertiary" size="xs">Simulate an upload</Button></div>, caption: "A Small button stretched edge to edge reads as a bar, not an action." } },
   ],
   chip: [
+    // Backlog batch B (2026-10-07): Figma has no master for these compositions; they reuse Chip/Normal Primary and List-Item + Toggle-Button.
+    { do: { preview: <Row><ChipGroup aria-label="Repeat" defaultValue="weekly" options={[{ value: "daily", label: "Daily" }, { value: "weekly", label: "Weekly" }, { value: "monthly", label: "Monthly" }]} /></Row>, caption: "One choice from a few: ChipGroup is a radio group — one Tab stop, the arrows move the choice, and only one chip is ever on." },
+      dont: { preview: <Row><Chip level="primary" selected onClick={noop}>Daily</Chip><Chip level="primary" selected onClick={noop}>Weekly</Chip><Chip level="primary" onClick={noop}>Monthly</Chip></Row>, caption: "Separate toggle chips for a single choice let two be on at once and read as toggles to assistive tech." } },
     { do: { preview: <Row><Chip variant="advanced" size="medium" dropdown>Status</Chip><Chip variant="advanced" size="medium" select selectionMode="multiple" selectionCount={2} onClearSelection={noop}>Owner</Chip></Row>, caption: "Filters are Advanced chips — one per dimension, with a counter for multiple." },
       dont: { preview: <Row><Button level="secondary" size="sm" endIcon={<Icon name="icon-chevron-down-line" decorative />}>Filter by status</Button></Row>, caption: "Never open a filter from a Button." } },
     { do: { preview: <Row><Chip variant="advanced" size="medium" dropdown>Status</Chip><Search placeholder="Filter tasks" /></Row>, caption: "Pair Search with Chip filters in a toolbar." },
@@ -131,6 +137,12 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><InputField label="Workspace ID" disabled value="zen-7f3k2" /></div>, caption: "Disabled text is faint, skipped by Tab and can't be copied: a value to read is Read-only." } },
     { do: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Enter a full address, like name@company.com" /></div>, caption: "Errors say how to fix the value." },
       dont: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Invalid input" /></div>, caption: "A generic error leaves users guessing." } },
+  ],
+  "dashboard-header": [
+    { do: { preview: <div className="pgv-wide"><DashboardHeader search={<Search size="md" placeholder="Search leave requests" />} controls={<Chip variant="advanced" dropdown>Status</Chip>} actions={<Button level="primary" size="sm">Submit leave</Button>} /></div>, caption: "Filters are Chips beside the Search; the page's action sits at the end." },
+      dont: { preview: <div className="pgv-wide"><DashboardHeader search={<Search size="md" placeholder="Search leave requests" />} controls={<Button level="tertiary" size="sm" endIcon="icon-chevron-down-line">Status</Button>} actions={<Button level="primary" size="sm">Submit leave</Button>} /></div>, caption: "A Button as a filter reads as an action." } },
+    { do: { preview: <div className="pgv-wide"><DashboardHeader subheading="96 results" actions={<><Button level="tertiary" size="sm">Export report</Button><Button level="primary" size="sm">Submit leave</Button></>} /></div>, caption: "One Primary, after the Tertiary actions." },
+      dont: { preview: <div className="pgv-wide"><DashboardHeader subheading="96 results" actions={<><Button level="primary" size="sm">Export report</Button><Button level="primary" size="sm">Submit leave</Button></>} /></div>, caption: "Two Primaries leave no main action." } },
   ],
   search: [
     { do: { preview: <div className="pgv-field"><Search placeholder="Search components" /></div>, caption: "Say what is being searched." },
@@ -262,7 +274,15 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
     { do: { preview: <Row><DockIcon icon="icon-folder-line" theme="yellow" background="subtle" /><DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" /><DockIcon icon="icon-colors-line" theme="purple" background="subtle" /></Row>, caption: "One size and one background per list; colour maps to a category." },
       dont: { preview: <Row><DockIcon icon="icon-folder-line" theme="yellow" size="large" /><DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" size="small" /><DockIcon icon="icon-colors-line" theme="accent" size="medium" /></Row>, caption: "Mixed sizes and fills read as noise." } },
   ],
+  voice: [
+    { do: { preview: <Card theme="border" spacing="sm" className="pgv-voice"><VoiceRecorder state="paused" elapsed="00:24.18" start="00:16" end="00:24" onRecord={noop} onPause={noop} onResume={noop} onFinish={noop} onDiscard={noop} /></Card>, caption: "On a Card, every action wired: the main action follows the state, Discard and Finish work once there is a take." },
+      dont: { preview: <div className="pgv-voice"><VoiceRecorder state="paused" elapsed="00:24.18" start="00:16" end="00:24" onRecord={noop} onPause={noop} onResume={noop} /></div>, caption: "Bare on the page and without Finish / Discard handlers: the frame is transparent and two buttons do nothing." } },
+    { do: { preview: <Card theme="border" spacing="sm" className="pgv-voice"><AiVoiceConversation state="ready" transcript="“Help me plan a calm start to my day.”" onStart={noop} onDone={noop} onInterrupt={noop} onEnd={noop} /></Card>, caption: "Ready: the microphone stays off until Start talking; Mute and End wait for the conversation." },
+      dont: { preview: <Card theme="border" spacing="sm" className="pgv-voice"><AiVoiceConversation state="listening" heading="Listening" guidance="" onStart={noop} onDone={noop} onInterrupt={noop} onEnd={noop} /></Card>, caption: "Listening the moment the page opens, with no guidance or transcript: people do not know the microphone is on." } },
+  ],
   "list-item": [
+    { do: { preview: <div className="pgv-field"><List aria-label="Email"><ToggleListItem title="Daily digest" caption="One email at 8:00 am" defaultChecked /></List></div>, caption: "A switch row is one target: ToggleListItem flips the switch from anywhere on the row, and the title names it." },
+      dont: { preview: <div className="pgv-field"><List aria-label="Email"><ListItem title="Daily digest" caption="One email at 8:00 am" trailing={<ToggleButton aria-label="Daily digest" defaultChecked />} /></List></div>, caption: "A static row with a bare switch: only the small track flips it, and the title is not its label." } },
     { do: { preview: <div className="pgv-field"><List aria-label="Team"><ListItem title="Ava Chen" caption="Product Designer" leading={<Avatar size="medium" theme="blue" alt="">AC</Avatar>} onClick={noop} trailing={<IconButton appearance="flat" level="primary" size="md" aria-label="Message Ava Chen" icon={<Icon name="icon-message-chat-circle-line" />} />} /></List></div>, caption: "The row opens the profile; the trailing Icon-Flat Medium button is its own action (Figma Slot-Actions)." },
       dont: { preview: <div className="pgv-field"><List aria-label="Team"><ListItem title="Ava Chen" caption="Product Designer" leading={<Avatar size="medium" theme="blue" alt="">AC</Avatar>} trailing={<IconButton appearance="flat" level="primary" size="md" aria-label="Open Ava Chen" icon={<Icon name="icon-chevron-right-line-small" />} />} /></List></div>, caption: "Only the small chevron opens the item — make the whole row the target and keep the chevron passive." } },
     { do: { preview: <div className="pgv-field"><List aria-label="Settings"><ListItem title="Notifications" caption="Mentions, replies and reminders" leading={<DockIcon icon="icon-bell-01-line" theme="blue" background="subtle" size="small" />} onClick={noop} trailing={<Icon name="icon-chevron-right-line-small" decorative />} /></List></div>, caption: "Drill-down row: the whole row is the target, the chevron is passive." },
@@ -317,6 +337,10 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide"><StackBarChart aria-label="Budget by quarter" height={180} showLegend={false} series={[{ id: "a", label: "Development" }, { id: "b", label: "Research" }, { id: "c", label: "Marketing" }]} data={[{ label: "Q1", values: { a: 5, b: 2, c: 3 } }, { label: "Q2", values: { a: 6, b: 3, c: 2 } }, { label: "Q3", values: { a: 4, b: 3, c: 3 } }]} /></div>, caption: "Without a legend, colour is the only key." } },
     { do: { preview: <div className="pgv-wide"><LineChart aria-label="Revenue by quarter" height={180} format={(v) => `$${v}K`} data={[{ label: "Q1", value: 9 }, { label: "Q2", value: 15 }, { label: "Q3", value: 13 }, { label: "Q4", value: 23 }]} /></div>, caption: "Formatted values and a named chart the keyboard can explore." },
       dont: { preview: <div className="pgv-wide"><LineChart aria-label="Chart" height={180} data={[{ label: "Design", value: 9 }, { label: "Sales", value: 15 }, { label: "Ops", value: 13 }, { label: "HR", value: 23 }]} /></div>, caption: "A line implies order in time; departments are categories, use bars." } },
+    { do: { preview: <div className="pgv-wide"><BarChart aria-label="Revenue by quarter, Q4 forecast" height={180} format={(v) => `$${v}K`} data={[{ label: "Q1", value: 9 }, { label: "Q2", value: 15 }, { label: "Q3", value: 13 }, { label: "Q4", value: 18, projected: true }]} /></div>, caption: "A forecast is projected: hatched, so it never reads as earned." },
+      dont: { preview: <div className="pgv-wide"><BarChart aria-label="Revenue by quarter" height={180} format={(v) => `$${v}K`} data={[{ label: "Q1", value: 9 }, { label: "Q2", value: 15 }, { label: "Q3", value: 13 }, { label: "Q4", value: 18 }]} /></div>, caption: "Q4 hasn't closed, yet it looks as solid as the quarters that have." } },
+    { do: { preview: <div className="pgv-wide"><DonutChart aria-label="Revenue by client, Q3" size={140} legendPosition="end" format={(v) => `$${v}K`} data={[{ id: "a", label: "Lumen Bank", value: 89 }, { id: "b", label: "Phin & Co", value: 68 }, { id: "c", label: "Mekong Freight", value: 53 }, { id: "d", label: "Other clients", value: 86 }]} /></div>, caption: "Shares of one total, a few slices, each named in the legend." },
+      dont: { preview: <div className="pgv-wide"><DonutChart aria-label="Revenue per month" size={140} legendPosition="end" format={(v) => `$${v}K`} data={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((m, i) => ({ id: m, label: m, value: 70 + i * 5 }))} /></div>, caption: "Months aren't shares of a whole; a trend over time is a line or bars." } },
   ],
   "description-list": [
     { do: { preview: <div className="pgv-field"><DescriptionList items={[{ term: "Subtotal", description: "$134.00" }, { term: "Shipping", description: "$8.00" }, { term: "Total", description: "$142.00", emphasis: true }]} /></div>, caption: "One total closes the sum: Body/Base/Bold under a High rule." },

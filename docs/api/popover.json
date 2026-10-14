@@ -161,6 +161,14 @@
           "default": "false",
           "description": "Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[alex]/Avatar\": { shape: \"square\" }, \"Item[draft]/Badge\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
         }
       ]
     },

@@ -5,6 +5,7 @@ import { InputField, SelectField } from "../../../../components/Input";
 import { Text } from "../../../../components/Text";
 import api from "../../../api.generated.json";
 import { applyEdit, parseSrc } from "../../api";
+import { addFrame as addBoardFrame } from "./addFrame";
 import { InspectorRow, InspectorSection } from "../../inspector/Section";
 import { useStudio } from "../../store";
 import type { EditOp } from "../../types";
@@ -90,14 +91,7 @@ export function PrototypePanel() {
   const src = selection?.kind === "node" ? parseSrc(selection.src) : null;
   const node = src && src.file === file ? findNode(tree, src.loc) : null;
 
-  const addFrame = async (kind: "screen" | "overlay") => {
-    if (!tree?.board) return;
-    const engine = await loadEngine();
-    const id = engine.freeFrameId(kind === "screen" ? "screen" : "overlay", frames.map((frame) => frame.id));
-    const device = frames.find((frame) => frame.kind === "screen")?.device ?? "desktop";
-    const title = kind === "screen" ? `Screen ${id.split("-").at(-1)}` : "Are you sure?";
-    await applyEdit({ file, loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code: engine.frameCode({ kind, id, title, device }) } as EditOp] }, kind === "screen" ? "Add screen" : "Add overlay");
-  };
+  const addFrame = (kind: "screen" | "overlay") => addBoardFrame(localPage, kind);
 
   return (
     <div className="studio-prototype" data-e2e="prototype-panel">
@@ -108,7 +102,7 @@ export function PrototypePanel() {
         <ul className="studio-prototype__frames" aria-label="Screens and overlays">
           {frames.map((frame) => (
             <li key={`${frame.kind}:${frame.id}:${frame.state ?? ""}`} className="studio-prototype__frame">
-              <Icon name={frame.kind === "overlay" ? "icon-layers-three-01-line" : "icon-phone-line"} size="sm" decorative />
+              <Icon name={frame.kind === "overlay" ? "icon-layers-three-01-line" : "icon-mobile-line"} size="sm" decorative />
               <Text as="span" textStyle="Body/Small/Medium" className="studio-prototype__frame-name">{frame.title}</Text>
               <Text as="span" textStyle="Caption/Regular" tone="base">{frame.state ? `${frame.id} · ${frame.state}` : frame.id}</Text>
             </li>

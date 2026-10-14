@@ -61,6 +61,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `labelAction` | `ReactNode` | — | Figma Label `Action`: a right-aligned link or text button ("Reset to default"). |
 | `controlId` | `string` | — | id given to the control (default: generated). The label points at it. |
 | `children` (required) | `ReactElement` | — | Exactly one control. It receives `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` and `aria-required`, so it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio; app code sets label / helpText. |
 
 ### FormFieldset
 A `<fieldset>` + `<legend>` for a group of Checkbox, RadioButton or Toggle rows, with one help text and one error for the whole group. `kind="radio"` makes it a radiogroup. The legend uses the field label style (Body/Small/Regular).
@@ -79,6 +80,7 @@ Also accepts `Omit<FieldsetHTMLAttributes<HTMLFieldSetElement>, "children">`.
 | `required` | `boolean` | `false` | Adds " *" to the legend (and aria-required to a radio group): at least one option must be chosen. |
 | `optional` | `boolean` | `false` | Figma Label `Optional`: appends "(Optional)" to the legend. |
 | `children` | `ReactNode` | — | The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the help text it draws, by layer (`{ "Help-Text": { theme: "warning" } }`). Written by Zen Studio; app code sets helpText. |
 
 ### FormActions
 The footer row of a form. Desktop: Tertiary (cancel) then Primary (submit), on the right. When the form is narrower than 480px, or inside a ZenProvider with breakpoint mobile, the buttons stack full width at size lg with Primary on top (the mobile footer pattern). `sticky` pins the row to the bottom of the scrolling area.
@@ -148,6 +150,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `form/actions-order` | warn | FormActions lists Tertiary (cancel) first and Primary (submit) last; it puts Primary on the right, or on top when the actions stack on a phone. | `zen-allow-actions-order: <reason>` |
 | `form/submit-button` | warn | One Button in FormActions is type="submit" (Zen Buttons default to type="button"), so both the button and Enter in a field submit the form. | `zen-allow-form-submit: <reason>` |
 | `form/toggle-outside-form` | warn | Toggles apply at once, so they never wait for a Form's submit: use a Checkbox for values the submit saves, and keep instant Toggles outside the Form. | `zen-allow-form-toggle: <reason>` |

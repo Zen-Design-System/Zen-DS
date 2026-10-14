@@ -9,7 +9,10 @@ import * as Zen from "../../../index";
 
 type Engine = typeof import("../../../../tools/studio/browser-engine.mjs");
 let loading: Promise<Engine> | null = null;
-export const loadEngine = (): Promise<Engine> => (loading ??= import("../../../../tools/studio/browser-engine.mjs"));
+let loaded: Engine | null = null;
+export const loadEngine = (): Promise<Engine> => (loading ??= import("../../../../tools/studio/browser-engine.mjs").then((engine) => { loaded = engine; return engine; }));
+/** The engine once it has loaded (null before): a render can use it at once instead of waiting a turn for the promise. */
+export const engineNow = (): Engine | null => loaded;
 
 type Detach = typeof import("../../../../tools/studio/browser-detach.mjs");
 let detaching: Promise<Detach> | null = null;
@@ -30,10 +33,16 @@ export const zenComponents: ReadonlySet<string> = new Set(
 );
 
 let options: Record<string, unknown> | null = null;
-/** applyOps options for a page: component modules (all from the package) and required children / props. */
+/**
+ * applyOps options for a page: component modules (all from the package) and required props. A page you make is designed
+ * as freely as in Figma (user, 2026-10-10: "hành vi tự do này áp dụng cho mọi nơi"): a slot's last child goes and a slot
+ * clears even where the TypeScript type requires children (the component draws an empty slot); a required prop (a Menu's
+ * trigger) still stays, since the component cannot draw without it.
+ */
 export async function engineOptions(): Promise<Record<string, unknown>> {
   if (options) return options;
   const engine = await loadEngine();
-  options = { componentModules: new Map([...zenComponents].map((name) => [name, name])), ...engine.requiredFromApi(api) };
+  const { requiredProps } = engine.requiredFromApi(api);
+  options = { componentModules: new Map([...zenComponents].map((name) => [name, name])), requiredChildren: new Set<string>(), requiredProps };
   return options;
 }

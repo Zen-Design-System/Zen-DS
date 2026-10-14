@@ -27,6 +27,7 @@ import {
   tasks, type Person, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./text.css";
 
 export const page: PlatformPage = "text";
@@ -149,15 +150,15 @@ function SecurityChecks() {
           <Heading ref={titleRef} level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Workspace security</Heading>
           <Text textStyle="Caption/Regular" tone="light">Checked today at 6:00 am</Text>
         </Stack>
-        <Stack ref={listRef} as="ul" gap="md" aria-labelledby={titleId} className="px-text-checks">
+        <Stack ref={listRef} as="ul" gap="md" aria-labelledby={titleId}>
           {checks.map((check) => (
             // The icon takes the text's colour and its own shape, so colour is never the only signal. The fix sits
             // under its own line, aligned with the words.
             <Stack as="li" key={check.id} direction="row" gap="2xs" align="start">
               <Text as="span" tone={check.tone} className="px-text-icon"><Icon name={check.icon} size="sm" decorative /></Text>
-              <Stack gap="xs" className="px-text-grow">
+              <Stack gap="xs" width="fill">
                 <Text as="span" tone={check.tone}>{check.text}</Text>
-                {check.action ? <Button level="tertiary" size="sm" className="px-text-start" onClick={check.action.onClick}>{check.action.label}</Button> : null}
+                {check.action ? <Stack align="start"><Button level="tertiary" size="sm" onClick={check.action.onClick}>{check.action.label}</Button></Stack> : null}
               </Stack>
             </Stack>
           ))}
@@ -204,7 +205,7 @@ function CommentItem({ comment }: { comment: Comment }) {
   return (
     <Stack as="li" direction="row" gap="sm" align="start">
       <Avatar size="md" {...avatarOf(author)} />
-      <Stack gap="xs" className="px-text-grow">
+      <Stack gap="xs" width="fill">
         {/* Weight sets the name apart and tone quiets the time; the sizes stay. */}
         <Stack direction="row" gap="2xs" align="baseline" wrap>
           <Text as="span" textStyle="Body/Small/Bold">{author.name}</Text>
@@ -213,9 +214,9 @@ function CommentItem({ comment }: { comment: Comment }) {
         {/* Clamped, the whole comment stays in the DOM, so a screen reader still reads it in full. */}
         <Text ref={textRef} id={textId} truncate={expanded ? undefined : 3}>{comment.text}</Text>
         {overflow || expanded ? (
-          <Button level="tertiary" size="sm" className="px-text-start" aria-expanded={expanded} aria-controls={textId} onClick={() => setExpanded(!expanded)}>
+          <Stack align="start"><Button level="tertiary" size="sm" aria-expanded={expanded} aria-controls={textId} onClick={() => setExpanded(!expanded)}>
             {expanded ? "Show less" : "Show more"}
-          </Button>
+          </Button></Stack>
         ) : null}
       </Stack>
     </Stack>
@@ -231,7 +232,7 @@ function Comments() {
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Comments</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">PHIN-214 · Design the points history screen</Text>
         </Stack>
-        <Stack as="ul" gap="md" aria-labelledby={titleId} className="px-text-checks">
+        <Stack as="ul" gap="md" aria-labelledby={titleId}>
           {comments.map((comment) => <CommentItem key={comment.id} comment={comment} />)}
         </Stack>
       </Stack>
@@ -320,7 +321,7 @@ function PhoneHeadings() {
     return (
       // A tab root: the large title is the screen's h1 (Heading/1) and folds into the bar as the list scrolls.
       <PlatformPhone key="tasks" label="Zen tasks" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* The rows sit in the screen margin (Margin/Comfortable, 20px), so their fill stays 8px off the screen edge; Padding/XSmall (8px, the phone's List-Container-Vertical-Padding) above and below, like a List-Box. */}
         <Box paddingX="lg" paddingY="xs">
@@ -339,7 +340,7 @@ function PhoneHeadings() {
   return (
     // A pushed screen: the compact bar title is its h1 in the bar's own style, so the content starts at h2.
     <PlatformPhone key={task.id} label="Zen tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={task.key} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-task="${task.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
       {screen.anchor}
       <Stack gap="lg" paddingY="lg">
@@ -371,7 +372,7 @@ function PhoneHeadings() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page outline",
     screen: true,
@@ -446,13 +447,13 @@ export const examples: ExampleDef[] = [
 
 {/* Tab root: the large title is the h1 */}
 <PlatformPhone key="tasks" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
   <Box paddingX="lg" paddingY="xs"><List aria-label="Tasks">…</List></Box> {/* rows in the screen margin (20px), Padding/XSmall above and below */}
 </PlatformPhone>
 
 {/* Pushed screen: the compact bar title is the h1, the content starts at h2 */}
 <PlatformPhone key={task.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title={task.key} scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title={task.key} scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
   <Stack gap="lg" paddingY="lg">
     <Stack gap="lg" paddingX="lg">
@@ -469,4 +470,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

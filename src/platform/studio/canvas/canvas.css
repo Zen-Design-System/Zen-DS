@@ -83,6 +83,11 @@
   width: max-content;
   margin-inline: auto;
 }
+/* The toolbar's groups (Figma UI3): a Pale rule between them. */
+.studio-canvas-tools__divider { width: 1px; height: var(--zen-spacing-gap-medium, 16px); margin-inline: var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-pale-default); }
+/* A placement tool (Screen, Stack, Text, Image): the crosshair over the canvas, as Figma's. */
+.studio-viewport[data-studio-placing],
+.studio-viewport[data-studio-placing] * { cursor: crosshair !important; }
 .studio-status {
   right: var(--zen-spacing-padding-medium, 16px);
   bottom: var(--zen-spacing-padding-medium, 16px);

@@ -7,6 +7,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tag.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const tagStates = ["default", "hover", "focused", "error", "disabled"] as const;
 export type TagState = (typeof tagStates)[number];
@@ -27,6 +28,9 @@ export interface TagProps extends Omit<HTMLAttributes<HTMLSpanElement>, "childre
   onRemove?: () => void;
   /** Name of the remove button (default "Remove" and the tag text, from the locale's labels). */
   removeLabel?: string;
+  /** Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio;
+   *  app code sets photoSrc / leading. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -34,7 +38,8 @@ export interface TagProps extends Omit<HTMLAttributes<HTMLSpanElement>, "childre
  * (a filter) also passes `aria-pressed`, and `aria-pressed={true}` draws it selected (code-only: Figma Tag has no Selected
  * state, so it uses the default Chip's selected tokens — Surface fill, Border/Active 2px, Content Strongest).
  */
-export function Tag({ children, leading, photoSrc, state, error = false, disabled = false, remove = false, onRemove, removeLabel, className, onClick, onKeyDown, ...props }: TagProps) {
+export function Tag({ children, leading, photoSrc, state, error = false, disabled = false, remove = false, onRemove, removeLabel, className, onClick, onKeyDown, overrides, ...props }: TagProps) {
+  const nest = useNested(overrides);
   // onClick makes the tag itself an action (filter by it, open it): focusable, Enter / Space activate it.
   const interactive = Boolean(onClick) && !disabled;
   const theme: TagTheme = photoSrc ? "leading-photo" : leading ? "leading-icon" : "text-only";
@@ -50,9 +55,9 @@ export function Tag({ children, leading, photoSrc, state, error = false, disable
         onKeyDown?.(event);
         if (interactive && event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); event.currentTarget.click(); }
       }}>
-      {photoSrc ? <span className="zen-tag__photo"><Avatar size="2xsmall" theme="photo" background="subtle" src={photoSrc} alt="" /></span> : null}
-      {!photoSrc && leading ? <span className="zen-tag__leading" aria-hidden="true">{renderIcon(leading)}</span> : null}
-      <span className={`zen-tag__label ${typographyStyles["Body/Base/Medium"]}`}>{children}</span>
+      {photoSrc ? <span className="zen-tag__photo">{nest("Avatar", <Avatar size="2xsmall" theme="photo" background="subtle" src={photoSrc} alt="" />)}</span> : null}
+      {!photoSrc && leading ? <span className="zen-tag__leading" aria-hidden="true">{nest("Leading", renderIcon(leading))}</span> : null}
+      <span className={`zen-tag__label ${typographyStyles["Body/Base/Medium"]}`}>{nest.slot(children)}</span>
       {remove ? (
         <button className="zen-tag__remove" type="button" disabled={disabled} aria-label={removeName} {...removeTip.bind({ onClick: (event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); onRemove?.(); } })}>
           <Icon name="icon-x-circle-solid" decorative />{removeTip.tooltip}

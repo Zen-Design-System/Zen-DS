@@ -2,11 +2,28 @@
 .studio-builder-board { display: grid; grid-template-areas: none; grid-template-columns: max-content; grid-template-rows: none; }
 /* zen-allow-raw-spacing: canvas coordinates — frames sit 96 apart, room for their labels when zoomed out (as the board's 128). */
 .studio-builder-board__frames { display: flex; align-items: flex-start; gap: 96px; }
-.studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
+.studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 
 /* A Screen is a page: the Canvas layer, at least a device's height. */
 .studio-builder-screen { display: flow-root; min-height: 900px; border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
 .studio-builder-screen[data-device="phone"] { min-height: 844px; }
+/* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
+   (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */
+.studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }
+.studio-builder-screen__side { display: flex; flex: 0 0 auto; }
+.studio-builder-screen__main { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.studio-builder-screen__content { min-width: 0; flex: 1 1 auto; }
+.studio-builder-screen__header { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+.studio-builder-screen__top { position: sticky; z-index: 1; top: 0; }
+.studio-builder-screen__bottom { position: sticky; z-index: 1; bottom: 0; }
+/* An AppShell on a Screen is a drawing of the whole page, as Figma's frame is: it fills the Screen, and its Sidebar and
+   docked aside span the page's height instead of the browser window's (their sticky 100dvh is for an app that scrolls). */
+.studio-builder-screen:has(> .zen-app-shell) { display: flex; flex-direction: column; }
+.studio-builder-screen > .zen-app-shell { flex: 1 0 auto; min-height: 0; }
+.studio-builder-screen .zen-app-shell__sidebar, .studio-builder-screen .zen-app-shell__aside:not([data-stacked="true"]) { height: auto; }
+/* Screen › Canvas (as AppShell's canvas): Canvas/Alt, a white page; Canvas/Flat. */
+.studio-builder-screen[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt); }
+.studio-builder-screen[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat); }
 .studio-builder-screen[data-device="tablet"] { min-height: 1024px; }
 /* An Overlay frame holds its overlay open; its portal node is where the overlay renders, inside the frame. */
 .studio-builder-overlay { position: relative; min-height: 640px; overflow: hidden; border-radius: inherit; }
@@ -21,6 +38,10 @@
 .studio-pages__storage-text { min-width: 0; flex: 1 1 auto; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-pages__item { position: relative; }
 .studio-pages__item > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-md, 20px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
+/* A name renamed in place (RenameField: double-click a row, or Rename): an input in the row's place, framed like the
+   Inspector's fields, with the focus ring the row uses. */
+.studio-pages__row[data-renaming="true"] { cursor: text; background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.studio-pages__rename { min-width: 0; height: var(--zen-element-size-popular-medium, 24px); flex: 1 1 auto; box-sizing: border-box; margin: 0; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-input-background-default, var(--zen-color-background-neutral-flat-default)); color: var(--zen-color-content-neutral-strongest, #111); outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
 .studio-pages__actions { position: absolute; top: 50%; right: var(--zen-spacing-padding-2-xsmall, 4px); display: flex; opacity: 0; transform: translateY(-50%); }
 .studio-pages__item:hover > .studio-pages__actions,
 .studio-pages__item:focus-within > .studio-pages__actions,
@@ -60,3 +81,59 @@
 
 /* Export (GĐ5): a side panel wide enough to read the code. */
 .studio-export { --zen-side-panel-width: 760px; }
+
+/* New page (NewPageDialog): Start from and Device are radio groups of cards. */
+/* The size ModalForm calls Big (960): room for a grid of thumbnails. */
+.zen-dialog.studio-new-page { width: min(960px, 100%); }
+.studio-new-page .zen-dialog__custom { display: grid; min-width: 0; gap: var(--zen-spacing-gap-large, 24px); }
+.studio-new-page__group { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; border: 0; }
+.studio-new-page__legend { margin-bottom: var(--zen-spacing-gap-xsmall, 8px); padding: 0; }
+.studio-new-page__templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
+/* Update from Figma (UpdateFromFigmaDialog): one checkbox per change, the list scrolling inside the dialog. */
+.zen-dialog.studio-figma-update { width: min(640px, 100%); }
+.studio-figma-update__list { display: grid; min-width: 0; max-height: min(420px, 50vh); margin: 0; padding: 0; overflow: auto; gap: var(--zen-spacing-gap-xsmall, 8px); list-style: none; }
+.studio-figma-update__item { min-width: 0; }
+/* Create / Cancel stay at the bottom of the modal while the templates scroll under them (user, 2026-10-09). */
+.zen-dialog.studio-new-page .zen-dialog__actions { position: sticky; z-index: 1; bottom: 0; background: var(--zen-color-background-container); box-shadow: 0 -1px 0 var(--zen-color-border-neutral-pale-default); }
+
+/* A choice is a Zen Card (Border theme, Small spacing; Selected = the Card's Active stroke); its label fills it and is the
+   control. Hover: the card's fill steps to Neutral/Flat hover, as a list row. */
+.studio-choice { min-width: 0; padding: 0; cursor: pointer; }
+.studio-choice:not([data-active="true"]):hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-choice__label { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: inherit; cursor: pointer; }
+/* The native radio stays in the tab order and the arrow keys; the card shows its focus. */
+.studio-choice__input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; }
+.studio-choice:has(.studio-choice__input:focus-visible) { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
+.studio-choice__text { display: grid; min-width: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-choice__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Blank page: a placeholder card in the thumbnails' shape. */
+.studio-choice__blank { display: flex; aspect-ratio: 16 / 10; align-items: center; justify-content: center; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); color: var(--zen-color-content-neutral-base); }
+
+/* A template thumbnail: the screen at its own width, scaled into the card (TemplateThumb). */
+.studio-thumb { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); pointer-events: none; }
+.studio-thumb__screen { position: absolute; top: 0; left: 0; overflow: hidden; transform-origin: top left; background: var(--zen-color-background-canvas-default); }
+
+
+
+/* Studio space: folders (StudioFolders) and the home of the space with no page open (StudioHome). */
+.studio-pages__item[data-actions="2"] > .studio-pages__row { padding-inline-end: calc(var(--zen-spacing-padding-xsmall, 8px) + 2 * var(--zen-icon-size-md, 20px) + 2 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-pages__actions { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-folders { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-folder { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-folder__row > .studio-pages__name { flex: 1 1 auto; }
+.studio-folder__count { flex: none; }
+/* A folder's pages sit under its name: indented past the chevron. */
+.studio-pages__row[data-child="true"] { padding-inline-start: calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-sm, 16px) + var(--zen-spacing-gap-xsmall, 8px)); }
+.studio-folder__empty { margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-icon-size-sm, 16px) + var(--zen-spacing-gap-xsmall, 8px)); }
+/* It sits on the canvas area's own Canvas background. */
+.studio-home { display: flex; height: 100%; min-height: 0; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
+.studio-home > .zen-empty-state { max-width: 480px; }
+
+/* "Folders" + the storage info (MyPagesHeader): an info icon with a tooltip, as an Input label's labelTooltip. */
+.studio-pages__kicker--info { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-pages__info { position: relative; display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light); cursor: help; font: inherit; }
+.studio-pages__info > .zen-icon { width: 100%; height: 100%; }
+.studio-pages__info:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle); outline-offset: 0; }
+/* A 24px hit area around the 12px icon. */
+.studio-pages__info::after { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; content: ""; transform: translate(-50%, -50%); }

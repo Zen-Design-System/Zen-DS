@@ -21,7 +21,9 @@ Show details, filters or an edit form next to the page without leaving it.
 | --- | --- | --- |
 | Type | `type` | modal (floating over a scrim, focus trapped) · standard (docked, non-modal) |
 | Size | `size` | default 440 · small 360 |
-| Header | `title · headingLevel · description · icon` | title (h2 by default, h1 also accepted) in Heading/3, or Heading/4 under the 44px icon in the modal type, never Heading/1; a close button; caption Body/Base/Regular |
+| Header | `title · headingLevel · description · headerContent` | title (h2 by default, h1 also accepted) in Heading/3, Heading/4 in the modal type, never Heading/1; a close button; caption Body/Base/Regular; headerContent (Figma Header-Contents) goes under the caption. icon is deprecated: Figma no longer draws a heading icon |
+| Back | `onBack · backLabel` | a back button before the title (Figma Back-Container) for a panel that drilled into a detail |
+| Top | `top` | Figma Top-Customize: a slot above the header (a Stepper, a banner) |
 | Contents | `children` | children stretch to the panel width |
 | Actions | `primaryAction · secondaryAction` | Modal/Actions: Tertiary + Primary, right-aligned |
 
@@ -29,7 +31,7 @@ Show details, filters or an edit form next to the page without leaving it.
 Generated from the TypeScript source; full JSON in `docs/api/side-panel.json`.
 
 ### SidePanel
-Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered in place (the page layout docks it). Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener. Header (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close button is pinned to the header's top-right corner; Contents; Modal/Actions footer.
+Figma Side-Panel (1573:3128). Standard: a full-height Surface column with a 1px Border/Neutral/Pale left edge, rendered in place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the opener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener. Sections, each Modal-Padding on every side: Top-Customize (optional) · Header (Header-Contents, gap XSmall: the row back · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents (gap Medium, scrolls) · Modal/Actions footer.
 
 Also accepts `OverlayOpenProps`.
 
@@ -42,15 +44,20 @@ Also accepts `OverlayOpenProps`.
 | `title` (required) | `ReactNode` | — | Figma Header Heading (Heading/3). |
 | `headingLevel` | `1 \| 2 \| 3` | `2` | Heading level of the title: 2 (default, an h2), or 1 / 3 to fit the page outline. Only the tag changes, not the text style. |
 | `description` | `ReactNode` | — | Figma Caption (Body/Base/Regular, Neutral/Base). |
+| `headerContent` | `ReactNode` | — | Figma Header-Contents slot: more header content under the caption (a status row, tabs, a search field), gap XSmall. |
+| `top` | `ReactNode` | — | Figma Top-Customize slot, rendered above the header (e.g. a Stepper, a banner or a cover). |
+| `onBack` | `() => void` | — | Figma Back-Container: a back button (Button/Icon-Flat Small, icon-arrow-narrow-left-line) before the title, for a panel that drilled into a detail. Called on click; without it there is no back button. |
+| `backLabel` | `string` | — | Accessible name of the back button. Default: the locale's “Back”. |
 | `type` | `"standard" \| "modal"` | `"standard"` | Figma Type: Standard (docked beside the page, non-modal) · Modal (floating over a scrim, traps focus). |
 | `size` | `"default" \| "small"` | `"default"` | Figma Size: Default 440 · Small 360. |
-| `icon` | `IconName \| ReactElement` | — | Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element. |
+| `icon` | `IconName \| ReactElement` | — | **Deprecated:** Figma's Side-Panel no longer draws a heading icon (removed on 2026-10-12). Modal only: a 44px icon above the title, still drawn for now; put an icon in `top` or `headerContent` instead.  |
 | `children` | `ReactNode` | — | Figma Contents slot. |
 | `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `dismissible` | `boolean` | `true` | Escape / scrim click close a modal panel (default true). |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close panel”. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio; app code sets onBack / the actions. |
 
 ### Types
 Object shapes the props above refer to.
@@ -90,6 +97,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 | --- | --- | --- | --- |
 | `side-panel/not-for-confirmations` | warn | Destructive confirmations belong in a Dialog, not a Side Panel. | `zen-allow-panel-confirm: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

@@ -1,8 +1,6 @@
 /* Figma Side-Panel (1573:3128). */
 .zen-side-panel {
   --zen-side-panel-width: 440px;
-  /* Close: 20px Wrapper inset (Standard: Modal-Padding; Modal: + 4px Close-Container padding) holding a 32px button. */
-  --zen-side-panel-close-inset: var(--zen-modal-padding, 24px);
   position: relative;
   display: flex;
   box-sizing: border-box;
@@ -29,24 +27,39 @@
   outline: none;
   animation: zen-side-panel-slide-in var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, cubic-bezier(.16, 1, .3, 1)) both;
 }
-.zen-side-panel__header { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); }
-.zen-side-panel__icon { display: inline-flex; width: var(--zen-element-size-popular-2-xlarge, 44px); height: var(--zen-element-size-popular-2-xlarge, 44px); color: var(--zen-color-content-neutral-base); }
+/* Each section keeps Modal-Padding on every side, so two meet 48px apart (Figma Top-Customize, Header,
+   Block-Placeholder and Actions are separate frames). Top-Customize: its Top-Custom-Slot stacks at gap Medium. */
+.zen-side-panel__top { display: flex; flex: 0 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); }
+.zen-side-panel__top > * { box-sizing: border-box; max-width: 100%; }
+/* Header › Header-Contents (gap XSmall): the heading row, the caption, more header content. */
+.zen-side-panel__header { display: flex; flex: 0 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-modal-padding, 24px); }
+/* Deprecated Modal icon (Figma dropped it): Gap/Medium above the title, as it was drawn. */
+.zen-side-panel__icon { display: inline-flex; width: var(--zen-element-size-popular-2-xlarge, 44px); height: var(--zen-element-size-popular-2-xlarge, 44px); margin-bottom: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
 .zen-side-panel__icon > .zen-icon { width: 100%; height: 100%; }
-/* The title keeps clear of the close: Wrapper (20) + gap Medium; Modal: Close-Container (28) + gap Medium. */
-.zen-side-panel__heading { display: flex; padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-medium, 16px)); }
-.zen-side-panel[data-type="modal"] { --zen-side-panel-close-inset: calc(var(--zen-modal-padding, 24px) + var(--zen-spacing-padding-2-xsmall, 4px)); }
-.zen-side-panel[data-type="modal"] .zen-side-panel__heading { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-spacing-padding-2-xsmall, 4px) + var(--zen-spacing-gap-medium, 16px)); }
+/* Header row (gap Medium, top-aligned): back · title (fills) · close. The 32px buttons overhang their Figma frames: the
+   20px Wrapper (Standard close) by 6px, the 28px Back- / Close-Container (Wrapper + padding 2XSmall) by 2px. */
+.zen-side-panel__heading { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-side-panel__title { min-width: 0; flex: 1 1 auto; margin: 0; }
-.zen-side-panel__close { position: absolute; z-index: 1; top: calc(var(--zen-side-panel-close-inset) + (var(--zen-element-size-popular-base, 20px) - 32px) / 2); right: calc(var(--zen-side-panel-close-inset) + (var(--zen-element-size-popular-base, 20px) - 32px) / 2); }
-.zen-side-panel__description { margin: calc(-1 * var(--zen-spacing-gap-xsmall, 8px)) 0 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.zen-side-panel__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: 0 var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); overflow-y: auto; }
-.zen-side-panel__actions { padding: var(--zen-spacing-padding-small, 12px) var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
+.zen-side-panel__close { flex: 0 0 auto; margin: calc((var(--zen-element-size-popular-base, 20px) - var(--zen-button-size-small, 32px)) / 2); }
+.zen-side-panel__back,
+.zen-side-panel[data-type="modal"] .zen-side-panel__close { flex: 0 0 auto; margin: calc((var(--zen-element-size-popular-base, 20px) + 2 * var(--zen-spacing-padding-2-xsmall, 4px) - var(--zen-button-size-small, 32px)) / 2); }
+.zen-side-panel__description { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+.zen-side-panel__header-content { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-side-panel__body { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); overflow-y: auto; }
+.zen-side-panel__actions { padding: var(--zen-modal-padding, 24px); }
 /* Motion: Modal slides in from beyond the edge (Slow, emphasized) over a fading scrim and leaves faster (Base, exit
    curve). Standard nudges 16px + fades. data-state="closing" is held by usePresence for the exit duration. */
 @keyframes zen-side-panel-slide-in { from { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
 @keyframes zen-side-panel-slide-out { to { transform: translateX(calc(100% + var(--zen-spacing-padding-xsmall, 8px))); } }
 @keyframes zen-side-panel-nudge-in { from { opacity: 0; transform: translateX(calc(16px * var(--zen-motion-movement, 1))); } }
 @keyframes zen-side-panel-nudge-out { to { opacity: 0; transform: translateX(calc(16px * var(--zen-motion-movement, 1))); } }
+/* In a device or Studio frame (`[data-zen-overlay-root]`): it covers that frame only, clear of its safe areas (as Dialog). */
+.zen-side-panel-overlay[data-contained="true"] {
+  position: absolute;
+  z-index: 5;
+  padding-top: max(var(--zen-spacing-padding-xsmall, 8px), var(--zen-safe-area-top, 0px));
+  padding-bottom: max(var(--zen-spacing-padding-xsmall, 8px), var(--zen-safe-area-bottom, 0px));
+}
 .zen-side-panel-overlay[data-state="closing"] { animation: zen-motion-scrim-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; pointer-events: none; }
 .zen-side-panel[data-type="modal"][data-state="closing"] { animation: zen-side-panel-slide-out var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-exit, ease-in) both; }
 .zen-side-panel[data-type="standard"] { animation: zen-side-panel-nudge-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }
@@ -60,7 +73,9 @@
 }
 @media (max-width: 480px) { .zen-side-panel[data-type="modal"] { width: 100%; } }
 /* The Contents slot is a form/detail column: direct children span its width. */
-/* Content blocks (fields, lists, cards…) fill the panel; fixed-size visuals keep their own size (an Avatar stretched to 376×56). */
-.zen-side-panel__body > * { box-sizing: border-box; max-width: 100%; }
+/* Content blocks (fields, lists, cards…) fill the panel; fixed-size visuals keep their own size (an Avatar stretched to 376×56).
+   The body scrolls, so its children never shrink: a child that clips its own overflow (Segmented, a code block) or has
+   a fixed height was squeezed instead (Studio Export's Segmented at 25px, labels cut). */
+.zen-side-panel__body > * { box-sizing: border-box; max-width: 100%; flex-shrink: 0; }
 .zen-side-panel__body > :not(.zen-avatar, .zen-avatar-stack, .zen-dock-icon, .zen-file-icon, .zen-icon, .zen-badge, .zen-tag, .zen-button, .zen-chip, img, svg, video) { width: 100%; }
 .zen-side-panel__body > :is(.zen-avatar, .zen-avatar-stack, .zen-dock-icon, .zen-file-icon, .zen-icon, .zen-badge, .zen-tag, .zen-chip, img, svg, video) { align-self: flex-start; }

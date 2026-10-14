@@ -17,16 +17,19 @@ Rows of structured records that users scan, compare, sort and act on.
 - Layout grids → CSS grid.
 - Key/value details of one record → a description list.
 - Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there).
+- Long, multi-line cell content (notes, full descriptions, a spreadsheet-like grid) → not Table: its rows stay one line at Table/Cell/Size; a separate sheet-style component will cover it.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL) |
-| Rows | `rows · getRowId` | fixed Table/Cell/Size, 1px bottom Border/Neutral/Pale; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays 52) |
-| Selection | `selectable · selectedIds · onSelectionChange` | checkbox column; select-all is indeterminate when partial |
+| Cell content | `columns[] {content, field, captionField, mediaField, bold, actions}` | Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); actions (Figma Actions-Cell) draws the column's `actions` [{id, icon, label, size, level, onClick(row, index)}] as flat icon buttons named with their row; a `cell` function still wins |
+| Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: longer text ends in an ellipsis, right-aligned values stay whole; a narrow container scrolls the table sideways); leave the main column without a width so it fills (Figma FILL) |
+| Rows | `rows · getRowId` | FIXED Table/Cell/Size (the header Table/Header/Size) in every density: one line per cell, text never wraps and ends in an ellipsis; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays at the token); the 1px Border/Neutral/Pale divider is stroked inside the cell |
+| Selection | `selectable · selectedIds + onSelectionChange (controlled) or defaultSelectedIds (the Table keeps it)` | checkbox column; select-all is indeterminate when partial; a selected row's cells take Table-Cell/Background/Selected (Figma Cell State=Selected) |
+| Bulk actions | `bulkActions: TableBulkAction[] {id, icon, label, onClick, disabled, group} or (selectedIds) => TableBulkAction[]` | Popover/Bulk-Action under the table while rows are selected (sticks to the window bottom on a long table): Clear selection + "N selected" + icon-only Button/Icon-Flat Medium per action, a divider between groups; actions that don't fit (phones) move into a More menu |
 | Sort | `sort · onSortChange` | asc → desc → none; aria-sort |
 | Empty | `empty` | full-width row (Empty State) |
-| Editable cells | `column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline}` | Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle |
+| Editable cells | `column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline} · column.edit: "text" | "number" | "select" | "tags" | true · editable · onCellCommit` | Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value) |
 | Open button | `column.onOpen · openLabel` | Figma Open-Button: XSmall Tertiary “Open” on row hover — editable tables only |
 | Clickable rows | `onRowClick` | read-only rows that open a record: the whole row is the target (hover tint, pointer, Tab stop, Enter/Space, Focus/Accent/Solid ring); controls in the row keep their clicks |
 | Cells | `TableText · TableMedia · TableTrend · TableActions` | Text / Avatar-Photo-Icon-Dock / Trend / Actions cells; Badge, Tag, ProgressBar go in directly |
@@ -36,7 +39,7 @@ Rows of structured records that users scan, compare, sort and act on.
 Generated from the TypeScript source; full JSON in `docs/api/table.json`.
 
 ### Table
-Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale). Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
+Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale). Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows). Rows are FIXED at Table/Cell/Size (the header at Table/Header/Size): each body cell holds one line of content in its Content layer, and long text ends in an ellipsis instead of growing the row. Long, multi-line content (a sheet-like grid) is not this component's job.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -48,13 +51,18 @@ Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over P
 | `aria-label` | `string` | — | Names the table (required for screen readers when there is no visible caption). |
 | `caption` | `ReactNode` | — | Visible caption above the table. |
 | `selectable` | `boolean` | `false` | Figma Type=Checkbox header + a checkbox cell per row. |
-| `selectedIds` | `string[]` | `[]` |  |
+| `selectedIds` | `string[]` | — | The selected rows (controlled, with `onSelectionChange`); without it the Table keeps the selection itself. |
+| `defaultSelectedIds` | `string[]` | — | The rows selected at first when the selection is not controlled. |
 | `onSelectionChange` | `(ids: string[]) => void` | — |  |
+| `editable` | `boolean` | `false` | Figma Table/Cell/Default State=Edit on every cell that shows a row's value: each column without its own `edit` (and without `cell`, checkbox or toggle content) edits in place by its content — text or number by the value, a list of the column's values for badges, tags for lists. The Table keeps the edits, or hands them to `onCellCommit`. |
+| `onCellCommit` | `(row: T, columnId: string, value: string \| string[]) => void` | — | An edit made through a shorthand `edit` or `editable`: the row, the column id and the new value (a tags list for tags). Without it the Table applies the edit to the row it draws. |
+| `bulkActions` | `TableBulkAction[] \| ((selectedIds: string[]) => TableBulkAction[])` | — | Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under the table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and these actions as icon-only Button/Icon-Flat Medium (at most 5; a divider between groups). Actions that don't fit the table's width (a phone) move, from the end, into a More button whose menu lists them with their labels. A function receives the selected ids. Escape in the bar clears the selection; when the bar leaves with the focus in it, Select all rows takes the focus. The bar sits outside the scroll box, so the table renders inside a `.zen-table-scope` wrapper; `ref`, `className` and the HTML attributes stay on the scroll box. |
 | `sort` | `TableSort \| null` | — |  |
 | `onSortChange` | `(sort: TableSort \| null) => void` | — |  |
 | `empty` | `ReactNode` | — | Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). |
 | `onRowClick` | `(row: T) => void` | — | Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus reaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own clicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer — `{ "Row[alex]/status/Badge": { theme: "red" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`, `Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead. |
 
 ### TableText
 Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext (Caption/Regular 11/16, Light), gap 3XSmall — the same Subtext every Avatar/Photo/Icon/Dock cell renders.
@@ -66,14 +74,14 @@ Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or B
 | `bold` | `boolean` | `false` |  |
 
 ### TableMedia
-Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.
+Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one. `bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `media` (required) | `ReactNode` | — |  |
 | `children` (required) | `ReactNode` | — |  |
 | `caption` | `ReactNode` | — |  |
-| `bold` | `boolean` | `true` |  |
+| `bold` | `boolean` | `false` |  |
 
 ### TableTrend
 Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with icon-trend-down-01-line, Neutral grey with icon-minus-line.
@@ -108,9 +116,15 @@ Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned 
 Object shapes the props above refer to.
 
 ```ts
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+type ButtonSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge"
 type TableAlign = "left" | "right"
+interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }
+type TableCellContent = "text" | "avatar" | "photo" | "icon" | "dock-icon" | "badge" | "tag" | "trend" | "progress" | "checkbox" | "toggle" | "actions"
 type TableCellEditor<T> = | (TableEditorBase<T> & { type?: "text" | "number"; value: (row: T) => string; onCommit: (row: T, value: string) => void; multiline?: boolean }) | (TableEditorBase<T> & { type: "select"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void }) | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })
-interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell: (row: T, index: number) => ReactNode; edit?: TableCellEditor<T>; onOpen?: (row: T) => void; openLabel?: ReactNode; }
+type TableCellEditorType = "text" | "number" | "select" | "tags"
+interface TableColumn<T> { id: string; header: ReactNode; align?: TableAlign; width?: string; sortable?: boolean; icon?: IconName | ReactElement; cell?: (row: T, index: number) => ReactNode; content?: TableCellContent; actions?: TableRowAction<T>[]; field?: string; captionField?: string; mediaField?: string; bold?: boolean; edit?: TableCellEditor<T> | TableCellEditorType | true; onOpen?: (row: T) => void; openLabel?: ReactNode; }
+interface TableRowAction<T> { id: string; icon: IconName | ReactElement; label: string; size?: ButtonSize; level?: ButtonLevel; onClick?: (row: T, index: number) => void; }
 interface TableSort { columnId: string; direction: TableSortDirection }
 type TableSortDirection = "asc" | "desc"
 ```
@@ -132,7 +146,8 @@ type TableSortDirection = "asc" | "desc"
 - Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).
 - Right-align numbers and amounts; keep text left.
 - Give each row one primary text (bold) and at most one caption.
-- Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).
+- Put row actions in the last column as Button/Icon-Flat Medium: `content: "actions"` with the column's `actions` (no cell function), or TableActions with IconButton appearance="flat" level="primary" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).
+- Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch ("Archive 3 projects"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.
 - Show an Empty State row when filters return nothing.
 - Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.
 - Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).
@@ -141,13 +156,14 @@ type TableSortDirection = "asc" | "desc"
 - Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.
 - Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.
 - A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth="full"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.
+- Inside a surface (Card, ChartCard, an Accordion panel, SidePanel, Dialog/ModalForm, BottomSheet, Popover, a Box with a surface or border) the last row has no bottom rule: the surface edge closes the table. The Table drops it by itself; in Figma set the last row's cells to a 0 bottom stroke weight (the colour stays bound). A page table on the canvas keeps its last rule.
 - A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).
 - Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups.
 
 ## ❌ Don't
 - Don't make selectable or sortable tables without handlers (harness: table/interaction-needs-handler).
 - Don't open a read-only row from a small icon or the hover Open button: use onRowClick (a passive chevron at the end may show that rows open).
-- Don't wrap long text in every cell; truncate and show the full value on the detail view.
+- Don't count on long text wrapping: rows stay one line and cut it with an ellipsis, so show the full value on the detail view (onRowClick or onOpen).
 - Don't use colour alone for status — use a Badge with text.
 - Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.
 - Don't commit on every keystroke; the editor saves on Enter, Tab, Escape (valid values) or clicking another cell.
@@ -156,6 +172,7 @@ type TableSortDirection = "asc" | "desc"
 
 ## Accessibility
 - Native table semantics: th scope=col, aria-sort on sortable headers, sort buttons, labelled row checkboxes; the wrapper scrolls horizontally on small screens.
+- Bulk actions: a named toolbar ("Actions for 3 selected rows") after the table in the tab order; the count is a status; each action's label is its button name and tooltip and its More-menu item; Escape or Clear selection clears the selection (Escape in the open More menu only closes it), and when the bar leaves with the focus in it, Select all rows takes the focus.
 - Editable cells (Notion-style): one click or press starts editing; Enter / F2 / typing / arrows work on a focused cell. Enter saves; Tab and Shift+Tab save and move; clicking another cell saves and edits it; Escape leaves and keeps the typed value (reverts if it fails validation). Text grows in an overlay (Shift+Enter adds a line when edit.multiline); select is a searchable list (type to filter, Enter picks the top match); tags: Enter picks the first suggestion or creates the tag, Backspace on an empty input removes the last. Validation errors use role=alert; the layout never shifts.
 - Clickable content inside an editable cell is its own Tab stop; Enter on it runs its action, Enter on the cell edits.
 - After an edit ends (Enter, Escape, or picking an option), focus returns to the cell without a ring so the value reads cleanly; the ring comes back as soon as arrow keys or Tab move to another cell.
@@ -169,12 +186,13 @@ type TableSortDirection = "asc" | "desc"
 | `table/actions-flat` | warn | Row actions in TableActions are Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"), so rows don't fill with outlined buttons. | `zen-allow-table-action-style: <reason>` |
 | `table/title-heading-4` | warn | A table that is its own page section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle="Heading/Subheading"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `table/needs-name` | error | A Table is named by a caption or aria-label. | `zen-allow-table-name: <reason>` |
-| `table/interaction-needs-handler` | warn | Selectable tables need onSelectionChange; sortable columns need onSortChange. | `zen-allow-table-handler: <reason>` |
+| `table/interaction-needs-handler` | warn | A selectable Table with selectedIds needs onSelectionChange — without it the checkboxes are dead (leave selectedIds out, or pass defaultSelectedIds, for a selection the Table keeps itself); sortable columns need onSortChange. | `zen-allow-table-handler: <reason>` |
 | `table/media-size-by-subtext` | warn | TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption). | `zen-allow-table-media-size: <reason>` |
 | `table/editor-needs-commit` | error | An editable column (edit: { … }) saves through onCommit; without it edits are silently lost. | `zen-allow-editor-commit: <reason>` |
 | `table/editor-number-right` | warn | Number editors live in right-aligned columns, like the numbers they edit. | `zen-allow-editor-align: <reason>` |
 | `table/editor-number-validate` | warn | Number editors validate input (range, integer) and explain the error inline. | `zen-allow-editor-validate: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 

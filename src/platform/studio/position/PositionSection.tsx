@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { InputField, SelectField } from "../../../components/Input";
+import { InputField, SelectField, type SelectFieldOption } from "../../../components/Input";
+import { ScaleTrail } from "../inspector/controls/ScaleField";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc } from "../api";
@@ -22,6 +23,7 @@ import {
   type AxisMeasure, type Ladder, type Measured, type Pin, type PositionAxis,
 } from "./positionModel";
 import "./position.css";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * The Design tab's Position section (Figma UI3 "Position": Align, X / Y, Ignore auto layout, Constraints; spec
@@ -37,7 +39,7 @@ type NodeSelection = { kind: "node" } & StudioNodeRef;
 
 /* ── the rendered layer ───────────────────────────────────────────────────────────────────────────────────────── */
 
-type Geometry = {
+export type Geometry = {
   /** Distances from the containing block's padding box, CSS px; null until the layer is found on the canvas. */
   measured: Measured | null;
   /** The layer's own data-position (Stack, Grid, Box). */
@@ -83,12 +85,12 @@ function axisOf(start: number, size: number, inner: number, padStart: string, pa
   return { start, end: inner - start - size, padStart: parseFloat(padStart) || 0, padEnd: parseFloat(padEnd) || 0 };
 }
 
-function readGeometry(selection: NodeSelection): Geometry {
+export function readGeometry(selection: NodeSelection): Geometry {
   const world = canvasApi.getWorldElement();
   if (!world) return noGeometry;
   const hits = findBySrc(world, selection.src);
   const hit = hits[selection.instance] ?? hits[0];
-  const host = hit?.hosts.find((node): node is HTMLElement => node instanceof HTMLElement && node.getAttribute("data-zen-src") === selection.src)
+  const host = hit?.hosts.find((node): node is HTMLElement => node instanceof HTMLElement && srcAttr(node) === selection.src)
     ?? hit?.hosts.find((node): node is HTMLElement => node instanceof HTMLElement);
   if (!hit || !host?.isConnected) return noGeometry;
   const jsxParent = parentHit(hit, frameElement(selection.frameId, world));
@@ -97,7 +99,7 @@ function readGeometry(selection: NodeSelection): Geometry {
   const floating = host.dataset.position === "absolute";
   const display = getComputedStyle(domParent).display;
   const parent = /flex|grid/.test(display) ? "auto" : "flow";
-  const floatBox = !floating && domParent.matches('.zen-box[data-position="absolute"]') && domParent.children.length === 1 ? domParent.getAttribute("data-zen-src") : null;
+  const floatBox = !floating && domParent.matches('.zen-box[data-position="absolute"]') && domParent.children.length === 1 ? srcAttr(domParent) : null;
   const block = containingBlock(host, floating);
   let measured: Measured | null = null;
   if (block) {
@@ -162,7 +164,7 @@ function useGeometry(selection: NodeSelection): Geometry {
 }
 
 /** The Spacing/Padding ladder as it measures on the layer (density, breakpoint and mode applied). */
-function ladderOf(selection: NodeSelection): Ladder {
+export function ladderOf(selection: NodeSelection): Ladder {
   const world = canvasApi.getWorldElement();
   const host = world ? findBySrc(world, selection.src)[selection.instance]?.hosts[0] ?? findBySrc(world, selection.src)[0]?.hosts[0] : null;
   const probe = host ?? document.documentElement;
@@ -284,7 +286,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   }
 
   return (
-    <InspectorSection title="Position">
+    <InspectorSection title="Position" fieldGrid>
       <InspectorRow label="Align" labelTitle="Align to the parent (a floating layer)">
         <div className="studio-position__align" role="group" aria-label="Align in parent">
           {alignButtons.map((button) => (
@@ -330,7 +332,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
 
       {floating ? (
         <div className="studio-position__constraints" role="group" aria-label="Constraints">
-          <span className={`studio-position__label ${typographyStyles["Body/Small/Regular"]}`}>Constraints</span>
+          <span className={`studio-position__label ${typographyStyles["Caption/Regular"]}`}>Constraints</span>
           <div className="studio-position__constraint-body">
             <ConstraintsDiagram pins={pins} disabled={constraintLocked} onPick={setPin} />
             <div className="studio-position__selects">
@@ -394,7 +396,8 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
   const label = edgeLabels[prop];
   const written = value.state === "literal" ? String(value.value) : null;
   const readOnly = value.state === "bound" || value.state === "spread";
-  const options = ladder.map((step) => ({ value: step.key, label: step.key === "none" ? "none · 0" : `${step.key} · ${Math.round(step.px)}` }));
+  // Token + value on one line, as every token select (ScaleField): "md … 16px" in the list, "md 16" in the field.
+  const options: SelectFieldOption[] = ladder.map((step) => ({ value: step.key, label: step.key, meta: `${Math.round(step.px)}px` }));
   if (written && !options.some((option) => option.value === written)) options.push({ value: written, label: written });
   return (
     <InspectorRow
@@ -402,7 +405,6 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
       label={label}
       labelTitle={`${label} offset · ${prop}`}
       isDefault={value.state === "unset"}
-      action={written && !api.disabled ? <IconButton icon="icon-reverse-left-line" aria-label={`Reset ${label.toLowerCase()} offset to none`} appearance="flat" level="primary" size="xs" onClick={() => api.removeProp(prop)} /> : null}
       hint={readOnly ? `Set in the code (${value.state === "bound" ? `{${value.expression}}` : value.via})` : undefined}
     >
       <SelectField
@@ -410,6 +412,7 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
         size="sm"
         disabled={api.disabled || readOnly}
         value={written ?? "none"}
+        trailing={<ScaleTrail px={ladder.find((step) => step.key === (written ?? "none"))?.px ?? null} />}
         onValueChange={(next) => { if (next !== (written ?? "none")) (next === "none" ? api.removeProp(prop) : api.setProp(prop, next)); }}
         options={options}
       />

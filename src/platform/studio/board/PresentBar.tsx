@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Text } from "../../../components/Text";
@@ -22,10 +22,14 @@ type PresentBarProps = {
   modes: StudioPreviewSettings;
   onModeChange: (key: ModeKey, value: string) => void;
   onExit: () => void;
-  /** Where the frame sits among the page's example frames (‹ 3 / 7 › when there are two or more). */
-  index: number;
-  count: number;
-  onStep: (delta: -1 | 1, focus: "prev" | "next") => void;
+  /** Where the frame sits among the page's example frames (‹ 3 / 7 › when there are two or more). Play has none. */
+  index?: number;
+  count?: number;
+  onStep?: (delta: -1 | 1, focus: "prev" | "next") => void;
+  /** Controls before light/dark (Play's Back and Restart), then a divider. */
+  leading?: ReactNode;
+  /** The panel's note on where the modes apply. Default "this presentation only". */
+  modesScope?: string;
 };
 
 /**
@@ -33,7 +37,7 @@ type PresentBarProps = {
  * the Studio chrome's modes, with ‹ 3 / 7 › between the page's example frames, light/dark (the Studio's) and the other
  * preview modes in a panel above the bar (the presented screen's own: the canvas keeps its modes).
  */
-export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, onExit, index, count, onStep }: PresentBarProps) {
+export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, onExit, index = 0, count = 0, onStep, leading, modesScope = "this presentation only" }: PresentBarProps) {
   const { phone } = usePanelLayout();
   const [panelOpen, setPanelOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -75,7 +79,7 @@ export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, o
     <div ref={panelRef} id={`${id}-panel`} className="platform-fullscreen-bar__panel" role="dialog" aria-labelledby={`${id}-title`}>
       <div className="studio-modes__head">
         <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">Preview modes</Text>
-        <Text as="p" textStyle="Caption/Regular" tone="light">{previewSummary(modes)} · this presentation only</Text>
+        <Text as="p" textStyle="Caption/Regular" tone="light">{previewSummary(modes)} · {modesScope}</Text>
       </div>
       <PreviewModeFields idPrefix={id} keys={PANEL_MODES} values={modes} onChange={onModeChange} />
     </div>
@@ -84,7 +88,8 @@ export function PresentBar({ title, theme, onToggleTheme, modes, onModeChange, o
   return (
     <ChromeScope className="studio-present-bar">
       <FullScreenBar title={title} onExit={onExit} hold={panelOpen} panel={panel}>
-        {count > 1 ? (
+        {leading ? <>{leading}<FullScreenBarDivider /></> : null}
+        {count > 1 && onStep ? (
           <>
             <IconButton appearance="flat" level="primary" size="sm" data-present-step="prev" aria-label="Previous example" aria-keyshortcuts="ArrowLeft" tooltip="Previous example (←)" disabled={index <= 0} icon={<Icon name="icon-chevron-left-line" />} onClick={() => onStep(-1, "prev")} />
             <Text as="span" textStyle="Body/Small/Medium" tone="base" className="studio-present-bar__count" aria-label={`Example ${index + 1} of ${count}`}>{index + 1} / {count}</Text>

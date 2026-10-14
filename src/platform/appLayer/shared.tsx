@@ -33,40 +33,5 @@ export function Panel({ title, controls, children, code, previewClassName, scree
 /** PlaygroundFilterChip option helper. */
 export const option = (id: string, label = id) => ({ id, label });
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
-
-/** The records a data export holds (page metas, example or template defs) and its shape (keys, list lengths). */
-function recordsOf(value: object): { shape: string; records: Record<string, unknown>[] } | null {
-  const shape: string[] = [];
-  const records: Record<string, unknown>[] = [];
-  for (const [key, item] of Object.entries(value)) {
-    const list: unknown[] = Array.isArray(item) ? item : [item];
-    if (!list.every(isRecord)) return null;
-    shape.push(`${key}:${Array.isArray(item) ? list.length : "-"}`);
-    records.push(...list);
-  }
-  return { shape: shape.join(","), records };
-}
-
-/**
- * Dev only: a group's data export (`pages`, `examples`, `templates`) keeps its identity across hot updates, its
- * records updated in place. Fast Refresh accepts a module only if its non-component exports are unchanged; a new object
- * sent every edit of the group (or of a template it renders) up through PlatformAppLayer to PlatformApp and main.tsx, a
- * full reload of the Studio. PlatformAppLayer and PlatformShowcases copy the lists but keep the records, so they read
- * the new render and code. A new shape (a page or an example added or removed) still takes the new object: a reload.
- */
-export function keepOnHotUpdate<T extends object>(hot: ImportMeta["hot"], key: string, next: T): T {
-  if (!hot) return next;
-  const previous = hot.data[key] as T | undefined;
-  const from = previous && recordsOf(previous);
-  const to = recordsOf(next);
-  if (!previous || !from || !to || from.shape !== to.shape) {
-    hot.data[key] = next;
-    return next;
-  }
-  from.records.forEach((record, index) => {
-    for (const field of Object.keys(record)) if (!(field in to.records[index])) delete record[field];
-    Object.assign(record, to.records[index]);
-  });
-  return previous;
-}
+/** Dev only: a group's data export keeps its identity across hot updates (../hotData.ts). */
+export { keepOnHotUpdate } from "../hotData";

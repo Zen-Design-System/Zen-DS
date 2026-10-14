@@ -44,7 +44,6 @@ import {
   Tag,
   Text,
   TextAreaField,
-  VisuallyHidden,
   fileIconFormatOf,
   plural,
   useFormState,
@@ -434,11 +433,12 @@ export function HrHomeTemplate() {
 
   return (
     <HrShell module="home" onNavigate={navigate} aside={aside}>
-      <VisuallyHidden as="h1">Home</VisuallyHidden>
-      <Container>
+      {/* Full width like the other HR pages (backlog batch 6b, user 2026-10-07). */}
+      <Container maxWidth="full">
         <Stack gap="xl" paddingY="sm">
-          {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. */}
-          <AiChatBlock greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>
+          {/* Zen AI: the greeting, a short thread once Alex asks, and the prompt. The greeting is the page's h1 (it is the
+              title people see, in Heading/1), so the sections under it are h2 Heading/4. */}
+          <AiChatBlock headingLevel={1} greeting={`${greeting}, ${me.name.split(" ")[0]}. How can I help?`} suggestions={suggestions}>
             {messages.length ? (
               <AiChatThread aria-label="Conversation with Zen AI">
                 {messages.map((message) => (
@@ -521,11 +521,12 @@ export function HrHomeTemplate() {
                 <ListBox as="section" theme="shadow" aria-labelledby="home-out"
                   header={<>
                     <Heading level={3} id="home-out">Who's out</Heading>
-                    {/* A phone can't fit three equal segments, so it gets a single-choice row of Normal chips. */}
+                    {/* A phone can't fit three equal segments, so it gets a single-choice row of Normal chips: Small and
+                        2xs apart, so the three periods share one line inside the card (they wrap only on a narrower phone). */}
                     {phone ? (
-                      <Stack direction="row" gap="xs" wrap role="group" aria-label="Period">
+                      <Stack direction="row" gap="2xs" wrap role="group" aria-label="Period">
                         {(Object.keys(periods) as Period[]).map((id) => (
-                          <Chip key={id} variant="normal" size="md" level="primary" selected={id === period} onClick={() => setPeriod(id)}>{periods[id].label}</Chip>
+                          <Chip key={id} variant="normal" size="sm" level="primary" selected={id === period} onClick={() => setPeriod(id)}>{periods[id].label}</Chip>
                         ))}
                       </Stack>
                     ) : (

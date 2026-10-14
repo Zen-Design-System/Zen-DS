@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
+import { Segmented } from "../../../components/Segmented";
+import { rowScope as rowScopeStore, useRowScope } from "./rowScope";
 import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { pageLabels } from "../../PlatformApp";
@@ -12,24 +14,30 @@ import { studioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, SourceAttr, SourceElement, StudioNodeRef } from "../types";
 import { childHits, findBySrc, isTransparentName, onSourceUpdate, rectOf, selectHit, selectionInstances, type FiberHit } from "../select/picker";
-import { noteEditTarget } from "../select/remap";
+import { noteEditTarget, sameSelectedElement } from "../select/remap";
 import { navigate } from "../shell/navigation";
 import { RemoveAction, SlotsSection } from "../slots";
-import { slotOf } from "../slots/registry";
+import { hostPropsOf, isSlotActive, slotOf } from "../slots/registry";
 import { detachShown, rowOf, useDetachPlan } from "./detach";
+import { cellDataTarget } from "../table/tableCells";
+import { pictureCode, pictureExpression, resolveMedia } from "../builder/library/media";
+import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
+import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
-import { GroupedProperties } from "./GroupedProperties";
+import { GroupedProperties, ToggleRow } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
-import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
+import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
-import { AppearanceSection, appearancePropNames, EffectsSection } from "../appearance/AppearanceSection";
+import { hasIdleNotes, idleNotes } from "./computedDefaults";
+import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { PositionSection, positionProps } from "../position";
+import { useFocusContentToken } from "./focusContent";
 import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
 import {
@@ -48,6 +56,7 @@ import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "./status"
 import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from "./textInfo";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, type WritePlan } from "./writePlan";
 import { remountFrameAfterUpdate } from "../board/remount";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * Design tab for a selected JSX element (spec §6): playground properties (the playground's own controls, portalled
@@ -62,34 +71,6 @@ const toEditValue = (value: Literal): EditValue =>
 
 const display = (value: Literal) => (typeof value === "string" ? `"${value.length > 24 ? `${value.slice(0, 24)}…` : value}"` : String(value));
 
-/* Double-click on canvas text asks the Content field for focus (the panel may mount a moment later). */
-let focusRequestedAt = 0;
-const focusListeners = new Set<() => void>();
-if (typeof window !== "undefined") {
-  const onFocusRequest = () => {
-    focusRequestedAt = Date.now();
-    focusListeners.forEach((listener) => listener());
-  };
-  window.addEventListener("zen-studio:focus-content", onFocusRequest);
-  import.meta.hot?.dispose(() => window.removeEventListener("zen-studio:focus-content", onFocusRequest));
-}
-
-function useFocusContentToken() {
-  const [token, setToken] = useState(() => (Date.now() - focusRequestedAt < 2000 ? Date.now() : 0));
-  useEffect(() => {
-    const listener = () => setToken(Date.now());
-    focusListeners.add(listener);
-    return () => { focusListeners.delete(listener); };
-  }, []);
-  useEffect(() => {
-    if (!token) return undefined;
-    focusRequestedAt = 0;
-    const timer = window.setTimeout(() => setToken(0), 1500);
-    return () => window.clearTimeout(timer);
-  }, [token]);
-  return token;
-}
-
 /** The rendered hit of the selection (for child lookups). */
 function selectedHit(selection: NodeSelection): FiberHit | null {
   const world = canvasApi.getWorldElement();
@@ -101,7 +82,7 @@ function selectedHit(selection: NodeSelection): FiberHit | null {
 /** The selection's rendered element that carries its data-zen-src (else its first host element), for measured px. */
 function sourceHost(selection: NodeSelection): HTMLElement | null {
   const hosts = (selectedHit(selection)?.hosts ?? []).filter((node): node is HTMLElement => node instanceof HTMLElement);
-  return hosts.find((node) => node.getAttribute("data-zen-src") === selection.src) ?? hosts[0] ?? null;
+  return hosts.find((node) => srcAttr(node) === selection.src) ?? hosts[0] ?? null;
 }
 
 /** Selects a child element of the selection by its source location (searches a few annotated levels down). */
@@ -139,12 +120,14 @@ function Field({ spec, api, label, component, hint }: { spec: PropSpec; api: Fie
     <PropField
       spec={spec}
       hint={hint}
+      component={component}
       label={label ?? propLabel(spec.name, component)}
       value={api.valueFor(spec.name)}
       disabled={api.disabled}
       boundHint={api.boundHint}
       onSet={(value) => api.setProp(spec.name, value)}
       onReset={() => api.removeProp(spec.name)}
+      onAddObject={(code) => { void api.apply([{ op: "setProp", name: spec.name, value: { kind: "expression", code } }], `${component ? `${component} ` : ""}${spec.name} added`); }}
       restore={api.restoreFor?.(spec.name)}
       repeats={api.repeats}
     />
@@ -209,7 +192,6 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
       key={`${key}-${index}`}
       name={index === 0 ? "textStyle" : undefined}
       label={keys.length > 1 ? `Style ${index + 1}` : "Style"}
-      action={index === 0 && !api.disabled ? <IconButton icon="icon-reverse-left-line" aria-label="Remove the text style (inherit it)" appearance="flat" level="primary" size="xs" onClick={remove} /> : null}
     >
       <TypographyControl
         label={keys.length > 1 ? `Text style ${index + 1}` : "Text style"}
@@ -312,12 +294,12 @@ async function alreadyApplied(file: string, loc: string, name: string, ops: Edit
     }
     if (op.op === "setStateInit") {
       const state = current.attributes.find((attr) => attr.kind !== "spread" && attr.name === op.name)?.state;
-      return op.value.kind !== "expression" && state?.value === op.value.value;
+      return "value" in op.value && state?.value === op.value.value;
     }
     // A detach, a wrap or a slot op (insert/remove/duplicate/move) changes the structure: never already applied.
     if (op.op !== "setProp") return false;
     const value = valueOf(current.attributes, op.name);
-    const wanted = op.value.kind === "expression" ? literalOf(op.value.code) : op.value.value;
+    const wanted = op.value.kind === "expression" ? literalOf(op.value.code) : op.value.kind === "picture" ? op.value.file : op.value.value;
     return value.state === "literal" && value.value === wanted;
   });
 }
@@ -364,6 +346,15 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const [element, setElement] = useState<SourceElement | null | undefined>(undefined);
   const [overrides, setOverrides] = useState<Record<string, PropValue>>({});
   const [version, setVersion] = useState(0);
+  // A row of a list on a page you made (core rebuild M4, plan criterion 3): a change goes to this row only, as one
+  // instance in Figma, unless "All rows" is chosen (rowScope.ts; another layer starts on "row" again).
+  const rowScope = useRowScope();
+  const scoped = useRef(selection);
+  useEffect(() => {
+    // The same layer moved by a write keeps the choice; another layer (another row included) starts on "row".
+    if (!sameSelectedElement(scoped.current, selection)) rowScopeStore.set("row");
+    scoped.current = selection;
+  }, [selection]);
   const refetch = useCallback(() => setVersion((value) => value + 1), []);
   const info = useSyncExternalStore(selectionInstances.subscribe, selectionInstances.get, selectionInstances.get);
   const instances = info.src === selection.src ? info.count : 0;
@@ -384,6 +375,14 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     return row && !("reason" in row) ? row.row : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection.src, selection.instance, instances]);
+  // An element a Table column's `cell` writes: the row of the cell this instance is drawn in (a prop bound to the row,
+  // an Avatar's `src={row.photo}`, is written in that row's data).
+  const cellRow = useMemo(() => {
+    const world = canvasApi.getWorldElement();
+    const hit = world ? findBySrc(world, selection.src)[selection.instance] : null;
+    return cellDataTarget(hit?.hosts[0], parseSrc(selection.src)?.file);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection.src, selection.instance, instances]);
   // Row-ness comes from the canvas whenever the server gives no plan (loading or refused), so the label and the Repeats
   // line keep their wording and height when a refusal arrives.
   const rowDetach = detach.state === "ready" ? detach.plan.repeated : mapRow;
@@ -396,7 +395,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Figma groups (propGroups.ts) show and hide by what the element renders with now.
   // Figma's instance-panel order and names: hand-written groups, else generated from the Figma read (WP-E).
   const groups = componentGroupsOf(element?.name ?? selection.name);
-  const renderedProps = useLiveProps(selection, Boolean(groups));
+  const renderedProps = useLiveProps(selection, Boolean(groups) || hasIdleNotes(element?.name ?? selection.name));
   const rendered = useRenderedText(() => selectedHit(selection), selection.src, selection.instance);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -450,7 +449,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     if (!shown || !editable) return Promise.resolve(false);
     // Queued behind another write, or planned from attributes a landed write made stale: read again before sending.
     const behind = stale();
-    setOverrides((current) => ({ ...current, ...optimistic }));
+    // The optimistic value redraws the whole panel: as a transition, after the edit has left for the canvas (in the click's
+    // own flush it held every edit back ~20 ms, 2026-10-13).
+    startTransition(() => setOverrides((current) => ({ ...current, ...optimistic })));
     editCount.current += 1;
     inFlight.current += 1;
     let written = false;
@@ -514,20 +515,60 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     // State props show their initial state (useState literal, defaultX) and edit it, so the component keeps toggling.
     valueFor: (name) => {
       const value = overrides[name] ?? (element ? displayValueOf(element.name, element.attributes, name, live) : { state: "unset" });
-      // A .map row's data is edited in this instance's row (the note names it).
+      // A .map row's data is edited in this instance's row, a Table cell's in its cell's row (the note names it).
+      if (value.state === "bound" && value.dataSource?.kind === "cell" && cellRow) return { ...value, dataSource: { ...value.dataSource, row: cellRow.row } };
       return value.state === "bound" && value.dataSource?.kind === "row" && dataRow !== null ? { ...value, dataSource: { ...value.dataSource, row: dataRow } } : value;
     },
     setProp: (name, value) => {
       if (!element) return;
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
-      if (dataEditable(current, selection.panelId ? "playground" : undefined)) {
+      // A .map row on a page you made: "This row" makes a fixed value this row's own (op setRowProp: the rows get a
+      // field, the element reads it); "All rows" writes the value on the layer, a binding to the row's field included.
+      const rowScoped = element.file.startsWith("local:") && instances > 1 && dataRow !== null;
+      const allRows = rowScoped && rowScope === "all" && current.state === "bound" && current.dataSource?.kind === "row";
+      if (rowScoped && rowScope === "row" && current.state !== "bound") {
+        const next = toEditValue(value);
+        if (!next) return;
+        void send([{ op: "setRowProp", name, row: dataRow, value: next }], `${element.name} ${name} → ${display(value)} (row ${dataRow + 1})`, { [name]: { state: "literal", value, raw: "" } });
+        return;
+      }
+      // A picture (Avatar / Image / account `src`): the pick is a zen-media:/zen-asset: value; the file decides how it is
+      // written (a page you made keeps it, the repo takes the picture's file: media.ts pictureCode).
+      const picture = typeof value === "string" && propSpecs(element.name).find((spec) => spec.name === name)?.editor.kind === "photo";
+      const pictureValue = (file: string): EditValue | null => (picture ? pictureCode(file, value as string) : toEditValue(value));
+      const pictureLabel = picture ? `${element.name} ${name} → ${String(value).replace(/^zen-(media|asset):/, "")}` : null;
+      // A picture from the shared library (platformMedia): never edited in PlatformMedia.tsx, the layer takes its own.
+      const fromLibrary = picture && current.state === "bound" && current.dataSource?.file?.endsWith("/PlatformMedia.tsx");
+      if (!fromLibrary && !allRows && dataEditable(current, selection.panelId ? "playground" : undefined)) {
+        // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
+        if (current.dataSource.kind === "param") {
+          const world = canvasApi.getWorldElement();
+          const next = pictureValue(element.file);
+          if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+          void writeAtUse(world ? findBySrc(world, selection.src)[selection.instance] : null, current.dataSource, next, pictureLabel ?? `${element.name} ${name} → ${display(value)}`);
+          return;
+        }
         // Written where the data is (WP-C): the binding stays, so the optimistic value is the same binding rendering `value`.
         if (current.dataSource.kind === "row" && dataRow === null) {
           inspectorStatus.set("negative", "This list renders in several places on the canvas, so the row to edit is unclear; edit the data in code");
           return;
         }
-        const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : {};
-        void send([{ op: "setDataField", prop: name, ...row, value: toEditValue(value) }], `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: value } });
+        if (current.dataSource.kind === "cell" && !cellRow) {
+          inspectorStatus.set("negative", "This value comes from a Table row: select it in its cell on the canvas to edit that row");
+          return;
+        }
+        const row = current.dataSource.kind === "row" ? { row: dataRow ?? 0 } : current.dataSource.kind === "cell" ? cellRow : {};
+        const next = pictureValue(current.dataSource.file ?? element.file);
+        if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+        void send([{ op: "setDataField", prop: name, ...row, value: next }], pictureLabel ?? `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: picture ? resolveMedia(value) : value } });
+        return;
+      }
+      if (picture && !element.file.startsWith("local:")) {
+        // In the repo the prop takes the picture's file as an expression (planPropWrite writes literals only).
+        const next = pictureValue(element.file);
+        if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+        const code = next.kind === "picture" ? pictureExpression(element.file, next.file) : next.kind === "expression" ? next.code : JSON.stringify(next.value);
+        void send([{ op: "setProp", name, value: next }], pictureLabel ?? `${element.name} ${name}`, { [name]: { state: "bound", expression: code, raw: `${name}={${code}}`, live: resolveMedia(value), origin: { kind: "bound-value" } as SourceAttr["origin"] } });
         return;
       }
       const plan = planPropWrite(element.name, element.attributes, name, value, live);
@@ -536,8 +577,8 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       const optimistic: Record<string, PropValue> = { [name]: removes ? { state: "unset" } : { state: "literal", value, raw: "" } };
       const replan = (attributes: SourceAttr[]) => planPropWrite(element.name, attributes, name, value, live).ops;
       // Back to what the saved file writes: the saved attribute returns where and as it was, so the draft goes away
-      // (a playground's file refuses slot ops; a refusal falls back to the plain write).
-      const back = selection.panelId ? null : savedWrite(element.name, element, name, value);
+      // (a playground's file refuses slot ops: a setProp in the saved place; a refusal falls back to the plain write).
+      const back = savedWrite(element.name, element, name, value, Boolean(selection.panelId));
       if (back) void runPlan(back, label, optimistic).then((written) => { if (!written) void runPlan(plan, label, optimistic, replan); });
       else void runPlan(plan, label, optimistic, replan);
     },
@@ -572,7 +613,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         },
       };
     },
-  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow]);
+  }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow, cellRow, rowScope]);
 
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.
@@ -597,13 +638,13 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name)) : [];
   const layoutSpecs = isLayout ? specs.filter((spec) => isLayoutProp(name, spec.name) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec)) : [];
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
-  // Box fill, border, corners, clip and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
+  // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.
   const appearanceSpecs = specs.filter((spec) => (appearancePropNames[name] ?? []).includes(spec.name));
   const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec));
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
   const shapedProps: ShapedProp[] = propertySpecs.flatMap((spec) => {
     const attr = element?.attributes.filter((attribute) => attribute.kind === "expression" && attribute.name === spec.name).at(-1);
-    return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape }] : [];
+    return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape, ...(attr.shapeVia ? { via: attr.shapeVia } : {}) }] : [];
   });
   const shapedNames = new Set(shapedProps.map((entry) => entry.spec.name));
   // A component whose JSX children are a content slot lists them in the Slots section, not again under Content.
@@ -689,7 +730,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const kind = nodeKind(name);
   const slug = kind === "zen" || kind === "primitive" ? componentSlug(name) : null;
   const docsPage = slug && slug in pageLabels && slug !== currentPage ? (slug as PlatformPage) : null;
-  const where = `${fileName(file)}:${line}`;
+  // The link names no file: "Show code" (the Code tab has the line; plan criterion 7). A Studio page's own file is no
+  // location worth copying.
+  const studioPage = file.startsWith("local:");
   const showInCode = () => {
     studioStore.setState({ inspectorTab: "code" });
     // The Design panel unmounts: move focus to the Code tab instead of letting it fall to <body>.
@@ -703,7 +746,12 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   };
   // Detach: only for a type the dev server can detach, as an admin, while the server is writable or still connecting.
   const detachOffered = detachShown(element, selection) && role === "admin" && canEdit() && (server.writable || !server.ready);
-  const repeats = instances > 1 ? `${editable ? `${instances}× — edits apply to all ${instances}` : `${instances}×`}${detachOffered && rowDetach ? " · Detach changes only this row" : ""}` : null;
+  // One written layer drawn several times (a .map row, a Table cell): say which one this is and what an edit reaches, in
+  // design words (user, 2026-10-10: Figma's usability) — a fixed value is the layer's, so every row shows it; a value
+  // from the data is this row's.
+  const repeats = instances > 1
+    ? `${selection.instance + 1} of ${instances}${editable ? ` — a fixed value shows on all ${instances}, a value from the data changes only this one` : ""}${detachOffered && rowDetach ? " · Detach makes this row its own" : ""}`
+    : null;
   // Reset all overrides (GĐ4 M1): a Zen instance's design props written as fixed values go back to their defaults in one
   // request, so one ⌘Z brings them all back; the content stays (resetAll.ts).
   const resetSpecs = specs.map((spec) => ({ name: spec.name, editor: spec.editor.kind }));
@@ -749,13 +797,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
     <InspectorHostContext value={sourceHost(selection)}>
     <InspectorFileContext value={element?.file ?? parsed?.file ?? null}>
+    <InspectorSrcContext value={selection.src}>
     <div ref={panelRef} className="studio-inspector__panel">
       {/* Header (Design panel UI3, user 2026-10-06): the name with its count and the Detach / Remove icons on one row, then
-          the kind with its Docs link, then where it is written. Every line in Body/Small. */}
-      <header className="studio-inspector__head-block">
+          the kind with its Docs link, then where it is written. Every line in Body/Small. `data-inspector-src`: the
+          layer the panel reads (file:line:col), for tools; the screen says "Show code". */}
+      <header className="studio-inspector__head-block" data-inspector-src={selection.src}>
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" data-component={isComponent || undefined} aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
-          <Heading level={2} textStyle="Body/Small/Bold" truncate>{name}</Heading>
+          {/* Cut to one line: its full name on hover. */}
+          <Heading level={2} textStyle="Body/Small/Bold" truncate title={name}>{name}</Heading>
           {repeats ? (
             <span className={`studio-inspector__count ${typographyStyles["Body/Small/Medium"]}`} title={repeats}>
               <span aria-hidden="true">{`×${instances}`}</span>
@@ -791,6 +842,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
             <RemoveAction compact selection={selection} element={element} editable={editable} />
           </span>
         </div>
+        {element?.file.startsWith("local:") && editable && instances > 1 && dataRow !== null ? (
+          <Segmented
+            aria-label="Changes go to"
+            size="sm"
+            fullWidth
+            value={rowScope}
+            onValueChange={(next) => rowScopeStore.set(next === "all" ? "all" : "row")}
+            options={[{ id: "row", label: `Row ${dataRow + 1}` }, { id: "all", label: `All ${instances} rows` }]}
+          />
+        ) : null}
         <p className={`studio-inspector__meta-row ${typographyStyles["Body/Small/Regular"]}`}>
           <span>{kindLabel(kind)}</span>
           {docsPage ? (
@@ -809,14 +870,12 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
               size="xs"
               startIcon="icon-file-code-line"
               className="studio-inspector__src"
-              aria-label={`Show ${where} in the Code tab`}
+              aria-label="Show in the Code tab"
               onClick={showInCode}
             >
-              {/* A long file name truncates; ":<line>" always stays visible. */}
-              <span className="studio-inspector__src-file">{fileName(file)}</span>
-              <span className="studio-inspector__src-line">{`:${line}`}</span>
+              Show code
             </Button>
-            <IconButton icon="icon-copy-line" aria-label="Copy source location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the source location")} />
+            {studioPage ? null : <IconButton icon="icon-copy-line" aria-label="Copy source location" appearance="flat" level="primary" size="xs" onClick={() => copyText(`${file}:${line}`, "the source location")} />}
           </div>
         ) : null}
       </header>
@@ -834,7 +893,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element === undefined ? <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Reading the source…</p> : null}
       {element === null ? (
         <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>
-          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : `${fileName(file)}:${line} has no element there any more — select it again.`}
+          {server.ready && !server.writable ? "The source is available on the Studio dev server only." : "This layer is no longer there — select it again."}
         </p>
       ) : null}
 
@@ -846,6 +905,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
 
       {element && appearanceSpecs.length ? <AppearanceSection api={api} specs={appearanceSpecs} component={name} host={sourceHost(selection)} /> : null}
       {element && name === "Box" ? <EffectsSection api={api} src={selection.src} /> : null}
+      {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 
       {element && propertySpecs.length && groups ? (
         <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
@@ -855,7 +915,20 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         <>
           {autoGroups(propertySpecs.filter((spec) => !shapedNames.has(spec.name))).map((group, index) => (
             <InspectorSection key={group.id} title={group.title} note={index === 0 ? propertiesNote : undefined}>
-              {group.specs.map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={labelInGroup(propLabel(spec.name, name), group)} />)}
+              {group.specs.map((spec) => {
+                const label = labelInGroup(propLabel(spec.name, name), group);
+                // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
+                // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
+                if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
+                  // A slot this state never draws has no switch (it would write content nothing shows).
+                  if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
+                  const value = api.valueFor(spec.name);
+                  return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
+                }
+                // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
+                const idle = idleNotes(name, spec.name, renderedProps ?? {});
+                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
+              })}
             </InspectorSection>
           ))}
           {shapedProps.map((entry) => (
@@ -914,6 +987,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
         </InspectorSection>
       ) : null}
     </div>
+    </InspectorSrcContext>
     </InspectorFileContext>
     </InspectorHostContext>
   );

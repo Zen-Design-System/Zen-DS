@@ -1,12 +1,15 @@
 /* Tooltip examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio's own work in Zen: a photo
-   review toolbar, an invoice's payment link, the activity feed, saved task views and a client's brand film. There is
-   no phone example on purpose: a tooltip never opens on touch, and the guideline sends touch-only surfaces elsewhere. */
+   review toolbar, an invoice's payment link, the activity feed, saved task views and a client's brand film. On a phone a
+   tooltip never opens on touch, so the phone example shows one open from the start with its close X (Figma Close=Yes,
+   user 2026-10-07). */
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { platformMedia, usePlatformVideo } from "../../PlatformMedia";
 import { Tooltip } from "../../../components/Tooltip";
-import { IconButton } from "../../../components/Button";
+import { TopNavigation } from "../../../components/TopNavigation";
+import { PlatformPhone } from "../../PlatformPhone";
+import { Button, IconButton } from "../../../components/Button";
 import { InputField } from "../../../components/Input";
 import { Card } from "../../../components/Card";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
@@ -21,6 +24,7 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { useToast } from "../../../components/Toast";
 import { activity, formatBytes, formatDate, formatMoney, formatRelative, formatTime, initials, invoiceStatusTheme, invoices, people, type Person } from "../data";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { keepOnHotUpdate } from "../../hotData";
 import "./tooltip.css";
 
 export const page: PlatformPage = "tooltip";
@@ -46,7 +50,7 @@ function PhotoReview() {
     event.preventDefault();
   };
   return (
-    <Card theme="flat" className="px-tooltip-fill" onKeyDown={onKeyDown}>
+    <Card theme="flat" width="fill" onKeyDown={onKeyDown}>
       <Stack gap="md">
         <Stack direction="row" align="center" justify="between" gap="md" wrap>
           <Stack gap="xs">
@@ -58,7 +62,7 @@ function PhotoReview() {
             <Tooltip content="Zoom out · −" placement="bottom">
               <IconButton appearance="flat" size="sm" icon="icon-zoom-out-line" aria-label="Zoom out" onClick={() => step(-1)} />
             </Tooltip>
-            <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status" className="px-tooltip-zoom">{`${zoom}%`}</Text>
+            <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status" align="center" tabularNumbers className="px-tooltip-zoom">{`${zoom}%`}</Text>
             <Tooltip content="Zoom in · +" placement="bottom">
               <IconButton appearance="flat" size="sm" icon="icon-zoom-in-line" aria-label="Zoom in" onClick={() => step(1)} />
             </Tooltip>
@@ -91,7 +95,7 @@ function PaymentLink() {
     timer.current = window.setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <Card theme="flat" className="px-tooltip-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <Stack gap="xs">
           <Stack direction="row" align="center" gap="2xs">
@@ -101,7 +105,7 @@ function PaymentLink() {
           <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${invoice.client} · ${formatMoney(invoice.amount, true)} · Due ${formatDate(invoice.due)}`}</Text>
         </Stack>
         <Stack direction="row" align="end" gap="xs">
-          <InputField className="px-tooltip-grow" label="Payment link" value={link} readOnly />
+          <Box width="fill"><InputField label="Payment link" value={link} readOnly /></Box>
           <Tooltip content={copied ? "Link copied" : "Copy link"} color={copied ? "accent" : "default"} open={copied || undefined}>
             <IconButton level="tertiary" size="md" icon="icon-copy-line" aria-label="Copy link" onClick={copy} />
           </Tooltip>
@@ -121,7 +125,7 @@ function ActivityTimes() {
   const { toast } = useToast();
   return (
     // A ListBox: the title in its Header-Slot, the activity rows in its Body-Slot.
-    <ListBox className="px-tooltip-fill"
+    <ListBox width="fill"
       header={<Heading level={4} textStyle="Heading/Subheading">Activity</Heading>}>
       <List aria-label="Activity">
         {activity.slice(0, 5).map((item) => {
@@ -176,7 +180,7 @@ function HandoffFile({ file, onOpen }: { file: (typeof handoff)[number]; onOpen:
   return (
     <ListItem leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />} title={file.name}>
       {/* Fills ListItem's Contents slot, so the pair copies the row's own title and caption (gap 2XSmall, caption Light). */}
-      <Stack gap="2xs" className="px-tooltip-fill">
+      <Stack gap="2xs" width="fill">
         {/* The tooltip anchor takes the row's width, so the link inside ends in an ellipsis. */}
         <Tooltip className="px-tooltip-name" content={file.name} disabled={!cut}>
           <Link ref={nameRef} className={`px-tooltip-name__link ${typographyStyles["Body/Base/Bold"]}`} href={`#file-${file.id}`}
@@ -192,7 +196,7 @@ function LongFileNames() {
   const { toast } = useToast();
   return (
     // A ListBox: the title in its Header-Slot, the files (HandoffFile renders a ListItem) in its Body-Slot.
-    <ListBox className="px-tooltip-fill"
+    <ListBox width="fill"
       header={<Heading level={4} textStyle="Heading/Subheading">Shared with Phin & Co</Heading>}>
       <List aria-label="Shared with Phin & Co">
         {handoff.map((file) => <HandoffFile key={file.id} file={file} onOpen={() => toast({ title: "File opened in a new tab" })} />)}
@@ -215,7 +219,7 @@ function BrandFilm() {
   // The tooltip names what a press does now, so it changes with the state: Pause while playing, Play while paused.
   const playLabel = player.playing ? "Pause" : "Play";
   return (
-    <Stack gap="md" className="px-tooltip-fill">
+    <Stack gap="md" width="fill">
       {/* No clip on the frame: the film rounds its own corners, so the tooltips above the controls are never cut off. */}
       <Box>
         <video ref={player.ref} className="px-tooltip-film__video" src={film.src} poster={film.poster} muted loop playsInline preload="metadata"
@@ -243,7 +247,31 @@ function BrandFilm() {
   );
 }
 
-export const examples: ExampleDef[] = [
+/** A phone: the new Scan receipt action carries a tip open from the start; its X closes it, and Show tip brings it back. */
+function ScanTipPhone() {
+  const [tip, setTip] = useState(true);
+  const { toast } = useToast();
+  return (
+    <PlatformPhone label="Expenses" header={<TopNavigation type="alt" title="Expenses" />}>
+      <Box paddingX="lg" paddingY="md">
+        <Stack gap="lg">
+          <Stack gap="2xs">
+            <Text textStyle="Body/Small/Regular" tone="base">This month</Text>
+            <Heading level={2} textStyle="Heading/2">{formatMoney(1284.5)}</Heading>
+          </Stack>
+          <Stack direction="row" gap="sm" align="center" wrap>
+            <Tooltip content="New: snap a receipt and the amount fills itself in" placement="bottom" closable open={tip} onOpenChange={setTip}>
+              <Button level="primary" startIcon="icon-camera-line" onClick={() => toast({ title: "Camera opened" })}>Scan receipt</Button>
+            </Tooltip>
+            {tip ? null : <Button level="tertiary" onClick={() => setTip(true)}>Show tip</Button>}
+          </Stack>
+        </Stack>
+      </Box>
+    </PlatformPhone>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Shortcut hints",
     description: "An explicit Tooltip adds the keyboard shortcut to an icon-only button's name; Download keeps the IconButton's own name tooltip. Tooltips open after 1 s of hover, at once on keyboard focus, and the next button along opens without waiting.",
@@ -340,4 +368,16 @@ const playLabel = player.playing ? "Pause" : "Play";
 </Box>`,
     render: () => <BrandFilm />,
   },
-];
+  {
+    title: "A tip on a phone",
+    description: "A tooltip never opens on touch, so on a phone a tip for a new action is open from the start and carries its own close X (closable). It stays until it is closed — a tap elsewhere or on the button does not hide it — and Show tip brings it back.",
+    render: () => <ScanTipPhone />,
+    code: `const [tip, setTip] = useState(true);
+
+<Tooltip content="New: snap a receipt and the amount fills itself in" placement="bottom"
+  closable open={tip} onOpenChange={setTip}>
+  <Button level="primary" startIcon="icon-camera-line" onClick={openCamera}>Scan receipt</Button>
+</Tooltip>
+{tip ? null : <Button level="tertiary" onClick={() => setTip(true)}>Show tip</Button>}`,
+  },
+]);

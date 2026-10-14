@@ -29,6 +29,7 @@ import {
   TODAY, daysFromToday, files as studioFiles, formatBytes, formatDate, formatDue, formatRange, formatRelative, leaveRequests, people, projectById,
   projectStatusTheme, projects, tasks, type Person, type StudioFile,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./popover.css";
 
 export const page: PlatformPage = "popover";
@@ -123,7 +124,7 @@ function AssignPeople() {
   });
   const team = loyaltyTeam.filter((person) => assigned.includes(person.id));
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <CardTitle title={task.title}>{`${task.key} · Due ${formatDate(task.due)}`}</CardTitle>
         <Stack direction="row" align="center" gap="xs" wrap>
@@ -156,7 +157,7 @@ function CreateLabel() {
     focusSoon(() => rowRef.current?.querySelectorAll<HTMLElement>(".zen-tag__remove")[index] ?? rowRef.current?.querySelector<HTMLElement>(".zen-chip"));
   };
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <CardTitle title={task.title}>{`${task.key} · ${formatDue(task.due)}`}</CardTitle>
         <Stack ref={rowRef} direction="row" align="center" gap="xs" wrap>
@@ -184,7 +185,7 @@ function SortFiles() {
   const current = sortOptions.find((option) => option.id === sort)!;
   return (
     // A ListBox: the count and the Sort chip in its Header-Slot, the files in its Body-Slot.
-    <ListBox className="px-popover-fill"
+    <ListBox width="fill"
       header={<Stack direction="row" align="center" justify="between" gap="md">
         <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(studioFiles.length, "file")}</Text>
         <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line" popoverLabel="Sort by"
@@ -213,7 +214,7 @@ function PhoneSort() {
   const current = sortOptions.find((option) => option.id === sort)!;
   return (
     <PlatformPhone label="Files" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
       <Stack direction="row" align="center" justify="between" gap="md" paddingX="lg" paddingY="sm">
         <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(phoneFiles.length, "file")}</Text>
         <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line" aria-haspopup="dialog" aria-expanded={sheet}
@@ -255,7 +256,7 @@ function JumpToProject() {
   const project = projectById(projectId);
   const pick = (id: string) => { setProjectId(id); setQuery(""); setOpen(false); };
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         {/* ↓ from the field moves into the results; Escape or a click outside closes them. */}
         <Box ref={fieldRef} onKeyDown={(event) => {
@@ -292,7 +293,7 @@ function ReviewTimeZone() {
   const zone = timeZones.find((z) => z.id === zoneId)!;
   const { day, time } = reviewIn(zone.offset);
   return (
-    <Card theme="flat" className="px-popover-fill">
+    <Card theme="flat" width="fill">
       <Stack gap="md">
         <CardTitle title="Design review with Lumen Bank">{`${projectById("lumen-banking").name} · hosted by ${personName("alex")}`}</CardTitle>
         <Stack direction="row" align="center" justify="between" gap="md" wrap>
@@ -340,7 +341,7 @@ function BulkFileActions() {
   return (
     // The table is the section's content, so it lies on the page with no card. The bar's row keeps its height, so the
     // page doesn't jump when a selection starts.
-    <Stack ref={sectionRef} gap="md" className="px-popover-fill">
+    <Stack ref={sectionRef} gap="md" width="fill">
       <Stack direction="row" align="center" justify="between" gap="md">
         <Heading level={4} textStyle="Heading/4">Recent files</Heading>
         <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{picked.length ? `${count} selected` : plural(rows.length, "file")}</Text>
@@ -348,7 +349,7 @@ function BulkFileActions() {
       <Table aria-label="Recent files" rows={rows} getRowId={(row) => row.id} selectable selectedIds={picked} onSelectionChange={setPicked}
         empty={<EmptyState illustration={false} title="No files yet" primaryAction={{ label: "Restore files", onClick: () => setRows(sortFiles(studioFiles, "updated")) }}>Deleted files stay in the trash for 30 days.</EmptyState>}
         columns={[
-          { id: "name", header: "Name", cell: (row) => <TableMedia media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={personName(row.owner)}>{row.name}</TableMedia> },
+          { id: "name", header: "Name", cell: (row) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(row.name)} size="lg" />} caption={personName(row.owner)}>{row.name}</TableMedia> },
           { id: "size", header: "Size", align: "right", width: "120px", cell: (row) => <TableText>{formatBytes(row.bytes)}</TableText> },
           { id: "updated", header: "Updated", align: "right", width: "200px", cell: (row) => <TableText>{formatRelative(row.updated)}</TableText> },
         ]} />
@@ -373,7 +374,7 @@ function BulkFileActions() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Assign people",
     description: "A searchable, multi-select list of people with photos that stays open while people are toggled. Someone on leave when the task is due stays in the list, disabled, with the dates as the caption.",
@@ -451,7 +452,7 @@ const unpick = (label) => { setPicked(toggleIn(picked, label)); focusNextTagOrCh
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Files" largeTitle="Files" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Files" largeTitle="Files" scrollRef={screenRef} />}>
   <Stack direction="row" align="center" justify="between" gap="md" paddingX="lg" paddingY="sm">
     <Text as="span" textStyle="Body/Small/Regular" tone="base">15 files</Text>
     <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line"
@@ -536,4 +537,4 @@ const fieldRef = useRef<HTMLElement>(null);
 ) : null}`,
     render: () => <BulkFileActions />,
   },
-];
+]);

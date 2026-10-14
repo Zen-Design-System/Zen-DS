@@ -1,0 +1,23 @@
+/* Figma's progressive background blur (BACKGROUND_BLUR, blurType PROGRESSIVE): the blur radius grows linearly from 0 at
+   one edge to its radius at the other (Top Navigation: strongest at the top; Bottom Navigation Floating: at the
+   bottom). Six stacked backdrop blurs, the k-th masked from its sixth of the height to the strong edge (feathered over
+   that sixth), with σk = max·√(2k − 1)/6: stacked blurs compound (their σ² add), so the blur at the k-th sixth is
+   max·k/6, the linear ramp. `--zen-progressive-blur` is the CSS blur at the strong edge (Figma radius / 2). The owner
+   positions the element (absolute, inset 0, under its content). */
+.zen-progressive-blur { pointer-events: none; }
+.zen-progressive-blur > i {
+  position: absolute;
+  inset: 0;
+  -webkit-backdrop-filter: blur(calc(var(--zen-progressive-blur, 12px) * var(--zen-progressive-blur-share)));
+  backdrop-filter: blur(calc(var(--zen-progressive-blur, 12px) * var(--zen-progressive-blur-share)));
+  -webkit-mask-image: linear-gradient(var(--zen-progressive-blur-toward), transparent var(--zen-progressive-blur-from), #000 var(--zen-progressive-blur-to));
+  mask-image: linear-gradient(var(--zen-progressive-blur-toward), transparent var(--zen-progressive-blur-from), #000 var(--zen-progressive-blur-to));
+}
+.zen-progressive-blur[data-strong="bottom"] { --zen-progressive-blur-toward: 180deg; }
+.zen-progressive-blur[data-strong="top"] { --zen-progressive-blur-toward: 0deg; }
+.zen-progressive-blur > i:nth-child(1) { --zen-progressive-blur-share: 0.1667; --zen-progressive-blur-from: 0%; --zen-progressive-blur-to: 16.67%; }
+.zen-progressive-blur > i:nth-child(2) { --zen-progressive-blur-share: 0.2887; --zen-progressive-blur-from: 16.67%; --zen-progressive-blur-to: 33.33%; }
+.zen-progressive-blur > i:nth-child(3) { --zen-progressive-blur-share: 0.3727; --zen-progressive-blur-from: 33.33%; --zen-progressive-blur-to: 50%; }
+.zen-progressive-blur > i:nth-child(4) { --zen-progressive-blur-share: 0.4410; --zen-progressive-blur-from: 50%; --zen-progressive-blur-to: 66.67%; }
+.zen-progressive-blur > i:nth-child(5) { --zen-progressive-blur-share: 0.5; --zen-progressive-blur-from: 66.67%; --zen-progressive-blur-to: 83.33%; }
+.zen-progressive-blur > i:nth-child(6) { --zen-progressive-blur-share: 0.5528; --zen-progressive-blur-from: 83.33%; --zen-progressive-blur-to: 100%; }

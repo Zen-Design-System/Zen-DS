@@ -1,17 +1,14 @@
 /* Tooltip examples (pages/tooltip.tsx). Tokens only. */
-.px-tooltip-fill { width: 100%; min-width: 0; box-sizing: border-box; }
 
-/* Photo review: the zoom level keeps its width so the buttons don't shift; the viewer scrolls when zoomed in. */
-.px-tooltip-zoom { min-width: 5ch; text-align: center; font-variant-numeric: tabular-nums; }
+/* Photo review: the zoom readout keeps five digits of width (ch follows the typography mode) so the buttons don't
+   shift; the viewer scrolls both ways when zoomed in (Zen scroll takes one axis). */
+.px-tooltip-zoom { min-width: 5ch; }
 .px-tooltip-viewer {
   height: 240px;
   overflow: auto;
   border-radius: var(--zen-corner-radius-large);
   background: var(--zen-color-background-surface-alt);
 }
-
-/* Payment link: the field takes the row, the copy button keeps its size. */
-.px-tooltip-grow { flex: 1 1 auto; min-width: 0; }
 
 /* Long file names: the tooltip anchor is as wide as the row allows; the link inside it ends in an ellipsis. */
 .px-tooltip-name { max-width: 100%; min-width: 0; align-self: flex-start; }

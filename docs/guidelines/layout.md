@@ -25,8 +25,9 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (paddi
 | Gap (Spacing/Gap) | `gap · rowGap · columnGap` | none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work) |
 | Padding (Spacing/Padding) | `padding · paddingX · paddingY` | 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48 |
 | Direction / alignment | `direction · align · justify · wrap` | column (default) or row; start · center · end · stretch · baseline; between · around |
-| Columns | `columns · minColumnWidth` | a number, a track list for unequal columns ("2fr 1fr"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default) |
-| Background layer | `surface (Box)` | surface · surface-alt · subtle · pale |
+| Columns | `columns · minColumnWidth · stackBelow` | a number, a track list for unequal columns ("2fr 1fr"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint |
+| Background layer | `surface (Box)` | surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card) |
+| Overflow scrolling | `scroll (Stack, Box)` | "y" scrolls vertically, "x" sideways, inside the frame (Figma Overflow scrolling; it clips, and the scroll stays inside): give a "y" frame a height ("fill" in a set-height column) or a maxHeight |
 | Border | `border (Box)` | pale (static) · subtle (actionable) |
 | Corner-Radius | `radius (Box)` | 2xs · xs · sm · md · lg · xl · 2xl · 3xl · full (follows the radius mode) |
 | Width | `maxWidth (Container)` | sm 640 · md 960 · lg 1280 (default) · xl 1440 · full; gutter = page margin token |
@@ -67,6 +68,8 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `align` | `"start" \| "center" \| "end" \| "stretch" \| "baseline"` | — | Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width while buttons, chips, badges, tags and avatars keep their own width (pass `align="stretch"` to stretch those too, e.g. full-width buttons in a mobile footer). |
 | `justify` | `"start" \| "center" \| "end" \| "between" \| "around"` | — | Main-axis distribution. `between` pushes the first and last items to the edges. |
 | `wrap` | `boolean` | `false` | Let row items wrap onto new lines. |
+| `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
+| `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls the content vertically, `"x"` sideways, inside the stack's own box (it needs a height or a maxHeight for `"y"`, a width for `"x"`); the scroll stays inside (overscroll-behavior: contain). |
 | `fillChildren` | `boolean` | `false` | Every child takes an equal share along the direction (Figma: all children Fill container), for children that have no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`). A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button never shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get taller); with only a maxHeight the children keep their content height and shrink once it caps; without a height they keep their content height. |
 | `padding` | `"none" \| ZenScaleInput \| "4xl"` | — | Space inside the stack (Figma Spacing/Padding). |
 | `paddingX` | `"none" \| ZenScaleInput \| "4xl"` | — | Horizontal padding (overrides `padding` on the sides). |
@@ -101,9 +104,11 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `rowGap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | — |  |
 | `columnGap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | — |  |
 | `align` | `"start" \| "center" \| "end" \| "stretch"` | — | Vertical alignment of cells. Default stretch (equal-height cards). |
+| `stackBelow` | `number` | — | One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint: a two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it. |
 | `padding` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
+| `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
 
 ### Box
 A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use Card; for page width use Container.
@@ -135,7 +140,8 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `padding` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
 | `paddingX` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
 | `paddingY` | `"none" \| ZenScaleInput \| "4xl"` | — |  |
-| `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale"` | `"none"` | Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). |
+| `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). |
+| `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). |
 | `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md). |
 | `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
@@ -164,7 +170,7 @@ type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "lar
 ```
 
 ## ✅ Do
-- Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere (docs/component-usage-rules.md §13): 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).
+- Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere: 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).
 - Step up one level at least between groups: the gap between groups is always larger than the gap inside them.
 - Use Stack direction="row" with justify="between" for a title + actions row.
 - Use Grid minColumnWidth for card grids so they reflow from phone to desktop.

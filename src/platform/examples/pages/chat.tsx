@@ -10,7 +10,7 @@ import { Avatar } from "../../../components/Avatar";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { IconButton } from "../../../components/Button";
 import {
-  ChatAvatarGroup, ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatEmojiPicker, ChatFile, ChatMessage, ChatPhotos, ChatThread,
+  ChatAvatarGroup, ChatCall, ChatComposer, ChatConversationItem, ChatDateDivider, ChatEmojiPicker, ChatFile, ChatMessage, ChatPhotos, ChatThread, ChatVoice,
   type ChatCallState, type ChatComposerProps, type ChatConversationItemProps, type ChatDomain, type ChatFileKind, type ChatPerson,
   type ChatReaction, type ChatReplyTarget, type ChatSide,
 } from "../../../components/Chat";
@@ -29,12 +29,13 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { ChatDemoNote, useChatDemo } from "../../chatDemo";
 import { PlatformChatHeader } from "../../PlatformChatHeader";
-import { ThreadHeader, headerActions } from "../../PlatformChatDesktopShowcases";
+import { ChatWindow, ChatWindowList, ChatWindowMain, ChatWindowSplit, ThreadHeader, headerActions } from "../../PlatformChatDesktopShowcases";
 import { platformMedia, type PlatformPhoto } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { daysFromToday, formatMoney, formatRange, formatRelative, formatTime, initials, leaveRequests, people, projectById, TODAY, type Person } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./chat.css";
 
 export const page: PlatformPage = "chat";
@@ -470,7 +471,7 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
     return (
       <>
         <PlatformPhone key="chats" label={label} canvas={canvas} headerOverlay screenRef={screenRef}
-          header={<TopNavigation title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
+          header={<TopNavigation type="alt" title={listTitle} largeTitle={listTitle} scrollRef={screenRef} trailing={[{ icon: "icon-plus-line", label: "Favourite", onClick: () => toast({ title: "Favourite" }) }]} />}>
           {screen.anchor}
           <List aria-label={listTitle}>
             {m.convs.map((c) => <ChatConversationItem key={c.id} {...rowOf(m, c)} onClick={() => screen.go('[aria-label="Back"]', () => m.open(c.id))} />)}
@@ -484,9 +485,9 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
   const back = () => screen.go(`.zen-list > li:nth-child(${index + 1}) .zen-list-item__wrapper`, () => m.open(null));
   return (
     <>
-      {/* The thread header (PlatformChatHeader) does not take scrollRef yet, so the thread scrolls under a still bar. */}
-      <PlatformPhone key={conv.id} label={label} canvas={canvas}
-        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online}
+      {/* The thread is the bar's scroller too: once messages run under the header, it shows its Pale rule. */}
+      <PlatformPhone key={conv.id} label={label} canvas={canvas} screenRef={screenRef}
+        header={<PlatformChatHeader title={conv.title} subtitle={m.offline ? "Connecting…" : conv.status} person={conv.person} group={conv.group} online={!m.offline && conv.online} scrollRef={screenRef}
           onAction={(what) => (what.startsWith("Back") ? back : m.phoneHeaderAction(what))} />}
         footer={<Composer m={m} />}>
         {screen.anchor}
@@ -504,39 +505,25 @@ function PhoneMessenger({ m, label, listTitle = "Chats", canvas }: { m: Messenge
  */
 function DesktopHeader({ m }: { m: Messenger }) {
   const conv = m.conv!;
-  if (!conv.group) return <ThreadHeader person={conv.person ?? { name: conv.title }} status={conv.status} actions={headerActions} onAction={m.desktopHeaderAction} />;
-  return (
-    <>
-      <div className="pe-chat-desktop__header">
-        <ChatAvatarGroup people={conv.group} size="md" online={conv.online} />
-        <div className="pe-chat-desktop__who">
-          <Text as="span" textStyle="Body/Base/Bold" className="pe-chat-desktop__name">{conv.title}</Text>
-          <Text as="span" textStyle="Body/Small/Regular" tone="light" className="pe-chat-desktop__status">{conv.status}</Text>
-        </div>
-        <div className="pe-chat-desktop__actions">
-          {headerActions.map((a) => <IconButton key={a.label} appearance="flat" level="primary" size="md" aria-label={a.label} icon={<Icon name={a.icon} />} onClick={() => m.desktopHeaderAction(a.label)} />)}
-        </div>
-      </div>
-      <Divider decorative />
-    </>
-  );
+  const avatar = conv.group ? <ChatAvatarGroup people={conv.group} size="md" online={conv.online} /> : undefined;
+  return <ThreadHeader person={conv.person ?? { name: conv.title }} avatar={avatar} status={conv.status} actions={headerActions} onAction={m.desktopHeaderAction} />;
 }
 
 /** One desktop chat window: the thread header over the desktop thread and Chat-Control. */
 function DesktopThread({ m }: { m: Messenger }) {
   const conv = m.conv!;
   return (
-    <div className="pe-chat-desktop px-chat-single px-chat-window" data-domain={conv.domain}>
-      <section className="pe-chat-desktop__main" aria-label={`Chat with ${conv.title}`}>
+    <ChatWindow layout="thread" domain={conv.domain} fit>
+      <ChatWindowMain label={`Chat with ${conv.title}`}>
         {/* The window's one h1 names the open chat; the header bar shows it. */}
         <VisuallyHidden as="h1">{conv.title}</VisuallyHidden>
         <DesktopHeader m={m} />
         <Thread key={conv.id} m={m} />
         <Composer m={m} />
         <ChatDemoNote note={m.demo.note} />
-      </section>
+      </ChatWindowMain>
       <DesktopPanels m={m} />
-    </div>
+    </ChatWindow>
   );
 }
 
@@ -550,14 +537,15 @@ function TeamMessenger() {
   const shown = m.convs.filter((c) => c.title.toLowerCase().includes(q));
   const conv = m.conv!;
   return (
-    <div className="pe-chat-desktop px-chat-window">
+    <ChatWindow fit>
       {/* The screen's one h1 names the open chat (the header bar shows it); the chat list is its h2. */}
       <VisuallyHidden as="h1">{conv.title}</VisuallyHidden>
-      <aside className="pe-chat-desktop__list" aria-labelledby={headingId}>
-        <div className="pe-chat-desktop__list-head">
+      <ChatWindowList aria-labelledby={headingId} head={(
+        <>
           <Heading level={2} id={headingId} textStyle="Heading/4">Chats</Heading>
           <Search ref={searchRef} placeholder="Search chats" aria-label="Search chats" value={query} onValueChange={setQuery} clearable />
-        </div>
+        </>
+      )}>
         {shown.length ? (
           // The pane scrolls under its sticky head; the rows pad 12px above and below and keep their own 16px sides
           // (Conversation-List), so their fill stays 4px inside the pane.
@@ -571,16 +559,16 @@ function TeamMessenger() {
             No person or group is called “{query.trim()}”.
           </EmptyState>
         )}
-      </aside>
-      <Divider orientation="vertical" decorative className="pe-chat-desktop__split" />
-      <section className="pe-chat-desktop__main" aria-label={`Chat with ${conv.title}`}>
+      </ChatWindowList>
+      <ChatWindowSplit />
+      <ChatWindowMain label={`Chat with ${conv.title}`}>
         <DesktopHeader m={m} />
         <Thread key={conv.id} m={m} />
         <Composer m={m} />
         <ChatDemoNote note={m.demo.note} />
-      </section>
+      </ChatWindowMain>
       <DesktopPanels m={m} />
-    </div>
+    </ChatWindow>
   );
 }
 
@@ -794,7 +782,61 @@ function FilesPhotosCalls() {
   return <DesktopThread m={m} />;
 }
 
-export const examples: ExampleDef[] = [
+// ——— 9. Voice messages (phone) ——————————————————————————————————————————————————————————————————————————
+/** A voice message that plays: progress moves while it plays, the speed steps 1× → 1.5× → 2×. */
+function useVoicePlayback(seconds: number) {
+  const [playing, setPlaying] = useState(false);
+  const [at, setAt] = useState(0);
+  const [speed, setSpeed] = useState(1);
+  useEffect(() => {
+    if (!playing) return undefined;
+    const timer = window.setInterval(() => setAt((now) => {
+      const next = now + 0.25 * speed;
+      if (next >= seconds) { setPlaying(false); return 0; }
+      return next;
+    }), 250);
+    return () => window.clearInterval(timer);
+  }, [playing, speed, seconds]);
+  const mmss = (value: number) => `${Math.floor(value / 60)}:${String(Math.floor(value % 60)).padStart(2, "0")}`;
+  return { playing, onPlayingChange: setPlaying, progress: at / seconds, elapsed: mmss(at), duration: mmss(seconds), speed, onSpeedChange: setSpeed };
+}
+
+function VoiceMessages() {
+  const demo = useChatDemo();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const fromBao = useVoicePlayback(32);
+  const mine = useVoicePlayback(18);
+  const [sent, setSent] = useState<Array<{ id: string; text: string }>>([]);
+  const header = (
+    <PlatformChatHeader title={bao.name} person={cp(bao)} online scrollRef={screenRef}
+      onAction={(what) => demo.headerAction(what)} />
+  );
+  return (
+    <Stack gap="sm">
+      <PlatformPhone label="Voice messages with Bao Tran" canvas="canvas" screenRef={screenRef} header={header}
+        footer={<ChatComposer actions={demo.composerActions} onEmoji={demo.onEmoji} {...demo.composerReply} onSend={(text) => { demo.takeReply(); setSent((all) => [...all, { id: `voice-sent-${all.length}`, text }]); demo.say("Sent"); }} />}>
+        <ChatThread aria-label="Voice messages with Bao Tran">
+          {demo.isDeleted("voice-bao") ? null : (
+            <ChatMessage side="others" author={cp(bao)} {...demo.act("voice-bao", "others", { kind: "voice", author: bao.name, reply: { duration: "0:32" } })}>
+              <ChatVoice side="others" {...fromBao} />
+            </ChatMessage>
+          )}
+          {demo.isDeleted("voice-you") ? null : (
+            <ChatMessage side="you" status={sent.length ? undefined : "Seen"} {...demo.act("voice-you", "you", { kind: "voice", reply: { duration: "0:18" } })}>
+              <ChatVoice side="you" {...mine} />
+            </ChatMessage>
+          )}
+          {sent.map((message, index) => (
+            <ChatMessage key={message.id} side="you" continued status={index === sent.length - 1 ? "Sent" : undefined} {...demo.act(message.id, "you", { text: message.text })}>{message.text}</ChatMessage>
+          ))}
+        </ChatThread>
+      </PlatformPhone>
+      <ChatDemoNote note={demo.note} />
+    </Stack>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Team messenger",
     wide: true,
@@ -864,7 +906,7 @@ const handle = (action, id) => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="chats" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Chats" largeTitle="Chats" scrollRef={screenRef} />}>
   <List aria-label="Chats">
     <ChatConversationItem person={chi} preview="Can you look at it before the 2 pm review?" time="2 minutes ago" unread={!read.chi} onClick={() => open("chi")} />
     <ChatConversationItem person={bao} call="missed-audio" time="13 minutes ago" unread={!read.bao} online onClick={() => open("bao")} />
@@ -909,9 +951,9 @@ const handle = (action, id) => {
   },
   {
     title: "First message",
-    description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a 👋. That first message opens the thread, and its Sent turns to Seen when Em answers.",
+    description: "A new chat says who it is with instead of showing an empty thread, and offers one first step: Say hello sends a wave emoji. That first message opens the thread, and its Sent turns to Seen when Em answers.",
     render: () => <FirstMessage />,
-    code: `<PlatformPhone header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} onAction={onAction} />}
+    code: `<PlatformPhone screenRef={screenRef} header={<PlatformChatHeader title="Em Pham" subtitle="Active today" person={em} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} actions={actions} onEmoji={toggleEmoji} />}>
   {messages.length === 0 ? (
     <EmptyState headingLevel={2} icon="icon-message-smile-circle-line" title="No messages yet"
@@ -944,10 +986,28 @@ const handle = (action, id) => {
 </ChatThread>`,
   },
   {
+    title: "Voice messages",
+    description: "On a phone, ChatVoice plays a voice message in its bubble: the played share of the waveform turns full strength, the speed steps 1× → 1.5× → 2×, and hold (or Shift+F10 on a focused bubble) offers Reply, Forward, Pin and Delete as on a file.",
+    render: () => <VoiceMessages />,
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef}
+  header={<PlatformChatHeader title="Bao Tran" person={bao} online scrollRef={screenRef} onAction={onAction} />}
+  footer={<ChatComposer replyTo={replyTo} onCancelReply={cancelReply} onSend={send} />}>
+  <ChatThread aria-label="Voice messages with Bao Tran">
+    <ChatMessage side="others" author={bao} {...act("voice-bao", "others", { kind: "voice" })}>
+      <ChatVoice side="others" duration="0:32" elapsed={elapsed} progress={progress}
+        playing={playing} onPlayingChange={setPlaying} speed={speed} onSpeedChange={setSpeed} />
+    </ChatMessage>
+    <ChatMessage side="you" status="Seen" {...act("voice-you", "you", { kind: "voice" })}>
+      <ChatVoice side="you" duration="0:18" playing={mine} onPlayingChange={setMine} speed={mineSpeed} onSpeedChange={setMineSpeed} />
+    </ChatMessage>
+  </ChatThread>
+</PlatformPhone>`,
+  },
+  {
     title: "Customer support",
     description: "A support chat uses the Business domain on the Canvas background: the time sits inside every bubble and card, and support answers a moment after you write.",
     render: () => <CustomerSupport />,
-    code: `<PlatformPhone canvas="canvas" header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} onAction={onAction} />}
+    code: `<PlatformPhone canvas="canvas" screenRef={screenRef} header={<PlatformChatHeader title="Phin & Co" subtitle="Member support" person={support} scrollRef={screenRef} onAction={onAction} />}
   footer={<ChatComposer onSend={send} />}>
   <ChatThread aria-label="Messages with Phin & Co">
     <ChatMessage side="others" domain="business" author={support} time="9:58 am">Hi Alex, this is Thảo from Phin & Co. How can I help?</ChatMessage>
@@ -957,4 +1017,4 @@ const handle = (action, id) => {
   </ChatThread>
 </PlatformPhone>`,
   },
-];
+]);

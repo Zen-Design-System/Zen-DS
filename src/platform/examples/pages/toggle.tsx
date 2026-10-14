@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Avatar, type AvatarSize } from "../../../components/Avatar";
@@ -18,6 +19,7 @@ import { useToast } from "../../../components/Toast";
 import { Toggle, ToggleButton } from "../../../components/Toggle";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { TODAY, daysFromToday, formatDue, formatRelative, formatTime, initials, me, people, studio, taskStatusTheme, type Person, type TaskStatus } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./toggle.css";
 
 export const page: PlatformPage = "toggle";
@@ -59,7 +61,7 @@ function NotificationSettingsExample() {
     toast({ title: "Notifications paused", action: { label: "Undo", onClick: () => setPaused(false) } });
   };
   return (
-    <div className="px-toggle-page">
+    <PreviewPage fill>
       <Container maxWidth="md">
         <Stack gap="xl" paddingY="xl">
           <PageHeader eyebrow="Settings" title="Notifications" description="Choose what Zen tells you about and where. Changes save as you make them." />
@@ -83,7 +85,7 @@ function NotificationSettingsExample() {
           ))}
         </Stack>
       </Container>
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -268,7 +270,7 @@ function PhoneSettingsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Notification settings",
     description: "A settings page where every switch saves at once, with no Save button. The master toggle pauses everything and disables the rows that depend on it; a Toast offers Undo.",
@@ -414,4 +416,4 @@ const connect = async () => {
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

@@ -23,7 +23,7 @@ const rules: { id: string; title: string; claims: (spec: PropSpec) => boolean }[
   { id: "actions", title: "Actions", claims: (spec) => ACTIONS.test(spec.name) },
   { id: "appearance", title: "Appearance", claims: (spec) => ["enum", "number-enum", "typography", "text-align"].includes(spec.editor.kind) || APPEARANCE.test(spec.name) },
   { id: "state", title: "State", claims: (spec) => spec.editor.kind === "boolean" || spec.editor.kind === "truncate" },
-  { id: "text", title: "Content", claims: (spec) => spec.editor.kind === "string" || spec.editor.kind === "node" },
+  { id: "text", title: "Content", claims: (spec) => spec.editor.kind === "string" || spec.editor.kind === "node" || spec.editor.kind === "photo" },
 ];
 
 /**

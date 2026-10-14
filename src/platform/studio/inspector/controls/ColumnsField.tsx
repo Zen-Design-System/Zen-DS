@@ -19,7 +19,7 @@ import "./controls.css";
  */
 
 const MODE_LABELS: Record<ColumnsMode, string> = { "auto-fit": "Auto-fit", count: "Count", tracks: "Tracks" };
-const BREAKPOINT_ICONS = { mobile: "icon-phone-line", tablet: "icon-tablet-line", desktop: "icon-monitor-01-line" } as const;
+const BREAKPOINT_ICONS = { mobile: "icon-mobile-line", tablet: "icon-tablet-line", desktop: "icon-monitor-01-line" } as const;
 const BREAKPOINT_NAMES: Record<BreakpointKey, string> = { mobile: "Mobile", tablet: "Tablet", desktop: "Desktop" };
 
 /** What `columns` holds, read from its attribute (a number or string literal, an object literal of literals, or code). */
@@ -138,7 +138,7 @@ export function ColumnsField({ attributes, minColumnWidth, minFallback, host, di
     const mode = columnsModeOf(shown) === "auto-fit" ? "count" : columnsModeOf(shown);
     return (
       <div className="studio-layout-group" role="group" aria-label="Columns" data-prop="columns">
-        <span className={`studio-layout-group__label ${typographyStyles["Body/Small/Regular"]}`}>Columns</span>
+        <span className={`studio-layout-group__label ${typographyStyles["Caption/Regular"]}`}>Columns</span>
         <div className="studio-layout-group__row">
           <Segmented
             aria-label="Breakpoint"
@@ -185,7 +185,7 @@ export function ColumnsField({ attributes, minColumnWidth, minFallback, host, di
   const mode = columnsModeOf(value);
   return (
     <div className="studio-layout-group" role="group" aria-label="Columns" data-prop="columns">
-      <span className={`studio-layout-group__label ${typographyStyles["Body/Small/Regular"]}`}>Columns</span>
+      <span className={`studio-layout-group__label ${typographyStyles["Caption/Regular"]}`}>Columns</span>
       <div className="studio-layout-group__row">
         <div className="studio-layout-seg" data-default={value === undefined || undefined}>
           <Segmented

@@ -37,7 +37,7 @@ export function InstanceSizeGroup({ sizing, disabled }: { sizing: InstanceSizing
   };
   return (
     <div className="studio-sizing" role="group" aria-labelledby={labelId} data-prop="width" data-instance="true" data-stacked={sizing.stacked || undefined}>
-      <span id={labelId} className={`studio-sizing__label ${typographyStyles["Body/Small/Regular"]}`}>Size</span>
+      <span id={labelId} className={`studio-sizing__label ${typographyStyles["Caption/Regular"]}`}>Resizing</span>
       <div className="studio-sizing__pair" data-single={axes.length === 1 || undefined}>
         {axes.map((axis) => (
           <SizeField

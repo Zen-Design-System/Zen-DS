@@ -19,7 +19,8 @@ Name or briefly describe a control on hover and keyboard focus.
 | Color | `color` | default · accent · white-overlay · black-overlay |
 | Size | `size` | medium · small |
 | Placement | `placement` | top · bottom · left · right |
-| Open | `open` | controlled (e.g. "Copied!") |
+| Open | `open · defaultOpen · onOpenChange` | controlled (e.g. "Copied!") or open from the start |
+| Close | `closable` | Figma Close: a dismiss X after the label; the tooltip stays until it is closed |
 | Delay | `delay` | hover delay, focus is immediate |
 
 ## Props
@@ -31,17 +32,20 @@ Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `content` (required) | `ReactNode` | — | Tooltip text. Keep it short and non-interactive; use Popover for rich content. |
-| `children` (required) | `ReactElement` | — | A single focusable element (Button, IconButton, link…). It receives aria-describedby. |
+| `children` (required) | `ReactElement` | — | A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives aria-describedby. |
 | `color` | `"default" \| "accent" \| "white-overlay" \| "black-overlay"` | `"default"` |  |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `placement` | `"top" \| "bottom" \| "left" \| "right"` | `"top"` |  |
 | `delay` | `number` | `1000` | Hover delay in ms before showing (focus shows immediately). Zen rule: 1s (`TOOLTIP_HOVER_DELAY`). |
 | `open` | `boolean` | — | Controlled visibility; omit for hover/focus behavior. |
+| `defaultOpen` | `boolean` | `false` | Shown from the start (uncontrolled): an onboarding hint, or a phone, where a tooltip never opens on touch. Pair it with `closable`. |
+| `onOpenChange` | `(open: boolean) => void` | — | Called when the tooltip opens or closes (the close X, Escape, hover and focus). |
+| `closable` | `boolean` | `false` | Figma Close=Yes: a dismiss X after the label. The tooltip then stays until it is closed (hover, focus and pointer presses no longer hide it) and is a `note`, as it holds a button. |
 | `disabled` | `boolean` | `false` |  |
 | `className` | `string` | — |  |
 
 ### TooltipSurface
-Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium).
+Figma Tooltip (1595:2220): Color × Size bubble with the Simple-Label primitive (Caption/Medium). Close (boolean, added 2026-10-07): a Wrapper Element-Size/Popular/Small high, Spacing/Gap/XSmall after the label, holding an icon-x-medium-line at Element-Size/Popular/XSmall centred, in the label's content colour; for a tooltip shown open by default.
 
 Also accepts `HTMLAttributes<HTMLSpanElement>`.
 
@@ -50,6 +54,8 @@ Also accepts `HTMLAttributes<HTMLSpanElement>`.
 | `color` | `"default" \| "accent" \| "white-overlay" \| "black-overlay"` | `"default"` |  |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `children` (required) | `ReactNode` | — |  |
+| `onClose` | `() => void` | — | Figma Close=Yes: a dismiss X after the label, called when it is pressed. |
+| `closeLabel` | `string` | — | The X's accessible name. Default: the locale's “Close”. |
 
 ## Keyboard
 | Keys | Action |
@@ -58,6 +64,7 @@ Also accepts `HTMLAttributes<HTMLSpanElement>`.
 | Escape | Hide the tooltip |
 
 ## ✅ Do
+- On a phone, where a tooltip never opens on touch, show a tip for a new action open from the start with its close X: <Tooltip closable open onOpenChange>.
 - Wrap a focusable trigger (Button, IconButton, link).
 - Keep text under ~80 characters, no punctuation for single phrases.
 - Use Accent briefly for confirmations ("Copied!").
@@ -66,13 +73,13 @@ Also accepts `HTMLAttributes<HTMLSpanElement>`.
 - Icon-only controls get their name tooltip for free (IconButton, Top/Bottom Navigation actions, close and remove buttons); add an explicit `<Tooltip>` only for a longer hint — the built-in one then stays silent.
 
 ## ❌ Don't
-- Don't put links or buttons inside a tooltip.
+- Don't put links or buttons inside a tooltip (its own close X, closable, is the one exception).
 - Don't repeat the visible label word for word.
 - Don't wrap a disabled control (harness: tooltip/disabled-trigger).
-- Don't use a tooltip on touch-first surfaces or for error messages.
+- Don't rely on a hover tooltip on touch-first surfaces (use a closable one open from the start), and never for error messages.
 
 ## Accessibility
-- role=tooltip linked with aria-describedby; Escape dismisses; appears on focus.
+- role=tooltip linked with aria-describedby; Escape dismisses; appears on focus. A closable tooltip is role=note (it holds its close button, named by the locale's Close) and stays until it is closed.
 
 ## Content
 - Name + shortcut ("Bold · ⌘B").
@@ -85,6 +92,7 @@ Also accepts `HTMLAttributes<HTMLSpanElement>`.
 | `tooltip/no-interactive-content` | error | Tooltip content is plain text: no buttons, links or handlers (it disappears on blur). | `zen-allow-tooltip-content: <reason>` |
 | `tooltip/disabled-trigger` | warn | A disabled control cannot receive focus, so a tooltip on it is unreachable by keyboard; explain the reason inline. | `zen-allow-tooltip-disabled: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Tooltip](https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/)

@@ -19,6 +19,154 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio's icon picker leads with tiles you can click without typing: **Recent** (your last picks) and **Related**
+  (the icon's own family and the icons that mean the same as it and as the words beside it: a Revenue card's coins →
+  wallet, bank, card, currency, receipt). A nested icon's picker (a Metric card's dock icon) lists the icons the page
+  uses again, under "Used in this file".
+- Zen Studio, round 3: ⌘-click lands on every text as Figma's deep select (a Button's, Badge's or Chip's label too; a
+  picture's initials stay the picture), ⇧Enter / Esc go up one layer inside an instance; Layers shows an instance's own
+  layers by their Figma names and texts by their words, with no "Parts" folder, no empty slots and no slot row that
+  only repeats its layer's name. Edits on a page you made reach the canvas in 35–60 ms (was 160–260 before these
+  rounds): its elements are marked by their stable document ids, so an added line no longer redraws the page below it,
+  and the Studio's own panels redraw after the canvas has painted.
+- Zen Studio, Figma parity round 2: Layers lists what the canvas selects (no Container, a card's content Stack, a list's
+  `<ul>` or Parts row under a Stack / Grid); ⌘-click goes into an instance to its text or nested instance (a KPI value,
+  a list title, a table cell's name, an icon, a Badge), a text layer edits in the Inspector (Text) or with Enter in
+  place; a nested boolean switched back off removes its override; Metric's Trend is a boolean; a button added to a page
+  header's actions joins its row; a Sidebar item or a trend label renames in place on a page you made.
+- Zen Studio edits reach the canvas about twice as fast (45–120 ms, was 160–260 on a template page): the page is parsed
+  in the render that brings it, unchanged parts are not rendered again, parses and hashes are reused, and size probes
+  wait until the canvas has painted.
+- Zen Studio clicks like Figma on pages made from templates: layout wrappers that draw nothing (a Stack, Grid or
+  Container around one layer, a card's content column, a list's `<ul>`) are passed through, and AppShell and the page's
+  body count as the frame, so a KPI card is three double-clicks away instead of seven (5.6 → 2.5 on average over six
+  templates). Right-click › **Select layer ›** lists every layer under the pointer.
+- Zen Studio booleans that did nothing now work or hide: Metric's Counter shows on Icon-Highlight only, Hint and
+  Label-Icon on Title-Highlight XLarge–Medium; Metric / Metric card **Custom** and DashboardHeader's Search, Controls,
+  Actions, Center and Trailing open their slot (they had no slot, and a page from a template never opened the picker);
+  an Advanced Chip's Dropdown switched off writes `dropdown={false}`; switches that cannot draw in the current state
+  (Line chart legend without a comparison, an action's dot under a count, the workspace bar) say why.
+- Badge: `leadingIcon={false}` hides a custom `leading` icon too, as Figma's Leading-Icon boolean hides the layer.
+- Zen Studio: the insert picker says "N not available here" in one line (the reasons in its tooltip, in design words);
+  a card's Effects row is one Figma style row — the effect's swatch and name, which picks the theme that draws it.
+- Charts take their card from Card (2026-10-14, user, live Figma): Bar, Donut, Radial and Heatmap no longer paint their
+  own surface; like every chart they sit in Chart-Card's Content slot, so Theme, Surface and Color work on them. The
+  AI kit for Figma no longer treats a standalone chart as a box (`theme/box-on-canvas`, `theme/mixed-elevation`).
+- Chart card value (2026-10-14, live Figma): the header's Value text is Heading/2 (25/32) on every chart; Line,
+  Stack-Bar, Donut, Radial and Multi-Line were still Heading/3 (22/28). In code the `ChartCard` value and the
+  `DonutChart` total beside the ring (`totalPosition="start"`) are Heading/2 too (were Heading/3).
+- No gradient surfaces (2026-10-14, user): Card `theme="semi-pale"` is deprecated and renders as `pale` (it stays in
+  the type, off the theme list). Figma dropped the Card Gradient and Semi-Pale themes and their styles, so
+  `--zen-style-semi-pale-fill` and `.zen-fill-semi-pale` are gone from `style-effects.css`.
+- Chat reply, synced from Figma (2026-10-13, user): a quote that leads with a photo, a file or an icon starts 8px in
+  (text-only quotes keep 12), and the composer's Replying-to bar shows a file as a Small Dock Icon at 2/3 (21px, was 16),
+  as the designer set Chat/Reply/Quote and Chat/Composer-Reply.
+- Voice motion (2026-10-13, user): `VoiceRecorder` without `levels` scrolls its sample take while recording (7 bars a
+  second, so it keeps pace with the 8-second window; a new take enters at the right edge; Paused holds still) and its
+  Recording dot glows; `AiVoiceConversation` bars move like speech (yours irregular, the assistant's steadier) with a
+  halo that swells with the voice; `ChatVoice` bars fade in as playback reaches them. Reduced motion keeps Figma's
+  still frames. Muted while listening, the signal rests, the guidance and note say the microphone is muted (labels
+  `voiceMutedGuidance`, `voiceMutedNote`) and Mute shows its Pressed look. Review: `docs/research/voice-usability-review-2026-10-13.md`.
+- Chart sectors (2026-10-13, repo + live Figma): `Chart/Sector/Primary` is Support/Brand/Solid and
+  `Chart/Sector/Secondary` Support/Neutral/Deep in every Component Theme mode, as Brand - S1 (the Neutral modes had them
+  the other way round), so a chart's first series is the brand colour everywhere. LineChart's `compare` line is
+  Border/Neutral/Solid at 40% (Figma Multi-Line Compare), a neutral reference that no longer turns brand with it.
+- Chart sector style (2026-10-13, live Figma): "Color Chart Sector/Septenary" now references Support/Green/Soft (was
+  Red/Soft); `--zen-style-color-chart-sector-septenary-fill` and `.zen-fill-color-chart-sector-septenary` follow.
+  `chartPalette` now walks the seven styles in order: a 6th series is Support/Orange/Solid (was Green/Solid) and a 7th
+  Support/Green/Soft (was Orange/Solid).
+- Focus rings (2026-10-13, live Figma): four new tokens, `--zen-color-focus-positive-solid|subtle` and
+  `--zen-color-focus-negative-solid|subtle` (Color/Focus/Positive|Negative/*, the same steps as the Accent pair). Button
+  (Main, Flat, Icon-Main, Icon-Flat) now draws its 3px ring in Focus/Accent/Solid (was Accent/Subtle); Danger levels use
+  Focus/Negative/Solid and Positive levels Focus/Positive/Solid. Input's Inputted-Error / Blank-Error border reads
+  Focus/Negative/Solid (same colour as before). Top Navigation actions keep a 3px clear gap to their ring (was 2px).
+  The 3px field ring of Input (Focused/Typing, and the code-only error-focus and read-only-focus rings) is
+  Focus/Neutral/Subtle, a step lighter than Border/Active/Neutral/Subtle; AiChatField and the Chat composer, which take
+  the Input ring, follow. Stepper: Focused ring Focus/Neutral/Subtle, Error ring Focus/Negative/Subtle. New harness rule
+  `focus/ring-token` (error): a focus ring's colour comes from `--zen-color-focus-*`.
+- Text on a Zen accent solid (2026-10-13, live Figma): Base Colors On-Brand-Default (Light, Dark) and Light/On-Brand-Hover
+  are black 86% instead of white, so `--zen-color-content-on-accent-*` passes contrast on Zen pink (white was 2.5:1).
+- Table rows (2026-10-13, user rule, Figma Table/Cell/Default FIXED): every body row is exactly Table/Cell/Size and the
+  header Table/Header/Size in every density (rows were 1px taller, and long text wrapped onto more lines). Cells hold
+  one line: long text ends in an ellipsis, right-aligned values stay whole, Badge/Tag items no longer wrap (Figma
+  NO_WRAP). Long, multi-line content is not Table's job; a sheet-style component will cover it.
+- Typography (2026-10-13, Figma re-sync, mode Dashboard): headings and display text track tighter and Body/Small
+  gains -0.12px — Letter-Spacing Display-1…4, Heading-1…4 and Body-Small re-synced (e.g. Heading-1 -0.56 → -0.84px);
+  the Studio mode follows. Every text style and component reads the variables, so nothing else changes.
+- Card and List Box `theme="on-container"` (2026-10-12, user): Surface/Flat, for a Card or ListBox inside a Modal
+  (Dialog, ModalForm), a SidePanel or a BottomSheet, on their Container fill — no border, no shadow; a selected card
+  keeps it. Usage rules §16 and both guidelines say so (a card in a card or in a ListBox keeps the Pale border); the
+  harness warns on a Card or ListBox right inside one of them with another theme (`card/on-container-in-overlay`,
+  `listbox/on-container-in-overlay`, allow `overlay-theme`). Figma Card and Component/List-Box have the same
+  Theme=On-Container; stories `OnContainer`.
+- List Box `theme` is in Figma too (2026-10-12): Component/List-Box (14922:75297) has a Theme variant property,
+  Flat (default) · Shadow · Pale · Border · On-Container, with the tokens of Card's Theme (Border's stroke stays out of
+  the layout, like Card's). Zen Studio shows it in the Properties panel, and Export › Figma writes it
+  (`figma-props.map.mjs`).
+- Side Panel synced with Figma's Side-Panel (1573:3128): the header, contents and actions each keep Modal-Padding on
+  every side (contents start 24px lower, the actions 12px lower); the back and close buttons sit in the title row.
+  `icon` is deprecated: Figma no longer draws the Modal heading icon (it still renders for now).
+- Progress-Circle: the ring has its Neutral/Subtle fill again, and Done is a plain solid disc (no ring over it), as in
+  Figma's Progress-Circle/Icon.
+- Zen Studio ↔ Figma keeps more of a page through a push and a pull. This was tested by placing the examples in the
+  real Zen file and reading them back. Fixes:
+  - A Checkbox, Toggle or Radio keeps its label and caption (Figma moved them into the Content primitive).
+  - An emoji Dock-Icon keeps its emoji.
+  - Fields keep their label, value and help text.
+  - List rows keep their title, caption, leading and trailing.
+  - Text keeps its tone.
+  - Headings keep their level.
+  - A Type=Main header comes back as a PageHeader.
+  - A Sidebar's logo replaces Figma's sample logo, and its collapse button is no longer pulled in as content.
+  - Breadcrumbs keep `master`.
+  - A DescriptionList keeps its terms and values.
+  - A swapped-in file icon is read back.
+  - Figma cannot resize an icon nested inside a List-Item, so the push says so instead of failing silently.
+- A Badge keeps its width in a row (it shrank to its 28px minimum beside long text, so examples had to pin it), and a
+  Text or Heading that takes focus after an action (tabIndex -1) draws the focus ring with room around its words.
+- The examples lost 107 of their last 219 classNames: their frames (an app window, a page on the Canvas, a desktop
+  chat window) are platform components now (`src/platform/PlatformFrames.tsx`), the rest Zen props. Pages look the
+  same (visual diff, 760 panels).
+- Small avatars show one letter: a ChatMessage's author avatar (XSmall) now shows the name's initial, as every XSmall
+  and 2XSmall Avatar does (it showed two letters); the push to Figma writes small avatars' initials the same way.
+- Zen Studio → Figma now places the Figma components it drew as frames or left out: TopNavigation as
+  Top-Navigation/Mobile (its Type, the parts the page shows, the titles, the leading action, each row's actions as
+  Nav-Slot/Action in the Button its Type draws, the control bar), ColorSelector as Color-Selector swatches bound to the
+  colour variables, Tabs written with TabItem children (and tab badges), InputConditions as Input-Conditions (the items'
+  labels), UploaderFileItem as File-Item (state, name, size, caption, error, progress), DatePickerSheet as
+  Date-Picker/Mobile, and chat: ChatThread as Chat/Section/Conversation runs, a ChatMessage's author, reactions pill and
+  read list, FileIcon as icon-media-file and Flag as Flag, and an Icon's size (its Element-Size/Popular variable; every
+  icon was 20px). Each comes back from Figma the same (pull), and a phone Screen's top and bottom navigation come back
+  as its chrome. Fixed on the way: a Segmented's selected item and fullWidth, a Tab-Item read as "True", a
+  Condition-Item's label, a Metric's label, value, trend and default icon (Figma hid it), MetricCard read back as a Card,
+  and a chat message's text read from the avatar.
+- Stack and Grid take `clip` (Figma's Clip content), as Box does: children are clipped to the frame's padding box.
+  In Zen Studio the Auto layout section shows Clip content (under Padding) on every frame, the push to Figma writes it
+  as the frame's Clip content and a pull reads it back (a frame that clips; the page frame is the screen). Imported
+  frames no longer clip by default, so a card's shadow shows past its frame's edge as in the Studio.
+- AppShell is built from the Zen components Figma's ◇ Master-Layout uses: its top bar is a DashboardHeader
+  type="navigation" (Figma's Dashboard header Type=Navigation, its Leading-, Center- and Trailing-Slots), next to the
+  Sidebar, the `sections` rows, the account's Avatar and the docked SidePanel. API unchanged; the swap alone left 93 of
+  94 example panels identical (the other is the fix below). The Studio's slots follow the new markup.
+- Zen Studio ↔ Figma: an app frame comes back from Figma as an AppShell — Figma's Master-Layout (the Sidebar pattern
+  beside Main-Container › Header/Dashboard › Sections, Body, Floating-Actions) and the frames the Studio pushes — with
+  its header, center, actions (the account as AppShellAccount), sections, page, footer and floating action; a Studio
+  Screen's own Sidebar and Page header come back as the Screen's.
+- Table: inside a surface (Card, ChartCard, MetricCard, Accordion, SidePanel, Dialog/ModalForm, BottomSheet, Popover,
+  ListBox, a Box with a surface or border) the last row has no bottom rule — the surface edge closes it. Page tables
+  on the canvas keep it. Table guideline updated (in Figma: 0 bottom stroke weight on the last row's cells); the
+  Studio's Export › Figma does the same (`strokeBottom`, applied by the Zen plugin's importer).
+- Nested layer names follow Figma's layers (the `overrides` paths a Studio page writes): Tabs `Tab` → `Tab-Item`,
+  Uploader `File` → `File-Item`. Zen's own names stay where Figma differs: `Send`, `Action`
+  (its own component and tokens; an inline component's own buttons are its Action too), `Actions` (the action row), a
+  button named by its level (`Primary`, `Secondary`) and `Leading`, the wrapper that holds an icon or any other
+  visual. The gate
+  `nested-paths` now checks 44 components (was 15) against `docs/figma-contracts/nested-layers.json`, a read of every
+  set's layer names, hidden layers included (re-read with `node tools/figma-contract/nested-layers-read.mjs`).
+- Zen Studio speaks design words on example and template pages too (the user, 2026-10-12): the Inspector header reads
+  "Show code" and the canvas tag shows no file:line on every page; a status line keeps the file's name without its
+  line ("Draft · uploader.tsx · ⌘S to save"). A Date field's `Leading` layer matches Figma (its `Leading-Icon` is the
+  calendar inside Trailing): no Figma rename is needed.
 - **The package is now `@zen-ds/react`** (was `@zen/design-system`): imports become `@zen-ds/react`,
   `@zen-ds/react/styles.css`, `@zen-ds/react/icons/all`, `@zen-ds/react/eslint`, …; the docs, templates, MCP server and
   usage harness follow. It is published to the licensed registry `npm.dizai.studio` (`publishConfig`), by the new
@@ -36,6 +184,332 @@ removed (four unused colour ramps were, see Removed).
 - `zen-usage --json` and `check-usage.mjs --list`: large output piped to another program is no longer cut off at 8 KB.
 
 ### Added
+- Support background Rich (2026-10-14, user): every Support background set (the 18 colours, Brand and Neutral) gains
+  `Color/Background/Support/<colour>/Rich` = ramp step 11, between Solid (9) and Deep (12), as
+  `--zen-color-background-support-<colour>-rich` in Light and Dark; created in the live Figma file too. The foundations
+  page lists each set as Deep, Rich, Solid, Soft, Subtle, Pale.
+- Chat reply in Figma (2026-10-13, user, live file): page ❖ Chat › "Chat Reply" now holds `Chat/Reply/Quote` (Side ×
+  Kind: Text · Photo · File · Call · Voice · Deleted), `Chat/Conversation/Reply` (the reply bubble tucked 12px over its
+  quote, Avatar / Sent / bubble swap as Chat/Conversation/Bubble) and `Chat/Composer-Reply` (the Replying-to bar above
+  Chat-Control), built from `ChatReply` with its tokens and measurements.
+- ListItem `value` · `valueCaption` · `valueTone` (2026-10-13, user): a row that ends in an amount (a transaction, a
+  total) mirrors the title stack on the right — Body/Base/Bold over Body/Small/Regular Light, right-aligned, tabular
+  figures, never cut (the title truncates first); `valueTone` takes a Content tone (`positive-light` for money in).
+  Code-only (Figma: a text stack in the Trailing slot). New example "Transactions on a phone" on List Item.
+- House rule (2026-10-13, user): a See all / Show all at a section head is underlined text, not a button (it takes
+  no more room than its words): `<Link tone="inherit">` in a Body/Base/Medium Text, `href` when it opens the full list,
+  `as="button"` + `aria-expanded` when it expands the list in place. Link and List Item guidelines; Dashboard template
+  "Recent activity" and the Transactions example follow it.
+- Figma descriptions (2026-10-13, user): the live library now describes all 168 public component sets (when to use,
+  what instead, properties, rules), 592 variables (semantic colours by layer and role, the spacing ladder, radii,
+  breakpoints, emphasis, dimensions) and every text, effect and paint style, written from the guidelines, usage rules
+  and harness by `tools/figma-docs/build.mjs` (rerun it after a rule changes). The 🔤 Typography page has a new
+  Content-Hierarchy section: the heading/text-style ladder for desktop, phone and overlays plus the outline rules.
+- AI kit for Figma (2026-10-13, user): Installation › AI kit for Figma downloads `zen-figma-ai-kit.zip` (built in the
+  browser from the repo) so Claude or ChatGPT/Codex can design in a Zen Figma file through Figma's MCP server: the skill
+  `skills/zen-figma-design` (setup, hard rules, build steps, screen rules, Plugin API gotchas), the read-only audit
+  harness `harness/zen-figma-audit.js` (24 rules: unbound colours/spacing/radii, text and effect styles, paint overrides
+  and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller non-clipping wrapper
+  like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured from the effect; an
+  error on the screen's own frames), crushed or shifted text, placeholder copy, and theme pairing: boxes and navigation
+  surfaces that clash with the Canvas, one elevation and one colour mode per screen, no gradient boxes), the generated
+  Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
+  writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
+- Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)
+  and `onBack` / `backLabel` (Figma Back-Container: a back button before the title).
+- ProgressBar `layout="stacked"` (Figma Layout=Stacked): the label and the value on a row above the bar; `valueLabel`
+  replaces the percentage ("3 of 5 steps"). The stacked label is Body/Base/Bold, the value Body/Base/Regular (Figma
+  re-read 2026-10-13).
+- **Chart family in one style, with motion** (the user, 2026-10-12; spec `docs/research/chart-family-spec-2026-10-12.md`):
+  new `BarChart` (vertical or `orientation="horizontal"`, `projected` bars hatched, a `target` track), `DonutChart`
+  (% pills, the total in the centre), `RadialChart` (ring gauges over dotted tracks) and `HeatmapChart` (row × column on
+  five Support/Brand steps, 2D keys). `LineChart` takes `compare` (the line chart plus one dashed comparison line and a
+  legend, Figma Chart/Multi-Line-Chart); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
+  and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
+  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean (plain dots, no ring) with an
+  "Avg" tag (Figma Show Average). Horizontal bars end each row with its value instead of a Tooltip over the bars. DonutChart slices are parted by even, straight 4px gaps and have 4px round corners, and
+  `totalPosition="start"` puts the total beside the ring above the legend. Stacked columns now take Corner-Radius/Small
+  on every corner, like the bars; projected bars and target tracks take the Figma hatch (Support/Neutral/Pale under
+  Border/Neutral/Pale stripes). Zen
+  Studio's Charts palette gains Bar, Horizontal bar, Line with comparison, Donut, Radial and Heatmap. Harness:
+  `chart/needs-name`, `chart/shares-need-legend`, `chart/heatmap-needs-scale`.
+- Grid `stackBelow={640}`: one column while the Grid itself is narrower than 640px (a side column in a narrow card or
+  window), whatever the breakpoint. Stack and Box `scroll="y" | "x"`: Figma's Overflow scrolling (it clips, and the
+  scroll stays inside). Box `surface="canvas"` for a whole screen drawn inside something else. Text and Heading
+  `wrap={false}` (one line, Figma Auto width) and `tabularNumbers` (Figma Numbers: Tabular). Unset, each renders nothing
+  new. Zen Studio → Figma pushes and pulls them (a Box's surface as its Color/Background fill, scroll as Overflow
+  scrolling, maxHeight as Max height; Numbers: Tabular is read back, the plugin API cannot set it).
+- Card and ListBox take `width`, `minWidth`, `maxWidth` and `alignSelf`, as Stack does (Figma's Fill container, Min
+  and Max width on the instance): a card can fill its column up to a readable width and centre itself without a
+  className. Unset, they render nothing new. The push to Figma writes them on the instance and a pull reads them back.
+- Zen Studio → Figma (core rebuild Q4): Export › **Figma** downloads a page as `<page>.figma.json`; in the Zen Figma
+  plugin, Import › **Import from Studio** places it on the page "Studio exports" as a frame of library instances
+  (variants, nested overrides, slot content, auto layout bound to the Spacing variables, text styles), and importing it
+  again updates that frame in place — data slots (Sidebar sections, Breadcrumbs, Segmented), the Dashboard header's
+  rows and texts, Tables as Figma's Data-Rows and cells, absolute layers and pictures included. CLI:
+  `node tools/studio/figma-push-cli.mjs <page.zen.tsx>`.
+- Zen Studio ↔ Figma bindings (core rebuild Q5): after a Figma re-capture, Main component › **Check Figma bindings**
+  lists the stylesheet changes that follow Figma's re-bound variables and applies the chosen ones as drafts
+  (`node tools/studio/binding-diff.mjs`); saving a token edit of a component offers **Download for Figma**, a re-binding
+  the Zen plugin applies to the component masters (Import from Studio, licensed).
+- Table: `content: "actions"` with the column's `actions` (`TableRowAction`: icon, label, size, level, onClick) draws
+  Figma's Actions-Cell — flat icon buttons named with their row ("Open, row 3"; label key `rowAction`, en/vi) — without
+  a `cell` function; each button is the row's nested layer `Button`. The Studio offers Actions as a cell Content, and a
+  Figma table pulled into the Studio keeps its Actions column (a row's own icon becomes that row's override).
+- `AiChatBubble` takes `overrides`: its action buttons are nested layers (`Button`, `Button[1]`…), so the Studio edits
+  them like Figma's nested instances; the tooltip under each button stays.
+- Zen Studio speaks design words on pages made in the Studio (core-rebuild criterion 7): the status line, the canvas
+  tag, the Inspector header (now "Show code"), notes and tooltips name no file:line and no code (`{…}`, `<Tag>`, prop,
+  children); the Code tab keeps the line. Example and template pages keep the developer wording.
+
+- `DashboardHeader`: one row of a dashboard page's header, as Figma's Primitives/Dashboard/Header draws it —
+  `type="control-bar"` (Search, filter Chips, the result count, the page's actions), `navigation` (Breadcrumbs, then
+  notifications and the account), `main` (the page title row: it renders a PageHeader) and `custom`. Inside an AppShell
+  the rows go in `sections`. Harness: `dashboard-header/props-of-type`, `one-primary`, `main-needs-title`,
+  `filters-are-chips`. A Figma Dashboard/Header pulled into Zen Studio becomes this component.
+- `PageHeader` `childTitle`: a second title after the title in Content/Neutral/Light (Figma Child-Heading).
+- Figma instance overrides in the library: 64 components that draw other Zen components inside themselves (Card,
+  Button, Badge, Table, Sidebar, AppShell, Dialog, Menu, Popover, Tabs, Segmented, MetricCard, ChartCard, the Input
+  fields' Label / Help-Text / Leading / Trailing, DatePicker, Search, Form, Chat, AiChat, Voice…) take
+  `overrides`, the props of any nested layer by its Figma layer path, at any depth and row by row
+  (`{ "Sub-Action": { level: "danger" } }`, `"Row[alex]/status/Badge"`, `"Item[team]/Item[members]/Badge-Counter"`). No
+  DOM change and nothing changes without it. Zen Studio writes it; new harness rule `api/overrides-studio-only` reports it
+  in hand-written code (pages Zen Studio made, `// @zen-page`, are exempt).
+- Zen Studio: nested instances like Figma on pages you made — ⌘-click into a component reaches its nested instances at
+  any depth (a Card's Sub-Action, the icon inside it, one Table row's Badge), and the Inspector shows that instance's
+  Figma properties; an edit changes this instance only (one undo step), with Reset all overrides per layer. A Table cell's
+  component gets a "this row" section above the column's settings.
+- Zen Studio, pages you made: the selection stays on its layer through edits, undo and redo, also when layers above it
+  come and go or it moves (each layer keeps an id beside the page); a double-click goes one nested instance deeper at a
+  time, as in Figma (Card › Sub-Action › Icon; a Table row's Badge), and Layers names nested instances by their Figma
+  layer name.
+- Zen Studio, pages you made: one row of a list is edited on its own, like one instance in Figma — a layer a list draws
+  shows "Changes go to · Row N · All rows"; a change goes to that row (the rows get a field, the layer reads it), "All
+  rows" changes every row. A photo picked or dropped on one row's Avatar goes to that row too.
+- Zen Studio export: a page with nested overrides and a row's own values exports as React that passes the usage
+  harness and TypeScript in an app (`api/overrides-studio-only` treats an exported page as Studio code; a row's value
+  of a fixed-choice prop is typed as that prop), and draws what the canvas draws (new browser test).
+- Zen Studio: `tools/studio/figma-pull.mjs` turns a Figma frame made with the Zen library (read with use_figma) into a
+  page you made — components with the properties that differ from their defaults, overridden nested instances as
+  `overrides`, auto layout as Stack, text as Text; what has no Zen component is listed. Run on the live file: a slot's
+  layers become the component's content, data (Sidebar sections, Breadcrumbs and Segmented items, the selected item) or
+  a node prop (Sidebar brand and footer); Fill container, grid placement, text alignment and absolute layers carry over,
+  and icon-only buttons get an aria-label.
+- Zen Studio: importing a later pull of a Figma frame you already pulled opens Update from Figma — what changed in Figma
+  since the last pull, one checkbox each, with the spots you also edited in the Studio left unticked — and Apply updates
+  the page in one step (one ⌘Z), keeping your own edits and layers.
+- Zen Studio: a Figma table (its Data-Row instances) pulled into a page becomes a Table — its columns with their
+  headers, sorting, widths, bold and cell content, its rows, and each row's badge colours and emoji icons as in Figma; a
+  later pull updates its rows too. A column of action buttons is left out and noted. A Search keeps its text as its
+  placeholder.
+- Zen Studio, a design copy (New page from this frame): a photo goes on one avatar of an AvatarStack (that layer's
+  override), and a Table column whose cells draw a person's photo keeps it as an Avatar column; the avatar test passes
+  on the avatar, card, App Shell, table and sidebar pages.
+- QA: the Build-QA gate checks nested layer names against Figma ("Nested layer names (code ↔ Figma)",
+  `tools/figma-contract/nested-paths.mjs`): every layer a component's `overrides` reaches is a nested instance of its
+  Figma sets. DatePicker's footer button and time picker take Figma's names: `overrides` paths `Actions/Submit` (was
+  `Actions/Apply`) and `Time-Picker` (was `Time`).
+- QA: `studio:build-check` engine budget 160 KB gzip (was 140; the user's choice over splitting the engine), and the
+  check matches today's Studio again (it had hung for hours).
+- Zen Studio: replace a picture like Figma, everywhere — Avatar, Image, Thumbnail and the App Shell account take a photo from
+  Assets › Photos (click with the layer selected, or drag the photo onto the layer) and from the Inspector's Picture
+  picker, in example and template code as well as on pages you made. A picture bound to a row's data (a Table cell, a
+  `.map` row, a person in `examples/data.ts`, through a factory's `{ …extra }`) changes that row only; one bound to the
+  shared `platformMedia` library becomes the layer's own; a repo file takes the picture as
+  `new URL("<file>", import.meta.url).href` (dev and build), a page you made keeps `zen-media:`. ⌘-click selects the
+  innermost written layer under the pointer even when a row's data passes it in (an Avatar in a ListItem's leading).
+- Table: `defaultSelectedIds` keeps a selection without app state; `editable` (whole table) and `column.edit: "text" | "number" | "select" | "tags" | true`
+  put cells in Figma's State=Edit without an editor object (the Table keeps the edit, or `onCellCommit` gets it). Zen Studio: a Data-Row's
+  State Default · Selected, Checkbox and Editable, a Cell's State Default · Edit · Selected, written to the page. Harness
+  `table/interaction-needs-handler` warns only for `selectable` + `selectedIds` without `onSelectionChange`.
+- **Zen Studio: Main component frame, M1 (2026-10-09, spec `docs/research/studio-main-component-spec-2026-10-09.md`):**
+  beside the Playground, every Figma component set of the page's components is drawn as Figma lays it out (Button: Main,
+  Flat, Overlay, Icon-Main, Icon-Flat, Icon-Overlay — 178 variants; overlay sets on a photo). A click selects a variant,
+  a double-click goes one layer in, ⌘-click selects the deepest layer; Layers lists sets, variants and their layers. The
+  Inspector shows the variant's Figma properties (switching Size or Level selects that variant) and, for each style the
+  library's CSS sets, the token it reads, the custom properties in between and the variants its rule covers ("Size = xs
+  · every Level, State").
+- **Zen Studio: Main component, M2 — change a token (2026-10-09):** each style row whose rule reads a token has a token
+  select (its family first — button-size-*, spacing-gap-*, corner-radius-* — then every token of its kind, with the value
+  each stands for; searchable). The pick rewrites that one declaration of the component's CSS (src/components/…/*.css)
+  as a draft: every variant the rule covers updates at once, ⌘Z / ⇧⌘Z work, and the panel saves or discards the
+  stylesheet's draft. Only existing tokens are accepted (a raw value is refused).
+- **Zen Studio: iOS or Android bars on a page you make (2026-10-10):** Page › Mobile OS picks iOS (default) or Android
+  for the page; its phone and tablet Screens draw that OS's status bar and bottom bar (iOS: island and home indicator as
+  Figma's Status-bar/IOS; Android, Material 3: 24px status bar with a punch-hole and the gesture handle), with dummy
+  status icons, on the canvas, in Play and in the design-file export. Content and a Top / Bottom Navigation pad by the
+  bars (`--zen-safe-area-top/-bottom`, as the docs' phone frames do).
+- **Zen Studio: Main component, M3 — the Figma check on save (2026-10-10):** saving a component's stylesheet runs its
+  Figma contract suites in the background (Button: 7 suites, about 10–90 s); the status line says it is checking, then
+  that it matches. When the code no longer matches Figma, a dialog lists where (suite, variant, layer, property, Figma vs
+  code) with **Keep and log for Figma** (one P2 line under Open items in docs/context/BACKLOG.md) or **Undo the save**
+  (the stylesheet's text before the save comes back, unless the file changed since).
+- **Sidebar slots like Figma (2026-10-09, ❖ Sidebar 6849:33453):** `<SidebarMenuItem>` (Figma Menu-Item 1536:27473)
+  and `<SidebarMenuSection label>` fill the Body-Content slot as `<Sidebar>` children (after `sections`, nested rows as
+  item children), the Footer-Content slot (`footer`) and a `SidebarSubMenu`; slot rows share `selectedId`, the rail and
+  `onItemClick`. `sections` / `items` arrays keep working. The Sidebar examples use them (footer Settings / Help,
+  Handbook body).
+- **Zen Studio: slots edit content written as code (2026-10-09):** Move up / down and drag move a child written as
+  `{open && <X />}`, `{a ? <X /> : <Y />}` or `{rows.map(…)}` as one block (the canvas, Layers and the Slots section),
+  where it was refused before; a slot that shows a same-file `const name = <JSX>` (HR's `footer={appsButton}`,
+  `brand={workspaceBrand}`) takes inserts, duplicates, removals and moves where the const is written, so every place
+  that shows it changes (the Slots section says so); a prop that holds code (`footer={open ? <A /> : null}`) takes an
+  insert as `<>{code}<New /></>`. One row of a `.map` is its data: Remove, Duplicate (⌘D) and Move up / down on a row
+  edit the list where it is written (inline, a const, examples/data.ts, a `useState` start value), the other rows stay,
+  a copy gets a key no row has (`ava-copy`) and the copy or moved row stays selected. `tools/studio/slot-audit.mjs`
+  (`--ops`) runs every slot op in memory over the examples and templates: 616 refused moves, 58 refused const edits,
+  103 refused row removals and copies and 89 refused inserts are now done.
+- **Zen Studio: a nested part edits what its owner passes on (2026-10-09):** like Figma's exposed nested instances, a
+  deep-selected part (⌘-click: the ModalActions of a Dialog or ModalForm) lists the props its owner passes on unchanged
+  under Properties and writes them to the owner: Direction → `actionsDirection` (Figma Modal › Buttons › Direction).
+  Read from the component sources for every component (`tools/studio/part-props-build.mjs`, 74 owners), through the
+  components in between; the rest of a part stays read-only.
+- **Zen Studio: Sidebar and Page Header slots (2026-10-09):** a selected Sidebar shows Figma's Header-Content
+  (`brand`), Body-Content (children) and Footer-Content (`footer`); a Page Header its Action-Slots (`actions`) and
+  Trailing-Slots (`trailing`): outlined on the canvas with a "+", listed in the Slots section. The insert picker offers
+  Menu item / Menu section (not recommended outside a Sidebar). A new page's Sidebar writes its rows as
+  `<SidebarMenuItem>` children, so each row is a layer. Screen › Sidebar / Page header (and the phone bars) are Toggles.
+- **Voice (2026-10-09, Figma ❖ Voice 15081:1294):** `VoiceRecorder` (State Ready · Recording · Paused: the take's time,
+  an 80px waveform and its timeline, Discard · Record / Pause / Resume · Finish, the input and format) and
+  `AiVoiceConversation` (Ready · Listening · Responding: the voice signal, the status, the transcript card, Mute · Start
+  talking / Done speaking / Interrupt · End; its status is a real heading, `headingLevel` 3 by default). A main action
+  without its handler is off (leave out `onResume` once a take reaches its limit). New page Components › Voice; harness
+  `voice/actions-wired`; new labels (en / vi).
+- **ChatVoice (2026-10-09, Figma Chat/Bubble/Voice 15084:80205):** a voice message bubble — play / pause, a waveform
+  whose played share is full strength, a 1× · 1.5× · 2× speed button; Business adds the length, Ready to play / Playing
+  and the time. Held like a file (Reply · Forward · Pin · Delete).
+- **AiChatField `listening` and `onVoiceMode` (2026-10-09, Figma State=Voice):** dictation — the prompt reads
+  Listening… and the microphone becomes Stop (`onStopListening`); `onVoiceMode` gives the empty field's Voice action its
+  own handler (voice mode, e.g. an AiVoiceConversation), apart from the microphone's dictation (`onVoice`, its default).
+- **PageHeader: title and description 4px apart (2026-10-09, Figma Header-Text, Spacing/Gap/2XSmall):** was 8px; the
+  header's other parts keep Gap/XSmall.
+- **Table columns pick their cell content, as Figma's Table/Cell/Default › Content (2026-10-10):** a column without a
+  `cell` function draws `content` from the row's `field` (default its id): text, avatar, photo, icon, dock-icon (with
+  `captionField` Subtext, `mediaField` picture or icon, `bold`), badge or tag (one per value), trend (by the value's
+  sign), progress (0–100), checkbox or toggle (a boolean). `cell` is now optional. Zen Studio's Inspector offers Content
+  for every column, a page made in the Studio can hold it, and Assets › Table inserts columns of each kind (its
+  preview, empty before, now draws).
+- **Zen Studio: Table rows and cells as in Figma (2026-10-10):** a double-click goes Table → Data-Row → Cell → its
+  content → its text, Escape back out, and with a row or a cell selected a click picks the one under the pointer;
+  Layers lists Table › Header, Data-Row › Cell. A Cell's Inspector is Figma's Table/Cell/Default: Content (Text, Avatar,
+  Photo, Icon, Dock Icon, Badge, Tag, Trend, Progress, Checkbox, Toggle), Align, then the content's Bold and Subtext and
+  the row's value — written on the column (a `cell` column's element is swapped; a column without `cell` gets its
+  `content`, `bold`, `captionField`, `mediaField`). A cell's text and a Data-Row's fields edit that row's data in
+  templates and examples too: the row is found by its key (or its fields) in the data the Table reads, through sorts,
+  filters, useMemo, useState and factory calls, and lookups such as `people[row.id].name` write the entry they read.
+  A component nested in a cell (an Avatar, a Badge) edits its own props: a fixed value on the cell's JSX (every row), a
+  prop bound to the row (`theme={row.theme}`, `theme={statusTheme[row.status]}`) in that row's data, and a prop a
+  component of the file passes on (`<PersonAvatar size="sm">`'s Avatar) where that component is used. A row written in
+  place takes a field it lacks (a picture for a row without one), and on a page you made an Avatar or Photo cell's
+  Picture is the photo picker (a Table row's `zen-media:` picture is drawn).
+- **Zen Studio: App Shell, Top Navigation and Sidebar row slots (2026-10-10):** a selected App Shell shows Figma's
+  Sidebar, Leading-Slots, Center-Slots (Search, Segmented, Tabs), Trailing-Slots, Sections, Side-Panel, Floating-Item
+  and Footer as slots (outlined, "+", the Slots section); a Top Navigation's title leading takes an Avatar, a Sidebar
+  row's Trailing-Slot an Icon, Badge or Text and a section its Action. Any component prop that is a registered slot is
+  a switch that puts the real component in (it was a text field), and a double-click on text inside a padding area
+  reaches the text instead of stopping at the spacing handle.
+- **Table: an Icon cell without `mediaField` draws Figma's default icon (2026-10-10):** `icon-face-smile-line`, where an
+  unknown icon name drew nothing.
+- **Liquid Glass, as Figma draws it (2026-10-10, GLASS effects Liquid-Glass/Normal · Glass-Floating):** AI Chat-Field
+  Style=Liquid Glass, the Top Navigation's glass actions (Nav-Action/Liquid-Glass, Liquid Glass and overlay types) and
+  the Bottom Navigation Floating-Glass bar, its CTA and its selected item now bend the picture behind them at the rim
+  (refraction over the effect's depth), split its colours there (dispersion), frost it and light the bevel from Figma's
+  light angle, with the effect style's own values (`src/styles/generated/glass-styles.ts`, from the Figma styles).
+  Chromium draws the bend (an SVG backdrop filter); other browsers and `prefers-reduced-transparency` keep the frost.
+- **Zen Studio Quick insert / Swap (2026-10-10):** the preview sits in the middle of its pane, by what the item paints
+  (a row of buttons justified to the end is centred, not pushed right), with Padding/XLarge around it; the line under the
+  search ("Swap … for the chosen component", where an item lands) lines up with the search's icon, Padding/XSmall above,
+  and is no longer cut; a heading is centred by its words, and every item is placed again when the focus moves.
+- **Zen Studio: sections are easy to select on the canvas (2026-10-10):** double-clicks go Sidebar → section → row →
+  its text, as in Figma; with a section selected, a click on another section selects that one, and Escape climbs back
+  one level (row's label → row → section → Sidebar). A double-click on a row's or a section title's text that the canvas
+  cannot edit in place puts the cursor in its Label field (E2E SP-11).
+- **Zen Studio: ⇧A and + everywhere (2026-10-10):** ⇧A on Sidebar rows written as children puts them in a Menu
+  section (`SidebarMenuSection`), on several TopNavigation actions puts them in one pill; a list that cannot group (Tabs,
+  Breadcrumbs…) says so. "+ Add Action" (and any list item whose action shows a toast) now adds on a page you make,
+  as a `proto.toast` action.
+- **Zen Studio: several list items at once (2026-10-10):** with a Sidebar row (or any list item) selected, ⌘-click adds
+  another and ⇧-click a range, on the canvas and in Layers; the Inspector says how many are selected, ⇧A (or Group into
+  a section) puts them in a new section of their own and Delete removes them, each one undo step. Items read as Figma
+  names them on the canvas (Menu-Item in Body-Content).
+- **Zen Studio Delete key (2026-10-10):** Delete / Backspace removes a focused row in the Slots section (a layer, a list
+  item, a section title, a separator) as its trash button does; on the Pages list it moves a page to the Trash and asks
+  before deleting a folder.
+- **Zen Studio: slots as free as Figma's (2026-10-10):** a Sidebar's Body-Content is one slot, as in Figma: its section
+  titles and rows in one list (then any row components), where every row moves anywhere (across titles too), goes, or
+  is added at the end or inside a section (its own +); a title removed lets its rows join the section above, and
+  Remove all empties it. On the canvas and in Layers a section, its Section-Title and its rows are selected, renamed,
+  added to and deleted (Delete key). A Menu's Item-List works the same with items, separators and section titles,
+  and a Menu group's items edit in the Menu's Properties. On a page you make a slot's last child goes too, even where
+  the component type asks for children.
+- **Zen Studio: Sidebar rows and every library component editable on pages you make (2026-10-10):** a Sidebar's
+  `sections` rows are Figma's Body-Content Menu-Items: a double-click (or ⌘-click) selects one, its Label, Icon,
+  Counter, Notification dot, Theme, State… edit that row, and it duplicates, moves within its section and is removed
+  like any slot item. A double-click on a selected Breadcrumbs, Tabs or Sidebar reaches the item under the pointer
+  before its text. Pagination, Image, Calendar, NPS scale, Colour selector, File upload, Bottom navigation, Chat thread
+  and Chat composer now insert on a page you make (static versions); a chart's per-series values and a list of numbers
+  edit field by field; an element written in a prop (a Menu's trigger) says to select it instead of "change it in the
+  code". The Pages list renames a page or folder in place on a double-click (Rename in the ⋯ menu too).
+- **Sidebar collapsed rail (2026-10-10):** the divider before a later group of rows sits Spacing/Gap/XSmall above its
+  first row too (Figma draws 2px), so a selected row's fill no longer touches it.
+- **Breadcrumbs per crumb (2026-10-10):** each item takes Figma's Item-List instance properties on its own: `level`
+  (Master / Sub), `emphasis`, `state` (Hover, for mockups) and `dash` (the chevron after it). Unset fields keep the old
+  trail (the first crumb Master while `master` is on, Breadcrumbs' `emphasis`, a chevron after all but the last); a
+  BreadcrumbItem child's own `level` / `emphasis` / `state` now count too. New example "Next level". In Zen Studio a
+  selected crumb shows these rows, with the values the canvas draws when they are unset.
+- **Zen Studio photo picker (2026-10-10):** an Avatar's, account's or Image's Src on a page you made picks a picture
+  (your uploads, people photos, the library) instead of a text field, and a photo clicked in Assets with an Avatar
+  selected becomes its picture instead of a new Image.
+- **Zen Studio nested items (2026-10-10):** a crumb, tab, segment, step, Description List item, Bottom Navigation item
+  or Bottom Sheet action ⌘-clicked on the canvas is selected as that item, with its own fields, move / duplicate /
+  remove and the props its owner passes to every item (a crumb's Emphasis, a tab's Variant, a segment's Level), where
+  only Breadcrumbs and Top Navigation items were found before and the rest were read-only.
+- **Zen Studio Pages list (2026-10-10):** a long page or folder name ends in "…" before its actions, instead of being cut
+  at the panel's edge.
+- **Progressive blur grows linearly (2026-10-10):** the Top Navigation's blurring types and the Floating Bottom
+  Navigation now ramp the blur evenly from 0 to the Figma radius (six stacked blurs whose σ² add up), where the five
+  equal layers reached most of the blur within the first fifth.
+- **SelectField options take Figma's Popover Item content (2026-10-09, .Primitives/Popover/Item/Content):** `theme`
+  (icon · text-only · photo-small · photo-big · avatar-small · avatar-big · dock-icon · badge), `leading`, `caption`
+  (Subtext), `photoSrc` / `photoAlt`, `badgeTheme` — drawn in the open list (and a phone's sheet); the field still shows
+  the label. Zen Studio's Options editor offers them.
+- **AppShell follows its Sidebar's `collapsed` (2026-10-09):** an uncontrolled shell starts from it as before and now
+  also moves the rail when the prop changes (edited code, Zen Studio's Collapsed toggle on a page made from a template).
+- **List slots as children (2026-10-09, Figma Item-List / Nav-Items):** Tabs takes `<TabItem value label />`,
+  Breadcrumbs `<BreadcrumbItem item />`, Stepper `<StepperStep id title caption />` and BottomNavigation
+  `<BottomNavigationItem id label icon />` children instead of their array (`items` / `steps` stay and win when given);
+  the parent keeps selection, keyboard and ids, and renders the same markup either way. StepperStep and
+  BottomNavigationItem render nothing on their own. Shared helper `_shared/slots.ts` (Sidebar's slots use it too).
+- **AppShell `headerCenter` and `sections`; PageHeader `trailing` (2026-10-09, Figma slots):** the top bar's
+  Center-Slots (up to 400px, centred — a Search), Header/Dashboard's Sections (rows under the top bar, each padded as a
+  header row) and the Main row's Trailing-Slots (icon actions after the page's buttons).
+- **Table `bulkActions` (2026-10-08):** a selectable Table shows a Popover/Bulk-Action bar under the table while rows are
+  selected — Clear selection, "N selected" and your actions (`TableBulkAction[]`: id, icon, label, onClick, disabled,
+  group; or a function of the selected ids) — held at the bottom of the window on a long table. Actions that don't fit
+  the width (phones) move into a More menu instead of wrapping. Escape clears the selection; Select all rows takes the focus when the bar leaves.
+  New labels `rowsSelected`, `selectedRowActions`, `clearSelection` (en/vi). The Table playground and "Act on selected
+  rows" example use it.
+- **Metric-Inline props from Figma (2026-10-08):** `metricColor` (Metric-Color: a dot before the label, Accent/Solid
+  or a chart series colour), `counter` (a Small Neutral Subtle Badge after the label), and on Title-Highlight `labelIcon`
+  (24px before the title) and `hint` (an info icon whose Tooltip explains the number).
+- **DatePickerSheet: dates on a phone (2026-10-07, Figma Date-Picker/Mobile 9923:3576):** a Bottom Sheet picker.
+  `selectionMode="single"` shows one month with Cancel / OK; `"range"` stacks the months under one pinned weekday row
+  and ends in Footer-Actions (your `summary`, e.g. the price for the nights, beside OK). Picks are a draft until OK.
+  DateField opens it by itself at the mobile breakpoint instead of the desktop popover. New: DatePicker
+  `calendar="stacked"` + `monthCount`, BottomSheet `footer` (your own Footer content), label key `ok` (en "OK", vi
+  "Xong"). DatePicker's month header is a `div` (a `<header>` per month made duplicate banner landmarks).
+- **Sidebar on a phone (2026-10-07):** the Sidebar page shows it as the AppShell drawer in a phone. AppShell's drawer now
+  keeps clear of a phone's status bar and home indicator (safe areas; nothing changes on desktop or tablet).
+- **Metric Title-Highlight `custom` (2026-10-07, Figma Custom-Slot):** your own content under the number (a
+  ProgressBar, a sparkline), the corner Dock-Icon staying beside the number. Metric page: "Budget with progress".
+- **Tooltip `closable` (2026-10-07, Figma Close=Yes added the same day):** a dismiss X after the label for a tooltip open
+  from the start — `defaultOpen`, or `open` + the new `onOpenChange` — such as a tip on a phone, where touch never opens
+  a tooltip. It stays until its X or Escape closes it and is a `note`. The Tooltip page has a phone example.
+- **ToggleListItem and ChipGroup (2026-10-07, backlog batch 6):** `<ToggleListItem>` is a settings row whose whole
+  surface flips its switch (title names it, caption describes it); `<ChipGroup>` is a single-choice radio group of
+  Normal chips (one Tab stop, arrow keys move the choice). Both are composed from the existing Figma primitives (no
+  Figma master yet). Sidebar takes `searchCollapsed`, what the collapsed rail shows in place of `search`. Harness:
+  `list-item/switch-row`, `chip/radio-is-chip-group`.
 - Docs platform and Zen Studio: required sign-in with Google through PocketBase (`src/platform/auth/`); Log out in the
   platform topbar's account menu and in the Studio brand menu. Automated browsers (QA gate, E2E) skip the sign-in screen.
 - **Zen-High-Contrast (2026-10-05, prototype):** `<ZenProvider contrast="high">` (or `"system"`, which follows the OS
@@ -611,6 +1085,183 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Figma List-Box (2026-10-14, user): a heading no longer starts in from the edge when the box is wider than 311px.
+  Header-Slot and Footer-Slot align their content left and the default Heading / Footer texts fill the slot (they were
+  fixed at 263px in a centred slot), as `.zen-list-box__header` lays it out; the 30 List-Boxes on ◆ Performance were
+  fixed too. Publish the library so files that use it get the change. The AI kit's Figma audit reports the pattern as
+  `text/shifted` (fixed-width left-aligned text pushed in by a centred column).
+- Docs phone previews (2026-10-13): a bar's blur no longer smears the black bezel into the screen's corners (Bottom
+  Navigation Floating). The screen is the backdrop root of its blurs and the bezel is drawn as its own layer.
+- Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
+  Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
+  caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column
+  (each badge's colour and dot), TableActions an actions column; a page's own initials are kept where the Table's
+  would differ, and screen-reader text is not a cell's words. Before, only a photo was kept and everything else
+  became its text ("An Mai · an.mai@dizai.studio"), so the page and its Figma export lost the initials, colours,
+  badges and row menus.
+- AppShell's top bar is 72px on desktop again, as Figma's Navigation row: Margin-Comfortable above and at the sides,
+  Spacing/Padding/XSmall below (it was 64px, 12px above and below, since 2026-10-09). The user's call: follow Figma.
+- AppShell: on a narrow top bar a centred Search (`headerCenter`) no longer runs under the actions; it stops a
+  Spacing/Gap/Medium before them.
+- Zen Studio: an AppShell on a Screen fills the Screen and its Sidebar spans the whole page, as in Figma; it was as
+  tall as the browser window (the app's sticky 100dvh), shorter than the page.
+- Zen Studio → Figma: an app page no longer imports as an empty frame. A component with no Figma set is drawn with
+  what it holds instead of being left out with everything inside it: AppShell as its Sidebar and a top bar of Figma's
+  Dashboard header Type=Navigation (collapse toggle, header, actions, the account's Avatar), the Screen's own Sidebar
+  and Page header, PageHeader as the Dashboard header Type=Main, Heading as text in its level's style, a Menu as its
+  trigger, List / Container / Form… as frames of their layers. A Sidebar's rows go in Body-Content with the selected
+  one marked, a Dashboard header turns on the blocks whose slots hold content, and Export › Figma says why when nothing
+  on a page can go to Figma rather than downloading an empty frame.
+- SidePanel: content in the body no longer shrinks when the body overflows; it scrolls. A Segmented or code block
+  was squeezed instead (Studio Export's tabs at 25px, labels cut off).
+- Zen Studio → Figma: the Dashboard imports as it looks in the Studio (tried in the live Zen file). A Grid whose
+  columns fit the width is an even Figma grid of as many columns as fit the page (a wrapping row where the width is not
+  known), a Grid of N columns is Figma's grid with rows that hug; MetricCard is a
+  Card around Figma's metric with its label, value, trend, icon and action; ChartCard a Card around Figma's line or
+  stacked-bar chart with its title and ranges; ListItem keeps its title, caption and leading Avatar or Dock Icon;
+  ListBox its header row; a Sidebar without a footer loses Figma's sample rows; the page is Canvas; Text takes its
+  default style and its tone; Search its placeholder; Chip its leading icon; plain icon names their Figma cut. The Zen
+  plugin (Import from Studio) no longer clips the frame's height, never moves a slot's content to another slot,
+  binds row gaps, minimum widths and colours, and takes on/off for a Yes/No variant.
+- Zen Studio → Figma: the other templates import as they look too (Invoice, HR Home, Admin list, Settings, Sign in,
+  the mobile pages, tried in the live Zen file). Fit-grid columns split evenly (the Dashboard's bottom row came out
+  592 / 544, now 568 / 568) and read back as `minColumnWidth`; Breadcrumbs draw their chevrons; InlineMessage shows its
+  close button only with `onClose`; a collapsed Sidebar is Figma's rail (Expand=No, icon-only rows, its mark in the
+  header, a divider between groups) and reads back collapsed with its labels; a ListBox is as tall as its rows instead
+  of clipping them at Figma's sample height; a full-width Segmented splits its row (its items overlapped). The Zen
+  plugin hugs a slot or a named layer and fills a slot when the page asks.
+- Zen Studio → Figma, compared with the Studio sheets: a selectable Table has its checkbox column and the sorted column
+  its arrow; a table's avatar cells draw their Avatar (initials or photo, each row's colour); the account Avatar is
+  Subtle; an IconButton without a level takes the level the code draws; `minmax(0, Npx)` tracks are a fixed width;
+  Form keeps its gap; AiChatBlock is Figma's AI/Chat-Block/Pale with its greeting and suggestions. All read back.
+- `SidebarMenuItem` is in the props docs (docs/api, the Sidebar page and its guideline): react-docgen did not see it as a
+  component. Every `SidebarItem` field now has a description; `indent` had no effect and is deprecated.
+- SidePanel (modal) inside a device frame (`[data-zen-overlay-root]`, a phone preview or a Zen Studio frame) opens in
+  that frame, as Dialog does, instead of covering the whole page.
+- AvatarStack puts its own attributes (`data-*`, `aria-*`, `id`, `className`, `style`, `title`) on the stack instead
+  of on every avatar it draws (a `data-testid` was repeated on each avatar and `className` was lost).
+- Form and ModalForm: a blocked submit focuses the first invalid field even when the handler's errors render a frame or
+  two after it returns (they looked once, one frame later, and could miss them; seen as a flaky CI test).
+- Zen Studio: on a page you made, a component's state shows at once — a Data-Row's State → Selected, a Checkbox's
+  default, a Tab's default value, any `defaultX`/`initialX` (also inside `overrides`) — instead of after a page reload.
+- Usage harness: `zen-usage --list` (and `check-usage.mjs`) no longer cuts its JSON off at 64 KB when piped; the process
+  exited before stdout was written out.
+- Zen Studio: the canvas opens in the default modes (Neutral-S1, Standard contrast, Compact…) again; only light/dark is remembered. Modes saved before Present and Play took their own (2026-10-09) stuck on the canvas with no control left to change them.
+- Zen Studio: ⌘D (Duplicate) works on pages made in the Studio — the renderer's React key was mistaken for a written `key` and every copy was refused.
+- **Zen Studio: a click no longer writes an old field value (2026-10-10):** a text or number field in the Inspector
+  could write its previous value back when the selection changed right after the field had been updated (a Sidebar
+  section's title went empty, then came back, on a double-click); fields now write only what was typed.
+- **Zen Studio: a Screen with its app frame exports laid out (2026-10-10):** Export › HTML kept the sidebar, header,
+  top and bottom navigation wrappers under Studio class names without their layout rules, so a page with a Sidebar or a
+  Page header stacked its parts; the wrappers are now `.screen__side`, `.screen__main`, `.screen__header`… and
+  styles.css carries their rules (E2E HO-08: the exported page matches the canvas, 0.00%).
+- **SidebarMenuItem and SidebarMenuSection outside a Sidebar (2026-10-10):** a row placed on its own (a page's Stack,
+  a flyout) lost its padding and the gap between icon and label, because both came from variables only the Sidebar
+  defines; they fall back to the Sidebar's own values (Padding/Small, Gap/Small), so the row draws Figma's Menu-Item
+  anywhere.
+- **Zen Studio: Discard right after an edit could keep the old canvas (2026-10-09):** the edit's in-flight compile landed
+  in Vite's cache after the discard and was served from then on (Vite's HMR invalidation does not stop that); the Studio
+  now invalidates the file plainly before its hot reload. The E2E rows that failed only in full runs (ST-12, D-01, D-02,
+  D-06) pass again.
+- **Zen Studio: the canvas menu stays whole (2026-10-09):** a right-click menu taller than the room above and below the
+  pointer opens downwards from a raised point inside the window; it used to open upwards, its top items cut off by the
+  window's top. Disabled items show their label only (no reason line under them).
+- **Zen Studio: an instance's W / H choice right after a size change (2026-10-09):** picking Fill, Hug or a width in
+  the Inspector while the canvas is still showing the previous change is now written once it has caught up; it was
+  dropped without a word.
+- **Zen Studio: Reset slot after a duplicate (2026-10-08):** duplicate a slot item, then Clear the original: Reset
+  slot now gives the original its saved content back (it was refused as "new since the last save") and the copy stays
+  the new one.
+- **Zen Studio: section surface and stale reads (2026-10-08):** a frame widened past the Examples section's edge stays
+  on the section's tinted surface (nothing moves, the Docs frame included); right after a slot Clear, Reset or their
+  undo the canvas's spacing and resize layers read the element where the write put it (no more GET /element 404s), and
+  the selection follows an element whose own line changed while other lines changed too.
+- **Zen Studio: copying several layers (2026-10-08):** ⌘C on a multi-selection carries the useState values and DOM
+  refs the dev server reads from the AST (as one layer's copy does), the text scan only as a fallback.
+- **Studio E2E harness (2026-10-08):** a row past its 20 s limit no longer keeps driving the page and the server under
+  the next rows (its calls are refused, the next row gets a fresh page); a stuck step fails at 10 s with its own
+  message; LB-13 / LB-14 open the Components library (LB-12 left Assets on Photos and they timed out every run).
+- **Fill height in a column without a height (2026-10-08):** a column Stack with `height="fill"` whose parent gives it
+  no height no longer collapses its Fill or `fillChildren` children to 0; they keep their content height, and a column
+  with a height still shares it equally (a 0% flex basis).
+- **Tooltip around a wrapper (2026-10-08):** a Button inside a Box or Stack that a Tooltip wraps now gets the
+  tooltip's aria-describedby when it takes focus, and `tooltip/focusable-trigger` accepts such a wrapper.
+- **AiChatBlock heading level (2026-10-08):** new `headingLevel` (1–3, default 2) for the greeting, so a screen whose
+  greeting is its title (HR Home) has one visible h1 instead of a hidden one. The AI chat header on phone screens uses
+  the Alt bar like the other phone screens.
+- **Harness false positives (2026-10-08):** usage rules no longer treat a template string inside a prop expression as an
+  opaque spread; the platform audit skips selected cards in §16, counts a ListBox as a card for outline siblings and
+  measures corners at the phone frame's scale.
+- **Design Tokens page in dark mode (2026-10-08):** the Token links buttons used the browser's black button text on the
+  dark surface (1.38:1); they take Content/Neutral/Strongest now. The QA gate no longer fails in the cloud container on
+  emoji glyph widths or TabItem's machine-dependent axe result.
+- **Phone screens: the top bar matches the canvas (2026-10-08, user rule):** every docs phone on Canvas/Default now
+  uses the Alt bar (`alt`, `compact-alt`, `alt-blurring`), the same colour as the screen; only white Surface screens keep
+  `default` / `compact`. The TopNavigation guideline says so.
+- **BottomSheet in a device frame (2026-10-07):** like Dialog and Menu, a BottomSheet inside a `[data-zen-overlay-root]`
+  frame (PlatformPhone, an app's device preview) now opens in that frame instead of over the whole page; `inline` is
+  only needed elsewhere. DatePicker's stacked month titles are `<h3>` headings under the sheet's title.
+- **MCP `get_component` is brief by default (2026-10-07):** the props of the component you name, Do/Don't, keyboard,
+  accessibility and the rule ids, without the Figma mapping, node ids or the rule table (under half the size);
+  `detail: "full"` returns the whole guideline. CI's Package step works again: `verify:package` found npm's JSON
+  inside prepack's coloured build output.
+- **Table in a narrow box (2026-10-07):** a table without fixed column widths no longer crushes a text column to one word
+  per line: left-aligned text cells keep a readable minimum (`--zen-table-text-min-width`, 120px) and the table scrolls
+  sideways instead.
+- **Props docs (2026-10-07):** NumberField and TextAreaField now list the label, help-text and state props they take
+  from the field (docs/api, guidelines, MCP); `scripts/build-api.mjs` reads an `Omit<…>` base declared in the same file.
+- **Backlog batch A, App Shell (2026-10-07):** a Sidebar inside AppShell follows the shell's rail and drawer even when it
+  is wrapped in a component of your own (no `useAppShell()` by hand), and the rail's Search button expands it. The
+  collapsed rail separates groups with a Divider (Figma HR Sidebar-List) and shows a hidden counter as the
+  Notification-Dot ("Approvals, 3" stays in the name). Every Notification-Dot is Figma's 8px dot with a 2px ring outside
+  (the Sidebar's drew its ring inside, leaving 4px of red). An AppShell aside that opens as the modal SidePanel stays
+  inside a preview frame, like the drawer. The harness flags an AppShellAction or AppShellAccount that does nothing.
+- **Backlog batch A, components (2026-10-07):** a tap on a clickable ListItem's trailing Badge, value or chevron now
+  opens the row (buttons in the slot keep their own action). A docked SidePanel closes on Escape from the page beside it
+  (not from a text field) as well as from inside, and returns focus to what opened it; in docs full screen Escape closes
+  the panel before leaving. AiChatField draws +, the microphone and Voice only with `onAttach` / `onVoice` (the empty
+  field shows a disabled Send otherwise). DateField calls `onDateChange` for a typed MM/DD/YYYY too (null when it is
+  emptied or stops being a real day). `plural(n, one, many, locale)` takes a locale: Vietnamese keeps the noun ("3 tệp");
+  `copy/plural-count` reads whole Unicode words and skips Vietnamese ones.
+- **Zen Studio small fixes (2026-10-07, backlog batch 5b):** Escape on several layers selects their common parent;
+  a layer switch flips at once (optimistic) and a bound switch shows no control until the live props arrive; Assets
+  "No components match" has Clear search; ⌘Z after a paste or an Assets insert returns to the layout it went into;
+  hovering a selected nested instance under a row's click target no longer outlines the row; a Hug double-click on
+  the only item of a px Grid column writes that column as `auto`; resize handles and spacing areas read the live props
+  (a spread that does not set the prop leaves it editable); the tone picker captions what the harness would flag
+  (Lights-group Light on text, Light titles, colour Light body copy); Detach says where a bare handler comes from and
+  works on namespace JSX; the "applies to all N rows" note is a .map's only; Save all leaves the toolbar below 1024px
+  (the drafts panel has it); the frame chrome lays out on the next frame after a size change.
+- **Zen Studio decisions and multi-select (2026-10-07, backlog batch 5c):** a column with a minHeight sizes its Fill
+  children into it; a dropdown Chip keeps its width handle; the Pages panel drops the description the board shows; a
+  click on the Docs frame below 100% opens it at 100%, top-aligned; ⌘-click lands on a TopNavigation action, not its
+  icon. The arrow keys move several selected layers of one parent together (they stay selected); ⇧-click in Layers
+  selects the range of rows; Mixed properties edit text props on several layers.
+- **Uploader error text in Light (2026-10-07):** the field's error help text and a file item's error line (icon and text) use Content/Negative/Light like every help text but Warning (Input already did); they were Negative/Strongest.
+- **QA gate sees the example pages again (2026-10-07):** since the examples moved to `src/platform/examples/pages/<page>.tsx`, `npm run qa` mapped an edit there to no page and its example-coverage step (④) read no example list, so both passed without checking. Each page file (and its stylesheet) now scopes to its page, and step ④ reads the page's `examples` array.
+- **Zen Studio quick fixes (2026-10-07, backlog batch 2):** the Inspector's Frames list names the open builder page's
+  Screens after switching pages (two pages both have `screen-1`); the first view zooms down to 50% so the Playground
+  clears the Inspector at 1024–1280 px; setting a prop after an attribute with a trailing `// comment` keeps the comment
+  on its line; the Size row of Stack/Grid/Box is "Child size" (the Slots section keeps "Children"); public exports the
+  props docs do not list (ZenPortal, PopoverBulkAction…) read as Zen components; truncated layer names in the Inspector
+  header show the full name on hover; List `inset` loses its "Row inset" label (it is deprecated); the palette's
+  second Metric is "Metric card"; switching a Figma list boolean off (Top-Trailing with two or more actions) removes the
+  `useToast()` line those actions brought; moving an item past an identical one says the code stays the same instead of
+  "No change"; a slot's + chip no longer covers the selection's size pill. The Studio selftest no longer breaks a
+  parallel `tsc` (its samples are excluded) and runs the detach-type selftest.
+- **Zen Studio: frames and examples keep up with edits (2026-10-07, backlog batch 5a):** a frame's Save and Discard
+  take the edits to code it reads outside its JSX (sample data, a column const, a helper, a Zen component that keeps
+  its source line off the DOM, a portalled overlay); an edit to an example page no longer restarts its examples (an
+  opened chat thread stays open: example pages export their list through `keepOnHotUpdate`); a data edit still restarts
+  its frame so new initial data shows. Effects gains Effect settings (the style's layers, read-only) and Card,
+  MetricCard and ChartCard show the effect their theme draws. An unset object prop (EmptyState `secondaryAction`) gets
+  a "+" that writes a starting object, a prop held by a same-file const (`options={views}`) edits that const field by
+  field, and Toast's Figma Actions boolean is a switch.
+- **Docs example fixes (2026-10-07, backlog batch 4):** the Visually Hidden playground shows the invoice table's Archive
+  column (its stage widens for the table); AI Chat › "Assistant on a phone" names the screen with its bar title (h1);
+  HR · Public holidays' "Holidays in …" is Heading/4 like the other HR sections; the Table playground's Progress column is
+  Neutral with its % label (Figma Progress-Cell); the chat phones' thread header follows the scroll (its Pale rule once
+  messages run under it); the Accordion playground has a Content width control (Title / Full).
 - **Task priority flags use the Light icon colour (2026-10-06):** the HR Tasks flags (list, board, panel) take their
   family's Content Light (Urgent Negative, High Warning, Medium Info, Low Neutral) through Icon `tone`, instead of the
   Base text colour; Light is the icon level.
@@ -848,6 +1499,130 @@ removed (four unused colour ramps were, see Removed).
     which still bleeds outside the trail).
 
 ### Changed
+- Chip's `overrides` layer names follow the Figma layers (the user's choice, 2026-10-11): the Advanced count is
+  `Badge` (was `Counter`) and the multi-select count is `Badge-Counter` (was `Multi-Count`). Unreleased API.
+- **Zen Studio: slot props are switches, the Page header and the Screen header take real content (2026-10-10):** a
+  component's prop that is a content slot shows in Properties as a switch (Figma's boolean), never as a text field, so
+  PageHeader › Breadcrumbs on puts a real `<Breadcrumbs>` (its Item-List adds items) instead of a text label; a slot that
+  takes one component gets it at once, others open the picker. PageHeader's Breadcrumbs, Meta and Tabs are slots beside
+  Action- and Trailing-Slots, and a builder Screen's Header is a free slot (Figma Header Type=Custom) for any header a
+  page needs. Assets: a Tab bar item (Tabs without panels); every Menu item gets its own id (three "invoices" rows were
+  one row to the Sidebar); Breadcrumbs go on builder pages (a static trail).
+- **Zen Studio: clicks on the canvas work like Figma (2026-10-09):** a click selects the outermost layer under the
+  pointer in the current context (a frame's top level, or the selected layer's siblings; a click inside the selected
+  layer keeps it), a double-click goes one level in (onto a text layer it edits the text), ⌘ / Ctrl-click selects the
+  deepest element (again on it: its parts). So a Stack, Grid or List its children fill is one click away: on HR · Home
+  46 of 99 layers could not be clicked before. Hover outlines what a press would select; ⇧ adds that layer, ⇧⌘ the
+  deepest.
+- **AppShell top bar spacing from Figma Header/Dashboard (2026-10-09):** Spacing/Padding/Small above and below (was
+  Margin-Comfortable above, Padding/XSmall below), Margin-Comfortable at the sides: a 64px bar on desktop (was 72). The
+  templates start their PageHeader 12px under it (paddingY sm), as Header/Dashboard's Main row.
+- **Zen Studio: Auto layout in Figma's words and grid (2026-10-09, step 1 of the Figma-language inspector):** the Layout
+  section of a Stack, Grid or FormFieldset is titled "Auto layout" and reads like Figma UI3's: labels above the fields, two
+  field columns and an icon column, so every field lines up. Flow (Vertical · Horizontal, the Wrap toggle beside),
+  Resizing (W / H; Auto shows no number; the W / H menu is Figma's — "Fixed width (240)", "Hug contents", "Fill
+  container" one line each with its glyph, then "Add min width…" / "Remove min width" in the same menu instead of a
+  separate min/max button), Alignment beside Gap (the cross axis — Position, Stretch, Text baseline — in the
+  icon beside Gap), Padding as Horizontal | Vertical fields (equal values write one `padding`; the "Same padding on all
+  sides" toggle is gone) and Clip content under Padding (moved from Appearance). Every token select (gap, padding,
+  radius, position offsets, a multi-selection's spacing) reads token + value on one line, as the canvas spacing menu:
+  "md … 16px" in the list, "md 16" in the field; the code keeps the token. A value set in code keeps its own row, with
+  Figma's word, in the same place. The whole Design tab shares one grid — label and control in the two field columns,
+  the icon column always kept — so fields, selects and toggles line up across sections; the alignment box's marks sit
+  on their dots. Spec: `docs/research/studio-inspector-figma-spec-2026-10-09.md`.
+- **Zen Studio toolbar, Figma UI3's tools (2026-10-09):** the canvas toolbar reads Move (V) · Hand (H) | Screen | Stack
+  (A) · Text (T) · Image · Assets (⇧I) | Interact (I). Stack, Text and Image are placed with the pointer: the insertion
+  line of a drag shows where they land (or why nothing there can take them), a click places them (one edit, the new
+  layer selected) and the tool goes back to Move; Escape puts it away. Screen (on a page you made) adds a Screen on the
+  page's device with a click on the canvas. Renaming a page renames its Screen still named after it.
+- **Zen Studio: a page you make comes with its app frame (2026-10-09):** a blank page's Screen holds a Sidebar and a
+  Page Header (desktop) and a Top and a Bottom Navigation (phone), each a real layer you edit and switch off or on in
+  Screen (checkboxes). A tablet is laid out as mobile or as desktop (Screen › Layout). The Screen keeps both sets, so a
+  device change keeps your edits; renaming the page renames the header's title; Export writes an AppShell (desktop) or
+  the bars around the page (phone). Screen › Canvas paints it Canvas/Default, Alt (white) or Flat.
+- **Zen Studio fixes (2026-10-09):** a right-click on a selected Stack's gap or padding opens that Stack's menu; ⇧A on
+  one layer of a page you made selects the new Stack; Assets › Sidebar and App shell go onto a page you made (their
+  selected item fixed, a page keeps no state), and their thumbnails no longer throw; Assets gains Voice recorder; a
+  dialog's buttons sit 8px apart (Gap/XSmall) in the Studio sizes, as the chrome's other button groups.
+- **Zen Studio Assets in Figma's way (2026-10-09):** one search over every library at the top ("Search all assets":
+  the best components, icons and photos, each with See all); with no search, the libraries — Components (Zen DS),
+  Icons, Photos — as rows with their counts. A library opens in place (← back) with its own search; components sit in
+  groups that fold, as a grid of real thumbnails (drawn by the engine when they scroll into view; one that cannot draw
+  shows its group icon instead of breaking the panel) or a list (Grid · List, remembered); Icons has Line · Solid in its
+  header. Quick insert's preview no longer takes the Studio down when an item cannot render.
+- **Zen Studio New page (2026-10-09):** pick a start (Blank or a template) and Create — no title or device to fill in: a
+  blank page is "Untitled page" on a desktop Screen. Rename it with nothing selected (Page › Name) and change a Screen's
+  device from its frame panel (Screen › Device: Phone · Tablet · Desktop with the Zen Mobile, Tablet and Monitor icons).
+  The cards are Zen Cards (Border theme: a Pale frame; the picked one takes the Card's Active stroke) and Create /
+  Cancel stay at the bottom of the modal while the templates scroll. The Grid columns' Mobile breakpoint and the
+  Prototype panel's screens use the Mobile icon (was the telephone).
+- **Destructive actions read Content/Negative/Light (2026-10-09):** Menu's danger items and Bottom Sheet's destructive
+  items (text and icon) now use Negative/Light, as Button's danger levels already did: a coloured action reads in its
+  Light step (Base only when a Button is pressed).
+- **SelectField option `meta` (2026-10-09):** `SelectFieldOption` takes an optional `meta`, short text at the end of the
+  option's row on the same line (Body/Small/Regular, Neutral/Base; before the check), e.g. a token's value
+  (`{ label: "md", meta: "16px" }`); in the mobile sheet it sits before the check too. The field shows only the label.
+- **Zen Studio inspector: inputs read the same everywhere (2026-10-09):** no per-field "Reset … to default" button
+  (properties, Layout direction and alignment, Align in parent, Position offsets, text alignment, text style); a field
+  goes back to its default from inside it ("None", "Default", "none · 0", Backspace) or with Reset all overrides. A row
+  keeps a trailing slot only when it has a real action (Remove effect, Restore a binding, Relink gaps, Min and max), so
+  every other control fills to the edge. The Studio's list rows (Pages, Layers, Assets, Quick insert, inspector lists)
+  take Corner-Radius/Base, as the Zen Sidebar item does — the same corner as an input. The other Studio corners follow
+  their Zen role: notes as Inline Message (Large), value chips as Tag (pill), control boxes (alignment, constraints) as
+  inputs, the code block Base, New page cards XLarge (concentric around their Base thumbnails), row highlights and drop
+  targets as the row; Pages / Layers tabs use the Zen Tabs corner. The storage line under Folders is an info tooltip
+  (it stays a line only to ask for Reconnect or Retry).
+- **Token modes "Studio" for the Zen Studio chrome (2026-10-09):** Component Size, Typography Configuration and Corner
+  Radius each gain a mode Studio (`data-density` / `data-typography` / `data-radius="studio"`; ZenProvider accepts
+  `density`, `typography` and `radius` "studio"): Figma UI3-like controls (Button / Input / Chip / Tab xs 24 · sm 28 ·
+  md 32), Body/Base 13/20 with Caption 11 · Small 12 · Subheading 15 · Heading/4 18, and Rounded's corner ladder on a
+  Base of 8 (Small 6 · Base 8 · Large 12 · XLarge 16 …, +4 a step so a 4px inset stays concentric; inputs 8 · 8 · 12 ·
+  12; buttons stay pills). Every other value is Compact, Dashboard or Rounded. The Studio chrome uses them (ChromeScope);
+  examples keep their own modes. Repo-only: the Figma file does not have these modes yet.
+- **Zen Studio: Document | Studio spaces, folders, visual New page, modes only in Play/Present (2026-10-09):** the
+  toolbar's breadcrumb is a Document | Studio switch. Document lists the docs pages; Studio holds the pages you make in
+  folders (New folder, New page in a folder, Rename, Delete → Trash, Move to on each page; pages with no folder under "Not
+  in a folder"), and with no page open the canvas shows the Studio home. New page shows the templates as a grid of
+  scaled-down thumbnails with Blank page as a placeholder card, and the device as three cards drawn in their proportions.
+  The toolbar keeps only light/dark: preview modes change in Present and now in Play, each in its bar's Modes panel,
+  which opens with the Popover motion (zen-motion-pop-in; a fade with reduced motion). Play and Present change the
+  example only — light/dark included — while the Studio's own UI (the bar, the panel) keeps the chrome modes.
+- **DockIcon re-synced from Figma (2026-10-09):** sizes follow the live Dock-Icon set — `large` is now 48 (was 56) with
+  a 24px icon (Element-Size/Popular/Medium),
+  `xlarge` 56 (was 80) and the new `2xlarge` (`2xl`) is 80; Accent Solid draws its icon in Content/On-Colors (was
+  On-Accent). Docs examples that relied on 56 / 80 moved to `xl` / `2xl`; MetricWidget's Large Dock-Icon is 48, as in
+  its Figma instance. Apps using `size="lg"` / `"xl"` get the smaller step: use `xl` / `2xl` to keep 56 / 80.
+- **SelectField opens a Bottom Sheet on mobile (2026-10-08):** when the nearest `data-breakpoint` (or ZenProvider's
+  breakpoint) is `mobile`, the options open in a Bottom Sheet (title = `popoverLabel` or the label; `popoverSearch` →
+  the sheet's Search) as a List whose picked row is selected with a check; a pick closes the sheet and the focus goes
+  back to the field. Desktop and tablet keep the Popover. The trigger says `aria-haspopup="dialog"` on mobile.
+- **BottomSheet opens inside a device frame (2026-10-08):** like Dialog and Menu, a sheet opened inside
+  `[data-zen-overlay-root]` (a phone preview) renders in that frame and rises from the bottom of that screen, without
+  `inline`; elsewhere it still goes to the page portal.
+- **Flat hover backgrounds on step 2 (2026-10-08):** `Color/Background/Accent/Flat/Hover` and `…/Neutral/Flat/Hover`
+  move from Alpha step 3 to step 2 (Light and Dark), like the other Flat/Hover tokens; Pressed stays on step 3, so hover
+  and pressed now differ. Affects flat Buttons/IconButtons, Tabs, Segmented, Date Picker items and other Neutral flat
+  hovers. Figma updated to match.
+- **Classic docs code view and playground properties match Zen Studio (2026-10-08):** code samples use the Studio's
+  code view (React · TSX badge, line numbers, Wrap and Copy; the "Coming soon" language select is gone), and the
+  playground's property column reads like the Studio inspector ("Playground properties", Body/Small label + control rows).
+- **Zen Studio: move several layers (2026-10-08):** dragging a row of a multi-selection in the Layers panel moves every
+  selected layer (one edit, they stay selected; E2E ST-25), and Quick actions › Move earlier / later and the canvas
+  menu's Move up / down act on all selected layers, as the arrow keys and a canvas drag already did.
+- **Docs platform: old app-layer examples removed (2026-10-08):** the examples in `src/platform/appLayer/*` for pages
+  that have a rebuilt `examples/pages/<page>.tsx` were never shown; they, `shellScreens.tsx` and their CSS are gone
+  (about 4,000 lines). The playgrounds and the Templates page keep theirs.
+- **Docs platform examples (2026-10-07, backlog batch 6b):** phone screens and playground stages paint Canvas/Default
+  (§16; `PlatformPhone canvas="surface"` keeps a white screen); one-item Sidebar groups lose their title; HR · Home is
+  full width like the other HR pages, and side content on full-width pages stops at 1440px; the phone templates sit
+  two per row; the Badge and Button task tables fold the assignee into the task caption on a phone.
+- **Component decisions of backlog batch 8 (2026-10-07, batch 6):** `TableMedia` defaults to `bold={false}` like every
+  Figma media cell — **behaviour change**: pass `bold` to keep a bold label. PageHeader `headingLevel={2}` renders
+  Heading/4 (the house ladder's h2). AiChatField (all styles) and the chat composer take the standard Input focus ring.
+  On phones a BottomSheet pads 20px at the sides, a Medium Card takes radius XLarge, and AppShell's `floatingAction`
+  hides while the page scrolls down. A Sidebar with a custom `brand` keeps its collapse control. A flat Secondary
+  IconButton no longer trips `button/secondary-justified` (the Card Sub-Action ⋮ in the examples uses it). Text
+  guideline: wrap a colour emoji in an opaque span inside light text.
 - **Zen Studio toolbar without dividers (2026-10-06):** the vertical rules between the toolbar groups (brand · tools,
   theme · undo/redo, before Drafts) are gone; groups are told apart by space instead (4px inside a group, 8px between).
 - **Zen Studio canvas chrome placed as in Figma (2026-10-06):** the Select · Hand · Interact tools left the top toolbar
@@ -900,7 +1675,7 @@ removed (four unused colour ramps were, see Removed).
   Card's Figma Theme (same tokens; no Semi-Pale), default `flat`. Examples and templates pick it by usage rules §16:
   flat on Canvas/Default and on Surface-Alt phone screens, shadow beside a default Sidebar (elevation follows the
   Sidebar), border on a white page or phone and inside another Surface. Exported `listBoxThemes` / `ListBoxTheme`;
-  stories in `ListBox.stories.tsx`. Figma's Component/List-Box has no Theme property yet.
+  stories in `ListBox.stories.tsx`. Figma's Component/List-Box had no Theme property then (added 2026-10-12).
 - **List Box only for List-Item rows (2026-10-06, user rule):** in the examples, templates and the List Item
   playground, a container whose content is a list of List-Item rows (with an optional title, search or filters above
   and buttons or pagination below) is now a `<ListBox header footer>` instead of a Card; everything else (Description

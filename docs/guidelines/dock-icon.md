@@ -20,7 +20,7 @@ A round, filled icon tile that identifies an app, category, file type or object.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Size | `size` | xsmall 24 · small 32 · medium 40 · large 56 · xlarge 80 (Image-Size tokens; glyph Element-Size) |
+| Size | `size` | xsmall 24 · small 32 · medium 40 · large 48 · xlarge 56 · 2xlarge 80 (Image-Size tokens; glyph 12 · 16 · 20 · 24 · 28 · 44, Element-Size/Popular) |
 | Theme | `theme` | neutral · accent · 15 support colours · inverse · on-color · pale · surface · emoji |
 | Background | `background` | solid (On-Colors glyph) · subtle (Content/<colour>/Light glyph) |
 | Emoji | `emoji` | Theme=Emoji glyph |
@@ -30,13 +30,13 @@ A round, filled icon tile that identifies an app, category, file type or object.
 Generated from the TypeScript source; full JSON in `docs/api/dock-icon.json`.
 
 ### DockIcon
-Figma Dock-Icon (308:45902): a round, fully filled icon tile (Corner-Radius/Rounded) — app, category or file-type marks in lists, tables and cards. Solid → Content/On-Colors (Accent: On-Accent, Neutral: Inverse); Subtle → Content/`<colour>`/Light.
+Figma Dock-Icon (308:45902): a round, fully filled icon tile (Corner-Radius/Rounded) — app, category or file-type marks in lists, tables and cards. Solid → Content/On-Colors (Neutral: Inverse/Strongest); Subtle → Content/`<colour>`/Light (Neutral: Neutral/Base). Re-synced from the live file 2026-10-09.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `icon` | `IconName` | `"icon-star-93-solid"` | Figma Icon-Src. |
 | `emoji` | `ReactNode` | — | Theme=Emoji: the emoji (or any glyph) shown instead of an icon. |
-| `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling. |
+| `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge" \| "2xlarge"` | `"md"` | Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 48 · XLarge 56 · 2XLarge 80 (Image-Size tokens; glyph 12 · 16 · 20 · 24 · 28 · 44, Element-Size/Popular); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md, 2xl…) or Figma (small, medium, 2xlarge…) spelling. |
 | `theme` | `DockIconTheme` | `"neutral"` |  |
 | `background` | `"solid" \| "subtle"` | `"solid"` | Solid (default) or Subtle; Pale is always subtle, Inverse / On-Color / Surface / Emoji always solid. |
 | `label` | `string` | — | Accessible name when the icon carries meaning on its own; omit when a text label sits next to it. |

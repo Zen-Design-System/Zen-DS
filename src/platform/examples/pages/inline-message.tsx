@@ -26,7 +26,8 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
-import "./inline-message.css";
+import { PreviewPage } from "../../PlatformFrames";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "inline-message";
 
@@ -49,12 +50,12 @@ function SentInvoiceExample() {
     onSubmit: (values, { reset }) => { reset(values); toast({ title: "Updated invoice sent", children: "Phin & Co got the new copy by email" }); },
   });
   return (
-    <div className="px-inline-message-screen">
-      <Stack gap="xl" className="px-inline-message-page">
+    <PreviewPage margin="all" fill>
+      <Stack gap="xl">
         <PageHeader eyebrow="Invoices" title={`Edit ${sentInvoice.number}`}
           meta={<Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>}
           description={`${sentInvoice.client} · ${projectById(sentInvoice.project).name} · Issued ${formatDate(sentInvoice.issued)}`} />
-        <Card theme="flat" className="px-inline-message-measure">
+        <Card theme="flat" width="fill" maxWidth={640}>
           <Form form={form}>
             {/* Context for the whole form, above its first field. Essential, so it has no close button. */}
             <InlineMessage theme="warning" title="Phin & Co already has this invoice">
@@ -75,7 +76,7 @@ function SentInvoiceExample() {
           </Form>
         </Card>
       </Stack>
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -98,7 +99,7 @@ function ErrorSummaryExample() {
   });
   const count = Object.keys(form.errors).length;
   return (
-    <Card theme="flat" className="px-inline-message-narrow">
+    <Card theme="flat" width="fill" maxWidth={480}>
       {/* Form moves focus to the first invalid field after a failed submit; the summary counts what is left. */}
       <Form form={form} gap="md" aria-labelledby={titleId}>
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">New client</Heading>
@@ -161,7 +162,7 @@ function VerifyDomainExample() {
   };
   const copy = () => { void navigator.clipboard?.writeText(txtValue).catch(() => undefined); toast({ id: "dns-copied", title: "Value copied" }); };
   return (
-    <Card theme="flat" className="px-inline-message-narrow">
+    <Card theme="flat" width="fill" maxWidth={480}>
       <Stack ref={root} as="section" gap="xl" aria-labelledby={titleId}>
         <Stack gap="xs">
           <Heading level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Email domain</Heading>
@@ -222,7 +223,7 @@ function MoodboardExample() {
     if (!target) return undefined;
     const frame = requestAnimationFrame(() => {
       moveFocus.current = null;
-      if (target === "again") root.current?.querySelector<HTMLElement>(".px-inline-message-again")?.focus();
+      if (target === "again") root.current?.querySelector<HTMLElement>("[data-again]")?.focus();
       if (target === "message") root.current?.querySelector<HTMLElement>(".zen-inline-message__action")?.focus();
       if (target === "heading") document.getElementById(titleId)?.focus();
     });
@@ -240,14 +241,14 @@ function MoodboardExample() {
   return (
     <>
       {/* A ListBox: the title and the message about its rows in the Header-Slot (16px apart), the tasks in the Body-Slot. */}
-      <ListBox ref={root} as="section" aria-labelledby={titleId} className="px-inline-message-narrow"
+      <ListBox ref={root} as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
         header={<>
           <Stack gap="2xs">
             <Heading level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Brand refresh</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Kickoff {formatDate(daysFromToday(12))}</Text>
           </Stack>
           {approved ? null : hidden ? (
-            <Button level="tertiary" className="px-inline-message-start px-inline-message-again" onClick={showAgain}>Show message again</Button>
+            <Stack align="start"><Button level="tertiary" data-again="" onClick={showAgain}>Show message again</Button></Stack>
           ) : (
             <InlineMessage theme="custom" icon={<Thumbnail src={moodboard[0].src} alt="" size="md" />}
               title="Gia’s moodboard is ready for review" action={{ label: "Review", onClick: () => setOpen(true) }} onClose={hide}>
@@ -383,7 +384,7 @@ function TimesheetPhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Editing a sent invoice",
     description: "The invoice has already gone out, so a Warning above the form says what saving will do before anyone types. It is essential context, so it has no close button and stays while the form is open.",
@@ -512,4 +513,4 @@ const count = Object.keys(form.errors).length;
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

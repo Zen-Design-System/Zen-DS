@@ -65,6 +65,22 @@ describe("Studio write plan: a boolean switched off", () => {
 });
 
 /*
+ * A default the component computes (inspector/computedDefaults.ts; 2026-10-13 boolean sweep): an Advanced Chip shows its
+ * chevron while `dropdown` is unset, so off must write `false` and on again removes it.
+ */
+describe("Studio write plan: a boolean whose default the component computes", () => {
+  it("writes dropdown={false} on an Advanced chip and removes it when switched back on", () => {
+    expect(planPropWrite("Chip", [literal("variant", "advanced"), literal("dropdown", true)], "dropdown", false).ops).toEqual([{ op: "setProp", name: "dropdown", value: { kind: "boolean", value: false } }]);
+    expect(planPropWrite("Chip", [literal("variant", "advanced"), literal("dropdown", false)], "dropdown", true).ops).toEqual([{ op: "removeProp", name: "dropdown" }]);
+  });
+
+  it("keeps the plain rule where the computed default is off (a Normal chip)", () => {
+    expect(planPropWrite("Chip", [literal("variant", "normal"), literal("dropdown", true)], "dropdown", false).ops).toEqual([{ op: "removeProp", name: "dropdown" }]);
+    expect(planPropWrite("Chip", [literal("variant", "normal")], "dropdown", true).ops).toEqual([{ op: "setProp", name: "dropdown", value: { kind: "boolean", value: true } }]);
+  });
+});
+
+/*
  * Nested booleans (session "Nested boolean không hoạt động", 2026-10-05): a boolean switched back to a default of true
  * leaves no attribute, a data binding takes a fixed value, and a reset restores the saved binding.
  */

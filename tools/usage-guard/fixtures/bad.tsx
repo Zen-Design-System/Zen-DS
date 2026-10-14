@@ -50,6 +50,14 @@ export const Bad = () => <>
   <Popover items={items} label="Assignee" onSelect={pick} />
   {/* expect: page-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
   <PageHeader title="Members" actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
+  {/* expect: dashboard-header/props-of-type */}
+  <DashboardHeader type="navigation" leading={<Breadcrumbs items={crumbs} onNavigate={go} />} search={<Search placeholder="Search leave requests" />} />
+  {/* expect: dashboard-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
+  <DashboardHeader actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={submitLeave}>Submit leave</Button></>} />
+  {/* expect: dashboard-header/main-needs-title */}
+  <DashboardHeader type="main" actions={<Button level="primary" onClick={submitLeave}>Submit leave</Button>} />
+  {/* expect: dashboard-header/filters-are-chips */}
+  <DashboardHeader search={<Search placeholder="Search leave requests" />} controls={<Button level="tertiary" onClick={openStatus}>Status</Button>} />
   {/* expect: app-shell/primary-in-top-bar */}
   <AppShell sidebar={nav} headerActions={<Button level="primary" onClick={invite}>Invite member</Button>}><Container>{page}</Container></AppShell>
   {/* expect: app-shell/nested */}
@@ -146,8 +154,20 @@ export const Bad = () => <>
   <RichTextField label="Announcement" onChange={handle} />
   {/* expect: card/clickable-no-nested-controls */}
   <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
+  {/* expect: card/on-container-in-overlay */}
+  <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="border">Brief</Card></SidePanel>
+  {/* expect: listbox/on-container-in-overlay */}
+  <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
+  {/* expect: list-item/switch-row */}
+  <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
+  {/* expect: chip/radio-is-chip-group */}
+  <Chip variant="normal" role="radio" aria-checked onClick={act}>Daily</Chip>
   {/* expect: list-item/clickable-row-toggle */}
   <ListItem title="Wi-Fi" onClick={open} trailing={<ToggleButton aria-label="Wi-Fi" selected={on} onSelectedChange={setOn} />} />
+  {/* expect: voice/actions-wired */}
+  <VoiceRecorder state="ready" onRecord={record} />
+  {/* expect: voice/actions-wired */}
+  <AiVoiceConversation state="ready" onStart={listen} />
   {/* expect: dock-icon/emoji-needs-glyph */}
   <DockIcon theme="emoji" />
   {/* expect: table/needs-name */}
@@ -208,6 +228,8 @@ export const Bad = () => <>
   <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-trash-line", label: "Delete", onClick: remove }]} />
   {/* expect: bottom-navigation/destinations */}
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Me", icon: "icon-user-line" }]} />
+  {/* expect: bottom-sheet/choice-uses-list-item */}
+  <BottomSheet open={open} onOpenChange={setOpen} title="Sort by" type="action" items={sorts} selectedId={sort} onSelect={pick} />
   {/* expect: bottom-sheet/action-needs-items */}
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" />
   {/* expect: chat/others-need-author */}
@@ -216,6 +238,14 @@ export const Bad = () => <>
   <AiChatBubble side="ai" streaming actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copy }]}>Working</AiChatBubble>
   {/* expect: chart/stack-needs-legend */}
   <StackBarChart aria-label="Budget" data={data} series={series} showLegend={false} />
+  {/* expect: chart/needs-name */}
+  <BarChart data={data} />
+  {/* expect: chart/shares-need-legend */}
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} showLegend={false} />
+  {/* expect: chart/shares-need-legend */}
+  <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} compare={compare} showLegend={false} />
+  {/* expect: chart/heatmap-needs-scale */}
+  <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} showLegend={false} />
   {/* expect: table/media-size-by-subtext */}
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   {/* expect: uploader/no-noop-replace */}
@@ -232,6 +262,10 @@ export const Bad = () => <>
   <ColorSelector aria-label="Label colour" colors={[{ value: "#2563eb", label: "Blue" }, { value: "#16a34a", label: "Green" }]} />
   {/* expect: icon/size-token */}
   <Icon name="icon-check-line" size="small" decorative />
+  {/* expect: icon-button/needs-action */}
+  <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot />
+  {/* expect: icon-button/needs-action */}
+  <AppShellAccount name="Ava Chen" />
   {/* expect: copy/plural-count */}
   <Text tone="light">{results.length} places</Text>
   {/* expect: navigation/back-chevron */}
@@ -369,4 +403,6 @@ export const Bad = () => <>
   <Text tone="warning-light">Due tomorrow</Text>
   {/* expect: content/lights-no-light-text */}
   <Heading level={3} tone={"support-yellow-light"}>Pending</Heading>
+  {/* expect: api/overrides-studio-only */}
+  <Card subAction={{ label: "More", onClick: act }} overrides={{ "Sub-Action": { level: "danger" } }}>Team</Card>
 </>;

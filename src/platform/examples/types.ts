@@ -18,3 +18,6 @@ export type ExampleDef = {
 
 /** The module shape of `examples/pages/<page>.tsx`: registry.ts picks every file up by itself. */
 export type ExamplePageModule = { page: PlatformPage; examples: ExampleDef[] };
+
+/** A whole screen always takes the whole row, like a `wide` example (ExampleCard spans the row only through `wide`). */
+export const isWideExample = (example: Pick<ExampleDef, "wide" | "screen">) => Boolean(example.wide || example.screen);

@@ -18,9 +18,9 @@ import { DatePicker, type DatePickerDevice, type DatePickerTime } from "../compo
 import { Tooltip, tooltipColors, type TooltipColor, type TooltipPlacement, type TooltipSize } from "../components/Tooltip";
 import { Tabs, TabPanel, type TabSize, type TabVariant } from "../components/Tabs";
 import { Breadcrumbs, type BreadcrumbEmphasis } from "../components/Breadcrumbs";
-import { ProgressBar, ProgressCircle, progressCircleThemes, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
+import { ProgressBar, ProgressCircle, progressBarLayouts, progressCircleThemes, type ProgressBarLayout, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
 import { Dialog, ModalForm, dialogThemes, modalActionDirections, modalFormLayouts, type DialogTheme, type ModalActionDirection, type ModalFormLayout } from "../components/Dialog";
-import { Accordion, type AccordionSize, type AccordionTheme } from "../components/Accordion";
+import { Accordion, type AccordionContentWidth, type AccordionSize, type AccordionTheme } from "../components/Accordion";
 import { Divider, dividerColors, type DividerColor } from "../components/Divider";
 import { InlineMessage, inlineMessageThemes, type InlineMessageTheme } from "../components/InlineMessage";
 import { EmptyState } from "../components/EmptyState";
@@ -42,6 +42,7 @@ import { orders, pageOf, ScrollBox } from "./PlatformPaginationData";
 import { SkeletonHeading, SkeletonShape, SkeletonText, skeletonShapes, skeletonShapeSizes, type SkeletonHeadingSize, type SkeletonShapeSize } from "../components/Skeleton";
 import { Toast, toastTypes, type ToastType } from "../components/Toast";
 import { typographyStyles } from "../tokens/typography.generated";
+import { PlatformAiKit } from "./PlatformAiKit";
 import { FoundationOverview } from "../foundations/FoundationOverview";
 import { IconGallery } from "../foundations/IconGallery";
 import { TextStylesGallery } from "../foundations/TextStylesGallery";
@@ -52,6 +53,7 @@ import { PlatformPageTemplate, PlatformTypographyContext } from "./PlatformTempl
 import { PlatformCode } from "./PlatformCode";
 import { ComponentGuidelines } from "./PlatformGuidelines";
 import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformOnThisPage, PlatformSection } from "./PlatformReference";
+import { VoicePlayground } from "./PlatformVoicePlayground";
 import { AiChatPlayground, BottomNavigationPlayground, BottomSheetPlayground, ChartPlayground, ChatPlayground, TopNavigationPlayground } from "./PlatformMobilePlaygrounds";
 import { figmaSidebarBrand } from "./PlatformSidebarBrand";
 import { appLayerPages } from "./PlatformAppLayer";
@@ -65,7 +67,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "metric" | "rating" | "side-panel" | "uploader" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -345,9 +347,11 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [progressCircleTheme, setProgressCircleTheme] = useState<string | undefined>("accent");
   const [progressValue, setProgressValue] = useState(40);
   const [progressLabel, setProgressLabel] = useState(true);
+  const [progressBarLayout, setProgressBarLayout] = useState<string | undefined>("inline");
   const [dialogTheme, setDialogTheme] = useState<string | undefined>("default");
   const [accordionSize, setAccordionSize] = useState<string | undefined>("medium");
   const [accordionTheme, setAccordionTheme] = useState<string | undefined>("divider");
+  const [accordionContentWidth, setAccordionContentWidth] = useState<string | undefined>("title");
   const [accordionOpen, setAccordionOpen] = useState<string>("seats");
   const [alertTheme, setAlertTheme] = useState<string | undefined>("default");
   const [alertSize, setAlertSize] = useState<string | undefined>("medium");
@@ -408,6 +412,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [listBoxTheme, setListBoxTheme] = useState<ListBoxTheme>("flat");
   const [tableSelectable, setTableSelectable] = useState(true);
   const [tableSelected, setTableSelected] = useState<string[]>(["zen-web"]);
+  const [tableBulk, setTableBulk] = useState(true);
   const [tableSort, setTableSort] = useState<TableSort | null>({ columnId: "name", direction: "asc" });
   const [tableEmpty, setTableEmpty] = useState(false);
   const [ratingType, setRatingType] = useState<string | undefined>("star");
@@ -435,6 +440,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [panelSize, setPanelSize] = useState<string | undefined>("default");
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelDescription, setPanelDescription] = useState(true);
+  const [panelBack, setPanelBack] = useState(false);
+  const [panelTop, setPanelTop] = useState(false);
   const [tableMode, setTableMode] = useState<string | undefined>("display");
   const [tableOpenButton, setTableOpenButton] = useState(true);
   const [tableLockRow, setTableLockRow] = useState(true);
@@ -633,7 +640,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
               onCollapsedChange={setSidebarCollapsed}
               background={resolvedSidebarBackground}
               workspaceBar={sidebarWorkspaceBar}
-              workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: sidebarWorkspace === "workspace-a", icon: <Avatar size="medium" shape="square" theme="brown" background="solid" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", selected: sidebarWorkspace === "workspace-b", icon: <Avatar size="medium" shape="square" theme="indigo" background="solid" alt="">B</Avatar> }, ...sidebarNewWorkspaces.map((id, index) => ({ id, label: `Workspace ${String.fromCharCode(67 + index)}`, selected: sidebarWorkspace === id, icon: <Avatar size="medium" shape="square" theme="green" background="solid" alt="">{String.fromCharCode(67 + index)}</Avatar> }))]}
+              workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: sidebarWorkspace === "workspace-a", icon: <Avatar size="medium" shape="square" theme="brown" background="solid" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", selected: sidebarWorkspace === "workspace-b", icon: <Avatar size="medium" shape="square" theme="indigo" background="solid" alt="">B</Avatar> }, ...sidebarNewWorkspaces.map((id, index) => ({ id, label: `Workspace ${String.fromCharCode(67 + index)}`, selected: sidebarWorkspace === id, icon: <Avatar size="medium" shape="square" theme="purple" background="solid" alt="">{String.fromCharCode(67 + index)}</Avatar> }))]}
               workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" icon={<Icon name="icon-plus-line" />} onClick={addSidebarWorkspace} />}
               headerAction={(
                 <Menu align="end" aria-label="Workspace settings"
@@ -1480,6 +1487,8 @@ ${actions ? `
   if (page === "progress") {
     const isBar = (progressType ?? "bar") === "bar";
     const barTheme = (progressBarTheme ?? "accent") as ProgressBarTheme;
+    const barLayout = (progressBarLayout ?? "inline") as ProgressBarLayout;
+    const stackedLabel = isBar && barLayout === "stacked" && progressLabel;
     const circleTheme = (progressCircleTheme ?? "accent") as ProgressCircleTheme;
     const step = (delta: number) => setProgressValue((value) => Math.max(0, Math.min(100, value + delta)));
     return <ExamplePage page="progress" eyebrow="Components / Progress" title="Progress" description="Progress-Bar for linear tasks and Progress-Circle for compact status. Theme=Status colours the bar by how far along it is.">
@@ -1490,11 +1499,12 @@ ${actions ? `
           {isBar
             ? <PlaygroundFilterChip label="Theme" value={progressBarTheme} onChange={(value) => setProgressBarTheme(String(value) || undefined)} options={["neutral", "accent", "status"].map((id) => ({ id, label: id }))} />
             : <PlaygroundFilterChip label="Theme" value={progressCircleTheme} onChange={(value) => setProgressCircleTheme(String(value) || undefined)} options={progressCircleThemes.map((id) => ({ id, label: id }))} />}
+          {isBar ? <PlaygroundFilterChip label="Layout" value={progressBarLayout} onChange={(value) => setProgressBarLayout(String(value) || undefined)} options={progressBarLayouts.map((id) => ({ id, label: id }))} /> : null}
           <PlaygroundFilterChip label="Progress" value={String(progressValue)} onChange={(value) => setProgressValue(Number(value))} options={[["0", "None · 0%"], ["20", "Low · 20%"], ["40", "Medium · 40%"], ["80", "Good · 80%"], ["100", "Done · 100%"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Label" selected={progressLabel} onChange={setProgressLabel} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-progress-preview">
-          {isBar ? <ProgressBar value={progressValue} theme={barTheme} label={progressLabel ? true : undefined} aria-label="Upload progress" /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
+          {isBar ? <ProgressBar value={progressValue} theme={barTheme} layout={barLayout} label={stackedLabel ? "Uploading files" : progressLabel ? true : undefined} aria-label={stackedLabel ? undefined : "Upload progress"} /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
           <div className="pe-row">
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 0} onClick={() => step(-10)}>−10%</Button>
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 100} onClick={() => step(10)}>+10%</Button>
@@ -1504,7 +1514,9 @@ ${actions ? `
 
 <${isBar ? "ProgressBar" : "ProgressCircle"}
   value={${progressValue}}
-  theme="${isBar ? barTheme : circleTheme}"${progressLabel ? `
+  theme="${isBar ? barTheme : circleTheme}"${isBar && barLayout === "stacked" ? `
+  layout="stacked" // the value (${progressValue}%) ends the row above the bar` : ""}${stackedLabel ? `
+  label="Uploading files"` : progressLabel ? `
   label // shows "${progressValue}%"` : `
   aria-label="${isBar ? "Upload progress" : "Task progress"}"`}
 />`} />
@@ -1516,6 +1528,7 @@ ${actions ? `
   if (page === "accordion") {
     const size = (accordionSize ?? "medium") as AccordionSize;
     const theme = (accordionTheme ?? "divider") as AccordionTheme;
+    const contentWidth = (accordionContentWidth ?? "title") as AccordionContentWidth;
     const faqs = [
       { id: "seats", title: "Where can I see a breakdown of my seats?", body: "You can manage your full seats, viewer seats and pending invites from Settings → Members. The table shows who holds each seat and when it renews." },
       { id: "billing", title: "When will I be charged?", body: "Seats are billed at the start of each cycle. Seats added mid-cycle are prorated on the next invoice." },
@@ -1527,17 +1540,19 @@ ${actions ? `
         <PlaygroundControls aria-label="Accordion playground controls">
           <PlaygroundFilterChip label="Size" value={accordionSize} onChange={(value) => setAccordionSize(String(value) || undefined)} options={[["medium", "Medium"], ["large", "Large"], ["xlarge", "XLarge"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundFilterChip label="Theme" value={accordionTheme} onChange={(value) => setAccordionTheme(String(value) || undefined)} options={[["divider", "Divider"], ["box", "Box"]].map(([id, label]) => ({ id, label }))} />
+          <PlaygroundFilterChip label="Content width" value={accordionContentWidth} onChange={(value) => setAccordionContentWidth(String(value) || undefined)} options={[["title", "Title"], ["full", "Full"]].map(([id, label]) => ({ id, label }))} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-accordion-preview">
           <div className="platform-accordion-stack" data-tone={theme}>
-            {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}><PlaygroundSlot name="Content slot" /></Accordion>)}
+            {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} contentWidth={contentWidth} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}><PlaygroundSlot name="Content slot" /></Accordion>)}
           </div>
         </div>
         <PlatformCode code={`import { Accordion } from "@zen-ds/react";
 
 <Accordion
   size="${size}"
-  theme="${theme}"
+  theme="${theme}"${contentWidth === "full" ? `
+  contentWidth="full"` : ""}
   title="Where can I see a breakdown of my seats?"
   expanded={open}
   onExpandedChange={setOpen}
@@ -1773,7 +1788,10 @@ ${code}`} />
     return <ExamplePage page="ai-chat" eyebrow="Components / AI Chat" title="AI Chat" description="Prompting and conversing with an assistant: the Chat-Field (Default, Surface, Liquid Glass), You / AI bubbles with feedback actions, and the empty-state Block with suggestions."><AiChatPlayground /></ExamplePage>;
   }
   if (page === "chart") {
-    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation: a Line chart for trends, a Stack-bar chart for part-to-whole comparisons, and the Chart Card that frames either with a title, range switch and report link."><ChartPlayground /></ExamplePage>;
+    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation in one style: a Line chart for trends (with an optional dashed comparison), Bar charts for periods and categories, a Stack-bar chart for part-to-whole over time, Donut and Radial charts for shares and goals, a Heatmap for day × hour, and the Chart Card that frames any of them with a title, figure, range switch and report link."><ChartPlayground /></ExamplePage>;
+  }
+  if (page === "voice") {
+    return <ExamplePage page="voice" eyebrow="Components / Voice" title="Voice" description="Voice Recorder for notes and takes (Ready, Recording, Paused) and AI Voice Conversation for talking with the assistant (Ready, Listening, Responding): Zen buttons, badges and type around a waveform."><VoicePlayground /></ExamplePage>;
   }
   if (page === "uploader") {
     const type = (uploadType ?? "dropzone") as "dropzone" | "button";
@@ -1817,7 +1835,7 @@ ${code}`} />
     const type = (panelType ?? "modal") as SidePanelType;
     const size = (panelSize ?? "default") as SidePanelSize;
     const body = <PlaygroundSlot name="Content slot" className="platform-slot--tall" />;
-    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} icon={type === "modal" ? "icon-info-circle-solid" : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
+    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} top={panelTop ? <PlaygroundSlot name="Top slot" /> : undefined} onBack={panelBack ? () => setPanelOpen(false) : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
     return <ExamplePage page="side-panel" eyebrow="Components / Side Panel" title="Side Panel" description="A panel on the right edge: Standard docks beside the page (non-modal); Modal floats over a scrim and traps focus. Header, Contents slot and Modal/Actions footer.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Side Panel</h2>
@@ -1825,6 +1843,8 @@ ${code}`} />
           <PlaygroundFilterChip label="Type" value={panelType} onChange={(value) => { setPanelType(String(value) || undefined); setPanelOpen(false); }} options={["modal", "standard"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={panelSize} onChange={(value) => setPanelSize(String(value) || undefined)} options={[["default", "Default (440)"], ["small", "Small (360)"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Caption" selected={panelDescription} onChange={setPanelDescription} />
+          <PlaygroundToggle label="Back" selected={panelBack} onChange={setPanelBack} />
+          <PlaygroundToggle label="Top slot" selected={panelTop} onChange={setPanelTop} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-side-panel-preview" data-type={type}>
           {type === "standard" ? (
@@ -1849,7 +1869,9 @@ ${code}`} />
   open={open}
   onOpenChange={setOpen}${type === "standard" ? `
   type="standard"` : ""}${size === "small" ? `
-  size="small"` : ""}
+  size="small"` : ""}${panelTop ? `
+  top={<Stepper … />}` : ""}${panelBack ? `
+  onBack={goBack}` : ""}
   title="Edit project"${panelDescription ? `
   description="Changes apply to everyone in the workspace."` : ""}
   primaryAction={{ label: "Save changes", onClick: save }}
@@ -1864,7 +1886,7 @@ ${code}`} />
   if (page === "card") {
     const theme = (cardTheme ?? "shadow") as CardTheme;
     const spacing = (cardSpacing ?? "medium") as CardSpacing;
-    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and Semi-Pale — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
+    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and On-Container — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Card</h2>
         <PlaygroundControls aria-label="Card playground controls">
@@ -2027,15 +2049,24 @@ ${code}`} />
         <PlaygroundControls aria-label="Table playground controls">
           <PlaygroundFilterChip label="Mode" value={tableMode} onChange={(value) => setTableMode(String(value) || undefined)} options={[{ id: "display", label: "display" }, { id: "editable", label: "editable" }]} />
           <PlaygroundToggle label="Selectable" selected={tableSelectable} onChange={setTableSelectable} />
+          {tableSelectable ? <PlaygroundToggle label="Bulk Actions" selected={tableBulk} onChange={setTableBulk} /> : null}
           <PlaygroundToggle label="Empty" selected={tableEmpty} onChange={setTableEmpty} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-table-preview">
           <Table aria-label="Projects" rows={rows} getRowId={(row) => row.id} selectable={tableSelectable} selectedIds={tableSelected} onSelectionChange={setTableSelected} sort={tableSort} onSortChange={setTableSort}
+            bulkActions={tableBulk ? (ids) => {
+              const count = `${ids.length} ${ids.length === 1 ? "project" : "projects"}`;
+              return [
+                { id: "export", group: "Share", icon: "icon-download-01-line", label: `Export ${count}`, onClick: () => logAction(`Export ${count}`) },
+                { id: "links", group: "Share", icon: "icon-link-01-line", label: `Copy links to ${count}`, onClick: () => logAction(`Copy links to ${count}`) },
+                { id: "archive", group: "Manage", icon: "icon-archive-line", label: `Archive ${count}`, onClick: () => logAction(`Archive ${count}`) },
+              ];
+            } : undefined}
             empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
-              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
+              { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
               { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
-              { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} theme="accent" aria-label={`${row.name} progress`} /> },
+              { id: "progress", header: "Progress", width: "20%", cell: (row) => <ProgressBar value={row.progress} label aria-label={`${row.name} progress`} /> },
               { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
               { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" size="md" aria-label={`Open ${row.name}`} icon={<Icon name="icon-dots-horizontal-line" />} onClick={() => logAction(`Open ${row.name}`)} /></TableActions> },
             ]} />
@@ -2049,16 +2080,21 @@ ${code}`} />
   getRowId={(row) => row.id}${tableSelectable ? `
   selectable
   selectedIds={selected}
-  onSelectionChange={setSelected}` : ""}
+  onSelectionChange={setSelected}` : ""}${tableSelectable && tableBulk ? `
+  bulkActions={(ids) => [
+    { id: "export", group: "Share", icon: "icon-download-01-line", label: \`Export \${ids.length} projects\`, onClick: () => exportProjects(ids) },
+    { id: "links", group: "Share", icon: "icon-link-01-line", label: \`Copy links to \${ids.length} projects\`, onClick: () => copyLinks(ids) },
+    { id: "archive", group: "Manage", icon: "icon-archive-line", label: \`Archive \${ids.length} projects\`, onClick: () => archive(ids) },
+  ]}` : ""}
   sort={sort}
   onSortChange={setSort}
   empty={<EmptyState title="No projects yet" illustration={false} />}
   columns={[
     { id: "name", header: "Project", sortable: true, cell: (row) => (
-      <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
+      <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
     ) },
     { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme="green" background="subtle">{row.status}</Badge> },
-    { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} aria-label="Progress" /> },
+    { id: "progress", header: "Progress", cell: (row) => <ProgressBar value={row.progress} label aria-label={\`\${row.name} progress\`} /> },
     { id: "trend", header: "Traffic", cell: (row) => <TableTrend trend={row.trend}>{row.delta}</TableTrend> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", cell: (row) => <TableActions><IconButton appearance="flat" level="primary" aria-label="Open" … /></TableActions> },
   ]}
@@ -2379,7 +2415,7 @@ createRoot(document.getElementById("root")!).render(
       { title: "5. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). One command adds them to your app's AGENTS.md / CLAUDE.md and registers the zen-ds MCP server:", command: "npx zen-ds init" },
     ];
     return (
-      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider.">
+      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider. Designing in Figma with AI? Download the AI kit below.">
         <div className="platform-install">
           {steps.map((step) => (
             <section key={step.title} className="platform-example-panel platform-install__step">
@@ -2389,6 +2425,7 @@ createRoot(document.getElementById("root")!).render(
               {step.code ? <PlatformCode code={step.code} /> : null}
             </section>
           ))}
+          <PlatformAiKit />
         </div>
       </ExamplePage>
     );

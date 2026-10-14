@@ -4,7 +4,8 @@ import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { onSourceUpdate, selectionInstances, shortSrc } from "../select/picker";
+import { onSourceUpdate, selectionInstances } from "../select/picker";
+import { useWords } from "../useWords";
 import { selectLayers, useExtraSelection, type ExtraLayer } from "../select/multiSelection";
 import { useSlotServer } from "../slots/actions";
 import { autoLayoutKeys, autoLayoutShortcut, frameSelectionKeys, frameSelectionShortcut, useWrapRunning, wrapCheck, wrapSelection } from "../select/wrapSelection";
@@ -21,6 +22,7 @@ import { undoShortcut } from "./status";
 
 export function SelectionActions() {
   const selection = useStudio((state) => state.selection);
+  const say = useWords();
   const extras = useExtraSelection();
   // The role and the dev server decide whether the wrap shows (canStructurallyEdit reads them).
   useStudio((state) => state.role);
@@ -57,11 +59,11 @@ export function SelectionActions() {
             </Button>
           </div>
           <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`} role={blocked && !running ? "status" : undefined}>
-            {blocked ?? `Stack ${autoLayoutShortcut} · Box ${frameSelectionShortcut} · ${undoShortcut} to undo`}
+            {blocked ? say(blocked) : `Stack ${autoLayoutShortcut} · Box ${frameSelectionShortcut} · ${undoShortcut} to undo`}
           </p>
         </InspectorSection>
       ) : (
-        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{check.reason}</p>
+        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(check.reason)}</p>
       )}
 
       {/* Several layers of one component: their shared properties, "Mixed" where they differ (edit/MixedProperties). */}
@@ -75,7 +77,6 @@ export function SelectionActions() {
               icon={<Icon name={/^[A-Z]/.test(layer.name) ? "icon-cube-line" : "icon-code-02-line"} size={16} />}
               component={/^[A-Z]/.test(layer.name)}
               name={layer.name}
-              meta={shortSrc(layer.src)}
               onClick={() => selectLayers(layer, [])}
             />
           ))}

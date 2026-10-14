@@ -1,13 +1,13 @@
-import { useSyncExternalStore } from "react";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { Dialog } from "../../../components/Dialog";
 import { Text } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { modKey } from "../canvas/ZoomControls";
+import { modKey } from "./modKey";
 import { detachShortcut } from "../inspector/detach";
 import { autoLayoutShortcut, frameSelectionShortcut } from "../select/wrapSelection";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { clipboardShortcuts } from "../edit/clipboard";
+import { setShortcutsOpen, useShortcutsOpen } from "./shortcutsOpen";
 import "./shell.css";
 
 const groups: ReadonlyArray<{ label: string; rows: ReadonlyArray<[string, string]> }> = [
@@ -18,23 +18,9 @@ const groups: ReadonlyArray<{ label: string; rows: ReadonlyArray<[string, string
   { label: "Navigate", rows: [["Quick actions (search every action)", `${modKey}/`], ["Search pages", `${modKey}K`], ["Keyboard shortcuts", "?"]] },
 ];
 
-/* Open state as a tiny external store: the brand menu, the canvas "?" button and the ? key all open the same dialog. */
-let shortcutsOpen = false;
-const openListeners = new Set<() => void>();
-const subscribeOpen = (listener: () => void) => { openListeners.add(listener); return () => { openListeners.delete(listener); }; };
-
-export function setShortcutsOpen(open: boolean) {
-  if (open === shortcutsOpen) return;
-  shortcutsOpen = open;
-  openListeners.forEach((listener) => listener());
-}
-
-/** Opens the Keyboard shortcuts dialog. */
-export const openShortcuts = () => setShortcutsOpen(true);
-
 /** Every Studio shortcut, grouped (brand menu › Keyboard shortcuts…, the canvas "?" button, or ?). */
 export function ShortcutsDialog() {
-  const open = useSyncExternalStore(subscribeOpen, () => shortcutsOpen, () => false);
+  const open = useShortcutsOpen();
   const onOpenChange = setShortcutsOpen;
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title="Keyboard shortcuts" icon={false} className="studio-shortcuts" primaryAction={{ label: "Close" }}>

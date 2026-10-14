@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Dialog, ModalForm } from "../../../components/Dialog";
 import { Icon } from "../../../components/Icon";
 import { InputField } from "../../../components/Input";
 import { Menu, type MenuEntry } from "../../../components/Menu";
 import { Text } from "../../../components/Text";
+import { useIconTooltip } from "../../../components/Tooltip";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { announceEditStatus } from "../api";
-import { navigate, openLocalPage } from "../shell/navigation";
+import { openLocalPage } from "../shell/navigation";
 import { studioStore, useStudio } from "../store";
 import { unzipFiles } from "../../../../tools/studio/zip.mjs";
 import { assetIdsOf, putAsset } from "./assets/uploads";
@@ -15,7 +16,11 @@ import { loadEngine, zenComponents } from "./engine";
 import { openExport } from "./export/exportState";
 import { canLinkFolder, linkFolder, reconnectFolder, resyncPages, unlinkFolder } from "./store/mirrors";
 import { idFromFileName, trashDaysLeft, type RevisionReason } from "./store/pageModel";
-import { deleteForever, duplicatePage, getPage, importPage, listRevisions, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
+import { RenameField } from "./RenameField";
+import { importPulled, pulledPageOf, readPulled } from "./figmaUpdate";
+import { UpdateFromFigmaDialog, type FigmaUpdate } from "./UpdateFromFigmaDialog";
+import { useFolders } from "./store/folderStore";
+import { deleteForever, duplicatePage, getPage, importPage, listRevisions, movePage, renamePage, restorePage, restoreRevision, trashPage, useStorage, useTrash, type PageMeta, type Revision } from "./store/pageStore";
 
 /*
  * My pages in the Pages panel (Studio builder GĐ2 M2, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2c):
@@ -49,18 +54,21 @@ export async function exportPage(id: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** Leaves the page when it is the one on the canvas (it went to the Trash). */
+/** Leaves the page when it is the one on the canvas (it went to the Trash): back to the Studio space's folders. */
 function leaveIfOpen(id: string) {
-  const state = studioStore.getState();
-  if (state.localPage === id) navigate(state.page, state.collection);
+  if (studioStore.getState().localPage === id) studioStore.setState({ localPage: null, space: "studio", selection: null, presenting: null });
 }
 
-/** "My pages" kicker with New page and the section's options, then where the pages are kept. */
-export function MyPagesHeader({ onNew }: { onNew: () => void }) {
+/** The Studio space's kicker ("Folders") with New page, New folder and the section's options, then where the pages are
+ *  kept. */
+export function MyPagesHeader({ onNew, onNewFolder }: { onNew: () => void; onNewFolder?: () => void }) {
   const admin = useStudio((state) => state.role === "admin");
   const storage = useStorage();
+  const storageTip = useIconTooltip(storageText(storage), { placement: "bottom" });
   const trash = useTrash();
   const [trashOpen, setTrashOpen] = useState(false);
+  // Frames pulled before, imported again: one Update from Figma at a time.
+  const [figmaUpdates, setFigmaUpdates] = useState<FigmaUpdate[]>([]);
   const input = useRef<HTMLInputElement>(null);
 
   const importFiles = async (files: File[]) => {
@@ -68,6 +76,7 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
     const engine = await loadEngine();
     const opened: string[] = [];
     const refused: string[] = [];
+    const updates: FigmaUpdate[] = [];
     // A handoff package (.zip, GĐ5 M4) brings its design file and the uploaded photos it uses (assets/<id>).
     const entries: Array<{ name: string; text: string; assets: Map<string, Uint8Array> }> = [];
     for (const file of files) {
@@ -91,12 +100,23 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
         const data = entry.assets.get(id);
         if (data) await putAsset(id, new Blob([data as Uint8Array<ArrayBuffer>]));
       }
+      // A page pulled from Figma (tools/studio/figma-pull.mjs): a frame already pulled here updates its page, a new one
+      // becomes a page that keeps its layers' ids for the next pull.
+      const pulled = await readPulled(entry.text);
+      if (pulled) {
+        const existing = await pulledPageOf(pulled);
+        if (existing) updates.push({ pageId: existing, title: (await getPage(existing))?.title ?? existing, incoming: pulled.doc });
+        else opened.push(await importPulled(pulled, idFromFileName(entry.name)));
+        continue;
+      }
       opened.push(await importPage(entry.text, idFromFileName(entry.name)));
     }
-    if (opened.length === 1) openLocalPage(opened[0]);
+    if (opened.length === 1 && !updates.length) openLocalPage(opened[0]);
+    if (updates.length) setFigmaUpdates((queued) => [...queued, ...updates]);
     if (refused.length) say("error", `Not imported: ${refused.join("; ")}`);
-    else say("saved", `Imported ${opened.length} page${opened.length === 1 ? "" : "s"}`);
+    else if (opened.length || !updates.length) say("saved", `Imported ${opened.length} page${opened.length === 1 ? "" : "s"}`);
   };
+  const nextFigmaUpdate = () => setFigmaUpdates((queued) => queued.slice(1));
 
   const items: MenuEntry[] = [
     { id: "import", label: "Import pages…", icon: "icon-upload-01-line", disabled: !admin, onSelect: () => input.current?.click() },
@@ -109,9 +129,16 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
   return (
     <>
       <div className="studio-pages__kicker-row">
-        <Text as="p" id="studio-pages-mine" textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">My pages</Text>
+        <span className="studio-pages__kicker studio-pages__kicker--info">
+          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="base">Folders</Text>
+          {/* Where the pages are kept, in an info tooltip (user, 2026-10-09: not a line of its own). Zen's icon tooltip: a
+              fixed layer in the portal, flipped and kept inside the window, so the scrolling panel never cuts it off. */}
+          <button type="button" className="studio-pages__info" aria-label={storageText(storage)} {...storageTip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
+          {storageTip.tooltip}
+        </span>
+        {onNewFolder ? <IconButton icon="icon-folder-plus-line" aria-label="New folder" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNewFolder} /> : null}
         <IconButton icon="icon-plus-line" aria-label="New page" appearance="flat" level="primary" size="xs" disabled={!admin} onClick={onNew} />
-        <Menu align="end" aria-label="My pages options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="My pages options" appearance="flat" level="primary" size="xs" />} />
+        <Menu align="end" aria-label="Studio options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="Studio options" appearance="flat" level="primary" size="xs" />} />
       </div>
       <StorageLine />
       <input ref={input} type="file" accept=".tsx,.zip" multiple hidden data-e2e="import-pages" onChange={(event) => {
@@ -121,18 +148,36 @@ export function MyPagesHeader({ onNew }: { onNew: () => void }) {
         void importFiles(files).catch(fail);
       }} />
       <TrashDialog open={trashOpen} onOpenChange={setTrashOpen} pages={trash} admin={admin} />
+      {figmaUpdates[0] ? (
+        <UpdateFromFigmaDialog
+          key={figmaUpdates[0].pageId}
+          update={figmaUpdates[0]}
+          onClose={nextFigmaUpdate}
+          onApplied={(applied, skipped) => {
+            const page = figmaUpdates[0];
+            say("saved", applied ? `Updated “${page.title}” from Figma: ${applied} change${applied === 1 ? "" : "s"}${skipped.length ? ` (${skipped.length} not applied: their layers are gone from the page)` : ""}` : `“${page.title}” matches Figma`);
+            openLocalPage(page.pageId);
+            nextFigmaUpdate();
+          }}
+        />
+      ) : null}
     </>
   );
 }
 
 /** Where the pages are kept: this browser, the dev server's folder, a linked folder (or one to reconnect). */
+function storageText(storage: ReturnType<typeof useStorage>) {
+  if (storage.kind === "browser") return "In this browser · Export to keep a copy";
+  if (storage.kind === "reconnect") return `Folder “${storage.label}” needs access again`;
+  if (storage.error) return `Not synced: ${storage.error}`;
+  return `${storage.syncing ? "Syncing with" : "Kept in"} ${storage.mirror === "dev" ? storage.label : `“${storage.label}”`}`;
+}
+
+/** The storage line under the kicker, only when it asks for something (Reconnect, Retry); else the info tooltip says it. */
 function StorageLine() {
   const storage = useStorage();
-  let text: string;
-  if (storage.kind === "browser") text = "In this browser · Export to keep a copy";
-  else if (storage.kind === "reconnect") text = `Folder “${storage.label}” needs access again`;
-  else if (storage.error) text = `Not synced: ${storage.error}`;
-  else text = `${storage.syncing ? "Syncing with" : "Kept in"} ${storage.mirror === "dev" ? storage.label : `“${storage.label}”`}`;
+  const text = storageText(storage);
+  if (storage.kind !== "reconnect" && !(storage.kind === "mirror" && storage.error)) return null;
   return (
     <div className="studio-pages__storage" data-storage={storage.kind} data-error={storage.kind === "mirror" && storage.error ? "true" : undefined}>
       <Text as="p" textStyle="Caption/Regular" tone={storage.kind === "mirror" && storage.error ? "negative" : "base"} className="studio-pages__storage-text" role="status">{text}</Text>
@@ -144,55 +189,61 @@ function StorageLine() {
   );
 }
 
-/** One page under My pages: the row (opens it) and its actions. */
-export function MyPageRow({ item, current, tabIndex }: { item: PageMeta; current: boolean; tabIndex: number }) {
+type MyPageRowProps = { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean };
+
+/** Same row as before: its props, the page's meta field by field (the list is read anew on every page write). */
+const sameRow = (a: MyPageRowProps, b: MyPageRowProps) => a.current === b.current && a.tabIndex === b.tabIndex && a.nested === b.nested
+  && Object.keys(a.item).length === Object.keys(b.item).length && (Object.keys(a.item) as Array<keyof PageMeta>).every((key) => a.item[key] === b.item[key]);
+
+/** One page in the Studio space: the row (opens it) and its actions. `nested`: inside a folder (indented). Memoised: a
+ *  page write redraws its own row only, not every row on the way to the canvas (2026-10-13 edit latency). */
+export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nested = false }: MyPageRowProps) {
   const admin = useStudio((state) => state.role === "admin");
-  const [dialog, setDialog] = useState<null | "rename" | "history">(null);
+  const folders = useFolders();
+  const [dialog, setDialog] = useState<null | "history">(null);
+  // Rename in place (double-click the row, or Rename…), as Figma renames a layer.
+  const [renaming, setRenaming] = useState(false);
   const items: MenuEntry[] = [
-    { id: "rename", label: "Rename…", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setDialog("rename") },
+    { id: "rename", label: "Rename", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setRenaming(true) },
     { id: "duplicate", label: "Duplicate", icon: "icon-copy-line", disabled: !admin, onSelect: () => void duplicatePage(item.id).then(openLocalPage, fail) },
     { id: "export-code", label: "Export…", icon: "icon-code-02-line", caption: "React code or the design file", onSelect: () => openExport(item.id) },
     { id: "export", label: "Export file", icon: "icon-download-01-line", caption: `${item.id}.zen.tsx`, onSelect: () => void exportPage(item.id).catch(fail) },
     { id: "history", label: "Version history…", icon: "icon-clock-rewind-line", onSelect: () => setDialog("history") },
+    ...(folders.length ? [
+      { type: "separator" as const, id: "move-separator" },
+      { type: "group" as const, label: "Move to", items: [
+        ...folders.map((folder) => ({ id: `move:${folder.id}`, label: folder.name, icon: "icon-folder-line" as const, disabled: !admin || item.folder === folder.id, onSelect: () => void movePage(item.id, folder.id).catch(fail) })),
+        { id: "move:none", label: "Not in a folder", icon: "icon-file-code-line" as const, disabled: !admin || !item.folder, onSelect: () => void movePage(item.id, null).catch(fail) },
+      ] },
+    ] : []),
     { type: "separator" },
     { id: "trash", label: "Move to Trash", icon: "icon-trash-line", danger: true, disabled: !admin, onSelect: () => { leaveIfOpen(item.id); void trashPage(item.id).catch(fail); } },
   ];
   return (
     <li className="studio-pages__item">
-      <button type="button" className="studio-pages__row" aria-current={current ? "page" : undefined} tabIndex={tabIndex} onClick={() => openLocalPage(item.id)}>
-        <Icon name="icon-file-code-line" size="sm" decorative />
-        <span className={`studio-pages__name ${typographyStyles[current ? "Body/Small/Bold" : "Body/Small/Medium"]}`}>{item.title}</span>
-      </button>
+      {renaming ? (
+        <div className="studio-pages__row" data-child={nested ? "true" : undefined} data-renaming="true">
+          <Icon name="icon-file-code-line" size="sm" decorative />
+          <RenameField value={item.title} label="Page name" onCommit={(name) => renamePage(item.id, name).catch(fail)} onDone={() => setRenaming(false)} />
+        </div>
+      ) : (
+        <button type="button" className="studio-pages__row" data-child={nested ? "true" : undefined} aria-current={current ? "page" : undefined} tabIndex={tabIndex} title={admin ? "Double-click to rename" : undefined}
+          onClick={() => openLocalPage(item.id)} onDoubleClick={() => { if (admin) setRenaming(true); }}
+          onKeyDown={(event) => {
+            // Delete / Backspace moves the page to Trash, where it can be restored.
+            if ((event.key === "Delete" || event.key === "Backspace") && admin && !event.repeat) { event.preventDefault(); leaveIfOpen(item.id); void trashPage(item.id).catch(fail); }
+          }}>
+          <Icon name="icon-file-code-line" size="sm" decorative />
+          <span className={`studio-pages__name ${typographyStyles[current ? "Body/Small/Bold" : "Body/Small/Medium"]}`}>{item.title}</span>
+        </button>
+      )}
       <span className="studio-pages__actions">
         <Menu align="end" aria-label={`${item.title} actions`} items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label={`${item.title} actions`} appearance="flat" level="primary" size="xs" tabIndex={-1} />} />
       </span>
-      {dialog === "rename" ? <RenameDialog page={item} onClose={() => setDialog(null)} /> : null}
       {dialog === "history" ? <HistoryDialog page={item} admin={admin} onClose={() => setDialog(null)} /> : null}
     </li>
   );
-}
-
-function RenameDialog({ page, onClose }: { page: PageMeta; onClose: () => void }) {
-  const [title, setTitle] = useState(page.title);
-  const [error, setError] = useState<string | null>(null);
-  return (
-    <ModalForm
-      open
-      onOpenChange={(next) => { if (!next) onClose(); }}
-      title="Rename page"
-      description={`The file stays ${page.id}.zen.tsx.`}
-      onSubmit={() => {
-        const name = title.trim();
-        if (!name) { setError("Give the page a title"); return; }
-        void renamePage(page.id, name).then(onClose, fail);
-      }}
-      primaryAction={{ label: "Rename" }}
-      secondaryAction={{ label: "Cancel" }}
-    >
-      <InputField label="Title" size="md" value={title} autoFocus error={Boolean(error)} errorMessage={error ?? undefined} onChange={(event) => { setTitle(event.target.value); if (error) setError(null); }} />
-    </ModalForm>
-  );
-}
+}, sameRow);
 
 function HistoryDialog({ page, admin, onClose }: { page: PageMeta; admin: boolean; onClose: () => void }) {
   const [rows, setRows] = useState<Revision[] | null>(null);

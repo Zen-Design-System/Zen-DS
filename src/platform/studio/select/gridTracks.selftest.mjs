@@ -2,7 +2,7 @@
 // Zen Studio Grid columns selftest: the pure helpers of ./gridTracks.ts (imported directly: Node strips the types) that
 // resize and spacing use to read and write a Grid's px columns, without a browser.
 //   node src/platform/studio/select/gridTracks.selftest.mjs     summary; exit 1 on any failure
-import { columnsOp, columnsSource, pxTrack, spanOf, splitTracks, withTrackPx } from "./gridTracks.ts";
+import { columnsOp, columnsSource, pxTrack, spanOf, splitTracks, withTrack, withTrackPx } from "./gridTracks.ts";
 
 let passed = 0;
 const failures = [];
@@ -38,6 +38,11 @@ check("with: first column", withTrackPx("minmax(0, 320px) 1fr", 0, 240), "minmax
 check("with: aside column", withTrackPx("minmax(0, 1fr) 320px", 1, 360), "minmax(0, 1fr) 360px");
 check("with: fr column → null", withTrackPx("minmax(0, 320px) 1fr", 1, 240), null);
 check("with: out of range → null", withTrackPx("320px 1fr", 4, 240), null);
+
+/* ── withTrack (Hug on a px column writes auto) ── */
+check("track: px column → auto", withTrack("240px 1fr", 0, "auto"), "auto 1fr");
+check("track: minmax column → auto", withTrack("minmax(0, 320px) 1fr", 0, "auto"), "auto 1fr");
+check("track: out of range → null", withTrack("240px 1fr", 2, "auto"), null);
 
 /* ── columnsSource ── */
 const attr = (extra) => ({ name: "columns", raw: "", line: 1, ...extra });

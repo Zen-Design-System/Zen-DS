@@ -6,6 +6,7 @@ import { selectNested, type Nested, type NestedInstances } from "./nestedInstanc
 import { PropField } from "./PropField";
 import { holds, isSetValue } from "./propGroups";
 import { propLabel } from "./propSchema";
+import { InspectorSrcContext } from "./controls/hostContext";
 import { fileName } from "./status";
 import { InspectorItem, InspectorSection } from "./Section";
 import "./nested.css";
@@ -23,8 +24,11 @@ export function NestedInstanceGroup({ item, nested, element, api }: { item: Nest
   const where = `${propLabel(item.prop, element.name)}${twins.length > 1 ? ` · ${twins.indexOf(item) + 1}` : ""}`;
   // JSX written outside the owner (a const, a helper, a local component, another file): an edit changes it there, for
   // every element it renders.
-  const shared = item.elsewhere ? `${fileName(item.file)}:${item.loc.split(":")[0]}${item.count > 1 ? ` · ${item.count} on canvas` : ""}` : null;
+  // No line number (plan criterion 7): a repo file by its name, a Studio page's own file as "a shared layer".
+  const shared = !item.elsewhere ? null : `${item.file.startsWith("local:") ? "a shared layer" : fileName(item.file)}${item.count > 1 ? ` · ${item.count} on canvas` : ""}`;
   return (
+    // Its scale fields name this instance on the spacing hover bus (not the selection that lists it).
+    <InspectorSrcContext value={item.src}>
     <div role="group" aria-label={`${item.name} in ${where}`} className="studio-nested__group">
       <ul className="studio-inspector__items">
         <InspectorItem
@@ -65,6 +69,7 @@ export function NestedInstanceGroup({ item, nested, element, api }: { item: Nest
         />
       )))}
     </div>
+    </InspectorSrcContext>
   );
 }
 

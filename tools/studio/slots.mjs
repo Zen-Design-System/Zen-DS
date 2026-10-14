@@ -14,10 +14,10 @@
 //                                              `replace` (with copy): paste to replace
 //        op "pasteCode" { code, before?, after?, replace? }  on the parent: ⌘V of code from another file (arrange.mjs)
 //        op "replaceElement" { code, state? }  on the element: Swap instance, `code` in its place (arrange.mjs)
-//        op "many" { action: remove|duplicate|setProps, locs, ops? }  a multi-selection in one file (arrange.mjs)
+//        op "many" { action: remove|duplicate|setProps|move, locs, ops?, to? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
 //        op "resetSlot" { prop? }              on the host: the slot as the saved file has it (Figma "Reset slot"); `reset` = true
-//        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires? }
+//        ops "insertItem" | "removeItem" | "duplicateItem" | "moveItem" | "groupItem" | "ungroupItem" { prop, index?, to?, with?, regroup?, code?, single?, list?, requires?, all? }
 //                                              on the host: the objects of a data slot (`trailing={[{ … }]}`, items.mjs);
 //                                              `item` = { prop, index } where the item is now; `updated` / `removed` = true
 //        opts: { file (repo-relative, required), snippets?, componentModules? (Map or object: name → src/components
@@ -657,8 +657,9 @@ function componentName(nodePath, at) {
 }
 
 /**
- * The innermost binding named `name` visible at the end of nodePath (block statements, parameters, imports on the way):
- * { what (in a reason), declarator? (a variable's), param? (a parameter's) }, or null.
+ * The innermost binding named `name` visible at the end of nodePath (block statements, parameters, for-of/in/for loop
+ * variables, catch parameters, imports on the way): { what (in a reason), declarator? (a variable's or a loop's),
+ * param? (a parameter's or a catch's) }, or null. Loop and catch bindings count so a move out of their body is refused.
  */
 function bindingOf(nodePath, name) {
   const binds = (pattern) => { const names = new Set(); patternNames(pattern, names); return names.has(name); };
@@ -666,6 +667,11 @@ function bindingOf(nodePath, name) {
     const node = nodePath[i];
     const param = FUNCTION_TYPES.has(node.type) ? node.params.find(binds) : null;
     if (param) return { what: "a prop or parameter", param };
+    // for-of/in bind for their body only (`right` runs outside the loop); a C-style for binds in every part.
+    const loop = node.type === "ForStatement" ? node.init : (node.type === "ForOfStatement" || node.type === "ForInStatement") && nodePath[i + 1] === node.body ? node.left : null;
+    const looped = loop?.type === "VariableDeclaration" ? loop.declarations.find((item) => binds(item.id)) : null;
+    if (looped) return { what: "a loop variable", declarator: looped };
+    if (node.type === "CatchClause" && node.param && binds(node.param)) return { what: "a caught error", param: node.param };
     const statements = node.type === "Program" || node.type === "BlockStatement" ? node.body : [];
     for (const statement of statements) {
       const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
@@ -676,6 +682,89 @@ function bindingOf(nodePath, name) {
     }
   }
   return null;
+}
+
+/**
+ * The JSX a prop or child names (`footer={appsButton}`, `{summary}`) when that name is a `const` of the same file whose
+ * value is written as JSX (`const appsButton = <button …/>`): { name, declaration, declarator, init, statement, scope,
+ * module, exported }. Slot ops edit that JSX where it is written, so every place that shows it changes (user,
+ * 2026-10-09: HR's Sidebar footer). Null for anything else (a parameter, a `let`, a value computed in code, an import).
+ */
+function constJsx(nodePath, name) {
+  const binds = (pattern) => { const names = new Set(); patternNames(pattern, names); return names.has(name); };
+  for (let i = nodePath.length - 1; i >= 0; i -= 1) {
+    const node = nodePath[i];
+    if (FUNCTION_TYPES.has(node.type) && node.params.some(binds)) return null;
+    const statements = node.type === "Program" || node.type === "BlockStatement" ? node.body : null;
+    if (!statements) continue;
+    for (const statement of statements) {
+      const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
+      if (declaration?.type !== "VariableDeclaration") continue;
+      const declarator = declaration.declarations.find((item) => binds(item.id));
+      if (!declarator) continue;
+      const init = unwrapTs(declarator.init);
+      if (declaration.kind !== "const" || declarator.id.type !== "Identifier" || !init || (init.type !== "JSXElement" && init.type !== "JSXFragment")) return null;
+      return { name, declaration, declarator, init, statement, scope: node, module: node.type === "Program", exported: statement.type === "ExportNamedDeclaration" };
+    }
+  }
+  return null;
+}
+
+/** The places that show a `const name = <JSX>`: each `prop={name}` attribute or `{name}` child, as a path; null when the code also reads it otherwise. */
+function constUses(ctx, bound) {
+  const uses = [];
+  let other = false;
+  const visit = (node, path) => {
+    if (!node || typeof node.type !== "string" || other) return;
+    // A function that binds the name itself sees its own.
+    if (FUNCTION_TYPES.has(node.type) && node.params.some((param) => { const names = new Set(); patternNames(param, names); return names.has(bound.name); })) return;
+    if (node.type === "Identifier" && node.name === bound.name && node !== bound.declarator.id) {
+      const parent = path.at(-1);
+      const holder = path.at(-2);
+      const isKey = (parent?.type === "ObjectProperty" && parent.key === node && !parent.computed) || ((parent?.type === "MemberExpression" || parent?.type === "OptionalMemberExpression") && parent.property === node && !parent.computed);
+      if (isKey) return;
+      if (parent?.type === "JSXExpressionContainer" && (holder?.type === "JSXAttribute" || holder?.type === "JSXElement" || holder?.type === "JSXFragment")) uses.push([...path, node]);
+      else other = true;
+      return;
+    }
+    for (const [key, value] of Object.entries(node)) {
+      if (key === "loc" || key === "start" || key === "end" || key === "extra" || key.endsWith("Comments")) continue;
+      if (Array.isArray(value)) value.forEach((child) => visit(child, [...path, node]));
+      else if (value && typeof value.type === "string") visit(value, [...path, node]);
+    }
+  };
+  const scopePath = pathTo(ctx.ast.program, bound.scope) ?? [ctx.ast.program];
+  visit(bound.scope, scopePath.slice(0, -1));
+  return other ? null : uses;
+}
+
+/** Removing the whole JSX of a `const name = <JSX>`: the const goes, with every `prop={name}` and `{name}` that shows it. */
+function constRemoval(ctx, nodePath, i, what) {
+  const declarator = nodePath[i - 1];
+  if (declarator?.type !== "VariableDeclarator" || declarator.id.type !== "Identifier") return null;
+  const bound = constJsx(nodePath.slice(0, i - 1), declarator.id.name);
+  if (!bound || bound.declarator !== declarator) return null;
+  if (bound.exported) refuse(`${what} is the value of \`${bound.name}\`, which this file exports; remove it in the code.`);
+  if (bound.declaration.declarations.length > 1) refuse(`${what} is the value of \`${bound.name}\`, declared with others; remove it in the code.`);
+  const uses = constUses(ctx, bound);
+  if (!uses) refuse(`${what} is the value of \`${bound.name}\`, which the code also reads elsewhere; remove it in the code.`);
+  // Shown by no slot: not slot content (the usual refusal).
+  if (!uses.length) return null;
+  const { text } = ctx;
+  // Its comment lines right above it go too (each on its own line, the last one right above the const).
+  let start = bound.statement.start;
+  for (const comment of [...(bound.statement.leadingComments ?? [])].reverse()) {
+    if (!/^[ \t]*\r?\n[ \t]*$/.test(text.slice(comment.end, start)) || !/^[ \t]*$/.test(text.slice(lineStartOf(text, comment.start), comment.start))) break;
+    start = comment.start;
+  }
+  const edits = [removeRange(text, start, bound.statement.end)];
+  for (const path of uses) {
+    const container = path.at(-2);
+    const holder = path.at(-3);
+    const at = path.length - 2;
+    edits.push(...(holder.type === "JSXAttribute" ? removeAttribute(ctx, path.slice(0, -1), at - 1, what) : removeChild(ctx, path.slice(0, -1), at, what)).edits);
+  }
+  return { edits, anchor: null };
 }
 
 /** `const { toast } = useToast()` (other names may join it) or `const toast = useToast().toast`: Zen's toast. */
@@ -779,9 +868,13 @@ function isLiteralValue(node) {
   return false;
 }
 
+/** A ref's element type: one DOM element interface (`HTMLButtonElement`, `HTMLDivElement`…). */
+const REF_TYPE = /^HTML[A-Za-z]*Element$/;
+
 /**
- * op.state checked: [{ name, initial, type? }] (8 at most): `name` lowerCamel, `initial` a literal, `type` built-in
- * type words only. The code reads `name` and `setName`; nothing else of the file.
+ * op.state checked: [{ name, initial, type?, ref? }] (8 at most): `name` lowerCamel, `initial` a literal, `type` built-in
+ * type words only. The code reads `name` and `setName`; nothing else of the file. `ref: true` (2026-10-08: Popover's
+ * anchor) is `const name = useRef<type>(null)`: `initial` null, `type` one HTML…Element, no setter.
  */
 function stateEntries(state) {
   if (state === undefined || state === null) return [];
@@ -791,6 +884,11 @@ function stateEntries(state) {
     if (!entry || typeof entry !== "object" || typeof entry.name !== "string" || !STATE_NAME.test(entry.name)) refuse('Each `state` entry needs a lowerCamel `name` ("open", "selectedTab")');
     if (seen.has(entry.name)) refuse(`The state "${entry.name}" is listed twice`);
     seen.add(entry.name);
+    if (entry.ref !== undefined && entry.ref !== true) refuse(`The state "${entry.name}": \`ref\` is true or left out`);
+    if (entry.ref) {
+      if ((entry.initial ?? "null") !== "null" || typeof entry.type !== "string" || !REF_TYPE.test(entry.type)) refuse(`The ref "${entry.name}" needs \`type\`: an element interface (HTMLButtonElement…), and starts null`);
+      return { name: entry.name, initial: "null", type: entry.type, ref: true };
+    }
     const initial = typeof entry.initial === "string" ? entry.initial.trim() : "";
     let node = null;
     try {
@@ -823,20 +921,27 @@ function spelledNames(ast) {
  */
 function stateFor(ctx, src, state) {
   const entries = stateEntries(state);
-  if (!entries.length) return { src, statements: [], names: new Set() };
+  if (!entries.length) return { src, statements: [], names: new Set(), react: [] };
   const taken = spelledNames(ctx.ast);
   const renames = new Map();
   const names = new Set();
   const statements = [];
+  const free = (name) => !taken.has(name) && !names.has(name);
   for (const entry of entries) {
     let name = entry.name;
-    for (let n = 2; taken.has(name) || taken.has(setterOf(name)) || names.has(name) || names.has(setterOf(name)); n += 1) name = `${entry.name}${n}`;
-    if (name !== entry.name) { renames.set(entry.name, name); renames.set(setterOf(entry.name), setterOf(name)); }
+    for (let n = 2; !free(name) || (!entry.ref && !free(setterOf(name))); n += 1) name = `${entry.name}${n}`;
+    if (name !== entry.name) { renames.set(entry.name, name); if (!entry.ref) renames.set(setterOf(entry.name), setterOf(name)); }
     names.add(name);
+    if (entry.ref) {
+      statements.push(`const ${name} = useRef<${entry.type}>(null)${ctx.semicolons ? ";" : ""}`);
+      continue;
+    }
     names.add(setterOf(name));
     statements.push(`const [${name}, ${setterOf(name)}] = useState${entry.type ? `<${entry.type}>` : ""}(${entry.initial})${ctx.semicolons ? ";" : ""}`);
   }
-  if (!renames.size) return { src, statements, names };
+  // The React hooks the statements call (the file imports them).
+  const react = [...(entries.some((entry) => !entry.ref) ? ["useState"] : []), ...(entries.some((entry) => entry.ref) ? ["useRef"] : [])];
+  if (!renames.size) return { src, statements, names, react };
   let node;
   try {
     node = parseExpression(`<>${src}</>`, { plugins: PLUGINS });
@@ -856,7 +961,7 @@ function stateFor(ctx, src, state) {
   });
   let out = src;
   for (const hit of hits.sort((a, b) => b.start - a.start)) out = `${out.slice(0, hit.start - 2)}${renames.get(hit.name)}${out.slice(hit.end - 2)}`;
-  return { src: out, statements, names };
+  return { src: out, statements, names, react };
 }
 
 /** The module example pages import platformMedia from (src/platform/PlatformMedia.tsx). */
@@ -898,7 +1003,7 @@ function mediaImportEdits(ctx) {
  * The hook edits an insert needs: `const { toast } = useToast();` (when the code calls toast) and the state's useState
  * lines, in one statement block at the top of the enclosing component, plus the useState import.
  */
-function hookEdits(ctx, nodePath, { toast, statements }) {
+function hookEdits(ctx, nodePath, { toast, statements, react = statements.length ? ["useState"] : [] }) {
   const toastLine = toast ? toastStatement(ctx, nodePath) : null;
   const lines = [...(toastLine ? [toastLine] : []), ...statements];
   if (!lines.length) return { edits: [], useToast: false };
@@ -906,7 +1011,7 @@ function hookEdits(ctx, nodePath, { toast, statements }) {
     ? { who: "The item", does: toastLine ? "calls toast and keeps state" : "keeps state", need: [toastLine ? "`const { toast } = useToast();`" : null, "its `useState` lines"].filter(Boolean).join(" and ") }
     : { who: "The action", does: "calls toast", need: "`const { toast } = useToast();`" };
   const edits = [componentHook(ctx, nodePath, lines, words)];
-  if (statements.length) edits.push(...moduleImportEdits(ctx, "react", ["useState"]));
+  if (react.length) edits.push(...moduleImportEdits(ctx, "react", react));
   return { edits, useToast: Boolean(toastLine) };
 }
 
@@ -1186,6 +1291,35 @@ function joinInProp(ctx, attr, old, index, code, wrap) {
   return placed({ ...range, text: joined }, head.length + (first ? 0 : oldText.length + eol.length + inner.length));
 }
 
+/** Code a prop's slot can take an insert beside: a condition, a helper's call, a name, a member (`option.leading`). */
+const CODE_JOINS = new Set(["ConditionalExpression", "LogicalExpression", "CallExpression", "OptionalCallExpression", "Identifier", "MemberExpression", "OptionalMemberExpression"]);
+/** Props named for an icon take an icon name as a string: a fragment around it would print the name. */
+const ICON_PROP = /^icon$|Icon$/;
+
+/**
+ * A prop whose value is code that shows JSX (`trailing={sel ? <A /> : undefined}`, `leading={avatar(p)}`): the new
+ * element joins it in a fragment and the code stays as its `{…}` child (user, 2026-10-09: add to any slot, as Figma).
+ */
+function joinCodeInProp(ctx, attr, raw, index, code, wrap) {
+  const { text, eol, unit } = ctx;
+  const first = index === 0;
+  const open = wrap ? `<${wrap.tag}${wrap.attrs.map((item) => ` ${item}`).join("")}>` : "<>";
+  const close = wrap ? `</${wrap.tag}>` : "</>";
+  const src = text.slice(raw.start, raw.end);
+  if (!/[\r\n]/.test(src) && !/\n/.test(code.part.src)) {
+    const old = `{${src}}`;
+    const joined = first ? `${open}${code.part.src}${old}${close}` : `${open}${old}${code.part.src}${close}`;
+    return placed({ start: raw.start, end: raw.end, text: joined }, open.length + (first ? 0 : old.length));
+  }
+  const base = indentAt(text, attr.start);
+  const inner = base + unit;
+  const oldText = `{${reindent(piece(text, raw), inner, eol)}}`;
+  const newText = reindent(code.part, inner, eol, unit);
+  const head = `${open}${eol}${inner}`;
+  const joined = first ? `${head}${newText}${eol}${inner}${oldText}${eol}${base}${close}` : `${head}${oldText}${eol}${inner}${newText}${eol}${base}${close}`;
+  return placed({ start: raw.start, end: raw.end, text: joined }, head.length + (first ? 0 : oldText.length + eol.length + inner.length));
+}
+
 const SLOT_PROP = /^[A-Za-z_$][\w$]*$/;
 
 /** The op's slot: null for children (`prop` omitted or "children"), else the prop's name (refused when it is no slot). */
@@ -1195,6 +1329,39 @@ function slotProp(op) {
   return prop;
 }
 
+/** Whether nodePath's end sits in a .map callback inside its component (a hook there would serve every row at once). */
+function inLoopRow(nodePath) {
+  for (let i = nodePath.length - 1; i >= 0; i -= 1) {
+    if (!FUNCTION_TYPES.has(nodePath[i].type)) continue;
+    if (componentName(nodePath, i)) return false;
+    if (isMapCall(nodePath[i - 1]) && nodePath[i - 1].arguments[0] === nodePath[i]) return true;
+  }
+  return false;
+}
+
+/**
+ * A stateful item inserted into a .map row (Studio "Repeats N×"): its own small component at module level (above the
+ * statement that holds the row, its doc comment included), so each row keeps its own state instead of every row's Dialog opening together; the
+ * row gets `<NameRow />`. { code (what the slot gets), edits (the component), needed (its Zen components) }.
+ */
+function rowComponentPlan(ctx, nodePath, code, state) {
+  const { text, eol, unit, ast } = ctx;
+  const semi = ctx.semicolons ? ";" : "";
+  const taken = spelledNames(ast);
+  const base = `${code.name.replace(/[^\w$]/g, "")}Row`;
+  let name = base;
+  for (let n = 2; taken.has(name) || state.names.has(name); n += 1) name = `${base}${n}`;
+  const holder = ast.program.body.find((statement) => statement.start <= nodePath.at(-1).start && statement.end >= nodePath.at(-1).end);
+  if (!holder) refuse("The row's component could not be placed (no top-level statement holds this slot)");
+  const lines = [...(code.toast ? [`const { toast } = useToast()${semi}`] : []), ...state.statements];
+  const body = [...lines.map((line) => `${unit}${line}`), `${unit}return (`, `${unit}${unit}${reindent(code.part, unit + unit, eol, unit)}`, `${unit})${semi}`].join(eol);
+  const fn = `/** Zen Studio: one row's <${code.name}> with its own state (a hook in the .map row would share it). */${eol}function ${name}() {${eol}${body}${eol}}${eol}${eol}`;
+  const at = lineStartOf(text, holder.leadingComments?.[0]?.start ?? holder.start);
+  const needed = new Set(code.needed);
+  if (code.toast) needed.add("useToast");
+  return { code: prepareCode(`<${name} />`, ctx.folders, new Set([name])), edits: [{ start: at, end: at, text: fn }, ...moduleImportEdits(ctx, "react", state.react)], needed, media: code.media };
+}
+
 /** insertChild: the edits that put `code` into the parent's children or `prop` slot (+ imports and the toast hook). */
 function insertPlan(ctx, nodePath, op) {
   const { text, element, eol } = ctx;
@@ -1202,9 +1369,12 @@ function insertPlan(ctx, nodePath, op) {
   const state = stateFor(ctx, typeof op.code === "string" ? op.code : "", op.state);
   // A builder page (Studio builder GĐ2) has no hooks: its actions are proto.*(…) handlers, which the page imports.
   const builderPage = LOCAL_PAGE.test(ctx.file ?? "");
-  const code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
+  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names);
   if (builderPage && (code.toast || state.statements?.length)) refuse("A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…), and a control keeps its own state");
   if (CHROME_NAMES.includes(code.name)) refuse(`<${code.name}> is docs chrome; it cannot be inserted.`);
+  // State in a .map row: a row component holds it (2026-10-08), so the rows do not share one.
+  const row = state.statements.length && inLoopRow(nodePath) ? rowComponentPlan(ctx, nodePath, code, state) : null;
+  if (row) code = row.code;
   if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast" && item !== "media"))) refuse('`requires` lists what the code needs: "toast" or "media"');
   if (op.index !== undefined && op.index !== null && !(Number.isInteger(op.index) && op.index >= 0)) refuse("`index` must be a position in the slot (0 or more)");
   const prop = slotProp(op);
@@ -1270,16 +1440,33 @@ function insertPlan(ctx, nodePath, op) {
         const at = atIndex([value]);
         usedWrap = Boolean(wrap);
         plan = joinInProp(ctx, attr, value, at, code, wrap);
+      } else if (value.type === "Identifier" && constJsx(nodePath, value.name)) {
+        // `prop={name}` with `const name = <JSX>` in the file: the content is that JSX, edited where it is written, so
+        // every place that shows it changes (user, 2026-10-09: HR's footer={appsButton}).
+        const bound = constJsx(nodePath, value.name);
+        if (bound.exported) refuse(`Its content is \`${value.name}\`, which this file exports; edit it in the code.`);
+        if (bound.module && (code.toast || state.statements.length)) refuse(`Its content is \`${value.name}\`, written outside any component, so it cannot hold an action or state; add it in the code.`);
+        if (bound.init.type === "JSXFragment") plan = intoContainer(bound.init);
+        else {
+          const at = atIndex([bound.init]);
+          usedWrap = Boolean(wrap);
+          plan = joinInProp(ctx, bound.statement, bound.init, at, code, wrap);
+        }
+      } else if (CODE_JOINS.has(value.type) && !ICON_PROP.test(prop)) {
+        // Code that shows something (a condition, a helper's call, a prop passed on): the new element goes beside it.
+        const at = atIndex([value]);
+        usedWrap = Boolean(wrap);
+        plan = joinCodeInProp(ctx, attr, attr.value.expression, at, code, wrap);
       } else refuse(where(value));
     }
   }
-  const needed = new Set(code.needed);
+  const needed = new Set([...code.needed, ...(row?.needed ?? [])]);
   if (usedWrap) needed.add(wrap.tag);
-  const edits = [...plan.edits];
-  const hooks = hookEdits(ctx, nodePath, { toast: code.toast, statements: state.statements });
+  const edits = [...plan.edits, ...(row?.edits ?? [])];
+  const hooks = row ? { edits: [], useToast: false } : hookEdits(ctx, nodePath, { toast: code.toast, statements: state.statements, react: state.react });
   edits.push(...hooks.edits);
   if (hooks.useToast) needed.add("useToast");
-  if (code.media) edits.push(...mediaImportEdits(ctx));
+  if (code.media || row?.media) edits.push(...mediaImportEdits(ctx));
   for (const name of needed) if (!ctx.folders.has(name)) refuse(`<${name}> is not a Zen component (no src/components folder exports it)`);
   edits.push(...importChanges(ctx.ast, text, eol, ctx.file, [...needed], [], ctx.folders));
   // A Screen or an Overlay added to the Board (GĐ2 M3), or proto.*(…) handlers: the builder runtime import gains them.
@@ -1324,7 +1511,8 @@ function rootReason(nodePath, i, what, action = "remove") {
     const fn = nodePath[fnAt];
     const holder = nodePath[fnAt - 1];
     if (isMapCall(holder) && holder.arguments[0] === fn) {
-      return action === "remove" ? `${what} is the row of a .map list; remove the row in its data (here it would remove every row).` : `${what} is the row of a .map list; add the row to its data.`;
+      // The Studio sends `row` for one rendered row, and the plugin edits the list's data instead (data-source dataRowEdit).
+      return action === "remove" ? `${what} is the row of a .map list; select one row on the canvas to remove it from its data (here it would remove every row).` : `${what} is the row of a .map list; select one row on the canvas to copy it in its data.`;
     }
     const name = functionLabel(fn, holder);
     return action === "remove" ? `${what} is the root of ${name}; there would be nothing left to render.` : `${what} is the root of ${name}; wrap it in a layout first, then duplicate it inside.`;
@@ -1371,6 +1559,12 @@ function removal(ctx, nodePath, at, what) {
     }
     case "ArrayExpression":
       return removeArrayItem(ctx, parent, value);
+    case "VariableDeclarator": {
+      // The whole JSX of a same-file `const name = <JSX>` a slot shows: it goes with every place that shows it.
+      const gone = constRemoval(ctx, nodePath, i, what);
+      if (gone) return gone;
+      break;
+    }
     default:
   }
   refuse(rootReason(nodePath, i, what));
@@ -1459,10 +1653,11 @@ function duplicatePlan(ctx, nodePath) {
       plan = placed({ start: unitNode.end, end: unitNode.end, text: src }, 0);
     }
   } else if (parent.type === "JSXAttribute" || (parent.type === "JSXExpressionContainer" && nodePath[i - 2]?.type === "JSXAttribute")
-    || (parent.type === "ConditionalExpression" && parent.test !== nodePath[i]) || (parent.type === "LogicalExpression" && parent.operator === "&&" && parent.right === nodePath[i])) {
-    // One element in a prop or a condition's branch: both copies in a fragment.
+    || (parent.type === "ConditionalExpression" && parent.test !== nodePath[i]) || (parent.type === "LogicalExpression" && parent.operator === "&&" && parent.right === nodePath[i])
+    || (parent.type === "VariableDeclarator" && parent.id.type === "Identifier" && constJsx(nodePath.slice(0, i - 1), parent.id.name)?.declarator === parent && !constJsx(nodePath.slice(0, i - 1), parent.id.name).exported)) {
+    // One element in a prop, a condition's branch or a slot's `const name = <JSX>`: both copies in a fragment.
     kind = "fragment";
-    const holder = parent.type === "JSXAttribute" ? parent : nodePath.slice(0, i).findLast((node) => node.type === "JSXAttribute") ?? element;
+    const holder = parent.type === "JSXAttribute" ? parent : parent.type === "VariableDeclarator" ? nodePath[i - 2] : nodePath.slice(0, i).findLast((node) => node.type === "JSXAttribute") ?? element;
     const part = piece(text, element);
     if (!/[\r\n]/.test(src)) plan = placed({ start: element.start, end: element.end, text: `<>${src}${src}</>` }, 2 + src.length);
     else {
@@ -1483,16 +1678,79 @@ function duplicatePlan(ctx, nodePath) {
 
 /* ── moveElement ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 
-function movePlan(ctx, nodePath, to) {
+/**
+ * The child of a JSX element or fragment that the element at nodePath[at] stands for: itself, `{<X />}`, or the `{…}`
+ * whose code shows it: a condition's branch (`{open && <X />}`, `{a ? <X /> : <Y />}`) or a `.map` row
+ * (`{rows.map((row) => <X />)}`). Moving that child moves the element with its code, as Figma moves a layer with what
+ * it holds (user, 2026-10-09). The index in nodePath of that child, or -1 when the element is not among children.
+ */
+function childUnitAt(nodePath, at) {
+  for (let i = at; i > 0; i -= 1) {
+    const node = nodePath[i];
+    const parent = nodePath[i - 1];
+    if (parent.type === "JSXElement" || parent.type === "JSXFragment") return i;
+    if (TS_WRAPPERS.has(parent.type) || parent.type === "ReturnStatement") continue;
+    if (parent.type === "JSXExpressionContainer") {
+      const holder = nodePath[i - 2];
+      return holder?.type === "JSXElement" || holder?.type === "JSXFragment" ? i - 1 : -1;
+    }
+    if (parent.type === "LogicalExpression" && parent.right === node) continue;
+    if (parent.type === "ConditionalExpression" && parent.test !== node) continue;
+    // A .map callback: its body, a block of it (only through its return statements), the call it is given to.
+    if (parent.type === "BlockStatement" && FUNCTION_TYPES.has(nodePath[i - 2]?.type)) continue;
+    if (FUNCTION_TYPES.has(parent.type) && parent.body === node && isMapCall(nodePath[i - 2]) && nodePath[i - 2].arguments[0] === parent) continue;
+    if (isMapCall(parent) && parent.arguments[0] === node) continue;
+    if (isMapCall(node) && (parent.type === "MemberExpression" || parent.type === "OptionalMemberExpression")) return -1;
+    return -1;
+  }
+  return -1;
+}
+
+/**
+ * A const's whole JSX that exactly one `{name}` child shows (`{summary}` with `const summary = <Card …/>`): the path to
+ * that `{name}` and its index there, so Move up / down and a drag move the `{name}` among its siblings (the const stays
+ * where it is written). Null for anything else.
+ */
+function constChildUse(ctx, nodePath, holderLoc) {
+  let i = nodePath.length - 1;
+  while (i > 0 && TS_WRAPPERS.has(nodePath[i - 1].type)) i -= 1;
+  const declarator = nodePath[i - 1];
+  if (declarator?.type !== "VariableDeclarator" || declarator.id.type !== "Identifier") return null;
+  const bound = constJsx(nodePath.slice(0, i - 1), declarator.id.name);
+  if (!bound || bound.declarator !== declarator || bound.exported) return null;
+  const uses = constUses(ctx, bound);
+  if (!uses?.length) return null;
+  const childUses = uses.filter((use) => use.at(-3)?.type === "JSXElement" || use.at(-3)?.type === "JSXFragment");
+  // Shown in several places (`{summary}` in a phone and a desktop branch): the one inside the element at `holderLoc`.
+  const atHolder = (use) => {
+    const holder = use.at(-3);
+    const start = holder.type === "JSXElement" ? holder.openingElement.loc.start : null;
+    return Boolean(start) && `${start.line}:${start.column}` === holderLoc;
+  };
+  const use = typeof holderLoc === "string" ? childUses.find(atHolder) : uses.length === 1 ? childUses[0] : null;
+  if (!use) return null;
+  const path = use.slice(0, -1);
+  return { path, at: path.length - 1 };
+}
+
+function movePlan(ctx, nodePath, to, holderLoc) {
   const { text, element, eol } = ctx;
   const name = jsxName(element.openingElement.name);
   const what = `<${name}>`;
   if (to !== "prev" && to !== "next") refuse('moveElement needs `to`: "prev" or "next"');
-  let i = nodePath.length - 1;
-  if (nodePath[i - 1]?.type === "JSXExpressionContainer") i -= 1;
-  const node = nodePath[i];
-  const parent = nodePath[i - 1];
-  if (parent?.type !== "JSXElement" && parent?.type !== "JSXFragment") refuse(`${what} is not one of an element's children (it sits in ${parent?.type === "JSXAttribute" ? "a prop" : WHERE[parent?.type] ?? "code"}); only children move.`);
+  let i = childUnitAt(nodePath, nodePath.length - 1);
+  // A const shown by one `{name}` child: that `{name}` moves.
+  const shown = i < 0 ? constChildUse(ctx, nodePath, holderLoc) : null;
+  if (shown) i = shown.at;
+  const path = shown ? shown.path : nodePath;
+  if (i < 0) {
+    let at = nodePath.length - 1;
+    if (nodePath[at - 1]?.type === "JSXExpressionContainer") at -= 1;
+    const holder = nodePath[at - 1];
+    refuse(`${what} is not one of an element's children (it sits in ${holder?.type === "JSXAttribute" || (holder?.type === "JSXExpressionContainer" && nodePath[at - 2]?.type === "JSXAttribute") ? "a prop" : WHERE[holder?.type] ?? "code"}); only children move.`);
+  }
+  const node = path[i];
+  const parent = path[i - 1];
   const siblings = parent.children.filter((child) => child.type !== "JSXText" && !isComment(child));
   const at = siblings.indexOf(node);
   const other = siblings[to === "prev" ? at - 1 : at + 1];
@@ -1516,9 +1774,18 @@ function movePlan(ctx, nodePath, to) {
   const movedText = node === a ? bText : aText;
   const ownText = reindent(piece(text, element), (node === a ? ub : ua).part.base, eol);
   const focusEdit = node === a ? second : first;
+  // The element inside its moved unit (after a marker, a `{`, a condition or a `.map(` in front of it): the first line
+  // of its tag, at the same occurrence as before; reindenting changes what is in front of a line, never the line itself.
+  const lineEnd = text.indexOf("\n", element.start);
+  const head = text.slice(element.start, lineEnd < 0 || lineEnd > element.end ? element.end : lineEnd);
+  const before = text.slice((node === a ? ua : ub).start, element.start);
+  let found = -1;
+  for (let seen = before.split(head).length - 1; seen >= 0; seen -= 1) found = movedText.indexOf(head, found + 1);
+  // A const's `{name}` moved: the element itself stays where the const writes it; an empty edit there gives its loc.
+  const stay = shown ? { start: element.start, end: element.start, text: "" } : null;
   return {
-    edits: [first, second],
-    focus: { edit: focusEdit, within: movedText.length - ownText.length - (node.end - element.end), name },
+    edits: stay ? [first, second, stay] : [first, second],
+    focus: stay ? { edit: stay, within: 0, name } : { edit: focusEdit, within: found >= 0 ? found : movedText.length - ownText.length - (node.end - element.end), name },
     answer: "moved",
     snippet: (literal) => moveSnippet(ctx, literal, a, b, what),
   };
@@ -1737,7 +2004,10 @@ function likeness(a, x, b, y) {
  * siblings that open with the same line apart (a move, a remove or an insert next to them pairs the wrong ones), so:
  * 1. identical elements (normalised source; biggest first, with all they hold) pair up: the line diff's pairing first,
  *    then the nearest to where the diff puts them, skipping a saved element the diff gives to a changed element of the
- *    same name (an edited original keeps it; its untouched duplicate is the new one);
+ *    same name (an edited original keeps it; its untouched duplicate is the new one). A duplicate lands right after its
+ *    original, so a changed element right before an identical one in the same slot, with the same tag (its JSX-valued
+ *    props left out) that the draft has more of than the saved file, is that edited original (a Clear changes its own
+ *    line, so the diff cannot say it): it takes the saved element, its copy stays new;
  * 2. a changed element pairs with the saved element its paired elements sit in (same depth below, Dice ≥ 0.5);
  * 3. under paired parents (and per top-level declaration for roots), the rest of each slot pair by likeness (ties: the
  *    diff's pairing, then the nearest): all of them when both sides have as many, else when alike (≥ 0.5) or on lines
@@ -1803,6 +2073,39 @@ function matchElements(now, then) {
     const ys = b.inside(y);
     if (xs.length === ys.length) xs.forEach((item, i) => { if (free(item) && open(ys[i])) link(item, ys[i]); });
   };
+  // Duplicate, then edit the original (Clear contents, Clear a prop slot): the tag without its JSX-valued props.
+  const holdsJsx = (attr) => {
+    let found = false;
+    walk(attr, (node) => {
+      if (node.type === "JSXElement" || node.type === "JSXFragment") found = true;
+      return !found;
+    });
+    return found;
+  };
+  const tagKey = (tree, text, node) => `${named(tree, node)}\n${node.openingElement.attributes.filter((attr) => !holdsJsx(attr)).map((attr) => normalised(text.slice(attr.start, attr.end))).join("\n")}`;
+  const tagCounts = (tree, text) => {
+    const counts = new Map();
+    for (const node of tree.nodes) counts.set(tagKey(tree, text, node), (counts.get(tagKey(tree, text, node)) ?? 0) + 1);
+    return counts;
+  };
+  let counts = null;
+  const editedOriginal = (x) => {
+    const item = a.info.get(x);
+    if (!item.parent) return null;
+    const siblings = a.info.get(item.parent).kids.filter((kid) => a.info.get(kid).slot === item.slot);
+    const previous = siblings[siblings.indexOf(x) - 1];
+    if (!previous || !free(previous) || identical.has(previous) || named(a, previous) !== item.name) return null;
+    const key = tagKey(a, now.text, x);
+    if (tagKey(a, now.text, previous) !== key) return null;
+    counts ??= { now: tagCounts(a, now.text), then: tagCounts(b, then.text) };
+    return (counts.now.get(key) ?? 0) > (counts.then.get(key) ?? 0) ? previous : null;
+  };
+  /** Pairs `x` with `y`, or its edited original with `y` (`x` is then its untouched copy, new since the save). */
+  const pairIdentical = (x, y) => {
+    const original = editedOriginal(x);
+    if (original) link(original, y);
+    else linkAll(x, y);
+  };
 
   // 1. Identical elements.
   const groups = new Map();
@@ -1818,7 +2121,7 @@ function matchElements(now, then) {
   for (const [, group] of ordered) {
     for (const x of group.now) {
       const y = anchor.get(x);
-      if (free(x) && y && open(y) && group.then.includes(y)) linkAll(x, y);
+      if (free(x) && y && open(y) && group.then.includes(y)) pairIdentical(x, y);
     }
     const scored = [];
     for (const x of group.now.filter(free)) for (const y of group.then.filter(open)) scored.push({ x, y, far: distance(x, y) });
@@ -1827,7 +2130,7 @@ function matchElements(now, then) {
       if (!free(x) || !open(y)) continue;
       const rival = anchoredTo.get(y);
       if (rival && rival !== x && free(rival) && !identical.has(rival)) continue;
-      linkAll(x, y);
+      pairIdentical(x, y);
     }
   }
 
@@ -2515,9 +2818,9 @@ const asFolders = (modules) => {
  * `snippet` when the file has example snippets; or { error, code: "stale" | "not-found" | "invalid" | "forbidden" }.
  */
 /** What arrange.mjs (op moveTo: drag to reorder, reparent or copy) reuses from here. */
-const ARRANGE_HELPERS = { refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
+const ARRANGE_HELPERS = { childUnitAt, constChildUse, refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
 /** What items.mjs (data-slot items: insertItem, removeItem, duplicateItem, moveItem) borrows from this module. */
-const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, FUNCTION_TYPES, JS_GLOBALS };
+const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, builderImportEdits, LOCAL_PAGE, FUNCTION_TYPES, JS_GLOBALS };
 
 export function applySlotOp(code, loc, name, op, options = {}) {
   const { snippets = true, file, componentModules, requiredChildren, requiredProps, hash, base, shared = false } = options;
@@ -2573,7 +2876,7 @@ export function applySlotOp(code, loc, name, op, options = {}) {
     else if (op.op === "replaceElement") plan = replacePlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (op.op === "many") plan = manyPlan(ctx, nodePath, op, ARRANGE_HELPERS);
     else if (ITEM_OPS.has(op.op)) plan = itemPlan(ctx, nodePath, op, ITEM_HELPERS);
-    else plan = movePlan(ctx, nodePath, op.to);
+    else plan = movePlan(ctx, nodePath, op.to, typeof op.parent === "string" ? op.parent : undefined);
     if (plan.answer === "removed" || plan.answer === "cleared" || plan.answer === "reset") {
       // A useToast() hook the change leaves unused goes, and component imports it leaves unused (a reset keeps the
       // saved file's); the ones restored content needs come back (reset: as the saved file writes them).
@@ -2607,7 +2910,15 @@ export function applySlotOp(code, loc, name, op, options = {}) {
       const found = findElement(reparsed, at);
       if (!found || jsxName(found.openingElement.name) !== plan.focus.name) return null;
     }
-    return { code: bom + out, changed, [plan.answer]: { loc: locString(at) } };
+    // Several layers moved together (many move): each one's loc before → its loc after.
+    const locs = {};
+    for (const focus of plan.focuses ?? []) {
+      const here = locAt(out, outputOffset(edits, focus.edit, focus.within));
+      const found = findElement(reparsed, here);
+      if (!found || jsxName(found.openingElement.name) !== focus.name) return null;
+      locs[focus.from] = locString(here);
+    }
+    return { code: bom + out, changed, [plan.answer]: { loc: locString(at), ...(plan.focuses ? { locs } : {}) } };
   };
   const result = answer(plan.edits, next, after, []);
   if (!result) return fail("invalid", "The new element could not be located after the edit (a bug); nothing was written.");
@@ -2644,13 +2955,21 @@ export function applySlotOp(code, loc, name, op, options = {}) {
 /** The outermost JSX elements under `root` (fragments flattened), as { name, loc }, in source order. */
 function outerElements(root) {
   const out = [];
+  // The elements a `.map` callback returns (its rows' roots: `row`, removed and copied in the list's data).
+  const rows = new Set();
   walk(root, (node) => {
+    if (isMapCall(node)) {
+      const fn = node.arguments[0];
+      const body = fn?.type === "ArrowFunctionExpression" || fn?.type === "FunctionExpression" ? unwrapTs(fn.body) : null;
+      if (body?.type === "JSXElement") rows.add(body);
+      if (body?.type === "BlockStatement") for (const statement of body.body) if (statement.type === "ReturnStatement" && unwrapTs(statement.argument)?.type === "JSXElement") rows.add(unwrapTs(statement.argument));
+    }
     if (node.type !== "JSXElement") return true;
     const start = node.openingElement.loc.start;
-    out.push({ name: jsxName(node.openingElement.name), loc: `${start.line}:${start.column}`, at: node.start });
+    out.push({ name: jsxName(node.openingElement.name), loc: `${start.line}:${start.column}`, at: node.start, ...(rows.has(node) ? { row: true } : {}) });
     return false;
   });
-  return out.sort((a, b) => a.at - b.at).map(({ name, loc }) => ({ name, loc }));
+  return out.sort((a, b) => a.at - b.at).map(({ at, ...ref }) => ref);
 }
 
 /** How an expression renders its JSX: "map" (a .map list), "and" (cond && …), "ternary" (? :), "other". */
@@ -2682,18 +3001,26 @@ export function describeSlots(code, file, loc, { base } = {}) {
   const element = findElement(ast, target);
   if (!element) return null;
   const opening = element.openingElement;
+  let path = null;
+  const hostPath = () => (path ??= pathTo(ast.program, element) ?? [ast.program]);
   const attributes = opening.attributes.map((attr) => {
     if (attr.type !== "JSXAttribute" || !attr.value) return null;
     const value = attr.value.type === "JSXExpressionContainer" ? attr.value.expression : attr.value;
     if (value.type === "JSXEmptyExpression") return null;
+    const bare = unwrapTs(value);
+    // `prop={name}` with `const name = <JSX>`: its elements, edited where the const writes them (`const`: the name).
+    const bound = bare.type === "Identifier" ? constJsx(hostPath(), bare.name) : null;
+    if (bound && !bound.exported) return { elements: outerElements(bound.init), form: bound.init.type === "JSXElement" ? "element" : "fragment", const: bound.name };
     const elements = outerElements(value);
     if (!elements.length) return null;
-    const bare = unwrapTs(value);
     return { elements, form: bare.type === "JSXElement" ? "element" : bare.type === "JSXFragment" ? "fragment" : formOf(bare) };
   });
   const children = slotEntries(element, text).map(({ child, node }) => {
     if (child.kind !== "expression") return null;
     const expression = node.type === "JSXExpressionContainer" || node.type === "JSXSpreadChild" ? node.expression : node;
+    const bare = unwrapTs(expression);
+    const bound = bare?.type === "Identifier" ? constJsx(hostPath(), bare.name) : null;
+    if (bound && !bound.exported) return { elements: outerElements(bound.init), form: "other", const: bound.name };
     return { elements: outerElements(expression), form: formOf(expression) };
   });
   const out = { file, loc: `${target.line}:${target.column}`, selfClosing: opening.selfClosing, attributes, children };
@@ -2727,11 +3054,14 @@ function savedAttributes(text, element, saved, then) {
     return attr ? (attr.value ? normalised(src.slice(attr.value.start, attr.value.end)) : "") : null;
   };
   const out = {};
+  const savedList = then.openingElement.attributes;
   for (const prop of new Set([...named(element), ...named(then)].map(attrName))) {
     if (source(text, element, prop) === source(savedText, then, prop)) continue;
-    const attr = then.openingElement.attributes.findLast((item) => attrName(item) === prop);
-    // Described against the saved file (state, origin), the way GET /element describes the current one.
-    out[prop] = attr ? describeAttrsIn(saved.ast, then, savedText, [attr])[0] : null;
+    const attr = savedList.findLast((item) => attrName(item) === prop);
+    // Described against the saved file (state, origin), the way GET /element describes the current one; `next` says
+    // what follows it there, so a playground's setProp can put it back in place (it refuses resetSlot).
+    const following = attr ? savedList[savedList.indexOf(attr) + 1] : undefined;
+    out[prop] = attr ? { ...describeAttrsIn(saved.ast, then, savedText, [attr])[0], ...(following ? { next: following.type === "JSXSpreadAttribute" ? "…" : attrName(following) } : {}) } : null;
   }
   return out;
 }

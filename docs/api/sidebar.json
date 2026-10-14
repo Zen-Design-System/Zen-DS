@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "sidebar",
-  "import": "import { Sidebar, SidebarSubMenu } from \"@zen-ds/react\";",
+  "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Sidebar",
@@ -47,7 +47,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
+          "description": "Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail\n`logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and\nhides the rest visually.",
           "deprecated": null
         },
         {
@@ -107,11 +107,19 @@
           "deprecated": null
         },
         {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Body-Content (Child-Body-Content in the workspace variant), after `sections`: `<SidebarMenuItem>` rows and\n `<SidebarMenuSection>` groups, or any content. Consecutive rows form one unlabelled section. The rows share the\n Sidebar's selection, rail and `onItemClick`; other content renders as it is, so it handles the rail itself.",
+          "deprecated": null
+        },
+        {
           "name": "footer",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Footer-Content (Child-Footer-Content), under a divider: `<SidebarMenuItem>` rows like the body's, or the app's\n own buttons of an Icon and a label span (the rail hides the label visually, keeps it as the name and the tooltip).",
           "deprecated": null
         },
         {
@@ -119,7 +127,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The slot under the header (Figma Search): usually a Search field, or a Back control over a module title.",
+          "deprecated": null
+        },
+        {
+          "name": "searchCollapsed",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the\n slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6).",
           "deprecated": null
         },
         {
@@ -136,6 +152,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ \"Item[inbox]/Badge-Counter\": { theme: \"accent\" }, \"Item[team]/Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the sections.",
           "deprecated": null
         },
         {
@@ -229,6 +253,176 @@
       ]
     },
     {
+      "name": "SidebarMenuItem",
+      "file": "src/components/Sidebar/Sidebar.tsx",
+      "description": "Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children),\n Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMenu`. It reads the Sidebar's selection\n (`selectedId`), rail and `onItemClick`, exactly like a `sections` entry with the same fields.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode | SidebarItem[]",
+          "required": false,
+          "default": null,
+          "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the row it draws, by layer (`{ \"Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets counter / icon.",
+          "deprecated": null
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Figma Label: one or two words. The collapsed rail shows it as the row's tooltip and name.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail).",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Same as `selected` (`selected` wins when both are set).",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "The current row (Figma Select=Yes, aria-current). The Sidebar's `selectedId` wins over it; a selected child opens\n its parent group.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma State=Disabled: not focusable, never a link.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "Deterministic Figma State for matrices; real hover and focus apply natively. `disabled` wins.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is\n Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text).",
+          "deprecated": null
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Dropdown: a chevron after the label, and the row toggles its group open (`aria-expanded`). Rows with\n `children` show it anyway.",
+          "deprecated": null
+        },
+        {
+          "name": "indent",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "No effect: a nested row is indented by its level (`children`)."
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows\n the Notification-Dot instead and joins the row's name (\"Approvals, 3\").",
+          "deprecated": null
+        },
+        {
+          "name": "notificationDot",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Primitives/Notification-Dot on the icon.",
+          "deprecated": null
+        },
+        {
+          "name": "trailingAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row\n itself is the button or link.",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls\n `onItemClick`. Disabled items stay buttons.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SidebarMenuSection",
+      "file": "src/components/Sidebar/Sidebar.tsx",
+      "description": "A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label +\n Item-List). The collapsed rail hides the title and opens later groups with a divider, as for `sections`.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Section title: the Menu-Item section label (Body/Small), as `SidebarSection.label`.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The section's `<SidebarMenuItem>` rows.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
       "name": "SidebarSubMenu",
       "file": "src/components/Sidebar/Sidebar.tsx",
       "description": "Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small).",
@@ -272,7 +466,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Extra content under the item list.",
+          "description": "Figma Sub-Item slot content under the item list: `<SidebarMenuItem>` rows (they share `onItemClick`) or anything else.",
           "deprecated": null
         },
         {

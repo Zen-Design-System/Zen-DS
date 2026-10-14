@@ -17,7 +17,7 @@ import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
-import { TabPanel, Tabs } from "../../../components/Tabs";
+import { TabItem, TabPanel, Tabs } from "../../../components/Tabs";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
@@ -29,8 +29,9 @@ import {
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type Task,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
-import "./tabs.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "tabs";
 
@@ -81,7 +82,7 @@ function ProjectSectionsExample() {
   };
 
   return (
-    <div className="px-tabs-page">
+    <PreviewPage margin="block">
       <Container maxWidth="full">
         <Stack gap="xl">
           <PageHeader
@@ -109,7 +110,9 @@ function ProjectSectionsExample() {
                 <MetricCard label="Budget used" value={formatMoney(lumen.spent)} icon="icon-coins-line" iconTheme="green" theme="flat" />
                 <MetricCard label="Open tasks" value={`${open}`} icon="icon-check-square-line" iconTheme="orange" theme="flat" />
               </Grid>
-              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). */}
+              {/* Flat Surfaces on the page's Canvas/Default: no border, no shadow (usage rules §16). Side content stops at
+                  xl (1440px) on a full-width page (backlog batch 6b). */}
+              <Box maxWidth={1440}>
               <Card theme="flat">
                 <DescriptionList items={[
                   { term: "Account director", description: people.hana.name },
@@ -118,6 +121,7 @@ function ProjectSectionsExample() {
                   { term: "Due", description: formatDate(lumen.due) },
                 ]} />
               </Card>
+              </Box>
             </Stack>
           </TabPanel>
 
@@ -149,7 +153,7 @@ function ProjectSectionsExample() {
                 <List aria-busy="true" aria-label="Loading activity">
                   {[0, 1, 2].map((row) => (
                     <ListItem key={row} aria-hidden="true" title="" leading={<SkeletonShape shape="round" size="md" />}>
-                      <SkeletonText lines={2} className="px-tabs-skeleton-text" />
+                      <SkeletonText lines={2} />
                     </ListItem>
                   ))}
                 </List>
@@ -163,7 +167,7 @@ function ProjectSectionsExample() {
         field={{ kind: "email", label: "Email address", placeholder: "thu@lumenbank.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
       <DemoFieldDialog open={dialog === "task"} onOpenChange={(next) => setDialog(next ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Review the transfer limits copy" }} submitLabel="Add task" confirm={() => "Task added"} onSubmit={addTask} />
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -194,14 +198,14 @@ function DraftInvoiceExample() {
   };
 
   return (
-    <Card theme="flat" className="px-tabs-invoice">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
             <Heading level={4} textStyle="Heading/Subheading">{draftInvoice.number}</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">{`${draftInvoice.client} · ${draftInvoice.project}`}</Text>
           </Stack>
-          <Badge className="px-tabs-status" theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
+          <Badge theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
         </Stack>
         <Stack gap="xs">
           {/* ←/→ skip the disabled tab; the line under the bar says why it is off. */}
@@ -244,7 +248,7 @@ function DraftInvoiceExample() {
           </Stack>
         ) : null}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -290,15 +294,16 @@ function YourWorkExample() {
   );
 
   return (
-    <Card theme="flat" className="px-tabs-work">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
-        <Tabs idPrefix={prefix} variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab} items={[
-          { id: "assigned", label: "Assigned", badge: assigned.length },
-          // The counter leaves with the last review instead of showing 0.
-          { id: "reviews", label: "Reviews", badge: reviews.length || undefined },
-          { id: "mentions", label: "Mentions", badge: mentions.length },
-        ]} />
+        {/* The tabs as TabItem children (Figma's Item-List slot); an items array works the same. */}
+        <Tabs idPrefix={prefix} variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab}>
+          <TabItem value="assigned" label="Assigned" badge={assigned.length} />
+          {/* The counter leaves with the last review instead of showing 0. */}
+          <TabItem value="reviews" label="Reviews" badge={reviews.length || undefined} />
+          <TabItem value="mentions" label="Mentions" badge={mentions.length} />
+        </Tabs>
         <TabPanel idPrefix={prefix} id="assigned" hidden={tab !== "assigned"}>{rows(assigned, "Assigned to you")}</TabPanel>
         <TabPanel idPrefix={prefix} id="reviews" hidden={tab !== "reviews"}>
           <Box ref={panelRef}>
@@ -309,7 +314,7 @@ function YourWorkExample() {
         </TabPanel>
         <TabPanel idPrefix={prefix} id="mentions" hidden={tab !== "mentions"}>{rows(mentions, "Mentions")}</TabPanel>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -359,7 +364,7 @@ function ProfileOnPhoneExample() {
   if (!personId) {
     return (
       <PlatformPhone key="root" label="People" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="People" largeTitle="People" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="People" largeTitle="People" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen margin (lg, 20px) insets them, and their fill (12px outside a row) stays 8px off every edge. */}
         <Box padding="lg">
@@ -382,7 +387,7 @@ function ProfileOnPhoneExample() {
   return (
     <PlatformPhone key={personId} label={person.name} headerOverlay screenRef={screenRef}
       header={(
-        <TopNavigation type="compact" title={person.name} scrollRef={screenRef}
+        <TopNavigation type="compact-alt" title={person.name} scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-person="${personId}"] .zen-list-item__wrapper`, () => setPersonId(null)) }}
           // Two to four tabs share the phone's width evenly; the bar stays pinned under the title.
           controlBar={<Tabs idPrefix={prefix} fullWidth aria-label={`${person.name} sections`} value={tab} onValueChange={setTab} items={[
@@ -479,7 +484,7 @@ function ClientSectionsExample() {
   const icon = (name: IconName) => <DockIcon icon={name} theme="neutral" background="subtle" size="medium" />;
 
   return (
-    <Card theme="flat" className="px-tabs-client">
+    <Stack><Card theme="flat" width="fill" maxWidth={340} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <Avatar size="medium" shape="square" theme="blue" alt="">LB</Avatar>
@@ -508,11 +513,11 @@ function ClientSectionsExample() {
         {panel("files", <List aria-label="Files">{lumenFiles.slice(0, 2).map((f) => <ListItem key={f.id} title={f.name} caption={formatBytes(f.bytes)} leading={<FileIcon format={fileIconFormatOf(f.name)} size="xl" />} />)}</List>)}
         {panel("notes", <List aria-label="Notes">{lumenNotes.map((n) => <ListItem key={n.id} title={n.title} caption={n.caption} leading={icon("icon-file-doc-line")} />)}</List>)}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Project sections",
     description: "A project page splits into Overview, Tasks, Files and Activity: Indicator tabs with icons in the PageHeader, each paired with a TabPanel. Counts sit in badges and leave at zero; Activity loads the first time it opens.",
@@ -550,11 +555,11 @@ export const examples: ExampleDef[] = [
     description: "Inside a dashboard card, Subtle tabs switch between lists of one kind. Approving the last review removes the Reviews counter instead of showing 0, and the panel says there is nothing waiting.",
     render: () => <YourWorkExample />,
     code: `<Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
-<Tabs idPrefix="work" variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab} items={[
-  { id: "assigned", label: "Assigned", badge: assigned.length },
-  { id: "reviews", label: "Reviews", badge: reviews.length || undefined },
-  { id: "mentions", label: "Mentions", badge: mentions.length },
-]} />
+<Tabs idPrefix="work" variant="subtle" aria-label="Your work" value={tab} onValueChange={setTab}>
+  <TabItem value="assigned" label="Assigned" badge={assigned.length} />
+  <TabItem value="reviews" label="Reviews" badge={reviews.length || undefined} />
+  <TabItem value="mentions" label="Mentions" badge={mentions.length} />
+</Tabs>
 <TabPanel idPrefix="work" id="reviews" hidden={tab !== "reviews"}>
   {reviews.length ? (
     <List aria-label="Reviews waiting for you">
@@ -612,7 +617,7 @@ export const examples: ExampleDef[] = [
 
 // One PlatformPhone per screen (key), each wired to the scroll.
 <PlatformPhone key={personId} headerOverlay screenRef={screenRef} header={
-  <TopNavigation type="compact" title="Chi Tran" scrollRef={screenRef}
+  <TopNavigation type="compact-alt" title="Chi Tran" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToPeople }}
     controlBar={
       <Tabs idPrefix="profile" fullWidth aria-label="Chi Tran sections" value={tab} onValueChange={setTab} items={[
@@ -627,4 +632,4 @@ export const examples: ExampleDef[] = [
   <TabPanel idPrefix="profile" id="time-off" hidden={tab !== "time-off"}>…</TabPanel>
 </PlatformPhone>`,
   },
-];
+]);

@@ -71,7 +71,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "",
+          "description": "Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included.",
           "deprecated": null
         },
         {
@@ -104,6 +104,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the badge draws, by layer (`{ Leading: { name: \"icon-check-line\" } }`).\n Written by Zen Studio; app code sets `leading`.",
           "deprecated": null
         }
       ]

@@ -14,8 +14,8 @@
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
-import { parsePage } from "./dialect.mjs";
-import { isColumnCell, objectFields, requiredFunctions, showsAsText, standInKind } from "./standins.mjs";
+import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
+import { literalProp, objectFields, requiredFunctions, standInKind } from "./standins.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -34,27 +34,33 @@ export function componentName(title) {
   return /^[A-Za-z]/.test(name) ? name : `Studio${name}`;
 }
 
-/** A TypeScript type for a JSON-like value (lists: the union of their items' shapes, fields missing in some optional). */
-function typeOf(value, indent) {
+/**
+ * A TypeScript type for a JSON-like value (lists: the union of their items' shapes, fields missing in some optional).
+ * `typed`: data paths ("people.[].theme") read into a prop that takes string literals only, typed as that prop.
+ */
+function typeOf(value, indent, typed = new Map(), path = []) {
   if (value === null) return "null";
   if (Array.isArray(value)) {
     if (!value.length) return "unknown[]";
     const objects = value.filter((item) => item && typeof item === "object" && !Array.isArray(item));
-    if (objects.length === value.length) return `Array<${objectType(objects, indent)}>`;
-    const types = [...new Set(value.map((item) => typeOf(item, indent)))];
+    if (objects.length === value.length) return `Array<${objectType(objects, indent, typed, [...path, "[]"])}>`;
+    const types = [...new Set(value.map((item) => typeOf(item, indent, typed, [...path, "[]"])))];
     return types.length === 1 ? `${types[0]}[]` : `Array<${types.join(" | ")}>`;
   }
-  if (typeof value === "object") return objectType([value], indent);
+  if (typeof value === "object") return objectType([value], indent, typed, path);
   return typeof value === "number" ? "number" : typeof value === "boolean" ? "boolean" : "string";
 }
 
-function objectType(objects, indent) {
+function objectType(objects, indent, typed = new Map(), path = []) {
   const keys = [...new Set(objects.flatMap((object) => Object.keys(object)))];
   if (!keys.length) return "Record<string, never>";
   const inner = indent + UNIT;
   const fields = keys.map((key) => {
     const present = objects.filter((object) => key in object);
-    const types = [...new Set(present.map((object) => typeOf(object[key], inner)))];
+    let types = [...new Set(present.map((object) => typeOf(object[key], inner, typed, [...path, key])))];
+    // A row's own value of a literal prop (core rebuild M4: `theme={person.theme}`) is typed as the prop, not string.
+    const use = typed.get([...path, key].join("."));
+    if (use && types.length === 1 && types[0] === "string") types = [`NonNullable<ComponentProps<typeof ${use.component}>[${json(use.prop)}]>`];
     return `${inner}${IDENTIFIER.test(key) ? key : json(key)}${present.length < objects.length ? "?" : ""}: ${types.join(" | ")};`;
   });
   return `{\n${fields.join("\n")}\n${indent}}`;
@@ -81,7 +87,8 @@ function dataLiteral(value, indent) {
  */
 function createContext(mediaFile, mock) {
   // `frame`: the Screen or Overlay being compiled ("screen:people", "overlay:invite"), for `actions`.
-  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], actions: [], frame: null, mediaFile, mock };
+  // `rows`: the .map rows being compiled (their item name and data path); `typed`: data read into literal props.
+  return { components: new Set(), uses: new Set(), media: new Map(), handlers: [], actions: [], frame: null, mediaFile, mock, rows: [], typed: new Map() };
 }
 
 /** The file a photo has in the export's assets/: a library photo is a .webp named after its key; an upload keeps its name. */
@@ -95,6 +102,13 @@ const mediaName = (ctx, key, kind) => {
   }
   return ctx.media.get(id).name;
 };
+
+/** The data path a ref reads ("people.[].theme" for `person.theme` in `mock.people.map`), or null. */
+function dataPath(ref, ctx) {
+  if (ref.root === "mock") return ref.path;
+  const row = [...ctx.rows].reverse().find((entry) => entry.item === ref.root);
+  return row ? [...row.path, ...ref.path] : null;
+}
 
 /** A ref (`mock.a.b`, `item.c`) as code: mock reads the `data` prop. */
 const refCode = (value) => [value.root === "mock" ? "data" : value.root, ...value.path.map((key) => (IDENTIFIER.test(key) ? `.${key}` : `[${json(key)}]`))].join("");
@@ -152,36 +166,16 @@ function childCode(child, ctx, indent) {
   if (child.kind === "ref") return `{${refCode(child)}}`;
   if (child.kind === "map") {
     const inner = indent + UNIT;
+    const list = dataPath(child.source, ctx);
+    if (list) ctx.rows.push({ item: child.item, path: [...list, "[]"] });
     const row = elementCode(child.node, ctx, inner, [["key", "index"]]);
+    if (list) ctx.rows.pop();
     return `{${refCode(child.source)}.map((${child.item}, index) => (\n${inner}${row}\n${indent}))}`;
   }
   return elementCode(child, ctx, indent);
 }
 
 const STAND_IN = { void: "() => {}", null: "() => null", string: '() => ""' };
-const NOT_TEXT = Symbol("not text");
-
-/** The rows a Table shows as data (`rows` / `data`, written in place or read from the mock); null when not known here. */
-function rowsOf(node, ctx) {
-  const value = node.props.rows ?? node.props.data;
-  if (value?.kind === "ref" && value.root === "mock") {
-    const rows = value.path.reduce((data, key) => (data && typeof data === "object" ? data[key] : undefined), ctx.mock);
-    return Array.isArray(rows) ? rows.filter((row) => row && typeof row === "object") : null;
-  }
-  if (value?.kind !== "array") return null;
-  return value.items.filter((item) => item.kind === "object").map((item) => Object.fromEntries(Object.entries(item.fields).map(([key, field]) => [key, field.kind === "literal" ? field.value : NOT_TEXT])));
-}
-
-/** A Table column's stand-in cell: its row's field named by its id when every row holds text there, else nothing. */
-function cellStandIn(column, rows, ctx) {
-  const id = column.fields.id?.kind === "literal" ? String(column.fields.id.value) : null;
-  const values = id === null || !rows ? [] : rows.filter((row) => id in row).map((row) => row[id]);
-  if (values.length && values.every((value) => value === null || showsAsText(value)) && values.some(showsAsText)) {
-    return `(row) => row${IDENTIFIER.test(id) ? `.${id}` : `[${json(id)}]`}`;
-  }
-  ctx.handlers.push(`<Table> column ${id === null ? "" : `"${id}" `}draws nothing yet: write its cell`);
-  return STAND_IN.null;
-}
 
 /** The element's props with a stand-in for each function its component requires that the page lacks (standins.mjs). */
 function withStandIns(node, ctx) {
@@ -201,7 +195,6 @@ function withStandIns(node, ctx) {
       const added = {};
       for (const [field, signature] of Object.entries(fields)) {
         if (object.fields[field] !== undefined) continue;
-        if (isColumnCell(node.name, name, field)) { added[field] = { kind: "code", code: cellStandIn(object, rowsOf(node, ctx), ctx) }; continue; }
         const kind = standInKind(signature);
         if (!kind) continue;
         added[field] = { kind: "code", code: STAND_IN[kind] };
@@ -237,6 +230,10 @@ function knownFieldsOnly(node) {
 function elementCode(node, ctx, indent, extra = []) {
   ctx.components.add(node.name.split(".")[0]);
   const inner = indent + UNIT;
+  for (const [name, value] of Object.entries(node.props)) {
+    const path = value.kind === "ref" && literalProp(node.name, name) ? dataPath(value, ctx) : null;
+    if (path) ctx.typed.set(path.join("."), { component: node.name, prop: name });
+  }
   const props = [
     ...extra.map(([name, code]) => `${name}={${code}}`),
     ...Object.entries(withStandIns(knownFieldsOnly(node), ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
@@ -251,10 +248,29 @@ function elementCode(node, ctx, indent, extra = []) {
 
 /** A Screen's content as one expression (several children in a fragment). */
 function screenContent(screen, ctx, indent) {
+  const part = (prop) => (screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
+  const layout = screenLayout(screen.props.device?.value ?? "desktop", screen.props.layout?.value);
+  const shown = SCREEN_CHROME.filter((entry) => entry.layout === layout && part(entry.prop));
   const kids = screen.children.filter((child) => child.kind !== "text" || child.value.trim());
-  if (kids.length === 1 && kids[0].kind === "element") return elementCode(kids[0], ctx, indent);
+  if (!shown.length) {
+    if (kids.length === 1 && kids[0].kind === "element") return elementCode(kids[0], ctx, indent);
+    const inner = indent + UNIT;
+    return `<>\n${kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`).join("\n")}\n${indent}</>`;
+  }
+  // The app frame (Screen's sidebar · header, or top · bottom navigation): an AppShell around the page on desktop,
+  // the bars above and below it on a phone.
   const inner = indent + UNIT;
-  return `<>\n${kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`).join("\n")}\n${indent}</>`;
+  const content = kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`);
+  if (layout === "desktop") {
+    ctx.components.add("AppShell");
+    const sidebar = part("sidebar");
+    const header = part("header");
+    const open = sidebar ? `<AppShell sidebar={${elementCode(sidebar, ctx, inner)}}>` : "<AppShell>";
+    return [open, ...(header ? [`${inner}${elementCode(header, ctx, inner)}`] : []), ...content, `${indent}</AppShell>`].join("\n");
+  }
+  const top = part("topNavigation");
+  const bottom = part("bottomNavigation");
+  return ["<>", ...(top ? [`${inner}${elementCode(top, ctx, inner)}`] : []), ...content, ...(bottom ? [`${inner}${elementCode(bottom, ctx, inner)}`] : []), `${indent}</>`].join("\n");
 }
 
 /**
@@ -282,7 +298,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     const nodes = screens.filter((node) => String(literalOf(node, "id")) === id);
     const variants = nodes.filter((node) => typeof literalOf(node, "state") === "string");
     const plain = nodes.find((node) => literalOf(node, "state") === undefined) ?? nodes[0];
-    return { id, title: String(literalOf(plain, "title") ?? id), device: literalOf(plain, "device") ?? "desktop", variants, plain };
+    return { id, title: String(literalOf(plain, "title") ?? id), device: literalOf(plain, "device") ?? "desktop", canvas: literalOf(plain, "canvas") ?? "default", variants, plain };
   });
   /** A screen's content at `indent`: a chain over its state variants (`state === "empty" ? (…) : (…)`) or the content. */
   const branchCode = (branch, indent) => {
@@ -310,7 +326,8 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   }).filter(Boolean);
 
   const screenLines = branches.flatMap((branch) => {
-    const comment = `${body}{/* Screen "${branch.id}" · ${branch.title} · ${branch.device} */}`;
+    // A Screen on another background layer says so: the app's page (AppShell canvas, or its own) sets it.
+    const comment = `${body}{/* Screen "${branch.id}" · ${branch.title} · ${branch.device}${branch.canvas === "default" ? "" : ` · canvas ${branch.canvas} (Background/Canvas/${branch.canvas === "alt" ? "Alt" : "Flat"})`} */}`;
     const inner = `${body}${UNIT}`;
     if (!many) return [comment, branch.variants.length ? `${body}{${branchCode(branch, body)}}` : `${body}${branchCode(branch, body)}`];
     return [comment, `${body}{screen === ${json(branch.id)} && (\n${inner}${branchCode(branch, inner)}\n${body})}`];
@@ -323,14 +340,16 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   const mockType = `${name}Mock`;
   const lines = [];
   lines.push(`// Generated by Zen Studio from ${file ?? `${name}.zen.tsx`}. Edit the design, then export again.`);
-  if (usesState) lines.push(`import { useState } from "react";`);
+  const typesProps = hasMock && ctx.typed.size > 0;
+  if (usesState) lines.push(`import { useState${typesProps ? ", type ComponentProps" : ""} } from "react";`);
+  else if (typesProps) lines.push(`import type { ComponentProps } from "react";`);
   const zen = [...ctx.components, ...(ctx.uses.has("toast") ? ["useToast"] : [])].sort((a, b) => a.localeCompare(b));
   lines.push(`import { ${zen.join(", ")} } from "@zen-ds/react";`);
   for (const entry of ctx.media.values()) lines.push(`import ${entry.name} from "./assets/${entry.file}";`);
   lines.push("");
   if (hasMock) {
     lines.push(`/** The design's sample data: replace it with the app's. */`);
-    lines.push(`export type ${mockType} = ${typeOf(page.mock, "")};`);
+    lines.push(`export type ${mockType} = ${typeOf(page.mock, "", ctx.typed)};`);
     lines.push(`export const mock: ${mockType} = ${dataLiteral(page.mock, "")};`);
     lines.push("");
   }
@@ -394,7 +413,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     handlers: [...new Set(ctx.handlers)],
     actions: ctx.actions,
     components: [...ctx.components].sort((a, b) => a.localeCompare(b)),
-    dataType: hasMock ? `export type ${mockType} = ${typeOf(page.mock, "")};` : null,
+    dataType: hasMock ? `export type ${mockType} = ${typeOf(page.mock, "", ctx.typed)};` : null,
     media: [...ctx.media.values()],
   };
 }

@@ -14,6 +14,7 @@ const PREFS_KEY = "zen-studio:prefs";
 const defaults: StudioState = {
   page: "overviews",
   localPage: null,
+  space: "document",
   collection: null,
   tool: "select",
   role: "admin",
@@ -31,7 +32,7 @@ const defaults: StudioState = {
   panels: { left: 272, right: 320, ui: true },
 };
 
-type SessionPart = Pick<StudioState, "page" | "localPage" | "collection" | "tool" | "viewports" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
+type SessionPart = Pick<StudioState, "page" | "localPage" | "space" | "collection" | "tool" | "viewports" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
 type PrefsPart = Pick<StudioState, "role" | "chromeTheme" | "preview" | "panels">;
 
 function read<T>(storage: () => Storage, key: string): Partial<T> {
@@ -58,8 +59,11 @@ function initialState(): StudioState {
     ...defaults,
     ...session,
     ...prefs,
-    // One light/dark for the chrome and the canvas (shell/modes.ts setStudioTheme): older prefs could hold two.
-    preview: { ...defaults.preview, ...prefs.preview, theme: prefs.chromeTheme ?? prefs.preview?.theme ?? defaults.preview.theme },
+    // The canvas opens in the default modes; only light/dark is remembered (one for the chrome and the canvas:
+    // shell/modes.ts setStudioTheme). Since 2026-10-09 the other modes change only in Present and Play, which keep their
+    // own, so modes saved before that (Contrast High, Neutral-S7…) would stick on the canvas with nothing to change them
+    // back (user, 2026-10-10: "mode mặc định của studio đang để là sai").
+    preview: { ...defaults.preview, theme: prefs.chromeTheme ?? prefs.preview?.theme ?? defaults.preview.theme },
     panels: { ...defaults.panels, ...prefs.panels },
     // Undo history (context hunks, see history.ts) keeps at most HISTORY_LIMIT edits each way.
     undo: (session.undo ?? []).slice(-HISTORY_LIMIT),
@@ -76,8 +80,8 @@ let persistTimer: number | undefined;
 /** Write the persisted parts now. */
 export function flushStudioStore() {
   window.clearTimeout(persistTimer);
-  const { page, localPage, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, role, chromeTheme, preview, panels } = state;
-  write(() => window.sessionStorage, SESSION_KEY, { page, localPage, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
+  const { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, role, chromeTheme, preview, panels } = state;
+  write(() => window.sessionStorage, SESSION_KEY, { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
   write(() => window.localStorage, PREFS_KEY, { role, chromeTheme, preview, panels } satisfies PrefsPart);
 }
 

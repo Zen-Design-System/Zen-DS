@@ -24,7 +24,7 @@ import {
   type InvoiceStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
-import "./pagination.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "pagination";
 
@@ -341,11 +341,11 @@ function MobileExhibitorsExample() {
   };
   return (
     <PlatformPhone label="Hanoi Book Fair app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
       {/* Body padding lg (20) = the bar's margin; rows pad 0 at the sides, so they line up with the count. */}
       <Stack padding="lg" gap="md">
         <Stack gap="xs">
-          <Text ref={countRef} tabIndex={-1} className="px-pagination-focus-target" role="status" textStyle="Body/Small/Regular" tone="base">{`${first}–${last} of ${plural(exhibitors.length, "exhibitor")}`}</Text>
+          <Text ref={countRef} tabIndex={-1} role="status" textStyle="Body/Small/Regular" tone="base">{`${first}–${last} of ${plural(exhibitors.length, "exhibitor")}`}</Text>
           <List aria-label="Exhibitors">
             {pageOf(exhibitors, pageNo, EXHIBITORS_PER_PAGE).map((exhibitor) => (
               <ListItem key={exhibitor.id} leading={<DockIcon icon="icon-book-open-line" theme={exhibitor.genre.theme} background="subtle" size="md" />}
@@ -363,7 +363,7 @@ function MobileExhibitorsExample() {
 
 // ——— Page ————————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Table footer",
     wide: true,
@@ -422,7 +422,7 @@ const turn = (next: number) => {
 };
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Exhibitors" largeTitle="Exhibitors" scrollRef={screenRef} />}>
   <Stack padding="lg" gap="md">
     <Stack gap="xs">
       <Text ref={countRef} tabIndex={-1} role="status" textStyle="Body/Small/Regular" tone="base">15–28 of 48 exhibitors</Text>
@@ -465,4 +465,4 @@ const resize = (size: number) => { setPage(Math.floor(((page - 1) * pageSize) / 
   </List>
 </ListBox>`,
   },
-];
+]);

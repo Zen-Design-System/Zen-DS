@@ -3,8 +3,8 @@
 import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
-import { promoteDirOf } from "../lib/server.mjs";
-import { showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
+import { openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 
 /** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
@@ -41,21 +41,101 @@ export default function Page() {
 }
 `;
 
-/** Imports HTML_PAGE (Pages › Import) and opens it; returns its id. */
-async function importHtmlPage(page) {
+/** A desktop Screen with its app frame (a Sidebar beside, a Page header on top): HO-08. */
+const APP_PAGE = `// @zen-page {"format":1,"title":"App frame check"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="desktop"
+        sidebar={<Sidebar aria-label="Main" selectedId="home">
+          <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
+          <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+        </Sidebar>}
+        header={<PageHeader title="Home" description="Two people on the team" />}>
+        <Stack gap="md" padding="xl">
+          <Text tone="base">Start building here.</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** A page for Export › Figma: a flat Button with its icon, a row, a Card holding text (figma-push.selftest's Projects). */
+// An app page (2026-10-12: it imported into Figma as an empty frame): an AppShell holding a Container and a List.
+const FIGMA_SHELL_PAGE = `// @zen-page {"format":1,"title":"Team"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAction, Container, List, ListItem, Search, Sidebar, SidebarMenuItem } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Team" device="desktop">
+        <AppShell
+          sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>}
+          header={<Search aria-label="Search people" placeholder="Search people" />}
+          headerActions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" />}
+        >
+          <Container>
+            <List>
+              <ListItem title="Ava Chen" />
+            </List>
+          </Container>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+const FIGMA_PAGE = `// @zen-page {"format":1,"title":"Projects"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, Card, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Projects" device="desktop">
+        <Stack padding="xl" gap="lg">
+          <Text textStyle="Heading/3">Projects</Text>
+          <Stack direction="row" justify="between">
+            <Button appearance="flat" startIcon="icon-plus-line">New project</Button>
+          </Stack>
+          <Card theme="flat">
+            <Text>Loyalty app</Text>
+          </Card>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Imports a page (HTML_PAGE unless given; Pages › Import) and opens it once `frame` is on the canvas; returns its id. */
+async function importHtmlPage(page, text = HTML_PAGE, frame = "overlay:invite") {
   const id = `html-check-${Date.now().toString(36)}`;
   await showLeftTab(page, "pages");
-  await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(HTML_PAGE, "utf8") });
+  await openStudioSpace(page);
+  await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(text, "utf8") });
   await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
-  await page.locator('[data-studio-frame="overlay:invite"]').waitFor({ state: "attached", timeout: 10_000 });
+  await page.locator(`[data-studio-frame="${frame}"]`).waitFor({ state: "attached", timeout: 10_000 });
   return id;
 }
 
-/** The HTML tab of the Export panel, once its files are listed; then the zip it downloads, unpacked. */
-async function htmlExport(page) {
+/** The HTML tab of the Export panel, once its files (`listed`) are listed; then the zip it downloads, unpacked. */
+async function htmlExport(page, listed = /screens\/people\.html/) {
   const panel = await openExport(page);
   await panel.getByRole("button", { name: "HTML", exact: true }).click();
-  await until(async () => /screens\/people\.html/.test(await panel.innerText()), { timeout: 20_000, message: "the HTML files listed" });
+  await until(async () => listed.test(await panel.innerText()), { timeout: 20_000, message: "the HTML files listed" });
   const shown = await panel.innerText();
   const downloading = page.waitForEvent("download");
   await panel.getByRole("button", { name: /^Download .*-html\.zip$/ }).click();
@@ -124,6 +204,67 @@ const clipboard = (page) => page.evaluate(() => navigator.clipboard.readText());
 
 export const rows = [
   {
+    id: "HO-09", feature: "Export › Figma (core rebuild Q4): the page as the .figma.json the Zen plugin's Import from Studio places — format zen-studio-figma, the page's id, a frame of library instances (Button/Flat by its appearance, gap bound to its Spacing variable); its keys stay the same from one download to the next", wp: "figma push P1 2026-10-12",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, FIGMA_PAGE, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloadOnce = async () => {
+        const downloading = page.waitForEvent("download");
+        await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+        const download = await downloading;
+        return { name: download.suggestedFilename(), pkg: JSON.parse(fs.readFileSync(await download.path(), "utf8")) };
+      };
+      const first = await downloadOnce();
+      const second = await downloadOnce();
+      const { pkg } = first;
+      const keys = (node) => [node.key, ...(node.children ?? []).flatMap(keys), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(keys))];
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      const button = nodes(pkg.frame).find((node) => node.text === "New project");
+      const problems = [
+        pkg.format !== "zen-studio-figma" && `format ${pkg.format}`,
+        pkg.page?.id !== id && `page id ${pkg.page?.id}`,
+        pkg.frame.name !== "Projects" && `frame ${pkg.frame.name}`,
+        button?.set?.name !== "Button/Flat" && `button set ${button?.set?.name}`,
+        pkg.frame.layout?.gapVar !== "Spacing/Gap/Large" && `gap ${pkg.frame.layout?.gapVar}`,
+        !keys(pkg.frame).every(Boolean) && "a node without a key",
+        JSON.stringify(keys(pkg.frame)) !== JSON.stringify(keys(second.pkg.frame)) && "the keys changed between downloads",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.keyboard.press("Escape");
+      return `${first.name}: ${nodes(pkg.frame).length} layers, Button/Flat, gap Spacing/Gap/Large, keys stable`;
+    },
+  },
+  {
+    id: "HO-10", feature: "Export › Figma of an app page: the AppShell as the Zen components it renders (Sidebar, the top bar as the Dashboard header Type=Navigation) and the Container and List as frames that keep their layers, never an empty frame", wp: "figma push coverage P1 2026-10-12",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, FIGMA_SHELL_PAGE, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+      const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      const all = nodes(pkg.frame);
+      const shell = pkg.frame.children?.[0];
+      const bar = all.find((node) => node.set?.name === "Primitives/Dashboard/Header");
+      const problems = [
+        shell?.name !== "AppShell" && `first layer ${shell?.name ?? "none"}`,
+        !all.some((node) => node.set?.name === "Side-Bar/Master/Basic") && "no Sidebar",
+        bar?.props?.Type !== "Navigation" && `top bar ${bar?.props?.Type}`,
+        !all.some((node) => node.type === "FRAME" && node.name === "List" && node.children?.some((row) => row.set?.name === "List-Item")) && "the List lost its row",
+        !all.some((node) => node.type === "FRAME" && node.name === "Container") && "no Container frame",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await page.keyboard.press("Escape");
+      return `${all.length} layers: AppShell › Sidebar, Dashboard header Navigation, Container › List › List-Item`;
+    },
+  },
+  {
     id: "HO-01", feature: "Export a page as React: the component's code, Copy; the Design file tab shows the page itself", wp: "GĐ5 M1",
     async run(ctx) {
       const { page, id } = await newPage(ctx, { title: "Export check" });
@@ -131,7 +272,8 @@ export const rows = [
       await until(async () => /export function ExportCheckPage\(/.test(await panel.innerText()), { message: "the React code in the panel" });
       await panel.getByRole("button", { name: "Copy code" }).click();
       const react = await until(async () => { const text = await clipboard(page); return /Generated by Zen Studio from/.test(text) ? text : null; }, { message: "the React code copied" });
-      if (!/import \{ Stack, Text \} from "@zen-ds\/react";/.test(react)) throw new Error(`unexpected code:\n${react.slice(0, 400)}`);
+      // A blank page comes with its app frame: on a phone (newPage's device) the bars above and below the page.
+      if (!/import \{ BottomNavigation, Stack, Text, TopNavigation \} from "@zen-ds\/react";/.test(react) || !/<TopNavigation type="compact" title="Export check" \/>/.test(react)) throw new Error(`unexpected code: ${react.slice(0, 400).replace(/\n/g, " ⏎ ")}`);
       await panel.getByRole("button", { name: "Design file" }).click();
       await panel.getByRole("button", { name: "Copy code" }).click();
       const design = await until(async () => { const text = await clipboard(page); return text.startsWith("// @zen-page") ? text : null; }, { message: "the design file copied" });
@@ -227,15 +369,14 @@ export const rows = [
     },
   },
   {
-    id: "HO-05", feature: "Upload a photo: it is kept, goes on the page as zen-asset, shows on the canvas, travels in the handoff zip and comes back with Import", wp: "GĐ5 M4",
+    id: "HO-05", feature: "Upload a photo: it is kept (also in the dev server's pages/assets), goes on the page as zen-asset, shows on the canvas, travels in the handoff zip and comes back with Import; Delete twice on its tile removes it (to the folder's trash)", wp: "GĐ5 M4",
     timeout: 120_000,
     async run(ctx) {
       const photo = fs.readFileSync(path.join(ctx.root, "src/assets/media/site-bridge.webp"));
       const { page, id } = await newPage(ctx, { title: "Upload check" });
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Photos");
       const assets = page.locator("#studio-left-panel-assets");
-      await assets.getByRole("button", { name: "Photos", exact: true }).click();
       // A file that is not an image is refused, with the reason.
       await assets.locator('[data-e2e="upload-photos"]').setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
       await until(async () => /Not uploaded: notes\.txt \(not a PNG/.test(await statusText(page)), { message: "a text file refused" });
@@ -243,6 +384,9 @@ export const rows = [
       const tile = assets.locator('.studio-assets__photo[data-upload^="team-photo-"]');
       await tile.waitFor({ state: "visible", timeout: 10_000 });
       const asset = await tile.getAttribute("data-upload");
+      // The dev server's pages folder keeps it too (another browser on this server finds it there).
+      const pagesDir = path.join(ctx.root, pagesDirOf(ctx.server.port));
+      await until(async () => fs.existsSync(path.join(pagesDir, "assets", asset)) && fs.readFileSync(path.join(pagesDir, "assets", asset)).equals(photo), { timeout: 10_000, message: "the photo in the server's pages/assets" });
       await tile.click();
       await until(async () => (await pageText(page, id))?.includes(`<Image src="zen-asset:${asset}" alt="Team photo" ratio="4:3" />`), { message: "the zen-asset Image in the page" });
       const img = page.locator(`img[data-zen-src^="local:${id}.zen.tsx:"], [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Image"] img`).first();
@@ -266,13 +410,30 @@ export const rows = [
       // Another browser (a fresh one): Import the zip, the page comes with its photo.
       const fresh = await ctx.studio({ fresh: true });
       await showLeftTab(fresh.page, "pages");
+      await openStudioSpace(fresh.page);
       await fresh.page.locator('[data-e2e="import-pages"]').setInputFiles(zipPath);
       // The dev server's pages folder already holds the page (it syncs every browser): the copy gets an id of its own.
       const copy = await until(async () => /page=local:([a-z0-9-]+)/.exec(decodeURIComponent(fresh.page.url()))?.[1] ?? null, { timeout: 10_000, message: "the imported page opened" });
       const again = fresh.page.locator(`img[data-zen-src^="local:${copy}.zen.tsx:"], [data-zen-src^="local:${copy}.zen.tsx:"][data-zen-name="Image"] img`).first();
       await until(async () => again.evaluate((element) => element.src.startsWith("blob:") && element.complete && element.naturalWidth > 0).catch(() => false), { timeout: 10_000, message: "the photo back with the imported page" });
       if (/Missing photo/.test(await statusText(fresh.page))) throw new Error("a photo of the imported zip is missing");
-      return `${asset} (${Math.round(photo.length / 1024)} KB): page, canvas (blob:), zip (code + HTML), back with Import (${copy})`;
+      // Remove (in the fresh browser: opening it closed the first): the first Delete asks, the second removes it from this
+      // browser and moves the server folder's copy to its trash.
+      await showLeftTab(fresh.page, "assets");
+      const freshAssets = fresh.page.locator("#studio-left-panel-assets");
+      await freshAssets.getByRole("button", { name: "Photos", exact: true }).click();
+      const freshTile = freshAssets.locator(`.studio-assets__photo[data-upload="${asset}"]`);
+      await freshTile.waitFor({ state: "visible", timeout: 10_000 });
+      await freshTile.focus();
+      await fresh.page.keyboard.press("Delete");
+      await until(async () => /Press Delete again to remove/.test(await statusText(fresh.page)), { message: "the remove asked first" });
+      if (!(await freshTile.isVisible())) throw new Error("the first Delete removed the photo");
+      await fresh.page.keyboard.press("Delete");
+      await freshTile.waitFor({ state: "detached", timeout: 10_000 });
+      await until(async () => !fs.existsSync(path.join(pagesDir, "assets", asset)), { timeout: 10_000, message: "the photo out of the server's pages/assets" });
+      const trashed = fs.readdirSync(path.join(pagesDir, "..", "trash", "assets")).filter((file) => file.endsWith(asset));
+      if (!trashed.length) throw new Error("the removed photo is not in the folder's trash");
+      return `${asset} (${Math.round(photo.length / 1024)} KB): page, canvas (blob:), server pages/assets, zip (code + HTML), back with Import (${copy}), removed (in trash)`;
     },
   },
   {
@@ -283,6 +444,7 @@ export const rows = [
       const id = `missing-photo-${Date.now().toString(36)}`;
       const text = HTML_PAGE.replace("HTML check", "Missing photo check").replace('src="zen-media:site-cafe"', 'src="zen-asset:gone-0badc0de.png"');
       await showLeftTab(page, "pages");
+      await openStudioSpace(page);
       await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(text, "utf8") });
       await until(async () => decodeURIComponent(page.url()).includes(`page=local:${id}`), { timeout: 10_000, message: "the imported page opened" });
       await until(async () => /Missing photo: gone-0badc0de\.png/.test(await statusText(page)), { timeout: 10_000, message: "the missing photo named" });
@@ -291,9 +453,8 @@ export const rows = [
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await focusScreen(page);
       await clickNamed(page, id, "Image");
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Photos");
       const assets = page.locator("#studio-left-panel-assets");
-      await assets.getByRole("button", { name: "Photos", exact: true }).click();
       await assets.locator('.studio-assets__photo[data-photo="site-bridge"]').click();
       await until(async () => (await pageText(page, id))?.includes('<Image src="zen-media:site-bridge" alt="Office" />'), { message: "the Image's photo replaced" }).catch(async (error) => {
         throw new Error(`${error.message}: selected ${await page.locator("#studio-right h2").first().innerText().catch(() => "?")}; status ${await statusText(page)}; page ${((await pageText(page, id)) ?? "").match(/<Image[^>]*>/g)?.join(" ")}`);
@@ -368,6 +529,62 @@ export const rows = [
         const off = results.filter((result) => result.ratio > 0.005 || Math.abs(result.width - (result.frame.startsWith("overlay") ? 720 : 390)) > 1);
         if (off.length) throw new Error(`differs from the canvas: ${off.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}% (${result.differing} px)`).join("; ")} (shots in ${ctx.outDir})`);
         return results.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}%`).join(" · ");
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "HO-08", feature: "A Screen with its app frame (Sidebar beside, Page header on top) exports HTML laid out as on the canvas (pixel comparison)", wp: "slots 2026-10-10",
+    timeout: 120_000,
+    async run(ctx) {
+      // A desktop frame (1440 px) fits this viewport at 100%.
+      const session = await ctx.studio({ viewport: { width: 1700, height: 1300 } });
+      const { page, context } = session;
+      try {
+        await importHtmlPage(page, APP_PAGE, "screen:home");
+        const { files } = await htmlExport(page, /screens\/home\.html/);
+        await page.keyboard.press("Escape");
+        await sleep(300);
+        const css = new TextDecoder().decode(files.get("styles.css"));
+        if (!/\.screen__main\b/.test(css) || !/\.screen\[data-chrome\]/.test(css)) throw new Error("styles.css lacks the app frame's rules (.screen[data-chrome], .screen__main)");
+        if (/\.studio-/.test(css)) throw new Error("styles.css holds a .studio- rule");
+        const html = new TextDecoder().decode(files.get("screens/home.html"));
+        if (/studio-builder/.test(html)) throw new Error("the markup keeps a studio-builder class");
+        const origin = new URL(page.url()).origin;
+        const view = await context.newPage();
+        await view.route(`${origin}/__html-export/**`, (route) => {
+          const file = decodeURIComponent(new URL(route.request().url()).pathname.replace(/^\/__html-export\//, ""));
+          const body = files.get(file);
+          const type = file.endsWith(".html") ? "text/html" : file.endsWith(".css") ? "text/css" : file.endsWith(".woff2") ? "font/woff2" : "application/octet-stream";
+          return body ? route.fulfill({ status: 200, contentType: type, body: Buffer.from(body) }) : route.fulfill({ status: 404, body: "" });
+        });
+        // A 1440 px frame is wider than the canvas between the side panels: hide them (⌘\) for the shot, so it holds the
+        // frame alone, then bring them back.
+        const panels = () => page.evaluate(() => { const el = document.querySelector("#studio-right"); if (!el) return false; const r = el.getBoundingClientRect(); return getComputedStyle(el).visibility !== "hidden" && r.width > 0 && r.left < innerWidth - 1; });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+Backslash");
+        await until(async () => !(await panels()), { message: "the side panels hidden" });
+        const shot = await canvasShot(page, "screen:home");
+        const inView = await page.locator('[data-studio-frame="screen:home"]').evaluate((frame) => {
+          const box = frame.getBoundingClientRect();
+          const view = document.querySelector(".studio-viewport")?.getBoundingClientRect();
+          return Boolean(view && box.left >= view.left && box.right <= view.right && box.top >= view.top && box.bottom <= view.bottom);
+        });
+        await page.keyboard.press("ControlOrMeta+Backslash");
+        if (!inView) throw new Error("the 1440 px frame is not wholly in view at 100% (the shot would hold Studio chrome)");
+        const { width, height } = shot;
+        await view.setViewportSize({ width, height });
+        await view.goto(`${origin}/__html-export/screens/home.html`);
+        await view.evaluate(() => document.fonts.ready);
+        await sleep(200);
+        const htmlShot = await view.screenshot({ clip: { x: 0, y: 0, width, height } });
+        const diff = await compareShots(view, shot.png, htmlShot, { width, height });
+        fs.writeFileSync(`${ctx.outDir}/HO-08-screen-home-canvas.png`, shot.png);
+        fs.writeFileSync(`${ctx.outDir}/HO-08-screen-home-html.png`, htmlShot);
+        await view.close();
+        if (diff.ratio > 0.005) throw new Error(`differs from the canvas: screen:home ${width}×${height}: ${(diff.ratio * 100).toFixed(2)}% (${diff.differing} px; shots in ${ctx.outDir})`);
+        return `screen:home ${width}×${height}: ${(diff.ratio * 100).toFixed(2)}% · styles.css keeps .screen[data-chrome] / .screen__*`;
       } finally {
         await ctx.studio({ fresh: true });
       }

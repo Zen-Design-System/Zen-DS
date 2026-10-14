@@ -27,7 +27,7 @@ import {
   taskStatusTheme, tasks, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
-import "./link.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "link";
 
@@ -263,7 +263,7 @@ function ReadingList() {
         <Text textStyle="Body/Small/Regular" tone="base">Articles the design team keeps coming back to. Each opens on its own site, in a new tab.</Text>
       </Stack>
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box className="px-link-search"><Search placeholder="Search articles" aria-label="Search articles" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={320}><Search placeholder="Search articles" aria-label="Search articles" value={query} onValueChange={setQuery} /></Box>
         <Chip variant="advanced" dropdown selected={topic !== null} popoverLabel="Topic"
           popoverItems={topics.map((option) => ({ id: option, label: option, selected: option === topic }))}
           onPopoverSelect={(item) => setTopic(item.id === topic ? null : (item.id as Topic))} onClearSelection={() => setTopic(null)}>
@@ -351,7 +351,7 @@ function PhoneSignIn() {
     const doc = legal[view];
     return (
       <PlatformPhone key={view} label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title={doc.title} scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title={doc.title} scrollRef={screenRef}
           leading={{ icon: back, label: "Back", onClick: () => backTo(`[href="/${view}"]`) }} />}>
         {screen.anchor}
         <Stack gap="md" padding="lg">
@@ -365,7 +365,7 @@ function PhoneSignIn() {
   if (view === "reset") {
     return (
       <PlatformPhone key="reset" label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Reset password" scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title="Reset password" scrollRef={screenRef}
           leading={{ icon: back, label: "Back", onClick: () => backTo('[href="/reset"]') }} />}
         footer={resetSent ? undefined : <ActionBar position="static" primaryAction={{ label: "Send reset link", type: "submit", form: resetId }} />}>
         {screen.anchor}
@@ -396,7 +396,7 @@ function PhoneSignIn() {
     return (
       // A task row pushes the task's own screen; Back returns to Home and to the row it came from.
       <PlatformPhone key={`task-${openedTask.id}`} label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title={openedTask.key} scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title={openedTask.key} scrollRef={screenRef}
           leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-task="${openedTask.id}"] .zen-list-item__wrapper`, () => setView("home")) }} />}>
         {screen.anchor}
         <Stack gap="lg" padding="lg">
@@ -448,7 +448,7 @@ function PhoneSignIn() {
   return (
     // The first step of signing in: a form screen with no way back, and the Primary in the footer.
     <PlatformPhone key="sign-in" label="Zen app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Sign in" scrollRef={screenRef} topBar={false} headingLevel="h1" collapsed={false} />}
+      header={<TopNavigation type="compact-alt" title="Sign in" scrollRef={screenRef} topBar={false} headingLevel="h1" collapsed={false} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Sign in", type: "submit", form: formId }} />}>
       {screen.anchor}
       <NavigateContext.Provider value={navigate}>
@@ -473,7 +473,7 @@ function PhoneSignIn() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Links in running text",
     description: "Inside a sentence, links are underlined (underline=\"always\") so they never rely on colour alone, and they take the paragraph's font. as={RouterLink} renders the app's own router link, so the policy and the calendar open in place.",
@@ -551,7 +551,7 @@ const taskRow = (task) => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="sign-in" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Sign in" scrollRef={screenRef} topBar={false} headingLevel="h1" collapsed={false} />}
+  header={<TopNavigation type="compact-alt" title="Sign in" scrollRef={screenRef} topBar={false} headingLevel="h1" collapsed={false} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Sign in", type: "submit", form: formId }} />}>
   <Stack gap="lg" padding="lg">
     <Form id={formId} form={form} gap="md">
@@ -568,4 +568,4 @@ const taskRow = (task) => {
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

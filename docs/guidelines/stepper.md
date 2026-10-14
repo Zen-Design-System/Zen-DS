@@ -24,6 +24,7 @@ Shows progress through a multi-step, sequential process and where the user is in
 | Current | `current` | earlier = Passed (check), current = Focused (ring), later = Default |
 | Error | `step.error` | State=Error: negative marker, ring and lines |
 | Navigation | `onStepClick` | Passed/Focused/Error steps become buttons |
+| Steps slot | `children: <StepperStep id title caption icon error />` | instead of steps; it renders nothing alone, Stepper draws each state from current |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/stepper.json`.
@@ -36,12 +37,14 @@ Also accepts `HTMLAttributes<HTMLOListElement>`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLOListElement>` | — | The root `<ol>`. |
-| `steps` (required) | `StepperStep[]` | — |  |
+| `steps` | `StepperStep[]` | — | The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id="details" title="Details" />`. |
+| `children` | `ReactNode` | — | The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state from `current`, the progress lines and the click behaviour. |
 | `current` | `number` | `0` | Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma Stepper-Bar/Horizontal or Stepper-Bar/Vertical. |
 | `onStepClick` | `(step: StepperStep, index: number) => void` | — | Makes Passed/Focused/Error steps clickable (e.g. to go back and edit). Default steps stay inert. |
 | `aria-label` | `string` | — | Names the list (default "Progress", from the locale's labels). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the step markers it draws, by layer (`{ "Step[review]": { icon: "icon-check-line" } }`). Written by Zen Studio; app code sets the steps. |
 
 ### StepperItem
 Figma .Primitives/Stepper/Item (1625:4827): 24px marker — number (Style=Text) or icon (Style=Icon).
@@ -87,6 +90,7 @@ interface StepperStep { id: string; title: ReactNode; caption?: ReactNode; icon?
 | --- | --- | --- | --- |
 | `stepper/needs-label` | warn | A Stepper needs an aria-label naming the process ("Checkout"). | `zen-allow-stepper-label: <reason>` |
 | `stepper/step-count` | warn | Steppers hold 2–7 steps; one step is not a process, more than 7 needs grouping. | `zen-allow-step-count: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

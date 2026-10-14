@@ -18,7 +18,7 @@ The top of an app page: breadcrumbs or Back, the h1 title with its meta and acti
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Title | `title · headingLevel` | h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/2 for a page title inside a tab or an embedded view under the app's h1 (the ladder row "Page title inside a tab") |
+| Title | `title · headingLevel` | h1 = Heading/1 by default (Figma Master-Layout); headingLevel 2 = Heading/4 (the house ladder's h2) for a page title inside a tab or an embedded view under the app's h1 (the ladder row "Page title inside a tab") |
 | Above | `breadcrumbs · eyebrow · back` | Breadcrumbs for nested pages; a short eyebrow; Back = { label, onClick } with the chevron |
 | Beside | `meta · actions` | status Badge / BadgeCounter; Tertiary buttons then at most one Primary |
 | Below | `description · tabs` | one or two sentences; Tabs for the page's sections |
@@ -34,14 +34,17 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `title` (required) | `ReactNode` | — | The page title (an h1 by default: one per page). |
+| `childTitle` | `ReactNode` | — | Figma Child-Heading (Primitives/Dashboard/Header Type=Main, 4122:33399): a second title after the title, in the title's type and Content/Neutral/Light, Spacing/Gap/XSmall after it — where the page is inside its parent ("Members" › "Design team"). Part of the heading, so the page's title reads both. |
 | `description` | `ReactNode` | — | One or two sentences under the title. |
 | `breadcrumbs` | `ReactNode` | — | Above the title: `<Breadcrumbs>` for nested pages. |
 | `eyebrow` | `ReactNode` | — | Above the title when there are no breadcrumbs: a short section label. |
 | `actions` | `ReactNode` | — | Page actions on the right of the title: Tertiary buttons first, then at most one Primary. They wrap under the title on narrow screens; on phones (ZenProvider breakpoint mobile) the Primary is shown first. |
 | `meta` | `ReactNode` | — | Next to the title: a status Badge, Tag or AvatarStack. |
+| `trailing` | `ReactNode` | — | Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or Share (Button/Icon-Main), Spacing/Gap/Small after them. |
 | `tabs` | `ReactNode` | — | Under the header: `<Tabs>` that switch the page's sections. |
 | `back` | `PageHeaderBack` | — | A Back control for detail pages (chevron icon, per the navigation rule). |
-| `headingLevel` | `1 \| 2` | `1` | Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the page already has an h1 (e.g. inside a tab). The text style always follows the level. |
+| `headingLevel` | `1 \| 2` | `1` | Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: "secondary" } }`). Written by Zen Studio; app code sets back. |
 
 ### Types
 Object shapes the props above refer to.
@@ -75,6 +78,7 @@ interface PageHeaderBack { label: string; onClick: () => void; }
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `page-header/one-primary` | error | PageHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones. | `zen-allow-page-header-primary: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References

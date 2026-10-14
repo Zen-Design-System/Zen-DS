@@ -1,6 +1,6 @@
 /*
  * Token scales of the inspector's ScaleField (spec docs/research/studio-inspector-redesign-2026-10-03.md, Phase 2; plan
- * WP-D): which ladder a prop's type is on, how a key reads ("md · 16"), and the ladder step ↑/↓ moves to. Pure (no JSON,
+ * WP-D): which ladder a prop's type is on, how a step reads ("md · 16px"), and the ladder step ↑/↓ moves to. Pure (no JSON,
  * no DOM), so the node selftest (scale.selftest.mjs) imports it directly.
  */
 
@@ -22,10 +22,14 @@ export function scaleOfType(type: string): TokenScale | null {
 /** A px value as the canvas pills write it: whole pixels, else one decimal. */
 export const pxText = (px: number) => (Number.isInteger(px) ? String(px) : px.toFixed(1));
 
-/** "md · 16" (the canvas spacing pill's wording); "full" and a key with no measure read as the key alone. */
-export function scaleLabel(key: string, px: number | null): string {
-  if (px === null || key === "full") return key;
-  return `${key} · ${pxText(px)}`;
+/**
+ * How a step reads in its list (user, 2026-10-09: "token name + value", one line, as the canvas spacing pill's menu): the
+ * token on the left ("md"), the pixels it measures where the layer renders on the right ("16px"). The field shows the
+ * token with its pixels beside it. A key with no measure ("full", or no element yet) has no value.
+ */
+export function scaleStep(key: string, px: number | null): { label: string; meta?: string } {
+  if (key === "full" || px === null) return { label: key };
+  return { label: key, meta: `${pxText(px)}px` };
 }
 
 /** The key `steps` ladder steps from `from` (clamped to the ends); from an unknown key, the ladder's first or last. */

@@ -19,6 +19,8 @@ Show where the current page sits in a hierarchy and let users go up.
 | Level | `master` | first item with icon |
 | Collapse | `maxItems` | first + last N, “…” expands |
 | Navigate | `onNavigate` | preventDefault for client routing |
+| Per crumb | `items[n].level · emphasis · state · dash` | Figma Item/Slot Dash and Item Level / State / Emphasis on one crumb; unset: Breadcrumbs' master / emphasis, a chevron after all but the last |
+| Item-List slot | `children: <BreadcrumbItem item={{ id, label, href }} />` | instead of items (Figma Item-List); the current page and collapsing stay Breadcrumbs' own, a BreadcrumbItem's level / emphasis / state count as its item's |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/breadcrumbs.json`.
@@ -28,31 +30,35 @@ Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `items` (required) | `BreadcrumbItemData[]` | — |  |
-| `emphasis` | `"default" \| "medium"` | `"default"` |  |
-| `master` | `boolean` | `true` | Show the first item as the Master level (with icon). Default true. |
+| `items` | `BreadcrumbItemData[]` | — | The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List). |
+| `children` | `ReactNode` | — | The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is not given. Breadcrumbs still sets the current page and collapsing; a BreadcrumbItem's own `level`, `emphasis` and `state` (or its item's) win over Breadcrumbs' defaults. |
+| `emphasis` | `"default" \| "medium"` | `"default"` | Every crumb's Figma Emphasis, unless the crumb sets its own (`items[n].emphasis`). |
+| `master` | `boolean` | `true` | Show the first item as the Master level (with icon), unless a crumb sets its own `level`. Default true. |
 | `maxItems` | `number` | — | Collapse middle items behind an ellipsis button when there are more than this many. Activating the ellipsis shows them all and moves focus to the first crumb it revealed. |
 | `onNavigate` | `(item: BreadcrumbItemData, event: MouseEvent) => void` | — | Called for every non-current item; call `event.preventDefault()` for client-side routing. |
 | `aria-label` | `string` | — | Names the navigation landmark (default "Breadcrumb", from the locale's labels). |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the crumbs it draws, by layer (`{ "Crumb[home]/Icon": { name: "icon-home-02-solid" }, "Separator[home]": { name: "icon-minus-line" } }`). Written by Zen Studio; app code sets the items. |
 
 ### BreadcrumbItem
 Figma .Primitives/Breadcrumbs/Item (292:43787): Level × State × Emphasis.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `item` (required) | `{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`"icon-home-03-line"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName \| ReactNode; }` | — |  |
-| `level` | `"master" \| "sub"` | `"sub"` |  |
-| `emphasis` | `"default" \| "medium"` | `"default"` |  |
+| `item` (required) | `{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`"icon-home-03-line"`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName \| ReactNode; /** Figma Item › Level: Master draws the leading icon. Unset: the first crumb is Master while Breadcrumbs' `master` is * on, the others Sub. */ level?: BreadcrumbLevel; /** Figma Item › Emphasis: Medium sets the label in Body/Base/Medium. Unset: Breadcrumbs' `emphasis`. */ emphasis?: BreadcrumbEmphasis; /** Figma Item › State, for a static mockup or matrix (Hover shows Neutral/Flat/Hover); real hover applies anyway. */ state?: "default" \| "hover"; /** Figma Item/Slot › Dash: the chevron after this crumb. Unset: after every crumb but the last. */ dash?: boolean; }` | — |  |
+| `level` | `"master" \| "sub"` | — | Figma Level. Unset: the item's own `level`, else Sub. |
+| `emphasis` | `"default" \| "medium"` | — | Figma Emphasis. Unset: the item's own `emphasis`, else Default. |
 | `current` | `boolean` | `false` |  |
-| `state` | `"default" \| "hover"` | `"default"` | Deterministic Figma State for matrices; real hover applies natively. |
+| `state` | `"default" \| "hover"` | — | Deterministic Figma State for matrices; real hover applies natively. Unset: the item's own `state`. |
 | `onNavigate` | `(item: BreadcrumbItemData, event: MouseEvent) => void` | — |  |
 
 ### Types
 Object shapes the props above refer to.
 
 ```ts
-type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; }
+type BreadcrumbEmphasis = "default" | "medium"
+type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: IconName | ReactNode; level?: BreadcrumbLevel; emphasis?: BreadcrumbEmphasis; state?: "default" | "hover"; dash?: boolean; }
+type BreadcrumbLevel = "master" | "sub"
 ```
 
 ## Keyboard
@@ -83,8 +89,9 @@ type BreadcrumbItemData = { id: string; label: ReactNode; href?: string; icon?: 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Breadcrumb](https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/)

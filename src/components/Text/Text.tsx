@@ -44,6 +44,14 @@ export interface TextProps extends Omit<HTMLAttributes<HTMLElement>, "color">, L
    * text: a Fixed or Fill `height` (Figma's Fixed size text box). Default top.
    */
   verticalAlign?: TextVerticalAlign;
+  /**
+   * `false`: one line that never wraps (Figma text Auto width), e.g. a time or an amount that must stay whole; the row
+   * around it gives it room. Unlike `truncate`, nothing is cut. Default true.
+   */
+  wrap?: boolean;
+  /** Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes
+   *  does not move the text around it. */
+  tabularNumbers?: boolean;
   /** For `as="label"`. */
   htmlFor?: string;
   children?: ReactNode;
@@ -62,7 +70,7 @@ function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | u
  *   <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago</Text>
  */
 export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { textStyle = "Body/Base/Regular", tone = "strongest", as: Element = "p", truncate, align, verticalAlign, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ...rest },
+  { textStyle = "Body/Base/Regular", tone = "strongest", as: Element = "p", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ...rest },
   ref,
 ) {
   const lines = truncate === true ? 1 : typeof truncate === "number" ? Math.max(1, Math.floor(truncate)) : undefined;
@@ -76,6 +84,8 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       data-truncate={lines === undefined ? undefined : lines === 1 ? "line" : "lines"}
       data-align={align}
       data-valign={verticalAlign}
+      data-wrap={wrap ? undefined : "false"}
+      data-numbers={tabularNumbers ? "tabular" : undefined}
       {...sizing.attributes}
       style={withSizingVars(truncateStyle(lines, style), sizing.vars)}
     >
@@ -118,6 +128,10 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
   align?: TextAlign;
   /** Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height. */
   verticalAlign?: TextVerticalAlign;
+  /** `false`: one line that never wraps (Figma text Auto width), as on Text. Default true. */
+  wrap?: boolean;
+  /** Figma Number: Tabular (OpenType tnum): digits of one width, as on Text. */
+  tabularNumbers?: boolean;
   children?: ReactNode;
 }
 
@@ -131,7 +145,7 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
  *   <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
  */
 export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
-  { level = 2, textStyle, tone = "strongest", truncate, align, verticalAlign, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ...rest },
+  { level = 2, textStyle, tone = "strongest", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ...rest },
   ref,
 ) {
   const Element = `h${level}` as const;
@@ -146,6 +160,8 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
       data-truncate={lines === undefined ? undefined : lines === 1 ? "line" : "lines"}
       data-align={align}
       data-valign={verticalAlign}
+      data-wrap={wrap ? undefined : "false"}
+      data-numbers={tabularNumbers ? "tabular" : undefined}
       {...sizing.attributes}
       style={withSizingVars(truncateStyle(lines, style), sizing.vars)}
     >
@@ -154,7 +170,13 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
   );
 });
 
-/** "1 file", "3 files". Counts in UI copy are pluralised (harness copy/plural-count). */
-export function plural(count: number, one: string, many = `${one}s`): string {
-  return `${count.toLocaleString("en-US")} ${count === 1 ? one : many}`;
+/**
+ * "1 file", "3 files". Counts in UI copy are pluralised (harness copy/plural-count). `locale` (default "en-US"; pass
+ * useZenLocale()) picks the number format and the plural rule: Vietnamese nouns do not inflect, so
+ * `plural(3, "tệp", undefined, "vi")` is "3 tệp" (the default `many` is `one` there, `one + "s"` in English).
+ */
+export function plural(count: number, one: string, many?: string, locale = "en-US"): string {
+  const vietnamese = locale.toLowerCase().startsWith("vi");
+  const singular = !vietnamese && new Intl.PluralRules(locale).select(count) === "one";
+  return `${count.toLocaleString(locale)} ${singular ? one : (many ?? (vietnamese ? one : `${one}s`))}`;
 }

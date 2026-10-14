@@ -10,8 +10,11 @@ import { componentGroupsOf } from "./componentGroups";
 import { entryDefaultIcon, entryLabel, entryOptions, entryProp, type GroupCondition, type PropEntry } from "./propGroups";
 import { dataEditable, nodeKind, propLabel, propSpecs, type Literal, type PropSpec, type PropValue } from "./propSchema";
 import { rowOf } from "./detach";
+import { cellDataTarget } from "../table/tableCells";
+import { writeAtUse } from "./callSite";
 import { inspectorStatus } from "./status";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, toEditValue, type WritePlan } from "./writePlan";
+import { srcProp } from "../select/srcIds";
 
 /*
  * Figma's nested instance properties: the properties of the Zen components the selected element renders from its props
@@ -70,8 +73,8 @@ function propSources(props: Record<string, unknown>): { sources: Map<string, str
     if (seen.has(value as object)) return;
     seen.add(value as object);
     if (isElement(value)) {
-      const src = value.props["data-zen-src"];
-      if (typeof src === "string" && !sources.has(src)) sources.set(src, prop);
+      const src = srcProp(value.props);
+      if (src && !sources.has(src)) sources.set(src, prop);
       for (const inner of Object.values(value.props)) visit(inner, prop, depth + 1);
       return;
     }
@@ -268,7 +271,12 @@ export function useNestedInstances(selection: NodeSelection, element: SourceElem
   }, [selection.src, selection.instance, element?.hash, version]);
 
   /** What a nested row shows: an edit on its way, else the source (state props show their initial state). */
-  const valueFor = (item: Nested, name: string): PropValue => overrides[item.src]?.[name] ?? displayValueOf(item.name, sources[item.src]?.attributes ?? [], name, item.hit.props);
+  const valueFor = (item: Nested, name: string): PropValue => {
+    const value = overrides[item.src]?.[name] ?? displayValueOf(item.name, sources[item.src]?.attributes ?? [], name, item.hit.props);
+    // A Table cell's row (its note names it).
+    const cell = value.state === "bound" && value.dataSource?.kind === "cell" ? cellDataTarget(item.hit.hosts[0], item.file) : null;
+    return cell && value.state === "bound" && value.dataSource ? { ...value, dataSource: { ...value.dataSource, row: cell.row } } : value;
+  };
 
   /*
    * Nested edits run one after another: each reads its element (and the file's hash) once the edit before it has
@@ -344,14 +352,20 @@ export function useNestedInstances(selection: NodeSelection, element: SourceElem
     const label = `${item.name} ${spec.name} → ${display(value)}`;
     const current = valueFor(item, spec.name);
     if (dataEditable(current, api.boundHint)) {
+      // A prop of a component of the file (PersonAvatar's `size`): written where that component is used.
+      if (current.dataSource.kind === "param") return writeAtUse(item.hit, current.dataSource, toEditValue(value), label);
       const world = canvasApi.getWorldElement();
       const row = current.dataSource.kind === "row" && world ? rowOf({ ...selection, src: item.src, name: item.name, instance: instanceOf(world, item.hit) }) : null;
       const rowIndex = row && "row" in row ? row.row : null;
-      if (current.dataSource.kind !== "row" || rowIndex !== null) {
+      // A Table cell's row: the cell the nested instance is drawn in (an Avatar's `src={row.photo}` in a TableMedia).
+      const cell = current.dataSource.kind === "cell" ? cellDataTarget(item.hit.hosts[0], item.file) : null;
+      if (current.dataSource.kind === "cell") {
+        if (cell) return send(item, spec, { ...current, live: value }, () => ({ ops: [{ op: "setDataField", prop: spec.name, ...cell, value: toEditValue(value) }] }), `${label} (row ${cell.row + 1})`);
+      } else if (current.dataSource.kind !== "row" || rowIndex !== null) {
         return send(item, spec, { ...current, live: value }, () => ({ ops: [{ op: "setDataField", prop: spec.name, ...(rowIndex !== null ? { row: rowIndex } : {}), value: toEditValue(value) }] }), `${label} (data)`);
       }
     }
-    return send(item, spec, { state: "literal", value, raw: "" }, (source) => (playground ? null : savedWrite(item.name, source, spec.name, value)) ?? planPropWrite(item.name, source.attributes, spec.name, value, live), label);
+    return send(item, spec, { state: "literal", value, raw: "" }, (source) => savedWrite(item.name, source, spec.name, value, playground) ?? planPropWrite(item.name, source.attributes, spec.name, value, live), label);
   }, [send, selection, api.boundHint, valueFor]);
 
   /**

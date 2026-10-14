@@ -139,6 +139,14 @@
           "deprecated": null
         },
         {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Modal type: your own Footer content in place of the Actions (Figma's Footer holds any Buttons instance, e.g.\n `.Primitives/Date-Picker/Footer-Actions`: a summary next to a Primary). It keeps the footer's padding and stays\n put while the body scrolls. Ignored when `primaryAction` / `secondaryAction` are set.",
+          "deprecated": null
+        },
+        {
           "name": "onSubmit",
           "type": "(event: FormEvent<HTMLFormElement>) => void",
           "required": false,
@@ -159,7 +167,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos).",
+          "description": "Render inside the nearest positioned ancestor instead of the viewport (embedded demos). Not needed in a device frame\n (`[data-zen-overlay-root]`, e.g. a phone preview): a sheet opened there renders in that frame by itself.",
           "deprecated": null
         },
         {
@@ -176,6 +184,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: \"danger\" }, \"Item[delete]/Icon\": { tone: \"negative-base\" } }`). Written by Zen Studio;\n app code sets the actions / items.",
           "deprecated": null
         }
       ]

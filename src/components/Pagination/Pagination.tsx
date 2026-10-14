@@ -8,6 +8,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./pagination.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export const paginationThemes = ["primary", "secondary", "inline", "manually"] as const;
 export const paginationItemSizes = ["xsmall", "small"] as const;
@@ -70,6 +71,9 @@ export interface PaginationProps {
   /** Accessible name of the navigation landmark. Default: the locale's “Pagination”. */
   "aria-label"?: string;
   className?: string;
+  /** Figma instance overrides: props of the arrows, page items and page-size chip it draws, by layer (`{ Previous: { level: "secondary" }, "Page[3]": { level: "secondary" } }`). Written by Zen Studio;
+   *  app code keeps the defaults. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -79,7 +83,8 @@ export interface PaginationProps {
  * (Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the
  * arrows always match the items in both densities.
  */
-export function Pagination({ page, onValueChange, onPageChange, theme = "primary", pageCount, pageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className }: PaginationProps) {
+export function Pagination({ page, onValueChange, onPageChange, theme = "primary", pageCount, pageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className, overrides }: PaginationProps) {
+  const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.pagination;
   const size = scaleKey(sizeProp, paginationItemSizes);
@@ -88,8 +93,8 @@ export function Pagination({ page, onValueChange, onPageChange, theme = "primary
   const current = Math.min(Math.max(1, page), pages);
   const go = (next: number) => { if (next >= 1 && next <= pages && next !== current) { onValueChange?.(next); onPageChange?.(next); } };
   const arrowSize = size === "small" ? "sm" : "xs";
-  const previous = <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />;
-  const next = <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />;
+  const previous = nest("Previous", <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />);
+  const next = nest("Next", <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />);
 
   if (!compact) {
     const level: PaginationLevel = theme === "secondary" ? "secondary" : "primary";
@@ -97,11 +102,11 @@ export function Pagination({ page, onValueChange, onPageChange, theme = "primary
       <nav className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
         {previous}
         <div className="zen-pagination__pages">
-          {paginationRange(current, pages).map((item, index) => (
+          {paginationRange(current, pages).map((item, index) => nest("Page", (
             <PaginationItem key={`${item}-${index}`} page={item} size={size} level={item === "…" ? "secondary" : level} selected={item === current}
               optional={pages > 7 && typeof item === "number" && item !== 1 && item !== pages && item !== current}
               onClick={() => typeof item === "number" && go(item)} />
-          ))}
+          ), item === "…" ? `gap-${index}` : item))}
         </div>
         {next}
       </nav>
@@ -113,7 +118,7 @@ export function Pagination({ page, onValueChange, onPageChange, theme = "primary
   return (
     <nav className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
       {theme === "inline"
-        ? <PageSizeChip pageSize={pageSize} options={pageSizeOptions} onChange={onPageSizeChange} />
+        ? nest("Page-Size", <PageSizeChip pageSize={pageSize} options={pageSizeOptions} onChange={onPageSizeChange} />)
         : <PageSizeInput pageSize={pageSize} onChange={onPageSizeChange} />}
       <span className={`zen-pagination__range ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{t.resultsRange(first, last, total)}</span>
       <div className="zen-pagination__navigator">{previous}{next}</div>

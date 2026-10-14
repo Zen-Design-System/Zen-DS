@@ -42,6 +42,7 @@ Figma Toast-Message (1579:13276): Corner-Radius/2XLarge surface with Effect/Popo
 | `onClose` | `() => void` | — | Shows the close control (icon-x-small-line). |
 | `closeLabel` | `string` | — | Accessible name of the close control. Default: the locale's “Dismiss”. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio; app code sets icon / action. |
 
 ### ToastStack
 Toast queue with motion: a new toast rises in from the screen edge while its row opens (Slow, emphasized); a leaving toast fades and shrinks in place (Fast), then its row closes (Base) so the others slide over. Fixed stacks portal into a shared layer in the ZenPortal container; aria-live is on each Toast.
@@ -111,8 +112,9 @@ interface ToastItem extends Omit<ToastProps, "onClose" | "className"> { id: stri
 | `toast/needs-title` | error | A toast states its outcome in a title. | `zen-allow-toast-title: <reason>` |
 | `toast/concise` | warn | Toast titles state an outcome in ≤ 60 characters and never ask a question. | `zen-allow-toast-copy: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Snackbar](https://m3.material.io/components/snackbar/guidelines)

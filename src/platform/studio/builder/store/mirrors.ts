@@ -1,4 +1,5 @@
 import { studioApi } from "../../api";
+import { copyUploadsTo } from "../assets/uploads";
 import { idFromFileName } from "./pageModel";
 import { connectMirror, needsReconnect, run, SETTINGS, syncMirror, type PageMirror } from "./pageStore";
 
@@ -9,8 +10,9 @@ import { connectMirror, needsReconnect, run, SETTINGS, syncMirror, type PageMirr
  *     tools/studio/pages-folder.mjs), the pages' source of truth;
  *   - on a build (no dev server): a folder the person links with File System Access (Chromium), whose handle is kept in
  *     IndexedDB; after a reload the browser asks again, through Reconnect.
- * Without either, pages live in this browser only (Export keeps a copy). A linked folder also keeps the uploaded photos in
- * its assets/ (GĐ5 M4); the dev server's folder does not (Promote carries them into the repo).
+ * Without either, pages live in this browser only (Export keeps a copy). Either folder also keeps the uploaded photos in
+ * its assets/ (GĐ5 M4; the dev server's since 2026-10-08, so a page opened in another browser there finds them), and the
+ * photos uploaded before it was connected are copied in when it connects.
  */
 
 const DEV = import.meta.env.DEV;
@@ -47,7 +49,21 @@ function devMirror(dir: string): PageMirror {
     },
     write: (id, text) => studioApi.pageWrite("write", id, text),
     trash: (id) => studioApi.pageWrite("trash", id),
+    // Uploaded photos in .zen-studio/pages/assets/ (GET /pages/asset, POST /pages/asset-write, /pages/asset-trash).
+    writeAsset: async (id, blob) => studioApi.pageAssetWrite("write", id, new Uint8Array(await blob.arrayBuffer())),
+    async readAsset(id) {
+      const bytes = await studioApi.pageAsset(id);
+      const type = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", gif: "image/gif", svg: "image/svg+xml" }[id.split(".").pop() ?? ""] ?? "application/octet-stream";
+      return bytes ? new Blob([bytes as BlobPart], { type }) : null;
+    },
+    trashAsset: (id) => studioApi.pageAssetWrite("trash", id),
   };
+}
+
+/** Connects `next`, then copies in the photos uploaded before it (the folder's assets/ gets each one it lacks). */
+async function connect(next: PageMirror) {
+  await connectMirror(next);
+  void copyUploadsTo(next).catch(() => undefined);
 }
 
 const stamp = () => new Date().toISOString().replace(/[:.]/g, "-");
@@ -104,6 +120,20 @@ function folderMirror(handle: DirHandle): PageMirror {
         return null;
       }
     },
+    async trashAsset(id) {
+      // A copy in trash/assets/, then the photo goes from assets/ (as a page's trash).
+      let file: File;
+      try {
+        file = await (await (await handle.getDirectoryHandle("assets")).getFileHandle(id)).getFile();
+      } catch {
+        return;
+      }
+      const bin = await (await handle.getDirectoryHandle("trash", { create: true })).getDirectoryHandle("assets", { create: true });
+      const copy = await (await bin.getFileHandle(`${stamp()}-${id}`, { create: true })).createWritable();
+      await copy.write(file);
+      await copy.close();
+      await (await handle.getDirectoryHandle("assets")).removeEntry(id);
+    },
   };
 }
 
@@ -118,13 +148,13 @@ export async function startPageMirror(): Promise<void> {
     const ping = await studioApi.ping();
     if (!ping?.token) return;
     const listed = await studioApi.pages();
-    if (listed) await connectMirror(devMirror(listed.dir));
+    if (listed) await connect(devMirror(listed.dir));
     return;
   }
   const handle = await readHandle().catch(() => null);
   if (!handle) return;
   const permission = await handle.queryPermission({ mode: "readwrite" }).catch(() => "denied" as Permission);
-  if (permission === "granted") await connectMirror(folderMirror(handle));
+  if (permission === "granted") await connect(folderMirror(handle));
   else needsReconnect(handle.name);
 }
 
@@ -139,7 +169,7 @@ export async function linkFolder(): Promise<boolean> {
     return false; // cancelled
   }
   await run(SETTINGS, "readwrite", (store) => store.put({ key: FOLDER_KEY, value: handle }));
-  await connectMirror(folderMirror(handle));
+  await connect(folderMirror(handle));
   return true;
 }
 
@@ -149,7 +179,7 @@ export async function reconnectFolder(): Promise<boolean> {
   if (!handle) return false;
   const permission = await handle.requestPermission({ mode: "readwrite" }).catch(() => "denied" as Permission);
   if (permission !== "granted") return false;
-  await connectMirror(folderMirror(handle));
+  await connect(folderMirror(handle));
   return true;
 }
 

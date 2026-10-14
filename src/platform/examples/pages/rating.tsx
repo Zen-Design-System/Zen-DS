@@ -20,6 +20,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { daysFromToday, formatRelative, initials, people, type Person } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./rating.css";
 
 export const page: PlatformPage = "rating";
@@ -44,7 +45,7 @@ function ReviewSummaryExample() {
   const [scope, setScope] = useState<RatingScope>("all");
   const data = appRatings[scope];
   return (
-    <Card theme="flat" className="px-rating-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm" wrap>
           <Stack gap="xs">
@@ -74,7 +75,7 @@ function ReviewSummaryExample() {
           ])}
         </Grid>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -101,7 +102,7 @@ function ScorecardExample() {
   };
   // The whole card is the form: header, skills and actions take the Form's gap.
   return (
-    <Card theme="flat" className="px-rating-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={submit}>
         <Stack direction="row" gap="sm" align="center">
           <PersonAvatar person={candidate} size="md" />
@@ -138,7 +139,7 @@ function ScorecardExample() {
           </>
         )}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -202,7 +203,7 @@ function PhoneOrderExample() {
   if (!order || !review) {
     return (
       <PlatformPhone key="root" label="Orders" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Margin-Compact body (padding lg, 20). Rows pad 12px above and below only, so their content sits at the margin
             and the interactive fill (12px past the row sideways) stays 8px inside the screen. */}
@@ -224,7 +225,7 @@ function PhoneOrderExample() {
   const toggle = (problem: string) => edit({ problems: review.problems.includes(problem) ? review.problems.filter((item) => item !== problem) : [...review.problems, problem] });
   return (
     <PlatformPhone key={order.id} label="Rate your order" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Rate your order" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
+      header={<TopNavigation type="compact-alt" title="Rate your order" scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Send rating", type: "submit", form: formId }} />}>
       {screen.anchor}
       <Stack padding="lg">
@@ -269,7 +270,7 @@ function PulseExample() {
   const low = mood === "disappointed";
   // Survey cards are compact (spacing small), as in NPS survey; on a narrow card the faces keep one row and drop their labels.
   return (
-    <Card theme="flat" spacing="small" className="px-rating-card">
+    <Stack><Card theme="flat" spacing="small" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => setSent(true)}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">How was this week's design critique?</Heading>
@@ -291,7 +292,7 @@ function PulseExample() {
           </>
         )}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -306,7 +307,7 @@ function NpsExample() {
   const [sent, setSent] = useState(false);
   // A survey card is small (spacing small), which leaves the 0–10 scale the most room on a narrow card.
   return (
-    <Card theme="flat" spacing="small" className="px-rating-card">
+    <Stack><Card theme="flat" spacing="small" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => setSent(true)}>
         <Heading level={4} textStyle="Heading/Subheading">How likely are you to recommend Zen?</Heading>
         {sent && score !== null ? (
@@ -328,7 +329,7 @@ function NpsExample() {
           </>
         )}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -354,7 +355,7 @@ function FreelancerListExample() {
   const rows = [...freelancers].sort(sorts[sortId].compare);
   const toggle = (id: string) => setShortlist((list) => list.includes(id) ? list.filter((item) => item !== id) : [...list, id]);
   return (
-    <Stack gap="md" className="px-rating-card">
+    <Stack><Stack gap="md" width="fill" maxWidth={440} alignSelf="center">
       <Stack direction="row" justify="between" align="center" gap="sm">
         <Heading level={4} textStyle="Heading/4">Freelance illustrators</Heading>
         <Chip variant="advanced" popoverLabel="Sort by"
@@ -381,11 +382,11 @@ function FreelancerListExample() {
         </List>
       </ListBox>
       <Text role="status" textStyle="Body/Small/Regular" tone="base">{shortlist.length ? `${plural(shortlist.length, "person", "people")} on your shortlist` : ""}</Text>
-    </Stack>
+    </Stack></Stack>
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Review summary",
     description: "The Metric states the average and its trend once; the read-only RatingDisplay under it shows the same value as stars, fractions allowed, always next to how many ratings it comes from. The bars show how the stars split, and the Version chip switches the whole summary.",
@@ -447,15 +448,31 @@ const send = () => {
 
 // Orders root: large title that folds as the 15 orders scroll
 <PlatformPhone key="root" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>…</PlatformPhone>
+  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+  <Stack padding="lg">
+    <List aria-label="Orders">
+      {orders.map((item) => (
+        <ListItem key={item.id} title={item.store} onClick={() => open(item.id)}
+          leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" />}
+          caption={\`\${item.id} · \${formatRelative(item.picked)}\`}
+          trailing={sent[item.id] ? <RatingDisplay value={sent[item.id].stars} size="sm" label={\`You rated \${sent[item.id].stars} stars\`} />
+            : <Text as="span" textStyle="Body/Small/Regular" tone="base">Not rated</Text>} />
+      ))}
+    </List>
+  </Stack>
+</PlatformPhone>
 
 // The order's rating screen: a child, compact with Back
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Rate your order" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Rate your order" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Send rating", type: "submit", form: formId }} />}>
   <Stack padding="lg">
     <Form id={formId} onSubmit={send}>
+      <List aria-label="Order">
+        <ListItem leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" />}
+          title={\`\${order.id} · \${order.store}\`} caption={\`\${order.items} items · \${formatRelative(order.picked)}\`} />
+      </List>
       <Stack ref={starsRef} gap="xs" align="center">
         <Heading level={2} textStyle="Heading/Subheading" align="center">How was your order?</Heading>
         <Rating aria-label="How was your order?" size="xl" value={review.stars} onValueChange={(stars) => edit({ stars })} />
@@ -530,4 +547,4 @@ const low = mood === "disappointed";
   </List>
 </ListBox>`,
   },
-];
+]);

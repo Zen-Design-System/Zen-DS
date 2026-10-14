@@ -1,4 +1,5 @@
 import api from "../../api.generated.json";
+import { zenComponents } from "../builder/engine";
 import { contentTones } from "../../../components/_shared/contentTone";
 import { normalizeScale, zenScale, type ZenScaleInput } from "../../../components/_shared/scale";
 import { iconNames } from "../../../icons/generated/names";
@@ -27,6 +28,8 @@ export type PropEditor =
   /** An icon that can also be switched off (`boolean | IconName`, `IconName | false`): Figma's boolean plus its instance
    *  swap in one row. */
   | { kind: "icon-toggle" }
+  /** A picture (Avatar / AppShellAccount / Image `src`): the photo picker on a page you made (controls/PhotoControl.tsx). */
+  | { kind: "photo" }
   /** Text / Heading `align` in the Text section: Figma's icon-only Align left / center / right (never from editorFor). */
   | { kind: "text-align"; options: string[] }
   /** Text / Heading `truncate` (boolean | number) in the Text section: Figma's Truncate text switch plus Max lines. `state`
@@ -80,7 +83,8 @@ export type NodeKind = "zen" | "primitive" | "local" | "element";
 export function nodeKind(name: string): NodeKind {
   if (!/^[A-Z]/.test(name)) return "element";
   if (layoutPrimitives.has(name)) return "primitive";
-  return componentSchema(name) ? "zen" : "local";
+  // A library export without an API page (ZenPortal: react-docgen does not read it) is still the library's.
+  return componentSchema(name) || zenComponents.has(name) ? "zen" : "local";
 }
 
 export const kindLabel = (kind: NodeKind) => ({ zen: "Zen component", primitive: "Layout primitive", local: "Local component", element: "HTML element" })[kind];
@@ -109,7 +113,6 @@ const propLabels: Record<string, string> = {
 const componentPropLabels: Record<string, Record<string, string>> = {
   FormActions: { sticky: "Pin to bottom", inset: "Side inset" },
   TopNavigation: { sticky: "Pin to top" },
-  List: { inset: "Row inset" },
 };
 
 /** Components whose `as` picks the HTML element they render (a list of tags); elsewhere (Link, ZenProvider) it takes a
@@ -139,9 +142,10 @@ export function matchOption(value: string, options: readonly string[]): string {
   return options.find((option) => longToShort(option) === step) ?? value;
 }
 
-/** Props the inspector never edits: children, handlers, styling escape hatches, React internals. */
+/** Props the inspector never edits: children, handlers, styling escape hatches, React internals, and `overrides`
+ *  (written by the nested layers' own Properties, inspector/OverrideProperties.tsx). */
 export function isSkippedProp(name: string) {
-  return name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
+  return name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
 }
 
 export const typographyKeys = Object.keys(typographyStyles);
@@ -285,6 +289,10 @@ export function dataSourceLabel(source: DataSource, row?: number): string {
   const fields = (source.path ?? []).map((key) => `.${key}`).join("");
   // A list written in place of names (`[people.ava, people.bao]`) names the row's item itself.
   const items = source.kind === "row" ? /^\[\s*([\w$.]+(?:\s*,\s*[\w$.]+)*)\s*,?\s*\]$/.exec(source.source ?? "")?.[1].split(/\s*,\s*/) : undefined;
+  // A prop of a component of the file: written where it is used.
+  if (source.kind === "param") return `<${source.component ?? "the component"}>'s ${[source.prop, ...(source.path ?? [])].filter(Boolean).join(".")} where it is used`;
+  // A Table cell's row: the value as the cell reads it, and which row.
+  if (source.kind === "cell") return `${source.source ?? "the row"}${row !== undefined ? ` (row ${row + 1})` : ""}${source.file ? ` in ${source.file.split("/").pop()}` : ""}`;
   const where = source.kind !== "row" ? source.source ?? "data" : items?.[row ?? 0] ? `${items[row ?? 0]}${fields}` : `${source.source ?? "data"}[${row ?? 0}]${fields}`;
   return source.file ? `${where} in ${source.file.split("/").pop()}` : where;
 }
@@ -335,12 +343,27 @@ function inheritedBooleans(schema: ApiComponent, depth = 0): string[] {
  * the props it takes from another Zen component's props type (inheritedProps.ts: NumberField's label, size…), then the
  * boolean HTML attributes it inherits (disabled, required, readOnly), which Figma shows as boolean properties too.
  */
+/** Props that take a picture (user, 2026-10-10: "Avatar không bỏ ảnh vào được"): a photo picker, not a text field. */
+/** Components whose `src` is a picture (the Studio's Picture control, a photo click or drop): one list for the Inspector and the assets (edit/assets/picture.ts). */
+export const PHOTO_PROPS: Readonly<Record<string, string>> = { Avatar: "src", AppShellAccount: "src", Image: "src", Thumbnail: "src" };
+
+/** Specs by component: the API data never changes at runtime, and an Inspector render asks for them per row. */
+const specsCache = new Map<string, PropSpec[]>();
+
 export function propSpecs(name: string): PropSpec[] {
+  const cached = specsCache.get(name);
+  if (cached) return cached;
+  const specs = buildPropSpecs(name);
+  specsCache.set(name, specs);
+  return specs;
+}
+
+function buildPropSpecs(name: string): PropSpec[] {
   const schema = componentSchema(name);
   if (!schema) return [];
   const own = [...schema.props, ...inheritedProps(schema, componentSchema)]
     .filter((prop) => !prop.deprecated && !isSkippedProp(prop.name) && !/^\(.*\) => /.test(prop.type))
-    .map((prop): PropSpec => ({ name: prop.name, type: prop.type, description: prop.description, defaultValue: parseDefault(prop.default), editor: editorFor(prop.type) }));
+    .map((prop): PropSpec => ({ name: prop.name, type: prop.type, description: prop.description, defaultValue: parseDefault(prop.default), editor: PHOTO_PROPS[name] === prop.name ? { kind: "photo" } : editorFor(prop.type) }));
   const inherited = inheritedBooleans(schema).filter((prop) => !own.some((spec) => spec.name === prop)).map((prop): PropSpec => ({ name: prop, type: "boolean", description: `The HTML ${prop} attribute (inherited).`, defaultValue: false, editor: { kind: "boolean" } }));
   return [...own, ...inherited];
 }
@@ -364,9 +387,11 @@ export const layoutComponents = new Set(["Stack", "Grid", "Box", "Container", "F
 export const layoutProps = new Set(["direction", "gap", "rowGap", "columnGap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", "columns", "minColumnWidth", "maxWidth", "gutter", "inset"]);
 
 /** Whether a component's prop belongs in the Layout block. maxWidth is scoped by component: Container's is the token
- * width (sm…full); Stack/Grid/Box's is px sizing, which stays with the other sizing props. */
+ * width (sm…full); Stack/Grid/Box's is px sizing, which stays with the other sizing props. Their clip is Figma's Clip content. */
 export function isLayoutProp(component: string, name: string) {
   if (name === "maxWidth") return component === "Container";
+  // Figma's Clip content sits in the Layout section, under Padding (spec 2026-10-09 §3).
+  if (name === "clip") return component === "Box" || component === "Stack" || component === "Grid";
   return layoutProps.has(name);
 }
 /** Text and Heading props shown in the Text block. */

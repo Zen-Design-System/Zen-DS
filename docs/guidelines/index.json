@@ -29,7 +29,8 @@
           "endIcon?: IconName|ReactNode",
           "leftIcon?: IconName|ReactNode (deprecated)",
           "rightIcon?: IconName|ReactNode (deprecated)",
-          "children: ReactNode"
+          "children: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "IconButton": [
           "icon: IconName|ReactNode",
@@ -38,7 +39,8 @@
           "size?: 2xs|xs|sm|md|lg|xl|2xsmall|xsmall|small|medium|large|xlarge = md",
           "appearance?: main|flat|overlay = main",
           "state?: default|hover|pressed|focused|disabled",
-          "tooltip?: ReactNode|false"
+          "tooltip?: ReactNode|false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -85,7 +87,9 @@
         "button/one-primary",
         "button/compact-size-special",
         "focus/visible-ring",
+        "focus/ring-token",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
@@ -97,7 +101,7 @@
       "file": "docs/guidelines/chip.md",
       "apiFile": "docs/api/chip.json",
       "figma": "Chip/Advanced, Chip/Normal, Chip/Number-Only (page 320:79626)",
-      "import": "import { Chip } from \"@zen-ds/react\";",
+      "import": "import { Chip, ChipGroup } from \"@zen-ds/react\";",
       "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
       "use": [
         "Filter/sort/scope/status/owner pickers (variant=\"advanced\" + popoverItems).",
@@ -142,10 +146,25 @@
           "popoverScrollBar?: boolean = true",
           "onPopoverCreate?: (value: string) => void",
           "popoverCreateLabel?: ReactNode",
-          "popoverPortal?: boolean = false"
+          "popoverPortal?: boolean = false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "ChipGroup": [
+          "ref?: Ref<HTMLDivElement>",
+          "options: ChipGroupOption[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (value: string) => void",
+          "aria-label?: string",
+          "size?: xs|sm|md|xsmall|small|medium = sm",
+          "level?: primary|secondary = primary",
+          "disabled?: boolean = false",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
+        "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
         "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
         "Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.",
         "Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.",
@@ -170,7 +189,9 @@
         "chip/popover-needs-advanced",
         "flag/no-emoji-flag",
         "chip/multiple-needs-count",
+        "chip/radio-is-chip-group",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -186,7 +207,7 @@
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField; long text → TextAreaField.",
-        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField.",
+        "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
         "Dates → DateField; quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
         "Formatted long text (announcements, descriptions) → RichTextField."
@@ -213,6 +234,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void"
         ],
         "SelectField": [
@@ -231,6 +253,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "options?: SelectFieldOption[] = []",
           "onValueChange?: (value: string, option: SelectFieldOption) => void",
           "placeholder?: string",
@@ -259,6 +282,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
@@ -276,11 +300,42 @@
           "max?: number",
           "step?: number = 1",
           "decrementLabel?: string",
-          "incrementLabel?: string"
+          "incrementLabel?: string",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "size?: sm|md|lg|xl|small|medium|large|xlarge",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "leading?: IconName|ReactNode",
+          "trailing?: IconName|ReactNode",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "TextAreaField": [
           "size?: Exclude<InputSize, xlarge|xl> = md",
-          "onValueChange?: (value: string) => void"
+          "onValueChange?: (value: string) => void",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "leading?: IconName|ReactNode",
+          "trailing?: IconName|ReactNode",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AutocompleteField": [
           "id?: string",
@@ -303,7 +358,8 @@
           "searchPlaceholder?: string",
           "onCreate?: (label: string) => string|void",
           "createLabel?: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "RichTextField": [
           "id?: string",
@@ -318,7 +374,20 @@
           "editorBar?: boolean = true",
           "editorBarTheme?: subtle|solid|inverse = subtle",
           "onFocus?: (event: FocusEvent<HTMLDivElement>) => void",
-          "onBlur?: (event: FocusEvent<HTMLDivElement>) => void"
+          "onBlur?: (event: FocusEvent<HTMLDivElement>) => void",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -358,6 +427,7 @@
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "focus/state-parity"
@@ -403,7 +473,8 @@
           "filterActionLabel?: string",
           "disabled?: boolean = false",
           "shortcut?: string",
-          "onClear?: () => void"
+          "onClear?: () => void",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -425,6 +496,7 @@
       ],
       "rules": [
         "search/needs-name",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -458,7 +530,8 @@
           "className?: string",
           "disabled?: boolean = false",
           "fullWidth?: boolean = false",
-          "aria-label?: string"
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -485,6 +558,7 @@
         "segmented/control-bar-full-width",
         "segmented/icon-only-needs-name",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -676,7 +750,8 @@
           "remove?: boolean = false",
           "onRemove?: () => void",
           "removeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "BadgeCounter": [
           "value?: ReactNode"
@@ -701,6 +776,7 @@
         "flag/no-emoji-flag",
         "badge/count-uses-counter",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler"
       ]
@@ -730,7 +806,8 @@
           "disabled?: boolean = false",
           "remove?: boolean = false",
           "onRemove?: () => void",
-          "removeLabel?: string"
+          "removeLabel?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -746,6 +823,7 @@
       "rules": [
         "removable/needs-handler",
         "flag/no-emoji-flag",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler"
       ]
@@ -781,7 +859,8 @@
         "AvatarStack": [
           "items: Array<Pick<AvatarProps, src|alt|children|theme>>",
           "max?: number = 5",
-          "showMore?: boolean = false"
+          "showMore?: boolean = false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -799,6 +878,7 @@
         "avatar/needs-alt",
         "avatar/solid-initials-contrast",
         "flag/no-emoji-flag",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -838,7 +918,8 @@
           "anchorRef?: RefObject<HTMLElement|null>",
           "searchClearable?: boolean = true",
           "align?: start|end = start",
-          "multiple?: boolean = false"
+          "multiple?: boolean = false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -863,6 +944,7 @@
         "popover/controlled-close",
         "popover/explicit-open",
         "popover/bulk-action-limit",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler",
         "focus/selected-fill-only"
@@ -874,7 +956,7 @@
       "file": "docs/guidelines/sidebar.md",
       "apiFile": "docs/api/sidebar.json",
       "figma": "Patterns/Sidebar (page 1536:27287)",
-      "import": "import { Sidebar, SidebarSubMenu } from \"@zen-ds/react\";",
+      "import": "import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu } from \"@zen-ds/react\";",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
       "use": [
         "App shells with 5+ destinations."
@@ -897,10 +979,13 @@
           "sections?: SidebarSection[] = []",
           "selectedId?: string",
           "linkAs?: ElementType",
+          "children?: ReactNode",
           "footer?: ReactNode",
           "search?: ReactNode",
+          "searchCollapsed?: ReactNode",
           "onItemClick?: (item: SidebarItem) => void",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "background?: default|alt|flat|inverse = default",
           "divider?: boolean = false",
           "workspaceBrand?: ReactNode",
@@ -912,11 +997,35 @@
           "subMenu?: ReactNode",
           "subMenuLabel?: string",
           "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void"
+        ],
+        "SidebarMenuItem": [
+          "children?: ReactNode|SidebarItem[]",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "id: string",
+          "label: string",
+          "icon?: IconName|ReactNode",
+          "active?: boolean",
+          "selected?: boolean",
+          "disabled?: boolean",
+          "state?: default|hover|focus|disabled",
+          "theme?: neutral|accent",
+          "dropdown?: boolean",
+          "indent?: boolean (deprecated)",
+          "counter?: ReactNode",
+          "notificationDot?: boolean",
+          "trailingAction?: ReactNode",
+          "href?: string"
+        ],
+        "SidebarMenuSection": [
+          "label?: string",
+          "action?: ReactNode",
+          "children?: ReactNode"
         ]
       },
       "do": [
         "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
         "Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.",
+        "Put footer destinations (Settings, Help) in footer as <SidebarMenuItem> rows, as Figma's Footer-Content holds Menu-Items: the same row, selection and rail tooltip as the body.",
         "Move selection with onItemClick; exactly one selected item.",
         "Group items under short section titles.",
         "Use counters for actionable counts; notification dots for \"something new\".",
@@ -942,6 +1051,8 @@
       ],
       "rules": [
         "sidebar/submenu-close",
+        "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
@@ -953,11 +1064,12 @@
       "file": "docs/guidelines/date-picker.md",
       "apiFile": "docs/api/date-picker.json",
       "figma": "Date-Picker/Single-Calendar (page 453:32817)",
-      "import": "import { DatePicker, DateField, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen-ds/react\";",
-      "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover.",
+      "import": "import { DatePicker, DateField, DatePickerSheet, DatePickerItem, DatePickerHeader, DatePickerAction, DatePickerMonthYear, DatePickerTimePicker } from \"@zen-ds/react\";",
+      "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile.",
       "use": [
         "DateField in forms (the field owns the popover); inline DatePicker for booking-style range selection.",
         "A DatePicker anchored to your own trigger: pass open, onClose and anchorRef.",
+        "DatePickerSheet on a phone, from your own trigger (a Dates row): selectionMode=\"single\" is one month with Cancel / OK; \"range\" stacks the months (calendar=\"stacked\") with your `summary` (the price for the nights) beside OK.",
         "Inline (no onClose / onOpenChange / anchorRef) the calendar has no surface of its own (no popover fill, border, padding or shadow, as Figma's in-place calendar): place it in a Card or panel."
       ],
       "avoid": [
@@ -983,7 +1095,8 @@
           "showActions?: boolean = false",
           "action?: single|dual = dual",
           "selectionMode?: single|range = single",
-          "calendar?: single|dual = single",
+          "calendar?: single|dual|stacked = single",
+          "monthCount?: number = 12",
           "device?: desktop|mobile",
           "timePicker?: boolean = false",
           "time?: DatePickerTime",
@@ -994,7 +1107,8 @@
           "today?: Date",
           "aria-label?: string",
           "aria-labelledby?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "DateField": [
           "label?: ReactNode",
@@ -1012,6 +1126,7 @@
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
           "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
           "datePicker?: boolean = true",
           "datePickerActions?: boolean = false",
@@ -1019,10 +1134,36 @@
           "minDate?: Date",
           "maxDate?: Date",
           "today?: Date"
+        ],
+        "DatePickerSheet": [
+          "open?: boolean",
+          "isOpen?: boolean (deprecated)",
+          "onOpenChange?: (open: boolean) => void",
+          "onClose?: () => void",
+          "title?: ReactNode",
+          "selectionMode?: single|range = single",
+          "value?: Date|null",
+          "defaultValue?: Date|null = null",
+          "range?: DatePickerRange|null",
+          "defaultRange?: DatePickerRange|null = null",
+          "onApply?: (value: Date|null, range: DatePickerRange|null) => void",
+          "onValueChange?: (date: Date|null) => void",
+          "onRangeChange?: (range: DatePickerRange) => void",
+          "onCancel?: () => void",
+          "minDate?: Date",
+          "maxDate?: Date",
+          "today?: Date",
+          "monthCount?: number = 12",
+          "summary?: ReactNode",
+          "applyLabel?: ReactNode",
+          "cancelLabel?: ReactNode",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
-        "On a phone, put the calendar in the screen or a Bottom Sheet inline: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
+        "On a phone, let DateField open its sheet (it does at the mobile breakpoint), or open DatePickerSheet from your own row; for a range, update `summary` from onRangeChange so the price follows the picks.",
+        "On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
         "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
         "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
         "Show the chosen range and its consequence (nights, price) next to the calendar.",
@@ -1043,6 +1184,7 @@
         "input/needs-label",
         "input/placeholder-not-label",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "date-picker/actions-need-apply"
@@ -1072,11 +1214,15 @@
           "placement?: top|bottom|left|right = top",
           "delay?: number = 1000",
           "open?: boolean",
+          "defaultOpen?: boolean = false",
+          "onOpenChange?: (open: boolean) => void",
+          "closable?: boolean = false",
           "disabled?: boolean = false",
           "className?: string"
         ]
       },
       "do": [
+        "On a phone, where a tooltip never opens on touch, show a tip for a new action open from the start with its close X: <Tooltip closable open onOpenChange>.",
         "Wrap a focusable trigger (Button, IconButton, link).",
         "Keep text under ~80 characters, no punctuation for single phrases.",
         "Use Accent briefly for confirmations (\"Copied!\").",
@@ -1085,17 +1231,18 @@
         "Icon-only controls get their name tooltip for free (IconButton, Top/Bottom Navigation actions, close and remove buttons); add an explicit <Tooltip> only for a longer hint — the built-in one then stays silent."
       ],
       "dont": [
-        "Don't put links or buttons inside a tooltip.",
+        "Don't put links or buttons inside a tooltip (its own close X, closable, is the one exception).",
         "Don't repeat the visible label word for word.",
         "Don't wrap a disabled control (harness: tooltip/disabled-trigger).",
-        "Don't use a tooltip on touch-first surfaces or for error messages."
+        "Don't rely on a hover tooltip on touch-first surfaces (use a closable one open from the start), and never for error messages."
       ],
       "rules": [
         "tooltip/focusable-trigger",
         "tooltip/short",
         "tooltip/no-interactive-content",
         "tooltip/disabled-trigger",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
       ]
     },
     {
@@ -1117,7 +1264,8 @@
       ],
       "props": {
         "Tabs": [
-          "items: TabOption[]",
+          "items?: TabOption[]",
+          "children?: ReactNode",
           "value?: string",
           "defaultValue?: string",
           "onValueChange?: (id: string) => void",
@@ -1127,7 +1275,19 @@
           "fullWidth?: boolean = false",
           "aria-label?: string",
           "idPrefix?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "TabItem": [
+          "ref?: Ref<HTMLButtonElement>",
+          "value?: string",
+          "label?: ReactNode",
+          "icon?: IconName|ReactNode",
+          "badge?: number|string",
+          "selected?: boolean = false",
+          "size?: md|sm|medium|small = md",
+          "variant?: indicator|subtle = indicator",
+          "state?: default|hover|disabled = default"
         ]
       },
       "do": [
@@ -1148,6 +1308,7 @@
         "tabs/needs-label",
         "tabs/item-count",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -1168,13 +1329,23 @@
       ],
       "props": {
         "Breadcrumbs": [
-          "items: BreadcrumbItemData[]",
+          "items?: BreadcrumbItemData[]",
+          "children?: ReactNode",
           "emphasis?: default|medium = default",
           "master?: boolean = true",
           "maxItems?: number",
           "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "BreadcrumbItem": [
+          "item: { id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`icon-home-03-line`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName|ReactNode; /** Figma Item › Level: Ma…",
+          "level?: master|sub",
+          "emphasis?: default|medium",
+          "current?: boolean = false",
+          "state?: default|hover",
+          "onNavigate?: (item: BreadcrumbItemData, event: MouseEvent) => void"
         ]
       },
       "do": [
@@ -1190,6 +1361,7 @@
         "Don't show breadcrumbs on top-level pages (only one item)."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1213,7 +1385,9 @@
         "ProgressBar": [
           "value: number",
           "theme?: neutral|accent|status = neutral",
+          "layout?: inline|stacked = inline",
           "label?: ReactNode|true",
+          "valueLabel?: ReactNode",
           "aria-label?: string",
           "scale?: completion|quota = completion",
           "className?: string"
@@ -1232,13 +1406,15 @@
         "Switch to Status/green or Done when complete.",
         "Keep the value a percentage from 0 to 100 (harness: progress/value-range).",
         "Pair the percentage with the unit that matters (\"12 / 48 MB\", \"3 of 5 steps\").",
+        "Use layout=\"stacked\" when the bar needs a name: label names it and valueLabel carries the unit (\"Storage\" · \"68 GB of 100 GB\"), on one row above the track.",
         "Use scale=\"quota\" for storage, seats or credits measured against a limit, so a nearly full quota turns Warning/Negative instead of green (harness: progress/quota-scale)."
       ],
       "dont": [
         "Don't animate backwards.",
         "Don't use colour alone to convey state.",
         "Don't use a progress bar for unknown durations → Skeleton or a spinner.",
-        "Don't stop at 99% without explaining what's left."
+        "Don't stop at 99% without explaining what's left.",
+        "Don't build your own name + value row above an inline bar → layout=\"stacked\" with label and valueLabel."
       ],
       "rules": [
         "progress/value-range",
@@ -1280,7 +1456,8 @@
           "actionsDirection?: horizontal|vertical = horizontal",
           "children?: ReactNode",
           "dismissible?: boolean = true",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ModalForm": [
           "open?: boolean",
@@ -1305,7 +1482,8 @@
           "noValidate?: boolean = true",
           "invalidMessage?: (count: number) => string",
           "dismissible?: boolean = true",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1334,6 +1512,7 @@
         "dialog/negative-uses-danger",
         "dialog/no-nested",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -1365,7 +1544,8 @@
           "action?: { label: ReactNode; onClick?: () => void; keepOpen?: boolean }",
           "onClose?: () => void",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ToastStack": [
           "toasts: ToastItem[]",
@@ -1405,6 +1585,7 @@
         "toast/needs-title",
         "toast/concise",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1436,7 +1617,8 @@
           "action?: { label: ReactNode; onClick?: () => void }",
           "onClose?: () => void",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1453,6 +1635,7 @@
       "rules": [
         "alert-banner/small-no-action",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1536,7 +1719,8 @@
           "onPageSizeChange?: (pageSize: number) => void",
           "size?: xs|sm|xsmall|small = xs",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1553,6 +1737,7 @@
       ],
       "rules": [
         "pagination/worth-paging",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -1685,7 +1870,8 @@
           "action?: { label: ReactNode; onClick?: () => void }",
           "onClose?: () => void",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1705,6 +1891,7 @@
         "inline-message/needs-content",
         "inline-message/custom-needs-visual",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
@@ -1739,7 +1926,8 @@
           "icon?: IconName|ReactElement",
           "primaryAction?: EmptyStateAction",
           "secondaryAction?: EmptyStateAction",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1758,6 +1946,7 @@
         "empty-state/needs-title",
         "empty-state/action-label",
         "empty-state/way-out-tertiary",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "copy/plural-count",
         "interaction/no-noop-handler",
@@ -1785,12 +1974,14 @@
       "props": {
         "Stepper": [
           "ref?: Ref<HTMLOListElement>",
-          "steps: StepperStep[]",
+          "steps?: StepperStep[]",
+          "children?: ReactNode",
           "current?: number = 0",
           "orientation?: horizontal|vertical = horizontal",
           "onStepClick?: (step: StepperStep, index: number) => void",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -1807,6 +1998,7 @@
       "rules": [
         "stepper/needs-label",
         "stepper/step-count",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler"
       ]
@@ -1893,9 +2085,13 @@
       ],
       "props": {
         "Card": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "children?: ReactNode",
-          "theme?: shadow|flat|pale|border|semi-pale = shadow",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "spacing?: md|sm|medium|small = md",
           "selected?: boolean",
           "active?: boolean (deprecated)",
@@ -1904,11 +2100,12 @@
           "aria-label?: string",
           "subAction?: CardSubAction|ReactNode",
           "as?: div|article|section|li = div",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
-        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, Pale/Semi-Pale on imagery.",
+        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), Flat on Canvas/Default: no border, no shadow (usage rules §16). Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
         "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
         "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
         "Make the whole card clickable when it opens one thing, and name it with aria-label when the content doesn't start with a title.",
@@ -1926,7 +2123,9 @@
       ],
       "rules": [
         "card/clickable-no-nested-controls",
+        "card/on-container-in-overlay",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -1954,7 +2153,7 @@
         "DockIcon": [
           "icon?: IconName = icon-star-93-solid",
           "emoji?: ReactNode",
-          "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge = md",
+          "size?: xs|sm|md|lg|xl|2xl|xsmall|small|medium|large|xlarge|2xlarge = md",
           "theme?: DockIconTheme = neutral",
           "background?: solid|subtle = solid",
           "label?: string",
@@ -1980,12 +2179,86 @@
       ]
     },
     {
+      "slug": "voice",
+      "title": "Voice",
+      "file": "docs/guidelines/voice.md",
+      "apiFile": "docs/api/voice.json",
+      "figma": "Voice Recorder (15084:79711) + AI Voice Conversation (15084:79715) (page 15081:1294)",
+      "import": "import { VoiceRecorder, AiVoiceConversation } from \"@zen-ds/react\";",
+      "purpose": "Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action.",
+      "use": [
+        "Voice notes on a task, a comment or a ticket (VoiceRecorder).",
+        "Recording a take before attaching or sending it.",
+        "Voice mode with the assistant: listening, answering, interrupting (AiVoiceConversation).",
+        "Full-screen voice on a phone."
+      ],
+      "avoid": [
+        "A voice message already sent in a chat → ChatVoice (Chat/Bubble/Voice).",
+        "Dictating into the prompt → AiChatField listening.",
+        "Audio playback of a file → a media player, not a recorder."
+      ],
+      "props": {
+        "VoiceRecorder": [
+          "state?: ready|recording|paused = ready",
+          "title?: ReactNode",
+          "elapsed?: string = 00:00.00",
+          "start?: string = 00:00",
+          "end?: string = 00:00",
+          "guidance?: ReactNode",
+          "input?: ReactNode",
+          "format?: ReactNode",
+          "onRecord?: () => void",
+          "onPause?: () => void",
+          "onResume?: () => void",
+          "onFinish?: () => void",
+          "onDiscard?: () => void",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "AiVoiceConversation": [
+          "state?: ready|listening|responding = ready",
+          "name?: ReactNode",
+          "heading?: ReactNode",
+          "headingLevel?: 2|3|4|5|6 = 3",
+          "guidance?: ReactNode",
+          "speaker?: ReactNode",
+          "transcript?: ReactNode",
+          "muted?: boolean = false",
+          "onMutedChange?: (muted: boolean) => void",
+          "onStart?: () => void",
+          "onDone?: () => void",
+          "onInterrupt?: () => void",
+          "onEnd?: () => void",
+          "note?: ReactNode",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ]
+      },
+      "do": [
+        "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
+        "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
+        "Let your audio code drive state, and give the time and levels from it: one recorder level every 1/7 s (oldest dropped) keeps a real take scrolling at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.",
+        "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
+      ],
+      "dont": [
+        "Don't start recording or listening without a press: the microphone stays off until Record / Start talking.",
+        "Don't hide the state's meaning in colour alone: the Badge and the guidance line say it in words.",
+        "Don't use AiVoiceConversation for a recording to send: that is VoiceRecorder."
+      ],
+      "rules": [
+        "voice/actions-wired",
+        "api/overrides-studio-only",
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
+      ]
+    },
+    {
       "slug": "list-item",
       "title": "List Item",
       "file": "docs/guidelines/list-item.md",
       "apiFile": "docs/api/list-item.json",
       "figma": "List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)",
-      "import": "import { List, ListItem, ListBox } from \"@zen-ds/react\";",
+      "import": "import { List, ListItem, ListBox, ToggleListItem } from \"@zen-ds/react\";",
       "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
       "use": [
         "People, messages, files and settings lists.",
@@ -2012,31 +2285,57 @@
           "titleLines?: 1|2 = 1",
           "caption?: ReactNode",
           "leading?: IconName|ReactNode",
+          "value?: ReactNode",
+          "valueCaption?: ReactNode",
+          "valueTone?: ContentTone = strongest",
           "trailing?: ReactNode",
           "children?: ReactNode",
           "selected?: boolean = false",
           "onClick?: (event: MouseEvent<HTMLButtonElement|HTMLAnchorElement>) => void",
           "href?: string",
           "as?: li|div = li",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ListBox": [
+          "width?: hug|fill|number",
+          "minWidth?: number",
+          "maxWidth?: number",
+          "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "header?: ReactNode",
           "children: ReactNode",
           "footer?: ReactNode",
-          "theme?: flat|shadow|pale|border = flat",
+          "theme?: flat|shadow|pale|border|on-container = flat",
           "as?: div|section = div",
           "className?: string"
+        ],
+        "ToggleListItem": [
+          "ref?: Ref<HTMLElement>",
+          "title: ReactNode",
+          "caption?: ReactNode",
+          "leading?: IconName|ReactNode",
+          "checked?: boolean",
+          "defaultChecked?: boolean",
+          "onCheckedChange?: (checked: boolean) => void",
+          "disabled?: boolean = false",
+          "toggleSize?: sm|md|lg|small|medium|large = md",
+          "name?: string",
+          "as?: li|div = li",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
+        "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
-        "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).",
+        "Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
         "Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.",
         "Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance=\"flat\" size=\"md\") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.",
         "Keep to one or two trailing actions; move the rest into a More (…) menu.",
+        "Make a See all / Show all at a section head (beside a ListBox header title or a kicker) underlined text, not a button (user, 2026-10-13: it takes no more room than its words): <Text as=\"span\" textStyle=\"Body/Base/Medium\"><Link tone=\"inherit\"> — href when it opens the full list, as=\"button\" with aria-expanded when it expands the list in place.",
+        "Give a row that ends in an amount or total value + valueCaption (a transaction: \"+94,860,000 VND\" over \"3,600.00 USD\") instead of a Text stack in trailing: it lines up with the title and caption and keeps its width. Keep the sign in the text (+ / −) when valueTone colours money in or out.",
         "Use titleLines={2} when the title must be read in full (long task, document or file names in a narrow list); keep the default one line in dense lists where the caption carries the detail. Keep the caption short (it may wrap to a second line).",
         "Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.",
         "Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.",
@@ -2050,6 +2349,7 @@
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
         "Don't mix leading sizes in one list — row heights stop lining up.",
+        "Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).",
         "Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).",
         "Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.",
         "Don't give a static row an onClick just to get hover, and don't mark a static row selected.",
@@ -2062,11 +2362,15 @@
       "rules": [
         "flag/no-emoji-flag",
         "list-item/inset-not-padding",
+        "listbox/on-container-in-overlay",
         "list-item/clickable-row-toggle",
+        "list-item/switch-row",
         "list-item/trailing-button-medium",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "copy/plural-count",
-        "interaction/no-noop-handler"
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
       ]
     },
     {
@@ -2087,7 +2391,8 @@
         "One or two attributes per item → List Item.",
         "Layout grids → CSS grid.",
         "Key/value details of one record → a description list.",
-        "Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there)."
+        "Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there).",
+        "Long, multi-line cell content (notes, full descriptions, a spreadsheet-like grid) → not Table: its rows stay one line at Table/Cell/Size; a separate sheet-style component will cover it."
       ],
       "props": {
         "Table": [
@@ -2099,13 +2404,18 @@
           "aria-label?: string",
           "caption?: ReactNode",
           "selectable?: boolean = false",
-          "selectedIds?: string[] = []",
+          "selectedIds?: string[]",
+          "defaultSelectedIds?: string[]",
           "onSelectionChange?: (ids: string[]) => void",
+          "editable?: boolean = false",
+          "onCellCommit?: (row: T, columnId: string, value: string|string[]) => void",
+          "bulkActions?: TableBulkAction[]|((selectedIds: string[]) => TableBulkAction[])",
           "sort?: TableSort|null",
           "onSortChange?: (sort: TableSort|null) => void",
           "empty?: ReactNode",
           "onRowClick?: (row: T) => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2113,7 +2423,8 @@
         "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
         "Right-align numbers and amounts; keep text left.",
         "Give each row one primary text (bold) and at most one caption.",
-        "Put row actions in the last column (TableActions) as Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"; a ⋯ Menu trigger for several) and bulk actions above the table (harness: table/actions-flat).",
+        "Put row actions in the last column as Button/Icon-Flat Medium: `content: \"actions\"` with the column's `actions` (no cell function), or TableActions with IconButton appearance=\"flat\" level=\"primary\" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).",
+        "Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch (\"Archive 3 projects\"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.",
         "Show an Empty State row when filters return nothing.",
         "Make only the fields people routinely correct editable; keep IDs, computed and audit columns read-only.",
         "Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).",
@@ -2122,13 +2433,14 @@
         "Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.",
         "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
         "A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth=\"full\"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.",
+        "Inside a surface (Card, ChartCard, an Accordion panel, SidePanel, Dialog/ModalForm, BottomSheet, Popover, a Box with a surface or border) the last row has no bottom rule: the surface edge closes the table. The Table drops it by itself; in Figma set the last row's cells to a 0 bottom stroke weight (the colour stays bound). A page table on the canvas keeps its last rule.",
         "A table that is its own section gets an h2 in Heading/4 directly above it (<Heading level={2} id>), and the Table points to it with aria-labelledby. Use `caption` (rendered in Heading/4) only to name a table that already sits under a section heading: a caption is not a heading and is missing from the headings list (harness: table/title-heading-4).",
         "Build cells from the cell primitives at their Figma sizes: Badge Medium (not Small) in Badge/Trend cells, media sized by Subtext (Avatar XSmall → Small and Icon base → lg and Dock Icon XSmall → Small when a caption is on) (harness: table/media-size-by-subtext), Avatar/Stack Small for groups."
       ],
       "dont": [
         "Don't make selectable or sortable tables without handlers (harness: table/interaction-needs-handler).",
         "Don't open a read-only row from a small icon or the hover Open button: use onRowClick (a passive chevron at the end may show that rows open).",
-        "Don't wrap long text in every cell; truncate and show the full value on the detail view.",
+        "Don't count on long text wrapping: rows stay one line and cut it with an ellipsis, so show the full value on the detail view (onRowClick or onOpen).",
         "Don't use colour alone for status — use a Badge with text.",
         "Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.",
         "Don't commit on every keystroke; the editor saves on Enter, Tab, Escape (valid values) or clicking another cell.",
@@ -2145,6 +2457,7 @@
         "table/editor-number-right",
         "table/editor-number-validate",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -2207,7 +2520,8 @@
           "lowLabel?: ReactNode",
           "highLabel?: ReactNode",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2226,6 +2540,7 @@
       "rules": [
         "rating/needs-name",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -2282,7 +2597,7 @@
       "file": "docs/guidelines/metric.md",
       "apiFile": "docs/api/metric.json",
       "figma": "Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)",
-      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
+      "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
       "purpose": "Show one key number with its label, an identifying icon and how it changed.",
       "use": [
         "Dashboard KPI tiles (MetricCard).",
@@ -2307,7 +2622,13 @@
           "variant?: icon-highlight|title-highlight = icon-highlight",
           "action?: ReactNode",
           "iconSize?: md|lg|medium|large",
-          "className?: string"
+          "custom?: ReactNode",
+          "metricColor?: boolean|string = false",
+          "counter?: ReactNode",
+          "labelIcon?: IconName|ReactNode",
+          "hint?: ReactNode",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MetricCard": [
           "label: ReactNode",
@@ -2321,13 +2642,15 @@
           "variant?: icon-highlight|title-highlight",
           "action?: ReactNode",
           "iconSize?: md|lg|medium|large",
+          "custom?: ReactNode",
+          "metricColor?: boolean|string",
+          "counter?: ReactNode",
+          "labelIcon?: IconName|ReactNode",
+          "hint?: ReactNode",
           "className?: string",
-          "theme?: shadow|flat|pale|border|semi-pale = shadow",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
           "subAction?: CardSubAction|ReactNode"
-        ],
-        "MetricTrend": [
-          "trend?: positive|negative|normal = normal",
-          "children: ReactNode"
         ]
       },
       "do": [
@@ -2346,6 +2669,7 @@
       ],
       "rules": [
         "metric/formatted-value",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
@@ -2385,7 +2709,8 @@
           "onRetry?: (file: UploaderFile) => void",
           "buttonLabel?: ReactNode",
           "extended?: boolean = true",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "UploaderFileItem": [
           "file: UploaderFile",
@@ -2415,6 +2740,7 @@
         "uploader/needs-label",
         "uploader/accept-caption",
         "uploader/no-noop-replace",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
     },
@@ -2445,15 +2771,20 @@
           "title: ReactNode",
           "headingLevel?: 1|2|3 = 2",
           "description?: ReactNode",
+          "headerContent?: ReactNode",
+          "top?: ReactNode",
+          "onBack?: () => void",
+          "backLabel?: string",
           "type?: standard|modal = standard",
           "size?: default|small = default",
-          "icon?: IconName|ReactElement",
+          "icon?: IconName|ReactElement (deprecated)",
           "children?: ReactNode",
           "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "dismissible?: boolean = true",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2471,6 +2802,7 @@
       "rules": [
         "side-panel/not-for-confirmations",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -2767,6 +3099,7 @@
         ]
       },
       "do": [
+        "Give the bar the colour of the screen under it (user rule 2026-10-08): on Canvas/Default or Surface/Alt (the same colour in light and dark; a phone screen by default) use alt, compact-alt or alt-blurring; on a white Surface screen default, compact or default-blurring; an overlay type only on media.",
         "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
         "Use a large title only on top-level screens (tab roots); a pushed screen with Back uses the bar title alone.",
         "On a root, keep the default: the bar row folds into the large-title row (Figma Top-bar=false), so the actions sit at the right of the large title and stay put when it folds; pass topBar only for a stack that keeps the bar above the large title.",
@@ -2820,7 +3153,8 @@
       ],
       "props": {
         "BottomNavigation": [
-          "items: BottomNavigationItem[]",
+          "items?: BottomNavigationItem[]",
+          "children?: ReactNode",
           "value: string",
           "onValueChange: (id: string) => void",
           "type?: default|floating|floating-glass = default",
@@ -2831,7 +3165,8 @@
           "fixed?: boolean = false",
           "backdrop?: surface|none = surface",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2849,6 +3184,7 @@
       ],
       "rules": [
         "bottom-navigation/destinations",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
@@ -2890,11 +3226,13 @@
           "primaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "secondaryAction?: { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body fo…",
           "actionsDirection?: horizontal|vertical = horizontal",
+          "footer?: ReactNode",
           "onSubmit?: (event: FormEvent<HTMLFormElement>) => void",
           "dismissible?: boolean = true",
           "inline?: boolean = false",
           "closeLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -2915,7 +3253,9 @@
       "rules": [
         "segmented/control-bar-full-width",
         "bottom-sheet/action-needs-items",
+        "bottom-sheet/choice-uses-list-item",
         "api/deprecated-prop",
+        "api/overrides-studio-only",
         "mobile/full-size-controls",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler",
@@ -2928,7 +3268,7 @@
       "file": "docs/guidelines/chat.md",
       "apiFile": "docs/api/chat.json",
       "figma": "❖ Chat (7042:23220)",
-      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen-ds/react\";",
+      "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatVoice, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen-ds/react\";",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
       "use": [
         "Direct and group conversations, support chat (Business domain).",
@@ -2961,7 +3301,8 @@
           "reaction?: ChatQuickReaction|(string & {})",
           "onReact?: (kind: ChatReactionKind|undefined) => void",
           "onMoreReactions?: () => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChatComposer": [
           "onSend: (text: string) => void",
@@ -2974,7 +3315,8 @@
           "disabled?: boolean = false",
           "replyTo?: ChatReplyTarget",
           "onCancelReply?: () => void",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChatThread": [
           "children: ReactNode",
@@ -2992,7 +3334,8 @@
           "unread?: boolean = false",
           "online?: boolean = false",
           "selected?: boolean",
-          "onClick?: () => void"
+          "onClick?: () => void",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "ChatComposerReply": [
           "target: ChatReplyTarget",
@@ -3060,6 +3403,7 @@
         "chat/no-locked-interaction",
         "chat/reactions-name-people",
         "chat/hold-delete-destructive",
+        "api/overrides-studio-only",
         "layout/scroll-anchor-flex-end",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -3090,7 +3434,8 @@
           "streaming?: boolean = false",
           "thinking?: boolean = false",
           "thinkingLabel?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AiChatField": [
           "onSubmit: (text: string) => void",
@@ -3100,18 +3445,24 @@
           "onModelClick?: () => void",
           "onAttach?: () => void",
           "onVoice?: () => void",
+          "onVoiceMode?: () => void",
+          "listening?: boolean = false",
+          "onStopListening?: () => void",
           "busy?: boolean = false",
           "onStop?: () => void",
           "disabled?: boolean = false",
           "defaultValue?: string = ",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AiChatBlock": [
           "greeting?: ReactNode",
+          "headingLevel?: 1|2|3 = 2",
           "logo?: IconName|ReactNode",
           "suggestions?: AiChatSuggestion[] = []",
           "children: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3130,6 +3481,7 @@
       ],
       "rules": [
         "ai-chat/no-actions-while-streaming",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler"
       ]
@@ -3139,66 +3491,148 @@
       "title": "Chart",
       "file": "docs/guidelines/chart.md",
       "apiFile": "docs/api/chart.json",
-      "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528",
-      "import": "import { LineChart, StackBarChart, ChartCard } from \"@zen-ds/react\";",
-      "purpose": "Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch.",
+      "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528, Chart/Bar-Chart 15321:84071, Chart/Multi-Line-Chart 15426:2521, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart 15326:1043 (spec docs/research/chart-family-spec-2026-10-12.md)",
+      "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, ChartCard } from \"@zen-ds/react\";",
+      "purpose": "One chart family in one style: how a value changes over time (Line), compares across periods or categories (Bar), splits a total (Stack bar, Donut), measures against a maximum (Radial) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
-        "Trends over a few periods (4–12 points) → LineChart.",
+        "A trend over 4–12 periods → LineChart; against last year, the plan or a second measure over the same periods → LineChart compare (one dashed comparison line, with a legend).",
+        "Compare periods or categories → BarChart (vertical); long category names or a goal per bar → BarChart orientation=\"horizontal\" with target; a forecast → projected bars.",
         "Part-to-whole across periods → StackBarChart with a legend.",
-        "Dashboard tiles → ChartCard next to Metric Cards."
+        "Shares of one total (2–7) → DonutChart.",
+        "1–4 measures against the same maximum (budget used, goals) → RadialChart.",
+        "A value per day × hour, or any row × column grid → HeatmapChart.",
+        "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
         "Exact values to compare or export → Table.",
-        "More than ~7 series → split the chart or use a Table."
+        "More than ~7 series or slices → split the chart or use a Table.",
+        "A donut for values over time → LineChart or BarChart.",
+        "One progress value with a label → ProgressBar / ProgressCircle, not a RadialChart."
       ],
       "props": {
         "LineChart": [
-          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "aria-label: string",
-          "height?: number = 280",
-          "className?: string",
           "data: ChartPoint[]",
-          "initialIndex?: number"
+          "label?: string",
+          "compare?: ChartCompare",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "height?: number = 280",
+          "aria-label: string",
+          "className?: string",
+          "initialIndex?: number",
+          "curve?: smooth|linear = smooth",
+          "fill?: gradient|none = gradient",
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom = bottom",
+          "animate?: boolean = true",
+          "showAverage?: boolean = false"
+        ],
+        "BarChart": [
+          "data: ChartPoint[]",
+          "orientation?: vertical|horizontal = vertical",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "height?: number = 280",
+          "aria-label: string",
+          "className?: string",
+          "initialIndex?: number",
+          "color?: string",
+          "activeColor?: string",
+          "animate?: boolean = true",
+          "showAverage?: boolean = false"
         ],
         "StackBarChart": [
-          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "aria-label: string",
-          "height?: number = 236",
-          "className?: string",
-          "data: ChartStack[]",
+          "data: ChartDatum[]",
           "series: ChartSeries[]",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "height?: number = 236",
+          "aria-label: string",
+          "className?: string",
           "initialIndex?: number",
-          "showLegend?: boolean = true"
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom = bottom",
+          "animate?: boolean = true",
+          "showAverage?: boolean = false"
+        ],
+        "DonutChart": [
+          "data: ChartSlice[]",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "size?: number = 200",
+          "aria-label: string",
+          "value?: ReactNode",
+          "label?: ReactNode",
+          "totalPosition?: centre|start = centre",
+          "showPercent?: boolean = true",
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom|start|end = bottom",
+          "className?: string",
+          "animate?: boolean = true"
+        ],
+        "RadialChart": [
+          "data: ChartSlice[]",
+          "max?: number = 100",
+          "format?: (value: number) => string",
+          "size?: number = 200",
+          "aria-label: string",
+          "value?: ReactNode",
+          "label?: ReactNode",
+          "showLegend?: boolean = true",
+          "legendPosition?: top|bottom|start|end = bottom",
+          "className?: string",
+          "animate?: boolean = true"
+        ],
+        "HeatmapChart": [
+          "rows: string[]",
+          "columns: string[]",
+          "values: number[][]",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "max?: number",
+          "aria-label: string",
+          "showLegend?: boolean = true",
+          "className?: string",
+          "animate?: boolean = true"
         ],
         "ChartCard": [
           "title: ReactNode",
           "headingLevel?: 2|3|4 = 3",
+          "icon?: IconName|ReactNode",
+          "description?: ReactNode",
+          "value?: ReactNode",
           "onOpen?: () => void",
           "openLabel?: string",
           "ranges?: SegmentedOption[]",
           "range?: string",
           "onRangeChange?: (id: string) => void",
           "rangesFullWidth?: boolean = true",
-          "theme?: shadow|flat|pale|border|semi-pale = flat",
+          "theme?: shadow|flat|pale|border|on-container|semi-pale = flat",
           "surface?: default|alt",
           "children: ReactNode",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
-        "Always give the chart an aria-label that says what it shows and over which range.",
-        "Format values for people (`$23.4K`, `52 GB`) with `format`.",
-        "Keep the legend on stack bars so colour is never the only key (harness: chart/stack-needs-legend).",
-        "Use the Segmented range switch in the card instead of separate charts per range."
+        "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
+        "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
+        "Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).",
+        "Mark a forecast `projected` so it reads as not earned yet; show a goal as a `target` track, not as another series.",
+        "Use the Segmented range switch in the card instead of separate charts per range, and key the chart by the range so it draws in again.",
+        "Turn on showAverage when the question is \"above or below normal?\"; leave it off when the trend itself is the point.",
+        "Lead the card with the figure the chart explains (`value`) and say what it is (`description`)."
       ],
       "dont": [
         "Don't use a line for categories that aren't ordered in time.",
         "Don't pick custom colours outside the chart palette unless a series has a fixed brand colour.",
-        "Don't put a chart where the user needs exact values; add a Table."
+        "Don't put a chart where the user needs exact values; add a Table.",
+        "Don't start a bar's axis above zero or stretch a donut past ~7 slices.",
+        "Don't mix chart styles on one screen: every chart takes the shared grid, labels, Tooltip, legend and motion."
       ],
       "rules": [
         "chart/stack-needs-legend",
+        "chart/needs-name",
+        "chart/shares-need-legend",
+        "chart/heatmap-needs-scale",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -3245,6 +3679,8 @@
           "align?: start|center|end|stretch|baseline",
           "justify?: start|center|end|between|around",
           "wrap?: boolean = false",
+          "clip?: boolean = false",
+          "scroll?: x|y",
           "fillChildren?: boolean = false",
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
@@ -3273,9 +3709,11 @@
           "rowGap?: none|ZenScaleInput|giant|xgiant|2xgiant",
           "columnGap?: none|ZenScaleInput|giant|xgiant|2xgiant",
           "align?: start|center|end|stretch",
+          "stackBelow?: number",
           "padding?: none|ZenScaleInput|4xl",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "clip?: boolean = false"
         ],
         "Box": [
           "width?: hug|fill|number",
@@ -3301,7 +3739,8 @@
           "padding?: none|ZenScaleInput|4xl",
           "paddingX?: none|ZenScaleInput|4xl",
           "paddingY?: none|ZenScaleInput|4xl",
-          "surface?: none|surface|surface-alt|subtle|pale = none",
+          "surface?: none|surface|surface-alt|subtle|pale|canvas = none",
+          "scroll?: x|y",
           "border?: none|pale|subtle = none",
           "radius?: none|Exclude<ZenScaleInput, 3xs|3xsmall>|full",
           "as?: div|section|article|aside|header|footer|main|nav|form|fieldset|ul|ol|li = div",
@@ -3315,7 +3754,7 @@
         ]
       },
       "do": [
-        "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere (docs/component-usage-rules.md §13): 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
+        "Build page structure with Stack and Grid and pick the gap by the relationship, the same step everywhere: 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of Buttons or choices, md blocks inside one surface and stacked form fields, lg columns and groups inside a surface, xl page sections (Figma Master-Layout).",
         "Step up one level at least between groups: the gap between groups is always larger than the gap inside them.",
         "Use Stack direction=\"row\" with justify=\"between\" for a title + actions row.",
         "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
@@ -3393,6 +3832,8 @@
           "truncate?: boolean|number",
           "align?: start|center|end|justify",
           "verticalAlign?: top|middle|bottom",
+          "wrap?: boolean = true",
+          "tabularNumbers?: boolean = false",
           "htmlFor?: string",
           "children?: ReactNode"
         ],
@@ -3410,10 +3851,14 @@
           "truncate?: boolean|number",
           "align?: start|center|end|justify",
           "verticalAlign?: top|middle|bottom",
+          "wrap?: boolean = true",
+          "tabularNumbers?: boolean = false",
           "children?: ReactNode"
         ]
       },
       "do": [
+        "Give a readout that changes in place (a zoom %, \"3 of 12\", a quantity between − and +) tabularNumbers and a minWidth, so the controls beside it stay put; keep a time or amount beside a row on one line with wrap={false}.",
+        "Colour emoji take the alpha of their text colour, so one in a light tone (Content/Neutral/Base or Light: captions, DescriptionList terms, muted text) renders faded: wrap the emoji alone in an opaque span, <Text as=\"span\" textStyle=… tone=\"strongest\">👋</Text>, and keep the words in the light tone (Zen has no Emoji component).",
         "Give every page or screen exactly one h1, present at all times, that names it and matches document.title (plus the app name). Where the title is shown large (PageHeader, a phone large title) it is Heading/1, like the Figma Master-Layout page title (harness: heading/h1-is-heading-1); a compact app bar title is the screen's h1 and keeps its bar style (Body/Extra/Bold).",
         "Follow the content hierarchy on the Typography page: page titles h1 Heading/1; sections (a group of cards, a table, a list) h2 Heading/4; card and widget titles one level below the nearest heading above (h3 under a section, h2 right under the page title), always Heading/Subheading; a page title inside a tab (PageHeader headingLevel 2) h2 Heading/2; list group headers one level below the nearest heading above, Body/Small/Bold in tone \"base\" (a kicker label); overlay titles h2 by default (h1 also accepted), never Heading/1. On a phone the master screen's large title and a child screen's compact bar title are the h1, so content starts at h2 (audit: outline).",
         "Step down one level at a time (h1 → h2 → h3); going back up may jump (h4 → h2). Every page or screen starts at h1; a component's headings take their level from where it is placed (headingLevel); fixed regions (Sidebar, Drawer) keep their level on every page.",
@@ -3465,6 +3910,8 @@
         "AppShell": [
           "sidebar?: ReactNode",
           "header?: ReactNode",
+          "headerCenter?: ReactNode",
+          "sections?: ReactNode",
           "headerActions?: ReactNode",
           "banner?: ReactNode",
           "aside?: ReactNode",
@@ -3481,7 +3928,8 @@
           "navLabel?: string",
           "mainId?: string",
           "layout?: auto|sidebar|drawer = auto",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AppShellAction": [
           "icon: IconName|ReactNode",
@@ -3490,12 +3938,14 @@
           "dot?: boolean = false",
           "tone?: default|active|accent = default",
           "appearance?: tertiary|flat = tertiary",
-          "tooltip?: ReactNode|false"
+          "tooltip?: ReactNode|false",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "AppShellAccount": [
           "name: string",
           "src?: string",
-          "theme?: Exclude<AvatarTheme, photo> = neutral"
+          "theme?: Exclude<AvatarTheme, photo> = neutral",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3516,10 +3966,12 @@
         "Don't hand-build a bell with a red dot; use AppShellAction."
       ],
       "rules": [
+        "icon-button/needs-action",
         "app-shell/primary-in-top-bar",
         "app-shell/nested",
         "app-shell/breadcrumbs-once",
         "app-shell/forced-layout",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]
@@ -3544,14 +3996,17 @@
       "props": {
         "PageHeader": [
           "title: ReactNode",
+          "childTitle?: ReactNode",
           "description?: ReactNode",
           "breadcrumbs?: ReactNode",
           "eyebrow?: ReactNode",
           "actions?: ReactNode",
           "meta?: ReactNode",
+          "trailing?: ReactNode",
           "tabs?: ReactNode",
           "back?: PageHeaderBack",
-          "headingLevel?: 1|2 = 1"
+          "headingLevel?: 1|2 = 1",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3569,6 +4024,66 @@
       ],
       "rules": [
         "page-header/one-primary",
+        "api/overrides-studio-only",
+        "interaction/no-noop-handler"
+      ]
+    },
+    {
+      "slug": "dashboard-header",
+      "title": "Dashboard Header",
+      "file": "docs/guidelines/dashboard-header.md",
+      "apiFile": "docs/api/dashboard-header.json",
+      "figma": "◇ Master-Layout Primitives/Dashboard/Header (4122:33402): Type Control-Bar · Navigation · Main · Custom",
+      "import": "import { DashboardHeader } from \"@zen-ds/react\";",
+      "purpose": "One row of a dashboard page's header: a control bar (Search, filter Chips, a result count and the page's actions), a navigation bar (Breadcrumbs, notifications and the account), the page title row or your own row.",
+      "use": [
+        "The toolbar above a table or a list: Search, filters and the page's actions (type control-bar).",
+        "A dashboard page's navigation bar outside an AppShell: where the page is, then notifications and the account (type navigation).",
+        "A row of your own between the header rows, e.g. a period Segmented and a date range (type custom).",
+        "Converting a Figma Header/Dashboard: every Primitives/Dashboard/Header row keeps its Type."
+      ],
+      "avoid": [
+        "The app frame's top bar inside an AppShell → AppShell header · headerCenter · headerActions.",
+        "A page title with breadcrumbs, Back or section tabs → PageHeader (type main renders the same row without them).",
+        "Phone screens → TopNavigation and the mobile filter row (Chip › Mobile filter row).",
+        "A toolbar inside a card or a table widget → a Stack in the card's header."
+      ],
+      "props": {
+        "DashboardHeader": [
+          "type?: navigation|main|control-bar|custom = control-bar",
+          "leading?: ReactNode",
+          "center?: ReactNode",
+          "trailing?: ReactNode",
+          "search?: ReactNode",
+          "controls?: ReactNode",
+          "subheading?: ReactNode",
+          "actions?: ReactNode",
+          "title?: ReactNode",
+          "childTitle?: ReactNode",
+          "headingLevel?: 1|2 = 1",
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ]
+      },
+      "do": [
+        "Inside an AppShell, put the rows in sections (Figma Header/Dashboard): the shell pads each row and keeps the top bar its own.",
+        "Give the Search a placeholder that names what it searches (\"Search leave requests\").",
+        "Make filters Chip variant=\"advanced\" in controls, each opening its own Popover (harness: dashboard-header/filters-are-chips).",
+        "Write the result count with plural() and update it with the filters (\"96 results\", \"1 result\").",
+        "Order actions Tertiary first and keep one Primary, last (harness: dashboard-header/one-primary).",
+        "Use only the props of the row's type: search on a navigation row does nothing (harness: dashboard-header/props-of-type)."
+      ],
+      "dont": [
+        "Don't use Buttons as filters in controls.",
+        "Don't put more than one Primary in actions.",
+        "Don't stack two navigation rows, or a navigation row under AppShell's top bar.",
+        "Don't leave type=\"main\" without a title (harness: dashboard-header/main-needs-title)."
+      ],
+      "rules": [
+        "dashboard-header/props-of-type",
+        "dashboard-header/one-primary",
+        "dashboard-header/main-needs-title",
+        "dashboard-header/filters-are-chips",
         "interaction/no-noop-handler"
       ]
     },
@@ -3610,7 +4125,8 @@
           "labelTooltip?: boolean|ReactNode",
           "labelAction?: ReactNode",
           "controlId?: string",
-          "children: ReactElement"
+          "children: ReactElement",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "FormFieldset": [
           "legend: ReactNode",
@@ -3622,7 +4138,8 @@
           "error?: ReactNode",
           "required?: boolean = false",
           "optional?: boolean = false",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "FormActions": [
           "align?: end|start|between = end",
@@ -3653,6 +4170,7 @@
         "Don't clear the fields after a failed submit, and don't use the placeholder as the label or for instructions."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "form/actions-order",
         "form/submit-button",
         "form/toggle-outside-form",
@@ -3673,7 +4191,8 @@
         "Links inside running text: help copy, descriptions, empty states, inline messages.",
         "Standalone links to a related page (“View all invoices”, a footer link).",
         "Other sites (docs, status page) in a new tab with external.",
-        "Client-side routes through your router's link: as={RouterLink} to=\"/x\"."
+        "Client-side routes through your router's link: as={RouterLink} to=\"/x\".",
+        "A section head's See all / Show all (user, 2026-10-13: text takes less room than a button): tone=\"inherit\" (underlined) in a Body/Base/Medium Text; href when it opens the full list, as=\"button\" with aria-expanded when it expands the list in place."
       ],
       "avoid": [
         "An action on this page (save, open a dialog, delete) → Button (level=\"tertiary\" or appearance=\"flat\").",
@@ -3747,7 +4266,8 @@
           "defaultOpen?: boolean = false",
           "onOpenChange?: (open: boolean) => void",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MenuItem": [
           "id?: string",
@@ -3788,6 +4308,7 @@
         "Don't mix items with and without icons in one menu."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "icon/unknown-name",
         "menu/not-for-selection",
         "menu/needs-trigger",
@@ -3819,11 +4340,11 @@
         "ZenProvider": [
           "theme?: light|dark|system",
           "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7|brand-s1|brand-s2",
-          "density?: compact|comfortable",
-          "radius?: rounded|smooth|standard|luxury",
+          "density?: compact|comfortable|studio",
+          "radius?: rounded|smooth|standard|luxury|studio",
           "emphasis?: medium|strong|light",
           "breakpoint?: auto|desktop|tablet|mobile",
-          "typography?: dashboard|popular|mobile",
+          "typography?: dashboard|popular|mobile|studio",
           "brand?: zen",
           "contrast?: standard|high|system",
           "locale?: string",
@@ -3943,7 +4464,8 @@
           "primaryAction?: ActionBarAction",
           "secondaryAction?: ActionBarAction",
           "summary?: ReactNode",
-          "children?: ReactNode"
+          "children?: ReactNode",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
@@ -3963,6 +4485,7 @@
         "Don't pad the page for the home indicator yourself; the bar already clears the safe area."
       ],
       "rules": [
+        "api/overrides-studio-only",
         "action-bar/one-primary",
         "action-bar/primary-order",
         "action-bar/full-width-size",

@@ -52,19 +52,11 @@
 .zen-top-nav__fold { clip-path: inset(var(--zen-top-nav-fold, 0px) 0 0 0); }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav[data-scroll-linked="true"]::before { transition: border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 
-/* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom). CSS has one
-   backdrop-filter per element, so five stacked layers each blur the backdrop and are masked to a band that ends
-   1/5 higher than the previous one: the top edge sits under all five (strongest), the bottom under none (sharp).
-   Figma radius ≈ 2 × CSS blur(): Default-Bluring 10 → 5px, Alt-Bluring / Liquid Glass / Overlays 20 → 10px.
-   Each layer blurs by R/√5 so the stacked top edge adds up to ≈ R. Layers sit under the gradient fill and content. */
+/* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom), drawn by
+   _shared/progressive-blur (a linear ramp of stacked backdrop blurs). Figma radius ≈ 2 × CSS blur(): Default-Bluring
+   10 → 5px, Alt-Bluring / Liquid Glass / Overlays 20 → 10px. The layers sit under the gradient fill and content. */
 .zen-top-nav { --zen-top-nav-blur: 10px; }
-.zen-top-nav__progressive { position: absolute; z-index: -1; inset: 0; pointer-events: none; }
-.zen-top-nav__progressive > i { position: absolute; inset: 0; -webkit-backdrop-filter: blur(calc(var(--zen-top-nav-blur) / 2.236)); backdrop-filter: blur(calc(var(--zen-top-nav-blur) / 2.236)); }
-.zen-top-nav__progressive > i:nth-child(1) { -webkit-mask-image: linear-gradient(180deg, #000 80%, transparent 100%); mask-image: linear-gradient(180deg, #000 80%, transparent 100%); }
-.zen-top-nav__progressive > i:nth-child(2) { -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 80%); mask-image: linear-gradient(180deg, #000 60%, transparent 80%); }
-.zen-top-nav__progressive > i:nth-child(3) { -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 60%); mask-image: linear-gradient(180deg, #000 40%, transparent 60%); }
-.zen-top-nav__progressive > i:nth-child(4) { -webkit-mask-image: linear-gradient(180deg, #000 20%, transparent 40%); mask-image: linear-gradient(180deg, #000 20%, transparent 40%); }
-.zen-top-nav__progressive > i:nth-child(5) { -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 20%); mask-image: linear-gradient(180deg, #000 0%, transparent 20%); }
+.zen-top-nav__progressive { --zen-progressive-blur: var(--zen-top-nav-blur); position: absolute; z-index: -1; inset: 0; }
 
 /* Navigator bar: 64px, leading · centred Sub heading · trailing. */
 /* The sides are equal while both fit, so the title stays centred; a side never shrinks below its actions (three Tertiary
@@ -122,7 +114,8 @@
 .zen-top-nav__action .zen-icon, .zen-top-nav__action svg { width: var(--zen-navigation-mobile-top-icon-size, 24px); height: var(--zen-navigation-mobile-top-icon-size, 24px); }
 .zen-top-nav__action:hover:not(:disabled) { background: var(--zen-button-tertiary-background-hover, #f7f7f7); }
 .zen-top-nav__action:active:not(:disabled) { background: var(--zen-button-tertiary-background-pressed, #efefef); box-shadow: inset 0 0 0 1px var(--zen-button-tertiary-border-default, rgb(1 1 1 / 11%)); }
-.zen-top-nav__action:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+/* Figma Nav-Action Focus-Ring: a 3px INSIDE stroke on a rect 6px outside the 44px container, so a 3px ring 3px clear of it. */
+.zen-top-nav__action:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff6bd5); outline-offset: 3px; }
 .zen-top-nav__action:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 /* Flat: no container; the 44px target stays but only the 24px icon takes layout room (Figma Style=Flat 12012:36254: an
    Icon-Size slot with the Navigation-Action/Size button at −10px). */
@@ -141,7 +134,8 @@
 .zen-top-nav__action[data-style="glass-dark"]:hover:not(:disabled) { background: var(--zen-color-background-liquid-glass-black-overlay-hover, rgb(0 0 0 / 40%)); }
 /* Noti (Nav-Slot/Action 6085:44062, every Style incl. Flat): 8px at x 26 · y 10 of the 44px button, i.e. pinned to the
    icon's top-right corner, so it sits one icon padding in from the top and the end. */
-.zen-top-nav__dot { position: absolute; top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-negative-solid-default, #e5532e); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
+/* The dot is the shared Notification-Dot (_shared/notification-dot.css); this places it on the icon. */
+.zen-top-nav__dot { top: var(--zen-navigation-action-icon-spacing-vertical-padding, 10px); right: var(--zen-navigation-action-icon-spacing-horizontal-padding, 10px); }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav__action { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 
 /* searchAction: the Search control bar folds into a trailing Search action while collapsed (and back). */

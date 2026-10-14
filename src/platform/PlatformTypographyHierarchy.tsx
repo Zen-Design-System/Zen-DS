@@ -161,7 +161,7 @@ function MasterScreenExample() {
   const chats = [["Design team", "Chi: Standup moved to 10:30", "9:41 am"], ["Ava Chen", "Did you get the brand files?", "9:12 am"], ["Bao Nguyen", "Merged the token PR", "Yesterday"], ["Duy Le", "Can you review the icons?", "Mon"], ["Emi Sato", "Lunch at 12?", "Sun"], ["Finn Walker", "Slides are in the shared folder", "Sat"], ["Gia Pham", "Can we move the review?", "Fri"], ["Hana Kim", "Invoice sent", "Thu"], ["Ivy Tran", "See you at the launch", "Wed"], ["Khoa Vo", "The build is green", "Tue"], ["Linh Do", "Can you share the deck?", "Mon"], ["Minh Ho", "Booked the room", "Sep 12"], ["Nam Bui", "Thanks for the notes", "Sep 11"], ["Oanh Ly", "Photos from the event", "Sep 10"]];
   return (
     <Demo>
-      <PlatformPhone label="Master screen" headerOverlay screenRef={screenRef} header={<TopNavigation title="Chats" largeTitle="Chats" scrollRef={screenRef} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: () => setComposing(true) }]} />}>
+      <PlatformPhone label="Master screen" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Chats" largeTitle="Chats" scrollRef={screenRef} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: () => setComposing(true) }]} />}>
         {/* Static rows (no row opens a chat in this demo) sit in the screen margin; each kicker sits xs above its list. */}
         <Stack gap="lg" padding="lg">
           <Stack as="section" gap="xs">
@@ -198,7 +198,7 @@ function ChildScreenExample() {
   return (
     <Demo>
       <PlatformPhone key={openId ?? "root"} label="Child screen" headerOverlay screenRef={screenRef} header={order
-        ? <TopNavigation type="compact" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
+        ? <TopNavigation type="compact-alt" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
         : <TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
         {order ? (
@@ -281,7 +281,7 @@ const ladder: Array<{ group: string; rows: Rule[] }> = [
   { group: "Desktop and web pages", rows: [
     ["Master page title — a destination in the Sidebar", "h1", "Heading/1", "PageHeader title (Figma Header/Dashboard Level=Master); document.title is the h1 text, then the app name"],
     ["Child page title — an item or sub-view of a master page", "h1", "Heading/1", "PageHeader title + Back named after the parent, or Breadcrumbs (Figma Child-Heading); document.title follows each view"],
-    ["Page title inside a tab — the page's h1 sits above the tabs", "h2", "Heading/2", "PageHeader headingLevel={2}"],
+    ["Page title inside a tab — the page's h1 sits above the tabs", "h2", "Heading/4", "PageHeader headingLevel={2}"],
     ["Page description", "p", "Body/Base/Regular · base", "PageHeader description (Figma SubHeading)"],
     ["Section title — a group of cards, a list, a table", "h2", "Heading/4 — one style for every sibling section", "<Heading level={2}> (its default look)"],
     ["Table that is its own section", "h2", "Heading/4", "A Heading above the Table, which points to it with aria-labelledby; the Table caption only names a table that already sits under a section heading"],

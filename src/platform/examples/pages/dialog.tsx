@@ -30,6 +30,7 @@ import {
   TODAY, daysFromToday, files, formatDate, formatDay, formatRange, formatRelative, initials, leaveRequests, leaveStatusTheme, people, projectStatusTheme,
   projects, tasks, type LeaveKind, type LeaveRequest, type LeaveStatus, type Person, type PersonId, type ProjectStatus,
 } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./dialog.css";
 
 export const page: PlatformPage = "dialog";
@@ -115,7 +116,7 @@ function DeleteProject() {
     focusSoon(() => listRef.current?.querySelector<HTMLElement>("button"));
   };
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md" ref={listRef}>
         <CardHeader title="Completed projects" />
         {rows.length ? (
@@ -161,7 +162,7 @@ function DiscardChanges() {
   const save = () => { setSaved(draft?.trim() || saved); close(); toast({ title: "Description saved" }); };
   const discard = () => { setConfirming(false); close(); };
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title={pointsTask.title}>{`${pointsTask.key} · Loyalty app`}</CardHeader>
         {editing ? (
@@ -217,7 +218,7 @@ function InviteByEmail() {
     toast({ title: "Invite sent" });
   };
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="People on Loyalty app" action={<Button level="tertiary" startIcon="icon-user-plus-line" onClick={start} size="sm">Invite people</Button>} />
         <CardList label="People on Loyalty app">
@@ -322,7 +323,7 @@ function RequestTimeOff() {
   const approver = people.minhAnh;
   const typeName = useId();
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="Your time off" action={<Button level="tertiary" startIcon="icon-plus-line" onClick={start} size="sm">Request time off</Button>}>
           {`${plural(leaveBalance["Annual leave"] ?? 0, "day")} of annual leave left in ${TODAY.getFullYear()}`}
@@ -399,7 +400,7 @@ function NewProject() {
   // The lead is on the team anyway; members are everyone else who is ticked.
   const members = team.filter((id) => id !== lead);
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="Projects" action={<Button level="tertiary" startIcon="icon-plus-line" onClick={start} size="sm">New project</Button>} />
         <CardList label="Projects">
@@ -478,7 +479,7 @@ function RestoreVersion() {
   };
   const saveCopy = () => { setOpen(false); toast({ title: "Copy saved" }); };
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title={contractFile.name}>Loyalty app · version history</CardHeader>
         <CardList label="Versions">
@@ -529,7 +530,7 @@ function TokenOnce() {
   const copy = () => { navigator.clipboard?.writeText(secret).catch(() => undefined); setCopied(true); };
   const newest = tokens[0];
   return (
-    <Card theme="flat" spacing="md" className="px-dialog-card">
+    <Card theme="flat" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="Access tokens">Tokens let your tools read and publish the Zen design system.</CardHeader>
         <Form onSubmit={create} gap="md">
@@ -553,7 +554,7 @@ function TokenOnce() {
         primaryAction={{ label: "Done" }}>
         {/* Read-only: the value can be selected and copied but not changed. The copy action sits outside the field. */}
         <Stack gap="md" align="start">
-          <Box className="px-dialog-fill">
+          <Box alignSelf="stretch">
             <InputField label="Token" readOnly value={secret} helpText={copied ? "Copied to the clipboard." : undefined} helpTheme="positive" />
           </Box>
           <Button level="tertiary" startIcon={copied ? "icon-check-line" : "icon-copy-line"} onClick={copy}>Copy token</Button>
@@ -629,7 +630,7 @@ function PhoneWithdraw() {
   const balance = leaveBalance[request.kind];
   return (
     <PlatformPhone key={request.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={request.kind} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={request.kind} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-leave="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       footer={upcoming(request) ? (
         <ActionBar position="static" primaryAction={canWithdraw
@@ -661,7 +662,7 @@ function PhoneWithdraw() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Delete a project",
     description: "Deleting a project can't be undone, so the negative Dialog states what goes with it and keeps Delete project disabled until the name is typed; Enter in the field then confirms. Focus starts in the field; Cancel and Escape leave without deleting.",
@@ -763,7 +764,7 @@ const cancel = () => (draft !== saved ? setConfirming(true) : close());
 // each year a white <ListBox> around its List of rows that open a request, under
 // a kicker in <Box paddingX="lg">.
 <PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Annual leave" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Annual leave" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}
   footer={<ActionBar position="static"
     primaryAction={{ label: "Withdraw request", level: "danger-subtle", onClick: () => setConfirming(true) }} />}>
@@ -805,4 +806,4 @@ const cancel = () => (draft !== saved ? setConfirming(true) : close());
 </Dialog>`,
     render: () => <TokenOnce />,
   },
-];
+]);

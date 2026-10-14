@@ -45,6 +45,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 | `secondaryAction` | `ActionBarAction` | — | One alternative (level tertiary), next to the primary: below it when vertical, before it when horizontal. |
 | `summary` | `ReactNode` | — | Context for the actions: a total, a selection count or a status line. Above the buttons when vertical, at the start when horizontal. |
 | `children` | `ReactNode` | — | Custom actions (Buttons, in visual order: Primary first when vertical, last when horizontal). With primaryAction / secondaryAction they sit on the side away from the Primary. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: "danger" } }`). Written by Zen Studio; app code sets primaryAction / secondaryAction. |
 
 ### Types
 Object shapes the props above refer to.
@@ -89,11 +90,12 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `action-bar/one-primary` | error | An Action Bar holds one Primary, the screen's main action; everything else is Tertiary (or Danger when irreversible). | `zen-allow-two-primary: <reason>` |
 | `action-bar/primary-order` | warn | Button children follow the visual order: Primary first (on top) in a vertical bar, last (at the end) in a horizontal one. primaryAction / secondaryAction are ordered for you. | `zen-allow-action-order: <reason>` |
 | `action-bar/full-width-size` | error | A vertical Action Bar stretches its buttons across the width, so they are size lg (the mobile footer CTA), never 2xs · xs · sm. | `zen-allow-small-full-width: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Material 3 — Bottom app bar](https://m3.material.io/components/bottom-app-bar/guidelines)

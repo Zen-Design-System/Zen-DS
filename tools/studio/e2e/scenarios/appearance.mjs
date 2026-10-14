@@ -1,6 +1,6 @@
 // Appearance and Effects rows (WP-D): Box corner radius in canonical form, the effect style with its eye, the warnings.
 import { inspectorRow, sleep, until } from "../lib/studio.mjs";
-import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
+import { expectSource, freshSelect, pickOption, scaleStep } from "./inspector.mjs";
 
 const selectBox = (ctx) => freshSelect(ctx, "box", { frame: 2, position: { dx: 6, dy: 6 } });
 
@@ -11,10 +11,10 @@ export const rows = [
       const page = await selectBox(ctx);
       await page.locator("#studio-right").getByRole("button", { name: "Independent corners" }).click();
       await until(async () => (await inspectorRow(page, "radiusBottomRight").count()) > 0, { message: "the four corner rows" });
-      await pickOption(page, "radiusBottomRight", /^xs · /);
+      await pickOption(page, "radiusBottomRight", scaleStep("xs"));
       await expectSource(ctx, "box", (el) => el.attr("radiusBottomRight") === "xs" && el.attr("radius") === "md", 'radius="md" radiusBottomRight="xs"');
       await sleep(300);
-      await pickOption(page, "radiusBottomRight", /^md · /);
+      await pickOption(page, "radiusBottomRight", scaleStep("md"));
       await expectSource(ctx, "box", (el) => el.attr("radiusBottomRight") === undefined && el.attr("radius") === "md", "the corner removed again (equals radius)");
       return 'chat tail radius="md" radiusBottomRight="xs", then back to radius only';
     },
@@ -39,8 +39,9 @@ export const rows = [
     id: "AP-03", feature: "Effects warn with a fix: a shadowed surface takes no border", wp: "WP-D",
     async run(ctx) {
       const page = await selectBox(ctx);
-      // Border is a segmented control (none · pale · subtle).
-      await inspectorRow(page, "border").getByText("pale", { exact: true }).click();
+      // Border: a segmented control (none · pale · subtle) when its options fit the field column, else a select.
+      if (await inspectorRow(page, "border").locator(".zen-segmented").count()) await inspectorRow(page, "border").getByRole("button", { name: "pale", exact: true }).click();
+      else await pickOption(page, "border", "pale");
       await expectSource(ctx, "box", (el) => el.attr("border") === "pale", "border pale");
       await page.locator("#studio-right").getByRole("button", { name: "Add effect" }).click();
       await expectSource(ctx, "box", (el) => el.attr("effectStyle") !== undefined, "an effect");
@@ -49,6 +50,35 @@ export const rows = [
       await fix.click();
       await expectSource(ctx, "box", (el) => el.attr("border") === undefined && el.attr("effectStyle") !== undefined, "border removed, effect kept");
       return "warning shown; Remove border fixes it";
+    },
+  },
+  {
+    id: "AP-05", feature: "Effect settings lists the style's layers read-only (from the style manifest)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await selectBox(ctx);
+      const panel = page.locator("#studio-right");
+      await panel.getByRole("button", { name: "Add effect" }).click();
+      await expectSource(ctx, "box", (el) => el.attr("effectStyle") === "Shadow/Bottom/Level-1", "Shadow/Bottom/Level-1 added");
+      await panel.getByRole("button", { name: "Effect settings" }).click();
+      const layers = panel.getByRole("group", { name: "Shadow/Bottom/Level-1 settings" });
+      await until(async () => (await layers.innerText().catch(() => "")).includes("Drop shadow · X 0 · Y 4 · Blur 8 · Spread −4"), { message: "the Level-1 layers" });
+      return (await layers.innerText()).split("\n")[0];
+    },
+  },
+  {
+    id: "AP-06", feature: "A Card's Effects row shows the effect its theme draws; picking another effect picks its theme (Figma's style row, 2026-10-13)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "card", { frame: 2, position: { dx: 8, dy: 8 } });
+      const panel = page.locator("#studio-right");
+      const row = page.locator('#studio-right [data-prop="effectStyle"]').first();
+      await until(async () => (await row.innerText().catch(() => "")).includes("Shadow/Bottom/Level-1"), { message: "the Card's theme effect" });
+      if (!(await panel.innerText()).includes("Set by Theme · Shadow")) throw new Error("no theme caption");
+      if (await panel.getByRole("button", { name: "Remove effect" }).count()) throw new Error("the theme effect can be removed");
+      await row.getByRole("button", { name: /Shadow\/Bottom\/Level-1/ }).click();
+      await page.getByRole("menuitem", { name: /No effect/ }).click();
+      await expectSource(ctx, "card", (el) => el.attr("theme") === "flat", 'theme="flat" written');
+      await until(async () => (await row.innerText().catch(() => "")).includes("No effect"), { timeout: 8000, message: "the row shows No effect" });
+      return "Shadow/Bottom/Level-1 from the Shadow theme; No effect writes theme flat";
     },
   },
   {

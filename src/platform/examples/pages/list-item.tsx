@@ -14,7 +14,8 @@ import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Box, Grid, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Link } from "../../../components/Link";
+import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
@@ -30,6 +31,7 @@ import {
   projects, projectStatusTheme, type Person, type PersonId, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./list-item.css";
 
 export const page: PlatformPage = "list-item";
@@ -60,8 +62,8 @@ function PeopleDirectory() {
     toast({ title: "Email copied", children: person.email });
   };
   return (
-    <Box className="px-list-item-scope">
-      <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 3fr)" }} gap="lg" align="start" className="px-list-item-split">
+    <Box>
+      <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 3fr)" }} gap="lg" align="start" stackBelow={640}>
         {/* A ListBox: the toolbar and the count in its Header-Slot, the rows (or the empty state) in its Body-Slot. */}
         <ListBox as="section" aria-label="People"
           header={<>
@@ -453,7 +455,89 @@ function PhoneSettings() {
   );
 }
 
-export const examples: ExampleDef[] = [
+const emailSettings = [
+  { id: "digest", title: "Daily digest", caption: "One email at 8:00 am with what changed yesterday", icon: "icon-mail-01-line" as IconName },
+  { id: "mentions", title: "Mentions and replies", caption: "When someone mentions you or answers your comment", icon: "icon-message-chat-circle-line" as IconName },
+  { id: "invoices", title: "Paid invoices", caption: "When a client pays an invoice you sent", icon: "icon-receipt-line" as IconName },
+];
+
+function EmailSwitches() {
+  const titleId = useId();
+  const { toast } = useToast();
+  const [on, setOn] = useState<Record<string, boolean>>({ digest: true, mentions: true, invoices: false });
+  const change = (id: string, title: string, checked: boolean) => {
+    setOn((current) => ({ ...current, [id]: checked }));
+    toast({ title: `${title} ${checked ? "on" : "off"}`, action: { label: "Undo", onClick: () => setOn((current) => ({ ...current, [id]: !checked })) } });
+  };
+  return (
+    <ListBox as="section" aria-labelledby={titleId} header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Email</Heading>}>
+      <List aria-labelledby={titleId}>
+        {emailSettings.map((setting) => (
+          <ToggleListItem key={setting.id} title={setting.title} caption={setting.caption}
+            leading={<DockIcon size="sm" icon={setting.icon} theme="neutral" background="subtle" />}
+            checked={on[setting.id]} onCheckedChange={(checked) => change(setting.id, setting.title, checked)} />
+        ))}
+      </List>
+    </ListBox>
+  );
+}
+
+// ——— 6. Transactions on a phone: a two-line value that is never cut ————————————————————————————————
+/** VND per USD for the second line of each amount. */
+const usdRate = 26_350;
+/** The studio's VND account; positive = money in. Hanoi Book Fair paid INV-2026-0138 ($9,140.50) on Sep 10. */
+const transactions = [
+  { id: "t1", party: "Saola Outdoor", vnd: 94_860_000, when: "Today" },
+  { id: "t2", party: "Phúc Long Coffee & Tea, 3 Tháng 2", vnd: -1_240_000, when: "Today" },
+  { id: "t3", party: "Grab for Business", vnd: -386_000, when: "Yesterday" },
+  { id: "t4", party: "Viettel Telecom", vnd: -1_650_000, when: "Sep 28" },
+  { id: "t5", party: "Hanoi Book Fair", vnd: 240_852_175, when: "Sep 10" },
+  { id: "t6", party: "Tiki Corporation", vnd: -2_150_000, when: "Sep 9" },
+];
+const SHOWN_TRANSACTIONS = 4;
+/** The sign stays in the text (− U+2212 for money out), so the colour never carries it alone. */
+const formatVnd = (vnd: number) => `${vnd > 0 ? "+" : "−"}${Math.abs(vnd).toLocaleString("en-US")} VND`;
+const formatUsd = (vnd: number) => `${(Math.abs(vnd) / usdRate).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+
+function PhoneTransactions() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const [showAll, setShowAll] = useState(false);
+  const rows = showAll ? transactions : transactions.slice(0, SHOWN_TRANSACTIONS);
+  return (
+    // A full-bleed list, as a banking app lays it out: static rows with no side padding of their own, inset by the
+    // screen's margin (lg), the section title and its underlined See all above them. The amount is the row's value, Bold level with
+    // the title and never cut, its USD line level with the caption; a long payee truncates instead. The title is the payee
+    // alone: the arrow, "Received" / "Sent" and the sign already say which way the money went.
+    <PlatformPhone label="Studio account" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="alt" title="Account" largeTitle="Account" scrollRef={screenRef} />}>
+      <Box paddingX="lg" paddingY="xs">
+        <Stack as="section" gap="xs" aria-labelledby={titleId}>
+          <Stack direction="row" justify="between" align="center" gap="md">
+            <Heading level={2} id={titleId} textStyle="Heading/Subheading">Transactions</Heading>
+            {/* A section head's See all is underlined text, not a button: it takes no more room than its words. It expands
+                the list in place, so the Link renders a button element (it takes href when it opens a full page). */}
+            <Text as="span" textStyle="Body/Base/Medium">
+              <Link as="button" tone="inherit" aria-expanded={showAll} onClick={() => setShowAll((all) => !all)}>{showAll ? "Show fewer" : "See all"}</Link>
+            </Text>
+          </Stack>
+          <List aria-labelledby={titleId}>
+            {rows.map((entry) => {
+              const received = entry.vnd > 0;
+              return (
+                <ListItem key={entry.id} title={entry.party} caption={`${received ? "Received" : "Sent"} · ${entry.when}`}
+                  leading={<DockIcon size="md" icon={received ? "icon-arrow-down-line" : "icon-arrow-up-line"} theme="neutral" background="subtle" />}
+                  value={formatVnd(entry.vnd)} valueCaption={formatUsd(entry.vnd)} valueTone={received ? "positive-light" : "strongest"} />
+              );
+            })}
+          </List>
+        </Stack>
+      </Box>
+    </PlatformPhone>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "People directory",
     wide: true,
@@ -622,4 +706,46 @@ const revoke = (invite) => {
   <DescriptionList divider items={details} />
 </SidePanel>`,
   },
-];
+  {
+    title: "Email switches",
+    description: "A settings row whose whole surface is one switch is a ToggleListItem: a press anywhere on the row flips it, the title names the switch and the caption describes it. Each change applies at once, and the toast can undo it.",
+    render: () => <EmailSwitches />,
+    code: `<ListBox as="section" aria-labelledby="email" header={<Heading level={4} id="email" textStyle="Heading/Subheading">Email</Heading>}>
+  <List aria-labelledby="email">
+    {settings.map((setting) => (
+      // The whole row is the switch: no Toggle in the trailing slot of a ListItem
+      <ToggleListItem key={setting.id} title={setting.title} caption={setting.caption}
+        leading={<DockIcon size="sm" icon={setting.icon} theme="neutral" background="subtle" />}
+        checked={on[setting.id]} onCheckedChange={(checked) => change(setting, checked)} />
+    ))}
+  </List>
+</ListBox>`,
+  },
+  {
+    title: "Transactions on a phone",
+    description: "A row that ends in an amount takes value and valueCaption: the amount in Bold level with the title, its USD line level with the caption, both right-aligned and never cut, so a long payee truncates instead. Money in is Positive Light and keeps its + sign, money out stays Strongest with its −; the arrow and the caption say the direction too, so the title is the payee alone. See all at the section head is underlined text (a Link in the text colour), not a button, so it costs no more room than its words; it shows the rest of the month in place.",
+    render: () => <PhoneTransactions />,
+    code: `// "+94,860,000 VND" / "3,600.00 USD"; money out keeps its − (U+2212)
+const formatVnd = (vnd) => \`\${vnd > 0 ? "+" : "−"}\${Math.abs(vnd).toLocaleString("en-US")} VND\`;
+const received = entry.vnd > 0;
+
+{/* Full-bleed on the screen: the page margin (lg) insets the static rows */}
+<Box paddingX="lg" paddingY="xs">
+  <Stack as="section" gap="xs" aria-labelledby={titleId}>
+    <Stack direction="row" justify="between" align="center" gap="md">
+      <Heading level={2} id={titleId} textStyle="Heading/Subheading">Transactions</Heading>
+      {/* Underlined text, not a button: as="button" here (it expands the list), href when it opens a page */}
+      <Text as="span" textStyle="Body/Base/Medium">
+        <Link as="button" tone="inherit" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>{showAll ? "Show fewer" : "See all"}</Link>
+      </Text>
+    </Stack>
+    <List aria-labelledby={titleId}>
+      <ListItem title={entry.party} caption={\`\${received ? "Received" : "Sent"} · \${entry.when}\`}
+        leading={<DockIcon size="md" icon={received ? "icon-arrow-down-line" : "icon-arrow-up-line"} theme="neutral" background="subtle" />}
+        // The sign stays in the text: the colour never carries "in" or "out" alone
+        value={formatVnd(entry.vnd)} valueCaption={formatUsd(entry.vnd)} valueTone={received ? "positive-light" : "strongest"} />
+    </List>
+  </Stack>
+</Box>`,
+  },
+]);

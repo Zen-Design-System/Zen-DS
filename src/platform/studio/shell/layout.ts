@@ -63,3 +63,10 @@ export function toggleSidePanels() {
 export function revealLeftPanel() {
   if (!panelLayout().leftDocked) studioStore.setState({ drawer: "left" });
 }
+
+/** Opens a page group in the Pages tab (breadcrumb parents are groups, not pages). */
+export function revealSection(section: string) {
+  studioStore.setState({ leftTab: "pages" });
+  revealLeftPanel();
+  requestAnimationFrame(() => document.querySelector(`.studio-pages__section[data-section="${section}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" }));
+}

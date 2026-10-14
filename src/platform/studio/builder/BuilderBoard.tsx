@@ -8,10 +8,17 @@ import { announceEditStatus } from "../api";
 import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
-import { ProtoContext, type ProtoActions } from "./proto/runtime";
+import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
 import { frameOf } from "./render/frames";
 import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
-import { renderFrame, type PageNode } from "./render/renderPage";
+import { cacheGeneration, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
+import { engineNow, zenComponents } from "./engine";
+import { setPlaces } from "../select/srcIds";
+
+/** A stable number per prototype-actions object (the canvas's inert set, Interact's live one) for the render cache. */
+const protoKeys = new WeakMap<object, number>();
+let protoCount = 0;
+const protoKey = (proto: object) => { if (!protoKeys.has(proto)) protoKeys.set(proto, (protoCount += 1)); return protoKeys.get(proto); };
 import { Button } from "../../../components/Button";
 import { useStudio } from "../store";
 import { pageFile, pagesPersist, restorePage, usePage, useStorage, useTrash } from "./store/pageStore";
@@ -61,7 +68,7 @@ export function BuilderBoard({ id }: { id: string }) {
   const text = page?.text;
   const tree = usePageTree(text);
   // Uploaded photos resolve once they have loaded (the frames render again); one this browser lacks is named.
-  useUploadsVersion();
+  const uploads = useUploadsVersion();
   const assets = text ? assetIdsOf(text).join(" ") : "";
   useEffect(() => {
     if (!assets) return undefined;
@@ -71,20 +78,42 @@ export function BuilderBoard({ id }: { id: string }) {
     });
     return () => { alive = false; };
   }, [id, assets]);
-  // The new text is on the canvas: what read the old one reads again (Vite's afterUpdate for example code).
-  useEffect(() => { if (tree) notifySourceUpdate(); }, [tree]);
+  // The new text is on the canvas: what read the old one reads again (Vite's afterUpdate for example code), once the
+  // browser has painted it — in the same task the Inspector, Layers and the selection overlay would redraw first and
+  // hold the edit back from the screen (2026-10-13: 13–35 ms of every edit).
+  useEffect(() => {
+    if (!tree) return undefined;
+    let timer = 0;
+    const frame = requestAnimationFrame(() => { timer = window.setTimeout(() => notifySourceUpdate(), 0); });
+    return () => { cancelAnimationFrame(frame); window.clearTimeout(timer); };
+  }, [tree]);
 
   const file = pageFile(id);
+  // Elements of unchanged nodes are reused from the last render (renderPage.tsx renderCache): an edit renders what it
+  // changed, not the whole page. What the nodes do not say starts the cache anew.
+  const cacheRef = useRef<RenderCache | null>(null);
+  cacheRef.current ??= renderCache();
+  const mockKey = useMemo(() => JSON.stringify(tree?.mock ?? null), [tree]);
+  if (tree) cacheGeneration(cacheRef.current, tree, `${file}|${protoKey(proto)}|${uploads}|${mockKey}`);
+  // The page's document ids by place (doc.mjs locsOf): the canvas marks elements by id, and the Studio reads their place
+  // back from select/srcIds.ts, set here in the render that shows this text. A page without a document (never edited
+  // since it was made) is marked by place.
+  const places = useMemo(() => {
+    const engine = engineNow();
+    if (!engine || !page?.doc || text === undefined) return null;
+    try { return engine.locsOf(page.doc, text, { components: new Set(zenComponents) }) as { idAt: Map<string, string>; locOf: Map<string, string> }; } catch { return null; }
+  }, [page?.doc, text]);
+  if (places) setPlaces(file, places.locOf);
   const frames = useMemo(() => {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
-    const ctx = { file, mock: tree.mock, proto };
+    const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt };
     return tree.board.children.filter((child): child is PageNode => child.kind === "element").map((node) => {
       const frame = frameOf(node);
       const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => renderFrame(node, ctx) };
       return { ...frame, example };
     });
-  }, [tree, file, text, proto]);
+  }, [tree, file, text, proto, places]);
 
   if (!page) {
     return (
@@ -101,6 +130,7 @@ export function BuilderBoard({ id }: { id: string }) {
   }
   return (
     <ProtoContext value={proto}>
+      <PageOsContext value={pageOsOf(tree?.header)}>
       <div ref={boardRef} className="studio-board studio-builder-board" data-page={`local:${id}`}>
         <header className="studio-board__title">
           <Text as="p" textStyle="Body/Small/Medium" tone="base">{whereKept(storage)}</Text>
@@ -121,6 +151,7 @@ export function BuilderBoard({ id }: { id: string }) {
         </div>
         {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
       </div>
+      </PageOsContext>
     </ProtoContext>
   );
 }

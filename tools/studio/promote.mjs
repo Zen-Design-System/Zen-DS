@@ -16,6 +16,16 @@ import { compileReact } from "./compile.mjs";
 export const PROMOTE_DIR = "src/templates/studio";
 /** Where the library's photos are (their `zen-media:` key is the file's name, builder/library/media.ts). */
 const MEDIA_DIR = "src/assets/media";
+/**
+ * The repo file of a `zen-media:` key (builder/library/media.ts MEDIA_FILES): `tpl.<template>.<file>` a template's own
+ * asset, a key with its extension that file in the media folder, else `<key>.webp` there.
+ */
+export function mediaSource(key) {
+  const template = /^tpl\.([\w-]+)\.(.+)$/.exec(key);
+  if (template) return `src/templates/${template[1]}/assets/${template[2]}`;
+  return `${MEDIA_DIR}/${/\.[a-z0-9]+$/i.test(key) ? key : `${key}.webp`}`;
+}
+
 /** TypeScript on a promoted file must finish within this. */
 const TSC_TIMEOUT = 120_000;
 
@@ -31,7 +41,7 @@ export function planPromotion(text, { file, uploads = {}, dir = PROMOTE_DIR } = 
   const missing = [];
   for (const media of compiled.media) {
     const target = `${dir}/assets/${media.file}`;
-    if (media.kind === "media") assets.push({ path: target, source: `${MEDIA_DIR}/${media.key}.webp` });
+    if (media.kind === "media") assets.push({ path: target, source: mediaSource(media.key) });
     else if (uploads[media.key]) assets.push({ path: target, data: uploads[media.key] });
     else missing.push(media.key);
   }

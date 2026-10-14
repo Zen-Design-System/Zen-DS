@@ -13,8 +13,8 @@ import type { ContentSlot, HostProps } from "./registry";
  * a controlled one declares its `state` (the server adds `const [name, setName] = useState(initial);` under fresh
  * names), an overlay comes with the Button that opens it, a data component with a few rows of real copy, and Image
  * reads platformMedia (`requires: ["media"]`: the server imports it; example pages only). Not offered: providers,
- * Portal, Motion and VisuallyHidden (infrastructure), Toast (an action's toast(…) shows one) and Popover (the
- * primitive under Menu, Select and Chip: it needs an anchor ref).
+ * Portal, Motion and VisuallyHidden (infrastructure) and Toast (an action's toast(…) shows one). Popover comes with
+ * the Button it anchors to: its `state` declares the anchor as a ref (StateDecl `ref`, 2026-10-08).
  *
  * Pure: no DOM, no React, type-only imports and erasable TypeScript, so `node palette.selftest.mjs` imports it.
  */
@@ -56,6 +56,9 @@ export type PaletteItem = {
   input: boolean;
   /** The JSX, one element; lines after the first are indented 2 spaces per level from column 0 (reindent on insert). */
   build(ctx: PaletteContext): string;
+  /** Its code on a builder page, which keeps no state or hooks: a static version of a stateful item (a Sidebar with its
+   *  current item fixed). Without it, a stateful item cannot go on a builder page. */
+  builder?(ctx: PaletteContext): string;
 };
 
 export type PaletteHostContext = PaletteContext & {
@@ -101,28 +104,32 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
-  Toggle: "Toggle", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Divider: "Divider",
+  Toggle: "Toggle", ChipGroup: "ChipGroup", FormFieldset: "Form", RadioButton: "RadioButton", Stack: "Layout", Grid: "Layout", Box: "Layout", Divider: "Divider",
   Accordion: "Accordion", useToast: "Toast",
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
   AvatarStack: "Avatar", RatingDisplay: "Rating", Rating: "Rating", NpsScale: "Rating", Table: "Table", TableText: "Table",
-  Image: "Image", LineChart: "Chart", StackBarChart: "Chart", ChartCard: "Chart", AlertBanner: "AlertBanner",
+  Image: "Image", LineChart: "Chart", StackBarChart: "Chart", ChartCard: "Chart", BarChart: "Chart", DonutChart: "Chart", RadialChart: "Chart", HeatmapChart: "Chart", AlertBanner: "AlertBanner",
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
-  BottomSheet: "BottomSheet", PageHeader: "PageHeader", TopNavigation: "TopNavigation",
-  BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
+  BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
+  BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
   ChatThread: "Chat", ChatMessage: "Chat", ChatComposer: "Chat", AiChatThread: "AiChat", AiChatBubble: "AiChat",
-  AiChatField: "AiChat",
+  AiChatField: "AiChat", VoiceRecorder: "Voice", AiVoiceConversation: "Voice",
 };
 
 const level = (ctx: PaletteContext) => Math.min(6, Math.max(2, Math.round(ctx.headingLevel) || 3));
 const uidOf = (ctx: PaletteContext) => ctx.uid.toLowerCase().replace(/[^a-z0-9]/g, "") || "1";
+/** A short id suffix for rows the owner keys by id (Sidebar rows): the end of the insert's uid, so two inserts differ. */
+const rowId = (ctx: PaletteContext) => uidOf(ctx).slice(-4);
 const lines = (...rows: string[]) => rows.join("\n");
 const TOAST = ["toast"] as const;
 const MEDIA = ["media"] as const;
 /** A state entry (StateDecl): `name` and `setName` in the code. */
 const state = (name: string, initial: string, type?: string): StateDecl => (type ? { name, initial, type } : { name, initial });
+/** A ref entry (StateDecl `ref`): `const name = useRef<type>(null)`, e.g. the element a Popover anchors to. */
+const ref = (name: string, type: string): StateDecl => ({ name, initial: "null", type, ref: true });
 
 /** Everything the InsertPicker can add, in group order. */
 export const PALETTE: readonly PaletteItem[] = [
@@ -197,15 +204,39 @@ export const PALETTE: readonly PaletteItem[] = [
     build: (ctx) => `<Segmented aria-label="Billing period" defaultValue="monthly"${ctx.mobile ? " fullWidth" : ""} options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly" }]} />`,
   },
   {
+    // The bar alone, switching by itself (no panels, no state): a PageHeader's Tabs slot, a page's section bar.
+    id: "tab-bar", label: "Tab bar", group: "Navigation", caption: "Page sections", root: "Tabs", components: ["Tabs"], interactive: true, input: false,
+    build: (ctx) => `<Tabs idPrefix="sections-${uidOf(ctx)}" aria-label="Page sections" defaultValue="overview" items={[{ id: "overview", label: "Overview" }, { id: "activity", label: "Activity" }]} />`,
+  },
+  {
     id: "breadcrumbs", label: "Breadcrumbs", group: "Navigation", root: "Breadcrumbs", components: ["Breadcrumbs"], requires: TOAST, interactive: true, input: false,
     build: () => lines(
       `<Breadcrumbs items={[{ id: "projects", label: "Projects", href: "#projects" }, { id: "loyalty", label: "Loyalty app" }]}`,
       `  onNavigate={(_, event) => { event.preventDefault(); toast({ title: "Projects opened" }); }} />`,
     ),
+    // A builder page keeps no handlers that need code: the trail as the page shows it, no links to leave the canvas by.
+    builder: () => `<Breadcrumbs items={[{ id: "projects", label: "Projects" }, { id: "loyalty", label: "Loyalty app" }]} />`,
+  },
+  /* Sidebar rows (Figma Menu-Item): what the Sidebar's Body-Content and Footer-Content slots hold. */
+  {
+    id: "menu-item", label: "Menu item", group: "Navigation", caption: "Sidebar row", root: "SidebarMenuItem", components: ["SidebarMenuItem"], interactive: true, input: false,
+    // Each insert its own id (the Sidebar keys and selects rows by id: three "invoices" rows were one row to it).
+    build: (ctx) => `<SidebarMenuItem id="invoices-${rowId(ctx)}" label="Invoices" icon="icon-receipt-line" />`,
+  },
+  {
+    id: "menu-section", label: "Menu section", group: "Navigation", caption: "Titled Sidebar rows", root: "SidebarMenuSection", components: ["SidebarMenuSection", "SidebarMenuItem"], interactive: true, input: false,
+    build: (ctx) => lines(
+      `<SidebarMenuSection label="Projects">`,
+      `  <SidebarMenuItem id="loyalty-app-${rowId(ctx)}" label="Loyalty app" icon="icon-cube-line" />`,
+      `  <SidebarMenuItem id="online-banking-${rowId(ctx)}" label="Online banking redesign" icon="icon-cube-line" />`,
+      `</SidebarMenuSection>`,
+    ),
   },
   {
     id: "pagination", label: "Pagination", group: "Navigation", root: "Pagination", components: ["Pagination"], state: [state("page", "1")], interactive: true, input: false,
     build: () => `<Pagination aria-label="Invoice pages" page={page} onPageChange={setPage} pageCount={5} />`,
+    // A builder page keeps no state: the page shown is fixed (2026-10-10 palette sweep: it was refused on pages you make).
+    builder: () => `<Pagination aria-label="Invoice pages" page={1} pageCount={5} />`,
   },
   {
     id: "stepper", label: "Stepper", group: "Navigation", caption: "Step 2 of 3", root: "Stepper", components: ["Stepper"], interactive: false, input: false,
@@ -274,7 +305,7 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<Metric label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
   },
   {
-    id: "metric-card", label: "Metric", group: "Data display", caption: "Value and trend", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
+    id: "metric-card", label: "Metric card", group: "Data display", caption: "Value and trend in a card", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
     build: () => `<MetricCard label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
   },
   {
@@ -324,22 +355,28 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<RatingDisplay value={4.5} label="Rated 4.5 out of 5" />`,
   },
   {
-    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table", "TableText"], interactive: false, input: false,
+    // Each column's cell is a Figma Content (Table/Cell/Default) drawn from the row's fields, so the Inspector switches it
+    // (Text, Avatar, Badge, Progress…) and a page you made can hold it (no cell functions).
+    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table"], interactive: false, input: false,
     build: () => lines(
       `<Table aria-label="Projects"`,
       `  rows={[`,
-      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", due: "Oct 14, 2026" },`,
-      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", due: "Nov 2, 2026" },`,
+      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", lead: "Chi Tran", status: "In progress", due: "Oct 14, 2026" },`,
+      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", lead: "Bao Nguyen", status: "Review", due: "Nov 2, 2026" },`,
       `  ]}`,
       `  columns={[`,
-      `    { id: "project", header: "Project", cell: (row) => <TableText bold caption={row.client}>{row.name}</TableText> },`,
-      `    { id: "due", header: "Due", width: "152px", cell: (row) => <TableText>{row.due}</TableText> },`,
+      `    { id: "project", header: "Project", content: "text", field: "name", captionField: "client", bold: true },`,
+      `    { id: "lead", header: "Lead", content: "avatar", field: "lead" },`,
+      `    { id: "status", header: "Status", content: "badge", field: "status" },`,
+      `    { id: "due", header: "Due", width: "152px", field: "due" },`,
       `  ]} />`,
     ),
   },
   {
     id: "image", label: "Image", group: "Data display", caption: "4:3 photo", root: "Image", components: ["Image"], requires: MEDIA, interactive: false, input: false,
     build: () => `<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio="4:3" />`,
+    // A page you make takes the library's photo by key (builder/library/media.ts), not platformMedia.
+    builder: () => `<Image src="zen-media:site-cafe" alt="Café table with a coffee" ratio="4:3" />`,
   },
   /* Charts */
   {
@@ -368,6 +405,59 @@ export const PALETTE: readonly PaletteItem[] = [
       `    { label: "Aug", values: { design: 140, engineering: 170 } },`,
       `    { label: "Sep", values: { design: 110, engineering: 200 } },`,
       `  ]} />`,
+    ),
+  },
+  {
+    id: "column-chart", label: "Bar chart", group: "Charts", caption: "Forecast hatched", root: "BarChart", components: ["BarChart"], interactive: false, input: false,
+    build: () => lines(
+      `<BarChart aria-label="Revenue invoiced per month, Jul – Dec 2026, Oct – Dec forecast" height={220}`,
+      `  data={[`,
+      `    { label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 },`,
+      `    { label: "Oct", value: 108000, projected: true }, { label: "Nov", value: 112500, projected: true }, { label: "Dec", value: 104000, projected: true },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "horizontal-bar-chart", label: "Horizontal bar chart", group: "Charts", caption: "Against a target", root: "BarChart", components: ["BarChart"], interactive: false, input: false,
+    build: () => lines(
+      `<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"`,
+      `  data={[`,
+      `    { label: "Design", value: 2650, target: 2800 }, { label: "Engineering", value: 1990, target: 2240 },`,
+      `    { label: "Delivery", value: 750, target: 960 }, { label: "Client Services", value: 510, target: 640 },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "multi-line-chart", label: "Line chart with comparison", group: "Charts", caption: "Dashed compare line", root: "LineChart", components: ["LineChart"], interactive: false, input: false,
+    build: () => lines(
+      `<LineChart aria-label="Invoiced and collected per month, Jul – Sep 2026" height={220} legendPosition="top" label="Invoiced"`,
+      `  data={[{ label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 }]}`,
+      `  compare={{ label: "Collected", values: [91700, 95800, 88300] }} />`,
+    ),
+  },
+  {
+    id: "donut-chart", label: "Donut chart", group: "Charts", caption: "Shares of a total", root: "DonutChart", components: ["DonutChart"], interactive: false, input: false,
+    build: () => lines(
+      `<DonutChart aria-label="Revenue by client, Q3 2026"`,
+      `  data={[`,
+      `    { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },`,
+      `    { id: "mekong", label: "Mekong Freight", value: 53400 }, { id: "other", label: "Other clients", value: 86100 },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "radial-chart", label: "Radial chart", group: "Charts", caption: "Ring gauges", root: "RadialChart", components: ["RadialChart"], interactive: false, input: false,
+    build: () => lines(
+      `<RadialChart aria-label="Budget used on client projects, September 30, 2026"`,
+      `  data={[{ id: "lumen", label: "Online banking redesign", value: 36 }, { id: "phin", label: "Loyalty app", value: 61 }, { id: "mekong", label: "Shipment tracking", value: 23 }]} />`,
+    ),
+  },
+  {
+    id: "heatmap-chart", label: "Heatmap", group: "Charts", caption: "Day × hour", root: "HeatmapChart", components: ["HeatmapChart"], interactive: false, input: false,
+    build: () => lines(
+      `<HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026"`,
+      `  columns={["Mon", "Tue", "Wed", "Thu", "Fri"]} rows={["9 am", "11 am", "1 pm", "3 pm", "5 pm"]}`,
+      `  values={[[38, 41, 40, 39, 35], [71, 74, 72, 70, 61], [52, 55, 53, 51, 44], [70, 75, 73, 71, 48], [42, 44, 43, 41, 22]]} />`,
     ),
   },
   /* Feedback */
@@ -432,12 +522,16 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<Search aria-label="Search projects" placeholder="Search projects" />`,
   },
   {
-    id: "chip-row", label: "Chip row", group: "Inputs", caption: "Single choice", root: "Stack", components: ["Stack", "Chip"], state: [state("status", '"all"')], interactive: true, input: true,
+    // One choice is a ChipGroup (radio group, its own state); a row of Normal chips is for several picks at once.
+    id: "chip-group", label: "Chip group", group: "Inputs", caption: "Single choice", root: "ChipGroup", components: ["ChipGroup"], interactive: true, input: true,
+    build: () => `<ChipGroup aria-label="Project status" defaultValue="all" options={[{ value: "all", label: "All" }, { value: "active", label: "Active" }, { value: "done", label: "Done" }]} />`,
+  },
+  {
+    id: "chip-row", label: "Chip row", group: "Inputs", caption: "Several picks", root: "Stack", components: ["Stack", "Chip"], state: [state("tags", '["design"]', "string[]")], interactive: true, input: true,
     build: () => lines(
-      `<Stack direction="row" gap="xs" wrap role="group" aria-label="Project status">`,
-      `  <Chip variant="normal" level="primary" selected={status === "all"} onClick={() => setStatus("all")}>All</Chip>`,
-      `  <Chip variant="normal" level="primary" selected={status === "active"} onClick={() => setStatus("active")}>Active</Chip>`,
-      `  <Chip variant="normal" level="primary" selected={status === "done"} onClick={() => setStatus("done")}>Done</Chip>`,
+      `<Stack direction="row" gap="xs" wrap role="group" aria-label="Project tags">`,
+      `  <Chip variant="normal" level="primary" selected={tags.includes("design")} onClick={() => setTags(tags.includes("design") ? tags.filter((tag) => tag !== "design") : [...tags, "design"])}>Design</Chip>`,
+      `  <Chip variant="normal" level="primary" selected={tags.includes("research")} onClick={() => setTags(tags.includes("research") ? tags.filter((tag) => tag !== "research") : [...tags, "research"])}>Research</Chip>`,
       `</Stack>`,
     ),
   },
@@ -448,6 +542,8 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "date-picker", label: "Calendar", group: "Inputs", caption: "Inline date picker", root: "DatePicker", components: ["DatePicker"], interactive: true, input: true,
     build: () => `<DatePicker aria-label="Due date" today={new Date(2026, 8, 30)} defaultValue={new Date(2026, 9, 14)} />`,
+    // No Date code on a page you make: the calendar opens on this month.
+    builder: () => `<DatePicker aria-label="Due date" />`,
   },
   {
     id: "number-field", label: "Number field", group: "Inputs", root: "NumberField", components: ["NumberField"], interactive: true, input: true,
@@ -478,11 +574,19 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "nps-scale", label: "NPS scale", group: "Inputs", caption: "0 to 10", root: "NpsScale", components: ["NpsScale"], state: [state("score", "null", "number | null")], interactive: true, input: true,
     build: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" value={score} onValueChange={setScore} />`,
+    builder: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" />`,
   },
   {
     id: "color-selector", label: "Colour selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,
     build: () => lines(
       `<ColorSelector aria-label="Project colour" value={color} onValueChange={setColor} colors={[`,
+      `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
+      `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
+      `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
+      `]} />`,
+    ),
+    builder: () => lines(
+      `<ColorSelector aria-label="Project colour" value="var(--zen-color-background-support-blue-solid)" colors={[`,
       `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
       `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
       `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
@@ -495,6 +599,10 @@ export const PALETTE: readonly PaletteItem[] = [
       `<FileUpload label="Kickoff files" multiple accept=".pdf,.png,.jpg,.jpeg"`,
       `  text="Drop files here or choose them" caption="PDF or images. Max size of 100 MB"`,
       `  onFilesAdd={(added) => toast({ title: added.length === 1 ? "1 file added" : \`\${added.length} files added\` })} />`,
+    ),
+    builder: () => lines(
+      `<FileUpload label="Kickoff files" multiple accept=".pdf,.png,.jpg,.jpeg"`,
+      `  text="Drop files here or choose them" caption="PDF or images. Max size of 100 MB" />`,
     ),
   },
   /* Overlays: each comes with the Button that opens it. */
@@ -549,6 +657,20 @@ export const PALETTE: readonly PaletteItem[] = [
     ),
   },
   {
+    // A choice list under a button is a Chip (button/filter-is-chip): the Popover anchors to a search field instead.
+    id: "popover", label: "Popover", group: "Overlays", caption: "Results under a search field", root: "Stack", components: ["Stack", "Box", "Search", "Popover"], requires: TOAST, state: [state("findOpen", "false"), ref("findAnchor", "HTMLDivElement")], interactive: true, input: false,
+    build: () => lines(
+      `<Stack gap="xs">`,
+      `  <Box ref={findAnchor}>`,
+      `    <Search placeholder="Search projects" aria-label="Search projects" aria-expanded={findOpen} onClick={() => setFindOpen(true)} />`,
+      `  </Box>`,
+      `  <Popover open={findOpen} onOpenChange={setFindOpen} anchorRef={findAnchor} aria-label="Projects"`,
+      `    items={[{ id: "loyalty", label: "Loyalty app" }, { id: "site", label: "Phin & Co website" }]}`,
+      `    onSelect={(item) => { setFindOpen(false); toast({ title: item.id === "site" ? "Opened Phin & Co website" : "Opened Loyalty app" }); }} />`,
+      `</Stack>`,
+    ),
+  },
+  {
     id: "tooltip", label: "Tooltip", group: "Overlays", caption: "On an icon button", root: "Tooltip", components: ["Tooltip", "IconButton"], requires: TOAST, interactive: true, input: false,
     build: () => lines(
       `<Tooltip content="Export report · ⌘E" placement="bottom">`,
@@ -594,6 +716,15 @@ export const PALETTE: readonly PaletteItem[] = [
     ),
   },
   {
+    id: "dashboard-header", label: "Dashboard header", group: "Page", caption: "Search, filters and actions", root: "DashboardHeader", components: ["DashboardHeader", "Search", "Chip", "Button"], requires: TOAST, interactive: true, input: false,
+    // Figma Primitives/Dashboard/Header Type=Control-Bar (its default): Search, a filter Chip, the page's action.
+    build: () => lines(
+      `<DashboardHeader search={<Search size="md" placeholder="Search projects" />}`,
+      `  controls={<Chip variant="advanced" dropdown popoverItems={[{ id: "active", label: "Active" }, { id: "archived", label: "Archived" }]}>Status</Chip>}`,
+      `  actions={<Button level="primary" onClick={() => toast({ title: "Project created" })}>New project</Button>} />`,
+    ),
+  },
+  {
     id: "top-navigation", label: "Top navigation", group: "Page", caption: "Phone bar with Back", root: "TopNavigation", components: ["TopNavigation"], requires: TOAST, interactive: true, input: false,
     build: (ctx) => lines(
       `<TopNavigation title="Loyalty app" headingLevel="h${Math.min(3, level(ctx))}"`,
@@ -610,27 +741,52 @@ export const PALETTE: readonly PaletteItem[] = [
       `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
       `]} />`,
     ),
-  },
-  {
-    id: "sidebar", label: "Sidebar", group: "Page", caption: "Navigation", root: "Sidebar", components: ["Sidebar"], state: [state("section", '"projects"')], interactive: true, input: false,
-    build: () => lines(
-      `<Sidebar aria-label="Workspace" selectedId={section} onItemClick={(item) => setSection(item.id)} sections={[{ items: [`,
+    builder: () => lines(
+      `<BottomNavigation aria-label="Main" value="home" items={[`,
       `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
       `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  { id: "people", label: "People", icon: "icon-users-line" },`,
-      `] }]} />`,
+      `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
+      `]} />`,
     ),
   },
   {
-    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
+    // Its rows are Body-Content children (Figma Menu-Item instances), so each is a layer of the slot.
+    id: "sidebar", label: "Sidebar", group: "Page", caption: "Navigation", root: "Sidebar", components: ["Sidebar", "SidebarMenuItem"], state: [state("section", '"projects"')], interactive: true, input: false,
+    build: () => lines(
+      `<Sidebar aria-label="Workspace" selectedId={section} onItemClick={(item) => setSection(item.id)}>`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
+    ),
+    builder: () => lines(
+      `<Sidebar aria-label="Workspace" selectedId="projects">`,
+      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
+      `</Sidebar>`,
+    ),
+  },
+  {
+    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "Sidebar", "SidebarMenuItem", "Breadcrumbs", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
     build: () => lines(
       `<AppShell`,
-      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)} sections={[{ items: [`,
-      `    { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `    { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  ] }]} />}`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)}>`,
+      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  </Sidebar>}`,
       `  header={<Breadcrumbs master={false} items={[{ id: area, label: area === "home" ? "Home" : "Projects" }]} />}>`,
       `  <Text tone="base">{area === "home" ? "3 projects are due this week." : "12 active projects."}</Text>`,
+      `</AppShell>`,
+    ),
+    builder: () => lines(
+      `<AppShell`,
+      `  sidebar={<Sidebar aria-label="Workspace" selectedId="projects">`,
+      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+      `  </Sidebar>}`,
+      `  header={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }]} />}>`,
+      `  <Text tone="base">12 active projects.</Text>`,
       `</AppShell>`,
     ),
   },
@@ -657,10 +813,21 @@ export const PALETTE: readonly PaletteItem[] = [
       `  </ChatMessage>`,
       `</ChatThread>`,
     ),
+    builder: () => lines(
+      `<ChatThread aria-label="Chat with Bao Nguyen">`,
+      `  <ChatMessage side="others" author={{ name: "Bao Nguyen", theme: "indigo" }} time="9:41 AM">`,
+      `    Can you send the rewards flow before Friday?`,
+      `  </ChatMessage>`,
+      `  <ChatMessage side="you" time="9:43 AM">`,
+      `    Sure, it goes out Thursday morning.`,
+      `  </ChatMessage>`,
+      `</ChatThread>`,
+    ),
   },
   {
     id: "chat-composer", label: "Chat composer", group: "Chat", root: "ChatComposer", components: ["ChatComposer"], requires: TOAST, interactive: true, input: false,
     build: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={(text) => toast({ title: "Message sent", children: text })} />`,
+    builder: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={proto.toast({ title: "Message sent" })} />`,
   },
   {
     id: "ai-chat", label: "AI chat", group: "Chat", caption: "Thread and field", root: "Stack", components: ["Stack", "AiChatThread", "AiChatBubble", "AiChatField"], requires: TOAST, interactive: true, input: false,
@@ -672,6 +839,18 @@ export const PALETTE: readonly PaletteItem[] = [
       `  </AiChatThread>`,
       `  <AiChatField placeholder="Ask about your projects" onSubmit={(text) => toast({ title: "Question sent", children: text })} />`,
       `</Stack>`,
+    ),
+  },
+  {
+    // Figma ❖ Voice (15081:1294): every action wired (harness voice/actions-wired); a page's toasts become proto.toast.
+    id: "voice-recorder", label: "Voice recorder", group: "Chat", caption: "Record a voice note", root: "VoiceRecorder", components: ["VoiceRecorder"], requires: TOAST, interactive: true, input: false,
+    build: () => lines(
+      `<VoiceRecorder title="Voice note" input="Built-in microphone" format="48 kHz · Mono"`,
+      `  onRecord={() => toast({ title: "Recording started" })}`,
+      `  onPause={() => toast({ title: "Recording paused" })}`,
+      `  onResume={() => toast({ title: "Recording resumed" })}`,
+      `  onFinish={() => toast({ title: "Voice note saved" })}`,
+      `  onDiscard={() => toast({ title: "Take discarded" })} />`,
     ),
   },
 ];
@@ -692,13 +871,18 @@ const PREFERRED: Readonly<Record<string, readonly string[]>> = {
   "BottomSheet.children": ["input-field", "select-field", "paragraph", "list"],
   "Accordion.children": ["paragraph", "list"],
   "TabPanel.children": ["paragraph", "list", "card", "stack"],
-  "ChartCard.children": ["empty-state", "metric"],
+  "ChartCard.children": ["line-chart", "column-chart", "donut-chart", "empty-state", "metric"],
   "ListItem.leading": ["avatar", "dock-icon"],
   "ListItem.trailing": ["badge", "icon-button", "button"],
   "ListItem.children": ["paragraph"],
   "ListBox.header": ["heading", "paragraph"],
   "ListBox.children": ["list"],
   "ListBox.footer": ["button"],
+  "Sidebar.brand": ["avatar", "dock-icon"],
+  "Sidebar.children": ["menu-item", "menu-section"],
+  "Sidebar.footer": ["menu-item"],
+  "PageHeader.actions": ["button", "button-primary", "menu"],
+  "PageHeader.trailing": ["icon-button", "menu", "avatar"],
 };
 
 /** The slot's preferred item ids ("metric" stands for Metric or MetricCard, whichever the host offers). */
@@ -709,6 +893,9 @@ const CARD_SURFACES = new Set(["Card", "ChartCard", "MetricCard"]);
 const FORM_HOSTS = new Set(["ModalForm", "Form"]);
 const MOBILE_HOSTS = new Set(["BottomSheet", "PlatformPhone"]);
 const CHOICE_CONTROLS = new Set(["checkbox", "toggle", "radio-group"]);
+/** Sidebar rows go in a Sidebar (Body-Content, Footer-Content) or its flyout, and nowhere else. */
+const SIDEBAR_ROWS = new Set(["SidebarMenuItem", "SidebarMenuSection"]);
+const SIDEBAR_HOSTS = new Set(["Sidebar", "SidebarSubMenu"]);
 
 /** Set to something other than false / null / undefined (a bound handler counts). */
 const isSet = (value: HostProps[string]) => value !== undefined && value !== false && !(typeof value === "object" && /^(null|undefined|false)$/.test(value.bound));
@@ -740,6 +927,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
 
   const warningFor = (item: PaletteItem): PaletteWarning | null => {
     if (only && !only.includes(item.root)) return { short: `${ctx.slot.name} prefers others`, reason: `${ctx.slot.name} takes ${sentence(only)}` };
+    if (SIDEBAR_ROWS.has(item.root) && !inChain(SIDEBAR_HOSTS)) return { short: "Sidebar rows only", reason: "Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout" };
     if (item.components.includes("Accordion") && (deny.has("Accordion") || chain.includes("Accordion"))) return { short: "Accordion in an Accordion", reason: "Accordions are one level deep" };
     if (insideCard && item.components.some((name) => CARD_SURFACES.has(name))) return { short: "Card inside a card", reason: "A card never goes inside a card" };
     const denied = item.components.find((name) => deny.has(name));
@@ -756,9 +944,9 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   };
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
-    if (ctx.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
-    if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "Actions and stateful items need a component to hold their hooks; this code sits outside one";
-    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Images read platformMedia, which only the example pages import";
+    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs live state; pages you make get interactions from the Prototype tab";
+    if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "It runs an action, and this spot cannot run one";
+    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Library pictures work on example pages only";
     return null;
   };
 
@@ -777,7 +965,12 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
       continue;
     }
     // A builder page gets the item with proto handlers (and needs no toast hook).
-    items.push(ctx.builder ? { ...item, requires: item.requires?.filter((need) => need !== "toast"), build: (built) => builderCode(item.build(built)) ?? item.build(built) } : item);
+    items.push(ctx.builder ? {
+      ...item,
+      requires: item.requires?.filter((need) => need !== "toast"),
+      // Its static version (no state), or its code with proto handlers.
+      ...(item.builder ? { state: undefined, build: item.builder } : { build: (built: PaletteContext) => builderCode(item.build(built)) ?? item.build(built) }),
+    } : item);
     const warning = warningFor(item);
     if (warning) warnings[item.id] = warning;
   }

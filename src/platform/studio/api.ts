@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { HISTORY_LIMIT, applyHunks, locateHunks, makePatch, upgradeRecords } from "./history";
+import { remountFrameAfterUpdate } from "./board/remount";
 import { askShared, sharedConfirmed } from "./sharedConfirm";
 import { isLocalFile, localDetachPlan, localEdit, localElement, localSource, localWrite } from "./builder/localApi";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "./store";
@@ -122,7 +123,30 @@ function saveResultOf(body: unknown): SaveResult {
 
 const NO_SERVER = "The Zen Studio dev server did not answer";
 
+/** A CSS change that follows a Figma re-binding (tools/studio/binding-diff.mjs). */
+export type BindingProposal = {
+  id: string;
+  file: string;
+  selector: string;
+  media: string;
+  prop: string;
+  value: string;
+  from: string;
+  to: string;
+  status: "ready" | "manual" | "token-missing";
+  ticked: boolean;
+  because: Array<{ set: string; variant: string; layer: string; field: string; from: string; to: string }>;
+};
+export type BindingDiffReply = { ok: true; base: string; changes: number; proposals: BindingProposal[] } | { ok: false; error: string };
+
 export const studioApi = {
+  /** What Figma re-bound since the last commit's contracts, and the stylesheet declarations that follow (read only). */
+  async bindingDiff(): Promise<BindingDiffReply> {
+    const reply = await call<BindingDiffReply>("/binding-diff");
+    if (!reply) return { ok: false, error: NO_SERVER };
+    if (reply.status !== 200 || !reply.body?.ok) return { ok: false, error: errorOf(reply.body, "The binding check failed").error };
+    return reply.body;
+  },
   async ping(): Promise<PingResponse | null> {
     const reply = await call<PingResponse>("/ping");
     if (!reply || reply.status !== 200 || !reply.body?.ok) return null;
@@ -225,6 +249,33 @@ export const studioApi = {
     if (!reply) throw new StudioApiError("invalid", NO_SERVER);
     if (reply.status !== 200 || reply.body?.ok === false) {
       const { code, error } = errorOf(reply.body, `Page ${action} refused`);
+      throw new StudioApiError(code, error);
+    }
+  },
+  /**
+   * An uploaded photo in the pages folder's assets/ (GET /pages/asset, 2026-10-08): its bytes, or null when the folder
+   * has none (or there is no server).
+   */
+  async pageAsset(id: string): Promise<Uint8Array | null> {
+    const reply = await authorized<{ ok?: unknown; data?: unknown }>(`/pages/asset?id=${encodeURIComponent(id)}`);
+    if (!reply || reply.status !== 200 || typeof reply.body?.data !== "string") return null;
+    const text = atob(reply.body.data);
+    const bytes = new Uint8Array(text.length);
+    for (let index = 0; index < text.length; index += 1) bytes[index] = text.charCodeAt(index);
+    return bytes;
+  },
+  /** POST /pages/asset-write { id, data: base64 } or /pages/asset-trash { id }; rejects with a StudioApiError when refused. */
+  async pageAssetWrite(action: "write" | "trash", id: string, bytes?: Uint8Array): Promise<void> {
+    let data: string | undefined;
+    if (action === "write" && bytes) {
+      let text = "";
+      for (let index = 0; index < bytes.length; index += 0x8000) text += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+      data = btoa(text);
+    }
+    const reply = await post<{ ok?: unknown }>(`/pages/asset-${action}`, action === "write" ? { id, data } : { id }, 60_000);
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    if (reply.status !== 200 || reply.body?.ok === false) {
+      const { code, error } = errorOf(reply.body, `Photo ${action} refused`);
       throw new StudioApiError(code, error);
     }
   },
@@ -392,8 +443,34 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 }
 
 /** Sends an edit; on success pushes an undo record (clears redo). A no-op edit (nothing changed) records nothing. */
+/*
+ * Edits, undos and redos on their way: sent, and their write not yet told to the listeners. A page kept in this browser
+ * re-renders as it is saved, before the answer comes back and the selection follows the write; until then the canvas
+ * may show another element where the selection points (select/remap.ts awaitingWriteRender waits for it).
+ */
+let writing = 0;
+export const writeInFlight = () => writing > 0;
+async function inFlight<T>(work: () => Promise<T>): Promise<T> {
+  writing += 1;
+  try {
+    return await work();
+  } finally {
+    writing -= 1;
+  }
+}
+
 export function applyEdit(request: EditRequest, label: string): Promise<EditResponse> {
-  return enqueue(() => sendEdit(request, label));
+  // A data edit (setDataField) may change what an example only reads into its initial state (a chat's messages): Fast
+  // Refresh keeps that state, so the selected element's frame starts again once the update landed, as for an edit of
+  // an initial value (board/remount.ts). Other edits keep what the examples show (an opened thread, a selected tab).
+  // A `.map` row removed or copied in a useState list (answer `row.state`, slots/ops.ts) is the same case.
+  const rowOp = request.ops.some((op) => (op.op === "removeElement" || op.op === "duplicateElement") && typeof (op as { row?: unknown }).row === "number");
+  const frameId = rowOp || request.ops.some((op) => op.op === "setDataField") ? studioStore.getState().selection?.frameId ?? null : null;
+  return enqueue(() => inFlight(() => sendEdit(request, label))).then((response) => {
+    const restart = !rowOp || (response as { row?: { state?: unknown } }).row?.state === true;
+    if (frameId && restart && response.ok && response.before !== response.after) remountFrameAfterUpdate(frameId, response.file);
+    return response;
+  });
 }
 
 /*
@@ -540,7 +617,7 @@ async function sendEdit(request: EditRequest, label: string): Promise<EditRespon
   };
   setHistory([...studioStore.getState().undo, record], []);
   noteOwnWrite(result.file, { hashBefore: result.hashBefore, hash: result.hash, before: result.before, after: result.after, props: request.ops.every((op) => REBASABLE_OPS.has(op.op)) });
-  emitWrite({ file: result.file, before: result.before, after: result.after, kind: "edit" });
+  emitWrite({ file: result.file, before: result.before, after: result.after, kind: "edit", ...(result.locs ? { locs: result.locs } : {}) });
   const where = `${fileName(result.file)}:${result.changed.from}`;
   // On a drafts server an edit that is not a draft brought the file back to what the disk holds (nothing was written).
   // A builder page saves as it goes (in this browser, no drafts).
@@ -549,6 +626,49 @@ async function sendEdit(request: EditRequest, label: string): Promise<EditRespon
   else if (server.drafts) setStatus({ kind: "unchanged", message: `Back to the saved file · ${where}`, file: result.file, line: result.changed.from, snippet: result.snippet, at: Date.now() });
   else setStatus({ kind: "saved", message: `Saved to ${where}`, file: result.file, line: result.changed.from, snippet: result.snippet, at: Date.now() });
   return result;
+}
+
+/** A token edit of a library component's stylesheet (Main component frame, spec
+ *  docs/research/studio-main-component-spec-2026-10-09.md §3.5): one declaration of one rule reads another token. */
+export type CssEditRequest = { file: string; selector: string; media?: string; prop: string; value: string };
+
+/** Sends a token edit of a component's CSS: the same draft, undo record and status line as an edit of page code. */
+export function applyCssEdit(request: CssEditRequest, label: string): Promise<EditResponse> {
+  return enqueue(async (): Promise<EditResponse> => {
+    const state = studioStore.getState();
+    if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the dev server" : "View only — switch to Admin to edit" };
+    const reply = await post<EditResponse>("/css-edit", request);
+    let result: EditResponse;
+    if (!reply) result = { ok: false, code: "invalid", error: NO_SERVER };
+    else if (reply.status === 200 && reply.body?.ok) result = reply.body;
+    else {
+      const { code, error } = errorOf(reply.body, "Edit refused");
+      result = { ok: false, code: code === "stale" || code === "not-found" || code === "forbidden" ? code : "invalid", error };
+    }
+    if (!result.ok) {
+      setStatus({ kind: "error", message: result.error, file: request.file, at: Date.now() });
+      return result;
+    }
+    if (result.before === result.after) {
+      setStatus({ kind: "unchanged", message: "No change", file: result.file, line: result.changed.from, at: Date.now() });
+      return result;
+    }
+    setHistory([...studioStore.getState().undo, { file: result.file, label, hashBefore: result.hashBefore, hashAfter: result.hash, patch: makePatch(result.before, result.after), changed: result.changed, at: Date.now() }], []);
+    emitWrite({ file: result.file, before: result.before, after: result.after, kind: "edit" });
+    const where = `${fileName(result.file)}:${result.changed.from}`;
+    if (result.draft) setStatus({ kind: "draft", message: `Draft · ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
+    else setStatus({ kind: server.drafts ? "unchanged" : "saved", message: server.drafts ? `Back to the saved file · ${where}` : `Saved to ${where}`, file: result.file, line: result.changed.from, at: Date.now() });
+    return result;
+  });
+}
+
+/** Settles the Figma check of a saved component stylesheet (Main component M3): keep the save (a line in
+ *  docs/context/BACKLOG.md asks for the Figma update) or undo it (the disk text before the save comes back). */
+export async function settleParity(id: string, action: "keep" | "revert"): Promise<{ ok: true; line?: string } | { ok: false; error: string }> {
+  const reply = await post<{ ok?: boolean; line?: string }>(action === "keep" ? "/parity-keep" : "/parity-revert", { id });
+  if (!reply) return { ok: false, error: NO_SERVER };
+  if (reply.status === 200 && reply.body?.ok) return { ok: true, line: reply.body.line };
+  return { ok: false, error: errorOf(reply.body, action === "keep" ? "The backlog line was not written" : "The save was not undone").error };
 }
 
 /**
@@ -609,7 +729,7 @@ async function step(direction: "undo" | "redo"): Promise<boolean> {
   if (direction === "undo") setHistory(without(latest.undo, record), [...latest.redo, moved]);
   else setHistory([...latest.undo, moved], without(latest.redo, record));
   noteOwnWrite(record.file, { hashBefore: source.hash, hash: response.hash, before: current, after: next, props: false });
-  emitWrite({ file: record.file, before: current, after: next, kind: direction });
+  emitWrite({ file: record.file, before: current, after: next, kind: direction, ...(response.locs ? { locs: response.locs } : {}) });
   const line = direction === "undo" ? lineAt(next, positions[0]) : moved.changed.from;
   setStatus({ kind: direction === "undo" ? "undone" : "redone", message: `${direction === "undo" ? "Undid" : "Redid"} “${record.label}”`, file: record.file, line, draft: response.draft === true, at: Date.now() });
   return true;
@@ -643,11 +763,11 @@ export function afterPendingEdits<T>(task: () => Promise<T>): Promise<T> {
 
 /** Undo the newest edit. Presses made while one runs wait their turn (⌘Z ⌘Z undoes two edits). */
 export function undoEdit(): Promise<boolean> {
-  return enqueue(() => step("undo"));
+  return enqueue(() => inFlight(() => step("undo")));
 }
 
 export function redoEdit(): Promise<boolean> {
-  return enqueue(() => step("redo"));
+  return enqueue(() => inFlight(() => step("redo")));
 }
 
 /* ── dev server presence ─────────────────────────────────────────────────────────────────────────────────────────── */

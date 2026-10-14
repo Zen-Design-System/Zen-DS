@@ -105,6 +105,14 @@
           "default": null,
           "description": "Names the group (default \"Segmented control\", from the locale's labels).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the segments it draws, by layer (`{ \"Item[week]\": { level: \"primary\" }, \"Item[week]/Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the options.",
+          "deprecated": null
         }
       ]
     },

@@ -85,6 +85,7 @@ import {
   type ExpenseCategoryId,
   type ExpenseClaim,
   type Quarter,
+  type TeamBudget,
 } from "./data";
 
 /* ── Periods, measured from today: this month, last month and this quarter, each with the one before it ──────── */
@@ -370,7 +371,8 @@ export function HrExpenseOverviewTemplate() {
   ) : null;
 
   return (
-    <HrShell module="expenses" page="overviews" onNavigate={navigate} aside={claimPanel ?? reportPanel ?? undefined}>
+    <HrShell module="expenses" page="overviews" onNavigate={navigate} aside={claimPanel ?? reportPanel ?? undefined}
+      approvals={claims.filter((claim) => claim.status === "Submitted" && claim.approver === currentUser.id).length}>
       <Container maxWidth="full">
         <Stack gap="xl" paddingY="sm">
           <Stack gap="md">
@@ -437,16 +439,22 @@ export function HrExpenseOverviewTemplate() {
               <Text tone="base">{`${quarter} · ${formatRange(periods["this-quarter"].start, periods["this-quarter"].end)}`}</Text>
             </Stack>
             <Table aria-labelledby={budgetsTitle} rows={quarterBudgets} getRowId={(row) => row.team}
+              // A phone keeps two columns, so nothing scrolls sideways: the team with what it spent of its budget in
+              // the caption (compact amounts), and the share used (red once over budget) where the bar would not fit.
               columns={[
                 { id: "team", header: "Team", cell: (row) => {
                   const team = teams[row.team];
-                  return <TableMedia media={<DockIcon icon={team.icon} theme={team.theme} background="subtle" size="sm" />} caption={plural(team.headcount, "person", "people")}>{team.name}</TableMedia>;
+                  return <TableMedia bold media={<DockIcon icon={team.icon} theme={team.theme} background="subtle" size="sm" />}
+                    caption={phone ? `${formatMoney(row.spent, { compact: true })} of ${formatMoney(row.budget, { compact: true })}` : plural(team.headcount, "person", "people")}>{team.name}</TableMedia>;
                 } },
-                { id: "budget", header: "Budget", width: "136px", align: "right", cell: (row) => <TableText>{formatMoney(row.budget)}</TableText> },
-                { id: "spent", header: "Spent", width: "136px", align: "right", cell: (row) => <TableText>{formatMoney(row.spent)}</TableText> },
-                { id: "left", header: "Left", width: "136px", align: "right", cell: (row) => <TableText>{formatMoney(row.budget - row.spent)}</TableText> },
-                { id: "used", header: "Used", width: "208px", cell: (row) => {
+                ...(phone ? [] : [
+                  { id: "budget", header: "Budget", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.budget)}</TableText> },
+                  { id: "spent", header: "Spent", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.spent)}</TableText> },
+                  { id: "left", header: "Left", width: "136px", align: "right" as const, cell: (row: TeamBudget) => <TableText>{formatMoney(row.budget - row.spent)}</TableText> },
+                ]),
+                { id: "used", header: "Used", width: phone ? "80px" : "208px", align: phone ? "right" : undefined, cell: (row) => {
                   const used = (row.spent / row.budget) * 100;
+                  if (phone) return <TableText>{used > 100 ? <Text as="span" tone="negative">{`${Math.round(used)}%`}</Text> : `${Math.round(used)}%`}</TableText>;
                   return <ProgressBar theme="status" scale="quota" value={used} label={`${Math.round(used)}%`} aria-label={`${teams[row.team].name} budget used`} />;
                 } },
               ]} />
@@ -492,7 +500,7 @@ export function HrExpenseOverviewTemplate() {
                 columns={[
                   { id: "claim", header: "Claim", cell: (row) => {
                     const category = expenseCategories[row.category];
-                    return <TableMedia media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={row.merchant}>{row.title}</TableMedia>;
+                    return <TableMedia bold media={<DockIcon icon={category.icon} theme={category.theme} background="subtle" size="sm" />} caption={row.merchant}>{row.title}</TableMedia>;
                   } },
                   { id: "person", header: "Person", width: "184px", cell: (row) => {
                     const person = people[row.person];

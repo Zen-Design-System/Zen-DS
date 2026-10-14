@@ -160,6 +160,9 @@ export interface HrShellProps {
   onNavigate?: HrNavigate;
   /** Extra aside next to the page (a docked Side Panel); the shell's own panels take it while open. */
   aside?: ReactNode;
+  /** The live count for the module's Approvals counter, when the page decides requests itself (Approve / Reject with
+   *  Undo): the counter follows the page instead of the sample data. Default: the sample data's count. */
+  approvals?: number;
   children?: ReactNode;
 }
 
@@ -167,7 +170,7 @@ type Panel = "inbox" | "profile" | "assistant";
 type Message = { id: number; side: "you" | "ai"; text: string; file?: string };
 
 /** The HR app frame: AppShell + the HR Sidebar + the top bar and its panels. */
-export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, aside, children }: HrShellProps) {
+export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, aside, approvals, children }: HrShellProps) {
   const { toast } = useToast();
   const router = useContext(HrRouterContext);
   const onNavigate = router ?? onNavigateProp;
@@ -256,6 +259,7 @@ export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, asid
       </Stack>
     </Stack>
   );
+  const backHome = <IconButton appearance="main" level="tertiary" size="sm" aria-label="Back to Home" icon={<Icon name="icon-chevron-left-line-medium" />} onClick={() => go({ module: "home" })} />;
   const sidebar = current ? (
     <Sidebar
       aria-label={`${current.title} navigation`}
@@ -264,14 +268,17 @@ export function HrShell({ module, page, crumbs, onNavigate: onNavigateProp, asid
       search={(
         // Back (Button/Icon-Main Small Tertiary) over the module name.
         <Stack gap="md" paddingX="sm" paddingY="2xs">
-          <IconButton appearance="main" level="tertiary" size="sm" aria-label="Back to Home" icon={<Icon name="icon-chevron-left-line-medium" />} onClick={() => go({ module: "home" })} />
+          {backHome}
           <Heading level={2} textStyle="Heading/4">{current.title}</Heading>
         </Stack>
       )}
+      // The collapsed rail keeps the Back chevron (not a Search button).
+      searchCollapsed={backHome}
       // Spaces carry one section action: add a space.
       sections={current.sections.map((section) => section.label === "Spaces"
         ? { ...section, items: [...section.items, ...spaces], action: <IconButton appearance="flat" level="primary" size="sm" aria-label="New space" icon="icon-plus-line" onClick={() => { spaceForm.reset(); setAddingSpace(true); }} /> }
-        : section)}
+        : approvals === undefined ? section
+          : { ...section, items: section.items.map((item) => (item.id === "approvals" ? { ...item, counter: approvals || undefined } : item)) })}
       selectedId={page}
       onItemClick={(item) => go({ module, page: item.id })}
       footer={appsButton}

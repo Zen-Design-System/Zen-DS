@@ -169,5 +169,65 @@ check("a playground owns its page branch and the helpers it renders", frameRange
 ]);
 check("a branch with || page tests is one playground", frameRanges(platform, [lineOf(platform, "<div>Chip")]), [[lineOf(platform, `if (page === "chip"`), lineOf(platform, "return null;") - 1]]);
 
+const routed = `export function Pages({ page }: { page: string }) {
+  const [open, setOpen] = useState(false);
+  if (page === "button") {
+    return <div>Button</div>;
+  }
+  return (
+    <section>Shared {String(open)}</section>
+  );
+}
+`;
+check("a router's shared fallback owns its own statement, not the whole router", frameRanges(routed, [lineOf(routed, "<section>")]), [[lineOf(routed, "  return ("), lineOf(routed, "  );")]]);
+
+/* ── what the frame's code names: sample data, a column const, a helper; ExampleMap lists in keepOnHotUpdate(…) ── */
+const named = `import { Table } from "../../components/Table";
+import { keepOnHotUpdate } from "../hot";
+
+const invoices = [
+  { id: "INV-1", amount: 120 },
+];
+
+const money = (value: number) => \`$\${value}\`;
+
+const columns = [
+  { id: "amount", header: "Amount", cell: (row: { amount: number }) => money(row.amount) },
+];
+
+function InvoiceTable() {
+  return <Table rows={invoices} columns={columns} />;
+}
+
+function Other() {
+  return <p>{money(5)}</p>;
+}
+
+export function Router({ page }: { page: string }) {
+  if (page === "table") return <InvoiceTable />;
+  return null;
+}
+
+export const examples = keepOnHotUpdate(import.meta.hot, "examples", {
+  table: [
+    { title: "Invoices", render: () => <InvoiceTable />, code: \`<Table />\` },
+    { title: "Other", render: () => <Other />, code: \`<p />\` },
+  ],
+});
+`;
+const namedLine = (needle) => lineOf(named, needle);
+const tableFrame = frameRanges(named, [namedLine("<Table rows")]);
+const owns = (ranges, needle) => ranges.some(([from, to]) => from <= namedLine(needle) && to >= namedLine(needle));
+check("closure: the component's data, columns and the helper they call join it", ["invoices = [", "INV-1", "const money", "header: \"Amount\""].map((needle) => owns(tableFrame, needle)), [true, true, true, true]);
+check("closure: the other example, the router and the examples list stay out", ["function Other", "export function Router", "title: \"Other\""].map((needle) => owns(tableFrame, needle)), [false, false, false]);
+const otherFrame = frameRanges(named, [namedLine("<p>{money(5)}")]);
+check("closure: a helper two frames call is owned by both; the other's data is not", [owns(otherFrame, "const money"), owns(otherFrame, "INV-1")], [true, false]);
+check("ExampleMap in keepOnHotUpdate: an inline render owns its list element only", frameRanges(named, [namedLine("render: () => <Other />")]).some(([from, to]) => from <= namedLine("title: \"Invoices\"") && to >= namedLine("title: \"Invoices\"")), false);
+const editedData = named.replace(`{ id: "INV-1", amount: 120 }`, `{ id: "INV-1", amount: 240 }`);
+check("an edit in the data the frame reads: its Discard drops it, the other frame's leaves it", [
+  splitDraft(named, editedData, frameRanges(editedData, [namedLine("<Table rows")]), "discard").text === named,
+  splitDraft(named, editedData, frameRanges(editedData, [namedLine("<p>{money(5)}")]), "discard").taken,
+], [true, 0]);
+
 console.log(`${failed ? "✗" : "✓"} zen-studio frame-scope selftest: ${passed} passed${failed ? `, ${failed} failed` : ""}`);
 if (failed) process.exit(1);

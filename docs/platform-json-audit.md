@@ -403,3 +403,75 @@ Deliberate data differences (repo data kept): Token pill shows the real CSS vari
 | .Primitives/Checkbox/Content 309:46789 | Label + Subtext (boolean Subtext#14366:5) in one column, gap 3XSmall (2px); Body/Small/Regular, Content/Neutral/Light — re-extracted live via use_figma; Checkbox/Text no longer has an outer Caption layer (Caption#309:249 prop is dangling) | caption moved INTO `.zen-checkbox__content` (was below the row, full width, gap XSmall) | Đã sửa |
 | Mark states 308:46684 · 309:46870/69/68 · 309:46872/81/92/904 · 4034:9560 | unselected default/hover/focus/disabled + selected default/hover/focus/disabled tokens, 12px check, 2px padding | checkbox.css | Khớp |
 | Row alignment | Figma `items-center` (single line) | `flex-start` + 2px wrapper = same for one line; keeps the mark on line 1 with a caption | Chủ ý |
+
+## DashboardHeader — Figma `Primitives/Dashboard/Header` (2026-10-11, tier L)
+
+Live file `9nZv4uW2LT21yuHabMTCh1`, page ◇ Master-Layout (1128:29541), read only. Contract captured with
+`tools/figma-contract/mcp-capture` → `docs/figma-contracts/dashboard-header.json` (the set and its Action-Item).
+
+**Page manifest (◇ Master-Layout)**
+
+| Figma set | Node | Variants | Code owner |
+| --- | --- | --- | --- |
+| Primitives/Dashboard/Header | 4122:33402 | 4 | `DashboardHeader` (new) |
+| Primitives/Dashboard/Header/Action-Item | 12280:19532 | 4 | `AppShellAction` (existing: Theme → `appearance`, Noti-type Dot/Number → `dot`/`count`) |
+| Primitives/Notification-Dot | 4116:21789 | 6 | `_shared/notification-dot` (drawn by AppShellAction) |
+| Header/Dashboard | 4122:34662 | 1 | `AppShell` `sections` (rows padded Spacing/Padding/Small × Margin-Comfortable); standalone: a Stack of DashboardHeaders |
+| Patterns/Pages/Density-Medium | 4122:41886 | 1 | `AppShell` |
+| Patterns/Sidebar/Density-Medium | 6040:67524 | 4 | `Sidebar` |
+
+**Component-set manifest (4122:33402)** — every axis covered:
+
+| Figma property | Default | Code |
+| --- | --- | --- |
+| Type: Navigation · Main · Control-Bar · Custom | Control-Bar | `type`: `navigation` · `main` · `control-bar` (default) · `custom` |
+| Leading-Slots (Navigation) | — | `leading` |
+| Center-Slots + Nav-Center-Block (Navigation) | off | `center` (up to 400px, centred) |
+| Trailing-Slots + Nav-Trailing-Block (Navigation, Main) | on | `trailing` |
+| Search (Control-Bar) | on | `search` (a Search, 320px) |
+| Control-Slots + Controls (Control-Bar) | on | `controls` |
+| Subheading (Control-Bar: Heading/Subheading count; Main: Body/Base/Regular line) | off | `subheading` |
+| Action-Slots + Actions (Control-Bar, Main) | on | `actions` |
+| Header-Text (Main) | — | `title` (Heading/1) |
+| Child-Heading (Main) | off | `childTitle` (Heading/1, Content/Neutral/Light, Gap/XSmall after the title) |
+| Custome-Elements (Custom) | — | `children` |
+
+**Nested-owner manifest**: Search/Default (846:37624) Size=Medium → `Search size="md"`; Chip/Advanced Medium
+Secondary → `Chip variant="advanced"` (content); Button/Main Medium Tertiary + Primary → `Button`; Breadcrumbs Size=Small
+→ `Breadcrumbs`; Action-Item Tertiary · Dot → `AppShellAction appearance="tertiary" dot`; Avatar/Single Circle Medium
+Photo → `Avatar size="md"`. Main's Heading-Wrapper also holds icon-face-smile-solid (36), Icon-Child (16) and
+icon-star-01-solid (24), hidden in every variant with no property: not applicable.
+
+**Relation to PageHeader**: Type=Main is PageHeader (its JSDoc already cited it). `DashboardHeader type="main"` renders
+that PageHeader (title, `childTitle`, subheading as its description, actions, trailing), so a Figma header converts with
+its Type and the Studio offers Figma's four types; app code keeps PageHeader for page titles (it also takes breadcrumbs,
+tabs and Back). Navigation inside the app frame stays AppShell's sticky top bar.
+
+**Geometry (contract)**: every variant is a 40px row (Button/Size/Medium). Navigation: Elements Gap/Medium 16, Leading
+FILL (Gap/Medium), Center FILL up to 400 (Gap/Small), Trailing FILL right-aligned (Gap/Small). Control-Bar: Gap/Medium
+16, Search FIXED 320, Control-Slots Gap/XSmall 8, Subheading Heading/Subheading Strongest, Action-Slots FILL right-aligned
+Gap/Small 12. Main: Element Gap/Small 12, Header-Text Gap/2XSmall 4 with Padding/3XSmall 2 above and below,
+Action-Slots and Trailing-Slots Gap/Small. Custom: Custome-Elements Gap/Medium 16, centred.
+
+**Decision**: Main's SubHeading is Content/Neutral/Light in Figma; PageHeader keeps its description at Neutral/Base
+(Light on Canvas is ≈3.8:1, under AA's 4.5:1 for 14px text). Child-Heading follows Figma (Light): Heading/1 is large
+text (3:1).
+
+## Chart family — Figma `❖ Chart` (2026-10-12, tier L, code first)
+
+Built in the live file `9nZv4uW2LT21yuHabMTCh1` from the code at the user's request (the reverse of the usual
+direction). Page manifest, set manifest and deviations: `docs/research/chart-family-spec-2026-10-12.md` §5.1.
+
+| Figma set | Node | Variants | Code owner |
+| --- | --- | --- | --- |
+| Chart/Bar-Chart | 15321:84071 | 2 (Orientation) | `BarChart` (new) |
+| Chart/Multi-Line-Chart | 15426:2521 (rebuilt 2026-10-13, spec §5.4) | 1 | `LineChart` `compare` |
+| Chart/Donut-Chart | 15324:80365 | 2 (Legend) | `DonutChart` (new) |
+| Chart/Radial-Chart | 15325:1135 | 2 (Legend) | `RadialChart` (new) |
+| Chart/Heatmap-Chart | 15326:1043 | 1 | `HeatmapChart` (new) |
+| .Chart/Hatch · .Chart/Legend-Item | 15321:475 · 15321:79362 | 1 · 7 | chart.css hatch · `ChartLegend` |
+| Chart/Line-Chart · Stack-Bar-Chart · Chart-Card | 6643:63324 · 6643:73471 · 6643:63528 | 1 each | `LineChart` · `StackBarChart` · `ChartCard` (header properties added) |
+
+**Nested-owner manifest**: Segmented 1238:891 (items fill) → `ChartCard ranges`; Button/Icon-Main XSmall Tertiary with
+icon-chevron-right-line-small 1474:918 → `ChartCard onOpen`; Tooltip surface → `TooltipSurface` default medium; Legend
+item → `ChartLegend`. No contract capture yet: the family has no `docs/figma-contracts` suite (BACKLOG).

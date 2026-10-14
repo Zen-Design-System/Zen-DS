@@ -1,7 +1,8 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DetachPlan, EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
 import { engineOptions, loadDetach, loadEngine, zenComponents } from "./engine";
-import { getPage, pageIdOf, putPage } from "./store/pageStore";
+import { getPage, pageIdOf, putPage, setPageDoc } from "./store/pageStore";
+import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
 
 /*
  * The Studio's source API for builder pages kept in the browser (Studio builder GĐ2 M1; spec
@@ -9,7 +10,36 @@ import { getPage, pageIdOf, putPage } from "./store/pageStore";
  * /__zen-studio routes (GET /source, GET /element, POST /edit, POST /write), computed by the same engine in the browser
  * against the PageStore. api.ts routes every file named "local:<id>.zen.tsx" here, so history, the Inspector, slots and
  * every canvas edit work unchanged. An edit that would leave an invalid page (dialect.mjs) is refused with its reason.
+ *
+ * Core rebuild M2 (docs/research/studio-doc-engine-plan-2026-10-10.md): a page is a JSON document (tools/studio/doc.mjs)
+ * and its text is that document's print. An edit runs on the document (editDoc: the same engine, on a print that carries
+ * each element's id), so every element keeps its id across edits; undo and redo bring back the document of the text they
+ * put back. A page gets its document when it opens (ensurePageDoc).
+ *
+ * M3: an edit, undo and redo answer with `locs`, where each element is in the new text by its id, so the selection
+ * follows its element exactly (select/remap.ts mapSrc) instead of guessing from a text diff.
  */
+
+/** The documents of the texts this session wrote, by the text's hash: undo and redo put a text back with its ids. */
+const documents = new Map<string, PageDoc>();
+const remember = (hash: string, doc: PageDoc) => {
+  documents.delete(hash);
+  documents.set(hash, doc);
+  if (documents.size > 400) documents.delete(documents.keys().next().value as string);
+};
+
+/** Gives an open page its document (a text written without one: an older page, an import, a restored version). */
+export async function ensurePageDoc(id: string): Promise<void> {
+  const page = await getPage(id);
+  if (!page || page.doc) return;
+  const engine = await loadEngine();
+  const { doc, errors } = engine.docFromText(page.text, { components: new Set(zenComponents) });
+  // A page with dialect errors stays text; its errors show as before.
+  if (!doc || errors.length) return;
+  // The text stays as written (the person's formatting; the user's call, 2026-10-11: the page file stays TSX and its
+  // document travels beside it in this browser). Refused when an edit landed meanwhile: that edit brought its own.
+  if (await setPageDoc(id, page.text, doc)) remember(engine.sha1(page.text), doc);
+}
 
 export const isLocalFile = (file: string | null | undefined): file is string => typeof file === "string" && file.startsWith("local:");
 
@@ -42,11 +72,15 @@ export async function localElement(file: string, loc: string): Promise<SourceEle
     index += 1;
     if (child.kind === "expression") children.push({ child, index });
   }
-  const targets = [...attrs.map((attr) => ({ prop: attr.name })), ...children.map((entry) => ({ child: entry.index }))];
+  const targets: Array<{ prop: string } | { child: number } | { tableRows: true }> = [...attrs.map((attr) => ({ prop: attr.name })), ...children.map((entry) => ({ child: entry.index }))];
+  // A Table: whether its rows can be edited (a column without `cell` draws its row's field), as GET /element says.
+  const table = attrs.some((attr) => attr.name === "columns") && (element.attributes as Array<{ name: string }>).some((attr) => attr.name === "rows" || attr.name === "data");
+  if (table) targets.push({ tableRows: true });
   if (targets.length) {
     const origins = engine.originsOf(page.text, file, loc, targets, { read: () => null });
     attrs.forEach((attr, at) => { attr.dataSource = origins[at]; });
     children.forEach((entry, at) => { entry.child.dataSource = origins[attrs.length + at]; });
+    if (table) (element as { tableRows?: unknown }).tableRows = origins[targets.length - 1];
   }
   return element as unknown as SourceElement;
 }
@@ -66,45 +100,42 @@ const EXTRAS = ["snippet", "detached", "wrapped", "unwrapped", "inserted", "move
 
 /** As POST /edit: one apply on the page's text, kept valid, saved to the PageStore (no drafts: a page saves as it goes). */
 export async function localEdit(request: EditRequest): Promise<EditResponse> {
-  const page = await pageText(request.file);
-  if (!page) return { ok: false, code: "not-found", error: `${request.file} is not a page in this browser` };
+  const id = pageIdOf(request.file);
+  const record = id ? await getPage(id) : null;
+  if (!id || !record) return { ok: false, code: "not-found", error: `${request.file} is not a page in this browser` };
   const engine = await loadEngine();
-  const before = page.text;
+  const before = record.text;
   const hashBefore = engine.sha1(before);
   if (request.hash && request.hash !== hashBefore) return { ok: false, code: "stale", error: `${request.file} changed since it was read` };
-  let after: string;
-  let changed: { from: number; to: number };
-  let extras: Record<string, unknown> = {};
-  const [first] = request.ops;
-  if (request.ops.length === 1 && first?.op === "setDataField") {
-    const result = engine.dataFieldEdit(before, request.file, request.loc, request.name, first);
-    if ("error" in result) return { ok: false, code: result.code === "stale" || result.code === "not-found" || result.code === "forbidden" ? result.code : "invalid", error: result.error };
-    if (result.file !== request.file) return { ok: false, code: "forbidden", error: "A page's data lives in the page itself" };
-    after = result.code;
-    changed = engine.changedRange(before, after);
-  } else {
-    // Op "detach" runs once the recipes have registered with the engine.
-    if (request.ops.some((op) => op.op === "detach")) await loadDetach();
-    const result = engine.applyOps(before, request.loc, request.name, request.ops, { ...(await engineOptions()), typographyKeys: Object.keys(typographyStyles), file: request.file, hash: request.hash, shared: request.shared });
-    if (typeof result.error === "string") return { ok: false, code: result.code === "stale" || result.code === "not-found" || result.code === "forbidden" ? result.code : "invalid", error: result.error };
-    after = result.code;
-    changed = result.changed as { from: number; to: number };
-    extras = Object.fromEntries(EXTRAS.filter((key) => result[key] !== undefined).map((key) => [key, result[key]]));
-  }
+  const components = new Set(zenComponents);
+  const doc = record.doc ?? engine.docFromText(before, { components }).doc;
+  if (!doc) return { ok: false, code: "invalid", error: `${request.file} is not a page the Studio can read` };
+  // Op "detach" runs once the recipes have registered with the engine.
+  if (request.ops.some((op) => op.op === "detach")) await loadDetach();
+  const options = { ...(await engineOptions()), typographyKeys: Object.keys(typographyStyles), file: request.file, hash: request.hash, shared: request.shared };
+  const result = engine.editDoc(doc, before, request, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options });
+  if ("error" in result) return { ok: false, code: result.code === "stale" || result.code === "not-found" || result.code === "forbidden" ? result.code : "invalid", error: result.error };
+  const after = result.text;
   if (after !== before) {
-    const errors = engine.validateDialect(after, { components: new Set(zenComponents) });
-    if (errors.length) return { ok: false, code: "invalid", error: `Not written: the page would break (line ${errors[0].line}: ${errors[0].message})` };
-    await putPage(page.id, after);
+    remember(hashBefore, doc);
+    remember(engine.sha1(after), result.doc);
+    await putPage(id, after, { doc: result.doc });
   }
-  return { ok: true, file: request.file, hash: engine.sha1(after), hashBefore, before, after, changed, draft: false, ...extras } as EditResponse;
+  const extras = Object.fromEntries(EXTRAS.filter((key) => result.answer[key] !== undefined).map((key) => [key, result.answer[key]]));
+  const locs = result.locs ? { locs: result.locs } : {};
+  return { ok: true, file: request.file, hash: engine.sha1(after), hashBefore, before, after, changed: engine.changedRange(before, after), draft: false, ...extras, ...locs } as EditResponse;
 }
 
 /** As POST /write (undo / redo put a whole text back): refused when the page changed since it was read. */
 export async function localWrite(request: WriteRequest): Promise<WriteResponse> {
-  const page = await pageText(request.file);
-  if (!page) return { ok: false, code: "invalid", error: `${request.file} is not a page in this browser` };
+  const id = pageIdOf(request.file);
+  const page = id ? await getPage(id) : null;
+  if (!id || !page) return { ok: false, code: "invalid", error: `${request.file} is not a page in this browser` };
   const engine = await loadEngine();
   if (engine.sha1(page.text) !== request.expectHash) return { ok: false, code: "stale", error: `${request.file} changed since this edit; not overwritten` };
-  if (request.content !== page.text) await putPage(page.id, request.content);
-  return { ok: true, hash: engine.sha1(request.content), draft: false };
+  // The text's document when this session wrote it (its ids come back); else the page gets one when it opens again.
+  const doc = documents.get(engine.sha1(request.content));
+  if (request.content !== page.text) await putPage(id, request.content, doc ? { doc } : {});
+  const locs = doc && page.doc ? engine.locMap(page.doc, page.text, doc, request.content, { components: new Set(zenComponents) }) : null;
+  return { ok: true, hash: engine.sha1(request.content), draft: false, ...(locs ? { locs } : {}) };
 }

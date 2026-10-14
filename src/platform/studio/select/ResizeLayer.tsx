@@ -8,15 +8,18 @@ import { componentSchema } from "../inspector/propSchema";
 import { inspectorStatus } from "../inspector/status";
 import { ChromePortalContext } from "../shell/ChromeScope";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "../store";
-import type { SourceElement, StudioSelection } from "../types";
+import type { EditOp, SourceElement, StudioSelection } from "../types";
 import cloning from "../cloning.json";
 import { childHits, nameOf, onSourceUpdate, selectionInstances, type FiberHit } from "./picker";
-import { expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
+import { liveSrc, expectRender, mapSrc, noteEditTarget, renderedNow, sameSelectedElement } from "./remap";
 import { breakpointOf, columnsSource, pxTrack, soleColumn, splitTracks, withTrackPx } from "./gridTracks";
 import { axisText, cloneReason, cloningParent, cloningProp, contentWidth, currentMode, layoutParent, lockBound, MIN_SIZE, noCross, pillReason, planFill, planHug, planHugAxis, planResize, reachesParent, refuseWrap, resizeTarget, snapSize, specimenOnly, stackAxes, stackFill, studioWrapper, withColumn, withoutAxes, withWrapper, wrappedChildLoc, wrapperCandidate, wrapRefusal, type AxisMode, type CloningList, type CrossFits, type ResizeAxis, type ResizePlan, type ResizeTarget } from "./resize";
 import type { Box } from "./spacing";
 import { instanceSizing, type InstanceAxis, type InstanceSizingInput } from "./instanceSizing";
 import type { ParentLayout } from "../inspector/sizingModel";
+import { ladderOf } from "../position/PositionSection";
+import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type PositionAxis, type Snap } from "../position/positionModel";
+import { srcAttr, srcProp } from "./srcIds";
 
 /*
  * Resize handles on the selected element (Figma-like): 4 corner squares and 4 edge strips on its outline (Text and
@@ -36,6 +39,9 @@ import type { ParentLayout } from "../inspector/sizingModel";
  * axis is explained in the pill.
  * The only item of a Zen Grid column that the source sizes in px, filling it without a Fixed width of its own, resizes
  * that column (resize.ts withColumn): the preview sets the Grid's track list, so its neighbours move with the edge.
+ * A floating Stack, Grid or Box (position="absolute") resizes from the edge under the pointer, as in Figma: an edge its
+ * constraint pins moves that inset too (snapped to the Spacing/Padding ladder, the far edge stays), a stretched axis
+ * (left-right, top-bottom) writes the inset of the dragged side only, a centred one grows on both sides.
  */
 
 type Props = {
@@ -97,7 +103,52 @@ type Drag = {
   cross: CrossFits;
   /** How many times the element renders (a .map row): every instance changes. */
   count: number;
+  /** A floating layout (position="absolute"): its pins and offsets at the press (CSS px from its containing block). */
+  float: FloatAxes | null;
+  /** The insets the drag moves (a pinned or stretched edge under the pointer), snapped. */
+  insets: FloatInset[];
 };
+
+type FloatAxes = { pins: { x: Pin; y: Pin }; start: { x: number; y: number }; end: { x: number; y: number }; ladder: Ladder };
+type FloatInset = { prop: string; css: "left" | "right" | "top" | "bottom"; snap: Snap };
+const INSET_CSS = { insetLeft: "left", insetRight: "right", insetTop: "top", insetBottom: "bottom" } as const;
+
+/** A floating Zen layout's pins and offsets now (the ladder measured on it), or null for a layer in the flow. */
+function floatAxes(host: HTMLElement, selection: NodeSelection): FloatAxes | null {
+  const block = host.dataset.position === "absolute" ? host.offsetParent : null;
+  if (!(block instanceof HTMLElement)) return null;
+  const outer = block.getBoundingClientRect();
+  const rect = host.getBoundingClientRect();
+  const scale = block.offsetWidth ? outer.width / block.offsetWidth || 1 : 1;
+  const left = (rect.left - outer.left) / scale - block.clientLeft;
+  const top = (rect.top - outer.top) / scale - block.clientTop;
+  return {
+    pins: { x: pinOfConstraint("x", host.dataset.constraintX), y: pinOfConstraint("y", host.dataset.constraintY) },
+    start: { x: left, y: top },
+    end: { x: block.clientWidth - left - rect.width / scale, y: block.clientHeight - top - rect.height / scale },
+    ladder: ladderOf(selection),
+  };
+}
+
+/**
+ * A floating layout's drag on one axis: the edge under the pointer (side -1 start, 1 end) moved by `delta` CSS px.
+ * A pinned edge moves its inset (snapped) and the size keeps the far edge; a stretched axis moves the inset only (no
+ * size); a centred one grows on both sides; the free edge of a pinned axis is a plain size change.
+ */
+function floatAxis(float: FloatAxes, axis: PositionAxis, side: -1 | 1, delta: number, size0: number, floor: number): { size?: number; inset?: FloatInset } {
+  const pin = float.pins[axis];
+  const [startProp, endProp] = axis === "x" ? (["insetLeft", "insetRight"] as const) : (["insetTop", "insetBottom"] as const);
+  const prop = side < 0 ? startProp : endProp;
+  const offset = side < 0 ? float.start[axis] + delta : float.end[axis] - delta;
+  if (pin === "center") return { size: snapSize(size0 + 2 * side * delta, false, floor) };
+  const moves = pin === "stretch" || (pin === "start" && side < 0) || (pin === "end" && side > 0);
+  if (!moves) return { size: snapSize(size0 + side * delta, false, floor) };
+  const snapped = snap(Math.min(offset, (side < 0 ? float.start[axis] : float.end[axis]) + size0 - floor), float.ladder);
+  const inset = { prop, css: INSET_CSS[prop], snap: snapped };
+  if (pin === "stretch") return { inset };
+  const was = side < 0 ? float.start[axis] : float.end[axis];
+  return { inset, size: Math.max(floor, Math.round(size0 + (was - snapped.px))) };
+}
 
 /** What the pill shows while dragging: the values, Fill (fullWidth), in a Stack (a wrap or its Stack), all N. */
 type Live = { values: Values; fill: boolean; stack: boolean; count: number; column: number | null };
@@ -207,8 +258,13 @@ function useSourceElement(src: string | null, enabled: boolean): SourceElement |
   useEffect(() => {
     const parsed = enabled && src ? parseSrc(src) : null;
     if (!parsed || !src) return undefined;
+    // Right after a write (an undo, a slot Clear) the canvas still shows the render before it, so a `src` read from it
+    // may name a place the file no longer has (GET /element 404 on a cleared host): it is read where the write put it.
+    const live = liveSrc(src);
+    const at = live ? parseSrc(live) : null;
+    if (!at) return undefined;
     let alive = true;
-    void studioApi.element(parsed.file, parsed.loc).then((element) => { if (alive) setRead({ src, element }); });
+    void studioApi.element(at.file, at.loc).then((element) => { if (alive) setRead({ src, element }); });
     return () => { alive = false; };
   }, [src, enabled, version, undo, redo]);
   return read && read.src === src ? read.element : undefined;
@@ -266,6 +322,8 @@ function preview(drag: Drag, values: Values) {
     // Only a cap relative to the parent (max-width: 100%): a px cap (a number Chip's 40px) also holds in the Stack.
     if (rule && (rule.kind === "wrap" || rule.kind === "wrapper" || rule.kind === "fullWidth") && /%$/.test(drag.host.style.getPropertyValue(cap) || getComputedStyle(drag.host).getPropertyValue(cap))) setStyle(drag.host, drag.saved, cap, "none");
   }
+  // A floating layout's moved edges, at their snapped insets.
+  for (const inset of drag.insets) setStyle(drag.host, drag.saved, inset.css, `${inset.snap.px}px`);
 }
 
 /** The drag's preview styles go: the element's, and the Grid's track list. */
@@ -278,6 +336,18 @@ function restoreDrag(drag: Pick<Drag, "host" | "saved" | "grid">) {
  * Reads the element under transient inline styles, restored before returning: one synchronous task, so nothing paints
  * in between (no flash). Its own inline styles (a held preview) come back as they were.
  */
+/** Runs `run` once the browser painted the next frame and has nothing else to do (a measurement that resizes elements
+ *  must not hold up an edit on its way to the canvas); returns the cancel, for an effect's cleanup. */
+function afterPaint(run: () => void): () => void {
+  let idle = 0;
+  let timer = 0;
+  const frame = requestAnimationFrame(() => {
+    if (typeof window.requestIdleCallback === "function") idle = window.requestIdleCallback(run, { timeout: 300 });
+    else timer = setTimeout(run, 0) as unknown as number;
+  });
+  return () => { cancelAnimationFrame(frame); if (idle) window.cancelIdleCallback(idle); window.clearTimeout(timer); };
+}
+
 function measureWith<T>(host: HTMLElement, apply: (saved: Saved) => void, read: () => T): T {
   const saved: Saved = new Map();
   try {
@@ -353,7 +423,7 @@ function handsOn(children: unknown, src: string, through: string[], depth = 0): 
   if (Array.isArray(children)) return through.includes("array") && children.some((child) => handsOn(child, src, through, depth + 1));
   if (!isElementLike(children)) return false;
   if (children.type === Fragment) return through.includes("fragment") && handsOn(children.props?.children, src, through, depth + 1);
-  return children.props?.["data-zen-src"] === src;
+  return srcProp(children.props) === src;
 }
 
 /**
@@ -381,8 +451,8 @@ function clonedWhere(hit: FiberHit): string | null {
       const held = cloningProp(cloningList, owner, fiber.memoizedProps, srcs);
       if (held) return cloneReason(held, `<${hit.name}>`, owner);
       if (componentSchema(owner)) return null;
-      const src: unknown = fiber.memoizedProps?.["data-zen-src"];
-      if (typeof src === "string") srcs.add(src);
+      const src = srcProp(fiber.memoizedProps);
+      if (src) srcs.add(src);
     }
   } catch {
     return null;
@@ -538,6 +608,8 @@ function growsVisibly(host: HTMLElement, axis: ResizeAxis, mainAxis: ResizeAxis 
       const hostAfter = host.getBoundingClientRect();
       const grown = axis === "width" ? hostAfter.width - hostBefore.width : hostAfter.height - hostBefore.height;
       const after = visibleRect(host, { nodes: 400 });
+      // Held at a px cap of its own (a number Chip's max-width: 40px): a Stack around it would grow alone.
+      if (grown < 1 && pxCap(host, axis) !== null) return false;
       if (grown < 1 || !before || !after) return null;
       // At least half of it: pieces that only move apart (a field's label and control) do not resize it.
       return extent(after, axis) - extent(before, axis) >= grown / 2;
@@ -581,7 +653,16 @@ function cssSize(element: Element): Record<ResizeAxis, number> {
 }
 
 /** Why the probed axes have no handle: "Height comes from the InputField size" (its size prop sets it), … */
-function fixedReason(name: string, axes: ResizeAxis[]): string {
+/** The px max size the element's own CSS holds it at on `axis` (it renders at it now), else null. */
+function pxCap(host: HTMLElement, axis: ResizeAxis): number | null {
+  const raw = getComputedStyle(host)[axis === "width" ? "maxWidth" : "maxHeight"];
+  const cap = /^(\d+(?:\.\d+)?)px$/.exec(raw) ? parseFloat(raw) : NaN;
+  return Number.isFinite(cap) && Math.abs(sizeOf(host, axis) - cap) <= 1 ? cap : null;
+}
+
+function fixedReason(name: string, axes: ResizeAxis[], host?: HTMLElement | null): string {
+  const capped = host ? axes.flatMap((axis) => { const cap = pxCap(host, axis); return cap === null ? [] : [`${axis} ${Math.round(cap)}px`]; }) : [];
+  if (capped.length) return `The ${name} holds its ${capped.join(" and ")} at most`;
   if (axes.length === 2) return `The ${name} keeps its own size`;
   if (axes[0] === "width") return `Width comes from the ${name}'s content`;
   return hasSize(name) ? `Height comes from the ${name} size` : `Height comes from the ${name} itself`;
@@ -595,7 +676,7 @@ function fixedReason(name: string, axes: ResizeAxis[]): string {
 function gridCell(host: HTMLElement, wrapperSrc: string | null, props: Record<string, unknown>): { src: string; element: HTMLElement; index: number } | null {
   const item = wrapperSrc && host.parentElement ? host.parentElement : host;
   const grid = layoutParent(item);
-  const src = grid?.classList.contains("zen-grid") ? grid.getAttribute("data-zen-src") : null;
+  const src = grid?.classList.contains("zen-grid") ? srcAttr(grid) : null;
   if (!grid || !src) return null;
   if (item.getAttribute("data-w") === "fixed" || (item === host && typeof props.width === "number")) return null;
   const sole = soleColumn(grid, item);
@@ -624,7 +705,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const wrapperSrc = enabled && !specimen && host && base?.kind === "component" ? wrapperCandidate(host) : null;
   const wrapperElement = useSourceElement(wrapperSrc, Boolean(wrapperSrc));
   const at = hit ? parseSrc(hit.src) : null;
-  let target = base && element && hit && element.name === hit.name ? lockBound(base, element.attributes) : null;
+  let target = base && element && hit && element.name === hit.name ? lockBound(base, element.attributes, hit.props) : null;
   if (target && specimen) target = specimenOnly(target);
   else if (target && wrapperSrc) {
     // Until that Stack is read there is nothing to drag (a drag must never wrap a wrapped component again).
@@ -638,12 +719,16 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const [cell, setCell] = useState<{ host: HTMLElement; key: string; grid: { src: string; element: HTMLElement; index: number } | null } | null>(null);
   const cellKey = `${hit?.src ?? ""}|${wrapperSrc ?? ""}|${updates}`;
   const cellOn = Boolean(enabled && !specimen && host && base);
-  useLayoutEffect(() => {
-    if (!cellOn || !host || dragRef.current) return;
-    const grid = gridCell(host, wrapperSrc, hit?.props ?? {});
-    setCell((last) => (last && last.host === host && last.key === cellKey && last.grid?.src === grid?.src && last.grid?.index === grid?.index ? last : { host, key: cellKey, grid }));
+  useEffect(() => {
+    if (!cellOn || !host || dragRef.current) return undefined;
+    // Measured when the browser is idle, never on an edit's way to the canvas; the last measure holds meanwhile.
+    return afterPaint(() => {
+      if (!host.isConnected || dragRef.current) return;
+      const grid = gridCell(host, wrapperSrc, hit?.props ?? {});
+      setCell((last) => (last && last.host === host && last.key === cellKey && last.grid?.src === grid?.src && last.grid?.index === grid?.index ? last : { host, key: cellKey, grid }));
+    });
   }, [cellOn, host, wrapperSrc, hit, cellKey]);
-  const gridCellNow = cellOn && cell && cell.host === host && cell.key === cellKey ? cell.grid : null;
+  const gridCellNow = cellOn && cell && cell.host === host ? cell.grid : null;
   const gridElement = useSourceElement(gridCellNow?.src ?? null, Boolean(gridCellNow));
   if (target && gridCellNow) {
     // Until the Grid is read there is nothing to drag (a drag must never wrap what should resize its column).
@@ -665,18 +750,22 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const probeAxes = target && enabled && host ? stackAxes(target).join(",") : "";
   const [probe, setProbe] = useState<{ host: HTMLElement; key: string; fixed: ResizeAxis[] } | null>(null);
   const probeKey = `${hit?.src ?? ""}|${probeAxes}|${updates}`;
-  useLayoutEffect(() => {
-    if (!host || !probeAxes) return;
-    // Never under a drag's preview (its sizes are the drag's, not the element's).
-    if (dragRef.current) return;
-    const mainAxis = mainAxisOf(host);
-    const fixed = (probeAxes.split(",") as ResizeAxis[]).filter((axis) => growsVisibly(host, axis, mainAxis) === false);
-    setProbe((last) => (last && last.host === host && last.key === probeKey && last.fixed.join(",") === fixed.join(",") ? last : { host, key: probeKey, fixed }));
+  useEffect(() => {
+    if (!host || !probeAxes) return undefined;
+    // After the canvas painted the edit (the probe resizes the element to measure it: ~10 ms a layer, user 2026-10-13
+    // found every edit slow); never under a drag's preview (its sizes are the drag's, not the element's).
+    return afterPaint(() => {
+      if (dragRef.current || !host.isConnected) return;
+      const mainAxis = mainAxisOf(host);
+      const fixed = (probeAxes.split(",") as ResizeAxis[]).filter((axis) => growsVisibly(host, axis, mainAxis) === false);
+      setProbe((last) => (last && last.host === host && last.key === probeKey && last.fixed.join(",") === fixed.join(",") ? last : { host, key: probeKey, fixed }));
+    });
   }, [host, probeAxes, probeKey]);
-  const fixed = probe && probe.host === host && probe.key === probeKey ? probe.fixed : [];
+  // The last probe of this element holds until the next one lands (no handle flickers in after an edit).
+  const fixed = probe && probe.host === host ? probe.fixed : [];
   // A Tooltip's anchor passes no size to the child it clones unless its CSS does (a class that makes the child fill
   // it): the probe tells, cloning.json's words say why.
-  if (target && fixed.length && hit) target = withoutAxes(target, fixed, anchorParents.has(hit.name) ? anchorReason(hit, fixed) : fixedReason(hit.name, fixed));
+  if (target && fixed.length && hit) target = withoutAxes(target, fixed, anchorParents.has(hit.name) ? anchorReason(hit, fixed) : fixedReason(hit.name, fixed, host));
   // Why axes have no handle, whichever step removed them (the pill says it; a refused wrap goes to the status line too).
   const note = target?.why?.length ? target.why.join(" · ") : null;
   const statusKey = refusal && hit && enabled ? `${hit.src}|${refusal}` : "";
@@ -764,9 +853,22 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     const dy = (y - drag.start.y) / scale;
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
     const values: Values = {};
+    drag.insets = [];
+    const xOn = Boolean(drag.handle.sx && drag.target.width && (!corner || Math.abs(x - drag.start.x) >= DRAG_START));
+    const yOn = Boolean(drag.handle.sy && drag.target.height && (!corner || Math.abs(y - drag.start.y) >= DRAG_START));
+    if (drag.float) {
+      // A floating layout: the dragged edge follows the pointer (its inset moves where its constraint pins it).
+      for (const [axis, on, side, delta, size0, floor, key] of [["x", xOn, drag.handle.sx, dx, drag.w0, drag.min.width, "width"], ["y", yOn, drag.handle.sy, dy, drag.h0, drag.min.height, "height"]] as const) {
+        if (!on || !side) continue;
+        const moved = floatAxis(drag.float, axis, side, delta, size0, Math.max(MIN_SIZE, floor));
+        if (moved.size !== undefined) values[key] = moved.size;
+        if (moved.inset) drag.insets.push(moved.inset);
+      }
+      return values;
+    }
     // Never below what the element renders at its smallest (the pill shows the clamped value).
-    if (drag.handle.sx && drag.target.width && (!corner || Math.abs(x - drag.start.x) >= DRAG_START)) values.width = snapSize(drag.w0 + drag.handle.sx * dx, shift, drag.min.width);
-    if (drag.handle.sy && drag.target.height && (!corner || Math.abs(y - drag.start.y) >= DRAG_START)) values.height = snapSize(drag.h0 + drag.handle.sy * dy, shift, drag.min.height);
+    if (xOn) values.width = snapSize(drag.w0 + drag.handle.sx * dx, shift, drag.min.width);
+    if (yOn) values.height = snapSize(drag.h0 + drag.handle.sy * dy, shift, drag.min.height);
     return values;
   }, []);
 
@@ -864,9 +966,21 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     if (!drag.active) { finish(false); return; }
     // Out and back: a drag that ends at the size it started from writes nothing (no wrap at the same size).
     const start: Values = { width: Math.round(drag.w0), height: Math.round(drag.h0) };
-    if ((["width", "height"] as const).every((axis) => drag.values[axis] === undefined || drag.values[axis] === start[axis])) { finish(false); return; }
+    // A floating layout's moved edge: its inset changed step (the size alone may stay).
+    const insets = drag.insets.filter((inset) => {
+      const float = drag.float!;
+      const was = inset.prop === "insetLeft" ? float.start.x : inset.prop === "insetRight" ? float.end.x : inset.prop === "insetTop" ? float.start.y : float.end.y;
+      return Math.abs(snap(was, float.ladder).px - inset.snap.px) >= 0.5;
+    });
+    if (!insets.length && (["width", "height"] as const).every((axis) => drag.values[axis] === undefined || drag.values[axis] === start[axis])) { finish(false); return; }
     const corner = drag.handle.sx !== 0 && drag.handle.sy !== 0;
-    const plan = planResize(drag.hit.name, drag.target, drag.values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner });
+    const sized = planResize(drag.hit.name, drag.target, drag.values, drag.parentWidth, { cross: drag.cross, count: drag.count, corner });
+    const insetOps: EditOp[] = insets.map((inset) => (inset.snap.key === "none" ? { op: "removeProp", name: inset.prop } : { op: "setProp", name: inset.prop, value: { kind: "string", value: inset.snap.key } }));
+    const moved = insets.map((inset) => snapText(inset)).join(", ");
+    // The inset ops go with the size to the floating layout itself (its own size props, never a wrap).
+    const plan: ResizePlan | null = !insetOps.length ? sized
+      : sized && !sized.wrap && !sized.wrapper && !sized.grid ? { ...sized, ops: [...sized.ops, ...insetOps], label: `${sized.label} · ${moved}`, announce: `${sized.announce} · ${moved}` }
+      : !sized ? { ops: insetOps, wrap: false, wrapper: null, label: `${drag.hit.name} ${moved}`, announce: `${drag.hit.name} ${moved}` } : sized;
     if (!plan) {
       finish(false);
       // A fullWidth axis of an element the server cannot wrap: only the parent's width (Fill) is written.
@@ -928,6 +1042,7 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey },
       scale, zoom, w0, h0, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
       values: {}, active: false, saved: new Map(), stack: false, min, cross, count,
+      float: shown.kind === "layout" ? floatAxes(host, selection) : null, insets: [],
       grid: shown.width?.kind === "column" && gridCellNow ? { element: gridCellNow.element, saved: new Map() } : null,
     };
     const onMove = (move: PointerEvent) => { if (move.pointerId === pointerId) update(move.clientX, move.clientY, move.shiftKey); };
@@ -993,11 +1108,20 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
   const sizingKey = sizingTarget && hit && host
     ? `${hit.src}|${updates}|${settled}|${count}|${sizingTarget.width?.kind ?? ""}/${sizingTarget.height?.kind ?? ""}|${sizingTarget.wrapper?.src ?? ""}|${host.offsetWidth}x${host.offsetHeight}`
     : "";
+  // A choice made while the canvas reads the element again after a write (no hit for a frame or two, the Inspector keeps
+  // its fields meanwhile): it waits for that element and is written once it is read, instead of being dropped (E2E IN-15).
+  const waiting = useRef<{ src: string; axis: ResizeAxis; input: InstanceSizingInput } | null>(null);
   const setSize = useCallback((axis: ResizeAxis, input: InstanceSizingInput) => {
     const { shown: target, element: source, hit: picked, host: node, count: times } = latest.current;
-    if (!target || !source || !picked || !node || dragRef.current) return;
+    if (dragRef.current) return;
     const selection = studioStore.getState().selection;
-    if (selection?.kind !== "node" || selection.part || selection.src !== picked.src) return;
+    if (selection?.kind !== "node" || selection.part) return;
+    if (!target || !source || !picked || !node) {
+      if (instanceSizing.get()?.src === selection.src) waiting.current = { src: selection.src, axis, input };
+      return;
+    }
+    if (selection.src !== picked.src) return;
+    waiting.current = null;
     // What the element (or its Studio wrap Stack) fills: what a Stack keeps on the axis it does not size.
     const filler = target.wrapper && node.parentElement instanceof HTMLElement ? node.parentElement : node;
     const cross = stackAxes(target).length || target.width?.kind === "fullWidth" ? crossFits(filler) : noCross;
@@ -1017,12 +1141,18 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
     window.clearTimeout(unpublish.current);
     if (!sizingKey) {
       // A moment later: a re-render that reads the element (or its Stack) again keeps the fields (and what is typed).
-      unpublish.current = window.setTimeout(() => instanceSizing.publish(null), 250);
+      unpublish.current = window.setTimeout(() => { waiting.current = null; instanceSizing.publish(null); }, 250);
       return;
     }
     if (dragRef.current || heldRef.current) return;
+    // Measured after the canvas painted the edit (crossFits resizes the element to see whether it fills).
+    return afterPaint(() => publishSizing());
+  }, [sizingKey, setSize]);
+  /** The Inspector's W / H rows: what the selected instance does by itself, measured, and how to set it. */
+  const publishSizing = () => {
+    if (dragRef.current || heldRef.current) return;
     const { shown: target, hit: picked, host: node } = latest.current;
-    if (!target || !picked || !node) return;
+    if (!target || !picked || !node || !node.isConnected) return;
     const filler = target.wrapper && node.parentElement instanceof HTMLElement ? node.parentElement : node;
     const fits = crossFits(filler);
     // Unwritten: what it does by itself, as Figma names it (it fills its parent there, or takes its own size).
@@ -1033,7 +1163,10 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
       return mode ? { mode, written: true, px } : { mode: fits[name] ? "fill" : "hug", written: false, px };
     };
     instanceSizing.publish({ src: picked.src, name: picked.name, width: axis("width"), height: axis("height"), stacked: Boolean(target.wrapper), parent: parentLayout(filler), set: setSize });
-  }, [sizingKey, setSize]);
+    const wait = waiting.current;
+    waiting.current = null;
+    if (wait && wait.src === picked.src) setSize(wait.axis, wait.input);
+  };
   useEffect(() => () => { window.clearTimeout(unpublish.current); instanceSizing.publish(null); }, []);
 
   // The pill's rendered width, so a long reason stays inside the canvas (read after each render; set only on a change).

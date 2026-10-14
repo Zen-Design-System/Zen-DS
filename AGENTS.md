@@ -23,6 +23,8 @@ with the QA loop below.
 
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1` (the older key `yhWJ…` in some docs has no MCP
   access). Match node, tokens and states exactly; never invent a token. Skills: `skills/zen-figma-component-audit`.
+  Figma MCP `search_design_system` sees several Zen libraries with the same names (forks): scope it to the official
+  one with `includeLibraryKeys` (the key is in that skill; `get_libraries` on the file returns it).
 - **Definition of done** (`docs/component-usage-rules.md`, skill `skills/zen-component-usage`):
   1. `src/components/<Name>/{Name.tsx, name.css, index.ts, Name.stories.tsx}`; JSDoc cites the Figma node and tokens.
   2. `export *` in `src/index.ts`.
@@ -76,6 +78,7 @@ edit at once and block finishing a turn until the gate passed (not while your ow
 | Usage harness | `npm run usage:selftest` · `npm run usage:check` (the CLI, ESLint plugin and app mode are checked by the selftest) |
 | Browser tests | `npm test` — smoke + axe baseline for every component, size spellings, interactions (`ZEN_UPDATE_AXE=1 npm test -- tests/smoke` rewrites the baseline after an a11y fix) |
 | MCP server | `npm run mcp:selftest` |
+| AI kit for Figma | `npm run ai-kit:check` · `npm run ai-kit:build` (zip in dist-pack/; the platform's Installation page builds the same) |
 | Visual regression | `node tools/platform-audit/visual-diff.mjs capture <dir> --url=…` before and after, then `… compare <before> <after> --sheets=<dir>`: refactors that must not change the UI need 0 changed panels |
 | Guidelines + props docs | `npm run guidelines:build` then `npm run guidelines:check` |
 | Tokens / styles / icons | `npm run tokens:check` · `npm run styles:check` · `npm run icons:check` |
@@ -99,6 +102,7 @@ reporting work as done.
 | `src/platform`, `src/foundations` | Docs platform only; never imported by the library |
 | `tools/usage-guard` | Harness: rules (`check-usage.mjs`), scanner (`engine.mjs`), CLI (`cli.mjs`, bin `zen-usage`), ESLint plugin (`eslint.mjs`), API (`api.mjs`); guideline source and generated docs builder |
 | `mcp/` | `zen-ds-mcp`, the MCP server for AI agents (reads the shipped docs) |
+| `tools/ai-kit`, `skills/zen-figma-design` | The AI kit for designing in a Zen Figma file: the skill, the Figma audit harness, the kit builder (`kit.mjs`) |
 | `tools/zen-ds.mjs` | `npx zen-ds init / doctor / check` for apps |
 | `tests/` | Vitest browser tests (Chromium, reduced motion): `smoke/` (every component, axe baseline), `scale.test.tsx`, `interaction/` |
 | `src/components/_shared` | `scale.ts` (size spellings), `labels.ts` (en/vi built-in text), `zen-context.ts` (useZen, useZenLabels, useZenLocale), `icon.tsx` (renderIcon), `overlay.ts` / `status.ts` (accepted aliases) |
@@ -134,9 +138,11 @@ commits come from one place. Browser checks that must not catch another session'
 `npm run qa -- --isolated` (a private dev server, no HMR, no Studio drafts). Log what you did in
 `docs/context/session-log-<date>.md` (length by tier, §C), add a user-facing line to `CHANGELOG.md` (Unreleased), and update `docs/context/HANDOFF.md` when the current state changes (`BACKLOG.md` when open items change).
 
-**Scope lock (the user's rule since 2026-09-29).** Do only the task the user approved. Nothing new starts without the
-user's explicit approval: no new session, no task chip, no new harness rule or audit check, no fix to a component or
-tool you happened to find. Append each bug or follow-up as one line under "## Backlog" in
-`docs/context/BACKLOG.md` (priority + pointer), mention it in your report, and stop there: the Backlog is summarised
-as a proposal for the next working block, and the user approves what gets done. Another session cannot approve scope
-on the user's behalf. If a finding blocks your approved task, stop and ask your user.
+**Scope lock (the user's rule since 2026-09-29, changed 2026-10-08).** Do only the task the user approved: no new
+feature, component, session, task chip, harness rule or audit check without the user's explicit approval. **A bug or
+gate finding you meet while working is fixed right away**, in the same change, at its owner (user, 2026-10-08: "gặp lỗi
+nên sửa ngay, không nên đẩy backlog dài sau này không xử lý được"). Only two kinds of finding go to
+`docs/context/BACKLOG.md` (one line, priority + pointer, mentioned in your report): a question only the user or the
+designer can answer, and work too large for the current change (a new component or API, a multi-file refactor), which
+then waits for the user's approval. Another session cannot approve scope on the user's behalf. If a finding blocks your
+approved task, stop and ask your user.

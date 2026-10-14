@@ -2,7 +2,7 @@
 // Self-test of the Layout section model (./layoutModel.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/inspector/layoutModel.selftest.mjs
 import {
-  alignResetOps, alignView, autoOps, baselineOps, cellOps, columnsAt, columnsFieldOp, columnsModeOps, countOf, crossOps, flowOf, flowOps,
+  alignResetOps, alignView, autoOps, axisPadding, axisPaddingOps, baselineOps, cellOps, columnsAt, columnsFieldOp, columnsModeOps, countOf, crossOps, flowOf, flowOps,
   gapAutoOps, gapOps, laneAlignOps, laneJustifyOps, layoutWarnings, relinkChoices, relinkOps, tracksFor, uniformPadding, uniformPaddingOps,
 } from "./layoutModel.ts";
 
@@ -46,6 +46,13 @@ check("gap Auto", [gapAutoOps({}), gapAutoOps({ justify: "between" })], [[str("j
 // Padding.
 check("uniform padding", [uniformPadding({}), uniformPadding({ padding: "md" }), uniformPadding({ padding: "md", paddingX: "lg" }), uniformPadding({ paddingX: "sm", paddingY: "sm" })], [undefined, "md", null, "sm"]);
 check("all sides collapses the axes", uniformPaddingOps({ paddingX: "lg", paddingY: "xs" }, "md"), [str("padding", "md"), rm("paddingX"), rm("paddingY")]);
+check("H / V fields read the axis, else padding", [axisPadding({ padding: "md" }, "x"), axisPadding({ padding: "md", paddingY: "lg" }, "y"), axisPadding({}, "x")], ["md", "lg", undefined]);
+check("H on padding md: padding kept, paddingX added", axisPaddingOps({ padding: "md" }, "x", "lg"), [str("paddingX", "lg")]);
+check("H back to the padding: the axis removed", axisPaddingOps({ padding: "md", paddingX: "lg" }, "x", "md"), [rm("paddingX")]);
+check("V equal to H: one padding", axisPaddingOps({ paddingX: "sm", paddingY: "lg" }, "y", "sm"), [str("padding", "sm"), rm("paddingX"), rm("paddingY")]);
+check("both axes differ from padding: the axes, padding removed", axisPaddingOps({ padding: "md", paddingX: "lg" }, "y", "xs"), [rm("padding"), str("paddingY", "xs")]);
+check("an unwritten axis stays unwritten", axisPaddingOps({}, "y", "sm"), [str("paddingY", "sm")]);
+check("a pick equal to what is written writes nothing", axisPaddingOps({ paddingX: "lg" }, "x", "lg"), []);
 
 // Grid gap.
 check("relink choices", relinkChoices({ gap: "md", rowGap: "lg", columnGap: "md" }), ["md", "lg"]);

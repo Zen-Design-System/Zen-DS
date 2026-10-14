@@ -15,13 +15,13 @@ import type { FigmaPropsEntry } from "./figmaProps.generated";
  */
 
 /** A condition on one prop as rendered: set (not null / undefined / false / "" / an empty list), unset, a list size
- *  (an absent list counts as empty), or one of some string values. */
+ *  (an absent list counts as empty), or one of some string values (`default`: the value an unset prop renders with). */
 export type GroupCondition =
   | { prop: string; set: true }
   | { prop: string; unset: true }
   | { prop: string; minItems: number }
   | { prop: string; maxItems: number }
-  | { prop: string; oneOf: readonly string[] };
+  | { prop: string; oneOf: readonly string[]; default?: string };
 
 export type GroupToggle = {
   /** The Figma boolean's name, the row's label. */
@@ -144,7 +144,10 @@ export function holds(conditions: readonly GroupCondition[] | undefined, props: 
     const value = props[condition.prop];
     if ("minItems" in condition) return Array.isArray(value) && value.length >= condition.minItems;
     if ("maxItems" in condition) return (Array.isArray(value) ? value.length : 0) <= condition.maxItems;
-    if ("oneOf" in condition) return typeof value === "string" && condition.oneOf.includes(value);
+    if ("oneOf" in condition) {
+      const shown = value === undefined || value === null ? condition.default : value;
+      return typeof shown === "string" && condition.oneOf.includes(shown);
+    }
     return "set" in condition ? isSetValue(value) : !isSetValue(value);
   });
 }
@@ -205,7 +208,7 @@ export function groupsFromFigma(entry: FigmaPropsEntry): ComponentGroups {
   return {
     figma: entry.figma,
     own: entry.own.filter(variant).map(row),
-    toggles: entry.toggles.map((toggle) => ({ label: toggle.label, prop: toggle.prop, on: on(toggle.on) })),
+    toggles: entry.toggles.map((toggle) => ({ label: toggle.label, prop: toggle.prop, on: on(toggle.on), ...(toggle.when ? { when: toggle.when } : {}) })),
     after: [...entry.own.filter((item) => !variant(item)).map(row), ...objects],
     nested: (entry.nested ?? []).map((group) => ({ name: group.name, ...(group.figma ? { figma: group.figma } : {}), when: [set(group.when)], props: group.own.map((item) => ({ prop: item.prop, ...(item.label ? { label: item.label } : {}) })) })),
   };

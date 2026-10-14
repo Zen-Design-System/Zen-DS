@@ -31,6 +31,13 @@ export type ZenLabels = {
   // Tables
   selectAllRows: string;
   selectRow: (row: number) => string;
+  /** Names a row's action button in a Table Actions-Cell ("Edit, row 3"); the visible tooltip is the action alone. */
+  rowAction: (action: string, row: number) => string;
+  /** Count on a table's bulk-action bar ("3 selected"). */
+  rowsSelected: (count: number) => string;
+  /** Names a table's bulk-action bar (a toolbar). */
+  selectedRowActions: (count: number) => string;
+  clearSelection: string;
   /** Screen-reader hint on editable cells. */
   editableCellHint: string;
   /** Number editor's validation message. */
@@ -57,6 +64,8 @@ export type ZenLabels = {
   // Dates
   cancel: string;
   apply: string;
+  /** DatePickerSheet: confirms the picked date or range (Figma Date-Picker/Mobile "OK"). */
+  ok: string;
   previousMonth: string;
   nextMonth: string;
   backToCalendar: string;
@@ -141,6 +150,20 @@ export type ZenLabels = {
   chartPoint: (index: number, count: number) => string;
   /** A stack bar chart's screen-reader summary: "total 1.2K". */
   chartTotal: (value: string) => string;
+  /** A bar against its goal: "$320 of $400". */
+  chartOfTarget: (value: string, target: string) => string;
+  /** A forecast bar's Tooltip suffix. */
+  chartProjected: string;
+  /** A heatmap's summary before a cell is picked: "Highest: Thu, 3 pm: 42". */
+  chartHighest: string;
+  /** A heatmap scale's ends. */
+  chartLess: string;
+  chartMore: string;
+  /** The average line's tag ("Avg $95.4K") and its screen-reader form ("average $95.4K"). */
+  chartAverage: (value: string) => string;
+  chartAverageLong: (value: string) => string;
+  /** The caption under a donut's total. */
+  total: string;
   noData: string;
   colour: string;
   segmentedControl: string;
@@ -239,6 +262,47 @@ export type ZenLabels = {
   addFilesAndTools: string;
   dictate: string;
   assistant: string;
+  listening: string;
+  stopDictation: string;
+  voiceNewRecording: string;
+  voiceReady: string;
+  voiceRecording: string;
+  voicePaused: string;
+  voiceRecord: string;
+  voicePause: string;
+  voiceResume: string;
+  voiceDiscard: string;
+  voiceFinish: string;
+  voiceReadyGuidance: string;
+  voiceRecordingGuidance: string;
+  voicePausedGuidance: string;
+  voiceAssistant: string;
+  voiceListening: string;
+  voiceResponding: string;
+  voiceReadyHeading: string;
+  voiceListeningHeading: string;
+  voiceRespondingHeading: string;
+  voiceReadyConversationGuidance: string;
+  voiceListeningGuidance: string;
+  voiceRespondingGuidance: string;
+  voiceTrySaying: string;
+  voiceYouLive: string;
+  voiceAssistantSpoken: string;
+  voiceStartTalking: string;
+  voiceDoneSpeaking: string;
+  voiceInterrupt: string;
+  voiceMute: string;
+  voiceEnd: string;
+  voiceMicOffNote: string;
+  voiceConnectedNote: string;
+  /** Listening with the microphone muted: the guidance line and the note. */
+  voiceMutedGuidance: string;
+  voiceMutedNote: string;
+  playVoiceMessage: string;
+  pauseVoiceMessage: string;
+  voiceReadyToPlay: string;
+  voicePlaying: string;
+  playbackSpeed: (speed: string) => string;
 };
 
 /** Range numbers with the language's thousands separator: en 1,284 · vi 1.284. */
@@ -266,6 +330,10 @@ const en: ZenLabels = {
   searchAndSelect: "Search and select",
   selectAllRows: "Select all rows",
   selectRow: (row) => `Select row ${row}`,
+  rowAction: (action, row) => `${action}, row ${row}`,
+  rowsSelected: (count) => `${enNumber.format(count)} selected`,
+  selectedRowActions: (count) => `Actions for ${enNumber.format(count)} selected ${count === 1 ? "row" : "rows"}`,
+  clearSelection: "Clear selection",
   editableCellHint: "Editable cell. Press Enter or start typing to edit, Escape to cancel, arrow keys to move.",
   enterNumber: "Enter a number",
   addTag: "Add tag",
@@ -283,6 +351,7 @@ const en: ZenLabels = {
   showMore: (count) => `Show ${count} more`,
   cancel: "Cancel",
   apply: "Submit",
+  ok: "OK",
   previousMonth: "Previous month",
   nextMonth: "Next month",
   backToCalendar: "Back to calendar",
@@ -349,6 +418,14 @@ const en: ZenLabels = {
   openReport: "Open report",
   chartPoint: (index, count) => `${index} of ${count}`,
   chartTotal: (value) => `total ${value}`,
+  chartOfTarget: (value, target) => `${value} of ${target}`,
+  chartProjected: "projected",
+  chartHighest: "Highest",
+  chartLess: "Less",
+  chartMore: "More",
+  chartAverage: (value) => `Avg ${value}`,
+  chartAverageLong: (value) => `average ${value}`,
+  total: "Total",
   noData: "No data",
   colour: "Colour",
   segmentedControl: "Segmented control",
@@ -427,6 +504,46 @@ const en: ZenLabels = {
   addFilesAndTools: "Add files and tools",
   dictate: "Dictate",
   assistant: "Assistant",
+  listening: "Listening…",
+  stopDictation: "Stop dictation",
+  voiceNewRecording: "New recording",
+  voiceReady: "Ready",
+  voiceRecording: "Recording",
+  voicePaused: "Paused",
+  voiceRecord: "Record",
+  voicePause: "Pause",
+  voiceResume: "Resume",
+  voiceDiscard: "Discard",
+  voiceFinish: "Finish",
+  voiceReadyGuidance: "Ready when you are. Tap Record to begin.",
+  voiceRecordingGuidance: "Capturing audio from your microphone.",
+  voicePausedGuidance: "Recording paused. Resume or finish your take.",
+  voiceAssistant: "Zen voice",
+  voiceListening: "Listening",
+  voiceResponding: "Responding",
+  voiceReadyHeading: "Let’s talk",
+  voiceListeningHeading: "I’m listening",
+  voiceRespondingHeading: "Here’s what I found",
+  voiceReadyConversationGuidance: "Ask a question. Think out loud. Start anywhere.",
+  voiceListeningGuidance: "Speak naturally. I’ll follow your lead.",
+  voiceRespondingGuidance: "You can interrupt me at any time.",
+  voiceTrySaying: "Try saying",
+  voiceYouLive: "You · Live transcript",
+  voiceAssistantSpoken: "Zen · Spoken response",
+  voiceStartTalking: "Start talking",
+  voiceDoneSpeaking: "Done speaking",
+  voiceInterrupt: "Interrupt",
+  voiceMute: "Mute",
+  voiceEnd: "End",
+  voiceMicOffNote: "Your microphone stays off until you start.",
+  voiceConnectedNote: "Voice conversation · Microphone connected",
+  voiceMutedGuidance: "Your microphone is muted. Unmute to keep talking.",
+  voiceMutedNote: "Voice conversation · Microphone muted",
+  playVoiceMessage: "Play voice message",
+  pauseVoiceMessage: "Pause voice message",
+  voiceReadyToPlay: "Ready to play",
+  voicePlaying: "Playing",
+  playbackSpeed: (speed) => `Playback speed ${speed}`,
 };
 
 const vi: ZenLabels = {
@@ -450,6 +567,10 @@ const vi: ZenLabels = {
   searchAndSelect: "Tìm và chọn",
   selectAllRows: "Chọn tất cả các hàng",
   selectRow: (row) => `Chọn hàng ${row}`,
+  rowAction: (action, row) => `${action}, hàng ${row}`,
+  rowsSelected: (count) => `Đã chọn ${viNumber.format(count)}`,
+  selectedRowActions: (count) => `Thao tác cho ${viNumber.format(count)} hàng đã chọn`,
+  clearSelection: "Bỏ chọn",
   editableCellHint: "Ô có thể chỉnh sửa. Nhấn Enter hoặc bắt đầu gõ để sửa, Escape để huỷ, phím mũi tên để di chuyển.",
   enterNumber: "Nhập một số",
   addTag: "Thêm thẻ",
@@ -467,6 +588,7 @@ const vi: ZenLabels = {
   showMore: (count) => `Hiện thêm ${count}`,
   cancel: "Huỷ",
   apply: "Áp dụng",
+  ok: "Xong",
   previousMonth: "Tháng trước",
   nextMonth: "Tháng sau",
   backToCalendar: "Quay lại lịch",
@@ -533,6 +655,14 @@ const vi: ZenLabels = {
   openReport: "Mở báo cáo",
   chartPoint: (index, count) => `${index} trên ${count}`,
   chartTotal: (value) => `tổng ${value}`,
+  chartOfTarget: (value, target) => `${value} trên ${target}`,
+  chartProjected: "dự kiến",
+  chartHighest: "Cao nhất",
+  chartLess: "Ít",
+  chartMore: "Nhiều",
+  chartAverage: (value) => `TB ${value}`,
+  chartAverageLong: (value) => `trung bình ${value}`,
+  total: "Tổng",
   noData: "Không có dữ liệu",
   colour: "Màu",
   segmentedControl: "Bộ chọn phân đoạn",
@@ -611,6 +741,46 @@ const vi: ZenLabels = {
   addFilesAndTools: "Thêm tệp và công cụ",
   dictate: "Đọc chính tả",
   assistant: "Trợ lý",
+  listening: "Đang nghe…",
+  stopDictation: "Dừng đọc chính tả",
+  voiceNewRecording: "Bản ghi mới",
+  voiceReady: "Sẵn sàng",
+  voiceRecording: "Đang ghi",
+  voicePaused: "Tạm dừng",
+  voiceRecord: "Ghi âm",
+  voicePause: "Tạm dừng",
+  voiceResume: "Tiếp tục",
+  voiceDiscard: "Huỷ bản ghi",
+  voiceFinish: "Hoàn tất",
+  voiceReadyGuidance: "Sẵn sàng khi bạn muốn. Nhấn Ghi âm để bắt đầu.",
+  voiceRecordingGuidance: "Đang thu âm từ micro của bạn.",
+  voicePausedGuidance: "Đã tạm dừng. Tiếp tục hoặc hoàn tất bản ghi.",
+  voiceAssistant: "Zen voice",
+  voiceListening: "Đang nghe",
+  voiceResponding: "Đang trả lời",
+  voiceReadyHeading: "Cùng trò chuyện",
+  voiceListeningHeading: "Mình đang nghe",
+  voiceRespondingHeading: "Đây là điều mình tìm được",
+  voiceReadyConversationGuidance: "Hỏi một câu. Nghĩ thành lời. Bắt đầu từ đâu cũng được.",
+  voiceListeningGuidance: "Cứ nói tự nhiên. Mình sẽ theo bạn.",
+  voiceRespondingGuidance: "Bạn có thể ngắt lời mình bất cứ lúc nào.",
+  voiceTrySaying: "Thử nói",
+  voiceYouLive: "Bạn · Bản ghi trực tiếp",
+  voiceAssistantSpoken: "Zen · Câu trả lời bằng giọng nói",
+  voiceStartTalking: "Bắt đầu nói",
+  voiceDoneSpeaking: "Nói xong",
+  voiceInterrupt: "Ngắt lời",
+  voiceMute: "Tắt tiếng",
+  voiceEnd: "Kết thúc",
+  voiceMicOffNote: "Micro của bạn vẫn tắt cho đến khi bạn bắt đầu.",
+  voiceConnectedNote: "Trò chuyện bằng giọng nói · Đã kết nối micro",
+  voiceMutedGuidance: "Micro đang tắt tiếng. Bật lại để nói tiếp.",
+  voiceMutedNote: "Trò chuyện bằng giọng nói · Micro đang tắt tiếng",
+  playVoiceMessage: "Phát tin nhắn thoại",
+  pauseVoiceMessage: "Tạm dừng tin nhắn thoại",
+  voiceReadyToPlay: "Sẵn sàng phát",
+  voicePlaying: "Đang phát",
+  playbackSpeed: (speed) => `Tốc độ phát ${speed}`,
 };
 
 /** Built-in dictionaries by language subtag. */

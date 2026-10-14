@@ -13,9 +13,17 @@
         {
           "name": "items",
           "type": "BottomNavigationItem[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The destinations as BottomNavigationItem elements, in order, when `items` is not given.",
           "deprecated": null
         },
         {
@@ -104,6 +112,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Action/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
           "deprecated": null
         }
       ]

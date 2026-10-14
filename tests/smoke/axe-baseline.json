@@ -2,6 +2,12 @@
   "AiChatField": [
     "color-contrast"
   ],
+  "AiVoiceConversation": [
+    "color-contrast"
+  ],
+  "BarChart": [
+    "color-contrast"
+  ],
   "ChatComposerReply": [
     "color-contrast"
   ],
@@ -23,6 +29,12 @@
   "DatePickerMonthYear": [
     "color-contrast",
     "color-contrast:dark"
+  ],
+  "DatePickerSheet": [
+    "color-contrast"
+  ],
+  "HeatmapChart": [
+    "color-contrast"
   ],
   "InputContent": [
     "color-contrast"
@@ -58,6 +70,9 @@
     "color-contrast"
   ],
   "UploaderFileItem": [
+    "color-contrast"
+  ],
+  "VoiceRecorder": [
     "color-contrast"
   ]
 }

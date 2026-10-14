@@ -43,8 +43,16 @@ the engine modules or the build config.
   the run (`.qa/studio-e2e/snapshot-<stamp>/`), and the file is restored byte for byte afterwards.
   - A host page or `data.ts` that the harness turned into fixture text is restored too.
   - A change someone else made in the meantime is reported and never overwritten.
-- **Server restarts are handled.** A peer's edit to `tools/studio/*.mjs` restarts the server with a new token, and the
-  API client pings again and retries.
+- **Peers' edits stay out.** The server watches only the files the harness writes (the host page, the save fixture,
+  `data.ts`) under `src/` and `tools/` (`lib/server.mjs` peerIgnore), so a peer's edit to a Studio module no longer
+  hot-updates or restarts it mid-row; `--watch-all` watches the whole tree again. Should it restart anyway (an edit to
+  the Vite config), the API client pings again and retries.
+- **A killed run is put right.** Each run leaves `.qa/studio-e2e/.running-<pid>.json` until it ends; the next run
+  restores what a stopped one wrote (the save fixture, fixture text in the host page or `data.ts`) from that run's
+  snapshot, else from git's HEAD.
+- **Shards.** `--shard=k/n` runs the k-th of n contiguous slices of the selected rows (its groups only), its report
+  named `<stamp>-shard<k>of<n>`. Shards in one tree share the save fixture: run them one after another there, or in
+  separate worktrees.
 
 ## Rows and the baseline
 

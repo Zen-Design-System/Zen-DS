@@ -4,19 +4,23 @@
 import { useEffect, useRef, useState } from "react";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatAction, type AiChatFieldStyle } from "../../../components/AiChat";
 import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
-import { Box, Stack } from "../../../components/Layout";
+import { Box, Container, Stack } from "../../../components/Layout";
 import { Popover } from "../../../components/Popover";
 import { Tag } from "../../../components/Tag";
 import { Text } from "../../../components/Text";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { AiVoiceConversation, type AiVoiceState } from "../../../components/Voice";
+import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import { files, formatBytes, formatDate, formatMoney, formatRange, formatRelative, invoices, leaveRequests, me, people, projectById, studioMonths, type StudioFile } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./ai-chat.css";
 
 export const page: PlatformPage = "ai-chat";
@@ -252,15 +256,17 @@ function AssistantHomeExample() {
   const field = <AskField fieldStyle="surface" dictation="What's due tomorrow?" modelId={modelId} onModelChange={setModelId}
     busy={chat.busy} onStop={chat.stop} onAsk={ask} className={started ? "px-ai-chat-column" : undefined} />;
   return (
-    <Box ref={screenRef} className="px-ai-chat-screen">
+    <PreviewWindow ref={screenRef} height={{ min: 560, max: 720, offset: 160 }} clip={false}>
       <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
       {started ? (
         <>
           {/* A strip over the conversation: block padding Small, the page margin at the sides (24, or 20 on a phone). */}
-          <Stack direction="row" justify="end" className="px-ai-chat-screen__bar">
-            <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={chat.reset}>New chat</Button>
-          </Stack>
-          <Box ref={scrollRef} className="px-ai-chat-screen__scroll">
+          <Container maxWidth="full">
+            <Stack direction="row" justify="end" paddingY="sm">
+              <Button level="tertiary" startIcon="icon-message-plus-circle-line" onClick={chat.reset}>New chat</Button>
+            </Stack>
+          </Container>
+          <Box ref={scrollRef} scroll="y" height="fill" className="px-ai-chat-screen__scroll">
             <AiChatThread aria-label="Conversation with Zen AI">
               {chat.turns.map((turn) => turn.side === "you" ? (
                 <AiChatBubble key={turn.id} side="you" actions={[actions.copy(turn)]}><Prompt turn={turn} /></AiChatBubble>
@@ -279,7 +285,7 @@ function AssistantHomeExample() {
           <Box className="px-ai-chat-screen__dock">{field}</Box>
         </>
       ) : (
-        <Box className="px-ai-chat-screen__home">
+        <Stack direction="row" scroll="y" height="fill" className="px-ai-chat-screen__home">
           <AiChatBlock greeting={`What are we working on, ${firstName}?`} suggestions={[
             { label: "Summarise my week", icon: "icon-align-left-line", onClick: () => ask("Summarise my week") },
             { label: "Draft a client update", icon: "icon-pencil-line", onClick: () => ask("Draft an update for Lumen Bank on the online banking redesign") },
@@ -288,9 +294,9 @@ function AssistantHomeExample() {
           ]}>
             {field}
           </AiChatBlock>
-        </Box>
+        </Stack>
       )}
-    </Box>
+    </PreviewWindow>
   );
 }
 
@@ -446,7 +452,7 @@ function PhoneAssistantExample() {
     // The screen that keeps the newest answer in view is also the Top Navigation's scroller: once the thread runs under
     // the bar, the bar shows its Pale rule.
     <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" scrollRef={screenRef} trailing={started ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: chat.reset }] : undefined} />}
+      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} trailing={started ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: chat.reset }] : undefined} />}
       footer={started ? <Box className="px-ai-chat-phone-dock">{field}</Box> : undefined}>
       {started ? (
         <Box className="px-ai-chat-phone-body">
@@ -478,7 +484,60 @@ function PhoneAssistantExample() {
 
 /* ───────────── Examples ───────────── */
 
-export const examples: ExampleDef[] = [
+// ——— Dictate a prompt: the field's Voice state ————————————————————————————————————————————————————————————
+const DICTATED = "Draft a two-line update for Lumen Bank about the transfer flow tests.";
+
+function DictatePrompt() {
+  const [listening, setListening] = useState(false);
+  const [draft, setDraft] = useState({ key: 0, text: "" });
+  const [sent, setSent] = useState<string | null>(null);
+  // Voice mode (the empty field's Primary): the conversation takes the field's place until End.
+  const [voice, setVoice] = useState<AiVoiceState | null>(null);
+  const [muted, setMuted] = useState(false);
+  if (voice) {
+    return (
+      <Card theme="flat" spacing="sm">
+        <AiVoiceConversation state={voice} muted={muted} onMutedChange={setMuted}
+          transcript={voice === "responding" ? "Here is a two-line update for Lumen Bank: the transfer flow tests pass, and the release stays on Friday." : "Draft a two-line update for Lumen Bank…"}
+          onStart={() => setVoice("listening")} onDone={() => setVoice("responding")} onInterrupt={() => setVoice("listening")}
+          onEnd={() => { setVoice(null); setMuted(false); }} />
+      </Card>
+    );
+  }
+  return (
+    <Stack gap="sm">
+      <AiChatField key={draft.key} defaultValue={draft.text} placeholder="Ask Zen AI"
+        listening={listening}
+        onVoice={() => { setSent(null); setListening(true); }}
+        onVoiceMode={() => { setListening(false); setVoice("listening"); }}
+        onStopListening={() => { setListening(false); setDraft((current) => ({ key: current.key + 1, text: DICTATED })); }}
+        onSubmit={(text) => { setSent(text); setDraft((current) => ({ key: current.key + 1, text: "" })); }} />
+      <Text as="p" textStyle="Body/Small/Regular" tone="base" role="status">
+        {listening ? "Listening… press Stop when you are done." : sent ? `Sent: ${sent}` : draft.text ? "Your words are in the field: edit them, then send." : "Press the microphone to dictate, or Voice to talk it through."}
+      </Text>
+    </Stack>
+  );
+}
+
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
+  {
+    title: "Dictate a prompt",
+    description: "The field's Voice state: the microphone starts dictation, the prompt reads Listening… and the microphone turns into Stop. Stop puts the words in the field to edit before sending. The Primary Voice action opens voice mode (AI Voice Conversation) until End.",
+    render: () => <DictatePrompt />,
+    code: `{voiceMode ? (
+  <Card theme="flat" spacing="sm">
+    <AiVoiceConversation state={state} transcript={transcript} muted={muted} onMutedChange={setMuted}
+      onStart={listen} onDone={answer} onInterrupt={listen} onEnd={() => setVoiceMode(false)} />
+  </Card>
+) : (
+  <AiChatField key={draft.key} defaultValue={draft.text} placeholder="Ask Zen AI"
+    listening={listening}
+    onVoice={() => setListening(true)}
+    onVoiceMode={() => setVoiceMode(true)}
+    onStopListening={() => { setListening(false); putWordsInTheField(); }}
+    onSubmit={send} />
+)}`,
+  },
   {
     title: "Assistant home",
     screen: true,
@@ -579,7 +638,7 @@ const [editing, setEditing] = useState<number | null>(null);
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Zen AI" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef}
     trailing={turns.length ? [{ icon: "icon-message-plus-circle-line", label: "New chat", onClick: newChat }] : undefined} />}
   footer={turns.length ? field : undefined}>
   {turns.length ? (
@@ -595,4 +654,4 @@ const [editing, setEditing] = useState<number | null>(null);
   )}
 </PlatformPhone>`,
   },
-];
+]);

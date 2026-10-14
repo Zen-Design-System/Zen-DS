@@ -11,6 +11,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chip.css";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 /** Figma's three Chip/Pill component sets. */
 export const chipVariants = ["advanced", "normal", "number-only"] as const;
@@ -93,6 +94,9 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
    * visible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet.
    */
   popoverPortal?: boolean;
+  /** Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: "square" }, Badge: { theme: "accent" } }`). Written by Zen Studio;
+   *  app code sets photoSrc / leading / counter. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -137,6 +141,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     onPopoverCreate,
     popoverCreateLabel,
     popoverPortal = false,
+    overrides,
     className,
     type = "button",
     disabled,
@@ -146,11 +151,12 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   },
   ref,
 ) {
+  const nest = useNested(overrides);
   const size = scaleKey(sizeProp, chipSizes);
   const t = useZenLabels();
   const select = selectedProp ?? selectProp ?? false;
   // Icon names render at the slot's size today (leading Small 16, trailing chevron 2XSmall); the slot CSS sizes the glyph.
-  const trailing = renderIcon(trailingProp, { size: "2xs" });
+  const trailing = nest("Trailing", renderIcon(trailingProp, { size: "2xs" }));
   const [uncontrolledPopoverOpen, setUncontrolledPopoverOpen] = useState(false);
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   const dropdownRef = useRef<HTMLSpanElement>(null);
@@ -159,7 +165,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   const layerRef = useRef<HTMLDivElement>(null);
   const isNumberOnly = variant === "number-only";
   const photoSize: AvatarSize = size === "xsmall" ? "2xsmall" : size === "medium" ? "small" : "xsmall";
-  const leading = photoSrc ? <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} /> : renderIcon(leadingProp, { size: "sm" });
+  const leading = photoSrc ? nest("Avatar", <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} />) : nest("Leading", renderIcon(leadingProp, { size: "sm" }));
   const isDisabled = disabled || state === "disabled";
   // Anything that makes pressing the chip do something: a handler, a selection (a toggle, even while off), a submit,
   // or ARIA state the caller manages (an external sheet it opens).
@@ -196,12 +202,12 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       <Icon name="icon-x-circle-solid" decorative />
     </span>
   );
-  // The Figma Multiple trailing primitive is Badge/Counter: its label is
+  // The Figma Multiple trailing primitive is Badge/Counter (layer "Badge-Counter" in .Chip/Trailing): its label is
   // always numeric, never a caller-provided string or arbitrary React node.
   const multipleCount = typeof selectionCount === "number" && Number.isFinite(selectionCount) ? Math.max(0, Math.trunc(selectionCount)) : 0;
   const multipleTrailing = selectionMode === "multiple" && select && multipleCount > 1 ? (
     <span className="zen-chip__multi-trailing" aria-hidden="true" data-clickable={onClearSelection ? "true" : undefined} onClick={onClearSelection ? handleClear : undefined}>
-      <BadgeCounter className="zen-chip__multi-count" size={size === "medium" ? "small" : "xsmall"} theme="neutral" background="solid" value={multipleCount} />
+      {nest("Badge-Counter", <BadgeCounter className="zen-chip__multi-count" size={size === "medium" ? "small" : "xsmall"} theme="neutral" background="solid" value={multipleCount} />)}
       <span className="zen-chip__multi-remove" aria-hidden="true"><Icon name="icon-x-circle-solid" decorative /></span>
     </span>
   ) : null;
@@ -299,7 +305,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       onKeyDown={handleKeyDown}
       aria-haspopup={canOpenPopover ? "listbox" : buttonProps["aria-haspopup"]}
       aria-expanded={canOpenPopover ? isPopoverOpen : buttonProps["aria-expanded"]}
-      aria-pressed={!canOpenPopover && variant !== "advanced" ? select : undefined}
+      aria-pressed={!canOpenPopover && variant !== "advanced" && buttonProps.role !== "radio" ? select : undefined}
       aria-keyshortcuts={select && onClearSelection ? "Delete Backspace" : undefined}
       aria-label={countLabel ?? buttonProps["aria-label"]}
       className={["zen-chip", className].filter(Boolean).join(" ")}
@@ -313,8 +319,8 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
     >
       {leading && !isNumberOnly ? <span className={["zen-chip__slot", resolvedTheme === "leading-photo" ? "zen-chip__photo" : ""].filter(Boolean).join(" ")}>{leading}</span> : null}
       {isNumberOnly ? <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span> : <span className={`zen-chip__label ${typographyStyles[state === "placeholder" ? "Body/Base/Medium" : "Body/Base/Bold"]}`}>{children}{countSuffix}</span>}
-      {/* Figma Chip/Advanced "Counter" boolean: a count → Badge-Counter XSmall · Neutral · Subtle (Figma still nests a plain Badge). */}
-      {!isNumberOnly && counter !== undefined ? <BadgeCounter className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" value={counter} aria-hidden="true" /> : null}
+      {/* Figma Chip/Advanced "Counter" boolean shows the layer "Badge": a count → Badge-Counter XSmall · Neutral · Subtle (Figma still nests a plain Badge). */}
+      {!isNumberOnly && counter !== undefined ? nest("Badge", <BadgeCounter className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" value={counter} aria-hidden="true" />) : null}
       {resolvedTrailing ? <span className="zen-chip__slot zen-chip__trailing">{resolvedTrailing}</span> : null}
     </button>
   );

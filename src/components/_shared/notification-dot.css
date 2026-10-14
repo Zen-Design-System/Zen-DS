@@ -1,0 +1,6 @@
+/* Figma Primitives/Notification-Dot (4116:21789), Style=Dot: 8×8, Corner-Radius/Rounded, Color/Background/Negative/Solid
+   (Theme=Default; Active = Positive, Accent = Accent) with a 2px Color/Border/Inverse stroke OUTSIDE. Each component
+   places it (top/left/right); the dot itself is drawn here once. */
+.zen-notification-dot { --zen-notification-dot-fill: var(--zen-color-background-negative-solid-default, #e5532e); position: absolute; width: 8px; height: 8px; box-sizing: border-box; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-notification-dot-fill); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); pointer-events: none; }
+.zen-notification-dot[data-tone="active"] { --zen-notification-dot-fill: var(--zen-color-background-positive-solid-default, #2e9d5b); }
+.zen-notification-dot[data-tone="accent"] { --zen-notification-dot-fill: var(--zen-color-background-accent-solid-default, #ff66d4); }

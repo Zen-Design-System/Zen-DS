@@ -241,7 +241,7 @@ export function HrPublicHolidayTemplate() {
               </Grid>
 
               <Stack gap="md">
-                <Heading level={2} id="hr-holidays-title">Holidays in {year}</Heading>
+                <Heading level={2} textStyle="Heading/4" id="hr-holidays-title">Holidays in {year}</Heading>
                 {phone ? (
                   // Phone: the same holidays as a List (date in the caption, days off over the office badge).
                   rows.length ? (

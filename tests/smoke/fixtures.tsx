@@ -29,6 +29,7 @@ export const fixtures: Record<string, Fixture> = {
   ModalForm: { props: { open: true, title: "Invite member", children: "Form body" } },
   SidePanel: { props: { open: true, title: "Order details", children: "Panel body" } },
   BottomSheet: { props: { open: true, title: "Share", children: "Sheet body" } },
+  DatePickerSheet: { props: { open: true, title: "Your stay", selectionMode: "range", monthCount: 2, today: new Date(2026, 0, 4) } },
   Popover: { props: { open: true, "aria-label": "Sort by", items: [{ id: "new", label: "Newest" }, { id: "old", label: "Oldest" }] } },
   Menu: { props: { trigger: <button type="button">Actions</button>, children: null } },
   ChatReactorsPanel: {
@@ -48,6 +49,10 @@ export const fixtures: Record<string, Fixture> = {
       data: [{ label: "Q1", values: { web: 10, app: 6 } }, { label: "Q2", values: { web: 14, app: 9 } }],
     },
   },
+  BarChart: { props: { "aria-label": "Revenue per month", data: [{ label: "Jan", value: 12 }, { label: "Feb", value: 18 }, { label: "Mar", value: 15, projected: true }] } },
+  DonutChart: { props: { "aria-label": "Revenue by client", data: [{ id: "a", label: "Lumen Bank", value: 30 }, { id: "b", label: "Phin & Co", value: 23 }, { id: "c", label: "Other", value: 12 }] } },
+  RadialChart: { props: { "aria-label": "Budget used", data: [{ id: "a", label: "Loyalty app", value: 61 }, { id: "b", label: "Shipment tracking", value: 23 }] } },
+  HeatmapChart: { props: { "aria-label": "Hours logged by weekday and hour", rows: ["9 am", "10 am"], columns: ["Mon", "Tue", "Wed"], values: [[3, 8, 5], [9, 12, 0]] } },
   ChartCard: { props: { title: "Visits", children: "Chart" } },
   ColorSelector: { props: { "aria-label": "Label colour", colors: [{ value: "#3b82f6", label: "Blue" }, { value: "#ef4444", label: "Red" }] } },
   AutocompleteField: { props: { label: "Assignee", options: [{ id: "ava", label: "Ava Nguyen" }, { id: "minh", label: "Minh Tran" }] } },
@@ -80,6 +85,7 @@ export const fixtures: Record<string, Fixture> = {
   ChatPhotos: { props: { photos: [{ src: photo, alt: "Beach" }, { src: photo, alt: "Harbour" }] } },
   ChatFile: { props: { name: "Q4 brief.pdf" } },
   UploaderFileItem: { props: { file: { id: "f1", name: "Q4 brief.pdf", size: "2.4 MB", state: "uploaded" } }, wrap: (el) => <ul>{el}</ul> },
+  ChatVoice: { props: { duration: "0:32" } },
   FileIcon: { props: { format: "pdf" } },
   Flag: { props: { name: "Vietnam", label: "Vietnam" } },
   TopNavigationActionButton: { props: { action: { icon: "icon-search-medium-line", label: "Search" }, variant: "default" } },
@@ -90,6 +96,7 @@ export const fixtures: Record<string, Fixture> = {
 
   // Parts that only exist inside their container.
   ListItem: { props: { title: "Ava Nguyen" }, wrap: (el) => <ul>{el}</ul> },
+  ToggleListItem: { props: { title: "Daily digest" }, wrap: (el) => <ul>{el}</ul> },
   MenuItem: { skip: "needs an open Menu; covered by the Menu interaction tests" },
   MenuSeparator: { skip: "needs an open Menu; covered by the Menu interaction tests" },
   MenuGroup: { skip: "needs an open Menu; covered by the Menu interaction tests" },
@@ -109,6 +116,7 @@ export const fixtures: Record<string, Fixture> = {
 
   // Content the synthesiser leaves empty.
   Chip: { props: { children: "Status" } },
+  ChipGroup: { props: { "aria-label": "Repeat", options: [{ value: "daily", label: "Daily" }, { value: "weekly", label: "Weekly" }], defaultValue: "daily" } },
   Heading: { props: { children: "Team members" } },
   List: { props: { children: <ListItem title="Ava Nguyen" /> } },
 

@@ -81,6 +81,14 @@
           "default": null,
           "description": "Name of the remove button (default \"Remove\" and the tag text, from the locale's labels).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading.",
+          "deprecated": null
         }
       ]
     }

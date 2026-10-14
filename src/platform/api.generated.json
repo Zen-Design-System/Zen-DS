@@ -85,6 +85,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the button draws, by layer (`{ \"Leading-Icon\": { name: \"icon-plus-line\" } }`).\n Written by Zen Studio; app code sets the icon props.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -152,6 +160,14 @@
           "required": false,
           "default": null,
           "description": "Zen rule: an icon-only button shows its name as a tooltip after 1s of hover (at once on keyboard focus).\nDefaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the button draws, by layer (`{ \"Leading-Icon\": { name: \"icon-plus-line\" } }`).\n Written by Zen Studio; app code sets the icon props.",
           "deprecated": null
         },
         {
@@ -427,11 +443,113 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: \"square\" }, Badge: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading / counter.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
           "default": "\"button\"",
           "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChipGroup",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"defaultValue\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element.",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "ChipGroupOption[]",
+          "required": true,
+          "default": null,
+          "description": "The chips, in order.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "Controlled picked value (null: none picked yet).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "Initial picked value when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the picked chip's value (a press, or an arrow key moving the choice).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the group when no visible label does (or pass `aria-labelledby`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"xsmall\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Chip size (short or long spelling). Default sm.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Chip level. Default primary.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Every chip does nothing.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the chips it draws, by layer (`{ \"Chip[week]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the options.",
           "deprecated": null
         }
       ]
@@ -560,6 +678,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         },
         {
@@ -697,6 +823,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
+        },
+        {
           "name": "options",
           "type": "SelectFieldOption[]",
           "required": false,
@@ -741,7 +875,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading).",
+          "description": "Popover/Label above the options: it names the option list, not the value (a label, not a heading). On mobile it\n is the Bottom Sheet's title (default: the field's label).",
           "deprecated": null
         },
         {
@@ -765,7 +899,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.",
+          "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.\nOn mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom\nSheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it.",
           "deprecated": null
         },
         {
@@ -911,6 +1045,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
+        },
+        {
           "name": "onValueChange",
           "type": "(value: string) => void",
           "required": false,
@@ -939,7 +1081,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {
@@ -1043,6 +1185,134 @@
           "default": null,
           "description": "Accessible name of the + stepper. Default: the locale's \"Increase\".",
           "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": null,
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
         }
       ]
     },
@@ -1072,6 +1342,126 @@
           "required": false,
           "default": "4",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Before the value: an icon name (`\"icon-mail-01-line\"`, sized to the field) or any node (a unit, a picker).",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         }
       ]
@@ -1247,6 +1637,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
+          "deprecated": null
         }
       ]
     },
@@ -1356,6 +1754,110 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
         }
       ]
@@ -2051,6 +2553,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: \"accent-base\" }, Filter: { label: \"Status\" } }`). Written by Zen Studio;\n app code sets leading / trailing / theme.",
+          "deprecated": null
         }
       ]
     }
@@ -2154,6 +2664,14 @@
           "required": false,
           "default": null,
           "description": "Names the group (default \"Segmented control\", from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the segments it draws, by layer (`{ \"Item[week]\": { level: \"primary\" }, \"Item[week]/Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the options.",
           "deprecated": null
         }
       ]
@@ -2739,7 +3257,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "",
+          "description": "Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included.",
           "deprecated": null
         },
         {
@@ -2772,6 +3290,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the badge draws, by layer (`{ Leading: { name: \"icon-check-line\" } }`).\n Written by Zen Studio; app code sets `leading`.",
           "deprecated": null
         }
       ]
@@ -2874,6 +3400,14 @@
           "required": false,
           "default": null,
           "description": "Name of the remove button (default \"Remove\" and the tag text, from the locale's labels).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets photoSrc / leading.",
           "deprecated": null
         }
       ]
@@ -2992,6 +3526,14 @@
           "required": false,
           "default": "false",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of each avatar the stack draws, by layer (`{ \"Avatar[0]\": { src: \"…\" } }`, `More`\n for the overflow chip). Written by Zen Studio; app code sets `items`.",
           "deprecated": null
         },
         {
@@ -3160,6 +3702,14 @@
           "required": false,
           "default": "false",
           "description": "Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[alex]/Avatar\": { shape: \"square\" }, \"Item[draft]/Badge\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]
@@ -3384,7 +3934,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Replaces the whole header, including the collapse control. Prefer `logo` / `productName`, which keep it. In the\ncollapsed rail `logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its\nmark), centred, and hides the rest visually.",
+          "description": "Replaces the header's logo slots; the collapse control (with `onCollapsedChange`) follows it. In the collapsed rail\n`logoCollapsed` takes its place; without it the rail keeps only the brand's first element (its mark), centred, and\nhides the rest visually.",
           "deprecated": null
         },
         {
@@ -3444,11 +3994,19 @@
           "deprecated": null
         },
         {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Body-Content (Child-Body-Content in the workspace variant), after `sections`: `<SidebarMenuItem>` rows and\n `<SidebarMenuSection>` groups, or any content. Consecutive rows form one unlabelled section. The rows share the\n Sidebar's selection, rail and `onItemClick`; other content renders as it is, so it handles the rail itself.",
+          "deprecated": null
+        },
+        {
           "name": "footer",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma Footer-Content (Child-Footer-Content), under a divider: `<SidebarMenuItem>` rows like the body's, or the app's\n own buttons of an Icon and a label span (the rail hides the label visually, keeps it as the name and the tooltip).",
           "deprecated": null
         },
         {
@@ -3456,7 +4014,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The slot under the header (Figma Search): usually a Search field, or a Back control over a module title.",
+          "deprecated": null
+        },
+        {
+          "name": "searchCollapsed",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "What the collapsed rail shows in place of `search`. Default: a Search button that expands the panel. Pass the\n slot's own control when it is not a search (a Back chevron for a module's Back + title, backlog batch 6).",
           "deprecated": null
         },
         {
@@ -3473,6 +4039,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ \"Item[inbox]/Badge-Counter\": { theme: \"accent\" }, \"Item[team]/Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the sections.",
           "deprecated": null
         },
         {
@@ -3566,6 +4140,170 @@
       ]
     },
     {
+      "name": "SidebarMenuItem",
+      "extends": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode | SidebarItem[]",
+          "required": false,
+          "default": null,
+          "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the row it draws, by layer (`{ \"Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets counter / icon.",
+          "deprecated": null
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "Figma Label: one or two words. The collapsed rail shows it as the row's tooltip and name.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Leading icon: an icon name (drawn at 20px) or a node (an Avatar in the workspace rail).",
+          "deprecated": null
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Same as `selected` (`selected` wins when both are set).",
+          "deprecated": null
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "The current row (Figma Select=Yes, aria-current). The Sidebar's `selectedId` wins over it; a selected child opens\n its parent group.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma State=Disabled: not focusable, never a link.",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focus\" | \"disabled\"",
+          "required": false,
+          "default": null,
+          "description": "Deterministic Figma State for matrices; real hover and focus apply natively. `disabled` wins.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"neutral\" | \"accent\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Menu-Item Theme: `neutral` (the default at every level, Figma's default; the selected row is\n Active/Neutral/Subtle) or `accent` (Active/Accent/Subtle with Accent/Strongest text).",
+          "deprecated": null
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Dropdown: a chevron after the label, and the row toggles its group open (`aria-expanded`). Rows with\n `children` show it anyway.",
+          "deprecated": null
+        },
+        {
+          "name": "indent",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "No effect: a nested row is indented by its level (`children`)."
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Counter (a Small Neutral Subtle BadgeCounter). The collapsed rail has no room for it: a non-zero count shows\n the Notification-Dot instead and joins the row's name (\"Approvals, 3\").",
+          "deprecated": null
+        },
+        {
+          "name": "notificationDot",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Primitives/Notification-Dot on the icon.",
+          "deprecated": null
+        },
+        {
+          "name": "trailingAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slot (Trailing-Action on): content after the label (an icon, a shortcut). Not a control: the row\n itself is the button or link.",
+          "deprecated": null
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Destination of the item: it renders as a link (`<a href>`, or the Sidebar's `linkAs` router link) and still calls\n `onItemClick`. Disabled items stay buttons.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SidebarMenuSection",
+      "extends": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Section title: the Menu-Item section label (Body/Small), as `SidebarSection.label`.",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Section-title action: a Button/Icon-Flat Small, as `SidebarSection.action`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The section's `<SidebarMenuItem>` rows.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
       "name": "SidebarSubMenu",
       "extends": null,
       "props": [
@@ -3606,7 +4344,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Extra content under the item list.",
+          "description": "Figma Sub-Item slot content under the item list: `<SidebarMenuItem>` rows (they share `onItemClick`) or anything else.",
           "deprecated": null
         },
         {
@@ -3771,10 +4509,18 @@
         },
         {
           "name": "calendar",
-          "type": "\"single\" | \"dual\"",
+          "type": "\"single\" | \"dual\" | \"stacked\"",
           "required": false,
           "default": "\"single\"",
-          "description": "Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by\nside; Static headers with Back on the first and Next on the second).",
+          "description": "Figma Date-Picker/Single-Calendar or Date-Picker/Dual-Calendar (two consecutive months side by\nside; Static headers with Back on the first and Next on the second). `stacked`: Date-Picker/Mobile Variant=Multiple\n(9923:3574) — `monthCount` months one under another, Display headers (no Back / Next: the list scrolls), and one\nweekday row that stays at the top of the scrolling box (`.Primitives/Date-Picker` 9923:2323 Option 2).",
+          "deprecated": null
+        },
+        {
+          "name": "monthCount",
+          "type": "number",
+          "required": false,
+          "default": "12",
+          "description": "`calendar=\"stacked\"`: how many months follow the first one shown. Default 12.",
           "deprecated": null
         },
         {
@@ -3863,6 +4609,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ \"Actions/Submit\": { level: \"accent\" }, \"Header[0]/Previous\": { appearance: \"flat\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
         }
       ]
@@ -3992,6 +4746,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
+        },
+        {
           "name": "onValueChange",
           "type": "(value: string) => void",
           "required": false,
@@ -4020,7 +4782,7 @@
           "type": "(date: Date | null) => void",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when\n the field is emptied or a typed date stops being a real day.",
           "deprecated": null
         },
         {
@@ -4045,6 +4807,196 @@
           "required": false,
           "default": null,
           "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DatePickerSheet",
+      "extends": "OverlayOpenProps",
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Whether the overlay is shown: keep it in state and set it from `onOpenChange` (the exit animation then plays).\nWithout `open` the overlay shows while it is mounted, e.g. `{show && <Dialog … />}`.",
+          "deprecated": null
+        },
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use open (same meaning)."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with false on Escape, a scrim click, the close button, or an action without its own handler.",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Called at the same moments as `onOpenChange(false)`: the overlay asks to close.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range).",
+          "deprecated": null
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"single\" | \"range\"",
+          "required": false,
+          "default": "\"single\"",
+          "description": "`single` (Figma Variant=Single): one month with Back / Next, Cancel and OK. `range` (Variant=Multiple): the months\n stacked in a scrolling list, a start and an end day, and the Footer-Actions (your `summary` next to OK).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": false,
+          "default": null,
+          "description": "Applied date (single). The sheet picks a draft over it; OK applies the draft.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "required": false,
+          "default": "null",
+          "description": "Applied date when uncontrolled (single).",
+          "deprecated": null
+        },
+        {
+          "name": "range",
+          "type": "DatePickerRange | null",
+          "required": false,
+          "default": null,
+          "description": "Applied range (range mode).",
+          "deprecated": null
+        },
+        {
+          "name": "defaultRange",
+          "type": "DatePickerRange | null",
+          "required": false,
+          "default": "null",
+          "description": "Applied range when uncontrolled (range mode).",
+          "deprecated": null
+        },
+        {
+          "name": "onApply",
+          "type": "(value: Date | null, range: DatePickerRange | null) => void",
+          "required": false,
+          "default": null,
+          "description": "OK: the picked date (single) or the complete range (range mode). The sheet closes.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(date: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "Each pick of a day (single), a draft until OK.",
+          "deprecated": null
+        },
+        {
+          "name": "onRangeChange",
+          "type": "(range: DatePickerRange) => void",
+          "required": false,
+          "default": null,
+          "description": "Each pick in range mode, a draft until OK: update the `summary` from it (the price for these nights).",
+          "deprecated": null
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Cancel (single): the draft is dropped and the sheet closes. Closing by the X, the scrim or Escape drops it too.",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "The day the calendar treats as today (DatePicker `today`).",
+          "deprecated": null
+        },
+        {
+          "name": "monthCount",
+          "type": "number",
+          "required": false,
+          "default": "12",
+          "description": "Range mode: how many months the list shows from the first one (DatePicker `monthCount`). Default 12.",
+          "deprecated": null
+        },
+        {
+          "name": "summary",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Range mode: Figma Footer-Actions Content beside OK, e.g. a price in Body/Extra/Bold over a Body/Small line\n (\"$605.50\" · \"7 nights\"), or a hint while no range is picked (\"Add dates for prices\").",
+          "deprecated": null
+        },
+        {
+          "name": "applyLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "OK button label. Default: the locale's \"OK\".",
+          "deprecated": null
+        },
+        {
+          "name": "cancelLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Cancel button label (single). Default: the locale's \"Cancel\".",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets applyLabel.",
           "deprecated": null
         }
       ]
@@ -4322,7 +5274,7 @@
           "type": "ReactElement",
           "required": true,
           "default": null,
-          "description": "A single focusable element (Button, IconButton, link…). It receives aria-describedby.",
+          "description": "A single focusable element (Button, IconButton, link…), or a wrapper around one. The focused control receives\n aria-describedby.",
           "deprecated": null
         },
         {
@@ -4363,6 +5315,30 @@
           "required": false,
           "default": null,
           "description": "Controlled visibility; omit for hover/focus behavior.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shown from the start (uncontrolled): an onboarding hint, or a phone, where a tooltip never opens on touch. Pair it\n with `closable`.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called when the tooltip opens or closes (the close X, Escape, hover and focus).",
+          "deprecated": null
+        },
+        {
+          "name": "closable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Close=Yes: a dismiss X after the label. The tooltip then stays until it is closed (hover, focus and pointer\n presses no longer hide it) and is a `note`, as it holds a button.",
           "deprecated": null
         },
         {
@@ -4410,6 +5386,22 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Close=Yes: a dismiss X after the label, called when it is pressed.",
+          "deprecated": null
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The X's accessible name. Default: the locale's “Close”.",
+          "deprecated": null
         }
       ]
     }
@@ -4422,9 +5414,17 @@
         {
           "name": "items",
           "type": "TabOption[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value=\"general\" label=\"General\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the\n selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`,\n `disabled`, `aria-label`.",
           "deprecated": null
         },
         {
@@ -4506,12 +5506,20 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the tabs it draws, by layer (`{ \"Tab-Item[members]/Badge-Counter\": { theme: \"accent\" }, \"Tab-Item[members]/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "TabItem",
-      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\" | \"value\">",
       "props": [
         {
           "name": "ref",
@@ -4519,6 +5527,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "As a child of Tabs (Figma Item-List): the tab's id, what `value` and `onValueChange` use. Default: its key, then\n its position.",
           "deprecated": null
         },
         {
@@ -4642,9 +5658,17 @@
         {
           "name": "items",
           "type": "BreadcrumbItemData[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The trail as data, Master first and the current page last. Or give BreadcrumbItem children (Figma Item-List).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The trail as BreadcrumbItem elements (`<BreadcrumbItem item={{ id, label, href }} />`), in order, when `items` is\n not given. Breadcrumbs still sets the current page and collapsing; a BreadcrumbItem's own `level`, `emphasis` and\n `state` (or its item's) win over Breadcrumbs' defaults.",
           "deprecated": null
         },
         {
@@ -4652,7 +5676,7 @@
           "type": "\"default\" | \"medium\"",
           "required": false,
           "default": "\"default\"",
-          "description": "",
+          "description": "Every crumb's Figma Emphasis, unless the crumb sets its own (`items[n].emphasis`).",
           "deprecated": null
         },
         {
@@ -4660,7 +5684,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Show the first item as the Master level (with icon). Default true.",
+          "description": "Show the first item as the Master level (with icon), unless a crumb sets its own `level`. Default true.",
           "deprecated": null
         },
         {
@@ -4694,6 +5718,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the crumbs it draws, by layer (`{ \"Crumb[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Separator[home]\": { name: \"icon-minus-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
         }
       ]
     },
@@ -4703,7 +5735,7 @@
       "props": [
         {
           "name": "item",
-          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master (first) level. */ icon?: IconName | ReactNode; }",
+          "type": "{ id: string; label: ReactNode; href?: string; /** Leading icon — an icon name (`\"icon-home-03-line\"`, the default) or a node; Figma shows it on the Master level. */ icon?: IconName | ReactNode; /** Figma Item › Level: Master draws the leading icon. Unset: the first crumb is Master while Breadcrumbs' `master` is * on, the others Sub. */ level?: BreadcrumbLevel; /** Figma Item › Emphasis: Medium sets the label in Body/Base/Medium. Unset: Breadcrumbs' `emphasis`. */ emphasis?: BreadcrumbEmphasis; /** Figma Item › State, for a static mockup or matrix (Hover shows Neutral/Flat/Hover); real hover applies anyway. */ state?: \"default\" | \"hover\"; /** Figma Item/Slot › Dash: the chevron after this crumb. Unset: after every crumb but the last. */ dash?: boolean; }",
           "required": true,
           "default": null,
           "description": "",
@@ -4713,16 +5745,16 @@
           "name": "level",
           "type": "\"master\" | \"sub\"",
           "required": false,
-          "default": "\"sub\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Level. Unset: the item's own `level`, else Sub.",
           "deprecated": null
         },
         {
           "name": "emphasis",
           "type": "\"default\" | \"medium\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "",
+          "default": null,
+          "description": "Figma Emphasis. Unset: the item's own `emphasis`, else Default.",
           "deprecated": null
         },
         {
@@ -4737,8 +5769,8 @@
           "name": "state",
           "type": "\"default\" | \"hover\"",
           "required": false,
-          "default": "\"default\"",
-          "description": "Deterministic Figma State for matrices; real hover applies natively.",
+          "default": null,
+          "description": "Deterministic Figma State for matrices; real hover applies natively. Unset: the item's own `state`.",
           "deprecated": null
         },
         {
@@ -4774,11 +5806,27 @@
           "deprecated": null
         },
         {
+          "name": "layout",
+          "type": "\"inline\" | \"stacked\"",
+          "required": false,
+          "default": "\"inline\"",
+          "description": "Figma Layout: `inline` (default: the label trails the bar) · `stacked` (a Label · Value row above a full-width bar).",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode | true",
           "required": false,
           "default": null,
-          "description": "Trailing label (Figma Label=Yes). `true` shows the rounded percentage.",
+          "description": "The label (Figma Text, shown with Label=Yes). Inline: trails the bar, and `true` shows the rounded percentage.\n Stacked: leads the row above the bar and names it; `true` leaves only the value.",
+          "deprecated": null
+        },
+        {
+          "name": "valueLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Stacked only: the text at the end of the row (Figma Value), such as \"3 of 5 steps\". Default: the rounded percentage.",
           "deprecated": null
         },
         {
@@ -4986,6 +6034,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"danger\" }, Icon: { name: \"icon-trash-line\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "deprecated": null
         }
       ]
     },
@@ -5176,6 +6232,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "deprecated": null
         }
       ]
     },
@@ -5237,6 +6301,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
         }
       ]
@@ -5365,6 +6437,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: \"primary\" } }`). Written by Zen Studio;\n app code sets icon / action.",
           "deprecated": null
         }
       ]
@@ -5553,6 +6633,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: \"primary\" } }`). Written by Zen Studio;\n app code sets leading / action.",
           "deprecated": null
         }
       ]
@@ -5745,6 +6833,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the arrows, page items and page-size chip it draws, by layer (`{ Previous: { level: \"secondary\" }, \"Page[3]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
           "deprecated": null
         }
       ]
@@ -6044,6 +7140,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / action.",
+          "deprecated": null
         }
       ]
     }
@@ -6132,6 +7236,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the illustration icon and Buttons it draws, by layer (`{ Primary: { level: \"accent\" }, \"Illustration/Icon\": { name: \"icon-users-line\" } }`). Written by Zen Studio;\n app code sets icon / primaryAction / secondaryAction.",
+          "deprecated": null
         }
       ]
     },
@@ -6166,9 +7278,17 @@
         {
           "name": "steps",
           "type": "StepperStep[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id=\"details\" title=\"Details\" />`.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state\n from `current`, the progress lines and the click behaviour.",
           "deprecated": null
         },
         {
@@ -6209,6 +7329,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the step markers it draws, by layer (`{ \"Step[review]\": { icon: \"icon-check-line\" } }`). Written by Zen Studio;\n app code sets the steps.",
           "deprecated": null
         }
       ]
@@ -6383,8 +7511,40 @@
   "card": [
     {
       "name": "Card",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">, LayoutWidthProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
         {
           "name": "ref",
           "type": "Ref<HTMLElement>",
@@ -6403,10 +7563,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient).",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
           "deprecated": null
         },
         {
@@ -6438,7 +7598,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -6480,6 +7640,292 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Zen components the card draws itself, by layer (`{ \"Sub-Action\": { level:\n \"primary\" } }`, `\"Sub-Action/Leading-Icon\"` one level deeper). Written by Zen Studio; app code sets `subAction`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "voice": [
+    {
+      "name": "VoiceRecorder",
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"ready\" | \"recording\" | \"paused\"",
+          "required": false,
+          "default": "\"ready\"",
+          "description": "Figma State: Ready (nothing recorded yet), Recording, Paused. Your recorder drives it.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The header's name of the take. Default: the locale's \"New recording\".",
+          "deprecated": null
+        },
+        {
+          "name": "elapsed",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00.00\"",
+          "description": "The take's length so far (\"00:24.18\"), Heading/Subheading.",
+          "deprecated": null
+        },
+        {
+          "name": "start",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00\"",
+          "description": "The waveform window's start and end times under it (\"00:16\", \"00:24\").",
+          "deprecated": null
+        },
+        {
+          "name": "end",
+          "type": "string",
+          "required": false,
+          "default": "\"00:00\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take, which scrolls while\n recording and holds still when paused (still under reduced motion); Ready: a flat line. Yours are drawn as given:\n push one level every 1/7 s and drop the oldest for the same 8-second window.",
+          "deprecated": null
+        },
+        {
+          "name": "guidance",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under the waveform. Default: what the state means (\"Capturing audio from your microphone.\").",
+          "deprecated": null
+        },
+        {
+          "name": "input",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The footer: the input device (\"Built-in microphone\") and the format (\"48 kHz · Mono\").",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onRecord",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Record (Ready), Pause (Recording) and Resume (Paused): the main action. Without the handler for the current state it\n is off, e.g. leave out `onResume` once a take reaches its length limit.",
+          "deprecated": null
+        },
+        {
+          "name": "onPause",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onResume",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onFinish",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Finish the take (Recording, Paused).",
+          "deprecated": null
+        },
+        {
+          "name": "onDiscard",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Throw the take away (Recording, Paused).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets state.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AiVoiceConversation",
+      "extends": null,
+      "props": [
+        {
+          "name": "state",
+          "type": "\"ready\" | \"listening\" | \"responding\"",
+          "required": false,
+          "default": "\"ready\"",
+          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers).",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The assistant's name in the header. Default: the locale's \"Zen voice\".",
+          "deprecated": null
+        },
+        {
+          "name": "heading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The status heading and its line (Heading/Subheading, Body/Small/Regular). Default: what the state means.",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4 | 5 | 6",
+          "required": false,
+          "default": "3",
+          "description": "The status heading's level in the page outline (an `h3` by default; `2` straight under a screen's h1).",
+          "deprecated": null
+        },
+        {
+          "name": "guidance",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "speaker",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Who the transcript is from (\"You · Live transcript\", \"Zen · Spoken response\"); Ready: \"Try saying\".",
+          "deprecated": null
+        },
+        {
+          "name": "transcript",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The transcript card's text (Figma AI/Chat-Bubble Side=AI): a suggestion when ready, what you say, what it says.",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio.\n Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding\n (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing.",
+          "deprecated": null
+        },
+        {
+          "name": "muted",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal\n rests while listening, and the guidance and note say the microphone is muted.",
+          "deprecated": null
+        },
+        {
+          "name": "onMutedChange",
+          "type": "(muted: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onStart",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding).",
+          "deprecated": null
+        },
+        {
+          "name": "onDone",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onInterrupt",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onEnd",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "End the conversation (off while Ready).",
+          "deprecated": null
+        },
+        {
+          "name": "note",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: \"green\" } }`). Written by Zen Studio;\n app code sets state / transcript.",
+          "deprecated": null
         }
       ]
     }
@@ -6507,10 +7953,10 @@
         },
         {
           "name": "size",
-          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 48 · XLarge 56 · 2XLarge 80 (Image-Size tokens; glyph 12 · 16 · 20 · 24 · 28 · 44, Element-Size/Popular); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md, 2xl…) or Figma (small, medium, 2xlarge…) spelling.",
           "deprecated": null
         },
         {
@@ -6640,11 +8086,35 @@
           "deprecated": null
         },
         {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A value at the row's end, read with the title: an amount, a total, a count (\"+94,860,000 VND\", \"92 h\"). Body/Base/Bold\n like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second\n Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's\n button or link, so a clickable row reads it out.",
+          "deprecated": null
+        },
+        {
+          "name": "valueCaption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another\n currency, a date, a unit (\"3,600.00 USD\").",
+          "deprecated": null
+        },
+        {
+          "name": "valueTone",
+          "type": "ContentTone",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "Colour of `value`, a Color/Content tone as Text's `tone`: \"strongest\" (default, like the title); \"positive-light\" /\n \"negative-light\" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too:\n the colour never carries the meaning alone.",
+          "deprecated": null
+        },
+        {
           "name": "trailing",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron.",
+          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`.",
           "deprecated": null
         },
         {
@@ -6694,13 +8164,53 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon the row draws for an icon-name `leading`, by layer (`{ Leading: { name:\n \"icon-heart-line\" } }`). Written by Zen Studio; app code sets `leading`. Slot content (an Avatar you pass) is edited\n as itself.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "ListBox",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
         {
           "name": "ref",
           "type": "Ref<HTMLElement>",
@@ -6735,10 +8245,10 @@
         },
         {
           "name": "theme",
-          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\"",
+          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\" | \"on-container\"",
           "required": false,
           "default": "\"flat\"",
-          "description": "Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame\n (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).",
+          "description": "Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
           "deprecated": null
         },
         {
@@ -6755,6 +8265,116 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ToggleListItem",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\" | \"onChange\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root row element.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "What the switch turns on or off (Body/Base/Bold, one line); it names the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon name or element before the text, as in ListItem.",
+          "deprecated": null
+        },
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Controlled on/off state.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Initial state when uncontrolled. Default false.",
+          "deprecated": null
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new state on a press anywhere on the row, or Space / Enter on the switch.",
+          "deprecated": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The row and its switch do nothing; the switch shows Disabled.",
+          "deprecated": null
+        },
+        {
+          "name": "toggleSize",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Toggle-Button size. Default md.",
+          "deprecated": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Form field name of the switch's checkbox (submitted as \"on\" while checked).",
+          "deprecated": null
+        },
+        {
+          "name": "as",
+          "type": "\"li\" | \"div\"",
+          "required": false,
+          "default": "\"li\"",
+          "description": "Root element. Default `li` (inside a List); `div` outside one.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the switch and icon it draws, by layer (`{ \"Toggle-Button\": { size: \"sm\" } }`). Written by Zen Studio;\n app code sets toggleSize / leading.",
           "deprecated": null
         }
       ]
@@ -6833,8 +8453,16 @@
           "name": "selectedIds",
           "type": "string[]",
           "required": false,
-          "default": "[]",
-          "description": "",
+          "default": null,
+          "description": "The selected rows (controlled, with `onSelectionChange`); without it the Table keeps the selection itself.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultSelectedIds",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "The rows selected at first when the selection is not controlled.",
           "deprecated": null
         },
         {
@@ -6843,6 +8471,30 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Table/Cell/Default State=Edit on every cell that shows a row's value: each column without its own `edit`\n(and without `cell`, checkbox or toggle content) edits in place by its content — text or number by the value, a\nlist of the column's values for badges, tags for lists. The Table keeps the edits, or hands them to `onCellCommit`.",
+          "deprecated": null
+        },
+        {
+          "name": "onCellCommit",
+          "type": "(row: T, columnId: string, value: string | string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "An edit made through a shorthand `edit` or `editable`: the row, the column id and the new value (a tags list for\n tags). Without it the Table applies the edit to the row it draws.",
+          "deprecated": null
+        },
+        {
+          "name": "bulkActions",
+          "type": "TableBulkAction[] | ((selectedIds: string[]) => TableBulkAction[])",
+          "required": false,
+          "default": null,
+          "description": "Actions for the selected rows (Figma Popover/Bulk-Action). With `selectable`, checking a row brings up the bar under\nthe table — held at the bottom of the window while a long table scrolls past — with Clear selection, the count and\nthese actions as icon-only Button/Icon-Flat Medium (at most 5; a divider between groups). Actions that don't fit the\ntable's width (a phone) move, from the end, into a More button whose menu lists them with their labels. A function\nreceives the selected ids. Escape in the bar clears the selection; when the bar leaves with the focus in it, Select\nall rows takes the focus. The bar sits outside the scroll box, so the table renders inside a `.zen-table-scope`\nwrapper; `ref`, `className` and the HTML attributes stay on the scroll box.",
           "deprecated": null
         },
         {
@@ -6883,6 +8535,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer —\n`{ \"Row[alex]/status/Badge\": { theme: \"red\" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`,\n`Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead.",
           "deprecated": null
         }
       ]
@@ -6949,7 +8609,7 @@
           "name": "bold",
           "type": "boolean",
           "required": false,
-          "default": "true",
+          "default": "false",
           "description": "",
           "deprecated": null
         }
@@ -7298,6 +8958,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the score chips it draws, by layer (`{ \"Chip[10]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "deprecated": null
         }
       ]
     }
@@ -7456,7 +9124,47 @@
           "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
           "required": false,
           "default": null,
-          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": "false",
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
           "deprecated": null
         },
         {
@@ -7465,6 +9173,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
           "deprecated": null
         }
       ]
@@ -7558,7 +9274,47 @@
           "type": "\"md\" | \"lg\" | \"medium\" | \"large\"",
           "required": false,
           "default": null,
-          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below.",
+          "description": "Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below.",
+          "deprecated": null
+        },
+        {
+          "name": "custom",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline,\na ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The\nDock-Icon stays at the contents' bottom-right corner.",
+          "deprecated": null
+        },
+        {
+          "name": "metricColor",
+          "type": "boolean | string",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the\n metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour\n (`var(--zen-color-background-support-blue-solid)`).",
+          "deprecated": null
+        },
+        {
+          "name": "counter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count\n of what the metric covers, e.g. \"3\" open invoices).",
+          "deprecated": null
+        },
+        {
+          "name": "labelIcon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows\n this text in a Tooltip on hover and focus; say how the number is worked out.",
           "deprecated": null
         },
         {
@@ -7570,8 +9326,16 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
+          "deprecated": null
+        },
+        {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",
@@ -7583,28 +9347,6 @@
           "required": false,
           "default": null,
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
-          "deprecated": null
-        }
-      ]
-    },
-    {
-      "name": "MetricTrend",
-      "extends": null,
-      "props": [
-        {
-          "name": "trend",
-          "type": "\"positive\" | \"negative\" | \"normal\"",
-          "required": false,
-          "default": "\"normal\"",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "children",
-          "type": "ReactNode",
-          "required": true,
-          "default": null,
-          "description": "",
           "deprecated": null
         }
       ]
@@ -7750,6 +9492,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File-Item[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
+          "deprecated": null
         }
       ]
     },
@@ -7870,6 +9620,38 @@
           "deprecated": null
         },
         {
+          "name": "headerContent",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header-Contents slot: more header content under the caption (a status row, tabs, a search field), gap XSmall.",
+          "deprecated": null
+        },
+        {
+          "name": "top",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Customize slot, rendered above the header (e.g. a Stepper, a banner or a cover).",
+          "deprecated": null
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Back-Container: a back button (Button/Icon-Flat Small, icon-arrow-narrow-left-line) before the title, for a\n panel that drilled into a detail. Called on click; without it there is no back button.",
+          "deprecated": null
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the back button. Default: the locale's “Back”.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"standard\" | \"modal\"",
           "required": false,
@@ -7890,8 +9672,8 @@
           "type": "IconName | ReactElement",
           "required": false,
           "default": null,
-          "description": "Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element.",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Figma's Side-Panel no longer draws a heading icon (removed on 2026-10-12). Modal only: a 44px icon above\n the title, still drawn for now; put an icon in `top` or `headerContent` instead."
         },
         {
           "name": "children",
@@ -7939,6 +9721,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets onBack / the actions.",
           "deprecated": null
         }
       ]
@@ -8174,9 +9964,17 @@
         {
           "name": "items",
           "type": "BottomNavigationItem[]",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "",
+          "description": "The 3–5 destinations as data. Or give BottomNavigationItem children (Figma Nav-Items).",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The destinations as BottomNavigationItem elements, in order, when `items` is not given.",
           "deprecated": null
         },
         {
@@ -8265,6 +10063,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Action/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
           "deprecated": null
         }
       ]
@@ -8404,6 +10210,14 @@
           "deprecated": null
         },
         {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Modal type: your own Footer content in place of the Actions (Figma's Footer holds any Buttons instance, e.g.\n `.Primitives/Date-Picker/Footer-Actions`: a summary next to a Primary). It keeps the footer's padding and stays\n put while the body scrolls. Ignored when `primaryAction` / `secondaryAction` are set.",
+          "deprecated": null
+        },
+        {
           "name": "onSubmit",
           "type": "(event: FormEvent<HTMLFormElement>) => void",
           "required": false,
@@ -8424,7 +10238,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Render inside the nearest positioned ancestor instead of the viewport (device previews, embedded demos).",
+          "description": "Render inside the nearest positioned ancestor instead of the viewport (embedded demos). Not needed in a device frame\n (`[data-zen-overlay-root]`, e.g. a phone preview): a sheet opened there renders in that frame by itself.",
           "deprecated": null
         },
         {
@@ -8441,6 +10255,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: \"danger\" }, \"Item[delete]/Icon\": { tone: \"negative-base\" } }`). Written by Zen Studio;\n app code sets the actions / items.",
           "deprecated": null
         }
       ]
@@ -8618,6 +10440,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets author.",
+          "deprecated": null
         }
       ]
     },
@@ -8711,6 +10541,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
         }
       ]
@@ -8835,6 +10673,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets person / group.",
           "deprecated": null
         }
       ]
@@ -9104,6 +10950,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its Dock Icon (`{ Icon: { theme: \"blue\" } }`), written by Zen Studio.",
+          "deprecated": null
         }
       ]
     },
@@ -9157,6 +11011,100 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its Dock Icon and action (`{ Action: { level: \"primary\" } }`), written by Zen Studio.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ChatVoice",
+      "extends": null,
+      "props": [
+        {
+          "name": "side",
+          "type": "\"you\" | \"others\"",
+          "required": false,
+          "default": "\"others\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "duration",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The message's length (\"0:32\").",
+          "deprecated": null
+        },
+        {
+          "name": "elapsed",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Where playback is (\"0:12\"): Business shows \"0:12 / 0:32\" while playing.",
+          "deprecated": null
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "The share already played, 0–1: those bars are full strength, the rest 30%.",
+          "deprecated": null
+        },
+        {
+          "name": "playing",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State: Playing (the control pauses) or Idle (it plays). Your audio element drives it.",
+          "deprecated": null
+        },
+        {
+          "name": "onPlayingChange",
+          "type": "(playing: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Playback speed (1, 1.5, 2); the \"1×\" button steps to the next one. Without `onSpeedChange` it is shown, not a button.",
+          "deprecated": null
+        },
+        {
+          "name": "onSpeedChange",
+          "type": "(speed: number) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "levels",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "The message's sound levels, 0–1 each (Figma draws 34).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets playing.",
           "deprecated": null
         }
       ]
@@ -9338,6 +11286,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of its avatars (`{ \"Avatar[0]\": { theme: \"accent\" } }`), written by Zen Studio.",
+          "deprecated": null
         }
       ]
     }
@@ -9410,6 +11366,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there\n are several). Written by Zen Studio; app code sets `actions`.",
+          "deprecated": null
         }
       ]
     },
@@ -9462,7 +11426,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma Leading-Actions (+): attachments or tools.",
+          "description": "Figma Leading-Actions (+): attachments or tools. Without it the + is not drawn (it would do nothing).",
           "deprecated": null
         },
         {
@@ -9470,7 +11434,31 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "Figma trailing microphone (Icon-Flat).",
+          "description": "Figma trailing microphone (Icon-Flat): dictation into the prompt. Also the empty field's Voice action unless\n `onVoiceMode` is set. Without either, the empty field shows a disabled Send instead.",
+          "deprecated": null
+        },
+        {
+          "name": "onVoiceMode",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "The empty field's Voice action (Primary, recording icon): start voice mode, e.g. an AiVoiceConversation. Default:\n `onVoice`.",
+          "deprecated": null
+        },
+        {
+          "name": "listening",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma State=Voice: the field is taking dictation. The prompt reads the locale's \"Listening…\" (Content/Placeholder)\n and the microphone becomes Stop (`onStopListening`); the Primary stays Voice.",
+          "deprecated": null
+        },
+        {
+          "name": "onStopListening",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
           "deprecated": null
         },
         {
@@ -9512,6 +11500,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: \"accent\" }, Attach: { appearance: \"main\" } }`). Written by Zen Studio;\n app code sets onAttach / onVoice / onVoiceMode.",
+          "deprecated": null
         }
       ]
     },
@@ -9525,6 +11521,14 @@
           "required": false,
           "default": null,
           "description": "Say-Hi heading (the locale's \"How can I help you today?\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2 | 3",
+          "required": false,
+          "default": "2",
+          "description": "Heading level of the greeting: 2 (default), or 1 when the block opens the page and its greeting is the page title (a home screen); only the tag changes, the style stays Heading/1.",
           "deprecated": null
         },
         {
@@ -9557,6 +11561,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the suggestion chips, by label (`{ \"Suggestion[Plan a trip]\": { level: \"primary\" } }`), written by Zen Studio.",
           "deprecated": null
         }
       ]
@@ -9598,19 +11610,35 @@
       "extends": null,
       "props": [
         {
+          "name": "data",
+          "type": "ChartPoint[]",
+          "required": true,
+          "default": null,
+          "description": "One point per period (`{ label, value }`). Keep 4–12 periods.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "What the line measures (\"Invoiced\"), named in the legend and the summary once there is a `compare`. Default: the\n aria-label.",
+          "deprecated": null
+        },
+        {
+          "name": "compare",
+          "type": "ChartCompare",
+          "required": false,
+          "default": null,
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid\n line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
+          "deprecated": null
+        },
+        {
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
           "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "aria-label",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
+          "description": "Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K.",
           "deprecated": null
         },
         {
@@ -9618,7 +11646,15 @@
           "type": "number",
           "required": false,
           "default": "280",
-          "description": "",
+          "description": "Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Revenue invoiced per month, Apr – Sep 2026\").",
           "deprecated": null
         },
         {
@@ -9630,9 +11666,111 @@
           "deprecated": null
         },
         {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The point active at first (its Tooltip shows). Default: the last one.",
+          "deprecated": null
+        },
+        {
+          "name": "curve",
+          "type": "\"smooth\" | \"linear\"",
+          "required": false,
+          "default": "\"smooth\"",
+          "description": "`smooth` (default, Figma's curve) or `linear` segments.",
+          "deprecated": null
+        },
+        {
+          "name": "fill",
+          "type": "\"gradient\" | \"none\"",
+          "required": false,
+          "default": "\"gradient\"",
+          "description": "The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The legend of the line and its comparison (default on with `compare`; colour is never the only key).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Draw the line in from the left on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "showAverage",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A dotted line at the mean of the line (not the comparison), tagged \"Avg $95.4K\" (Figma Show Average).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "BarChart",
+      "extends": null,
+      "props": [
+        {
           "name": "data",
           "type": "ChartPoint[]",
           "required": true,
+          "default": null,
+          "description": "One bar per category or period (`{ label, value }`); mark a forecast `projected` (hatched) and give a bar a `target`\n to draw its goal as a hatched track behind it. Keep 3–12 bars.",
+          "deprecated": null
+        },
+        {
+          "name": "orientation",
+          "type": "\"vertical\" | \"horizontal\"",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "`vertical` columns over periods (default) or `horizontal` bars for categories with longer names (Q1–Q4, teams).",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "Formats axis labels, the Tooltip and the summary.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Height of a vertical plot in px, lanes included. Horizontal charts take the height of their rows.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Revenue per month, Jan – Dec 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
           "default": null,
           "description": "",
           "deprecated": null
@@ -9642,7 +11780,39 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected.",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Colour of the bars. Default Chart/Sector/Primary.",
+          "deprecated": null
+        },
+        {
+          "name": "activeColor",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Colour of the active bar. Default Chart/Sector/Secondary.",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "showAverage",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A dotted line at the mean of the bars that aren't projected, tagged \"Avg $87.8K\" (Figma Show Average).",
           "deprecated": null
         }
       ]
@@ -9652,19 +11822,27 @@
       "extends": null,
       "props": [
         {
+          "name": "data",
+          "type": "ChartDatum[]",
+          "required": true,
+          "default": null,
+          "description": "One column per period, a value per series id (`{ label: \"Sep\", values: { design: 2650, … } }`).",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "ChartSeries[]",
+          "required": true,
+          "default": null,
+          "description": "The stacked series, bottom first, in palette order unless a series sets `color`.",
+          "deprecated": null
+        },
+        {
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
           "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "aria-label",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
+          "description": "Formats axis labels, the Tooltip total and the summary.",
           "deprecated": null
         },
         {
@@ -9672,7 +11850,15 @@
           "type": "number",
           "required": false,
           "default": "236",
-          "description": "",
+          "description": "Height of the plot in px, lanes included.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range.",
           "deprecated": null
         },
         {
@@ -9684,27 +11870,11 @@
           "deprecated": null
         },
         {
-          "name": "data",
-          "type": "ChartStack[]",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "series",
-          "type": "ChartSeries[]",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
           "name": "initialIndex",
           "type": "number",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The column active at first. Default: the last one.",
           "deprecated": null
         },
         {
@@ -9712,7 +11882,305 @@
           "type": "boolean",
           "required": false,
           "default": "true",
+          "description": "The legend names every colour; keep it (harness: chart/stack-needs-legend).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the columns from the baseline on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "showAverage",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A dotted line at the mean of the column totals, tagged \"Avg 5.9K h\" (Figma Show Average).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DonutChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartSlice[]",
+          "required": true,
+          "default": null,
+          "description": "The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "Formats the centre figure and the summary.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "200",
+          "description": "Diameter in px (default 200). The ring is 22% of it; it never grows past its box.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows (\"Spending by category, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The caption of the total (\"Invoiced in Q3\"). Default: the locale's “Total”.",
+          "deprecated": null
+        },
+        {
+          "name": "totalPosition",
+          "type": "\"centre\" | \"start\"",
+          "required": false,
+          "default": "\"centre\"",
+          "description": "Where the total sits: in the hole (`centre`, default), or above the legend in a start column beside the ring\n (`start`: the hole stays empty, the legend lists down that column; Figma Total=Start).",
+          "deprecated": null
+        },
+        {
+          "name": "showPercent",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "A % pill on every slice of 6% or more (default true).",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The legend names every slice (default true; colour is never the only key).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend below (default), above, or beside the ring (start / end). With `totalPosition=\"start\"` it is always in the\n start column, under the total.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "RadialChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartSlice[]",
+          "required": true,
+          "default": null,
+          "description": "One ring per measure, outermost first (`{ id, label, value }`), each measured against `max`. Keep 1–4 rings.",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": "The value a full ring stands for (default 100: the values are percentages).",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Formats the centre figure and the summary. Default: the share of `max` in whole percent (\"43%\").",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "200",
+          "description": "Diameter in px (default 200). Rings are 10px with 8px between them; the chart never grows past its box.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows (\"Budget used by area, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The centre figure. Default: the outer ring's value, formatted. The active ring's value replaces it while one is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The caption under the centre figure. Default: the outer ring's label.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The legend names every ring (default true; colour is never the only key).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend below (default), above, or beside the rings (start / end).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "HeatmapChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "rows",
+          "type": "string[]",
+          "required": true,
+          "default": null,
+          "description": "Row labels, top to bottom (\"1 pm\", \"2 pm\"…).",
+          "deprecated": null
+        },
+        {
+          "name": "columns",
+          "type": "string[]",
+          "required": true,
+          "default": null,
+          "description": "Column labels, left to right (\"Mon\", \"Tue\"…).",
+          "deprecated": null
+        },
+        {
+          "name": "values",
+          "type": "number[][]",
+          "required": true,
+          "default": null,
+          "description": "One value per row per column: `values[row][column]`.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "Formats the Tooltip and the summary (\"14 sessions\").",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The value of the deepest step. Default: the largest value.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows (\"Studio sessions by weekday and hour, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The Less → More scale under the grid (default true).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Fade the cells in, row by row, on mount and when the values change (default true; reduced motion only fades).",
           "deprecated": null
         }
       ]
@@ -9735,6 +12203,30 @@
           "required": false,
           "default": "3",
           "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line under the title that says what the figure is (\"Available revenue in your wallet\"), Body/Small/Regular.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
           "deprecated": null
         },
         {
@@ -9787,7 +12279,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
@@ -9815,6 +12307,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the open button and range control it draws, by layer (`{ Open: { level: \"secondary\" }, \"Ranges/Item[week]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code sets onOpen / ranges.",
           "deprecated": null
         }
       ]
@@ -9907,7 +12407,7 @@
         },
         {
           "name": "density",
-          "type": "\"compact\" | \"comfortable\"",
+          "type": "\"compact\" | \"comfortable\" | \"studio\"",
           "required": false,
           "default": null,
           "description": "Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts.",
@@ -9915,7 +12415,7 @@
         },
         {
           "name": "radius",
-          "type": "\"rounded\" | \"smooth\" | \"standard\" | \"luxury\"",
+          "type": "\"rounded\" | \"smooth\" | \"standard\" | \"luxury\" | \"studio\"",
           "required": false,
           "default": null,
           "description": "Corner-radius scale. Default rounded.",
@@ -9939,7 +12439,7 @@
         },
         {
           "name": "typography",
-          "type": "\"dashboard\" | \"popular\" | \"mobile\"",
+          "type": "\"dashboard\" | \"popular\" | \"mobile\" | \"studio\"",
           "required": false,
           "default": null,
           "description": "Text-style scale. dashboard (default) for web apps, mobile for phone apps, popular for marketing pages.",
@@ -10232,6 +12732,22 @@
           "deprecated": null
         },
         {
+          "name": "clip",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.\nOff by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll\ncontainer).",
+          "deprecated": null
+        },
+        {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls the content vertically, `\"x\"` sideways, inside the stack's own box (it\nneeds a height or a maxHeight for `\"y\"`, a width for `\"x\"`); the scroll stays inside (overscroll-behavior: contain).",
+          "deprecated": null
+        },
+        {
           "name": "fillChildren",
           "type": "boolean",
           "required": false,
@@ -10446,6 +12962,14 @@
           "deprecated": null
         },
         {
+          "name": "stackBelow",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint:\na two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it.",
+          "deprecated": null
+        },
+        {
           "name": "padding",
           "type": "\"none\" | ZenScaleInput | \"4xl\"",
           "required": false,
@@ -10467,6 +12991,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "clip",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.\nOff by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll\ncontainer).",
           "deprecated": null
         }
       ]
@@ -10661,10 +13193,18 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\"",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
           "default": "\"none\"",
-          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or\nContainer (modals and sheets use Dialog / BottomSheet).",
+          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the\npage itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never\nfor a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).",
+          "deprecated": null
+        },
+        {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside).",
           "deprecated": null
         },
         {
@@ -10850,6 +13390,22 @@
           "deprecated": null
         },
         {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), e.g. a time or an amount that must stay whole; the row\naround it gives it room. Unlike `truncate`, nothing is cut. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes\n does not move the text around it.",
+          "deprecated": null
+        },
+        {
           "name": "htmlFor",
           "type": "string",
           "required": false,
@@ -10976,6 +13532,22 @@
           "deprecated": null
         },
         {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), as on Text. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): digits of one width, as on Text.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": false,
@@ -10996,7 +13568,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.",
+          "description": "Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or\ncollapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the\nshell's rail and drawer by itself, also when it is wrapped in a component of your own.",
           "deprecated": null
         },
         {
@@ -11004,7 +13576,23 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "description": "Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "headerCenter",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the\nleading content and the actions, e.g. a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "sections",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),\na toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding\n(Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.",
           "deprecated": null
         },
         {
@@ -11036,7 +13624,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it.",
+          "description": "One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up.",
           "deprecated": null
         },
         {
@@ -11068,7 +13656,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded.",
+          "description": "Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the\n Sidebar's `collapsed` moves the rail too.",
           "deprecated": null
         },
         {
@@ -11142,6 +13730,14 @@
           "default": null,
           "description": "The page.",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: \"secondary\" }, Collapse: { appearance: \"main\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "deprecated": null
         }
       ]
     },
@@ -11204,6 +13800,14 @@
           "default": null,
           "description": "Tooltip text. Default: `aria-label` (without the count).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / appearance.",
+          "deprecated": null
         }
       ]
     },
@@ -11236,6 +13840,14 @@
           "deprecated": null
         },
         {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: \"square\" } }`). Written by Zen Studio;\n app code sets src / theme.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -11257,6 +13869,14 @@
           "required": true,
           "default": null,
           "description": "The page title (an h1 by default: one per page).",
+          "deprecated": null
+        },
+        {
+          "name": "childTitle",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Child-Heading (Primitives/Dashboard/Header Type=Main, 4122:33399): a second title after the title, in the title's\ntype and Content/Neutral/Light, Spacing/Gap/XSmall after it — where the page is inside its parent (\"Members\" ›\n\"Design team\"). Part of the heading, so the page's title reads both.",
           "deprecated": null
         },
         {
@@ -11300,6 +13920,14 @@
           "deprecated": null
         },
         {
+          "name": "trailing",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or\n Share (Button/Icon-Main), Spacing/Gap/Small after them.",
+          "deprecated": null
+        },
+        {
           "name": "tabs",
           "type": "ReactNode",
           "required": false,
@@ -11320,7 +13948,127 @@
           "type": "1 | 2",
           "required": false,
           "default": "1",
-          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the\n page already has an h1 (e.g. inside a tab). The text style always follows the level.",
+          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already\n has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets back.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "dashboard-header": [
+    {
+      "name": "DashboardHeader",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "props": [
+        {
+          "name": "type",
+          "type": "\"navigation\" | \"main\" | \"control-bar\" | \"custom\"",
+          "required": false,
+          "default": "\"control-bar\"",
+          "description": "Figma Type. `control-bar` (Figma's default): Search, filter Chips, a result count and the actions. `navigation`:\nBreadcrumbs on the left, notifications and the account on the right. `main`: the page title row — it renders a\nPageHeader (use PageHeader directly when you also need breadcrumbs, tabs or Back). `custom`: your own row.",
+          "deprecated": null
+        },
+        {
+          "name": "leading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Navigation · Figma Leading-Slots: usually <Breadcrumbs>. It fills the row's start.",
+          "deprecated": null
+        },
+        {
+          "name": "center",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Navigation · Figma Center-Slots (Nav-Center-Block): up to 400px in the middle of the row, e.g. a Search.",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Navigation and Main · Figma Trailing-Slots (Nav-Trailing-Block): icon actions then the account, right-aligned,\nSpacing/Gap/Small apart — <AppShellAction> buttons (notifications with a dot or count) and an Avatar or account menu.",
+          "deprecated": null
+        },
+        {
+          "name": "search",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Control-Bar · Figma Search: a <Search size=\"md\"> that filters the page, 320px wide.",
+          "deprecated": null
+        },
+        {
+          "name": "controls",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Control-Bar · Figma Control-Slots: filter Chips (`<Chip variant=\"advanced\">`), Spacing/Gap/XSmall apart.",
+          "deprecated": null
+        },
+        {
+          "name": "subheading",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Subheading. Control-Bar: what the filters leave, e.g. \"96 results\" (Heading/Subheading). Main: one line under\nthe title (the PageHeader description).",
+          "deprecated": null
+        },
+        {
+          "name": "actions",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Control-Bar and Main · Figma Action-Slots: the page's buttons, right-aligned — Tertiary first, then at most one\nPrimary.",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Main · Figma Header-Text: the page title (Heading/1, an h1 unless `headingLevel` is 2).",
+          "deprecated": null
+        },
+        {
+          "name": "childTitle",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Main · Figma Child-Heading: a second title after the title, in Content/Neutral/Light (PageHeader `childTitle`).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "1 | 2",
+          "required": false,
+          "default": "1",
+          "description": "Main · heading level of the title (PageHeader `headingLevel`). Default 1.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Custom · Figma Custome-Elements: the row's content, Spacing/Gap/Medium apart and centred.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the components in its slots, by layer. Written by Zen Studio; app code sets the slots.",
           "deprecated": null
         }
       ]
@@ -11473,6 +14221,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the floating surface.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[delete]\": { danger: true }, \"Item[duplicate]/Icon\": { tone: \"accent-base\" } }`). Written by Zen Studio;\n app code sets the items.",
           "deprecated": null
         }
       ]
@@ -11730,6 +14486,14 @@
           "default": null,
           "description": "Exactly one control. It receives `id`, `aria-labelledby`, `aria-describedby`, `aria-invalid` and `aria-required`,\nso it must put them on its focusable element (Slider takes aria-labelledby; your own controls should take all five).",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
+          "deprecated": null
         }
       ]
     },
@@ -11815,6 +14579,14 @@
           "required": false,
           "default": null,
           "description": "The options: Checkbox, RadioButton (sharing one `name`) or Toggle rows.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the help text it draws, by layer (`{ \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets helpText.",
           "deprecated": null
         }
       ]
@@ -12011,6 +14783,14 @@
           "required": false,
           "default": null,
           "description": "Custom actions (Buttons, in visual order: Primary first when vertical, last when horizontal). With primaryAction /\nsecondaryAction they sit on the side away from the Primary.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets primaryAction / secondaryAction.",
           "deprecated": null
         }
       ]

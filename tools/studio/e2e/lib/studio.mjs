@@ -20,16 +20,19 @@ function installHelpers() {
     for (const key in el) if (key.startsWith("__reactFiber$")) return el[key];
     return null;
   };
+  // A page made in the Studio marks elements by id (src/platform/studio/select/srcIds.ts): read back as file:line:col.
+  const resolve = (raw) => (typeof window.__zenResolveSrc === "function" ? window.__zenResolveSrc(raw) : raw);
   const srcOfFiber = (fiber) => {
     for (let f = fiber; f; f = f.return) {
       const src = f.memoizedProps?.["data-zen-src"];
-      if (typeof src === "string") return src;
+      if (typeof src === "string") return resolve(src);
     }
     return null;
   };
   window.__e2e = {
     elementOf(src) {
-      const direct = document.querySelector(`[data-zen-src="${CSS.escape(src)}"]`);
+      const direct = document.querySelector(`[data-zen-src="${CSS.escape(src)}"]`)
+        ?? [...document.querySelectorAll("[data-zen-src]")].find((el) => resolve(el.getAttribute("data-zen-src")) === src);
       if (direct) return direct;
       for (const el of document.querySelectorAll(".studio-frame *")) {
         const fiber = fiberOf(el);
@@ -57,6 +60,10 @@ function installHelpers() {
  */
 export async function openStudio(browser, { url, page: pageId, role = "admin", viewport = VIEWPORT, path = "/studio.html" }) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce", deviceScaleFactor: 1 });
+  // A step that waits for something that never comes fails with its own message (which locator, which wait) before the
+  // row's 20 s limit, instead of Playwright's 30 s default outliving it as a bare "timed out after 20 s".
+  context.setDefaultTimeout(10_000);
+  context.setDefaultNavigationTimeout(60_000);
   // ⌘C / ⌘V rows: the Studio copies layers through the system clipboard.
   await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: url }).catch(() => {});
   await context.addInitScript(({ key, role }) => {
@@ -95,7 +102,18 @@ export async function until(fn, { timeout = 6000, interval = 100, message = "con
   throw new Error(`Timed out waiting for ${message}${last instanceof Error ? ` (${last.message})` : ""}`);
 }
 
+/** The toolbar's Document | Studio switch on Studio: the folders and the pages people made (user, 2026-10-09). */
+export async function openStudioSpace(page) {
+  const studio = page.locator(".studio-toolbar").getByRole("button", { name: "Studio", exact: true });
+  if ((await studio.getAttribute("aria-pressed")) !== "true") { await studio.click(); await sleep(200); }
+}
+
 export async function showLeftTab(page, tab) {
+  // A doc page and the Studio home show the Pages panel alone, without tabs.
+  if (tab === "pages" && !(await page.locator(`#studio-left-tab-${tab}`).count())) {
+    await page.waitForSelector(`#studio-left-panel-${tab}`, { state: "visible" });
+    return;
+  }
   await page.click(`#studio-left-tab-${tab}`);
   await page.waitForSelector(`#studio-left-panel-${tab}`, { state: "visible" });
 }
@@ -115,19 +133,70 @@ export async function rectOf(page, file, loc) {
   return page.evaluate((src) => window.__e2e.rectOf(src), `${file}:${loc}`);
 }
 
-/** Clicks the centre of what file:loc rendered (real pointer, through the canvas picker). */
-export async function clickLoc(page, file, loc, { modifiers, clickCount, position = "center" } = {}) {
+/** Whether the selection's outline covers `rect` (a box from getBoundingClientRect / boundingBox). */
+export async function outlines(page, rect) {
+  return page.evaluate((r) => {
+    const box = document.querySelector('.studio-selection__outline[data-kind="selected"]')?.getBoundingClientRect();
+    return Boolean(box && Math.abs(box.x - r.x) < 3 && Math.abs(box.y - r.y) < 3 && Math.abs(box.width - r.width) < 3 && Math.abs(box.height - r.height) < 3);
+  }, { x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+}
+
+/**
+ * Selects the element whose box is `rect` by a click at (x, y): ⌘ / Ctrl held (Figma's deep select reaches the
+ * element itself) unless the element is selected already (a plain click inside it keeps it; ⌘ would go into its parts).
+ */
+export async function selectAt(page, rect, x = rect.x + rect.width / 2, y = rect.y + rect.height / 2) {
+  const deep = !(await outlines(page, rect));
+  if (deep) await page.keyboard.down("ControlOrMeta");
+  try {
+    await page.mouse.click(x, y);
+  } finally {
+    if (deep) await page.keyboard.up("ControlOrMeta");
+  }
+  if (deep) await ownerOfLayer(page);
+}
+
+/**
+ * ⌘-click goes on into an instance's text or nested instance (Figma's deep select, 2026-10-13); a row that ⌘-clicks to
+ * select the element itself climbs back to it with ⇧Enter, as a person does in Figma.
+ */
+export async function ownerOfLayer(page) {
+  const inPart = () => page.evaluate(async () => {
+    try { return Boolean((await import("/src/platform/studio/store.ts")).studioStore.getState().selection?.part); } catch { return false; }
+  });
+  if (!(await inPart())) return false;
+  // ⇧Enter climbs one layer at a time (a MetricCard's value › its Metric › the MetricCard).
+  for (let step = 0; step < 6 && (await inPart()); step++) {
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press("Shift+Enter");
+    await sleep(150);
+  }
+  return true;
+}
+
+/**
+ * Clicks the centre of what file:loc rendered (real pointer, through the canvas picker), so that element is selected:
+ * ⌘ / Ctrl is held (Figma's deep select; a plain click picks the outermost layer in context, 2026-10-09), except on the
+ * element already selected (⌘ there goes on into its parts; a plain click keeps it) and for a double-click (the drill
+ * gesture). `deep: false` clicks plainly, `deep: true` always holds ⌘.
+ */
+export async function clickLoc(page, file, loc, { modifiers, clickCount, position = "center", deep } = {}) {
   const rect = await until(() => rectOf(page, file, loc), { message: `${file}:${loc} on the canvas` });
   // "center", or { dx, dy } from the top-left corner (a container's padding, where no child covers it).
   const x = position === "center" ? rect.x + rect.width / 2 : rect.x + (position.dx ?? 2);
   const y = position === "center" ? rect.y + rect.height / 2 : rect.y + (position.dy ?? 2);
+  const selected = await outlines(page, rect);
+  const deepSelect = deep ?? (!selected && !(clickCount > 1));
+  const keys = [...(modifiers ?? []), ...(deepSelect ? ["ControlOrMeta"] : [])];
   // page.mouse.click has no `modifiers`: hold the keys around the click.
-  for (const key of modifiers ?? []) await page.keyboard.down(key);
+  for (const key of keys) await page.keyboard.down(key);
   try {
     await page.mouse.click(x, y, { clickCount });
   } finally {
-    for (const key of [...(modifiers ?? [])].reverse()) await page.keyboard.up(key);
+    for (const key of [...keys].reverse()) await page.keyboard.up(key);
   }
+  // The element itself is wanted (not its text inside): ⇧Enter from a layer the ⌘-click went on to.
+  if (deepSelect && !(modifiers ?? []).includes("Shift")) await ownerOfLayer(page);
   return rect;
 }
 
@@ -140,6 +209,19 @@ export async function selectedSrc(page) {
 }
 
 export const inspector = (page) => page.locator("#studio-right");
+/**
+ * Opens an Assets library (Components · Icons · Photos) from wherever the tab was left: Figma's drill-in (2026-10-09) —
+ * back to the libraries first, then the library's row; resolves once its search ("Search components") shows.
+ */
+export async function openAssetLibrary(page, kind) {
+  await showLeftTab(page, "assets");
+  const panel = page.locator("#studio-left-panel-assets");
+  const back = panel.getByRole("button", { name: "All libraries" });
+  if (await back.count()) await back.click();
+  await panel.getByRole("button", { name: kind, exact: true }).click();
+  await panel.getByLabel(`Search ${kind.toLowerCase()}`).waitFor({ state: "visible", timeout: 5000 });
+}
+
 export const inspectorRow = (page, prop) => page.locator(`#studio-right [data-prop="${prop}"]`).first();
 
 /** The canvas status hint text (CanvasStatus), where the Studio reports refusals and results. */

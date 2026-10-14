@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { headerTitle, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, type RevisionReason } from "./pageModel";
+import { headerFigma, headerTitle, withHeaderOs, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type RevisionReason } from "./pageModel";
+import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 
 /*
  * Builder pages kept in the browser (Studio builder GĐ2; spec docs/research/studio-builder-pages-spec-2026-10-06.md §3
@@ -24,10 +25,22 @@ export type PageRecord = {
   updatedAt: number;
   /** In the Trash since then. */
   trashedAt?: number;
+  /** The Studio folder the page sits in (folderStore); none: "Not in a folder". Kept in this browser only. */
+  folder?: string;
   /** The mirror this copy last matched, and the hash of the text both held. */
   sync?: { mirror: string; hash: string };
+  /**
+   * The page as a document (tools/studio/doc.mjs, core rebuild M2): the source of truth whenever it is here, and `text`
+   * is its print. A text written without one (an import, a restored version, a new page) gets one when the page opens.
+   */
+  doc?: PageDoc;
+  /**
+   * A page pulled from Figma (tools/studio/figma-pull.mjs, its header names the frame): the document the last pull made,
+   * the base a new pull of that frame is compared with (figma-diff.mjs). Kept in this browser only, across edits.
+   */
+  figma?: { base: PageDoc };
 };
-export type PageMeta = Omit<PageRecord, "text" | "sync">;
+export type PageMeta = Omit<PageRecord, "text" | "sync" | "doc" | "figma">;
 export type Revision = { key: number; page: string; text: string; at: number; reason: RevisionReason };
 
 /** A folder that keeps a copy of every page (mirrors.ts). */
@@ -41,10 +54,12 @@ export interface PageMirror {
   write(id: string, text: string): Promise<void>;
   /** Moves the page to the folder's trash (never deletes). */
   trash(id: string): Promise<void>;
-  /** An uploaded photo, kept in the folder's assets/ beside the pages (a linked folder only). */
+  /** An uploaded photo, kept in the folder's assets/ beside the pages (a linked folder, and the dev server's since 2026-10-08). */
   writeAsset?(id: string, blob: Blob): Promise<void>;
   /** An uploaded photo from the folder's assets/; null when it has none. */
   readAsset?(id: string): Promise<Blob | null>;
+  /** Moves a photo out of the folder's assets/ to its trash (never deletes): a photo removed in Assets › Photos. */
+  trashAsset?(id: string): Promise<void>;
 }
 
 /** Where the pages are kept, for the Pages panel. */
@@ -117,7 +132,7 @@ export function run<T>(storeName: string, mode: IDBTransactionMode, work: (store
 const readRecord = (id: string) => run<PageRecord | undefined>(PAGES, "readonly", (store) => store.get(id) as IDBRequest<PageRecord | undefined>).then((record) => record ?? null);
 const writeRecord = (record: PageRecord) => run(PAGES, "readwrite", (store) => store.put(record));
 const isLive = (record: PageRecord) => record.trashedAt === undefined;
-const metaOf = ({ text: _text, sync: _sync, ...meta }: PageRecord): PageMeta => meta;
+const metaOf = ({ text: _text, sync: _sync, doc: _doc, figma: _figma, ...meta }: PageRecord): PageMeta => meta;
 
 /** Whether pages survive a reload (IndexedDB works here). */
 export const pagesPersist = () => persistent;
@@ -183,10 +198,25 @@ export async function restoreRevision(page: string, key: number): Promise<void> 
 /* ── writes ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Writes a page's text (its title comes from the header line). `reason` decides whether the previous text is kept as a
- * revision (pageModel.keepsRevision); a connected mirror gets the new text.
+ * Gives a page its document (builder/localApi.ts ensurePageDoc) without writing its text: the page is not edited by
+ * opening it (no revision, no new "edited" time, nothing to the mirror). Refused when the text changed meanwhile.
  */
-export async function putPage(id: string, text: string, { title, reason = "edit" }: { title?: string; reason?: RevisionReason } = {}): Promise<PageRecord> {
+export async function setPageDoc(id: string, text: string, doc: PageDoc): Promise<boolean> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || record.text !== text || record.doc) return false;
+  const next: PageRecord = { ...record, doc };
+  cache.set(id, next);
+  await writeRecord(next);
+  return true;
+}
+
+/**
+ * Writes a page's text (its title comes from the header line). `reason` decides whether the previous text is kept as a
+ * revision (pageModel.keepsRevision); a connected mirror gets the new text. `doc`: the document `text` is the print of
+ * (builder/localApi.ts); without it the page has none until it opens again. `figma`: the last Figma pull's document (null
+ * forgets it); left out, the page keeps the one it had.
+ */
+export async function putPage(id: string, text: string, { title, reason = "edit", folder, doc, figma }: { title?: string; reason?: RevisionReason; folder?: string | null; doc?: PageDoc; figma?: { base: PageDoc } | null } = {}): Promise<PageRecord> {
   if (!isPageId(id)) throw new Error(`Bad page id ${JSON.stringify(id)}`);
   const now = Date.now();
   const previous = cache.get(id) ?? (await readRecord(id));
@@ -197,7 +227,13 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
     createdAt: previous?.createdAt ?? now,
     updatedAt: now,
     ...(previous?.sync ? { sync: previous.sync } : {}),
+    ...(doc ? { doc } : {}),
   };
+  const nextFigma = figma === undefined ? previous?.figma : figma ?? undefined;
+  if (nextFigma) record.figma = nextFigma;
+  // A write keeps the page in its folder unless `folder` moves it (null: out of every folder).
+  const nextFolder = folder === undefined ? previous?.folder : folder ?? undefined;
+  if (nextFolder) record.folder = nextFolder;
   cache.set(id, record);
   notify();
   if (previous && previous.text !== text && keepsRevision(reason, lastRevisionAt.get(id) ?? null, now)) await addRevision(id, previous.text, reason, now);
@@ -207,11 +243,31 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
   return record;
 }
 
-/** Renames a page: its header title and the list's name (one revision). */
+/** Moves a page into a Studio folder (null: out of every folder). The text and its revisions stay as they are. */
+export async function movePage(id: string, folder: string | null): Promise<void> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || (record.folder ?? null) === folder) return;
+  const next: PageRecord = { ...record };
+  if (folder) next.folder = folder; else delete next.folder;
+  cache.set(id, next);
+  notify();
+  await writeRecord(next);
+  channel?.postMessage({ id });
+}
+
+/** Renames a page: its header title, the list's name and a Screen still named after the page (one revision). */
 export async function renamePage(id: string, title: string): Promise<void> {
   const page = await getPage(id);
   if (!page) throw new Error("The page is gone");
-  await putPage(id, withHeaderTitle(page.text, title), { title, reason: "rename" });
+  await putPage(id, withScreenTitles(withHeaderTitle(page.text, title), page.title, title), { title, reason: "rename" });
+}
+
+/** The page's mobile OS (header `os`): its phone and tablet Screens draw that OS's status and bottom bars. */
+export async function setPageOs(id: string, os: "ios" | "android"): Promise<void> {
+  const page = await getPage(id);
+  if (!page) throw new Error("The page is gone");
+  const text = withHeaderOs(page.text, os);
+  if (text !== page.text) await putPage(id, text, { title: page.title, reason: "edit" });
 }
 
 /** A copy of the page under a new id ("<title> copy"); returns the new id. */
@@ -220,17 +276,37 @@ export async function duplicatePage(id: string): Promise<string> {
   if (!page) throw new Error("The page is gone");
   const title = `${page.title} copy`;
   const copy = await freeId(title);
-  await putPage(copy, withHeaderTitle(page.text, title), { title, reason: "import" });
+  await putPage(copy, withHeaderTitle(page.text, title), { title, reason: "import", folder: page.folder ?? null });
   return copy;
 }
 
 /** A page from a file (Import): the file's text byte for byte, under the id its name asks for when free. */
-export async function importPage(text: string, wantedId: string | null): Promise<string> {
+export async function importPage(text: string, wantedId: string | null, { doc, figma }: { doc?: PageDoc; figma?: { base: PageDoc } } = {}): Promise<string> {
   const title = headerTitle(text) ?? wantedId ?? "Imported page";
   await loadAll();
   const id = wantedId && !cache.has(wantedId) ? wantedId : await freeId(title);
-  await putPage(id, text, { title, reason: "import" });
+  await putPage(id, text, { title, reason: "import", doc, figma });
   return id;
+}
+
+/** The live page pulled from this Figma frame (its header's `figma`), or null. */
+export async function findPulledPage(source: { file: string | null; node: string }): Promise<string | null> {
+  await loadAll();
+  for (const record of cache.values()) {
+    if (!isLive(record)) continue;
+    const own = headerFigma(record.text);
+    if (own && own.node === source.node && (own.file === source.file || !own.file || !source.file)) return record.id;
+  }
+  return null;
+}
+
+/** Keeps `base` as the document of the page's last Figma pull, without writing its text. */
+export async function setFigmaBase(id: string, base: PageDoc): Promise<void> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record) return;
+  const next: PageRecord = { ...record, figma: { base } };
+  cache.set(id, next);
+  await writeRecord(next);
 }
 
 /** Moves a page to the Trash (and the mirror's copy to the folder's trash). */

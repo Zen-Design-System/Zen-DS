@@ -47,6 +47,7 @@ An action menu (WAI-ARIA menu button): a trigger opens a list of actions on the 
 | `onOpenChange` | `(open: boolean) => void` | — | Called with `true` when the trigger opens the menu and `false` when it closes (choice, Escape, Tab, outside press). |
 | `aria-label` | `string` | — | Accessible name of the menu. Default: the trigger's name (aria-labelledby). |
 | `className` | `string` | — | Extra class on the floating surface. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[delete]": { danger: true }, "Item[duplicate]/Icon": { tone: "accent-base" } }`). Written by Zen Studio; app code sets the items. |
 
 ### MenuItem
 One action row (role=menuitem) on the Popover/Item primitive. Use it inside `<Menu>` when you compose children.
@@ -134,12 +135,13 @@ type MenuSeparatorData = { type: "separator"; id?: string }
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `menu/not-for-selection` | warn | A Menu runs actions. Choosing a value (a selected or checked item) is a SelectField, a Segmented or a Chip + Popover. | `zen-allow-menu-selection: <reason>` |
 | `menu/needs-trigger` | error | A Menu has a trigger: a Button, or an IconButton whose aria-label names the object (“Actions for INV-1042”). | `zen-allow-menu-trigger: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [WAI-ARIA APG — Menu button](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)

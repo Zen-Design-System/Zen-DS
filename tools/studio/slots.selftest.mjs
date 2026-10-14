@@ -62,7 +62,7 @@ const FLAG = { removeElement: "removed", clearSlot: "cleared", resetSlot: "reset
 const samples = [];
 
 /** One op on the nth `needle` element, with the checks every successful op must pass; returns the result (or the error). */
-const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, expectUsage, ...extra } = {}) => {
+const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, expectUsage, insertedName, ...extra } = {}) => {
   const opts = options(extra);
   if (HASHED.has(op.op) && !("hash" in extra)) opts.hash = sha1(code);
   const result = applySlotOp(code, locOf(code, needle, nth), name, op, opts);
@@ -75,7 +75,7 @@ const run = (label, code, needle, name, op, { nth = 0, sample = false, expect, e
   const kind = FLAG[op.op] ?? (op.op === "moveElement" ? "moved" : "inserted");
   if (FLAG[op.op]) check(`${label}: ${kind}`, result[kind], true);
   else {
-    const expected = op.op === "insertChild" ? /^\s*<([\w.]+)/.exec(op.code)?.[1] : name;
+    const expected = insertedName ?? (op.op === "insertChild" ? /^\s*<([\w.]+)/.exec(op.code)?.[1] : name);
     check(`${label}: ${kind}.loc is the element`, describeElement(result.code, opts.file, result[kind]?.loc ?? "")?.name, expected);
   }
   if (history) {
@@ -132,7 +132,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("requiredFromApi: required props", [requiredProps.get("Dialog")?.has("title"), requiredProps.get("ListItem")?.has("title"), requiredProps.get("ListItem")?.has("leading")], [true, true, false]);
   check("requiredFromApi: junk → empty", [requiredFromApi(null).requiredChildren.size, requiredFromApi({ x: "y" }).requiredProps.size], [0, 0]);
   check("isSlotFile", ["src/platform/examples/pages/card.tsx", "src/templates/hr/HrHomeTemplate.tsx", "src/templates/X.tsx", "src/platform/PlatformExamples.tsx", "src/platform/examples/pages/sub/x.tsx", "src/platform/appLayer/templates.tsx", "src/components/Card/Card.tsx", "src/platform/examples/pages/card.css", "src/templates/X.tsx?raw", null].map(isSlotFile), [true, true, true, false, false, false, false, false, false, false]);
-  check("SLOT_OPS", [...SLOT_OPS], ["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "clearSlot", "resetSlot", "insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem"]);
+  check("SLOT_OPS", [...SLOT_OPS], ["insertChild", "removeElement", "duplicateElement", "moveElement", "moveTo", "pasteCode", "replaceElement", "many", "clearSlot", "resetSlot", "insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem", "setItems"]);
 }
 
 /* ── insertChild: children ────────────────────────────────────────────────────────────────────────────────────────── */
@@ -343,10 +343,112 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   const fragmentFirst = run("prop fragment index 0", props, "<ListItem title=\"Team", "ListItem", ins(NEW, { prop: "leading", index: 0 }));
   check("prop fragment index 0", rows(fragmentFirst, 18, 18), ['      <ListItem title="Team" leading={<><Badge>New</Badge><DockIcon icon="icon-user-line" /><Badge>2</Badge></>} />']);
   const at = (needle) => locOf(props, needle);
-  check("prop from a call: refused", applySlotOp(props, at("<ListItem title=\"Lead"), "ListItem", ins(NEW, { prop: "leading" }), options()).error, "Its content comes from avatar(); edit it in the code.");
+  // Code that shows something takes an insert beside it (user, 2026-10-09: add to any slot, as Figma).
+  const beside = run("prop from a call", props, "<ListItem title=\"Lead", "ListItem", ins(NEW, { prop: "leading" }));
+  check("prop from a call: the new element joins it, the call kept", rows(beside, 17, 17), ['      <ListItem title="Lead" leading={<>{avatar()}<Badge>New</Badge></>} trailing="Owner" />']);
+  const iconProp = page("export function I({ name }: { name: string }) {", "  return <ListItem title=\"Icon\" icon={name} />;", "}");
+  check("prop named for an icon: refused (a fragment would print the name)", applySlotOp(iconProp, locOf(iconProp, "<ListItem"), "ListItem", ins(NEW, { prop: "icon" }), options()).error, "Its content comes from name; edit it in the code.");
   check("prop with a string: refused", applySlotOp(props, at("<ListItem title=\"Lead"), "ListItem", ins(NEW, { prop: "trailing" }), options()).error, 'Its content comes from "Owner"; edit it in the code.');
   check("prop true: refused", applySlotOp(props, at("<ListItem title=\"Flag"), "ListItem", ins(NEW, { prop: "selected" }), options()).error, "Its content comes from `selected` (true); edit it in the code.");
   check("prop names that are not slots: refused", ["onClick", "key", "className", "bad name", 3].map((prop) => applySlotOp(props, at("<ListItem title=\"Flag"), "ListItem", ins(NEW, { prop }), options()).code), ["invalid", "invalid", "invalid", "invalid", "invalid"]);
+}
+
+/* ── a slot that holds a same-file `const name = <JSX>` (user, 2026-10-09: HR's Sidebar footer={appsButton}) ──────────── */
+{
+  const shared = page(
+    "export function Shell({ wide }: { wide: boolean }) {",
+    "  // Apps in every footer.",
+    "  const apps = <Badge>Apps</Badge>;",
+    "  const pair = <><Badge>One</Badge><Badge>Two</Badge></>;",
+    "  const loose = <Badge>Loose</Badge>;",
+    "  return wide ? (",
+    "    <Stack gap=\"md\">",
+    "      <ListItem title=\"Wide\" trailing={apps} leading={pair} />",
+    "      <Card theme=\"flat\">{loose}</Card>",
+    "    </Stack>",
+    "  ) : (",
+    "    <ListItem title=\"Narrow\" trailing={apps} />",
+    "  );",
+    "}",
+  );
+  const NEW = "<Badge>New</Badge>";
+  const joined = run("const element: insert", shared, "<ListItem title=\"Wide", "ListItem", ins(NEW, { prop: "trailing" }));
+  check("const element: insert joins it into a fragment where the const is written; both uses unchanged", [rows(joined, 10, 10), joined.code.split("trailing={apps}").length - 1], [["  const apps = <><Badge>Apps</Badge><Badge>New</Badge></>;"], 2]);
+  const intoPair = run("const fragment: insert", shared, "<ListItem title=\"Wide", "ListItem", ins(NEW, { prop: "leading" }));
+  check("const fragment: the new element joins it", rows(intoPair, 11, 11), ["  const pair = <><Badge>One</Badge><Badge>Two</Badge><Badge>New</Badge></>;"]);
+  const copied = run("const element: duplicate", shared, "<Badge>Apps", "Badge", DUPLICATE);
+  check("const element: duplicate makes a fragment of two there", rows(copied, 10, 10), ["  const apps = <><Badge>Apps</Badge><Badge>Apps</Badge></>;"]);
+  const removed = run("const element: remove", shared, "<Badge>Apps", "Badge", REMOVE);
+  check("const element: remove takes the const, its comment and every use", [removed.code.includes("const apps"), removed.code.includes("Apps in every footer"), removed.code.includes("trailing={apps}"), removed.code.includes('<ListItem title="Narrow" />')], [false, false, false, true]);
+  const child = run("const child: remove", shared, "<Badge>Loose", "Badge", REMOVE);
+  check("const child: the const and its {name} child go", [child.code.includes("const loose"), child.code.includes("{loose}")], [false, false]);
+  const read = page(
+    "export function Shell({ wide }: { wide: boolean }) {",
+    "  const apps = <Badge>Apps</Badge>;",
+    "  const label = String(apps);",
+    "  return <ListItem title={label} trailing={apps} />;",
+    "}",
+  );
+  check("const read elsewhere: remove refused", applySlotOp(read, locOf(read, "<Badge>Apps"), "Badge", REMOVE, options({ hash: sha1(read) })).error, "<Badge> is the value of `apps`, which the code also reads elsewhere; remove it in the code.");
+  const moduleConst = page(
+    "const apps = <Badge>Apps</Badge>;",
+    "export function Shell() {",
+    "  return <ListItem title=\"Wide\" trailing={apps} />;",
+    "}",
+  );
+  check("module const: an item with an action refused", applySlotOp(moduleConst, locOf(moduleConst, "<ListItem"), "ListItem", ins('<Badge onClick={() => toast({ title: "Hi" })}>Hi</Badge>', { prop: "trailing" }), options()).error, "Its content is `apps`, written outside any component, so it cannot hold an action or state; add it in the code.");
+  const plain = run("module const: insert", moduleConst, "<ListItem", "ListItem", ins(NEW, { prop: "trailing" }));
+  check("module const: a plain element joins it", rows(plain, 8, 8), ["const apps = <><Badge>Apps</Badge><Badge>New</Badge></>;"]);
+  const letBound = page(
+    "export function Shell() {",
+    "  let apps = <Badge>Apps</Badge>;",
+    "  return <ListItem title=\"Wide\" trailing={apps} />;",
+    "}",
+  );
+  const letJoined = run("let: code beside", letBound, "<ListItem", "ListItem", ins(NEW, { prop: "trailing" }));
+  check("let: not a const, so the new element goes beside {apps}", rows(letJoined, 10, 10), ['  return <ListItem title="Wide" trailing={<>{apps}<Badge>New</Badge></>} />;']);
+  const stacked = page(
+    "export function Panel() {",
+    "  const summary = <Badge>Summary</Badge>;",
+    "  const twice = <Badge>Twice</Badge>;",
+    "  return (",
+    "    <Stack gap=\"md\">",
+    "      <Text>First</Text>",
+    "      {summary}",
+    "      <Text>Last</Text>",
+    "      <Card theme=\"flat\">{twice}{twice}</Card>",
+    "    </Stack>",
+    "  );",
+    "}",
+  );
+  const up = run("const child: move up", stacked, "<Badge>Summary", "Badge", move("prev"));
+  check("const child: its {summary} steps before First; the const stays", [up.code.indexOf("{summary}") < up.code.indexOf("<Text>First"), up.code.includes("const summary = <Badge>Summary</Badge>;"), up.moved?.loc], [true, true, locOf(stacked, "<Badge>Summary")]);
+  check("const shown twice: move refused without the place", applySlotOp(stacked, locOf(stacked, "<Badge>Twice"), "Badge", move("next"), options({ hash: sha1(stacked) })).error, "<Badge> is not one of an element's children (it sits in a variable); only children move.");
+  const twiceBoth = page(
+    "export function Panel({ phone }: { phone: boolean }) {",
+    "  const summary = <Badge>Summary</Badge>;",
+    "  return phone ? (",
+    "    <Stack gap=\"sm\">",
+    "      <Text>Phone</Text>",
+    "      {summary}",
+    "    </Stack>",
+    "  ) : (",
+    "    <Card theme=\"flat\">",
+    "      <Text>Desk</Text>",
+    "      {summary}",
+    "    </Card>",
+    "  );",
+    "}",
+  );
+  const inCard = run("const shown in two branches: move the one in the Card", twiceBoth, "<Badge>Summary", "Badge", { op: "moveElement", to: "prev", parent: locOf(twiceBoth, "<Card") });
+  check("const shown in two branches: only the Card's {summary} moves", [inCard.code.indexOf("{summary}", inCard.code.indexOf("<Card")) < inCard.code.indexOf("<Text>Desk"), inCard.code.indexOf("<Text>Phone") < inCard.code.indexOf("{summary}")], [true, true]);
+  const dragged = applySlotOp(stacked, locOf(stacked, "<Badge>Summary"), "Badge", { op: "moveTo", parent: locOf(stacked, "<Card") }, options({ hash: sha1(stacked) }));
+  check("const child: dragged into the Card as {summary}", [dragged.error ?? null, /<Card theme="flat">\{twice\}\{twice\}\s*\{summary\}/.test(dragged.code ?? "") || /<Card theme="flat">[\s\S]*\{summary\}[\s\S]*<\/Card>/.test(dragged.code ?? ""), (dragged.code ?? "").split("{summary}").length - 1], [null, true, 1]);
+  const described = describeSlots(shared, PAGE, locOf(shared, "<ListItem title=\"Wide"));
+  const at = (attr) => described.attributes[["title", "trailing", "leading"].indexOf(attr)];
+  check("describeSlots: a const's elements, where the const writes them", [at("trailing"), at("leading")?.form, at("leading")?.elements.map((ref) => ref.name)], [{ elements: [{ name: "Badge", loc: locOf(shared, "<Badge>Apps") }], form: "element", const: "apps" }, "fragment", ["Badge", "Badge"]]);
+  const card = describeSlots(shared, PAGE, locOf(shared, "<Card"));
+  check("describeSlots: a {name} child's elements", card.children.find(Boolean), { elements: [{ name: "Badge", loc: locOf(shared, "<Badge>Loose") }], form: "other", const: "loose" });
 }
 
 /* ── insertChild: wrap (gap-less slots) ───────────────────────────────────────────────────────────────────────────── */
@@ -623,7 +725,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("remove the && right side: the whole condition's line", [rows(and, 19, 20), and.code.includes("{open &&")], [["      </List>", "      {open ? <Text>Shown</Text> : <Text>Hidden</Text>}"], false]);
   const branch = run("remove ternary branch", src, "<Text>Shown", "Text", REMOVE);
   check("remove a ternary branch: null", rows(branch, 21, 21), ["      {open ? null : <Text>Hidden</Text>}"]);
-  check("remove a .map row: refused", applySlotOp(src, locOf(src, "<ListItem"), "ListItem", REMOVE, options({ hash: sha1(src) })).error, "<ListItem> is the row of a .map list; remove the row in its data (here it would remove every row).");
+  check("remove a .map row: refused", applySlotOp(src, locOf(src, "<ListItem"), "ListItem", REMOVE, options({ hash: sha1(src) })).error, "<ListItem> is the row of a .map list; select one row on the canvas to remove it from its data (here it would remove every row).");
   check("remove a component's root: refused", applySlotOp(src, locOf(src, "<Stack"), "Stack", REMOVE, options({ hash: sha1(src) })).error, "<Stack> is the root of Plans; there would be nothing left to render.");
   const roots = page(
     "export const C = () => <Card theme=\"flat\" />;",
@@ -1012,6 +1114,15 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     refused(copyEdited.code, "<Card theme=\"border\"", "Card", src, undefined, 1),
   ], [["invalid", "This element is new since the last save: remove it instead."], ["invalid", "This element is new since the last save: remove it instead."]]);
   check("reset: the original of a duplicate still resets", back("reset the original", run("reset: original edited", copy.code, "<Card theme=\"border\"", "Card", ins(BADGE)).code, "<Card theme=\"border\"", "Card", src).code, copy.code);
+  // Duplicate, then Clear the original (BACKLOG 2026-10-03): the cleared original is still the saved element, its copy
+  // the new one, so Reset gives the original its content back and keeps the copy.
+  const clearedOriginal = run("reset: original cleared", copy.code, "<Card theme=\"border\"", "Card", clear());
+  check("reset: a cleared original of a duplicate resets", back("reset the cleared original", clearedOriginal.code, "<Card theme=\"border\"", "Card", src).code, copy.code);
+  check("reset: its untouched copy is the new one", refused(clearedOriginal.code, "<Card theme=\"border\"", "Card", src, undefined, 1), ["invalid", "This element is new since the last save: remove it instead."]);
+  // Two saved twins, one cleared (nothing duplicated): each keeps its own identity, the cleared one resets.
+  const twins = run("reset: twins", src, "<Card theme=\"border\"", "Card", DUPLICATE).code;
+  const twinCleared = run("reset: a twin cleared", twins, "<Card theme=\"border\"", "Card", clear());
+  check("reset: a cleared twin of the saved file resets", back("reset a twin", twinCleared.code, "<Card theme=\"border\"", "Card", twins).code, twins);
 
   // Imports: a Zen component the draft lost comes back (templates: into the package import); anything else is refused.
   const template = ["import {", "  Badge,", "  Card,", "  Stack,", "} from \"@zen-ds/react\";", "", "export function Settings() {", "  return (", "    <Stack gap=\"md\">", "      <Card theme=\"border\">", "        <Badge>New</Badge>", "      </Card>", "    </Stack>", "  );", "}", ""].join("\n");
@@ -1274,8 +1385,24 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   // Outside a component (a lowercase helper), there is nowhere to put the hook.
   const helper = page("const row = () => (", "  <Card theme=\"border\">", "    <Text>Basic</Text>", "  </Card>", ");", "export function Plans() {", "  return row();", "}");
   check("state: no component, refused", errorOf(applySlotOp(helper, locOf(helper, "<Card"), "Card", ins("<Text>{tab}</Text>", { state: [{ name: "tab", initial: '"a"' }] }), options()))[1], "The item keeps state, but no component encloses this slot to hold its `useState` lines; insert it inside a component (a capitalised function).");
+  // A .map row (2026-10-08): its own row component holds the state, so every row's Dialog opens on its own.
+  const rows = page("export function Plans() {", "  return (", "    <Stack>", "      {[1, 2].map((n) => (", "        <Card key={n} theme=\"border\">", "          <Text>Basic</Text>", "        </Card>", "      ))}", "    </Stack>", "  );", "}");
+  const perRow = run("state: insert a dialog into a .map row", rows, "<Card", "Card", ins(DIALOG, { requires: ["toast"], state: SHARE }), { insertedName: "StackRow", sample: true });
+  check("state in a .map row: the row gets <StackRow />, the component no hook", [perRow.code.includes("          <StackRow />"), /export function Plans\(\) \{\n {2}return/.test(perRow.code)], [true, true]);
+  check("state in a .map row: the row component holds toast and state", perRow.code.slice(perRow.code.indexOf("function StackRow")).split("\n").slice(0, 5), [
+    "function StackRow() {",
+    "  const { toast } = useToast();",
+    "  const [shareOpen, setShareOpen] = useState(false);",
+    "  return (",
+    '    <Stack direction="row">',
+  ]);
+  check("state in a .map row: useState, Button, Dialog and useToast imported", [importLines(perRow)[0], ...["Button", "Dialog", "useToast"].map((name) => importLines(perRow).some((line) => line.includes(name)))], ['import { useState } from "react";', true, true, true]);
+  // A ref entry (2026-10-08, Popover's anchor): `useRef<type>(null)`, no setter, useRef imported beside useState.
+  const anchored = run("state: a ref", quiet, "<Card", "Card", ins('<Stack><Box ref={findAnchor}><Text>{findOpen ? "Open" : "Closed"}</Text></Box></Stack>', { state: [{ name: "findOpen", initial: "false" }, { name: "findAnchor", initial: "null", type: "HTMLDivElement", ref: true }] }));
+  check("state: a ref is useRef<type>(null), both hooks imported", [anchored.code.includes("  const findAnchor = useRef<HTMLDivElement>(null);"), anchored.code.includes("setFindAnchor"), importLines(anchored)[0]], [true, false, 'import { useRef, useState } from "react";']);
+  check("state: a ref needs an element type", errorOf(applySlotOp(quiet, locOf(quiet, "<Card"), "Card", ins("<Box ref={a} />", { state: [{ name: "a", initial: "null", type: "string", ref: true }] }), options()))[1], 'The ref "a" needs `type`: an element interface (HTMLButtonElement…), and starts null');
   // platformMedia: example pages import it; templates refuse.
-  const IMAGE = "<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio=\"4:3\" />";
+  const IMAGE ="<Image src={platformMedia.site[5].src} alt={platformMedia.site[5].alt} ratio=\"4:3\" />";
   const pictured = run("media: insert an image", quiet, "<Card", "Card", ins(IMAGE, { requires: ["media"] }));
   check("media: platformMedia imported from PlatformMedia", importLines(pictured).filter((line) => /PlatformMedia|Image/.test(line)), [
     'import { Image } from "../../../components/Image";',
@@ -1465,7 +1592,8 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     null,
   ]);
   check("describeSlots: children", slots.children, [
-    { elements: [{ name: "Text", loc: "17:27" }], form: "map" },
+    // `row`: the element the .map callback returns (removed and copied in the list's data).
+    { elements: [{ name: "Text", loc: "17:27", row: true }], form: "map" },
     { elements: [{ name: "Text", loc: "18:15" }], form: "and" },
     { elements: [{ name: "Text", loc: "19:14" }, { name: "Text", loc: "19:33" }], form: "ternary" },
     { elements: [], form: "other" },
@@ -1537,12 +1665,13 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   ], { snippets: false, file: PAGE }).code;
   const slots = describeSlots(draft, PAGE, locOf(draft, "<Avatar"), { base: saved });
   const line = Number(at.split(":")[0]);
+  // `next`: what the saved file writes after it, so a playground's setProp puts it back in place (2026-10-08).
   check("savedAttributes: string, expression, added (null) and removed bare attribute; unchanged ones left out", slots.savedAttributes, {
-    size: { name: "size", kind: "string", value: "md", raw: "size=\"md\"", line },
+    size: { name: "size", kind: "string", value: "md", raw: "size=\"md\"", line, next: "status" },
     // Described against the saved file like GET /element: what the binding reads (a restored binding is read the same way).
-    status: { name: "status", kind: "expression", value: "one.online", raw: "status={one.online}", line, origin: { kind: "bound-value", reads: ["one"] } },
+    status: { name: "status", kind: "expression", value: "one.online", raw: "status={one.online}", line, origin: { kind: "bound-value", reads: ["one"] }, next: "focus" },
     dot: null,
-    focus: { name: "focus", kind: "true", raw: "focus", line },
+    focus: { name: "focus", kind: "true", raw: "focus", line, next: "name" },
   });
   check("savedAttributes: modifiedProps stays coded props only", slots.modifiedProps, ["status"]);
   const merged = withSlots(describeElement(draft, PAGE, locOf(draft, "<Avatar")), slots);
@@ -1584,6 +1713,11 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
       }
     }
     check("mapLine: the same answers as diff.ts (300 random edits)", same, cases);
+    // changedBlockOf (the Studio's selection remap, select/remap.ts mapInChangedBlock): the changed lines around a line
+    // in both texts. A slot Clear (host line changed, an import above removed) and a removed element (empty after).
+    const cleared = [["import A;", "import B;", "", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"flat\">", "    </Card>", "end"], ["import A;", "", "    <Card theme=\"flat\" />", "    <Card theme=\"flat\">", "    </Card>", "end"]].map((lines) => lines.join("\n"));
+    const removed = [["x", "    <Card theme=\"flat\">", "      <Text>Hi</Text>", "    </Card>", "    <Card theme=\"pale\">", "    </Card>"], ["x", "    <Card theme=\"pale\">", "    </Card>"]].map((lines) => lines.join("\n"));
+    check("changedBlockOf: a cleared host, a removed element, an unchanged line", [diff.changedBlockOf(...cleared, 4), diff.changedBlockOf(...removed, 2), diff.changedBlockOf(...cleared, 1)], [{ before: [4, 6], after: [3, 3] }, { before: [2, 4], after: [2, 1] }, null]);
   }
   check("mapLine: small cases", [mapLine("a\nb\nc", "a\nx\nb\nc", 2), mapLine("a\nb\nc", "a\nc", 2), mapLine("a\nb", "a\nb", 5), mapLine("a\r\nb", "z\nb", 2), mapLine("a\nb", "a\nc", 0)], [3, null, 5, 2, null]);
 }
@@ -1717,7 +1851,7 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
     })();
     ok("tsc: typescript found", tscBin && fs.existsSync(tscBin));
     if (tscBin && fs.existsSync(tscBin)) {
-      fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names] }));
+      fs.writeFileSync(path.join(draftDir, config), JSON.stringify({ extends: "../../../../tsconfig.json", include: ["../../../vite-env.d.ts", ...names], exclude: [] }));
       written.push(config);
       const run = spawnSync(process.execPath, [tscBin, "-p", path.join(draftDir, config), "--pretty", "false"], { encoding: "utf8" });
       ok("tsc: ran", !run.error && run.status !== null);

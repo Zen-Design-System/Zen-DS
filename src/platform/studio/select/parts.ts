@@ -1,6 +1,12 @@
 import { studioStore } from "../store";
 import type { StudioPartRef, StudioSelection } from "../types";
-import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit } from "./picker";
+import { currentFiber, fiberOf, frameOf, hostsOf, instanceOf, isHostFiber, isPortalFiber, isTransparentName, nameOf, panelOf, srcOf, type Fiber, type FiberHit, typeNameOf } from "./picker";
+import { tablePartName } from "../table/tableCells";
+import { NestedContext, type NestedScope } from "../../../components/_shared/nested";
+import { srcProp } from "./srcIds";
+
+// ContextProvider (react-reconciler ReactWorkTags): the fiber of a `<Context value>`.
+const CONTEXT_PROVIDER = 10;
 
 /*
  * Deep select (read-only): the internal parts of an annotated JSX element, like Figma's ⌘-click into an instance. A
@@ -59,7 +65,12 @@ export function partHit(owner: FiberHit, fiber: Fiber): PartHit | null {
     if (!element) return null;
     const path = pathOf(owner, element);
     if (!path) return null;
-    return { src: owner.src, name: nameOf(live), hosts, isComponent: !host, props: live.memoizedProps ?? {}, fiber: live, owner, path, element };
+    // A Table's rows and cells go by Figma's names (Data-Row, Cell, Header, Header-Cell), as its Layers list them.
+    // A component the owner hands its own props to (MetricCard spreads them on its Metric) carries the owner's builder
+    // label (data-zen-name): the part goes by its own name.
+    const inherited = !host && srcProp(live.memoizedProps) === owner.src;
+    const name = (host && tablePartName(element)) || (inherited ? typeNameOf(live) : nameOf(live));
+    return { src: owner.src, name, hosts, isComponent: !host, props: live.memoizedProps ?? {}, fiber: live, owner, path, element };
   } catch {
     return null;
   }
@@ -100,12 +111,56 @@ const wrapsOwner = (part: PartHit) => part.path.length === 1;
 
 /** The part a deep click lands on: the nearest internal component that is not a wrapper of the whole element, else the DOM node. */
 function nearestPart(chain: PartHit[]): PartHit | null {
-  return chain.find((part) => part.isComponent && !wrapsOwner(part)) ?? chain[0] ?? null;
+  // A nested instance first (the Icon in a Button, not the IconSvg inside the Icon): the layer Figma's ⌘-click lands on
+  // that has properties to change.
+  return chain.find((part) => !wrapsOwner(part) && nestedPathOf(part) !== null)
+    ?? chain.find((part) => part.isComponent && !wrapsOwner(part)) ?? chain[0] ?? null;
 }
 
 /** Cmd/Ctrl-click: the nearest internal component under the cursor (SidebarItem, InputLabel, a Badge in a cell), else the DOM node. */
 export function deepPartAt(owner: FiberHit, element: Element | null): PartHit | null {
   return nearestPart(partChain(owner, element));
+}
+
+/** A DOM node that shows text of its own (a text node directly inside it): Figma's text layer. */
+export function ownsText(element: Element): boolean {
+  for (const node of Array.from(element.childNodes)) if (node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim()) return true;
+  return false;
+}
+
+
+/**
+ * Figma's ⌘-click inside an instance (user, 2026-10-13: "⌘-click mới dừng ở component, chưa vào tới layer chữ hay icon
+ * bên trong như Figma"): the deepest layer under the pointer that is a text (a DOM node showing text of its own) or a
+ * nested instance (an Icon, a Badge, a Dock-Icon), innermost first; null when there is none (the instance itself).
+ */
+export function deepLayerAt(owner: FiberHit, element: Element | null): PartHit | null {
+  const chain = partChain(owner, element).filter((part) => !wrapsOwner(part));
+  const index = chain.findIndex((part) => (part.isComponent ? nestedPathOf(part) !== null : ownsText(part.element)));
+  if (index < 0) return null;
+  const layer = chain[index];
+  if (layer.isComponent) return layer;
+  // A picture's initials are the picture (an Avatar's photo is what a ⌘-click there changes): the Avatar, or the
+  // instance itself when it is one.
+  const picture = chain.slice(index + 1).find((part) => part.isComponent && PICTURES.has(part.name));
+  if (picture) return nestedPathOf(picture) !== null ? picture : null;
+  if (PICTURES.has(owner.name)) return null;
+  // Every other text is its own layer, a Button's or a Badge's label too, as Figma's deep select lands on it (user,
+  // 2026-10-13: "⌘-click giống Figma 100% với Button/Badge/Chip"); ⇧Enter goes up to the instance. A data row's text
+  // gives its row (SelectionLayer, dataItemOfPart): rows are picked several at a time (SP-10).
+  return layer;
+}
+
+/** Components that show a picture (inspector PHOTO_PROPS): their text is initials or a caption of the picture. */
+const PICTURES = new Set(["Avatar", "AppShellAccount", "Image", "Thumbnail"]);
+
+/**
+ * The layer one level up from a part (Figma's ⇧Enter / Esc, user 2026-10-13): the nearest enclosing nested instance, or a
+ * part with a Figma name (a Table's Cell, Data-Row), DOM wrappers in between skipped; null when only the owner is above.
+ */
+export function parentLayerOf(part: PartHit): PartHit | null {
+  const chain = partChain(part.owner, part.element.parentElement);
+  return chain.find((candidate) => candidate.element !== part.element && !wrapsOwner(candidate) && (candidate.isComponent ? nestedPathOf(candidate) !== null : /^[A-Z]/.test(candidate.name))) ?? null;
 }
 
 const samePart = (a: PartHit, b: PartHit) => a.fiber === b.fiber || a.fiber === b.fiber.alternate || (a.element === b.element && a.name === b.name);
@@ -116,6 +171,21 @@ export function drillPart(owner: FiberHit, element: Element | null, from: PartHi
   const index = chain.findIndex((part) => samePart(part, from));
   if (index < 0) return nearestPart(chain);
   return index > 0 ? chain[index - 1] : null;
+}
+
+/** Double-click on a component: one level in, Figma's way — the outermost nested instance under the cursor (Card ›
+ *  Sub-Action, not the Icon inside it), or null when it draws none there. */
+export function outerNestedAt(owner: FiberHit, element: Element | null): PartHit | null {
+  const chain = partChain(owner, element);
+  for (let index = chain.length - 1; index >= 0; index--) if (!wrapsOwner(chain[index]) && nestedPathOf(chain[index]) !== null) return chain[index];
+  return null;
+}
+
+/** Double-click on a selected part: the next nested instance towards the cursor (Sub-Action › Leading-Icon), or null. */
+export function drillNested(owner: FiberHit, element: Element | null, from: PartHit): PartHit | null {
+  let deeper = drillPart(owner, element, from);
+  while (deeper && nestedPathOf(deeper) === null) deeper = drillPart(owner, element, deeper);
+  return deeper;
 }
 
 /** Whether `part` is one of the parts under the cursor (a click inside the selected part keeps it). */
@@ -167,6 +237,31 @@ export function partChildren(owner: FiberHit, parent: Fiber): PartHit[] {
     // React internals changed: what was found so far.
   }
   return out;
+}
+
+/**
+ * The Figma layer path of a part its owner draws as a nested instance (`Sub-Action`, `Row[alex]/status/Badge`): read from
+ * the nested scope that wraps it (src/components/_shared/nested.tsx), or null for a part that takes no overrides (a DOM
+ * node, a wrapper of the owner's own, a component drawn without a layer name).
+ */
+export function nestedPathOf(part: PartHit): string | null {
+  if (!part.isComponent) return null;
+  try {
+    for (let fiber = currentFiber(part.fiber).return; fiber; fiber = fiber.return) {
+      if (isOwnerFiber(part.owner, fiber)) return null;
+      if (fiber.tag === CONTEXT_PROVIDER && (fiber.type === NestedContext || (fiber.type as { _context?: unknown } | null)?._context === NestedContext)) {
+        const scope = fiber.memoizedProps?.value as NestedScope | undefined;
+        // A component's own scope (nest.scope) wraps its internals, not a nested layer.
+        return scope?.layer && scope.path ? scope.path : null;
+      }
+      // memo(forwardRef(X)): the part's own outer fibers, then the scope.
+      if (isComponentFiber(fiber) && nameOf(fiber) === part.name) continue;
+      return null;
+    }
+  } catch {
+    // React internals changed: no layer path.
+  }
+  return null;
 }
 
 /** The first DOM node's first meaningful class, as a hint beside a DOM part's tag ("div" · zen-sidebar__header). */

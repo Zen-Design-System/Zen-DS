@@ -1,18 +1,31 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { Heading } from "../../../components/Text";
+import { Heading, plural } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
+import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { canvasApi } from "../canvas/viewport";
-import { currentFiber, onSourceUpdate, shortSrc } from "../select/picker";
-import { selectedPartStore, withoutPart, type PartHit } from "../select/parts";
-import { studioStore } from "../store";
-import type { StudioSelection } from "../types";
+import { currentFiber, nameOf, onSourceUpdate, shortSrc, type Fiber } from "../select/picker";
+import { useWords } from "../useWords";
+import { nestedPathOf, ownsText, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { OverrideProperties } from "./OverrideProperties";
+import { canEdit, studioStore, useStudio } from "../store";
+import type { SourceElement, StudioSelection } from "../types";
+import { componentGroupsOf } from "./componentGroups";
+import { forwardedProps } from "./partForwarding";
+import { PART_PROPS } from "./partProps.generated";
+import { entryLabel, entryOptions, entryProp, type PropEntry } from "./propGroups";
+import { PropField, TextControl } from "./PropField";
+import { componentSlug, propLabel, propSpecs, type Literal, type PropSpec } from "./propSchema";
+import { objectSchemaOf, useApiTypes } from "./objectSchema";
+import { displayValueOf, planPropReset, planPropWrite } from "./writePlan";
 import { coloursOf, drivingProps, layoutOf, listedProps, matchingTextStyles, sizeOf, summarise, textHost, textStylesOf, type SpacingValue } from "./partInfo";
 import { InspectorRow, InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
-import { dataItemOfPart, dataItemRootOf } from "../slots";
-import { DataItemBanner, DataItemSections } from "./DataItemPanel";
+import { dataItemOfPart, dataItemRootOf, type DataSlot } from "../slots";
+import { dataGroupOfPart } from "../slots/dataItems";
+import { DataGroupSections, DataItemBanner, DataItemSections, DataItemsSections } from "./DataItemPanel";
+import { selectedPlaces, useItemSelection } from "../slots/itemSelection";
 
 /*
  * Design tab for a part (deep select): what a component renders inside itself, read-only. The part's props, text
@@ -23,6 +36,137 @@ import { DataItemBanner, DataItemSections } from "./DataItemPanel";
 type PartSelection = Extract<StudioSelection, { kind: "node" }>;
 
 const MAX_PROPS = 40;
+
+/** Field kinds a part's passed-on prop is edited with here (objects, lists and handlers stay with the owner). */
+const PART_FIELDS = new Set(["enum", "number-enum", "boolean", "string", "number", "node", "icon", "icon-toggle", "photo"]);
+
+/** Component names from just under the owner down to the part (wrappers included), along the part's fiber parents. */
+function chainOf(part: PartHit): string[] {
+  const owner = part.owner.fiber;
+  const names: string[] = [];
+  for (let fiber: Fiber | null = currentFiber(part.fiber); fiber; fiber = fiber.return) {
+    if (owner && (fiber === owner || fiber === owner.alternate)) return names.reverse();
+    if (typeof fiber.type === "function" || (typeof fiber.type === "object" && fiber.type !== null)) names.push(nameOf(fiber));
+  }
+  return [];
+}
+
+/** Options as Figma names them when the part's component has no Figma map: "horizontal" → "Horizontal". */
+const titledOptions = (spec: PropSpec): Record<string, string> | undefined => (spec.editor.kind === "enum"
+  ? Object.fromEntries(spec.editor.options.map((option) => [option, `${option.charAt(0).toUpperCase()}${option.slice(1)}`]))
+  : undefined);
+
+/** The part's props its owner passes on unchanged, as the owner's props the Inspector can edit (Figma's exposed nested
+ *  instance properties: ModalActions' Direction is ModalForm's actionsDirection). */
+function partPasses(owner: string, part: PartHit): Array<{ prop: string; ownerProp: string; spec: PropSpec }> {
+  if (!part.isComponent) return [];
+  const specs = propSpecs(owner);
+  return Object.entries(forwardedProps(owner, chainOf(part), PART_PROPS)).flatMap(([prop, ownerProp]) => {
+    const spec = specs.find((candidate) => candidate.name === ownerProp);
+    return spec && PART_FIELDS.has(spec.editor.kind) ? [{ prop, ownerProp, spec }] : [];
+  });
+}
+
+/**
+ * The fields of a data-slot item's own data (BreadcrumbItemData: id, label, href, icon); null until the owner's API types
+ * load. A prop its owner passes on under one of these names (Segmented `disabled`) stays the item's own field.
+ */
+function useItemFields(owner: string, slot: DataSlot | null): ReadonlySet<string> | null {
+  const types = useApiTypes(slot ? componentSlug(owner) : null);
+  if (!slot) return null;
+  const spec = propSpecs(owner).find((candidate) => candidate.name === slot.prop);
+  const schema = spec ? objectSchemaOf(spec.type, types, slot.form === "object" ? "object" : "array") ?? objectSchemaOf(spec.type, types, "object") : null;
+  return schema ? new Set(schema.fields.map((field) => field.name)) : null;
+}
+
+/**
+ * Properties of a part its owner passes on: each row is the part's prop (its Figma name when its component has one) and
+ * writes the owner's prop in the source, one undo step each, as the owner's own Properties would. `itemName` (a data-slot
+ * item: a crumb, a tab, a segment): the rows join the item's Properties, and the note says every item follows.
+ */
+function PartProperties({ selection, part, passes, itemName, title = "Properties" }: { selection: PartSelection; part: PartHit; passes: ReturnType<typeof partPasses>; itemName?: string; title?: string }) {
+  const parsed = parseSrc(selection.src);
+  const server = useStudioServer();
+  const role = useStudio((state) => state.role);
+  const undoCount = useStudio((state) => state.undo.length);
+  const [element, setElement] = useState<SourceElement | null>(null);
+  const [version, setVersion] = useState(0);
+  useEffect(() => onSourceUpdate(() => setVersion((value) => value + 1)), []);
+  useEffect(() => {
+    if (!parsed) return undefined;
+    let alive = true;
+    void studioApi.element(parsed.file, parsed.loc).then((next) => { if (alive) setElement(next); });
+    return () => { alive = false; };
+  }, [parsed?.file, parsed?.loc, version, undoCount]);
+  const owner = selection.name;
+  const live = part.owner.fiber ? currentFiber(part.owner.fiber).memoizedProps ?? undefined : undefined;
+  const editable = canEdit() && role === "admin" && server.writable && Boolean(element);
+  // The part's own Figma names (Direction · Horizontal / Vertical) when its component has a Figma map.
+  const groups = componentGroupsOf(part.name);
+  const entries: PropEntry[] = groups ? [...groups.own, ...groups.after, ...groups.nested.flatMap((group) => group.props)] : [];
+  const entryOf = (prop: string) => entries.find((entry) => entryProp(entry) === prop);
+  const write = (ownerProp: string, plan: { ops: Parameters<typeof applyEdit>[0]["ops"] }, label: string) => {
+    if (!element || !plan.ops.length) return;
+    void applyEdit({ file: element.file, loc: element.loc, name: owner, ops: plan.ops, hash: element.hash }, label);
+  };
+  // A text layer says it in design words (its owner's property), the forwarded props say where they are written.
+  const note = title === "Text" ? `Changes ${owner}'s ${passes.map((pass) => propLabel(pass.ownerProp, owner)).join(", ")}`
+    : `Written to ${owner}: ${passes.map((pass) => pass.ownerProp).join(", ")}${itemName ? ` (every ${itemName} follows)` : ""}.`;
+  const rows = passes.map(({ prop, ownerProp, spec }) => {
+    const entry = entryOf(prop);
+    return (
+      <PropField
+        key={prop}
+        spec={spec}
+        label={entry ? entryLabel(entry) ?? propLabel(prop, part.name) : part.isComponent ? propLabel(prop, part.name) : propLabel(ownerProp, owner)}
+        optionLabels={(entry ? entryOptions(entry) : undefined) ?? titledOptions(spec)}
+        value={element ? displayValueOf(owner, element.attributes, ownerProp, live) : { state: "unset" }}
+        disabled={!editable}
+        component={owner}
+        onSet={(value: Literal) => element && write(ownerProp, planPropWrite(owner, element.attributes, ownerProp, value, live), `${owner} ${ownerProp} → ${String(value)} (${part.name} ${prop})`)}
+        onReset={() => element && write(ownerProp, planPropReset(owner, element.attributes, ownerProp, live), `${owner} reset ${ownerProp} (${part.name} ${prop})`)}
+      />
+    );
+  });
+  if (itemName) return <>{rows}<p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{note}</p></>;
+  return <InspectorSection title={title} note={note}>{rows}</InspectorSection>;
+}
+
+/**
+ * A text layer whose words the owner holds as its own text child (a Button's label: `<Button>New project</Button>`):
+ * edited as the element's Content text is (op setText), one undo step.
+ */
+function PartTextChild({ selection, text }: { selection: PartSelection; text: string }) {
+  const parsed = parseSrc(selection.src);
+  const server = useStudioServer();
+  const role = useStudio((state) => state.role);
+  const undoCount = useStudio((state) => state.undo.length);
+  const [element, setElement] = useState<SourceElement | null>(null);
+  const [version, setVersion] = useState(0);
+  useEffect(() => onSourceUpdate(() => setVersion((value) => value + 1)), []);
+  useEffect(() => {
+    if (!parsed) return undefined;
+    let alive = true;
+    void studioApi.element(parsed.file, parsed.loc).then((next) => { if (alive) setElement(next); });
+    return () => { alive = false; };
+  }, [parsed?.file, parsed?.loc, version, undoCount]);
+  const child = element?.children.find((candidate) => candidate.kind === "text" && candidate.value.trim() === text);
+  if (!element || !child || child.kind !== "text") return null;
+  const editable = canEdit() && role === "admin" && server.writable;
+  return (
+    <InspectorSection title="Text">
+      <InspectorRow label="Text">
+        <TextControl
+          label="Text"
+          value={child.value.trim()}
+          fallback={undefined}
+          disabled={!editable}
+          onSet={(next) => { void applyEdit({ file: element.file, loc: element.loc, name: selection.name, ops: [{ op: "setText", index: child.index, value: String(next) }], hash: element.hash }, `${selection.name} text → ${String(next).slice(0, 40)}`); }}
+        />
+      </InspectorRow>
+    </InspectorSection>
+  );
+}
 
 /** Re-reads the canvas after it changes (playground properties, HMR, preview modes), at most every 250ms. */
 function useCanvasTick() {
@@ -93,7 +237,7 @@ function describeNode(element: Element) {
 }
 
 /** The part's sections, read from the canvas now. */
-function PartDetails({ part }: { part: PartHit }) {
+function PartDetails({ part, props: showProps = true }: { part: PartHit; props?: boolean }) {
   const live = currentFiber(part.fiber);
   const element = part.element;
   const props = listedProps(live.memoizedProps ?? {});
@@ -114,7 +258,7 @@ function PartDetails({ part }: { part: PartHit }) {
   const gapsEqual = layout.rowGap && layout.columnGap && layout.rowGap.px === layout.columnGap.px;
   return (
     <>
-      <InspectorSection title={part.isComponent ? "Props" : "Attributes"} note={props.length ? undefined : "None set"}>
+      {showProps ? <InspectorSection title={part.isComponent ? "Props" : "Attributes"} note={props.length ? undefined : "None set"}>
         {props.slice(0, MAX_PROPS).map(([name, value]) => {
           const shown = summarise(value);
           return (
@@ -124,7 +268,7 @@ function PartDetails({ part }: { part: PartHit }) {
           );
         })}
         {props.length > MAX_PROPS ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{props.length - MAX_PROPS} more not shown</p> : null}
-      </InspectorSection>
+      </InspectorSection> : null}
 
       {textNode && style ? (
         <InspectorSection title="Text style" note={textNote ? `${textNote.charAt(0).toUpperCase()}${textNote.slice(1)}` : undefined}>
@@ -170,6 +314,8 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   const name = part?.name ?? selection.part?.name ?? "Part";
   const owner = selection.name;
   const at = shortSrc(selection.src);
+  // The notes speak design words and the code link names no file (plan criterion 7).
+  const say = useWords();
   const resolved = part && part.owner.src === selection.src && part.element.isConnected ? part : null;
   const ownerProps = resolved?.owner.fiber ? currentFiber(resolved.owner.fiber).memoizedProps ?? {} : {};
   const text = resolved?.element.textContent?.trim() ?? "";
@@ -180,6 +326,39 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
   // one (its icon) says which item it is in.
   const item = dataItemRootOf(resolved);
   const inside = item ? null : dataItemOfPart(resolved);
+  // A nested slot's group as drawn (a Sidebar section, its title or its rows): removed, renamed and added to.
+  const group = item || inside ? null : dataGroupOfPart(resolved);
+  // Other items of the same slot selected with it (Shift/⌘+click): the panel speaks for them all.
+  const itemSet = useItemSelection();
+  const places = item && itemSet && itemSet.src === selection.src && itemSet.instance === selection.instance ? selectedPlaces(item.index, itemSet, item.slot.prop) : [];
+  // Props the owner passes on to it: edited here, written to the owner (the rest stays read-only). A data-slot item has
+  // them too (a crumb's Emphasis is Breadcrumbs' emphasis, a tab's Variant is Tabs' variant), after its own fields; a
+  // pass named like one of its fields (a segment's `disabled`) stays that field.
+  // On an item, a pass whose value is an object the owner's prop does not hold is the item itself (TopNavigation hands
+  // `leading` to a TopNavigationActionButton as `action`, and each trailing action its own item there).
+  const itemFields = useItemFields(owner, item?.slot ?? null);
+  const partProps = resolved ? currentFiber(resolved.fiber).memoizedProps ?? {} : {};
+  const holdsItem = (pass: { prop: string; ownerProp: string }) => Boolean(partProps[pass.prop]) && typeof partProps[pass.prop] === "object" && partProps[pass.prop] !== ownerProps[pass.ownerProp];
+  const passes = resolved && (!item || itemFields)
+    ? partPasses(owner, resolved).filter((pass) => !item || (!itemFields?.has(pass.prop) && !holdsItem(pass)))
+    : [];
+  // A nested layer the owner draws (Card's Sub-Action, a Table row's Badge): on a page made in the Studio it changes like
+  // Figma's nested instance, written as the owner's instance overrides (OverrideProperties).
+  const layerPath = resolved && !item && !group ? nestedPathOf(resolved) : null;
+  const overridable = Boolean(layerPath) && Boolean(parseSrc(selection.src)?.file.startsWith("local:"));
+  // A text layer inside the instance (⌘-click, Figma's deep select): its words are the owner's prop that holds exactly
+  // them (a MetricCard's value), edited here as Figma edits a text layer's content (2026-10-13).
+  const textPasses = resolved && !resolved.isComponent && !item && !group && ownsText(resolved.element)
+    ? driving.flatMap((prop) => {
+      const spec = propSpecs(owner).find((candidate) => candidate.name === prop);
+      return spec && typeof ownerProps[prop] === "string" && (ownerProps[prop] as string).trim() === text && (spec.editor.kind === "string" || spec.editor.kind === "node") ? [{ prop, ownerProp: prop, spec }] : [];
+    }).slice(0, 1)
+    : [];
+  // …or its own text child (a Button's label).
+  const childText = resolved && !resolved.isComponent && !item && !group && !textPasses.length && ownsText(resolved.element) && driving.includes("children") && typeof ownerProps.children === "string" && ownerProps.children.trim() === text;
+  const textLayer = textPasses.length > 0 || Boolean(childText);
+  // Any text inside the instance reads as Figma's text layer, editable here or not (its words may come from data).
+  const textPart = Boolean(resolved && !resolved.isComponent && !item && !group && ownsText(resolved.element));
 
   return (
     <div className="studio-inspector__panel">
@@ -187,33 +366,42 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
         <div className="studio-inspector__title-row">
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           <Heading level={2} textStyle="Body/Small/Bold" className="studio-part__title">
-            {item ? item.slot.itemName : name}
-            <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
+            {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : textPart ? "Text" : name}
+            <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
-        {item ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Read-only — set by {owner} at {at}</p>}
+        {textPart && !textLayer ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Double-click it or press Enter to edit its words</p> : null}
+        {item || group || textPart ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
             Select {owner}
           </Button>
           {/* zen-allow-compact-button: the owner's file:line reference, as on an element's Design tab */}
-          <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label={`Show ${at} in the Code tab`} onClick={() => studioStore.setState({ inspectorTab: "code" })}>
-            {at}
+          <Button appearance="flat" level="primary" size="xs" startIcon="icon-code-02-line" className="studio-part__code" aria-label="Show in the Code tab" onClick={() => studioStore.setState({ inspectorTab: "code" })}>
+            Show code
           </Button>
         </div>
         {inside ? <DataItemBanner item={inside} /> : null}
-        {driving.length && !item && !inside ? (
+        {driving.length && !item && !inside && !group && !overridable && !textPart ? (
           <p className={`studio-inspector__note studio-part__edit ${typographyStyles["Body/Small/Regular"]}`}>
             Edit via the owner&apos;s {driving.map((prop, index) => (
-              <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{prop}</span></span>
-            ))} (Playground properties or source)
+              <span key={prop}>{index ? (index === driving.length - 1 ? " or " : ", ") : null}<span className={typographyStyles["Caption/Bold"]}>{say(prop)}</span></span>
+            ))} {say("(Playground properties or source)")}
           </p>
         ) : null}
       </header>
 
-      {item ? <DataItemSections selection={selection} item={item} /> : null}
-      {resolved ? <PartDetails part={resolved} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {group ? <DataGroupSections selection={selection} hit={group} /> : null}
+      {item && places.length > 1 ? <DataItemsSections selection={selection} item={item} places={places} /> : item ? (
+        <DataItemSections selection={selection} item={item}>
+          {resolved && passes.length ? <PartProperties selection={selection} part={resolved} passes={passes} itemName={item.slot.itemName} /> : null}
+        </DataItemSections>
+      ) : null}
+      {resolved && textPasses.length ? <PartProperties selection={selection} part={resolved} passes={textPasses} title="Text" /> : null}
+      {resolved && childText ? <PartTextChild selection={selection} text={text} /> : null}
+      {resolved && overridable && layerPath ? <OverrideProperties selection={selection} part={resolved} path={layerPath} /> : resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
+      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable && !textPart} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

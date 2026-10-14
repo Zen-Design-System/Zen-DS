@@ -1,8 +1,5 @@
 /* Toggle examples (brief 2026-09-30). Tokens only; class prefix .px-toggle-. */
 
-/* The settings page of "Notification settings" paints the app Canvas: the card around it is edge to edge (screen). */
-.px-toggle-page { min-height: 100%; background: var(--zen-color-background-canvas-default); }
-
 /* Toggle is 232px wide on its own (Figma). A setting row fills its container so every switch lines up on the edge. */
 .zen-toggle.px-toggle-fill { width: 100%; }
 /* Beside a leading Dock Icon the row takes the space that is left. */

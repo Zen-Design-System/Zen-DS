@@ -123,6 +123,13 @@ test("refused: a .map row's name cannot leave its row", () => {
   assert.match(result.error, /`item`/);
 });
 
+test("refused: a for-of variable or a catch parameter cannot leave its body", () => {
+  const code = SOURCE.replace("export function Other() {\n", "export function Other() {\n  const rows = [];\n  for (const row of [1, 2]) rows.push(<Box key={row}><Text>{row}</Text></Box>);\n  try { go(); } catch (error) { rows.push(<Box><Badge>{String(error)}</Badge></Box>); }\n");
+  const target = locOf(code, '<Stack gap="md">', 1);
+  assert.match(run(locOf(code, "<Text>{row}"), "Text", { op: "moveTo", parent: target }, code).error, /`row` \(a loop variable\)/);
+  assert.match(run(locOf(code, "<Badge>{String"), "Badge", { op: "moveTo", parent: target }, code).error, /`error` \(a caught error\)/);
+});
+
 test("allowed: a row's element that reads nothing leaves the row", () => {
   const result = run(locOf(SOURCE, "<Badge>Row"), "Badge", { op: "moveTo", parent: outer, before: one });
   assert.ok(!result.error, result.error);
@@ -146,9 +153,41 @@ test("refused: already there", () => {
   assert.match(result.error, /already there/);
 });
 
-test("refused: a .map row's root", () => {
+// A child written in code moves as that block (user, 2026-10-09: "mọi thao tác … tự do như Figma"): dragging a .map row
+// moves the whole {items.map(…)} list, a condition's element the whole {on && …}.
+test("a .map row moves with its whole {items.map(…)} block", () => {
   const result = run(locOf(SOURCE, "<Stack key"), "Stack", { op: "moveTo", parent: outer });
-  assert.match(result.error, /\.map/);
+  assert.ok(!result.error, result.error);
+  const [button, map] = order(result.code, "<Button onClick", "items.map");
+  assert.ok(button > 0 && button < map, "the whole map expression after the last child");
+  assert.equal(result.code.split("items.map").length, 2, "one list, moved (not copied)");
+  assert.ok(parseSource(result.code), "parses");
+});
+
+test("refused: a .map row's block where its list is not in scope", () => {
+  const result = run(locOf(SOURCE, "<Stack key"), "Stack", { op: "moveTo", parent: locOf(SOURCE, '<Stack gap="md">', 1) });
+  assert.match(result.error, /items/);
+});
+
+const CONDITIONAL = SOURCE.replace("      <Box padding=\"md\" />\n", "      <Box padding=\"md\" />\n      {on && <Badge>On</Badge>}\n");
+test("a condition's element moves with its {on && …} block", () => {
+  assert.notEqual(CONDITIONAL, SOURCE);
+  const result = run(locOf(CONDITIONAL, "<Badge>On"), "Badge", { op: "moveTo", parent: outer, before: locOf(CONDITIONAL, "<Text>One") }, CONDITIONAL);
+  assert.ok(!result.error, result.error);
+  const [block, first] = order(result.code, "{on && <Badge>On</Badge>}", "<Text>One");
+  assert.ok(block > 0 && block < first, "the whole condition first");
+  assert.equal(result.code.split("on && <Badge>").length, 2, "moved, not copied");
+});
+
+test("moveElement: a condition's element and a .map row step past a sibling as their blocks", () => {
+  const up = run(locOf(CONDITIONAL, "<Badge>On"), "Badge", { op: "moveElement", to: "prev" }, CONDITIONAL);
+  assert.ok(!up.error, up.error);
+  const [block, box] = order(up.code, "{on && <Badge>On</Badge>}", '<Box padding="md" />');
+  assert.ok(block < box, "before the Box it followed");
+  const down = run(locOf(SOURCE, "<Stack key"), "Stack", { op: "moveElement", to: "next" });
+  assert.ok(!down.error, down.error);
+  const [detached, map] = order(down.code, "<Box padding=\"sm\">Detached", "items.map");
+  assert.ok(detached < map, "the list after the next child");
 });
 
 test("the zen-detached marker moves with its element", () => {
@@ -338,6 +377,59 @@ test("many setProps with opsByLoc: each layer its own props, an outer and an inn
   assert.match(result.code, /<Stack>\n {8}<Badge size="sm">Three<\/Badge>/);
   assert.ok(result.updated);
   assert.match(many(stack, "Stack", { action: "setProps", locs: [stack, badge], opsByLoc: { [stack]: [{ op: "removeProp", name: "gap" }] } }).error, /opsByLoc/);
+});
+
+test("many move: two layers step down together, each answered at its new place (backlog batch 5c)", () => {
+  const stack = locOf(SOURCE, '<Stack gap="sm">');
+  const result = many(one, "Text", { action: "move", to: "next", locs: [two, one] });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Stack gap="md">\n {6}<Stack gap="sm">\n {8}<Badge>Three<\/Badge>\n {6}<\/Stack>\n {6}<Text>One<\/Text>\n {6}<Text>Two<\/Text>/);
+  assert.deepEqual(result.moved.locs, { [one]: locOf(result.code, "<Text>One"), [two]: locOf(result.code, "<Text>Two") });
+  assert.equal(result.moved.loc, locOf(result.code, "<Text>One"));
+  // A layer at the edge stays while the other one steps; none can move → refused.
+  const gap = many(one, "Text", { action: "move", to: "prev", locs: [one, stack] });
+  assert.ok(!gap.error, gap.error);
+  assert.match(gap.code, /<Text>One<\/Text>\n {6}<Stack gap="sm">[\s\S]*<\/Stack>\n {6}<Text>Two<\/Text>/);
+  assert.deepEqual(gap.moved.locs, { [one]: locOf(gap.code, "<Text>One"), [stack]: locOf(gap.code, '<Stack gap="sm">') });
+  assert.match(many(one, "Text", { action: "move", to: "prev", locs: [one, two] }).error, /already the first/);
+  // A detach marker moves with its layer; layers of two parents are refused.
+  const box = locOf(SOURCE, '<Box padding="sm"');
+  const marked = many(box, "Box", { action: "move", to: "prev", locs: [box] });
+  assert.ok(!marked.error, marked.error);
+  assert.ok(marked.code.indexOf("zen-detached") < marked.code.indexOf("items.map"), "the marker moved with the Box");
+  assert.match(many(one, "Text", { action: "move", to: "next", locs: [one, locOf(SOURCE, "<Badge>Three")] }).error, /different parents/);
+  assert.match(many(one, "Text", { action: "move", to: "up", locs: [one] }).error, /`to`/);
+});
+
+test("many duplicate answers every copy by its original (inserted.locs)", () => {
+  const result = many(one, "Text", { action: "duplicate", locs: [two, one] });
+  assert.ok(!result.error, result.error);
+  assert.deepEqual(result.inserted.locs, { [one]: locOf(result.code, "<Text>One", 1), [two]: locOf(result.code, "<Text>Two", 1) });
+});
+
+test("many moveTo: layers land together in source order, each answered at its new place", () => {
+  const sm = locOf(SOURCE, '<Stack gap="sm">');
+  const result = many(one, "Text", { action: "moveTo", locs: [two, one], parent: sm });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Stack gap="sm">\n {8}<Badge>Three<\/Badge>\n {8}<Text>One<\/Text>\n {8}<Text>Two<\/Text>\n {6}<\/Stack>/);
+  assert.equal(result.code.split("<Text>One").length, 2);
+  assert.deepEqual(result.moved.locs, { [one]: locOf(result.code, "<Text>One"), [two]: locOf(result.code, "<Text>Two") });
+  // In front of a child that stays; a copy keeps the originals (inserted).
+  const front = many(one, "Text", { action: "moveTo", locs: [one, two], parent: sm, before: locOf(SOURCE, "<Badge>Three") });
+  assert.match(front.code, /<Stack gap="sm">\n {8}<Text>One<\/Text>\n {8}<Text>Two<\/Text>\n {8}<Badge>Three<\/Badge>/);
+  const other = locOf(SOURCE, '<Stack gap="md">', 1);
+  const copied = many(one, "Text", { action: "moveTo", copy: true, locs: [one, two], parent: other });
+  assert.ok(!copied.error, copied.error);
+  assert.equal(copied.code.split("<Text>One").length, 3);
+  assert.match(copied.code, /<Text>Elsewhere<\/Text>\n {6}<Text>One<\/Text>\n {6}<Text>Two<\/Text>/);
+  assert.deepEqual(copied.inserted.locs, { [one]: locOf(copied.code, "<Text>One", 1), [two]: locOf(copied.code, "<Text>Two", 1) });
+});
+
+test("many moveTo refuses: already there, beside a moving layer, a name it reads, into itself", () => {
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, two], parent: outer, before: locOf(SOURCE, '<Stack gap="sm">') }).error, /already there/);
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, two], parent: outer, after: two }).error, /not moving/);
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, locOf(SOURCE, "<Button onClick")], parent: locOf(SOURCE, '<Stack gap="md">', 1) }).error, /`(setOn|on)`/);
+  assert.match(many(one, "Text", { action: "moveTo", locs: [one, locOf(SOURCE, '<Stack gap="sm">')], parent: locOf(SOURCE, '<Stack gap="sm">') }).error, /inside itself/);
 });
 
 /* ── replaceElement (Swap instance, GĐ4 M2) ── */

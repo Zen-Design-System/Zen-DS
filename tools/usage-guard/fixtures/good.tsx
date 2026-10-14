@@ -4,6 +4,10 @@ export const Good = () => <>
   <Button level="tertiary" onClick={cancel}>Cancel</Button>
   {/* zen-allow-secondary: pressed toolbar toggle */}
   <IconButton onClick={act} level="secondary" aria-label="Bold" aria-pressed icon={<Icon name="icon-bold-01-line" />} />
+  {/* A flat Secondary IconButton is Figma's quiet ⋮ trigger: no justification needed. */}
+  <IconButton appearance="flat" level="secondary" size="sm" aria-label="More actions" onClick={act} icon="icon-dots-vertical-line" />
+  <ToggleListItem title="Daily digest" caption="One email at 8:00 am" checked={on} onCheckedChange={setOn} />
+  <ChipGroup aria-label="Repeat" options={repeats} value={repeat} onValueChange={setRepeat} />
   <Button level="danger" onClick={remove}>Delete project</Button>
   <Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>
   <InputField label="Name" readOnly />
@@ -28,6 +32,9 @@ export const Good = () => <>
   <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete?" primaryAction={{ label: "Delete", level: "danger" }} />
   <Popover open={open} onOpenChange={setOpen} items={items} onSelect={pick} />
   <PageHeader title="Members" actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
+  <DashboardHeader search={<Search placeholder="Search leave requests" />} controls={<Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>} subheading="12 leave requests" actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={submitLeave}>Submit leave</Button></>} />
+  <DashboardHeader type="navigation" leading={<Breadcrumbs items={crumbs} onNavigate={go} />} trailing={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />} />
+  <DashboardHeader type="main" title="My leaves" subheading="12 days left this year." actions={<Button level="primary" onClick={submitLeave}>Submit leave</Button>} />
   <Popover open items={items} onSelect={pick} />
   <Link href="/settings/billing">Billing settings</Link>
   <Link as={RouterLink} to="/projects/atlas">Project Atlas</Link>
@@ -58,6 +65,10 @@ export const Good = () => <>
   <Segmented aria-label="View" options={[{ id: "grid", label: "Grid" }, { id: "list", label: "List" }]} />
   <Chip variant="advanced" selectionMode="multiple" selectionCount={owners.length} popoverItems={items} popoverMultiple>Owner</Chip>
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><InputField label="Workspace name" /></Dialog>
+  <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
+  <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>
+  <BottomSheet open={open} onOpenChange={setOpen} title="Members"><ListBox theme="on-container"><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></BottomSheet>
+  <ListBox><List aria-label="Recent"><ListItem title="Brief.pdf" /></List></ListBox>
   <Accordion title="Billing">Invoices are emailed monthly.</Accordion>
   <Pagination page={1} onPageChange={setPage} pageCount={10} />
   <ProgressBar value={100} label />
@@ -78,6 +89,8 @@ export const Good = () => <>
   <ListItem title="Ava Chen" trailing={<IconButton onClick={act} size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
   <ListItem title="Ava Chen" onClick={open} trailing={<IconButton onClick={act} appearance="flat" size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
   <DockIcon theme="emoji" emoji="🎉" />
+  <VoiceRecorder state="recording" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} />
+  <AiVoiceConversation state="listening" onStart={listen} onDone={answer} onInterrupt={listen} onEnd={end} />
   <Table aria-label="Files" rows={rows} getRowId={getId} columns={columns} selectable selectedIds={ids} onSelectionChange={setIds} />
   <Table caption="Invoices" rows={rows} getRowId={getId} columns={[{ id: "n", header: "Name", sortable: true, cell: render }]} onSortChange={setSort} />
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "name", header: "Name", cell: render, edit: { value: getName, onCommit: save } }, { id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />
@@ -117,6 +130,11 @@ export const Good = () => <>
   <ChatMessage side="others" author={{ name: "Ava Chen" }} {...demo.act("m1", "others")}>Hi there</ChatMessage>
   <AiChatBubble side="ai" streaming={busy} actions={busy ? [] : answerActions}>Working</AiChatBubble>
   <StackBarChart aria-label="Budget" data={data} series={series} />
+  <BarChart aria-label="Revenue per month, Jan – Dec 2026" data={data} />
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} />
+  <RadialChart aria-label="Budget used by project" data={slices} legendPosition="end" />
+  <LineChart aria-label="Weekly visits" data={data} showLegend={false} />
+  <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
   <TableMedia media={<Avatar size="xsmall" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="xsmall" />}>Spec.pdf</TableMedia>
@@ -132,6 +150,9 @@ export const Good = () => <>
   <Icon name="icon-check-line" size="sm" decorative />
   <Icon name="icon-check-line" size={14} decorative />
   <Text tone="light">{plural(results.length, "place")}</Text>
+  <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />
+  <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={[{ id: "out", label: "Sign out" }]} onSelect={signOut} />
+  <Text tone="light">{sessions.length} phiên đang mở</Text>
   <Text tone="light">{picked.length} selected · {future.length} to redo</Text>
   <Chip variant="advanced" size="small" selectionMode="multiple" selectionCount={statuses.length} select={statuses.length > 0}>Status</Chip>
   <TopNavigation type="compact" title="Files" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />
@@ -145,6 +166,7 @@ export const Good = () => <>
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid", destructive: true }]}>Hi</ChatMessage>
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" icon={<Icon name="icon-archive-line" />} />
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" tooltip="Archive (E)" icon={<Icon name="icon-archive-line" />} />
+  <Tooltip content="Archive (E)"><Box><Button onClick={act}>Archive</Button></Box></Tooltip>
   <button type="button" className="pe-result" onClick={open}><Icon name="icon-clock-line" size="sm" decorative /><Text>{item}</Text></button>
   <ChatComposer onSend={send} replyTo={replying} onCancelReply={cancelReply} />
   <ChatCall state="in-missed" detail="12:33" onAction={callBack} />
@@ -218,4 +240,6 @@ export const Good = () => <>
   <Text textStyle="Body/Small/Bold" tone="positive-light">Saved</Text>
   <Text textStyle="Body/Small/Regular" tone="negative-light">Enter an email address like name@company.com.</Text>
   <Icon name="icon-check-circle-line" tone="accent-light" />
+  {/* A card's ⋮ is set through its own props; `overrides` is Zen Studio's (fixtures/studio-page.zen.tsx). */}
+  <Card subAction={{ label: "More", icon: "icon-dots-horizontal-line", onClick: act }}>Team</Card>
 </>;

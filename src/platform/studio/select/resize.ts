@@ -1,6 +1,7 @@
 import { componentSchema, valueOf } from "../inspector/propSchema";
 import type { EditOp, EditValue, SourceAttr, SourceElement } from "../types";
-import { columnsOp, withTrackPx, type ColumnsSource } from "./gridTracks";
+import { columnsOp, withTrack, withTrackPx, type ColumnsSource } from "./gridTracks";
+import { srcAttr, srcProp } from "./srcIds";
 
 /*
  * Resize on the canvas (Figma-like): what dragging a handle of the selected element writes. Zen auto-layout props, no
@@ -166,14 +167,16 @@ const ruleProp = (rule: AxisRule) => (rule.kind === "prop" ? rule.prop : rule.ki
  * the playground's state, is caught by specimenOnly); a fullWidth width whose prop is set in code keeps its wrap (a drag
  * wraps it, never writes fullWidth). Corners need both axes.
  */
-export function lockBound(target: ResizeTarget, attributes: SourceAttr[]): ResizeTarget {
+export function lockBound(target: ResizeTarget, attributes: SourceAttr[], live?: Record<string, unknown>): ResizeTarget {
   let why = target.why;
   const free = (axis: ResizeAxis, rule: AxisRule | null): AxisRule | null => {
     if (!rule) return rule;
     const prop = ruleProp(rule);
     if (!prop) return rule;
-    const value = valueOf(attributes, prop);
+    const value = valueOf(attributes, prop, live);
     if (value.state !== "bound" && value.state !== "spread") return rule;
+    // The live props show the spread does not set this prop: the axis is free (a `{...rest}` that carries a className).
+    if (value.state === "spread" && live && value.live === undefined) return rule;
     if (rule.kind === "fullWidth") return { kind: "wrap" };
     why = withWhy(why, value.state === "bound" ? `${axisWord(axis)} is set in code (${prop})` : `${axisWord(axis)} may come from ${clip(value.via)}`);
     return null;
@@ -207,7 +210,7 @@ export function wrapperCandidate(host: Element): string | null {
   const parent = host.parentElement;
   if (!parent || !parent.classList.contains("zen-stack") || parent.getAttribute("data-fill-children") !== "true") return null;
   if (parent.children.length !== 1 || parent.firstElementChild !== host) return null;
-  return parent.getAttribute("data-zen-src") || null;
+  return srcAttr(parent) || null;
 }
 
 /**
@@ -348,8 +351,8 @@ export function cloningProp(list: CloningList, owner: string | null, props: Reco
     if (dot < 0 || key.slice(0, dot) !== name) continue;
     const value: unknown = props[key.slice(dot + 1)];
     if (typeof value !== "object" || value === null || !("$$typeof" in value)) continue;
-    const src = (value as { props?: Record<string, unknown> | null }).props?.["data-zen-src"];
-    if (typeof src === "string" && srcs.has(src)) return entry;
+    const src = srcProp((value as { props?: Record<string, unknown> | null }).props);
+    if (src && srcs.has(src)) return entry;
   }
   return null;
 }
@@ -581,6 +584,15 @@ export function planHug(name: string, target: ResizeTarget, axes: ResizeAxis[], 
     const ops = wrapperOps(target.wrapper, stackShape(target.wrapper.attributes, Object.fromEntries(wrapped.map((axis) => [axis, "hug" as const])), options.cross ?? noCross, false));
     if (!ops.length) return { none: `${name}'s Stack already hugs it` };
     return { ops, wrap: false, wrapper: target.wrapper.src, label: `${name} ${wrapped.map((axis) => `${axis} → hug`).join(", ")} (its Stack${all.label ? `, ${all.label}` : ""})`, announce: `${capitalize(wrapped.join(" and "))} hug (in a Stack)${all.announce}` };
+  }
+  // The only cell of a px Grid column: Hug writes that column's track as `auto`, so the Grid sizes it to the content.
+  if (axes.includes("width") && target.width?.kind === "column" && target.column) {
+    const { source, index, src } = target.column;
+    const list = withTrack(source.list, index, "auto");
+    if (list && list !== source.list) {
+      const which = `column ${index + 1}`;
+      return { ops: [columnsOp(source, list)], wrap: false, wrapper: null, grid: src, label: `${name} width → hug (Grid ${which} auto${all.label ? `, ${all.label}` : ""})`, announce: `Width hug (Grid ${which})${all.announce}` };
+    }
   }
   const ops: EditOp[] = [];
   const done: ResizeAxis[] = [];

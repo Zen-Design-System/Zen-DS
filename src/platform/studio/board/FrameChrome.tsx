@@ -257,7 +257,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
         const previous = sizes.current.get(key);
         if (!previous || previous.width !== next.width || previous.height !== next.height) { sizes.current.set(key, next); changed = true; }
       }
-      if (changed) layout();
+      // On the next frame: a layout inside the observer's callback can resize what it observes (zoom ≤ 0.5) and loop.
+      if (changed) requestAnimationFrame(() => layout());
     });
   }
   useEffect(() => () => sizeObserver.current?.disconnect(), []);

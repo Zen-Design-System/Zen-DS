@@ -18,6 +18,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { daysFromToday, files, formatBytes, formatRange, formatRelative, initials, people, projectById, studio, type Person, type StudioFile } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./checkbox.css";
 
 export const page: PlatformPage = "checkbox";
@@ -49,7 +50,7 @@ function SelectFilesExample() {
   };
   const download = () => toast({ title: `${plural(picked.length, "file")} downloaded` });
   const columns: TableColumn<StudioFile>[] = [
-    { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />} caption={projectById(file.project).name}>{file.name}</TableMedia> },
+    { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />} caption={projectById(file.project).name}>{file.name}</TableMedia> },
     { id: "owner", header: "Owner", cell: (file) => <TableMedia bold={false} media={<PersonAvatar person={people[file.owner]} size="xsmall" />}>{people[file.owner].name}</TableMedia> },
     { id: "updated", header: "Updated", cell: (file) => <TableText>{formatRelative(file.updated)}</TableText> },
     { id: "size", header: "Size", align: "right", cell: (file) => <TableText>{formatBytes(file.bytes)}</TableText> },
@@ -253,7 +254,7 @@ function OfflineProjectsExample() {
   const toggle = (id: string, on: boolean) => setPicked((list) => (on ? [...list, id] : list.filter((item) => item !== id)));
   return (
     <PlatformPhone label="Downloads" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
       // The Primary waits for a choice, and the summary says why.
       footer={(
         <ActionBar position="static"
@@ -275,7 +276,7 @@ function OfflineProjectsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Select files",
     description: "A selectable Table draws the row checkboxes and the select-all mark, which turns indeterminate while only some rows are picked. Bulk actions appear in the toolbar once something is selected, and Delete can be undone from the Toast.",
@@ -396,7 +397,7 @@ const dirty = Object.keys(saved).some((id) => draft[id] !== saved[id]);
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title="Downloads" largeTitle="Downloads" scrollRef={screenRef} />}
   footer={(
     <ActionBar position="static"
       summary={<Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">Uses {formatBytes(bytes)} · 18.6 GB free on this phone</Text>}
@@ -414,4 +415,4 @@ const dirty = Object.keys(saved).some((id) => draft[id] !== saved[id]);
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

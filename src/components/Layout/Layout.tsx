@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenPadding } from "../_shared/scale";
 import "./layout.css";
 import { layoutSizing, type LayoutSizingProps } from "./sizing";
@@ -13,6 +13,9 @@ export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectSt
 export { cornerRadiusPropNames, radiusPropNames, type CornerRadiusProps } from "../_shared/corners";
 
 export const layoutElements = ["div", "section", "article", "aside", "header", "footer", "main", "nav", "form", "fieldset", "ul", "ol", "li"] as const;
+/** Figma "Overflow scrolling": the frame scrolls along one axis and keeps the scroll inside it. */
+export const layoutScrolls = ["x", "y"] as const;
+export type LayoutScroll = (typeof layoutScrolls)[number];
 export type LayoutElement = (typeof layoutElements)[number];
 
 type Vars = CSSProperties & Record<`--${string}`, string | number | undefined>;
@@ -39,6 +42,17 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
   /** Let row items wrap onto new lines. */
   wrap?: boolean;
   /**
+   * Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.
+   * Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll
+   * container).
+   */
+  clip?: boolean;
+  /**
+   * Figma "Overflow scrolling": `"y"` scrolls the content vertically, `"x"` sideways, inside the stack's own box (it
+   * needs a height or a maxHeight for `"y"`, a width for `"x"`); the scroll stays inside (overscroll-behavior: contain).
+   */
+  scroll?: LayoutScroll;
+  /**
    * Every child takes an equal share along the direction (Figma: all children Fill container), for children that have
    * no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`).
    * A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button
@@ -64,7 +78,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
 export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
-  { direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
+  { direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
@@ -79,6 +93,8 @@ export const Stack = forwardRef<HTMLElement, StackProps>(function Stack(
       data-justify={justify}
       data-wrap={wrap ? "true" : undefined}
       data-fill-children={fillChildren ? "true" : undefined}
+      data-clip={clip ? "true" : undefined}
+      data-scroll={scroll}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
@@ -110,13 +126,49 @@ export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProp
   columnGap?: ZenGap;
   /** Vertical alignment of cells. Default stretch (equal-height cards). */
   align?: "start" | "center" | "end" | "stretch";
+  /**
+   * One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint:
+   * a two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it.
+   */
+  stackBelow?: number;
   padding?: ZenPadding;
   as?: LayoutElement;
   children?: ReactNode;
+  /**
+   * Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.
+   * Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll
+   * container).
+   */
+  clip?: boolean;
 }
 
 /** grid-template-columns for a column count (equal, shrinkable columns) or a track list as written. */
 const tracks = (value: GridTracks | undefined) => (value === undefined ? undefined : typeof value === "number" ? `repeat(${value}, minmax(0, 1fr))` : value);
+
+/**
+ * Grid `stackBelow`: whether the element is narrower than `below` px, measured before paint and on every resize. The
+ * returned ref also fills the forwarded one.
+ */
+function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement>) {
+  const [stacked, setStacked] = useState(false);
+  const node = useRef<HTMLElement | null>(null);
+  const measure = useCallback((element: HTMLElement | null) => {
+    node.current = element;
+    if (typeof forwarded === "function") forwarded(element);
+    else if (forwarded) (forwarded as { current: HTMLElement | null }).current = element;
+  }, [forwarded]);
+  useLayoutEffect(() => {
+    const element = node.current;
+    if (!element || typeof below !== "number") { setStacked(false); return undefined; }
+    const update = () => setStacked(element.getBoundingClientRect().width < below);
+    update();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [below]);
+  return { stacked: typeof below === "number" && stacked, measure };
+}
 
 /**
  * Two-dimensional layout for cards, tiles and form columns.
@@ -126,7 +178,7 @@ const tracks = (value: GridTracks | undefined) => (value === undefined ? undefin
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
 export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
-  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, padding, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
+  { columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
@@ -135,13 +187,16 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
   const fixed = typeof columns === "object" ? undefined : columns;
   const desktop = tracks(fixed ?? perBreakpoint?.desktop ?? perBreakpoint?.tablet ?? perBreakpoint?.mobile);
   const min = typeof minColumnWidth === "number" ? `${minColumnWidth}px` : minColumnWidth;
+  const { stacked, measure } = useStackBelow(stackBelow, ref);
   return (
     <Element
       {...rest}
-      ref={ref as never}
+      ref={measure as never}
       className={["zen-grid", className].filter(Boolean).join(" ")}
       data-mode={desktop === undefined ? "fill" : perBreakpoint ? "responsive" : "fixed"}
+      data-stacked={stacked ? "true" : undefined}
       data-align={align}
+      data-clip={clip ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}
       style={withVars(style, {
@@ -163,7 +218,7 @@ export const Grid = forwardRef<HTMLElement, GridProps>(function Grid(
 
 /* ───────────── Box ───────────── */
 
-export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale"] as const;
+export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale", "canvas"] as const;
 export type BoxSurface = (typeof boxSurfaces)[number];
 
 export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, CornerRadiusProps {
@@ -172,10 +227,13 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
   paddingY?: ZenPadding;
   /**
    * Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,
-   * `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or
-   * Container (modals and sheets use Dialog / BottomSheet).
+   * `surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the
+   * page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never
+   * for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).
    */
   surface?: BoxSurface;
+  /** Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). */
+  scroll?: LayoutScroll;
   /** Closed-box border: `subtle` when the box is actionable, `pale` when it is static (docs/guidelines/borders.md). */
   border?: "none" | "pale" | "subtle";
   /** Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. */
@@ -189,7 +247,7 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * Card; for page width use Container.
  */
 export const Box = forwardRef<HTMLElement, BoxProps>(function Box(
-  { padding, paddingX, paddingY, surface = "none", border = "none", radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
+  { padding, paddingX, paddingY, surface = "none", border = "none", scroll, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, effectStyle, clip, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ...rest },
   ref,
 ) {
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
@@ -201,6 +259,7 @@ export const Box = forwardRef<HTMLElement, BoxProps>(function Box(
       className={["zen-box", className].filter(Boolean).join(" ")}
       data-surface={surface === "none" ? undefined : surface}
       data-border={border === "none" ? undefined : border}
+      data-scroll={scroll}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
       {...sizing.attributes}
       {...placed.attributes}

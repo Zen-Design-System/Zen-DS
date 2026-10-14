@@ -28,7 +28,8 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
-import "./alert-banner.css";
+import { PreviewAppFrame, PreviewPage, StudioLogo } from "../../PlatformFrames";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "alert-banner";
 
@@ -39,7 +40,7 @@ const avatarOf = (person: Person) => person.photo
 
 /** A page without its own shell keeps the page margin; its one h1 is the PageHeader title. */
 const Page = ({ children, ...header }: { title: string; description?: ReactNode; eyebrow?: ReactNode; meta?: ReactNode; actions?: ReactNode; children: ReactNode }) => (
-  <Stack gap="xl" className="px-alert-banner-page"><PageHeader {...header} />{children}</Stack>
+  <PreviewPage margin="all" canvas={false}><Stack gap="xl"><PageHeader {...header} />{children}</Stack></PreviewPage>
 );
 
 /* ───────────── 1. Payment failed (AppShell banner) ───────────── */
@@ -89,8 +90,9 @@ function PaymentFailedExample() {
       { id: "home", label: "Home", icon: "icon-home-03-line" },
       { id: "projects", label: "Projects", icon: "icon-folder-line" },
       { id: "team", label: "Team", icon: "icon-users-line" },
+      // A one-item group loses its title: Billing joins the list (backlog batch 6b, user 2026-10-07).
+      { id: "billing", label: "Billing", icon: "icon-credit-card-line", notificationDot: !paid },
     ] },
-    { label: "Workspace", items: [{ id: "billing", label: "Billing", icon: "icon-credit-card-line", notificationDot: !paid }] },
   ];
 
   let content: ReactNode;
@@ -131,7 +133,7 @@ function PaymentFailedExample() {
     );
     content = (
       <Page title="Billing" description={`${plan.name} plan · ${plural(seats, "seat")} · billed ${workspacePlan.billing}`}>
-        <Card theme="border" className="px-alert-banner-billing">
+        <Card theme="shadow" width="fill" maxWidth={560}>
           {paid ? (
             <Stack as="section" gap="md" aria-labelledby={paymentId}>
               {summary}
@@ -174,30 +176,28 @@ function PaymentFailedExample() {
   }
 
   return (
-    <div className="px-alert-banner-frame">
-      <div className="px-alert-banner-frame__scroll">
-        <AppShell
-          banner={paid ? undefined : (
-            // Critical: no close control. It leaves when the payment goes through.
-            <AlertBanner theme="negative" action={{ label: "Update card", onClick: openBilling }}>
-              Payment for the {plan.name} plan failed. Update your card by {formatDate(graceEnds)} to keep editing projects.
-            </AlertBanner>
-          )}
-          sidebar={(
-            <Sidebar
-              // The mark is an image sized by the 24px header slot, so it stays inside it at every density.
-              logo={<span className="px-alert-banner-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>}
-              logoCollapsed={<Avatar size="xs" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
-              sections={sections}
-              selectedId={page}
-              onItemClick={(item) => setPage(item.id as ShellPageId)}
-            />
-          )}
-        >
-          {content}
-        </AppShell>
-      </div>
-    </div>
+    <PreviewAppFrame height={{ min: 560, max: 720 }}>
+      <AppShell
+        banner={paid ? undefined : (
+          // Critical: no close control. It leaves when the payment goes through.
+          <AlertBanner theme="negative" action={{ label: "Update card", onClick: openBilling }}>
+            Payment for the {plan.name} plan failed. Update your card by {formatDate(graceEnds)} to keep editing projects.
+          </AlertBanner>
+        )}
+        sidebar={(
+          <Sidebar
+            // The mark is an image sized by the 24px header slot, so it stays inside it at every density.
+            logo={<StudioLogo src={studio.logo} name={studio.name} />}
+            logoCollapsed={<Avatar size="xs" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
+            sections={sections}
+            selectedId={page}
+            onItemClick={(item) => setPage(item.id as ShellPageId)}
+          />
+        )}
+      >
+        {content}
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -235,7 +235,7 @@ function OneBannerExample() {
   });
 
   return (
-    <div ref={root} className="px-alert-banner-screen">
+    <PreviewPage ref={root} fill>
       {notice ? <AlertBanner theme={notice.theme} action={notice.action} onClose={notice.onClose}>{notice.message}</AlertBanner> : null}
       <Page title="Settings" description={`Connections and sign-in for ${studio.name}`}
         actions={maintenanceHidden ? <Button ref={showAgain} level="tertiary" startIcon="icon-bell-01-line" onClick={() => { moveFocus.current = true; setMaintenanceHidden(false); }}>Show notice again</Button> : undefined}>
@@ -250,7 +250,7 @@ function OneBannerExample() {
           </List>
         </ListBox>
       </Page>
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -293,7 +293,7 @@ function ArchivedProjectExample() {
   };
   const addTask = (title: string) => setRows((list) => [...list, { id: `new-${list.length}`, key: `HBF-${128 + list.length - bookFairTasks.length}`, title, assignee: "alex", status: "To do" }]);
   return (
-    <div ref={root} className="px-alert-banner-screen">
+    <PreviewPage ref={root} fill>
       {archived ? (
         <AlertBanner action={{ label: "Restore project", onClick: restore }}>This project is archived, so it’s read-only. Restore it to add or change tasks.</AlertBanner>
       ) : null}
@@ -319,7 +319,7 @@ function ArchivedProjectExample() {
       </Page>
       <DemoFieldDialog open={adding} onOpenChange={setAdding} title="New task" field={{ kind: "name", label: "Task name", placeholder: "Update the 2027 exhibitor list" }}
         submitLabel="Add task" confirm={() => "Task added"} onSubmit={addTask} />
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -374,7 +374,7 @@ function OfflinePhoneExample() {
     // The status banner always sits under the Top Navigation (its `banner` slot): pinned, edge to edge, it never
     // scrolls away, while the large title still folds as the list moves under the bar.
     <PlatformPhone label="My tasks" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
+      <TopNavigation type="alt" title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
         trailing={[{ icon: "icon-refresh-cw-01-line", label: "Sync now", onClick: sync, disabled: connection === "reconnecting" }]}
         banner={banner ? <AlertBanner size="small" theme={banner.theme} leading={banner.leading}>{banner.message}</AlertBanner> : undefined} />
     }>
@@ -397,7 +397,7 @@ function OfflinePhoneExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Payment failed",
     description: "A failed payment affects the whole workspace, so the banner sits in the AppShell banner slot and stays on every page. It has no close button: its action opens Billing, and it leaves once the payment goes through.",
@@ -471,7 +471,7 @@ const restore = () => {
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
+  <TopNavigation type="alt" title="My tasks" largeTitle="My tasks" scrollRef={screenRef}
     trailing={[{ icon: "icon-refresh-cw-01-line", label: "Sync now", onClick: sync, disabled: connection === "reconnecting" }]}
     banner={connection === "offline" ? (
       <AlertBanner size="small" theme="negative" leading="icon-wifi-off-line">You’re offline. Showing tasks from 10:12 am.</AlertBanner>
@@ -486,4 +486,4 @@ const restore = () => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

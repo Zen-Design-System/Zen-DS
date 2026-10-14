@@ -14,11 +14,15 @@ import { DesignPanel } from "./DesignPanel";
 import "./drafts";
 import { FramePanel } from "./FramePanel";
 import { PagePanel } from "./PagePanel";
-import { PartPanel } from "./PartPanel";
+// A part: a Table's Data-Row or Cell has its own panel, any other part is PartPanel's (table/TableCellPanel.tsx).
+import { TablePartPanel } from "../table/TableCellPanel";
 import { SelectionActions } from "./SelectionActions";
 import { editGate } from "../gate";
 import { fileName, saveShortcut, undoShortcut, useInspectorStatus } from "./status";
+import { useWords } from "../useWords";
 import "./inspector.css";
+import { VariantPanel } from "../mainComponent/VariantPanel";
+import { variantKey } from "../mainComponent/model";
 
 /*
  * The right panel (spec §6): Design | Code for the page, a frame or a JSX element. The two bridge slots (the active
@@ -40,6 +44,8 @@ function StatusLine() {
   const localPage = useStudio((state) => state.localPage);
   const server = useStudioServer();
   const drafts = useStudioDrafts();
+  // A page made in the Studio: the line speaks design words (no file:line, no code; plan criterion 7).
+  const say = useWords();
   const editable = canEdit() && role === "admin" && server.writable;
   const drafting = server.drafts || drafts.available;
   let tone: "neutral" | "positive" | "negative" | "warning" = "neutral";
@@ -53,7 +59,10 @@ function StatusLine() {
       : edit.kind === "saved" && edit.file && edit.line ? `Saved · ${where} · ${undoShortcut} to undo`
         : edit.draft ? `${edit.message} · Draft · ${saveShortcut} to save`
           : edit.message;
-    details = edit.details ?? [];
+    // Any edit that missed the example's snippet says so (prop, text and style edits too; detach, wrap and slot ops
+    // word it in their own line), so the Code tab's copy is not trusted silently.
+    const snippet = edit.snippet && !edit.snippet.synced ? `Example code not updated${edit.snippet.reason ? `: ${edit.snippet.reason}` : ""}` : null;
+    details = [...(edit.details ?? []), ...(snippet ? [snippet] : [])];
   } else if (local) {
     tone = local.tone;
     text = local.text;
@@ -64,6 +73,8 @@ function StatusLine() {
     text = editable ? (localPage ? "Changes save at once" : drafting ? `Edits stay drafts until you save (${saveShortcut})` : "Changes save to the source file at once")
       : gate.ok ? "Connecting to the Studio dev server…" : `${gate.short}${role === "viewer" ? shown : ""}`;
   }
+  text = say(text);
+  details = details.map(say);
   const icon = tone === "positive" ? "icon-check-line" : tone === "negative" ? "icon-alert-circle-line" : tone === "warning" ? "icon-alert-triangle-line" : editable ? "icon-edit-02-line" : "icon-eye-line";
   return (
     <div className={`studio-inspector__status ${typographyStyles["Body/Small/Regular"]}`} data-tone={tone} data-details={details.length ? "true" : undefined} role="status" aria-live="polite">
@@ -117,8 +128,9 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
         {tab === "prototype" ? <PrototypePanel />
           : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
-          : selection?.kind === "node" && selection.part ? <PartPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
+          : selection?.kind === "node" && selection.part ? <TablePartPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
           : selection?.kind === "node" ? <DesignPanel key={identity} selection={selection} controlsSlot={controlsSlot} />
+          : selection?.kind === "variant" ? <VariantPanel key={variantKey(selection)} selection={selection} />
             : selection?.kind === "frame" ? <FramePanel key={selection.frameId} frameId={selection.frameId} controlsSlot={controlsSlot} />
               : <PagePanel />}
       </TabPanel>

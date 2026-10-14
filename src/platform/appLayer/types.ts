@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /** Platform pages for the app-composition layer (Phase 2). Each group module in this folder owns some of them. */
-export const appLayerPageIds = ["layout", "text", "link", "menu", "description-list", "action-bar", "image", "visually-hidden", "form", "app-shell", "page-header", "templates"] as const;
+export const appLayerPageIds = ["layout", "text", "link", "menu", "description-list", "action-bar", "image", "visually-hidden", "form", "app-shell", "page-header", "dashboard-header", "templates"] as const;
 export type AppLayerPage = (typeof appLayerPageIds)[number];
 
 export type AppLayerPageMeta = {

@@ -19,6 +19,14 @@
           "deprecated": null
         },
         {
+          "name": "childTitle",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Child-Heading (Primitives/Dashboard/Header Type=Main, 4122:33399): a second title after the title, in the title's\ntype and Content/Neutral/Light, Spacing/Gap/XSmall after it — where the page is inside its parent (\"Members\" ›\n\"Design team\"). Part of the heading, so the page's title reads both.",
+          "deprecated": null
+        },
+        {
           "name": "description",
           "type": "ReactNode",
           "required": false,
@@ -59,6 +67,14 @@
           "deprecated": null
         },
         {
+          "name": "trailing",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Trailing-Slots (Primitives/Dashboard/Header Type=Main): icon actions after the page actions, e.g. a More menu or\n Share (Button/Icon-Main), Spacing/Gap/Small after them.",
+          "deprecated": null
+        },
+        {
           "name": "tabs",
           "type": "ReactNode",
           "required": false,
@@ -79,7 +95,15 @@
           "type": "1 | 2",
           "required": false,
           "default": "1",
-          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 (Heading/2) only when the\n page already has an h1 (e.g. inside a tab). The text style always follows the level.",
+          "description": "Heading level of the title. Default 1 (Heading/1, the Figma Master-Layout page title); 2 only when the page already\n has an h1 (e.g. inside a tab), set in Heading/4 as the house ladder puts an h2. The text style follows the level.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets back.",
           "deprecated": null
         }
       ]

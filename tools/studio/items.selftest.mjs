@@ -166,6 +166,16 @@ test("removeItem drops the toast hook an inserted item brought", () => {
   assert.ok(!removed.code.includes("useToast()"), "the hook went with the item");
 });
 
+test("removeItem all: every item and the attribute go, the toast hook two inserted items brought too", () => {
+  const one = ok(run(inline, "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }));
+  const two = ok(run(locOf(one.code, '<TopNavigation title="Inbox"'), "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }, one.code));
+  const all = ok(run(locOf(two.code, '<TopNavigation title="Inbox"'), "TopNavigation", { op: "removeItem", prop: "trailing", all: true }, two.code));
+  assert.match(all.code, /<TopNavigation title="Inbox" \/>/);
+  assert.ok(!all.code.includes("useToast"), "the hook and its import went with the items");
+  const required = ok(run(lines, "TopNavigation", { op: "removeItem", prop: "trailing", all: true }, SOURCE, { requiredProps: { TopNavigation: ["trailing"] } }));
+  assert.match(required.code, /trailing=\{\[\]\}/);
+});
+
 test("duplicateItem: a copy after it; id/value/key strings get a fresh value", () => {
   const copy = ok(run(lines, "TopNavigation", { op: "duplicateItem", prop: "trailing", index: 0 }));
   assert.match(copy.code, /label: "Audio call" \},\n {8}\{ icon: "icon-phone-line", label: "Audio call" \},\n {8}\{ icon: "icon-video/);
@@ -291,4 +301,66 @@ test("groups the code computes are refused, never rewritten", () => {
   assert.match(run(locOf(GROUPS, '<TopNavigation title="Kind"'), "TopNavigation", { op: "groupItem", prop: "trailing", index: 1, with: 0 }, GROUPS).error, /computes its group/);
 });
 
-console.log(`✓ items (insertItem · removeItem · duplicateItem · moveItem · groupItem · ungroupItem) self-test: ${passed} cases`);
+/* Nested lists (2026-10-10): Sidebar `sections[n].items`, the Menu-Items of Figma's Body-Content under their titles. */
+const NESTED = `import { Sidebar } from "../../../components/Sidebar";
+
+export function Shell() {
+  return (
+    <Sidebar
+      sections={[
+        { items: [{ id: "home", label: "Home", icon: "icon-home" }, { id: "projects", label: "Projects", icon: "icon-folder" }] },
+        { label: "Admin", items: [{ id: "members", label: "Members", icon: "icon-users" }] },
+      ]}
+    />
+  );
+}
+`;
+const nestedAt = locOf(NESTED, "<Sidebar\n");
+const nRun = (op, code = NESTED) => ok(run(locOf(code, "<Sidebar\n"), "Sidebar", { prop: "sections", ...op }, code, { componentModules: { Sidebar: "Sidebar" } }));
+
+test("nest: remove, duplicate, move and insert in one group's list; its last item leaves []", () => {
+  const removed = nRun({ op: "removeItem", index: 0, nest: { index: 0, key: "items" } });
+  assert.match(removed.code, /\{ items: \[\{ id: "projects", label: "Projects", icon: "icon-folder" \}\] \}/);
+  const copy = nRun({ op: "duplicateItem", index: 1, nest: { index: 0, key: "items" } });
+  assert.match(copy.code, /label: "Projects", icon: "icon-folder" \}, \{ id: "projects-2", label: "Projects", icon: "icon-folder" \}\] \}/);
+  assert.deepEqual(copy.item, { prop: "sections", index: 2 });
+  const moved = nRun({ op: "moveItem", index: 1, to: 0, nest: { index: 0, key: "items" } });
+  assert.match(moved.code, /items: \[\{ id: "projects", [^}]*\}, \{ id: "home",/);
+  const added = nRun({ op: "insertItem", code: '{ id: "billing", label: "Billing", icon: "icon-card" }', nest: { index: 1, key: "items" } });
+  assert.match(added.code, /\{ id: "members", label: "Members", icon: "icon-users" \}, \{ id: "billing", label: "Billing", icon: "icon-card" \}\] \}/);
+  const emptied = nRun({ op: "removeItem", index: 0, nest: { index: 1, key: "items" } });
+  assert.match(emptied.code, /\{ label: "Admin", items: \[\] \}/);
+  assert.match(run(nestedAt, "Sidebar", { op: "removeItem", prop: "sections", index: 0, nest: { index: 5, key: "items" } }, NESTED, { componentModules: { Sidebar: "Sidebar" } }).error, /no item 6/);
+});
+
+test("setItems: the whole list rewritten at the prop's indent; null removes the prop", () => {
+  const code = '[\n  { label: "Admin", items: [\n    { id: "members", label: "Members", icon: "icon-users" },\n    { id: "home", label: "Home", icon: "icon-home" },\n  ] },\n]';
+  const result = nRun({ op: "setItems", code });
+  assert.match(result.code, /sections=\{\[\n {8}\{ label: "Admin", items: \[\n {10}\{ id: "members"[^\n]*\n {10}\{ id: "home"[^\n]*\n {8}\] \},\n {6}\]\}/);
+  const cleared = nRun({ op: "setItems", code: null });
+  assert.doesNotMatch(cleared.code, /sections=/);
+  assert.match(run(nestedAt, "Sidebar", { op: "setItems", prop: "sections", code: "{ a: 1 }" }, NESTED, { componentModules: { Sidebar: "Sidebar" } }).error, /one array literal/);
+});
+
+test("insertItem on a builder page: a toast handler becomes proto.toast and the runtime import gains proto", () => {
+  const page = `// @zen-page {"format":1,"title":"Nav"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { TopNavigation } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Nav" device="phone">
+        <TopNavigation title="Inbox" trailing={[{ icon: "icon-plus-line", label: "New", onClick: proto.toast({ title: "Added" }) }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const result = ok(applySlotOp(page, locOf(page, "<TopNavigation"), "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }, { file: "local:nav.zen.tsx", hash: sha1(page), componentModules: { TopNavigation: "TopNavigation" } }));
+  assert.match(result.code, /\{ icon: "icon-star-line", label: "Action", onClick: proto\.toast\(\{ title: "Action" \}\) \}/);
+  assert.match(result.code, /import \{ Board, proto, Screen \} from "@zen-ds\/react\/builder";|import \{ Board, Screen, proto \} from "@zen-ds\/react\/builder";/);
+  assert.doesNotMatch(result.code, /useToast/);
+});
+
+console.log(`✓ items (insertItem · removeItem · duplicateItem · moveItem · groupItem · ungroupItem · setItems) self-test: ${passed} cases`);

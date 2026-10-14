@@ -371,7 +371,7 @@ export function AdminListTemplate() {
 
   const columns: TableColumn<Member>[] = [
     { id: "member", header: "Member", sortable: true, cell: (row) => (
-      <TableMedia caption={row.email} media={<Avatar size="sm" theme={row.theme} background="subtle" src={row.photo} alt="">{initials(row.name)}</Avatar>}>
+      <TableMedia bold caption={row.email} media={<Avatar size="sm" theme={row.theme} background="subtle" src={row.photo} alt="">{initials(row.name)}</Avatar>}>
         {row.id === ME ? `${row.name} (you)` : row.name}
       </TableMedia>
     ) },
@@ -449,7 +449,7 @@ export function AdminListTemplate() {
       ) : undefined}
     >
       <Container maxWidth="full">
-        <Stack gap="lg" paddingY="lg">
+        <Stack gap="lg" paddingY="sm">
           <PageHeader
             title="Team members"
             description={`Everyone with access to the ${workspace.name} workspace. ${seatsUsed} of ${workspace.seats} seats are in use.`}

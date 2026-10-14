@@ -190,6 +190,9 @@ export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
     notes.push(TYPOGRAPHY_STYLE.test(rel) ? `typography changed (text styles render on every page): a representative set is checked; ${ALL_NOTE}` : "global styles changed: a representative set is checked; also run tokens:check / styles:check");
     return { pages: [...out], notes };
   }
+  // An example page file and its stylesheet (examples/pages/<page>.tsx / .css) render on that page.
+  const own = rel.match(/^src\/platform\/examples\/pages\/([\w-]+)\.(?:tsx|css)$/)?.[1];
+  if (own && pages.includes(own)) return { pages: [own], notes };
   const base = path.basename(rel).replace(/\.\w+$/, "");
   if (FOUNDATION_PAGE[base]) return { pages: [FOUNDATION_PAGE[base]], notes };
   const abs = path.join(root, rel);
@@ -223,8 +226,8 @@ export function primaryPages(rel, hinted, pages) {
   const kind = uiKind(rel);
   return kind === "platform" || kind === "template" ? hinted.filter((p) => pages.includes(p)) : [];
 }
-/** Example sources: the example maps the coverage matrix reads (Showcases + app layer). */
-export const isExampleSource = (rel) => /^src\/platform\/(\w*Showcases\.tsx$|appLayer\/)/.test(rel);
+/** Example sources: the example lists the coverage matrix reads (examples/pages/<page>.tsx, Showcases, app layer). */
+export const isExampleSource = (rel) => /^src\/platform\/(\w*Showcases\.tsx$|appLayer\/|examples\/pages\/[\w-]+\.tsx$)/.test(rel);
 
 /** Component folders whose sources import one of `folders` (one level: the components that render them). */
 export function importersOf(root, folders) {

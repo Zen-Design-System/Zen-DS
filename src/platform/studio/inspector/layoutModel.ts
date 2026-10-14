@@ -148,6 +148,27 @@ export function uniformPaddingOps(w: Written, key: string): EditOp[] {
   return [...setIfNew(w, "padding", key), ...removeWritten(w, "paddingX", "paddingY")];
 }
 
+/** What Figma's Horizontal / Vertical padding fields show: the axis prop, else padding (undefined: neither written). */
+export const axisPadding = (w: Written, axis: "x" | "y"): Literal | undefined => (axis === "x" ? w.paddingX : w.paddingY) ?? w.padding;
+
+/**
+ * A pick in the Horizontal or Vertical padding field (Figma UI3's two padding fields), written in the smallest form:
+ * both axes equal → `padding` alone; one axis equal to the written `padding` → `padding` plus the other axis; else
+ * `paddingX` / `paddingY` (an axis nobody wrote stays unwritten). One apply.
+ */
+export function axisPaddingOps(w: Written, axis: "x" | "y", key: string): EditOp[] {
+  const x = axis === "x" ? key : axisPadding(w, "x");
+  const y = axis === "y" ? key : axisPadding(w, "y");
+  if (x === y) return uniformPaddingOps(w, key);
+  const target: Record<string, Literal | undefined> = w.padding !== undefined && (x === w.padding || y === w.padding)
+    ? { padding: w.padding, paddingX: x === w.padding ? undefined : x, paddingY: y === w.padding ? undefined : y }
+    : { padding: undefined, paddingX: x, paddingY: y };
+  return (["padding", "paddingX", "paddingY"] as const).flatMap((name) => {
+    const value = target[name];
+    return value === undefined ? removeWritten(w, name) : setIfNew(w, name, value);
+  });
+}
+
 /* ── Gap (Grid: one gap, or row and column gaps) ───────────────────────────────────────────────────────────────── */
 
 export const gapsSplit = (w: Written) => w.rowGap !== undefined || w.columnGap !== undefined;

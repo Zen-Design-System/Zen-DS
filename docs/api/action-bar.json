@@ -65,6 +65,14 @@
           "default": null,
           "description": "Custom actions (Buttons, in visual order: Primary first when vertical, last when horizontal). With primaryAction /\nsecondaryAction they sit on the side away from the Primary.",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets primaryAction / secondaryAction.",
+          "deprecated": null
         }
       ]
     }

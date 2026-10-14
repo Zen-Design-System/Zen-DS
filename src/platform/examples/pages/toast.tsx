@@ -27,6 +27,8 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PhoneToastHost } from "../../PlatformFrames";
+import { keepOnHotUpdate } from "../../hotData";
 import "./toast.css";
 
 export const page: PlatformPage = "toast";
@@ -77,7 +79,7 @@ function UndoDeleteExample() {
   };
   return (
     // A ListBox: the title in its Header-Slot, the files (or the Empty State once they are all gone) in its Body-Slot.
-    <ListBox ref={root} as="section" aria-labelledby={titleId} className="px-toast-card"
+    <ListBox ref={root} as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Recent files</Heading>}>
       {list.length ? (
         <List aria-labelledby={titleId}>
@@ -110,7 +112,7 @@ function CopyEmailExample() {
     toast({ id: "email-copied", title: "Email copied", children: person.email });
   };
   return (
-    <ListBox as="section" aria-labelledby={titleId} className="px-toast-card"
+    <ListBox as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Who to ask</Heading>}>
       <List aria-labelledby={titleId}>
         {contacts.map((id) => (
@@ -139,7 +141,7 @@ const entries: Entry[] = [
   { id: "e5", person: "ava", project: "lumen-banking", hours: 132 },
 ];
 const entryColumns: TableColumn<Entry>[] = [
-  { id: "person", header: "Person", cell: (row) => <TableMedia media={<Avatar size="xs" {...avatarOf(people[row.person])} />}>{people[row.person].name}</TableMedia> },
+  { id: "person", header: "Person", cell: (row) => <TableMedia bold media={<Avatar size="xs" {...avatarOf(people[row.person])} />}>{people[row.person].name}</TableMedia> },
   { id: "project", header: "Project", cell: (row) => <TableText>{projectById(row.project).name}</TableText> },
   { id: "hours", header: "Hours", align: "right", width: "96px", cell: (row) => <TableText>{row.hours.toFixed(1)}</TableText> },
 ];
@@ -170,7 +172,7 @@ function BackgroundExportExample() {
   return (
     <>
     {/* A ListBox: the title, the export status and Export CSV in its Header-Slot, the past exports in its Body-Slot. */}
-    <ListBox as="section" aria-labelledby={titleId} className="px-toast-card"
+    <ListBox as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Stack direction="row" justify="between" align="center" gap="xs" wrap>
         <Stack gap="2xs" className="px-toast-grow">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Timesheets</Heading>
@@ -231,7 +233,7 @@ function FailedCommentExample() {
     post(text);
   };
   return (
-    <Card theme="flat" spacing="md" className="px-toast-card">
+    <Card theme="flat" spacing="md" width="fill" maxWidth={480}>
       {/* Two groups in one surface (lg): the thread, then the reply form; each keeps md inside. */}
       <Stack as="section" gap="lg" aria-labelledby={titleId}>
         <Stack gap="md">
@@ -311,10 +313,10 @@ function PhoneToastExample() {
   const title = tabTitle[tab];
   return (
     <PlatformPhone label="Phin & Co" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={(
         <>
-          <div className="px-toast-phone-host"><ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} /></div>
+          <PhoneToastHost><ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} /></PhoneToastHost>
           <BottomNavigation aria-label="Phin & Co" items={tabs} value={tab} onValueChange={(id) => openTab(id as Tab)} showLabels />
         </>
       )}>
@@ -351,7 +353,7 @@ function PhoneToastExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Undo a delete",
     description: "Deleting a file can be undone, so it happens at once and a Neutral toast offers Undo instead of asking first. Undo puts the file back in its place; delete them all and the list says so.",
@@ -433,7 +435,7 @@ const openTab = (next) => {
 };
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={<>
     <ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} />
     <BottomNavigation items={tabs} value={tab} onValueChange={openTab} showLabels />
@@ -443,4 +445,4 @@ const openTab = (next) => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

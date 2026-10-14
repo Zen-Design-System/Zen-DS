@@ -1,6 +1,7 @@
 import { cloneElement, createContext, forwardRef, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type FocusEvent, type HTMLAttributes, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { Avatar, type AvatarTheme } from "../Avatar";
 import { IconButton } from "../Button";
+import { DashboardHeader } from "../DashboardHeader";
 import { useModal } from "../Dialog/Dialog";
 import { Icon, type IconName } from "../Icon";
 import { usePresence } from "../Motion/usePresence";
@@ -12,7 +13,11 @@ import { useZen, useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "../Motion/motion.css";
 import "./app-shell.css";
+import { SidebarShellContext } from "../_shared/sidebar-shell";
+import { NotificationDot } from "../_shared/notification-dot";
+import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
+import { useNested, type NestedOverrides } from "../_shared/nested";
 
 export type AppShellLayout = "sidebar" | "drawer";
 
@@ -34,6 +39,7 @@ export interface AppShellContextValue {
 }
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
+const DRAWER_SHELL = { drawer: true };
 
 /**
  * The nearest AppShell's layout and navigation state, or null outside one. For a navigation of your own: read
@@ -46,11 +52,23 @@ export function useAppShell(): AppShellContextValue | null {
 export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /**
    * Left navigation, usually <Sidebar>. When the shell is 1024px or wider it sits beside the content, expanded or
-   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button.
+   * collapsed to its rail; narrower, it opens as a modal drawer from the top bar's menu button. A Zen Sidebar follows the
+   * shell's rail and drawer by itself, also when it is wrapped in a component of your own.
    */
   sidebar?: ReactNode;
-  /** Top bar content after the toggle (it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
+  /** Top bar content after the toggle (Figma Leading-Slots; it grows): Breadcrumbs (Figma HR-Platform) or a Search. */
   header?: ReactNode;
+  /**
+   * Figma Center-Slots (Nav-Center-Block, 4233:3210): the top bar's middle, up to 400px wide and centred between the
+   * leading content and the actions, e.g. a Search.
+   */
+  headerCenter?: ReactNode;
+  /**
+   * Figma Header/Dashboard Sections (4122:34662): rows under the top bar, at the top of the page — a PageHeader (Type=Main),
+   * a toolbar of Search + filters (Type=Control-Bar) or your own row (Type=Custom). Each row takes the Header row padding
+   * (Spacing/Padding/Small above and below, Margin-Comfortable at the sides); they scroll with the page.
+   */
+  sections?: ReactNode;
   /**
    * Top bar actions on the right, in this order: a plan Badge, AppShellAction buttons (notifications, settings, help),
    * then the account menu (`<Menu trigger={<AppShellAccount … />}>`). Page actions belong in the PageHeader.
@@ -64,7 +82,7 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * content stacks under the page.
    */
   aside?: ReactNode;
-  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. */
+  /** One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. */
   floatingAction?: ReactNode;
   /** A sticky bar at the bottom of the main column, e.g. an ActionBar. */
   footer?: ReactNode;
@@ -72,7 +90,8 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   canvas?: "default" | "alt" | "flat";
   /** Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. */
   sidebarCollapsed?: boolean;
-  /** Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded. */
+  /** Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the
+   *  Sidebar's `collapsed` moves the rail too. */
   defaultSidebarCollapsed?: boolean;
   /** Called when the toggle (or `useAppShell().setSidebarCollapsed`) collapses or expands the Sidebar. Store it (e.g. localStorage) to keep the choice between visits. */
   onSidebarCollapsedChange?: (collapsed: boolean) => void;
@@ -94,6 +113,9 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   layout?: "auto" | "sidebar" | "drawer";
   /** The page. */
   children?: ReactNode;
+  /** Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio;
+   *  app code keeps the defaults. */
+  overrides?: NestedOverrides;
 }
 
 /** Below this width the Sidebar leaves the page for a drawer (the Tablet and Mobile breakpoints). */
@@ -123,6 +145,33 @@ function useElementSize(element: HTMLElement | null, axis: "width" | "height"): 
   return size;
 }
 
+/**
+ * On phones the floating action hides while the page scrolls down and comes back on a scroll up, so it never covers a
+ * row's controls mid-scroll (backlog batch 6, user 2026-10-07). Whatever scrolls the shell (the window or an
+ * ancestor) counts; a scroll inside the shell's own parts (a list, a panel) does not.
+ */
+function useHideOnScroll(root: HTMLElement | null, enabled: boolean): boolean {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    if (!enabled || !root) { setHidden(false); return undefined; }
+    const last = new WeakMap<object, number>();
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      const scroller = target instanceof Element ? target : document.scrollingElement;
+      if (!scroller || !(scroller === document.scrollingElement || scroller.contains(root))) return;
+      const top = scroller.scrollTop;
+      const before = last.get(scroller) ?? top;
+      last.set(scroller, top);
+      if (top <= 0) setHidden(false);
+      else if (top - before > 4) setHidden(true);
+      else if (before - top > 4) setHidden(false);
+    };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", onScroll, { capture: true });
+  }, [root, enabled]);
+  return hidden;
+}
+
 /** Before the shell has been measured (server render): the provider's breakpoint, then the viewport. */
 function useGuessedDesktop(): boolean {
   const breakpoint = useZen()?.breakpoint;
@@ -142,7 +191,10 @@ function useStackedHeader(header: HTMLElement | null, content: HTMLElement | nul
     const style = getComputedStyle(header);
     const room = header.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     if (room <= 0) return;
-    const leadingGap = content.parentElement ? parseFloat(getComputedStyle(content.parentElement).columnGap) || 0 : 0;
+    // The content sits in the bar's Leading-Slots (DashboardHeader type="navigation"), which sits in the header.
+    const leading = content.parentElement;
+    const leadingGap = leading ? parseFloat(getComputedStyle(leading).columnGap) || 0 : 0;
+    const barGap = leading?.parentElement ? parseFloat(getComputedStyle(leading.parentElement).columnGap) || 0 : 0;
     // Rendered widths ÷ the scale the top bar is drawn at (a CSS transform around the shell): CSS px, as `room` is.
     const scale = header.offsetWidth > 0 ? header.getBoundingClientRect().width / header.offsetWidth || 1 : 1;
     const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
@@ -152,7 +204,7 @@ function useStackedHeader(header: HTMLElement | null, content: HTMLElement | nul
     content.style.flex = "none"; content.style.width = "max-content";
     const natural = content.getBoundingClientRect().width / scale;
     content.style.flex = flex; content.style.width = width;
-    const needed = natural + (toggleWidth ? toggleWidth + leadingGap : 0) + (actionsWidth ? actionsWidth + (parseFloat(style.columnGap) || 0) : 0);
+    const needed = natural + (toggleWidth ? toggleWidth + leadingGap : 0) + (actionsWidth ? actionsWidth + barGap : 0);
     setStacked(needed > room + 0.5);
   }, [header, content, toggle, actions]);
   // After every render (the Breadcrumbs change with the page) and whenever the top bar resizes.
@@ -171,12 +223,16 @@ const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__foot
 
 /**
  * The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):
- * Sidebar navigation, a sticky top bar (Header/Dashboard Type=Navigation 4122:33400), the page, and optional banner,
- * docked side panel and floating action, with a "Skip to content" link. From 1024px the Sidebar sits beside the page
- * and the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer.
+ * Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a
+ * "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar
+ * collapses it to its rail; narrower, it opens as a modal drawer.
  *
- * Top bar: Margin-Comfortable top and sides, Spacing/Padding/XSmall bottom, a Button/Size/Medium row; toggle → content
- * Spacing/Gap/XSmall, leading → trailing Spacing/Gap/Medium, trailing actions Spacing/Gap/Small.
+ * Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader
+ * type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,
+ * `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually
+ * DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar
+ * pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on
+ * desktop, as Figma's Navigation row).
  *
  *   <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>
  *     <Container><PageHeader title="Team members" /> …</Container>
@@ -185,6 +241,8 @@ const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__foot
 export function AppShell({
   sidebar,
   header,
+  headerCenter,
+  sections,
   headerActions,
   banner,
   aside,
@@ -204,9 +262,11 @@ export function AppShell({
   className,
   style,
   children,
+  overrides,
   ...rest
 }: AppShellProps) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const navLabel = navLabelProp ?? t.navigation;
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const mainId = requestedMainId ?? `zen-main-${uid}`;
@@ -230,6 +290,9 @@ export function AppShell({
   const compact = layout === "drawer";
   const bannerHeight = useElementSize(banner ? bannerEl : null, "height");
   const floatingHeight = useElementSize(floatingAction ? floatingEl : null, "height");
+  const zenBreakpoint = useZen()?.breakpoint;
+  const phone = zenBreakpoint === "mobile" || rootEl?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") === "mobile";
+  const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingAction) && phone);
   const sidebarWidth = useElementSize(sidebar && !compact ? sidebarEl : null, "width");
 
   // Sidebar rail. A Zen Sidebar gets `collapsed` from the shell; one with its own onCollapsedChange keeps its header control.
@@ -239,6 +302,14 @@ export function AppShell({
     ? sidebarElement.props.variant !== "workspace"
     : Boolean(sidebar) && (collapsedProp !== undefined || defaultSidebarCollapsed !== undefined || onSidebarCollapsedChange !== undefined);
   const [innerCollapsed, setInnerCollapsed] = useState(() => defaultSidebarCollapsed ?? Boolean(sidebarElement?.props.collapsed));
+  // The Sidebar's own `collapsed` is where an uncontrolled shell starts, and a change to it (the code edited, Zen
+  // Studio's Collapsed toggle) moves the rail too; the toggle and setSidebarCollapsed still change it in between.
+  const declaredCollapsed = sidebarElement?.props.collapsed;
+  const [seenCollapsed, setSeenCollapsed] = useState(declaredCollapsed);
+  if (declaredCollapsed !== seenCollapsed) {
+    setSeenCollapsed(declaredCollapsed);
+    if (collapsedProp === undefined) setInnerCollapsed(Boolean(declaredCollapsed));
+  }
   const sidebarCollapsed = ownCollapse ? Boolean(sidebarElement?.props.collapsed) : Boolean(collapsedProp ?? innerCollapsed);
   const collapseHandlers = useRef({ ownCollapse, controlled: collapsedProp !== undefined, onSidebarCollapsedChange });
   collapseHandlers.current = { ownCollapse, controlled: collapsedProp !== undefined, onSidebarCollapsedChange };
@@ -289,13 +360,15 @@ export function AppShell({
     closeNav: () => setNavOpen(false),
   }), [layout, sidebarCollapsed, setSidebarCollapsed, open, setNavOpen]);
 
-  const hasTopBar = Boolean(header || headerActions);
+  const hasTopBar = Boolean(header || headerCenter || headerActions);
   const stackedHeader = useStackedHeader(headerEl, header ? contentEl : null, toggleEl, headerActions ? actionsEl : null);
   const showCollapseToggle = !compact && hasTopBar && sidebarToggle && canCollapse && !ownCollapse;
   const showMenuButton = compact && Boolean(sidebar);
-  const inlineSidebar = sidebarElement && canCollapse && !ownCollapse ? cloneElement(sidebarElement, { collapsed: sidebarCollapsed }) : sidebar;
-  // The drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
-  const drawerSidebar = sidebarElement ? cloneElement(sidebarElement, { collapsed: false, onCollapsedChange: undefined }) : sidebar;
+  // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
+  // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
+  const inlineShell = useMemo(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed]);
+  const inlineSidebar = <SidebarShellContext value={inlineShell}>{sidebar}</SidebarShellContext>;
+  const drawerSidebar = <SidebarShellContext value={DRAWER_SHELL}>{sidebar}</SidebarShellContext>;
   // The aside docks beside the page (Figma Side-Panel Type=Standard) only while the page keeps a Tablet width next to
   // it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
   const asideElement = isValidElement<SidePanelProps>(aside) && aside.type === SidePanel ? aside : null;
@@ -308,9 +381,9 @@ export function AppShell({
     <span ref={setToggleEl} className="zen-app-shell__toggle">
       {showMenuButton ? (
         // zen-allow-filter-button: this button opens the navigation drawer (a dialog), not a choice list.
-        <IconButton appearance="flat" level="primary" size="md" icon={<Icon name="icon-menu-01-line" />} aria-label={t.openNavigation} aria-haspopup="dialog" aria-expanded={open} onClick={() => setNavOpen(true)} />
+        nest("Menu", <IconButton appearance="flat" level="primary" size="md" icon={<Icon name="icon-menu-01-line" />} aria-label={t.openNavigation} aria-haspopup="dialog" aria-expanded={open} onClick={() => setNavOpen(true)} />)
       ) : (
-        <IconButton appearance="flat" level="primary" size="md" icon={<Icon name={sidebarCollapsed ? "icon-layout-right-line" : "icon-layout-left-line"} />} aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar} aria-expanded={!sidebarCollapsed} aria-controls={sidebarId} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        nest("Collapse", <IconButton appearance="flat" level="primary" size="md" icon={<Icon name={sidebarCollapsed ? "icon-layout-right-line" : "icon-layout-left-line"} />} aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar} aria-expanded={!sidebarCollapsed} aria-controls={sidebarId} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />)
       )}
     </span>
   ) : null;
@@ -329,26 +402,34 @@ export function AppShell({
           <div className="zen-app-shell__column">
             {hasTopBar || showMenuButton ? (
               <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined}>
-                <div className="zen-app-shell__header-leading">
-                  {toggle}
-                  {header ? <div ref={setContentEl} className="zen-app-shell__header-content">{header}</div> : null}
-                </div>
-                {headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{headerActions}</div> : null}
+                {/* The bar is Figma's Primitives/Dashboard/Header Type=Navigation (4122:33400): the toggle and the
+                    content in Leading-Slots, the centre block in Center-Slots, the actions in Trailing-Slots. */}
+                <DashboardHeader
+                  type="navigation"
+                  className="zen-app-shell__bar"
+                  leading={<>{toggle}{header ? <div ref={setContentEl} className="zen-app-shell__header-content">{nest.slot(header)}</div> : null}</>}
+                  center={headerCenter ? nest.slot(headerCenter) : undefined}
+                  trailing={headerActions ? <div ref={setActionsEl} className="zen-app-shell__header-actions">{nest.slot(headerActions)}</div> : undefined}
+                />
               </header>
             ) : null}
-            <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>{children}</main>
+            <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>
+              {sections ? <div className="zen-app-shell__sections">{nest.slot(sections)}</div> : null}
+              {nest.slot(children)}
+            </main>
             {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
             {floatingAction || footer ? (
               <div className="zen-app-shell__bottom">
-                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating">{floatingAction}</div> : null}
-                {footer ? <div className="zen-app-shell__footer">{footer}</div> : null}
+                {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}>{floatingAction}</div> : null}
+                {footer ? <div className="zen-app-shell__footer">{nest.slot(footer)}</div> : null}
               </div>
             ) : null}
           </div>
           {aside && asideDocked ? <div ref={setAsideEl} className="zen-app-shell__aside">{aside}</div> : null}
         </div>
       </div>
-      {asideElement && !asideDocked ? cloneElement(asideElement, { type: "modal" }) : null}
+      {/* The modal panel renders next to the shell, as the drawer does (InlineOverlayContext), so a preview frame holds it. */}
+      {asideElement && !asideDocked ? <InlineOverlayContext value>{cloneElement(asideElement, { type: "modal" })}</InlineOverlayContext> : null}
       {/* The drawer sits next to the shell, outside its inert subtree and inside the provider (so it keeps the token
           modes). Fixed to the viewport in an app; a preview frame that contains layout (container-type) holds it. */}
       {sidebar && presence.mounted ? (
@@ -357,7 +438,7 @@ export function AppShell({
           <div ref={drawerRef} className="zen-app-shell__drawer" role="dialog" aria-modal="true" aria-label={navLabel} tabIndex={-1} data-state={presence.phase} inert={presence.phase === "closing" || undefined} onClick={onDrawerClick}>
             <div className="zen-app-shell__drawer-panel">{drawerSidebar}</div>
             <div className="zen-app-shell__drawer-close">
-              <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />
+              {nest("Close", <IconButton level="tertiary" size="md" icon={<Icon name="icon-x-medium-line" />} aria-label={t.closeNavigation} onClick={() => setNavOpen(false)} />)}
             </div>
           </div>
         </div>
@@ -385,6 +466,9 @@ export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButto
   appearance?: "tertiary" | "flat";
   /** Tooltip text. Default: `aria-label` (without the count). */
   tooltip?: ReactNode | false;
+  /** Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets icon / appearance. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -394,20 +478,21 @@ export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButto
  * It forwards its ref and props to the button, so it can be a <Menu trigger>.
  */
 export const AppShellAction = forwardRef<HTMLButtonElement, AppShellActionProps>(function AppShellAction(
-  { icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, ...buttonProps },
+  { icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, overrides, ...buttonProps },
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const unread = typeof count === "number" && count > 0 ? Math.floor(count) : 0;
   const name = unread ? t.withUnread(label, unread) : dot ? t.withUnread(label) : label;
   return (
     <span className={["zen-app-shell-action", className].filter(Boolean).join(" ")} data-appearance={appearance}>
-      <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />
-      {unread || dot ? (
-        <span className="zen-app-shell-action__notification" data-style={unread ? "number" : "dot"} data-tone={tone} aria-hidden="true">
-          {unread ? <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span> : null}
+      {nest("Button", <IconButton {...buttonProps} ref={ref} appearance={appearance === "flat" ? "flat" : "main"} level={appearance === "flat" ? "primary" : "tertiary"} size="md" icon={icon} aria-label={name} tooltip={tooltip ?? label} />)}
+      {unread ? (
+        <span className="zen-app-shell-action__notification" data-style="number" data-tone={tone} aria-hidden="true">
+          <span className={typographyStyles["Label/Small/Medium"]}>{unread > 99 ? "99+" : unread}</span>
         </span>
-      ) : null}
+      ) : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
     </span>
   );
 });
@@ -419,6 +504,9 @@ export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButt
   src?: string;
   /** Initials colour without a photo. Default neutral. */
   theme?: Exclude<AvatarTheme, "photo">;
+  /** Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio;
+   *  app code sets src / theme. */
+  overrides?: NestedOverrides;
 }
 
 /**
@@ -427,10 +515,11 @@ export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButt
  * Keyboard focus shows the Avatar's own focus ring.
  */
 export const AppShellAccount = forwardRef<HTMLButtonElement, AppShellAccountProps>(function AppShellAccount(
-  { name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, ...buttonProps },
+  { name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, overrides, ...buttonProps },
   ref,
 ) {
   const t = useZenLabels();
+  const nest = useNested(overrides);
   const accessibleName = ariaLabel ?? t.accountOf(name);
   const [ring, setRing] = useState(false);
   // Name tooltip after 1s of hover, at once on keyboard focus, never on touch (house rule for icon-only controls).
@@ -445,7 +534,7 @@ export const AppShellAccount = forwardRef<HTMLButtonElement, AppShellAccountProp
     <>
       <button {...bound} ref={ref} type={type} className={["zen-app-shell-account", className].filter(Boolean).join(" ")} aria-label={accessibleName}>
         {/* Without a photo, alt only generates the initials ("Ava Chen" → AC); the button's aria-label names it. */}
-        <Avatar size="md" theme={src ? "photo" : theme} background="subtle" src={src} alt={src ? "" : name} focus={ring} />
+        {nest("Avatar", <Avatar size="md" theme={src ? "photo" : theme} background="subtle" src={src} alt={src ? "" : name} focus={ring} />)}
       </button>
       {tip.tooltip}
     </>

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Self-test of the Appearance / Effects model (./appearanceModel.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/appearance/appearanceModel.selftest.mjs
-import { cornerClear, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey, effectWarnings, isMixed, uniformClear, uniformPick } from "./appearanceModel.ts";
+import fs from "node:fs";
+import { cardThemeEffect, cornerClear, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey, effectLayers, effectWarnings, isMixed, uniformClear, uniformPick } from "./appearanceModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -38,6 +39,16 @@ check("warnings: shadow without a fill", effectWarnings({ effectStyle: "Shadow/B
 check("warnings: shadow + border", effectWarnings({ effectStyle: "Shadow/Bottom/Level-1", surface: "surface", border: "pale" }).map((w) => w.fixLabel), ["Remove border"]);
 check("warnings: blur on an opaque fill", effectWarnings({ effectStyle: "Effect/Overlay", surface: "surface" }).length, 1);
 check("no warnings when it renders", [effectWarnings({ effectStyle: "Shadow/Bottom/Level-1", surface: "surface" }).length, effectWarnings({ effectStyle: "Effect/Overlay", surface: "pale" }).length, effectWarnings({}).length], [0, 0, 0]);
+check("card themes: shadow, blur, none; defaults per card; not a card", [
+  cardThemeEffect("Card", undefined), cardThemeEffect("MetricCard", "semi-pale"), cardThemeEffect("ChartCard", undefined), cardThemeEffect("Card", "border"), cardThemeEffect("Box", "shadow"),
+], [{ theme: "shadow", style: "Shadow/Bottom/Level-1" }, { theme: "semi-pale", style: "Effect/Overlay" }, { theme: "flat", style: null }, { theme: "border", style: null }, null]);
+// Effect settings: the layers of the real manifest, in Figma order.
+const manifest = JSON.parse(fs.readFileSync(new URL("../../../styles/generated/style-manifest.json", import.meta.url), "utf8"));
+const manifestStyle = (name) => (manifest.effectStyles ?? []).find((style) => style.name === name);
+const level1 = effectLayers(manifestStyle("Shadow/Bottom/Level-1")?.effects ?? []);
+check("effect layers: Level-1's first drop shadow", level1[0], "Drop shadow · X 0 · Y 4 · Blur 8 · Spread −4 · Shadow/Neutral/Base");
+check("effect layers: the overlay's background blur at the CSS radius", effectLayers(manifestStyle("Effect/Overlay")?.effects ?? []), ["Background blur · 50"]);
+check("every Box effect style is in the manifest", EFFECT_STYLES.every((style) => manifestStyle(style.name)), true);
 
 if (failures.length) {
   console.error(`appearanceModel selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

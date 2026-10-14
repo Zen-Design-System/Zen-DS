@@ -1,6 +1,9 @@
 /* Figma Table (page 1595:2631). */
-/* position: relative keeps absolutely positioned descendants (sr-only labels, checkbox inputs) inside the scroll box. */
-.zen-table { position: relative; width: 100%; min-width: 0; overflow-x: auto; }
+/* position: relative keeps absolutely positioned descendants (sr-only labels, checkbox inputs) inside the scroll box.
+   --zen-table-divider: Figma strokes the 1px Border/Neutral/Pale divider INSIDE the FIXED cell, so it never adds to the
+   row height. An inset hairline does the same; a CSS border (collapsed or not) made every row 1px taller than
+   Table/Cell/Size and the first row half a pixel taller again. */
+.zen-table { --zen-table-divider: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); position: relative; width: 100%; min-width: 0; overflow-x: auto; }
 /* Right-aligned cells hold numbers, amounts and actions: keep them on one line ("4.2 MB", "$1,200") — a narrow
    container scrolls the table sideways (overflow-x above) instead of breaking values apart. */
 .zen-table__cell[data-align="right"], .zen-table__header[data-align="right"] { white-space: nowrap; }
@@ -8,13 +11,13 @@
 .zen-table__caption { padding-bottom: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-strongest, #111); text-align: start; caption-side: top; }
 .zen-table__col-select { width: 48px; }
 
-/* Header cell (Table/Cell/Header): Table/Header/Size, padding Small × Medium, All-Caps/S Neutral/Light. */
+/* Header cell (Table/Cell/Header): FIXED Table/Header/Size, padding Small × Medium, All-Caps/S Neutral/Light. */
 .zen-table__header {
   box-sizing: border-box;
   height: var(--zen-table-header-size, 36px);
   padding: 0 var(--zen-spacing-padding-medium, 16px);
-  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
   background: var(--zen-table-cell-background-default, transparent);
+  box-shadow: var(--zen-table-divider);
   color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
   font-weight: inherit;
   text-align: start;
@@ -32,18 +35,25 @@
 .zen-table__header[data-sorted="true"] { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-table__sort:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 
-/* Body cell (Table/Cell/Default): Table/Cell/Size, padding Small × Medium, 1px bottom Border/Neutral/Pale. */
+/* Body cell (Table/Cell/Default): FIXED Table/Cell/Size, padding Small × Medium, 1px bottom Border/Neutral/Pale. */
 .zen-table__cell {
   box-sizing: border-box;
   height: var(--zen-table-cell-size, 52px);
   padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px);
-  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
   background: var(--zen-table-cell-background-default, transparent);
+  box-shadow: var(--zen-table-divider);
   color: var(--zen-color-content-neutral-strongest, #111);
   text-align: start;
   vertical-align: middle;
 }
 .zen-table__cell[data-align="right"] { text-align: end; }
+/* Figma Table/Cell/Default › Content (FILL × HUG, centred in the FIXED cell): one line in the slot the padding leaves
+   (Table/Cell/Size − 2 × Padding/Small). A <td> height is only a minimum, so this slot is what holds the row at the
+   token: taller content (a Small Avatar, a label over its Subtext) overflows evenly into the padding, text never wraps
+   (a Text-Cell ends in an ellipsis instead), and a value wider than its column scrolls the table sideways. Long,
+   multi-line content belongs to a sheet-like component, not this Table (user rule, 2026-10-13). */
+.zen-table__content { display: flex; box-sizing: border-box; height: var(--zen-table-slot, 28px); min-width: 0; align-items: center; white-space: nowrap; }
+.zen-table__cell[data-align="right"] > .zen-table__content { justify-content: flex-end; }
 .zen-table__row:hover > .zen-table__cell { background: var(--zen-table-cell-background-hover); }
 .zen-table__row[data-selected="true"] > .zen-table__cell { background: var(--zen-table-cell-background-selected); }
 /* Clickable rows (onRowClick): the whole row opens its item; keyboard focus shows the hover tint and the focus ring. */
@@ -55,30 +65,38 @@
 .zen-table__checkbox { width: auto; }
 .zen-table__checkbox .zen-checkbox__content { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .zen-table__empty { padding: var(--zen-spacing-padding-2-xlarge, 32px) var(--zen-spacing-padding-medium, 16px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+/* A table inside a surface (Card, ChartCard, MetricCard, an Accordion panel, SidePanel, Dialog/ModalForm, BottomSheet,
+   Popover, ListBox, a Box with a surface or border): the surface edge closes the table, so the last row drops its
+   bottom rule (user rule, 2026-10-12; in Figma the last row's cells take a 0 bottom stroke weight). A page table on
+   the canvas keeps it. */
+:is(.zen-card, .zen-chart-card, .zen-metric-card, .zen-accordion__panel, .zen-side-panel, .zen-dialog, .zen-modal-form, .zen-bottom-sheet, .zen-popover, .zen-list-box, .zen-box:is([data-surface], [data-border])) .zen-table__table > tbody > tr:last-child > :is(.zen-table__cell, .zen-table__empty) { --zen-table-divider: none; border-bottom: 0; }
 
 /* Cell primitives. */
-.zen-table-text { display: inline-flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); vertical-align: middle; }
+/* Figma Primitives/Table/Cell/Text-Cell (Label over an optional Subtext, gap 3XSmall), each on one line. The track is
+   minmax(0, max-content): the text asks for its full width but can give all of it up, so a column narrower than its
+   text ends the line in an ellipsis instead of wrapping (the row is FIXED). A Subtext cell (38px) overflows the 28px
+   Content slot evenly into the padding. */
+.zen-table-text { display: inline-grid; min-width: 0; max-width: 100%; grid-template-columns: minmax(0, max-content); row-gap: var(--zen-spacing-gap-3-xsmall, 2px); vertical-align: middle; }
+.zen-table-text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-table-text__label { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-table-text__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
-/* Text-Cell Subtext=Yes (label + caption, 38px) also sits in the fixed row: it spills evenly into the padding.
-   zen-allow-mixed-type: the two line heights only measure the cell's height; no text is styled here. */
-.zen-table-text:has(> .zen-table-text__caption) {
-  margin-block: calc((var(--zen-table-slot, 28px) - var(--zen-typography-line-height-body-base, 20px) - var(--zen-spacing-gap-3-xsmall, 2px) - var(--zen-typography-line-height-caption, 16px)) / 2);
-}
-.zen-table-media { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-small, 12px); vertical-align: middle; text-align: start; }
-/* Figma Table/Cell/Default is a FIXED Table/Cell/Size row (padding Small, clipsContent off): a 32–40px Avatar,
-   Dock-Icon or icon button overflows the Content slot into the padding instead of growing the row. The visual and the
-   actions take the slot height and centre what is taller. */
+/* Right-aligned values (numbers, amounts, dates, actions) are never cut: their column grows and the table scrolls. */
+.zen-table__cell[data-align="right"] .zen-table-text { grid-template-columns: max-content; }
+/* Avatar/Photo/Basic-Icon/Dock-Icon cells: a 32–40px visual overflows the Content slot into the padding (Figma
+   clipsContent off) instead of growing the row; the Text-Cell beside it shrinks and ends in an ellipsis. */
+.zen-table-media { display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-small, 12px); vertical-align: middle; text-align: start; }
 .zen-table { --zen-table-slot: calc(var(--zen-table-cell-size, 52px) - 2 * var(--zen-spacing-padding-small, 12px)); }
-.zen-table-media__visual { display: inline-flex; height: var(--zen-table-slot, 28px); flex: 0 0 auto; align-items: center; }
-/* Figma FIXED/FILL tables (a column with a fixed width): Avatar/Dock-Icon/Photo cells hug their Text-Cell (one line)
-   and the fill column keeps a readable width, so a narrow container scrolls the table sideways instead of breaking
-   "Annual Leave" under its icon or a name into four lines. Tables without fixed widths share the room as before. */
-.zen-table[data-fixed-columns="true"] .zen-table-media > .zen-table-text { white-space: nowrap; }
+.zen-table-media__visual { display: inline-flex; flex: 0 0 auto; align-items: center; }
+/* Figma FIXED/FILL tables (a column with a fixed width): the fill column keeps a readable width, so a narrow container
+   scrolls the table sideways instead of cutting a name down to its first letters. */
 .zen-table[data-fixed-columns="true"] .zen-table__header[data-fill="true"] { min-width: var(--zen-table-fill-min-width, 200px); }
-/* Badge-Cell / Tag-Cell Items slot: wraps, gap 2XSmall. */
-.zen-table-items { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); vertical-align: middle; }
-.zen-table-actions { display: inline-flex; height: var(--zen-table-slot, 28px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); vertical-align: middle; }
+/* Tables without fixed widths share the room, but a left-aligned text cell keeps a readable minimum (about three words
+   of Body/Base) before it ends in an ellipsis, so a narrow container scrolls the table sideways instead of cutting a
+   title to one word (backlog batch A, research L11). Numbers, dates and statuses stay whole. */
+.zen-table:not([data-fixed-columns="true"]) .zen-table__cell[data-align="left"] .zen-table-text { min-width: var(--zen-table-text-min-width, 120px); }
+/* Badge-Cell / Tag-Cell Items slot: one line (Figma NO_WRAP), gap 2XSmall. */
+.zen-table-items { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); vertical-align: middle; }
+.zen-table-actions { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); vertical-align: middle; }
 
 /* Figma Table/Cell/Default State=Focused (1603:23600): 3px Color/Focus/Accent/Subtle ring inside the cell. */
 .zen-table__cell[data-editable="true"] { position: relative; cursor: text; }
@@ -147,3 +165,15 @@ textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; mi
 /* Shown on row hover or keyboard focus inside the row — not for the quiet focus a cell keeps after an edit ends. */
 .zen-table__row:hover .zen-table__open,
 .zen-table__row:has(:focus-visible:not([data-quiet="true"])) .zen-table__open { opacity: 1; pointer-events: auto; }
+
+/* Bulk actions (bulkActions): the Popover/Bulk-Action bar for the selection, centred under the table. It sits outside
+   the scroll box so it can stick to the bottom of the window while a long table scrolls past; the rows above it never
+   move when it appears. */
+.zen-table-scope { display: flex; width: 100%; min-width: 0; flex-direction: column; }
+.zen-table__bulk-dock { position: sticky; bottom: var(--zen-spacing-padding-medium, 16px); z-index: 2; display: flex; justify-content: center; padding-top: var(--zen-spacing-padding-small, 12px); pointer-events: none; }
+.zen-table__bulk { --zen-motion-from-y: 1; transform-origin: bottom center; pointer-events: auto; animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both; }
+.zen-table__bulk-count { padding-inline-end: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-strongest, #111); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .zen-table__bulk { animation-name: zen-motion-fade-in; } }
+/* One line, from the start: actions that don't fit move into the More menu. TableBulkBar measures them on this line, so
+   an overflowing render must not centre (that would shift every action left by half the overflow). */
+.zen-table__bulk .zen-popover__bunk-list { flex-wrap: nowrap; justify-content: flex-start; }

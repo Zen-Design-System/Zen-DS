@@ -3,7 +3,9 @@
 // it). On the dev server this folder is the pages' source of truth; the browser's IndexedDB is the working copy
 // (src/platform/studio/builder/store/pageStore.ts syncs the two).
 //
-//   pagesFolder(root, { validate }) → { list(), read(id), write(id, text), trash(id) }
+//   pagesFolder(root, { validate }) → { list(), read(id), write(id, text), trash(id), writeAsset(id, bytes), readAsset(id),
+//                                       trashAsset(id) }  (uploaded photos in <pages>/assets/, 2026-10-08: a page opened in
+//                                       another browser on the dev server finds them there)
 //
 // Rules: ids match PAGE_ID; the folder and each page must be real files (no symlink anywhere on the way); a page is at
 // most MAX_PAGE bytes; `validate(text)` (dialect.mjs validateDialect) must return no errors before a write. Nothing is
@@ -13,6 +15,10 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 
 export const PAGE_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+/** An uploaded photo's id (builder/assets/uploads.ts assetIdFor: a slug, a hash, an image extension). */
+export const ASSET_ID = /^[a-z0-9][a-z0-9-]{0,80}\.(png|jpg|webp|gif|svg)$/;
+/** An uploaded photo is at most 5 MB (uploads.ts MAX_UPLOAD_BYTES). */
+export const MAX_ASSET = 5 * 1024 * 1024;
 export const MAX_PAGE = 2 * 1024 * 1024;
 export const PAGES_DIR = ".zen-studio/pages";
 export const TRASH_DIR = ".zen-studio/trash";
@@ -30,6 +36,23 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
   const checkId = (id) => {
     if (typeof id !== "string" || !PAGE_ID.test(id)) throw new PagesError("invalid", `Bad page id ${JSON.stringify(id)}`);
   };
+  const assetsAbs = path.join(pagesAbs, "assets");
+  const checkAsset = (id) => {
+    if (typeof id !== "string" || !ASSET_ID.test(id)) throw new PagesError("invalid", `Bad photo id ${JSON.stringify(id)}`);
+  };
+  /** The photo's path; refuses a link (or a link on the way). Returns { abs, stat: null } when it does not exist. */
+  async function assetFile(id) {
+    checkAsset(id);
+    const abs = path.join(assetsAbs, id);
+    let stat;
+    try {
+      stat = await fsp.lstat(abs);
+    } catch {
+      return { abs, stat: null };
+    }
+    if (stat.isSymbolicLink() || !stat.isFile()) throw new PagesError("forbidden", `assets/${id} is a link or not a file`);
+    return { abs, stat };
+  }
 
   /** Creates `dir` (and .zen-studio) as real folders; refuses when any part is a link. */
   async function ensureDir(dir) {
@@ -108,6 +131,43 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       }
       const stat = fs.statSync(abs);
       return { id, mtime: Math.round(stat.mtimeMs) };
+    },
+
+    /** Keeps an uploaded photo in assets/ (atomically; an existing one with the same id holds the same bytes). */
+    async writeAsset(id, bytes) {
+      checkAsset(id);
+      if (!(bytes instanceof Uint8Array)) throw new PagesError("invalid", "Send { data }: the photo's bytes as base64");
+      if (bytes.length > MAX_ASSET) throw new PagesError("invalid", `A photo is at most ${MAX_ASSET / 1024 / 1024} MB`);
+      await ensureDir(assetsAbs);
+      const { abs } = await assetFile(id);
+      const temp = path.join(assetsAbs, `.${id}.${process.pid}-${Date.now()}.tmp`);
+      await fsp.writeFile(temp, bytes);
+      try {
+        await fsp.rename(temp, abs);
+      } catch (error) {
+        await fsp.rm(temp, { force: true });
+        throw error;
+      }
+      return { id, size: bytes.length };
+    },
+
+    /** An uploaded photo's bytes, or null when assets/ has none by that id. */
+    async readAsset(id) {
+      const { abs, stat } = await assetFile(id);
+      if (!stat) return null;
+      if (stat.size > MAX_ASSET) throw new PagesError("invalid", `assets/${id} is over ${MAX_ASSET / 1024 / 1024} MB`);
+      return fsp.readFile(abs);
+    },
+
+    /** Moves a photo to trash/assets/ (never deletes); a missing one is already gone. */
+    async trashAsset(id) {
+      const { abs, stat } = await assetFile(id);
+      if (!stat) return { id, trashed: false };
+      const bin = path.join(trashAbs, "assets");
+      await ensureDir(bin);
+      const to = path.join(bin, `${new Date().toISOString().replace(/[:.]/g, "-")}-${id}`);
+      await fsp.rename(abs, to);
+      return { id, trashed: true };
     },
 
     /** Moves the page to the trash folder (never deletes); a missing page is already gone. */

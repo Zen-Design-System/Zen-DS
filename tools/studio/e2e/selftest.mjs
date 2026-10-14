@@ -47,6 +47,17 @@ if (fs.existsSync(baselineFile)) {
   for (const id of Object.keys(baseline)) ok(`baseline row ${id} still exists`, rowIds.has(id));
 }
 
+// The run's watcher (lib/server.mjs peerIgnore, 2026-10-08): the files the harness writes and their folders are watched,
+// everything else under src/ and tools/ is not, and the rest of the tree is left to Vite's own rules.
+{
+  const { peerIgnore } = await import(pathToFileURL(path.join(here, "lib/server.mjs")).href);
+  const ignored = peerIgnore(root, ["src/platform/examples/e2e/StudioSaveFixture.tsx", "src/platform/examples/data.ts"]);
+  const at = (rel) => ignored(path.join(root, rel));
+  ok("watch: the save fixture, data.ts and their folders", [at("src/platform/examples/e2e/StudioSaveFixture.tsx"), at("src/platform/examples/data.ts"), at("src/platform/examples"), at("src/platform"), at("src")].every((value) => value === false));
+  ok("watch: a peer's Studio module or tool is not", at("src/platform/studio/StudioApp.tsx") && at("tools/studio/slots.mjs") && at("src/platform/examples/pages/card.tsx"));
+  ok("watch: outside src/ and tools/ Vite decides", at("vite.studio.config.ts") === false && at("node_modules/.cache/zen-studio/x.json") === false);
+}
+
 if (failures.length) {
   console.log(`Studio E2E self-test: ${failures.length} failure(s), ${passed} passed`);
   for (const failure of failures) console.log(`  ✗ ${failure}`);

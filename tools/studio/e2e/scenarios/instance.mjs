@@ -1,7 +1,7 @@
 // Instance rows (Studio builder GĐ4, spec docs/research/studio-builder-instance-spec-2026-10-07.md): a Zen instance
 // customised as in Figma's instance panel — option names, Reset all overrides, a field's Label group, the switches that
 // show a layer — on the fixture's "E2E instance" frame and on a builder page.
-import { inspectorRow, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, selectStack } from "./builder.mjs";
 import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
 
@@ -74,7 +74,8 @@ export const rows = [
       await inspectorRow(page, "primaryAction").getByRole("switch").click();
       const on = await expectSource(ctx, "inst-empty", (el) => /label: "Action"/.test(el.attr("primaryAction") ?? ""), "primaryAction={{ label: \"Action\" }}");
       await switchShows(page, "primaryAction", true);
-      if (!(await page.locator("#studio-right").getByText("Primary action", { exact: true }).count())) throw new Error("no Primary action fields while on");
+      // The switch flips at once (optimistic); its fields come with the write's render.
+      await until(async () => (await page.locator("#studio-right").getByText("Primary action", { exact: true }).count()) > 0, { message: "Primary action fields while on" });
       await inspectorRow(page, "primaryAction").getByRole("switch").click();
       await expectSource(ctx, "inst-empty", (el) => el.attr("primaryAction") === undefined, "primaryAction removed");
       return `on → ${on.attr("primaryAction")}, off → removed`;
@@ -105,9 +106,45 @@ export const rows = [
       await until(async () => (await groups.count()) >= 3, { message: "Default, Used in this file and All icons" });
       const read = await groups.evaluateAll((els) => els.map((el) => ({ id: el.getAttribute("data-icon-group"), first: el.querySelector(".zen-popover__item")?.textContent?.trim() ?? "" })));
       await page.keyboard.press("Escape");
+      // Recent and Related tiles (IN-20) may sit between them: the rows are found by group.
+      const file = read.find((group) => group.id === "file");
       if (read[0].id !== "default" || !read[0].first.includes("icon-plus-line")) throw new Error(`first group ${JSON.stringify(read[0])}`);
-      if (read[1].id !== "file" || !read[1].first.includes("icon-heart-line")) throw new Error(`second group ${JSON.stringify(read[1])}`);
-      return `Default in Figma: icon-plus-line · Used in this file: ${read[1].first} · ${read.at(-1).id}`;
+      if (!file?.first.includes("icon-heart-line")) throw new Error(`Used in this file ${JSON.stringify(file ?? read)}`);
+      if (read.at(-1).id !== "all") throw new Error(`last group ${JSON.stringify(read.at(-1))}`);
+      return `Default in Figma: icon-plus-line · Used in this file: ${file.first} · ${read.at(-1).id}`;
+    },
+  },
+  {
+    id: "IN-20", feature: "Icon picker: Related tiles (the icon's family) and Recent (the last picks) need no typing", wp: "user 2026-10-14",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-button", { frame: FRAME });
+      await page.evaluate(() => window.localStorage.removeItem("zen-studio:recent-icons"));
+      const open = async (step, group = "related") => {
+        await page.locator('#studio-right [data-prop="startIcon"] .studio-icon-control button').first().click();
+        await page.locator(`[data-icon-group="${group}"]`).waitFor({ state: "visible", timeout: 3000 }).catch(async () => {
+          const shown = await page.locator("[data-icon-group]").evaluateAll((els) => els.map((el) => el.getAttribute("data-icon-group")));
+          const field = await page.locator('#studio-right [data-prop="startIcon"] .studio-icon-control button').first().getAttribute("aria-label").catch(() => "no field");
+          throw new Error(`${step}: no ${group} group (groups: ${shown.join(", ") || "none"}; field ${field})`);
+        });
+      };
+      const tiles = (group) => page.locator(`[data-icon-group="${group}"] [role=option]`).evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+      await open("first open");
+      const related = await tiles("related");
+      if (!related.includes("icon-plus-circle-line") || !related.includes("icon-plus-square-line")) throw new Error(`Related for icon-plus-line: ${related.join(" ")}`);
+      await page.locator('[data-icon-group="related"] [role=option][aria-label="icon-plus-circle-line"]').click();
+      await expectSource(ctx, "inst-button", (el) => el.attr("startIcon") === "icon-plus-circle-line", 'startIcon="icon-plus-circle-line"');
+      await open("after the first pick");
+      await page.locator('[data-icon-group="related"] [role=option][aria-label="icon-plus-square-line"]').click();
+      await expectSource(ctx, "inst-button", (el) => el.attr("startIcon") === "icon-plus-square-line", 'startIcon="icon-plus-square-line"');
+      // The icon shown (plus-square) is left out; the pick before it leads. Related is gone: the plus family is all in
+      // Default (plus) and Recent (plus-circle), and an icon shows in one group only.
+      await open("after the second pick", "recent");
+      const recent = await tiles("recent");
+      const groups = await page.locator("[data-icon-group]").evaluateAll((els) => els.map((el) => el.getAttribute("data-icon-group")));
+      await page.keyboard.press("Escape");
+      if (recent[0] !== "icon-plus-circle-line" || recent.includes("icon-plus-square-line")) throw new Error(`Recent: ${recent.join(" ")}`);
+      if (groups.includes("related")) throw new Error(`Related repeats an icon shown above: ${groups.join(", ")}`);
+      return `Related: ${related.slice(0, 3).join(" ")} … · two tile picks, no typing · Recent: ${recent.join(" ")}`;
     },
   },
   {
@@ -161,9 +198,9 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Primary button");
-      await page.locator(".studio-assets__row", { hasText: /^Primary button/ }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Primary button/ }).first().click();
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "the Button" });
       await sleep(400);
       await clickNamed(page, id, "Button");
@@ -220,7 +257,7 @@ export const rows = [
       await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge still selected" });
       await until(async () => (await sizeText(page, "width")) === "Fill", { message: "W reads Fill" });
       await sizeChoice(page, "width", "Hug contents");
-      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<List/;
+      const back = /<Badge data-e2e="inst-badge" leadingIcon leading="icon-heart-line">New<\/Badge>\n\s*<Chip data-e2e="inst-chip"/;
       await until(async () => { const text = await ctx.text(); return back.test(text) && !/fillChildren width="fill"/.test(text); }, { message: "the Stack gone, the Badge where it was" });
       await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Badge", { message: "the Badge selected after Hug" });
       await page.locator(".studio-viewport").focus();
@@ -246,7 +283,7 @@ export const rows = [
       await until(async () => (await sizeText(page, "width")) === "200", { message: "W reads 200" });
       await typeWidth("240");
       await until(async () => /<Stack direction="row" fillChildren width=\{240\}>\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "the same Stack 240 wide" });
-      if ((await ctx.text()).match(/fillChildren/g)?.length !== 1) throw new Error("a second Stack");
+      if ((await ctx.text()).match(/fillChildren width=\{\d+\}>\s*<Button data-e2e="inst-button"/g)?.length !== 1) throw new Error("a second Stack");
       await sizeChoice(page, "width", "Fill container");
       await until(async () => /<Stack direction="row" fillChildren width="fill">\s*<Button data-e2e="inst-button"/.test(await ctx.text()), { message: "its Stack fills" });
       return "W 200 → <Stack direction=\"row\" fillChildren width={200}> → 240 edits it → Fill → width=\"fill\"";
@@ -275,7 +312,7 @@ export const rows = [
       await sleep(300);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Backspace");
-      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
+      await until(async () => (await wraps()) === 1 && ((await ctx.text()).match(/<Stack (?!data-e2e="wrap-stack")[^>]*fillChildren/g) ?? []).length === 1, { message: "⌫: the copy gone with its Stack" });
       // The Layers rebuild after the canvas re-renders: the copy's row goes a moment after the source.
       await until(async () => (await row.count()) === 1, { message: "one wrapped row left in Layers" });
       await row.click();
@@ -292,9 +329,9 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Badge");
-      await page.locator(".studio-assets__row", { hasText: /^Badge/ }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Badge/ }).first().click();
       await until(async () => /<Badge\b/.test((await pageText(page, id)) ?? ""), { message: "the Badge" });
       await sleep(400);
       await clickNamed(page, id, "Badge");
@@ -316,9 +353,9 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
-      await showLeftTab(page, "assets");
+      await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Primary button");
-      await page.locator(".studio-assets__row", { hasText: /^Primary button/ }).first().click();
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Primary button/ }).first().click();
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "the Button" });
       await sleep(400);
       await clickNamed(page, id, "Button");
@@ -330,6 +367,36 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "⌘Z brings level back" });
       return 'Level reads "Primary"; Reset all → <Button onClick…> → ⌘Z → level="primary"';
+    },
+  },
+  {
+    id: "IN-18", feature: "An unset object prop (EmptyState secondaryAction): + writes a starting object, then its fields edit", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-empty", { frame: FRAME });
+      await page.locator("#studio-right").getByRole("button", { name: "Add secondary action" }).click();
+      await expectSource(ctx, "inst-empty", (el) => /label: "Secondary action"/.test(el.attr("secondaryAction") ?? ""), 'secondaryAction={{ label: "Secondary action" }}');
+      const group = page.locator("#studio-right").getByRole("group", { name: /^Secondary action/ });
+      await group.waitFor({ state: "visible", timeout: 5000 });
+      const input = group.locator('[data-prop="label"] input').first();
+      await input.fill("Learn more");
+      await input.press("Enter");
+      const done = await expectSource(ctx, "inst-empty", (el) => /label: "Learn more"/.test(el.attr("secondaryAction") ?? ""), "the label edited in Object properties");
+      return `secondaryAction=${done.attr("secondaryAction")}`;
+    },
+  },
+  {
+    id: "IN-19", feature: "options={views} held by a same-file const: its items edit there, with where the const is written", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "const-views", { frame: 8 });
+      const panel = page.locator("#studio-right");
+      await until(async () => (await panel.innerText()).includes("Written in const views"), { message: "the const note" });
+      if (await panel.getByRole("button", { name: /^Remove / }).count()) throw new Error("a const's items offer Remove (item ops edit lists written in place only)");
+      const item = panel.getByRole("group", { name: /^Options · 2/ });
+      const input = item.locator('[data-prop="label"] input').first();
+      await input.fill("Kanban");
+      await input.press("Enter");
+      await until(async () => /\{ id: "board", label: "Kanban" \}/.test(await ctx.text()), { message: "views[1].label in the const" });
+      return 'const views[1].label → "Kanban"';
     },
   },
 ];

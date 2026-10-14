@@ -12,7 +12,8 @@
 //        (`index` 0: `[code, object]`). `requires: ["toast"]`: the enclosing component gets `const { toast } = useToast();`
 //        unless a toast binding is in scope.
 //   op "removeItem" { prop, index? }      the index-th item goes with its comma; the only item, or an object prop,
-//        takes the attribute with it (a required prop keeps `[]`). A useToast() hook left unused goes too.
+//        takes the attribute with it (a required prop keeps `[]`). A useToast() hook left unused goes too. `all`: every
+//        item goes, the attribute with them (a Figma boolean switched off with 2+ items, the layer hidden).
 //   op "duplicateItem" { prop, index, list? }   a copy right after it; a string `id`, `value` or `key` field gets a fresh
 //        value (`"a"` → `"a-2"`), so list keys stay unique. With `list`, one object becomes `[object, copy]`.
 //   op "moveItem" { prop, index, to, regroup? }     the item goes to position `to`; the items in between shift by one.
@@ -26,6 +27,11 @@
 //        group, else (the middle of three or more) right after the group; tidy.
 //   removeItem tidies too: a group left with one item loses its `group` field.
 //   The answer's `item` = { prop, index }: where the item is now (removeItem: where it was).
+//   op "setItems" { prop, code }   the whole list at once (Sidebar Body-Content: titles and rows reordered, merged or
+//        removed as freely as Figma's slot, 2026-10-10): `code` is one array literal (lines after the first indented from
+//        column 0), written in place of the prop's value at its indent; null removes the prop (a required one keeps `[]`).
+//   `nest` { index, key } on any op: the list is the `key` of the prop's index-th object (Sidebar `sections[n].items`,
+//        2026-10-10); `index` / `to` count in that list, and removing its last item leaves `key: []`.
 //
 // Items are counted as the array literal holds them; a spread or a hole cannot be acted on (its items come from code).
 // Example snippets follow on the host's copy (the same edit at the same index), else `snippet: { synced: false }`.
@@ -33,7 +39,7 @@
 import { parseExpression } from "@babel/parser";
 import { jsxName, walk } from "./jsx-source.mjs";
 
-export const ITEM_OPS = new Set(["insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem"]);
+export const ITEM_OPS = new Set(["insertItem", "removeItem", "duplicateItem", "moveItem", "groupItem", "ungroupItem", "setItems"]);
 
 const PLUGINS = ["jsx", "typescript"];
 const PROP = /^[A-Za-z_$][\w$]*$/;
@@ -46,8 +52,21 @@ const isIndex = (value) => Number.isInteger(value) && value >= 0;
  * The host's `prop` as items: { attr, array } for an array literal, { attr, object } for an object literal, { attr:
  * null } when absent, { attr, empty } for null / undefined / false / {}; anything else is refused with where it comes from.
  */
-function itemsOf(ctx, element, prop, h) {
+function itemsOf(ctx, element, prop, h, nest) {
   const attr = element.openingElement.attributes.findLast((candidate) => h.attrName(candidate) === prop) ?? null;
+  if (nest) {
+    // A list one level down (Sidebar `sections[n].items`): the n-th object's `key`, which must be written in place.
+    if (!attr || attr.value?.type !== "JSXExpressionContainer") h.refuse(`${prop} is not written in place; edit it in the code.`);
+    const outer = h.unwrapTs(attr.value.expression);
+    if (outer.type !== "ArrayExpression") h.refuse(`${prop} is not a list written in place; edit it in the code.`);
+    const holder = outer.elements[nest.index];
+    if (!holder || holder.type === "SpreadElement" || h.unwrapTs(holder).type !== "ObjectExpression") h.refuse(`${prop} has no item ${nest.index + 1} written in place (reload the element)`, "stale");
+    const property = h.unwrapTs(holder).properties.findLast((candidate) => candidate.type !== "SpreadElement" && !candidate.computed && (candidate.key?.name ?? candidate.key?.value) === nest.key);
+    if (!property || property.shorthand) h.refuse(`${prop} item ${nest.index + 1} has no ${nest.key} written in place; edit it in the code.`);
+    const value = h.unwrapTs(property.value);
+    if (value.type !== "ArrayExpression") h.refuse(`Its items come from ${h.short(ctx.text.slice(value.start, value.end))}; edit it in the code.`);
+    return { attr, array: value, nested: true };
+  }
   if (!attr) return { attr: null };
   if (!attr.value) h.refuse(`Its items come from \`${prop}\` (true); edit it in the code.`);
   if (attr.value.type !== "JSXExpressionContainer" || attr.value.expression.type === "JSXEmptyExpression") {
@@ -75,8 +94,11 @@ function itemAt(items, index, prop, h) {
  * The new item's code, checked: one object literal, no line separators, and no free names but `toast` and JS built-ins
  * (a handler's own parameters and names it declares are fine). `toast` says whether it calls toast.
  */
-function prepareItem(raw, h) {
+function prepareItem(raw, h, builder = false) {
   if (typeof raw !== "string" || !raw.trim()) h.refuse("insertItem needs `code`: one object literal");
+  // A builder page has no hooks (2026-10-10: "+ Add Action" refused there): `() => toast({ … })` becomes proto.toast({ … }),
+  // the page's prototype action, as the palette writes it.
+  if (builder) raw = raw.replace(/\(\)\s*=>\s*toast\((\{[^{}]*\})\)/g, "proto.toast($1)");
   if (/[\u2028\u2029]/.test(raw)) h.refuse("The item holds a line separator (U+2028/U+2029); write it as \\u2028");
   let node;
   try {
@@ -99,10 +121,12 @@ function prepareItem(raw, h) {
   walk(node, (item) => {
     if (item.type !== "Identifier" || keys.has(item) || declared.has(item.name) || item.name === "undefined") return true;
     if (item.name === "toast") toast = true;
+    else if (builder && item.name === "proto") return true;
     else if (!h.JS_GLOBALS.has(item.name)) h.refuse(`The item reads \`${item.name}\`, which is not defined here; only toast and JS built-ins can be used`);
     return true;
   });
-  return { code: raw.trim(), toast };
+  if (builder && toast) h.refuse("A builder page has no hooks: an item's action is proto.toast(…), proto.navigate(…) or proto.open(…)");
+  return { code: raw.trim(), toast, proto: builder && /\bproto\./.test(raw) };
 }
 
 /** `code` with its lines after the first moved from column 0 to `indent`. */
@@ -365,7 +389,24 @@ function regroupEdits(ctx, items, op, h) {
  */
 function attributeEdits(ctx, element, op, h) {
   const prop = op.prop;
-  const items = itemsOf(ctx, element, prop, h);
+  if (op.op === "setItems") {
+    const attr = element.openingElement.attributes.findLast((candidate) => h.attrName(candidate) === prop) ?? null;
+    if (op.code === null) {
+      if (!attr) return { edits: [], index: 0 };
+      if (ctx.requiredProps.get(jsxName(element.openingElement.name))?.has(prop)) return { edits: [{ ...h.valueRange(ctx.text, attr.value.expression), text: "[]" }], index: 0 };
+      return { edits: [removeAttribute(ctx, element, attr, h)], index: 0 };
+    }
+    if (typeof op.code !== "string") h.refuse("setItems needs `code`: one array literal, or null");
+    let parsed;
+    try { parsed = parseExpression(op.code, { plugins: PLUGINS }); } catch { h.refuse("setItems `code` does not parse"); }
+    if (parsed.type !== "ArrayExpression") h.refuse("setItems `code` is one array literal");
+    if (!attr) return { edits: [newAttribute(ctx, element, prop, op.code, h)], index: 0 };
+    if (attr.value?.type !== "JSXExpressionContainer" || attr.value.expression.type === "JSXEmptyExpression") h.refuse(`${prop} is not written in place; edit it in the code.`);
+    const code = indented(op.code, h.indentAt(ctx.text, attr.start), ctx.eol);
+    return { edits: [{ ...h.valueRange(ctx.text, attr.value.expression), text: code }], index: 0 };
+  }
+  if (op.nest !== undefined && !(op.nest && Number.isInteger(op.nest.index) && op.nest.index >= 0 && typeof op.nest.key === "string" && PROP.test(op.nest.key))) h.refuse("`nest` is { index, key }: the list in that item of the prop");
+  const items = itemsOf(ctx, element, prop, h, op.nest);
   const name = `<${jsxName(element.openingElement.name)}>`;
   if (op.op === "insertItem") {
     const { code } = ctx.item;
@@ -412,7 +453,9 @@ function attributeEdits(ctx, element, op, h) {
   const index = op.index ?? 0;
   const item = itemAt(items, index, prop, h);
   if (op.op === "removeItem") {
-    if (array.elements.length === 1) {
+    // A nested list keeps its key: its last item leaves `[]` (the group stays, as in Figma's slot).
+    if (items.nested && (array.elements.length === 1 || op.all === true)) return { edits: [{ start: array.start, end: array.end, text: "[]" }], index };
+    if (array.elements.length === 1 || op.all === true) {
       // The only item: the attribute goes (`[]` says nothing more), unless the component requires it.
       if (ctx.requiredProps.get(jsxName(element.openingElement.name))?.has(prop)) return { edits: [{ start: array.start, end: array.end, text: "[]" }], index };
       return { edits: [removeAttribute(ctx, element, items.attr, h)], index };
@@ -452,11 +495,13 @@ export function itemPlan(ctx, nodePath, op, h) {
   if (typeof op.prop !== "string" || !PROP.test(op.prop) || op.prop === "children" || op.prop === "key" || /^on[A-Z]/.test(op.prop)) h.refuse(`"${op.prop}" is not a prop that holds items`);
   if (op.op === "insertItem") {
     if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast"))) h.refuse('`requires` lists what the item needs: "toast"');
-    ctx.item = prepareItem(op.code, h);
+    ctx.item = prepareItem(op.code, h, h.LOCAL_PAGE?.test(ctx.file ?? "") ?? false);
   }
   const helpers = { ...h, text: (node) => ctx.text.slice(h.valueRange(ctx.text, node).start, h.valueRange(ctx.text, node).end) };
   const { edits, index } = attributeEdits(ctx, ctx.element, op, helpers);
   const all = [...edits];
+  // A builder page's proto.toast(…) handler: its runtime import gains `proto`.
+  if (op.op === "insertItem" && ctx.item.proto) all.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, ["proto"]));
   if (op.op === "insertItem" && ctx.item.toast) {
     const hooks = h.hookEdits(ctx, nodePath, { toast: true, statements: [] });
     all.push(...hooks.edits);

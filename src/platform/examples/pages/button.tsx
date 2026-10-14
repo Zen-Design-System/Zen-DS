@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useZen } from "../../../components/Provider";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
@@ -30,6 +31,8 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
+import { keepOnHotUpdate } from "../../hotData";
 import "./button.css";
 
 export const page: PlatformPage = "button";
@@ -48,6 +51,11 @@ const loyaltyTasks: TaskRow[] = [
   { id: "p2", key: "PHIN-208", title: "Draw the loyalty tier badges", assignee: "gia", status: "Done", due: daysFromToday(-4) },
 ];
 
+// On a phone the assignee joins the task's caption, so no fixed-width column is cut (backlog batch 6b).
+const phoneTaskColumns: TableColumn<TaskRow>[] = [
+  { id: "task", header: "Task", cell: (row) => <TableText bold caption={`${row.key} · ${people[row.assignee].name}`}>{row.title}</TableText> },
+  { id: "status", header: "Status", cell: (row) => <Badge theme={taskStatusTheme[row.status]} background="subtle">{row.status}</Badge> },
+];
 const taskColumns: TableColumn<TaskRow>[] = [
   { id: "task", header: "Task", cell: (row) => <TableText bold caption={row.key}>{row.title}</TableText> },
   { id: "assignee", header: "Assignee", width: "200px", cell: (row) => <TableMedia bold={false} media={<Avatar size="xs" {...avatarOf(people[row.assignee])} />}>{people[row.assignee].name}</TableMedia> },
@@ -61,6 +69,7 @@ function PageActionsExample() {
   const [status, setStatus] = useState<ProjectStatus>("Active");
   const [dialog, setDialog] = useState<"share" | "task" | null>(null);
   const tasksId = useId();
+  const phone = useZen()?.breakpoint === "mobile";
   // New task adds a row at the top; its key continues the project's sequence.
   const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `PHIN-${224 + list.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
   const putOnHold = () => {
@@ -68,7 +77,7 @@ function PageActionsExample() {
     toast({ title: "Project put on hold", action: { label: "Undo", onClick: () => setStatus("Active") } });
   };
   return (
-    <Box className="px-button-page">
+    <PreviewPage margin="all">
       <Stack gap="xl">
         <PageHeader
           eyebrow="Phin & Co"
@@ -87,7 +96,7 @@ function PageActionsExample() {
         {/* The task table is the section's content: it lies on the page under its h2, no Card. */}
         <Stack as="section" gap="lg" aria-labelledby={tasksId}>
           <Heading level={2} id={tasksId}>Tasks</Heading>
-          <Table aria-labelledby={tasksId} columns={taskColumns} rows={rows} />
+          <Table aria-labelledby={tasksId} columns={phone ? phoneTaskColumns : taskColumns} rows={rows} />
         </Stack>
       </Stack>
       <DemoFieldDialog open={dialog === "share"} onOpenChange={(open) => setDialog(open ? "share" : null)} title="Share Loyalty app"
@@ -96,7 +105,7 @@ function PageActionsExample() {
       <DemoFieldDialog open={dialog === "task"} onOpenChange={(open) => setDialog(open ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Design the rewards screen" }} submitLabel="Create task"
         confirm={() => "Task created"} onSubmit={addTask} />
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -129,14 +138,14 @@ function SendInvoiceExample() {
   });
   const downloadPdf = () => toast({ title: "PDF downloaded" });
   return (
-    <Card theme="flat" className="px-button-card" spacing="md">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center" spacing="md">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
             <Heading level={4} textStyle="Heading/Subheading">{saolaInvoice.number}</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
           </Stack>
-          <Badge className="px-button-status" theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
+          <Badge theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
         </Stack>
         <DescriptionList items={[
           { term: "Issued", description: formatDate(saolaInvoice.issued) },
@@ -156,7 +165,7 @@ function SendInvoiceExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -198,8 +207,7 @@ function DeleteFileExample() {
               <ListItem key={file.id} title={file.name}
                 caption={`${formatBytes(file.bytes)} · ${people[file.owner as PersonId].name} · ${formatRelative(file.updated)}`}
                 leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
-                trailing={<IconButton appearance="flat" icon="icon-trash-line" aria-label={`Delete ${file.name}`} onClick={() => confirmDelete(file)} />}
-                selected={false} />
+                trailing={<IconButton appearance="flat" icon="icon-trash-line" aria-label={`Delete ${file.name}`} onClick={() => confirmDelete(file)} />} />
             ))}
           </List>
         </ListBox>
@@ -239,9 +247,9 @@ function HandOffExample() {
   useEffect(() => { (handedOff ? messageRef.current : buttonRef.current)?.focus(); }, [handedOff]);
   const handOff = () => { setHandedOff(true); toast({ type: "positive", title: "Designs handed off" }); };
   return (
-    <Card theme="flat" className="px-button-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md" alignSelf="stretch">
-        <Stack gap="3xs">
+        <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Sprint 14 hand-off</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">Loyalty app · Phin & Co</Text>
         </Stack>
@@ -267,7 +275,7 @@ function HandOffExample() {
           </>
         )}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -365,7 +373,7 @@ function PhoneApproveExample() {
   if (!request) {
     return (
       <PlatformPhone key="root" label="Time off" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Time off" largeTitle="Time off" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Time off" largeTitle="Time off" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
         <Box paddingX="lg" paddingY="xs">
@@ -385,7 +393,7 @@ function PhoneApproveExample() {
   const left = annualLeft[request.person];
   return (
     <PlatformPhone key={request.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-request="${request.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       // Two peer answers: Decline and Approve side by side, Primary at the end. Decided requests have no footer.
       footer={request.status === "Pending" ? (
@@ -400,7 +408,7 @@ function PhoneApproveExample() {
           <Stack as="li" direction="column" align="center" gap="md" paddingX="lg" paddingY="sm" justify="center">
             <Avatar size="2xl" {...avatarOf(person)} />
             <Stack gap="2xs" style={{ flex: 1 }}>
-              <Text as="span" textStyle="Heading/2" truncate align="center">{person.name}</Text>
+              <Heading level={2} textStyle="Heading/2" truncate align="center">{person.name}</Heading>
               <Text as="span" textStyle="Body/Small/Regular" tone="light">{`${person.role} · ${person.location}`}</Text>
             </Stack>
             <Stack direction="row" align="center" gap="sm">
@@ -430,7 +438,7 @@ function PhoneApproveExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Page actions",
     description: "A project page has one Primary, New task, on the right. Share is Tertiary and rarer actions wait in the More actions menu, so the main action stands out.",
@@ -532,7 +540,7 @@ export const examples: ExampleDef[] = [
 
 // One key per screen; the Top Navigation follows the scroll of the phone screen.
 <PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToRequests }} />}
   footer={request.status === "Pending" ? (
     <ActionBar position="static" direction="horizontal"
@@ -542,4 +550,4 @@ export const examples: ExampleDef[] = [
   …
 </PlatformPhone>`,
   },
-];
+]);

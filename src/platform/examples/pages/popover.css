@@ -1,5 +1,4 @@
 /* Popover examples (pages/popover.tsx). Tokens only. */
-.px-popover-fill { width: 100%; box-sizing: border-box; }
 
 /* The Bulk-Action bar's row under the table: centred, and as tall as the bar (a Medium button and its 2XSmall padding)
    even while nothing is selected, so rows don't jump when it appears. */

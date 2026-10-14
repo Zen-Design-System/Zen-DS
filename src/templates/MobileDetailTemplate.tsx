@@ -133,7 +133,7 @@ export function MobileDetailTemplate() {
     <Stack ref={rootRef} gap="none">
       {/* The compact bar title is the screen's h1 (in the bar style), so the content starts at h2. Your router also sets
           document.title to it: "Order #1054 · Your app". scrollRef draws the bar's Pale rule while content runs under it. */}
-      <TopNavigation type="compact" sticky scrollRef={scroller} title={`Order #${order.number}`}
+      <TopNavigation type="compact-alt" sticky scrollRef={scroller} title={`Order #${order.number}`}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Orders isn't part of this demo" }) /* your router: navigate(-1) */ }}
         trailing={[{ icon: "icon-share-01-line", label: "Share order", onClick: () => void copy(order.link, "Order link copied", "Couldn't copy the link") }]} />
 

@@ -1,15 +1,19 @@
-import { Fragment } from "react";
+import { Fragment, startTransition, useEffect, useState } from "react";
 import { Icon } from "../../../components/Icon";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { dataItemBlock, dataSlotOf, editDataItem, openSlotPicker, sourceItems, type DataSlot } from "../slots";
+import { dataItemBlock, dataSlotOf, editDataItem, insertIntoSlot, openSlotPicker, slotHostContext, sourceItems, type DataSlot } from "../slots";
+import { paletteFor } from "../slots/palette";
+import { hostPropsOf, isSlotActive, slotOf } from "../slots/registry";
 import type { SourceElement, StudioSelection } from "../types";
 import type { FieldApi } from "./fieldApi";
 import { NestedInstanceGroup } from "./NestedProperties";
 import type { NestedInstances } from "./nestedInstances";
+import { computedDefault, idleNotes } from "./computedDefaults";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
+import { savedSetProp } from "./writePlan";
 import { InspectorSection } from "./Section";
 import "./nested.css";
 
@@ -49,7 +53,22 @@ function inPlace(element: SourceElement, prop: string): boolean {
 }
 
 /** A Figma boolean that stands for a prop's presence: on writes its starting value, off removes the prop. */
-function ToggleRow({ toggle, on, count, value, api, selection, element }: { toggle: GroupToggle; on: boolean; count: number; value: PropValue; api: FieldApi; selection: NodeSelection; element: SourceElement }) {
+/** How long a switch shows the value it was set to before the canvas renders it (its hot update, then the props read). */
+const PENDING_MS = 3000;
+
+/** A Figma boolean that shows a layer: on writes what `toggle.on` says, off removes the prop (also used for a content
+ *  slot's prop in the generic Properties, DesignPanel). */
+export function ToggleRow({ toggle, on: rendered, value, api, selection, element }: { toggle: GroupToggle; on: boolean; value: PropValue; api: FieldApi; selection: NodeSelection; element: SourceElement }) {
+  // Optimistic: the switch flips at once and holds until the canvas shows the new value (a second press meanwhile acts
+  // on what the switch shows, not on the props read before the write landed).
+  const [pending, setPending] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (pending === null) return undefined;
+    if (pending === rendered) { setPending(null); return undefined; }
+    const timer = window.setTimeout(() => setPending(null), PENDING_MS);
+    return () => window.clearTimeout(timer);
+  }, [pending, rendered]);
+  const on = pending ?? rendered;
   const spec: PropSpec = { name: toggle.prop, type: "boolean", description: `Figma boolean ${toggle.label}: shows the ${toggle.label} layer (${toggle.prop} set).`, defaultValue: false, editor: { kind: "boolean" } };
   // A value the source computes (a playground's state, a condition) or spreads: read-only, showing what renders.
   const computed = (value.state === "bound" && !inPlace(element, toggle.prop)) || value.state === "spread";
@@ -60,23 +79,38 @@ function ToggleRow({ toggle, on, count, value, api, selection, element }: { togg
     const { on: start } = toggle;
     // The host stays selected after an item add, so this row stays reachable to switch the layer off again.
     if (start.kind === "item") { if (slot) void editDataItem(selection, slot, "add", 0, 0, { keepHost: true }); return; }
-    if (start.kind === "slot") { openSlotPicker(selection, toggle.prop); return; }
+    if (start.kind === "slot") {
+      // A slot that takes one component (PageHeader Breadcrumbs, Tabs) gets it at once, as Figma's boolean shows its
+      // layer; a slot that takes several asks which (the picker).
+      // The items as the picker lists them here (paletteFor: a builder page's static versions, what cannot go here left out).
+      const slot = slotOf(element.name, toggle.prop);
+      const only = slot?.accepts?.only?.length === 1 ? slot.accepts.only[0] : null;
+      const offer = slot && only ? paletteFor(slotHostContext(selection, element, slot)) : null;
+      const items = offer?.items.filter((item) => item.root === only) ?? [];
+      if (slot && offer && items.length === 1) { void insertIntoSlot({ selection, element, slot, item: items[0], context: offer.context }); return; }
+      openSlotPicker(selection, toggle.prop);
+      return;
+    }
     // An object written as code (an action: `{ label: "Action" }`), then edited field by field in Object properties.
     if (start.kind === "code") { void api.apply([{ op: "setProp", name: toggle.prop, value: { kind: "expression", code: start.code } }], `${element.name} ${toggle.label} on`); return; }
     const from = (start.from ?? []).map((prop) => api.valueFor(prop)).find((candidate) => candidate.state === "literal" && typeof candidate.value === "string" && candidate.value.trim());
     api.setProp(toggle.prop, from?.state === "literal" ? from.value : start.value);
   };
   // Back on after the draft switched it off: what the saved file has comes back (an Avatar leading, "New review", the
-  // two call actions with their toast hook), as Figma shows a hidden layer's content again; else a starting value.
+  // two call actions with their toast hook), as Figma shows a hidden layer's content again; else a starting value. A
+  // playground refuses slot ops: the saved attribute is set again in its saved place (savedSetProp), not at the tag's end.
   const switchOn = () => {
-    if (!element.savedAttributes?.[toggle.prop]) { startValue(); return; }
-    void api.apply([{ op: "resetSlot", prop: toggle.prop }], `${element.name} ${toggle.label} on`).then((written) => { if (!written) startValue(); });
+    const saved = element.savedAttributes?.[toggle.prop];
+    if (!saved) { startValue(); return; }
+    const op = selection.panelId ? savedSetProp(toggle.prop, saved) : { op: "resetSlot" as const, prop: toggle.prop };
+    if (!op) { startValue(); return; }
+    void api.apply([op], `${element.name} ${toggle.label} on`).then((written) => { if (!written) startValue(); });
   };
-  // Off: an item the Studio added goes through the item op, so the useToast() line it brought goes with it (example and
-  // template content; a playground removes the prop).
+  // Off: the items go through the item op (all of them at once), so the useToast() line they brought goes with them
+  // (example and template content; a playground removes the prop).
   const switchOff = () => {
     const { on: start } = toggle;
-    if (start.kind === "item" && slot && dataItemBlock(selection) === null && sourceItems(element, slot).state === "items" && (slot.form === "object" || count === 1)) { void editDataItem(selection, slot, "remove", 0); return; }
+    if (start.kind === "item" && slot && dataItemBlock(selection) === null && sourceItems(element, slot).state === "items") { void editDataItem(selection, slot, "remove", 0, 0, { all: true }); return; }
     api.removeProp(toggle.prop);
   };
   return (
@@ -86,7 +120,10 @@ function ToggleRow({ toggle, on, count, value, api, selection, element }: { togg
       value={shown}
       disabled={api.disabled}
       resettable={false}
-      onSet={(next) => { if (next === true && !on) switchOn(); else if (next === false && on) switchOff(); }}
+      onSet={(next) => {
+        // The edit first, the switch's own redraw as a transition after it (the canvas shows the change sooner).
+        if (next === true && !on) { switchOn(); startTransition(() => setPending(true)); } else if (next === false && on) { switchOff(); startTransition(() => setPending(false)); }
+      }}
       onReset={() => undefined}
     />
   );
@@ -109,16 +146,26 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
 }) {
   const props = conditionProps(rendered, element);
   const component = element.name;
-  const specOf = (prop: string) => specs.find((spec) => spec.name === prop);
+  // An unset switch whose default the component computes (an Advanced Chip's Dropdown) shows what renders.
+  const specOf = (prop: string) => {
+    const spec = specs.find((candidate) => candidate.name === prop);
+    const computed = spec ? computedDefault(component, prop, props) : undefined;
+    return spec && computed !== undefined ? { ...spec, defaultValue: computed } : spec;
+  };
   const shapedOf = new Map(shaped.map((entry) => [entry.spec.name, entry]));
   const placed = placedProps(groups);
-  // Props no group lists stay in the component's own group, after the code-only ones.
-  const after: PropEntry[] = [...groups.after, ...specs.map((spec) => spec.name).filter((name) => !placed.has(name))];
+  // Props no group lists stay in the component's own group, after the code-only ones. A boolean's own value (Counter's
+  // "3") shows while its boolean is on, and only where its layer exists (as the boolean row itself).
+  const toggleOf = new Map(groups.toggles.map((toggle) => [toggle.prop, toggle]));
+  const after: PropEntry[] = [...groups.after, ...specs.map((spec) => spec.name).filter((name) => !placed.has(name)).map((name): PropEntry => {
+    const toggle = toggleOf.get(name);
+    return toggle ? { prop: name, when: [...(toggle.when ?? []), { prop: name, set: true }] } : name;
+  })];
 
   /** A group's rows: its fields, the list items and objects written in place, the nested Zen instances in its props. */
   const rows = (entries: readonly PropEntry[], key: string) => {
     const shown = entries.filter((entry) => entryShown(entry, props)).map(entryProp);
-    const warnings = new Map(entries.map((entry) => [entryProp(entry), entryWarnings(entry, props)]));
+    const warnings = new Map(entries.map((entry) => [entryProp(entry), [...entryWarnings(entry, props), ...idleNotes(component, entryProp(entry), props)]]));
     // A Figma name for the row when the group gives one (generated from the Figma read), else the prop's label.
     const labels = new Map(entries.map((entry) => [entryProp(entry), entryLabel(entry)]));
     // And its options by their Figma names ("Medium (Base)"), in Figma's order; the file still gets the code value.
@@ -131,6 +178,13 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
       <>
         {fields.map((spec) => (
           <Fragment key={`${key}:${spec.name}`}>
+            {/* A content slot's prop the Figma booleans do not switch (TopNavigation Title-Leading): a switch that puts a
+                real component in, never a text field (DesignPanel does the same for components without Figma groups). */}
+            {spec.editor.kind === "node" && slotOf(component, spec.name) && !groups.toggles.some((toggle) => toggle.prop === spec.name) ? (
+              // A slot this state never draws (Metric's Action below Medium, or on Icon-Highlight) has no switch.
+              !isSlotActive(slotOf(component, spec.name)!, hostPropsOf(element.attributes)) ? null :
+              <ToggleRow toggle={{ prop: spec.name, label: labels.get(spec.name) ?? propLabel(spec.name, component), on: { kind: "slot" } }} on={api.valueFor(spec.name).state !== "unset"} value={api.valueFor(spec.name)} api={api} selection={selection} element={element} />
+            ) : (
             <PropField
               spec={spec}
               label={labels.get(spec.name) ?? propLabel(spec.name, component)}
@@ -141,9 +195,11 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
               boundHint={api.boundHint}
               onSet={(value) => api.setProp(spec.name, value)}
               onReset={() => api.removeProp(spec.name)}
+              onAddObject={(code) => { void api.apply([{ op: "setProp", name: spec.name, value: { kind: "expression", code } }], `${component} ${spec.name} added`); }}
               restore={api.restoreFor?.(spec.name)}
               repeats={api.repeats}
             />
+            )}
             {/* The field stays editable; the warning says why it does nothing in this state. */}
             {(warnings.get(spec.name) ?? []).map((text) => (
               <p key={text} className={`studio-group__warning ${typographyStyles["Body/Small/Regular"]}`}>
@@ -174,7 +230,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     <InspectorSection title="Properties" note={note}>
       {rows(groups.own, "own")}
       {toggles.map((toggle) => (
-        <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} count={Array.isArray(props[toggle.prop]) ? (props[toggle.prop] as unknown[]).length : 1} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
+        <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
       ))}
       {rows(after, "after")}
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (

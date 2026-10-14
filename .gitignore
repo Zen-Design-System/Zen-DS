@@ -16,3 +16,8 @@ tools/figma-contract/.out/
 
 # Zen Studio builder pages on the dev server (tools/studio/pages-folder.mjs): private to each machine
 /.zen-studio/
+
+# Studio selftests write their temporary samples here (always deleted; the repo tsconfig excludes it).
+src/platform/examples/drafts/
+# The Studio export parity test writes the exported page here while it runs (always deleted).
+tests/interaction/.export-parity.tsx

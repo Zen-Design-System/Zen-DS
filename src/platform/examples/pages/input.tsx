@@ -29,6 +29,7 @@ import {
   type LeaveStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./input.css";
 
 export const page: PlatformPage = "input";
@@ -105,7 +106,7 @@ function BillingDetailsExample() {
   const [po, setPo] = useState("");
   const [address, setAddress] = useState("");
   return (
-    <Card theme="flat" className="px-input-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Billing details</Heading>
         <Stack gap="md" direction="column">
@@ -115,7 +116,7 @@ function BillingDetailsExample() {
             labelAction={<button type="button" onClick={() => setAddress(phinAddress)}>Use company address</button>} />
         </Stack>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -147,7 +148,7 @@ function WorkspaceProfileExample() {
     toast({ type: "positive", title: "Workspace updated" });
   };
   return (
-    <Card theme="flat" className="px-input-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Workspace profile</Heading>
         <InputField label="Workspace name" maxLength={32} characterLimit helpText="Shown in the sidebar and on invoices." value={name} onValueChange={setName} />
@@ -161,7 +162,7 @@ function WorkspaceProfileExample() {
           <Button level="primary" type="submit">Save changes</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -178,13 +179,13 @@ function SentInvoiceExample() {
     toast({ type: "positive", title: "Invoice number copied" });
   };
   return (
-    <Card theme="flat" className="px-input-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       {/* Two groups in one card (lg apart); fields inside a group md apart. */}
       <Stack gap="lg">
         <Stack gap="md">
           <Stack direction="row" gap="sm" align="start" justify="between">
             <Heading level={4} textStyle="Heading/Subheading">Invoice for {sentInvoice.client}</Heading>
-            <Badge className="px-input-status" theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>
+            <Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>
           </Stack>
           <InputField label="Invoice number" readOnly value={sentInvoice.number} labelAction={<button type="button" onClick={copy}>Copy</button>} />
           <InputField label="Amount" readOnly value={formatMoney(sentInvoice.amount, true)} helpText={`Locked since it was sent on ${formatDate(sentInvoice.issued)}.`} />
@@ -196,7 +197,7 @@ function SentInvoiceExample() {
             helpText={reminders ? `First reminder on ${formatDate(firstReminder)}.` : "Turn on payment reminders to set a schedule."} />
         </Stack>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -221,7 +222,7 @@ function ClientContactExample() {
   const [currency, setCurrency] = useState("usd");
   const [retainer, setRetainer] = useState("12,000");
   return (
-    <Card theme="flat" className="px-input-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Lumen Bank</Heading>
         <InputField label="Phone" type="tel" value={phone} onValueChange={setPhone}
@@ -231,7 +232,7 @@ function ClientContactExample() {
         <InputField label="Monthly retainer" inputMode="decimal" value={retainer} onValueChange={setRetainer} helpText="Billed on the 1st of each month."
           trailing={<InputLeadingTrailing label="USD" options={currencies} value={currency} onValueChange={setCurrency} popoverLabel="Currency" />} />
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -264,7 +265,7 @@ function PasswordRulesExample() {
   };
   const again = () => { restarted.current = true; setPassword(""); setTried(false); setShown(false); setDone(false); };
   return (
-    <Card ref={cardRef} theme="flat" className="px-input-card">
+    <Stack><Card ref={cardRef} theme="flat" width="fill" maxWidth={440} alignSelf="center">
       {done ? (
         <InlineMessage theme="positive" title="Password set" action={{ label: "Change password", onClick: again }}>
           You can now sign in to Đìzai Studio as em@dizai.studio.
@@ -289,7 +290,7 @@ function PasswordRulesExample() {
           </FormActions>
         </Form>
       )}
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -462,7 +463,7 @@ function TimeOffPhoneExample() {
   }
   return (
     <PlatformPhone key="form" label="Request time off" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Request time off" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Request time off" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}
       footer={<ActionBar position="static" primaryAction={{ label: "Send request", type: "submit", form: formId }} />}>
       {screen.anchor}
@@ -483,7 +484,7 @@ function TimeOffPhoneExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Create a project",
     description: "Each value gets the field built for it: text for the name, a Select for one of six clients, calendar dates, steppers for a small count and tags for the team. Errors show when a field is left or the form is submitted, and focus moves to the first one.",
@@ -647,7 +648,7 @@ export const examples: ExampleDef[] = [
 
 // The form, pushed from it: one key per screen, so it opens at the top.
 <PlatformPhone key="form" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Request time off" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Request time off" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => (form.isDirty ? setDiscarding(true) : toList()) }} />}
   footer={<ActionBar position="static" primaryAction={{ label: "Send request", type: "submit", form: formId }} />}>
   <Form id={formId} form={form} gap="md">
@@ -664,5 +665,5 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+]);
 

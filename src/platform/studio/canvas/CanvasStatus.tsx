@@ -1,7 +1,7 @@
 import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { openShortcuts } from "../shell/ShortcutsDialog";
+import { openShortcuts } from "../shell/shortcutsOpen";
 import { ChromeScope } from "../shell/ChromeScope";
 import { useStudio } from "../store";
 import type { StudioTool } from "../types";
@@ -13,6 +13,10 @@ const hints: Record<StudioTool, string> = {
   select: "Select · click a layer to inspect · ⌘/Ctrl-click a nested part · I to interact",
   interact: "Interact · use the examples · V to select",
   hand: "Hand · drag to pan",
+  screen: "Screen · click the canvas to add a Screen · Esc for Move",
+  stack: "Stack · point where it goes, click to place · Esc for Move",
+  text: "Text · point where it goes, click to place · Esc for Move",
+  image: "Image · point where it goes, click to place · Esc for Move",
 };
 
 /**

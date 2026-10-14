@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AppShell } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
-import { Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
+import { BreadcrumbItem, Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -17,6 +17,7 @@ import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { Sidebar } from "../../../components/Sidebar";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
@@ -28,8 +29,9 @@ import {
   type Person, type PersonId, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, PreviewPage, ShellPage, StudioLogo } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
-import "./breadcrumbs.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "breadcrumbs";
 
@@ -104,9 +106,9 @@ function FileBrowserExample() {
   const narrow = width > 0 && width < 560;
   const allColumns: TableColumn<Entry>[] = [
     { id: "name", header: "Name", cell: (e) => (narrow
-      ? <TableMedia media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
+      ? <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="lg" /> : <FileIcon format={fileIconFormatOf(e.name)} size="lg" />}
           caption={[e.bytes === undefined ? "" : formatBytes(e.bytes), formatRelative(e.updated)].filter(Boolean).join(" · ")}>{e.name}</TableMedia>
-      : <TableMedia media={isFolder(e) ? <Icon name="icon-folder-line" size="base" /> : <FileIcon format={fileIconFormatOf(e.name)} size="base" />}>{e.name}</TableMedia>) },
+      : <TableMedia bold media={isFolder(e) ? <Icon name="icon-folder-line" size="base" /> : <FileIcon format={fileIconFormatOf(e.name)} size="base" />}>{e.name}</TableMedia>) },
     { id: "owner", header: "Owner", width: "180px", cell: (e) => <TableMedia bold={false} media={avatar(people[e.owner], "xsmall")}>{people[e.owner].name}</TableMedia> },
     { id: "updated", header: "Modified", width: "200px", cell: (e) => <TableText>{formatRelative(e.updated)}</TableText> },
     { id: "size", header: "Size", align: "right", width: "96px", cell: (e) => <TableText>{e.bytes === undefined ? "" : formatBytes(e.bytes)}</TableText> },
@@ -114,7 +116,7 @@ function FileBrowserExample() {
   const columns = narrow ? allColumns.filter((column) => column.id === "name") : allColumns;
 
   return (
-    <div className="px-breadcrumbs-page" ref={measure}>
+    <PreviewPage ref={measure} margin="block">
       <Container maxWidth="full">
         <Stack gap="xl">
           <PageHeader
@@ -135,7 +137,7 @@ function FileBrowserExample() {
       </Container>
       <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New folder" field={{ kind: "name", label: "Folder name", placeholder: "Round 2" }}
         submitLabel="Create folder" confirm={() => "Folder created"} onSubmit={addFolder} />
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -198,7 +200,7 @@ function TopBarTrailExample() {
     content = (
       <>
         <PageHeader title={person.name} description={`${person.role} · ${person.location}`} />
-        <Card theme="border">
+        <Card theme="shadow">
           <DescriptionList items={[
             { term: "Team", description: team.team },
             { term: "Email", description: person.email },
@@ -270,31 +272,29 @@ function TopBarTrailExample() {
   }
 
   return (
-    <div className="px-breadcrumbs-frame" ref={measure}>
-      <div className="px-breadcrumbs-frame__scroll">
-        <AppShell
-          sidebar={(
-            <Sidebar
-              // The logo slot is sized to the header (24px, 20px dense): the mark fills its height, so density never outgrows it.
-              logo={<span className="px-breadcrumbs-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>}
-              logoCollapsed={<Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
-              sections={[{ items: [
-                { id: "home", label: "Home", icon: "icon-home-03-line" },
-                { id: "projects", label: "Projects", icon: "icon-folder-line" },
-                { id: "people", label: "People", icon: "icon-users-line" },
-              ] }]}
-              selectedId={route.section}
-              onItemClick={(item) => go(item.id)}
-            />
-          )}
-          // The house pattern (HR-Platform): the trail sits in the top bar, starts at Home and has no master icon. Home itself
-          // is the top level, so it shows no trail.
-          header={crumbs.length > 1 ? <Breadcrumbs key={crumbs.length} master={false} items={crumbs} maxItems={width && width < 640 ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); go(item.id); }} /> : undefined}
-        >
-          <Container><Stack gap="xl" className="px-breadcrumbs-shell-page">{content}</Stack></Container>
-        </AppShell>
-      </div>
-    </div>
+    <PreviewAppFrame frameRef={measure} height={{ min: 520, max: 720 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar
+            // The logo slot is sized to the header (24px, 20px dense): the mark fills its height, so density never outgrows it.
+            logo={<StudioLogo src={studio.logo} name={studio.name} />}
+            logoCollapsed={<Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
+            sections={[{ items: [
+              { id: "home", label: "Home", icon: "icon-home-03-line" },
+              { id: "projects", label: "Projects", icon: "icon-folder-line" },
+              { id: "people", label: "People", icon: "icon-users-line" },
+            ] }]}
+            selectedId={route.section}
+            onItemClick={(item) => go(item.id)}
+          />
+        )}
+        // The house pattern (HR-Platform): the trail sits in the top bar, starts at Home and has no master icon. Home itself
+        // is the top level, so it shows no trail.
+        header={crumbs.length > 1 ? <Breadcrumbs key={crumbs.length} master={false} items={crumbs} maxItems={width && width < 640 ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); go(item.id); }} /> : undefined}
+      >
+        <ShellPage>{content}</ShellPage>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -327,11 +327,13 @@ function LongPathExample() {
   const children = handbook.filter((d) => d.parent === docId);
 
   return (
-    <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
+    <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
       <Stack gap="md">
         {/* Six levels: the first and the last two stay, "…" opens the rest (narrow: the first and the current page). */}
-        <Breadcrumbs key={docId} items={path.map((d) => ({ id: d.id, label: d.title, href: `/handbook/${d.id}`, icon: d.parent === null ? "icon-book-open-line" : undefined }))}
-          maxItems={width && width < 400 ? 2 : 3} onNavigate={(item, event) => { event.preventDefault(); setDocId(item.id); }} />
+        {/* The trail as BreadcrumbItem children (Figma's Item-List slot); an items array works the same. */}
+        <Breadcrumbs key={docId} maxItems={width && width < 400 ? 2 : 3} onNavigate={(item, event) => { event.preventDefault(); setDocId(item.id); }}>
+          {path.map((d) => <BreadcrumbItem key={d.id} item={{ id: d.id, label: d.title, href: `/handbook/${d.id}`, icon: d.parent === null ? "icon-book-open-line" : undefined }} />)}
+        </Breadcrumbs>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">{doc.title}</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">{`Updated ${lower(formatRelative(doc.updated))} by ${people[doc.owner].name}`}</Text>
@@ -347,7 +349,39 @@ function LongPathExample() {
           <Text>{q3Findings}</Text>
         )}
       </Stack>
-    </Card>
+    </Card></Stack>
+  );
+}
+
+// ——— 3b. Next level (per-crumb Emphasis and Dash) ——————————————————————————————————————————————————————————————
+/* Each crumb sets its own look, as Figma's Item instances in the Item-List slot do (2026-10-10): the open folder is Medium
+   and keeps its Dash (the chevron after it) while it has folders inside, and the Menu after the chevron goes one level
+   down. Crumbs go back up. */
+function NextLevelExample() {
+  const [folderId, setFolderId] = useState("clients");
+  const [measure, width] = useWidth();
+  const path = pathTo(fileTree, folderId);
+  const folders = childrenOf(fileTree, folderId).filter(isFolder);
+  return (
+    <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
+      {/* One row: the chevron after the open folder stays beside the menu it points to (narrow: the trail collapses). */}
+      <Stack direction="row" gap="xs" align="center">
+        <Breadcrumbs
+          aria-label="Folder path"
+          maxItems={width && width < 400 ? 2 : 3}
+          items={trail(path).map((item, index) => (index === path.length - 1 ? { ...item, emphasis: "medium", dash: folders.length > 0 } : item))}
+          onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }}
+        />
+        {folders.length ? (
+          <Menu
+            aria-label={`Folders in ${path[path.length - 1].name}`}
+            trigger={<Button level="tertiary" size="sm" endIcon="icon-chevron-down-line">{plural(folders.length, "folder")}</Button>}
+            items={folders.map((f) => ({ id: f.id, label: f.name, icon: "icon-folder-line" }))}
+            onSelect={(item) => setFolderId(item.id)}
+          />
+        ) : null}
+      </Stack>
+    </Card></Stack>
   );
 }
 
@@ -372,7 +406,7 @@ function MoveToFolderExample() {
   };
 
   return (
-    <Card theme="flat" className="px-breadcrumbs-move">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <FileIcon format={fileIconFormatOf(file.name)} size="xl" />
@@ -399,11 +433,11 @@ function MoveToFolderExample() {
           )}
         </Stack>
       </Dialog>
-    </Card>
+    </Card></Stack>
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "File browser",
     description: "Folders three and more levels deep: the trail sits above the PageHeader title, starts at Files with its icon and ends at the open folder as plain text. Crumbs are links with an href, so they open in a new tab too; the top level shows no trail.",
@@ -457,16 +491,49 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "Long path",
-    description: "A handbook page six levels down keeps its trail on one line: maxItems keeps the root and the last levels, and “…” (named “Show 3 more”) opens the rest. Going up or down resets the collapse.",
+    description: "A handbook page six levels down keeps its trail on one line: maxItems keeps the root and the last levels, and “…” (named “Show 3 more”) opens the rest. Going up or down resets the collapse. The crumbs are BreadcrumbItem children, Figma's Item-List slot.",
     render: () => <LongPathExample />,
     code: `<Breadcrumbs
   key={pageId} // a new page collapses the trail again
-  items={path.map((p) => ({ id: p.id, label: p.title, href: \`/handbook/\${p.id}\` }))}
   maxItems={narrow ? 2 : 3}
   onNavigate={(item, event) => { event.preventDefault(); setPageId(item.id); }}
-/>
+>
+  {path.map((p) => <BreadcrumbItem key={p.id} item={{ id: p.id, label: p.title, href: \`/handbook/\${p.id}\` }} />)}
+</Breadcrumbs>
 <Heading level={4} textStyle="Heading/Subheading">Q3 critique</Heading>
 <Text textStyle="Body/Small/Regular" tone="base">Updated yesterday at 5:20 pm by Alex Duong</Text>`,
+  },
+  {
+    title: "Next level",
+    description: "Each crumb can set its own Level, Emphasis, State and Dash, like Figma's Item instances in the Item-List slot. The open folder is Medium and keeps its chevron while it has folders inside, and the menu after the chevron opens one of them; the crumbs go back up.",
+    render: () => <NextLevelExample />,
+    code: `const path = pathTo(folderId); // [Files, Clients]
+const folders = subfolders(folderId); // Lumen Bank, Mekong Freight, Phin & Co
+
+{/* One row: the trail, then the menu one level down (gap 8px); a narrow card collapses the trail instead of wrapping */}
+<Stack direction="row" gap="xs" align="center">
+  <Breadcrumbs
+    aria-label="Folder path"
+    maxItems={narrow ? 2 : 3}
+    items={path.map((f, i) => ({
+      id: f.id,
+      label: f.name,
+      href: \`/files/\${f.id}\`,
+      icon: f.isRoot ? "icon-folder-line" : undefined,
+      // The open folder: Medium, and its chevron stays while the menu follows it
+      ...(i === path.length - 1 ? { emphasis: "medium", dash: folders.length > 0 } : {}),
+    }))}
+    onNavigate={(item, event) => { event.preventDefault(); setFolderId(item.id); }}
+  />
+  {folders.length > 0 && (
+    <Menu
+      aria-label={\`Folders in \${path.at(-1).name}\`}
+      trigger={<Button level="tertiary" size="sm" endIcon="icon-chevron-down-line">{plural(folders.length, "folder")}</Button>}
+      items={folders.map((f) => ({ id: f.id, label: f.name, icon: "icon-folder-line" }))}
+      onSelect={(item) => setFolderId(item.id)}
+    />
+  )}
+</Stack>`,
   },
   {
     title: "Move to folder",
@@ -492,4 +559,4 @@ export const examples: ExampleDef[] = [
   </Stack>
 </Dialog>`,
   },
-];
+]);

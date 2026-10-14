@@ -22,6 +22,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import { formatMoney, initials, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./slider.css";
 
 export const page: PlatformPage = "slider";
@@ -35,7 +36,7 @@ function PhotoZoomExample() {
   // Reset zoom disables itself: focus moves to the slider instead of falling to the page.
   const reset = () => { formRef.current?.querySelector<HTMLElement>('input[type="range"]')?.focus(); setZoom(100); };
   return (
-    <Card theme="flat" className="px-slider-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form ref={formRef} onSubmit={() => toast({ type: "positive", title: "Profile photo updated" })} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Profile photo</Heading>
         {/* The crop follows the thumb while it moves: the slider tunes by eye, the preview shows the result. */}
@@ -47,14 +48,13 @@ function PhotoZoomExample() {
         <Stack direction="row" gap="xs" align="center">
           <Slider aria-label="Zoom" min={100} max={300} step={5} value={zoom} onValueChange={setZoom}
             icon="icon-zoom-in-solid" valueText={(value) => `${value}%`} />
-          <Text as="span" textStyle="Body/Base/Medium" className="px-slider-value">{zoom}%</Text>
         </Stack>
         <FormActions>
           <Button level="tertiary" disabled={zoom === 100} onClick={reset}>Reset zoom</Button>
           <Button level="primary" type="submit">Save photo</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -74,7 +74,7 @@ function BudgetAlertExample() {
   const save = () => { toSlider(); setSaved(threshold); toast({ type: "positive", title: "Budget alert saved" }); };
   const cancel = () => { toSlider(); setThreshold(saved); };
   return (
-    <Card theme="flat" className="px-slider-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form ref={formRef} onSubmit={save} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Budget alert</Heading>
@@ -83,11 +83,13 @@ function BudgetAlertExample() {
         <Stack gap="xs">
           <Text as="span" id={labelId} textStyle="Body/Small/Bold">Share of the budget</Text>
           {/* The slider gets close by feel, the number field types the exact percentage: both edit one value. */}
-          <Stack direction="row" gap="xs" align="center">
+          <Stack gap="xs" align="center">
             <Slider aria-labelledby={labelId} min={50} max={100} value={threshold} onValueChange={setThreshold}
               icon="icon-bell-01-solid" valueText={(value) => `${value}% of the budget`} />
-            <NumberField aria-label="Share of the budget, percent" className="px-slider-number" min={50} max={100}
-              value={threshold} onValueChange={(value) => { if (value !== null) setThreshold(value); }} trailing="%" />
+            <Stack direction="row" fillChildren width="fill">
+              <NumberField aria-label="Share of the budget, percent" min={50} max={100}
+                value={threshold} onValueChange={(value) => { if (value !== null) setThreshold(value); }} trailing="%" align="center" />
+            </Stack>
           </Stack>
         </Stack>
         <DescriptionList items={[
@@ -102,7 +104,7 @@ function BudgetAlertExample() {
           <Button level="primary" type="submit" disabled={!changed}>Save alert</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -149,7 +151,7 @@ function TeamAllocationExample() {
         <Slider aria-label={`${people[row.person].name}, share of the week`} size="sm" step={10}
           value={row.share} onValueChange={(share) => setShare(row.person, share)}
           valueText={(share) => `${share}%, ${(share * WEEK_HOURS) / 100} hours a week`} />
-        <Text as="span" textStyle="Body/Base/Regular" className="px-slider-value">{row.share}%</Text>
+        <Text as="span" textStyle="Body/Base/Regular" width="hug" align="end" tabularNumbers className="px-slider-value">{row.share}%</Text>
       </Stack>
     ) },
     { id: "hours", header: "Hours per week", align: "right", width: "132px", cell: (row) => <TableText>{(row.share * WEEK_HOURS) / 100}</TableText> },
@@ -224,7 +226,7 @@ function SoundsExample() {
   const [sounds, setSounds] = useState(false);
   const [volume, setVolume] = useState(60);
   return (
-    <Card theme="flat" className="px-slider-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       {/* The card header and two settings of one group: md apart; each label sits xs from its control. */}
       <Stack gap="md">
         <Stack gap="xs">
@@ -244,7 +246,7 @@ function SoundsExample() {
           {sounds ? null : <Text textStyle="Caption/Regular" tone="light">Turn on notification sounds to set their volume.</Text>}
         </Stack>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -275,7 +277,7 @@ function PointsCheckoutExample() {
     return (
       // One key per screen: each step opens at the top; the cart is a tab root with a large title.
       <PlatformPhone key="cart" label="Phin cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static" summary={<Text as="span" textStyle="Body/Base/Medium">Subtotal {formatMoney(subtotal, true)}</Text>}
           primaryAction={{ label: "Check out", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
         {screen.anchor}
@@ -294,7 +296,7 @@ function PointsCheckoutExample() {
   const paid = step === "paid";
   return (
     <PlatformPhone key={step} label="Phin checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={paid ? "Order placed" : "Checkout"} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={paid ? "Order placed" : "Checkout"} scrollRef={screenRef}
         leading={paid ? undefined : { icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => go("cart", ".zen-action-bar .zen-button") }} />}
       footer={paid
         ? <ActionBar position="static" primaryAction={{ label: "Start new order", onClick: () => { setPoints(320); go("cart", ".zen-action-bar .zen-button"); } }} />
@@ -336,7 +338,7 @@ function PointsCheckoutExample() {
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Photo zoom",
     description: "Zoom is tuned by eye, so the crop follows the thumb while it moves; the value beside the slider and Reset zoom make the exact state visible and undoable.",
@@ -358,17 +360,19 @@ export const examples: ExampleDef[] = [
   },
   {
     title: "Budget alert",
-    description: "A slider alone can't hit an exact number, so a NumberField edits the same value beside it. The summary turns the percentage into money, and Cancel and Save alert wait for a change.",
+    description: "A slider alone can't hit an exact number, so a NumberField edits the same value under it. The summary turns the percentage into money, and Cancel and Save alert wait for a change.",
     render: () => <BudgetAlertExample />,
     code: `const [threshold, setThreshold] = useState(80);
 
 <Form onSubmit={saveAlert} gap="md">
   <Text as="span" id={labelId} textStyle="Body/Small/Bold">Share of the budget</Text>
-  <Stack direction="row" gap="xs" align="center">
+  <Stack gap="xs" align="center">
     <Slider aria-labelledby={labelId} min={50} max={100} value={threshold} onValueChange={setThreshold}
       icon="icon-bell-01-solid" valueText={(value) => \`\${value}% of the budget\`} />
-    <NumberField aria-label="Share of the budget, percent" min={50} max={100} trailing="%"
-      value={threshold} onValueChange={(value) => value !== null && setThreshold(value)} />
+    <Stack direction="row" fillChildren width="fill">
+      <NumberField aria-label="Share of the budget, percent" min={50} max={100} trailing="%" align="center"
+        value={threshold} onValueChange={(value) => value !== null && setThreshold(value)} />
+    </Stack>
   </Stack>
   <DescriptionList items={[{ term: "Alert at", description: formatMoney(budget * threshold / 100) }]} />
   <FormActions>
@@ -386,7 +390,7 @@ export const examples: ExampleDef[] = [
 const setShare = (person, share) => setRows(rows.map((row) => (row.person === person ? { ...row, share } : row)));
 
 const columns: TableColumn<Allocation>[] = [
-  { id: "person", header: "Person", cell: (row) => <TableMedia media={<Avatar size="sm" … />} caption={row.role}>{row.name}</TableMedia> },
+  { id: "person", header: "Person", cell: (row) => <TableMedia bold media={<Avatar size="sm" … />} caption={row.role}>{row.name}</TableMedia> },
   { id: "other", header: "Other projects", align: "right", cell: (row) => <TableText>{row.other}%</TableText> },
   { id: "share", header: "This project", cell: (row) => (
     <Stack direction="row" gap="xs" align="center">
@@ -455,7 +459,7 @@ const total = subtotal - points / 100;
 
 // One key per step (cart, checkout, paid), so each opens at the top; the bar follows the scroll.
 <PlatformPhone key={step} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: toCart }} />}
   footer={<ActionBar position="static" primaryAction={{ label: total > 0 ? \`Pay \${formatMoney(total)}\` : "Place order", onClick: pay }} />}>
 <Heading level={2} id={labelId} textStyle="Body/Small/Bold" tone="light">Use Phin points</Heading>
@@ -470,4 +474,4 @@ const total = subtotal - points / 100;
 </PlatformPhone>
 // Points can cover the whole order: then the action places it without a payment.`,
   },
-];
+]);

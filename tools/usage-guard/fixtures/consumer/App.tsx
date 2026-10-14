@@ -10,11 +10,11 @@ export function App() {
     <main>
       {/* The app's own Button: never judged by Zen's rules. */}
       <Button level="secondary">Own button</Button>
-      {/* expect: button/secondary-justified */}
+      {/* expect: button/secondary-justified  expect: interaction/action-without-handler */}
       <ZenButton level="secondary">Pinned</ZenButton>
       {/* expect: icon-button/needs-name  expect: icon-button/needs-action */}
       <IconButton icon="icon-plus-line" />
-      {/* expect: button/vague-label */}
+      {/* expect: button/vague-label  expect: interaction/action-without-handler */}
       <Zen.Button>OK</Zen.Button>
       {/* expect: api/deprecated-prop  expect: interaction/no-noop-handler */}
       <Zen.Tabs aria-label="Sections" items={[{ id: "overview", label: "Overview" }, { id: "activity", label: "Activity" }]} onChange={() => undefined} />
@@ -25,7 +25,7 @@ export function App() {
       {/* expect: app-shell/forced-layout */}
       <Zen.AppShell layout="sidebar"><Zen.Text>Page</Zen.Text></Zen.AppShell>
       {/* zen-allow-secondary: toolbar toggle that stays pressed */}
-      <ZenButton level="secondary">Bold</ZenButton>
+      <ZenButton level="secondary" onClick={() => setBold(!bold)}>Bold</ZenButton>
     </main>
   );
 }

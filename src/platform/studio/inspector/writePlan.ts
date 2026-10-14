@@ -1,4 +1,5 @@
 import type { EditOp, EditValue, SourceAttr, SourceElement } from "../types";
+import { computedDefault } from "./computedDefaults";
 import { literalOf, ownValueOf, propSpecs, valueOf, type Literal, type PropSpec, type PropValue } from "./propSchema";
 
 /*
@@ -45,6 +46,17 @@ export function isTwinRow(component: string, name: string): boolean {
 }
 
 /** The written attribute `name` (spreads left out). */
+/** The props written as literals (what a computed default reads before the canvas reports the live props). */
+function literalProps(attributes: readonly SourceAttr[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const attr of attributes) {
+    if (attr.kind === "spread") continue;
+    const value = valueOf(attributes as SourceAttr[], attr.name);
+    if (value.state === "literal") out[attr.name] = value.value;
+  }
+  return out;
+}
+
 const attrOf = (attributes: readonly SourceAttr[], name: string) => attributes.find((attr) => attr.kind !== "spread" && attr.name === name);
 
 /**
@@ -54,7 +66,8 @@ const attrOf = (attributes: readonly SourceAttr[], name: string) => attributes.f
 export function displayValueOf(component: string, attributes: SourceAttr[], name: string, live: Record<string, unknown> | undefined): PropValue {
   const value = ownValueOf(attributes, name, live);
   const attr = attrOf(attributes, name);
-  if (value.state === "bound" && attr?.state) return { state: "literal", value: attr.state.value, raw: attr.raw };
+  // A list state (a Table's selectedIds) has no literal editor here: the Table panels write it.
+  if (value.state === "bound" && attr?.state && !Array.isArray(attr.state.value)) return { state: "literal", value: attr.state.value, raw: attr.raw };
   const twin = stateTwinOf(component, name);
   if (twin && value.state === "unset") {
     const twinValue = ownValueOf(attributes, twin, live);
@@ -91,6 +104,10 @@ export function planPropWrite(component: string, attributes: SourceAttr[], name:
     } else ops.push({ op: "setProp", name: twin, value: toEditValue(value) });
     return { ops, note: twin };
   }
+  // A default the component computes (an Advanced Chip's chevron): matching it removes the prop, else it is written,
+  // `false` included (removing it would bring the computed `true` back).
+  const computed = typeof value === "boolean" ? computedDefault(component, name, { ...literalProps(attributes), ...(live ?? {}) }) : undefined;
+  if (computed !== undefined) return value === computed ? { ops: own.state === "unset" ? [] : [{ op: "removeProp", name }] } : { ops: [{ op: "setProp", name, value: toEditValue(value) }] };
   if (value === false && specOf(component, name)?.defaultValue !== true) {
     return { ops: own.state === "unset" ? [] : [{ op: "removeProp", name }] };
   }
@@ -143,7 +160,28 @@ export function restoreStep(component: string, element: SourceElement, name: str
   const twin = stateTwinOf(component, name);
   if (twin && element.savedAttributes?.[twin] === null && valueOf(element.attributes, twin).state !== "unset") return [{ op: "removeProp", name: twin }];
   if (element.attributes.some((now) => now.kind !== "spread" && now.name === name && now.raw === saved.raw)) return [];
-  return playground ? [{ op: "setProp", name, value: { kind: "expression", code: saved.value ?? "" } }] : [{ op: "resetSlot", prop: name }];
+  if (!playground) return [{ op: "resetSlot", prop: name }];
+  const write = savedSetProp(name, saved);
+  return write ? [write] : [];
+}
+
+/** setProp's `before`: the attribute the saved file writes after this one, so a playground's write lands in place. */
+const beforeOf = (saved: SourceAttr): { before?: string } => (saved.next ? { before: saved.next } : {});
+
+/** A saved attribute as setProp writes it again (bare → true, "x", {code}); null for a spread. */
+function savedValue(attr: SourceAttr): EditValue | null {
+  if (attr.kind === "true") return { kind: "boolean", value: true };
+  if (attr.kind === "string") return { kind: "string", value: attr.value ?? "" };
+  return attr.kind === "expression" && attr.value ? { kind: "expression", code: attr.value } : null;
+}
+
+/**
+ * The setProp that writes a saved attribute back as and where the saved file has it (a playground's presence switch
+ * back on: its file refuses resetSlot, and a plain setProp would append it to the tag); null for a spread.
+ */
+export function savedSetProp(name: string, saved: SourceAttr): EditOp | null {
+  const value = savedValue(saved);
+  return value ? { op: "setProp", name, value, ...beforeOf(saved) } : null;
 }
 
 /** The literal a written attribute holds (bare → true, "x", {false}, {2}), or undefined for an expression. */
@@ -152,10 +190,10 @@ const attrLiteral = (attr: SourceAttr): Literal | undefined => (attr.kind === "t
 /**
  * Switching a prop back to what the saved file writes (`bold` off, then on again): the saved attribute comes back where
  * and as it was (op resetSlot {prop} on the drafted element), so the file is the saved one again instead of the same
- * value in another place. Also for a state prop's `defaultX` twin. Null when the saved file does not write that value;
- * not for a playground, whose file refuses slot ops.
+ * value in another place. Also for a state prop's `defaultX` twin. Null when the saved file does not write that value.
+ * A playground, whose file refuses slot ops, gets a setProp of the saved attribute in its saved place (savedSetProp).
  */
-export function savedWrite(component: string, element: SourceElement, name: string, value: Literal): WritePlan | null {
+export function savedWrite(component: string, element: SourceElement, name: string, value: Literal, playground = false): WritePlan | null {
   const saved = element.savedAttributes;
   if (!saved) return null;
   for (const prop of [name, stateTwinOf(component, name)]) {
@@ -163,7 +201,9 @@ export function savedWrite(component: string, element: SourceElement, name: stri
     if (!prop || !attr || attrLiteral(attr) !== value) continue;
     // Already as saved: nothing to put back (the server would refuse it).
     if (element.attributes.some((now) => now.kind !== "spread" && now.name === prop && now.raw === attr.raw)) return null;
-    return { ops: [{ op: "resetSlot", prop }] };
+    if (!playground) return { ops: [{ op: "resetSlot", prop }] };
+    const write = savedSetProp(prop, attr);
+    return write ? { ops: [write] } : null;
   }
   return null;
 }

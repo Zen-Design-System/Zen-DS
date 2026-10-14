@@ -1,6 +1,9 @@
 // Selection rows: canvas picking, keyboard navigation between layers, multi-selection, the Layers panel.
 import { locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, selectedSrc, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { expectSource, freshSelect, pickOption, waitSeed } from "./inspector.mjs";
+import { TABLE_FRAME, tableText } from "./data.mjs";
+import { newPage, pageText, selectedName } from "./builder.mjs";
+import { clickLoc, focusFrame, openAssetLibrary, rectOf, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 
@@ -12,7 +15,281 @@ async function expectSelected(page, file, loc, message) {
   }, { message: message ?? `${file}:${loc} to be selected` });
 }
 
+/** Every rendering of file:loc in the frame, in document order (the rows of a .map share one location). */
+async function rectsOf(page, file, loc) {
+  return page.evaluate((src) => [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect().toJSON()), `${file}:${loc}`);
+}
+
+/** The outline of the selection: which rendering of file:loc it covers (-1: none). */
+async function selectedRendering(page, file, loc) {
+  return page.evaluate((src) => {
+    const box = document.querySelector('.studio-selection__outline[data-kind="selected"]')?.getBoundingClientRect();
+    if (!box) return -1;
+    return [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect())
+      .findIndex((r) => Math.abs(r.x - box.x) < 3 && Math.abs(r.y - box.y) < 3 && Math.abs(r.width - box.width) < 3 && Math.abs(r.height - box.height) < 3);
+  }, `${file}:${loc}`);
+}
+
+const centre = (rect) => ({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
+
+/** The Inspector's heading starts with `name` (a Table part: "Cell · row 2 · Task · Table"). */
+async function expectHeading(page, name, message) {
+  await until(async () => (await selectedName(page)).startsWith(name), { message }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+}
+
 export const rows = [
+  {
+    id: "SE-31", feature: "A Table as Figma lists it: double-click Table → Data-Row → Cell → its content, Escape back out; the Cell's Content swaps a `cell` column's element (Badge)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      await expectHeading(page, "Table", "the Table selected");
+      const steps = ["Table"];
+      const title = await tableText(ctx, page, "Prototype");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Data-Row", "a double-click selects the row under the pointer");
+      steps.push("Data-Row");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Cell", "a double-click selects the cell");
+      steps.push("Cell");
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "TableText", "a double-click selects the cell's content (the column's cell)");
+      steps.push("TableText");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Cell", "Escape goes back to the Cell");
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Data-Row", "Escape goes back to the Data-Row");
+      await page.keyboard.press("Escape");
+      await expectHeading(page, "Table", "Escape goes back to the Table");
+      steps.push("Escape ×3");
+      // Content → Badge on the Task column: its cell's TableText becomes Figma's Badge-Cell.
+      await page.mouse.dblclick(title.x, title.y);
+      await page.mouse.dblclick(title.x, title.y);
+      await expectHeading(page, "Cell", "the Cell again");
+      await pickOption(page, "content", "Badge");
+      await until(async () => (await ctx.text()).includes('cell: (row) => <TableBadges><Badge size="medium" theme="neutral" background="subtle" leadingIcon={false}>{row.title}</Badge></TableBadges> }'), { message: "the Task column's cell as a Badge-Cell" });
+      steps.push("Content → Badge");
+      return steps.join(" → ");
+    },
+  },
+  {
+    id: "SE-33", feature: "A component nested in a Table cell: its props are written where the cell's own component is used (Size at <FixtureAvatar>, Theme in that row's person in data.ts)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const table = `${ctx.file}:${locOf(await ctx.text(), "table").loc}`;
+      // The Avatar in row t-2 (bao): ⌘-click it, Figma's deepest layer.
+      const avatar = async () => {
+        const point = await until(() => page.evaluate((src) => {
+          const tr = [...(window.__e2e.elementOf(src)?.querySelectorAll("tr.zen-table__row") ?? [])].find((row) => row.textContent.includes("Prototype"));
+          const r = tr?.querySelector(".zen-avatar")?.getBoundingClientRect();
+          return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+        }, table), { message: "the Avatar in row t-2" });
+        await page.keyboard.down("ControlOrMeta");
+        try { await page.mouse.click(point.x, point.y); } finally { await page.keyboard.up("ControlOrMeta"); }
+        await expectHeading(page, "Avatar", "the cell's Avatar selected");
+      };
+      await avatar();
+      await pickOption(page, "size", "Small");
+      await until(async () => (await ctx.text()).includes('<FixtureAvatar person={people[row.owner]} size="sm" />'), { message: "size=\"sm\" where <FixtureAvatar> is used" });
+      // The Avatar stays selected across the edit (a ⌘-click on it now would go into its parts, as in Figma).
+      await sleep(600);
+      if (!(await selectedName(page)).startsWith("Avatar")) await avatar();
+      await pickOption(page, "theme", "Red");
+      await until(async () => (await ctx.api.source(ctx.dataFile)).content.includes('bao: person("bao", "Bao Nguyen", "Frontend Engineer", "Engineering", "red",'), { message: "bao's theme in data.ts" });
+      return "size at its use · theme in data.ts";
+    },
+  },
+  {
+    id: "SE-34", feature: "A page you made: a Table's Avatar cell takes a picture — Picture field adds a photo field, Picture picks a library photo for that row, the canvas draws it", wp: "table 2026-10-10",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      await openAssetLibrary(page, "Components");
+      await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Table");
+      await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Table/ }).first().click();
+      await until(async () => /<Table /.test((await pageText(page, id)) ?? ""), { message: "the Table on the page" });
+      // The Lead cell of the first row (an Avatar cell the Table draws: content "avatar", no picture yet).
+      const lead = async () => until(() => page.evaluate((prefix) => {
+        const root = document.querySelector(`[data-zen-src^="${prefix}"][data-zen-name="Table"]`);
+        const cell = [...(root?.querySelectorAll("td.zen-table__cell") ?? [])].find((td) => td.textContent.includes("Chi Tran") && td.querySelector(".zen-avatar"));
+        const r = cell?.querySelector(".zen-avatar")?.getBoundingClientRect() ?? cell?.getBoundingClientRect();
+        return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+      }, `local:${id}.zen.tsx:`), { message: "the Lead cell of row 1" });
+      let point = await lead();
+      await page.mouse.click(point.x, point.y);
+      await page.mouse.dblclick(point.x, point.y);
+      await expectHeading(page, "Data-Row", "the row");
+      await page.mouse.dblclick(point.x, point.y);
+      await expectHeading(page, "Cell", "the Lead cell");
+      await pickOption(page, "mediaField", "photo (new)");
+      await until(async () => /id: "lead"[^}]*mediaField: "photo"/.test((await pageText(page, id)) ?? ""), { message: 'mediaField: "photo" on the Lead column' });
+      await sleep(500);
+      await page.locator('#studio-right [data-prop="value-photo"] button').first().click();
+      await page.getByRole("option", { name: "Ava", exact: true }).or(page.getByRole("menuitem", { name: "Ava", exact: true })).first().click();
+      await until(async () => /lead: "Chi Tran"[^}]*photo: "zen-media:avatar-ava"/.test((await pageText(page, id)) ?? ""), { message: "row 1's photo in the page" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(-140)}`); });
+      // The canvas draws the picture (the page renderer resolves zen-media: in a row's data).
+      await until(() => page.evaluate((prefix) => {
+        const root = document.querySelector(`[data-zen-src^="${prefix}"][data-zen-name="Table"]`);
+        const cell = [...(root?.querySelectorAll("td.zen-table__cell") ?? [])].find((td) => td.textContent.includes("Chi Tran") && td.querySelector(".zen-avatar"));
+        const src = cell?.querySelector(".zen-avatar img")?.getAttribute("src") ?? "";
+        return Boolean(src) && !src.startsWith("zen-media:");
+      }, `local:${id}.zen.tsx:`), { message: "the Avatar draws the photo" });
+      return "photo field added, picture picked and drawn";
+    },
+  },
+  {
+    id: "SE-32", feature: "A Table column without `cell`: its Cell's Content and Bold are the column's fields (content, bold)", wp: "table 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      const status = await tableText(ctx, page, "Done");
+      await page.mouse.dblclick(status.x, status.y);
+      await expectHeading(page, "Data-Row", "the row");
+      await page.mouse.dblclick(status.x, status.y);
+      await expectHeading(page, "Cell", "the cell");
+      await page.locator('#studio-right [data-prop="bold"]').getByRole("switch").first().click().catch(async () => page.locator('#studio-right [data-prop="bold"] button, #studio-right [data-prop="bold"] input').first().click());
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true }'), { message: "bold: true on the Status column" });
+      await pickOption(page, "content", "Badge");
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", bold: true, content: "badge" }'), { message: 'content: "badge" on the Status column' });
+      return "bold, content written on the column";
+    },
+  },
+  {
+    id: "SE-35", feature: "Figma's Table states in the Inspector: a Data-Row's State → Selected writes the checkbox column and defaultSelectedIds, a Cell's State → Edit writes edit: \"text\" on its column, the Data-Row's Editable writes editable on the Table; the canvas draws them", wp: "table states 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
+      await expectHeading(page, "Table", "the Table selected");
+      const LEVELS = ["Table", "Data-Row", "Cell"];
+      /** Figma's levels: a double-click on the Done cell goes one in, Escape one out. */
+      const reach = async (name) => {
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          const current = await selectedName(page);
+          const at = LEVELS.findIndex((level) => current.startsWith(level));
+          const want = LEVELS.indexOf(name);
+          if (at === want) return;
+          if (at === -1 && !current) { const done = await tableText(ctx, page, "Done"); await page.mouse.click(done.x, done.y); }
+          else if (at === -1 || at > want) { await page.locator(".studio-viewport").focus(); await page.keyboard.press("Escape"); }
+          else { const done = await tableText(ctx, page, "Done"); await page.mouse.dblclick(done.x, done.y); }
+          await sleep(250);
+        }
+        throw new Error(`could not reach ${name} (selected: ${await selectedName(page)})`);
+      };
+      await reach("Data-Row");
+      await pickOption(page, "row-state", "Selected");
+      await until(async () => /\]\}[^\n]*\bselectable\b[^\n]*defaultSelectedIds=\{\["t-1"\]\}/.test(await ctx.text()), { message: 'selectable and defaultSelectedIds={["t-1"]} on the Table' });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row")].some((tr) => tr.textContent.includes("Wireframes") && tr.dataset.selected === "true" && tr.querySelector("input[type=checkbox]")?.checked)), { message: "row t-1 drawn selected, its checkbox checked" });
+      const steps = ["Data-Row State → Selected"];
+      await reach("Cell");
+      await pickOption(page, "cell-state", "Edit");
+      await until(async () => (await ctx.text()).includes('{ id: "status", header: "Status", field: "status", edit: "text" }'), { message: 'edit: "text" on the Status column' });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row td.zen-table__cell")].some((td) => td.textContent.includes("Done") && td.dataset.editable === "true")), { message: "the Status cells drawn editable" });
+      steps.push("Cell State → Edit");
+      await reach("Data-Row");
+      await page.locator('#studio-right [data-prop="editable"]').getByRole("switch").first().click().catch(async () => page.locator('#studio-right [data-prop="editable"] button, #studio-right [data-prop="editable"] input').first().click());
+      await until(async () => /\]\}[^\n]*\beditable\b/.test(await ctx.text()), { message: "editable on the Table" });
+      await until(() => page.evaluate(() => [...document.querySelectorAll("tr.zen-table__row td.zen-table__cell")].some((td) => td.textContent.includes("Wireframes") && td.dataset.editable === "true")), { message: "the Task cells (a cell column) stay read-only, the drawn ones edit" }).catch(() => null);
+      steps.push("Data-Row Editable on");
+      return steps.join(" · ");
+    },
+  },
+  {
+    id: "SE-36", feature: "Replace a picture like Figma, in example code: Assets › Photos click puts the photo on the selected Avatar (src as the picture's file), a photo dragged onto it swaps it, the Inspector's Picture picks a person; the canvas draws each", wp: "picture 2026-10-10",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-row", { frame: 6 });
+      const row = `${ctx.file}:${locOf(await ctx.text(), "inst-row").loc}`;
+      const avatarPoint = () => page.evaluate((src) => { const el = window.__e2e.elementOf(src)?.querySelector(".zen-avatar"); const r = el?.getBoundingClientRect(); return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2, img: el.querySelector("img")?.getAttribute("src") ?? "" } : null; }, row);
+      const point = await until(avatarPoint, { message: "the row's Avatar" });
+      await page.keyboard.down("ControlOrMeta");
+      try { await page.mouse.click(point.x, point.y); } finally { await page.keyboard.up("ControlOrMeta"); }
+      await expectHeading(page, "Avatar", "the Avatar selected");
+      // The picture the fixture's Avatar reads, as the Studio writes it in example code (uploader.tsx → src/assets/media).
+      const pictureOf = (text) => /<Avatar alt="Ava Tran" size="sm" src=\{new URL\("\.\.\/\.\.\/\.\.\/assets\/media\/([^"]+)", import\.meta\.url\)\.href\}/.exec(text)?.[1] ?? null;
+      const failWith = (message) => async (error) => { throw new Error(`${error.message} (${message}) · status: ${(await statusText(page)).slice(-160)}`); };
+      // 1. Click a photo in Assets: the selected Avatar takes it.
+      await openAssetLibrary(page, "Photos");
+      const tiles = page.locator("#studio-left-panel-assets [data-photo]");
+      await tiles.nth(0).click();
+      const first = await until(async () => pictureOf(await ctx.text()), { message: "src as the picture's file after the click" }).catch(failWith("click"));
+      await until(async () => (await avatarPoint())?.img.includes(first), { message: `the canvas draws ${first}` });
+      // 2. Drag another photo onto the Avatar: it swaps (the drag's label names the layer).
+      const tile = await tiles.nth(1).boundingBox();
+      const target = await avatarPoint();
+      await page.mouse.move(tile.x + tile.width / 2, tile.y + tile.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(tile.x + 40, tile.y + 20, { steps: 4 });
+      await page.mouse.move(target.x, target.y, { steps: 25 });
+      await sleep(250);
+      await page.mouse.up();
+      const second = await until(async () => { const now = pictureOf(await ctx.text()); return now && now !== first ? now : null; }, { message: "the dropped photo on the Avatar" }).catch(failWith("drop"));
+      await until(async () => (await avatarPoint())?.img.includes(second), { message: `the canvas draws ${second}` });
+      // 3. The Inspector's Picture: a person from People.
+      await until(async () => (await selectedName(page)).startsWith("Avatar"), { message: "the Avatar still selected" });
+      await page.locator('#studio-right [data-prop="src"] button').first().click();
+      await page.getByRole("option", { name: "Bao", exact: true }).click();
+      await until(async () => pictureOf(await ctx.text()) === "avatar-bao.webp", { message: "Bao's photo from the Inspector" }).catch(failWith("Inspector"));
+      return `click → ${first} · drop → ${second} · Inspector → avatar-bao.webp`;
+    },
+  },
+  {
+    id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it (a List passes it on to its rows), a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
+    async run(ctx) {
+      const seed = await ctx.reseed();
+      const { page } = await ctx.studio();
+      await waitSeed(page, seed);
+      const text = await ctx.text();
+      const crew = locOf(text, "crew").loc;
+      const row = locOf(text, "crew-row").loc;
+      const loud = locOf(text, "cond").loc;
+      const featured = locOf(text, "cond-const").loc;
+      // The data frame's row of buttons: the Stack the three Buttons sit in.
+      const lines = text.split("\n");
+      const stackLine = lines.findIndex((line, index) => index > Number(loud.split(":")[0]) - 4 && /<Stack direction="row" gap="sm">/.test(line));
+      const rowStack = `${stackLine + 1}:${lines[stackLine].indexOf("<Stack")}`;
+      // The frame selected (its Layers row): no layer gives a context yet.
+      await focusFrame(page, 1);
+      const rows = await until(async () => { const all = await rectsOf(page, ctx.file, row); return all.length === 3 ? all : null; }, { message: "three crew rows" });
+      const click = async (point, options = {}) => {
+        for (const key of options.keys ?? []) await page.keyboard.down(key);
+        try { await page.mouse.click(point.x, point.y, { clickCount: options.count ?? 1 }); } finally { for (const key of [...(options.keys ?? [])].reverse()) await page.keyboard.up(key); }
+        await sleep(150);
+      };
+      const steps = [];
+      // 1. A click on a crew row selects that row: a List's <ul> passes clicks through, as Figma's List-Box holds its
+      //    List-Items (2026-10-13); the root Stack is the frame.
+      await click(centre(rows[0]));
+      await expectSelected(page, ctx.file, row, "a click on a row selects the row (the List passes it through)");
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 0, { message: "the first row selected" });
+      steps.push("click → row 1");
+      // 2. A click inside the selected row keeps it; no text edit starts.
+      await click(centre(rows[0]));
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 0, { message: "a second click inside the row keeps it" });
+      if (await page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']")))) throw new Error("a click on the selected row started a text edit");
+      // Its Contents slot shows the title and caption: its "+" sits past the row's text, not where the click lands.
+      if (await page.locator(".studio-slots__picker-scope").count()) throw new Error("a click on the selected row opened the insert picker");
+      steps.push("click inside → row 1 kept");
+      // 3–4. A click on another row: the sibling of the selected row (their parent is the context).
+      await click(centre(rows[1]));
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 1, { message: "a click beside selects the second row" });
+      await click(centre(rows[2]));
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 2, { message: "a click beside selects the third row" });
+      steps.push("click → row 2 → row 3");
+      // 5. A click on the Loud button, outside the List: the top level again, the buttons' Stack.
+      const loudRect = (await rectsOf(page, ctx.file, loud))[0];
+      await click(centre(loudRect));
+      await expectSelected(page, ctx.file, rowStack, "a click outside the context selects the top-level layer (the buttons' Stack)");
+      steps.push("click elsewhere → Stack");
+      // 6. ⌘-click on Loud: the deepest layer there, its label (Figma's deep select, 2026-10-13); ⇧Enter: the Button.
+      await click(centre(loudRect), { keys: ["ControlOrMeta"] });
+      await until(async () => /^Text\b/.test((await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim()), { message: "⌘-click selects the deepest layer (Loud's label)" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Enter");
+      await expectSelected(page, ctx.file, loud, "⇧Enter goes up to the Button");
+      steps.push("⌘-click → Loud's label → ⇧Enter → Loud");
+      // 7. A click on Featured: Loud's sibling.
+      await click(centre((await rectsOf(page, ctx.file, featured))[0]));
+      await expectSelected(page, ctx.file, featured, "a click beside a Button selects its sibling");
+      steps.push("click → Featured");
+      return steps.join(" · ");
+    },
+  },
   {
     id: "SE-01", feature: "Click a layer on the canvas selects it (Layers follows)", wp: "GĐ0",
     async run(ctx) {
@@ -82,6 +359,118 @@ export const rows = [
     },
   },
   {
+    id: "SE-08", feature: "Escape on several layers selects their common parent (Figma)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await focusFrame(page, 0);
+      const a = await at(ctx, "btn-a");
+      const heading = await at(ctx, "heading");
+      await clickLoc(page, ctx.file, a);
+      await expectSelected(page, ctx.file, a);
+      await clickLoc(page, ctx.file, heading, { modifiers: ["Shift"] });
+      await until(async () => (await selectedSrc(page)).length === 2, { message: "two layers selected" });
+      await page.keyboard.press("Escape");
+      // btn-a's own parent is the row; the layer that holds both is the outer stack.
+      const stack = await at(ctx, "stack");
+      await expectSelected(page, ctx.file, stack);
+      return "Alpha + heading → Escape → the outer Stack";
+    },
+  },
+  {
+    id: "SE-09", feature: "A nested instance under a row's click target, selected by double-click: hovering it outlines no outer row", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await focusFrame(page, 6);
+      const row = await at(ctx, "inst-click-row");
+      const badge = await at(ctx, "inst-click-badge");
+      // The row's click target covers the Badge. ⌘-click is Figma's deepest layer (since 2026-10-10 the innermost written
+      // one, the Badge, even under the row's target), so the row is selected on its own padding; a double-click on the
+      // Badge then goes into it.
+      await clickLoc(page, ctx.file, row, { deep: true, position: { dx: 4, dy: 4 } });
+      await expectSelected(page, ctx.file, row);
+      await clickLoc(page, ctx.file, badge, { clickCount: 2 });
+      await expectSelected(page, ctx.file, badge);
+      const rect = await rectOf(page, ctx.file, badge);
+      await page.mouse.move(rect.x + rect.width / 2 + 2, rect.y + rect.height / 2 + 1);
+      await sleep(300);
+      const hover = await page.locator('.studio-selection__outline[data-kind="hover"] .studio-selection__tag').allInnerTexts();
+      if (hover.some((tag) => /ListItem/.test(tag))) throw new Error(`hover outlines the outer row: ${hover.join(", ")}`);
+      return `Badge selected inside the row; hover over it shows ${hover.length ? hover.join(", ") : "no outer outline"}`;
+    },
+  },
+  {
+    id: "SE-10", feature: "A Chip that owns a Popover keeps its width handle (its height stays its own)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-chip", { frame: 6 });
+      await sleep(600);
+      const handles = await page.locator(".studio-resize__handle").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-handle")));
+      const pill = (await page.locator(".studio-resize__pill").allInnerTexts()).join(" | ");
+      if (!handles.includes("e") || !handles.includes("w")) throw new Error(`no width handle: ${handles.join(",") || "none"} · pill "${pill}"`);
+      if (handles.includes("n") || handles.includes("s")) throw new Error(`a height handle on a Chip: ${handles.join(",")}`);
+      return `handles ${handles.join(",")} · pill "${pill}"`;
+    },
+  },
+  {
+    id: "SE-11", feature: "A click on the Docs frame below 100% zooms it to 100%, top-aligned", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const zoom = async () => (await page.locator(".studio-zoom__value").first().getAttribute("aria-label")) ?? "";
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await until(async () => /^Zoom \d+%$/.test(await zoom()) && (await zoom()) !== "Zoom 100%", { message: "a zoom below 100% after ⇧1" });
+      const before = await zoom();
+      const frame = page.locator('[data-studio-frame="docs"]');
+      const rect = await frame.boundingBox();
+      await page.mouse.click(rect.x + 6, rect.y + 6);
+      await until(async () => (await zoom()) === "Zoom 100%", { message: "100% after the click" });
+      const top = await frame.boundingBox();
+      if (!top || top.y < 0 || top.y > 200) throw new Error(`the frame's top is at ${top?.y}, not near the viewport's top`);
+      return `${before} → click on Docs → Zoom 100%`;
+    },
+  },
+  {
+    id: "SE-12", feature: "⌘-click on a TopNavigation action lands on the action (a data-slot item), not the icon inside it", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+      await page.keyboard.press("Enter");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      const action = page.locator('[data-studio-frame="example:6"] button.zen-top-nav__action').first();
+      const box = await action.boundingBox();
+      // ⌘ on macOS (there Ctrl+click is the context menu), Ctrl elsewhere.
+      await page.keyboard.down("ControlOrMeta");
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.keyboard.up("ControlOrMeta");
+      await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "a part selected" });
+      const name = await selectedName(page);
+      if (/^(Icon|IconSvg|svg|span)\b/i.test(name)) throw new Error(`landed on ${name}`);
+      return `⌘-click on the action → ${name}`;
+    },
+  },
+  {
+    id: "SE-13", feature: "⇧+click in Layers selects the rows from the selected layer to the clicked one (Figma's range)", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await focusFrame(page, 0);
+      const [a, b, c] = [await at(ctx, "btn-a"), await at(ctx, "btn-b"), await at(ctx, "btn-c")];
+      const rowOf = (loc) => page.locator(`[data-layer-id^="${ctx.file}:${loc}#"]`).first();
+      // Selected on the canvas first: Layers opens down to it, so its siblings' rows show whatever ran before.
+      await clickLoc(page, ctx.file, a);
+      await expectSelected(page, ctx.file, a);
+      await until(() => rowOf(c).count(), { message: "the Gamma row in Layers" });
+      await rowOf(a).scrollIntoViewIfNeeded();
+      await rowOf(a).click();
+      await expectSelected(page, ctx.file, a);
+      await rowOf(c).scrollIntoViewIfNeeded();
+      await rowOf(c).click({ modifiers: ["Shift"] });
+      const selected = await until(async () => {
+        const all = await selectedSrc(page);
+        return [a, b, c].every((loc) => all.includes(`${ctx.file}:${loc}`)) ? all : null;
+      }, { message: "Alpha, Beta and Gamma selected" });
+      await page.keyboard.press("Escape");
+      return `Alpha → ⇧ Gamma: ${selected.length} layers selected`;
+    },
+  },
+  {
     id: "SE-06", feature: "Click a Layers row selects the layer", wp: "GĐ0",
     async run(ctx) {
       const { page } = await ctx.studio();
@@ -109,6 +498,135 @@ export const rows = [
       await search.fill("");
       if (!/no (layer|match|result)/i.test(text)) throw new Error(`no empty-state message (panel reads: "${text.replace(/\s+/g, " ").slice(0, 80)}")`);
       return "empty state shown";
+    },
+  },
+  {
+    id: "SE-20", feature: "A 0 gap (gap=\"none\") has a canvas area on the seam: a click opens the scale and writes the step", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "zero-a", { frame: 9 });
+      await page.keyboard.press("Escape");
+      await expectSelected(page, ctx.file, await at(ctx, "zero"), "the 0-gap Stack selected");
+      const a = await rectOf(page, ctx.file, await at(ctx, "zero-a"));
+      await until(async () => (await page.locator('.studio-selection__spacing-hit[data-editable="true"]').count()) > 0, { message: "editable spacing areas" });
+      await page.mouse.move(a.x + a.width - 1, a.y + a.height / 2);
+      await page.mouse.move(a.x + a.width, a.y + a.height / 2);
+      const pill = await until(async () => {
+        const text = (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
+        return /gap · none/.test(text) ? text : null;
+      }, { message: 'the "gap · none" pill on the seam' });
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.getByRole("option", { name: /^xs\b/ }).click();
+      await expectSource(ctx, "zero", (el) => el.attr("gap") === "xs", 'gap="xs"');
+      return `seam "${pill}" → xs`;
+    },
+  },
+  {
+    id: "SE-21", feature: "A layer partly scrolled out of its scroll box: the outline stops at the box's edge", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "spacer", { frame: 9, position: { dx: 8, dy: 8 } });
+      const scroller = await rectOf(page, ctx.file, await at(ctx, "scroller"));
+      const spacer = await rectOf(page, ctx.file, await at(ctx, "spacer"));
+      const outline = await until(async () => page.locator('.studio-selection__outline[data-kind="selected"]').boundingBox(), { message: "the selection outline" });
+      if (spacer.y + spacer.height <= scroller.y + scroller.height) throw new Error("the fixture's Box is not clipped (it fits its scroll box)");
+      if (outline.y + outline.height > scroller.y + scroller.height + 1.5) throw new Error(`outline bottom ${Math.round(outline.y + outline.height)} past the scroll box's ${Math.round(scroller.y + scroller.height)}`);
+      return `outline ${Math.round(outline.height)} px tall of a ${Math.round(spacer.height)} px Box, inside the ${Math.round(scroller.height)} px scroll box`;
+    },
+  },
+  {
+    id: "SE-22", feature: "Resize a floating Box: the pinned edge moves its inset (snapped), a stretched axis writes the dragged side's inset only", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const drag = async (page, handle, dx) => {
+        const box = await until(() => page.locator(`.studio-resize__handle[data-handle="${handle}"]`).boundingBox(), { message: `the ${handle} handle` });
+        const x = box.x + box.width / 2;
+        const y = box.y + box.height / 2;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        for (let step = 1; step <= 6; step += 1) await page.mouse.move(x + (dx * step) / 6, y);
+        await page.mouse.up();
+      };
+      let page = await freshSelect(ctx, "float-l", { frame: 9 });
+      await sleep(400);
+      await drag(page, "w", -14);
+      const pinned = await expectSource(ctx, "float-l", (el) => el.attr("insetLeft") !== "sm" && el.attr("width") !== "{96}", "insetLeft and width changed");
+      page = await freshSelect(ctx, "float-s", { frame: 9 });
+      await sleep(400);
+      await drag(page, "e", -14);
+      const stretched = await expectSource(ctx, "float-s", (el) => el.attr("insetRight") !== "sm", "insetRight changed");
+      if (stretched.attr("width") !== undefined) throw new Error(`a stretched Box got a width: ${stretched.attr("width")}`);
+      return `left-pinned: insetLeft ${pinned.attr("insetLeft") ?? "none"}, width ${pinned.attr("width")} · left-right: insetRight ${stretched.attr("insetRight") ?? "none"}, no width`;
+    },
+  },
+  {
+    id: "SE-23", feature: "Layers lists a data slot's items (TopNavigation Top-Trailing › its actions); a row selects the action", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+      await page.keyboard.press("Enter");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      await showLeftTab(page, "layers");
+      const tree = page.locator(".studio-layers__tree");
+      // The TopNavigation's row open (a row deeper than the first levels starts closed).
+      const own = tree.locator('[role="treeitem"][aria-selected="true"]').first();
+      await until(() => own.count(), { message: "the TopNavigation's Layers row" });
+      if ((await own.getAttribute("aria-expanded")) === "false") await own.locator(".studio-layers__chevron").click();
+      const slot = tree.locator('[role="treeitem"]', { hasText: "Top-Trailing" }).first();
+      await until(() => slot.count(), { message: "a Top-Trailing slot row" });
+      const share = tree.locator('[role="treeitem"]', { hasText: "Share" }).first();
+      await until(() => share.count(), { message: "a Share row under Top-Trailing" });
+      await share.scrollIntoViewIfNeeded();
+      await share.click();
+      await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "the action selected (a part)" });
+      return `Top-Trailing › Favourite, Share · row → ${await selectedName(page)}`;
+    },
+  },
+  {
+    id: "SE-24", feature: "A selected TopNavigation outlines its data slot on the canvas; its + chip adds an action", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
+      await page.keyboard.press("Enter");
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Top-Trailing" });
+      await until(() => tag.count(), { message: "the Top-Trailing outline" });
+      const chip = page.locator(".studio-slots__chip").getByRole("button", { name: "Add Action to Top-Trailing" });
+      await chip.waitFor({ state: "visible", timeout: 4000 });
+      await chip.click();
+      const trailing = (text) => (/trailing=\{\[([\s\S]*?)\]\}/.exec(text)?.[1].match(/icon:/g) ?? []).length;
+      await until(async () => trailing(await ctx.text()) === 3, { message: "three trailing actions in the source" });
+      return "Top-Trailing outlined · + → 3 actions";
+    },
+  },
+  {
+    id: "SE-25", feature: "A px-capped component (number-only Chip, max-width 32px) offers no width handles; the pill says why", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "num-chip", { frame: 9 });
+      await sleep(800);
+      const handles = await page.locator(".studio-resize__handle").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-handle")));
+      const pill = (await page.locator(".studio-resize__pill").allInnerTexts()).join(" | ");
+      if (handles.includes("e") || handles.includes("w")) throw new Error(`width handles on a capped Chip: ${handles.join(",")} · pill \"${pill}\"`);
+      return `handles ${handles.join(",") || "none"} · pill \"${pill}\"`;
+    },
+  },
+  {
+    id: "SE-26", feature: "Resizing a component edits its wrap Stack on the same line: the component stays selected at its new column", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "wrapped", { frame: 9 });
+      const handle = page.locator('.studio-resize__handle[data-handle="e"]');
+      await handle.waitFor({ state: "visible", timeout: 5000 });
+      await sleep(400);
+      const box = await handle.boundingBox();
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let step = 1; step <= 6; step += 1) await page.mouse.move(x + (60 * step) / 6, y);
+      await page.mouse.up();
+      await expectSource(ctx, "wrap-stack", (el) => el.attr("width") !== "{200}", "the wrap Stack's width changed");
+      // Past the canvas's own re-check of the DOM (the old drop came about 2 s after the write).
+      await sleep(2500);
+      const loc = `${ctx.file}:${await at(ctx, "wrapped")}`;
+      const selected = await selectedSrc(page);
+      if (!selected.includes(loc)) throw new Error(`selected ${selected.join(", ") || "nothing"}, the Button is at ${loc}`);
+      return `width written on its Stack; the Button stays selected at ${loc.split(":").slice(-2).join(":")}`;
     },
   },
 ];

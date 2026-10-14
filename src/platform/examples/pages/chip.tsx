@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
+import { ChipGroup } from "../../../components/ChipGroup";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
@@ -24,7 +25,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
-import "./chip.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "chip";
 
@@ -41,7 +42,7 @@ const taskProjects = projects.filter((project) => tasks.some((task) => task.proj
 
 const filterColumns: TableColumn<Task>[] = [
   { id: "task", header: "Task", cell: (task) => <TableText bold caption={task.key}>{task.title}</TableText> },
-  { id: "project", header: "Project", width: "220px", cell: (task) => { const project = projectById(task.project); return <TableMedia bold={false} media={<DockIcon size="xs" icon={project.icon} theme={project.theme} background="subtle" />}>{project.name}</TableMedia>; } },
+  { id: "project", header: "Project", width: "240px", cell: (task) => { const project = projectById(task.project); return <TableMedia bold={false} media={<DockIcon size="xs" icon={project.icon} theme={project.theme} background="subtle" />}>{project.name}</TableMedia>; } },
   { id: "assignee", header: "Assignee", width: "170px", cell: (task) => <TableMedia bold={false} media={<Avatar size="xs" {...avatarOf(people[task.assignee])} />}>{people[task.assignee].name}</TableMedia> },
   { id: "priority", header: "Priority", width: "110px", cell: (task) => <Badge theme={priorityTheme[task.priority]} background="subtle">{task.priority}</Badge> },
   { id: "status", header: "Status", width: "130px", cell: (task) => <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge> },
@@ -65,7 +66,7 @@ function TaskFiltersExample() {
     // The table is the section's content, so it lies on the stage with its toolbar: no Card or Box around it.
     <Stack gap="md">
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box className="px-chip-search"><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={320}><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
         <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
           {/* Multiple: the counter shows how many values are on; one value shows as the label. */}
           <Chip variant="advanced" selectionMode="multiple" selectionCount={status.length} selected={status.length > 0} popoverMultiple
@@ -166,7 +167,7 @@ function DigestTopicsExample() {
     toast({ type: "positive", title: "Digest saved" });
   };
   return (
-    <Card theme="flat" className="px-chip-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Weekly digest</Heading>
@@ -188,7 +189,7 @@ function DigestTopicsExample() {
           <Button level="primary" type="submit">Save digest</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -200,7 +201,7 @@ const votes: { person: PersonId; points: number }[] = [{ person: "bao", points: 
 function StoryPointsExample() {
   const [vote, setVote] = useState<number | null>(null);
   return (
-    <Card theme="flat" className="px-chip-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Estimate PHIN-223</Heading>
@@ -226,7 +227,7 @@ function StoryPointsExample() {
           ))}
         </List>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -241,6 +242,33 @@ const quickFilters = [
   { id: "hanoi", label: "Hanoi", test: (person: Person) => person.location === "Hanoi" },
 ];
 
+const repeats = [
+  { value: "never", label: "Never" },
+  { value: "daily", label: "Daily" },
+  { value: "weekdays", label: "Weekdays" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+];
+const repeatSummary: Record<string, string> = {
+  never: "Sent once, on Friday at 9:00 am",
+  daily: "Every day at 9:00 am, starting Friday",
+  weekdays: "Monday to Friday at 9:00 am",
+  weekly: "Every Friday at 9:00 am",
+  monthly: "On the 10th of every month at 9:00 am",
+};
+
+function RepeatReminderExample() {
+  const labelId = useId();
+  const [repeat, setRepeat] = useState<string | null>("weekly");
+  return (
+    <Stack gap="sm">
+      <Text as="span" id={labelId} textStyle="Body/Base/Bold">Repeat</Text>
+      <ChipGroup aria-labelledby={labelId} options={repeats} value={repeat} onValueChange={setRepeat} />
+      <Text role="status" textStyle="Body/Small/Regular" tone="base">{repeat ? repeatSummary[repeat] : null}</Text>
+    </Stack>
+  );
+}
+
 function PhoneFiltersExample() {
   const screenRef = useRef<HTMLDivElement>(null);
   const [sort, setSort] = useState<SortId>("name");
@@ -253,10 +281,10 @@ function PhoneFiltersExample() {
   const sortLabel = sorts.find((item) => item.id === sort)!.label;
   return (
     // The whole studio is listed, so the screen scrolls and the large title folds under the bar.
-    <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={<TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef} />}>
+    <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
       <Stack gap="md" paddingY="xs">
         {/* One row that scrolls sideways; Sort opens an Action Bottom Sheet instead of a Popover. */}
-        <Box className="px-chip-scroll" role="group" aria-label="Filters">
+        <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Filters">
           <Chip variant="advanced" aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet} onClick={() => setSheet(true)}>
             {`Sort: ${sortLabel}`}
           </Chip>
@@ -265,7 +293,7 @@ function PhoneFiltersExample() {
               {filter.label}
             </Chip>
           ))}
-        </Box>
+        </Stack>
         <Stack gap="xs">
           <Box paddingX="lg">
             <Text role="status" textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "person", "people")}</Text>
@@ -299,7 +327,7 @@ function PhoneFiltersExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Task filters",
     description: "One Advanced chip per dimension over the table: Status takes several values and counts them, Priority and Project show the value they hold. Clear all appears once two filters are on, and an empty result offers Clear filters.",
@@ -383,7 +411,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
   <div className="chip-row" role="group" aria-label="Filters"> {/* overflow-x: auto; nowrap */}
     <Chip variant="advanced" aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet}
       onClick={() => setSheet(true)}>{\`Sort: \${sortLabel}\`}</Chip>
@@ -407,4 +435,19 @@ export const examples: ExampleDef[] = [
   </BottomSheet>
 </PlatformPhone>`,
   },
-];
+  {
+    title: "Pick one",
+    description: "When exactly one value applies, the chips form a ChipGroup: a radio group where the picked chip is Selected and checked. Tab reaches the group once, on the picked chip, and the arrow keys move the choice; the line under it says what the choice means.",
+    render: () => <RepeatReminderExample />,
+    code: `const [repeat, setRepeat] = useState<string | null>("weekly");
+
+<Stack gap="sm">
+  <Text as="span" id={labelId} textStyle="Body/Base/Bold">Repeat</Text>
+  {/* One value at a time: a radio group of Normal chips (not toggles with aria-pressed) */}
+  <ChipGroup aria-labelledby={labelId} value={repeat} onValueChange={setRepeat}
+    options={[{ value: "never", label: "Never" }, { value: "daily", label: "Daily" },
+      { value: "weekdays", label: "Weekdays" }, { value: "weekly", label: "Weekly" }, { value: "monthly", label: "Monthly" }]} />
+  <Text role="status" textStyle="Body/Small/Regular" tone="base">{summary[repeat]}</Text>
+</Stack>`,
+  },
+]);

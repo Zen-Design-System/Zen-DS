@@ -48,8 +48,9 @@ export const PlatformPhoneModesContext = createContext<PlatformPhoneModes>({});
 export function PlatformPhone({ children, device = "iphone", canvas = "default", typography = "mobile", density = "comfortable", statusBar = "dark", homeIndicator, maxHeight, headerOverlay = false, screenRef, label = "Phone preview", header, footer, className }: {
   children?: ReactNode;
   device?: PlatformDevice;
-  /** default = Surface/Default · canvas = Canvas/Default (e.g. a Business chat) · alt · flat · media. */
-  canvas?: "default" | "canvas" | "alt" | "flat" | "media";
+  /** default = Canvas/Default, the page canvas cards sit on (usage rules §16; backlog batch 6b, user 2026-10-07) ·
+   *  canvas (the same) · surface = Surface/Default (a white screen) · alt · flat · media. */
+  canvas?: "default" | "canvas" | "surface" | "alt" | "flat" | "media";
   /** Typography Configuration mode of the screen. Default mobile: phone examples show the phone type sizes. */
   typography?: PlatformPhoneModes["typography"];
   /** Component Size mode of the screen. Default comfortable: phone examples show the phone component sizes. */
@@ -117,9 +118,12 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
     observer.observe(host);
     return () => observer.disconnect();
   }, [base, spec.width]);
-  const vars = { width: spec.width, height: spec.height, borderRadius: spec.radius, transform: scale < 1 ? `scale(${scale})` : undefined, "--zen-safe-area-top": `${spec.top}px`, "--zen-safe-area-bottom": `${spec.bottom}px`, "--platform-phone-header-height": `${headerHeight}px`, "--platform-phone-header-pinned": `${pinnedHeight}px` } as CSSProperties;
+  const frame = { width: spec.width, height: spec.height, transform: scale < 1 ? `scale(${scale})` : undefined };
+  const vars = { ...frame, "--zen-safe-area-top": `${spec.top}px`, "--zen-safe-area-bottom": `${spec.bottom}px`, "--platform-phone-header-height": `${headerHeight}px`, "--platform-phone-header-pinned": `${pinnedHeight}px` } as CSSProperties;
   return (
-    <div ref={fitRef} className="platform-phone-fit" style={{ width: spec.width * scale, height: spec.height * scale }}>
+    <div ref={fitRef} className="platform-phone-fit" style={{ width: spec.width * scale, height: spec.height * scale, "--platform-phone-radius": `${spec.radius}px` } as CSSProperties}>
+      {/* The bezel is its own layer, outside the screen's backdrop root (platform.css › PlatformPhone). */}
+      <span className="platform-phone-fit__bezel" style={frame} aria-hidden="true" />
       <div className={["platform-phone", className].filter(Boolean).join(" ")} data-device={device} data-canvas={canvas} data-typography={presented.typography ?? typography} data-density={presented.density ?? density} data-breakpoint="mobile" data-footer={footer ? "true" : undefined} data-header-overlay={headerOverlay && header ? "true" : undefined} data-zen-overlay-root="" style={vars} role="group" aria-label={`${label} (${spec.label}, ${spec.width}×${spec.height})`}>
         {header ? <div ref={headerRef} className="platform-phone__header">{header}</div> : null}
         <div ref={screenRef} className="platform-phone__screen">{children}</div>

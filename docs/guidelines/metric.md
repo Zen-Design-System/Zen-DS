@@ -44,8 +44,14 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"xl"` | Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling. |
 | `variant` | `"icon-highlight" \| "title-highlight"` | `"icon-highlight"` | Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number. Title-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at Small/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner. |
 | `action` | `ReactNode` | — | Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). |
-| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. |
+| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below. |
+| `custom` | `ReactNode` | — | Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline, a ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The Dock-Icon stays at the contents' bottom-right corner. |
+| `metricColor` | `boolean \| string` | `false` | Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour (`var(--zen-color-background-support-blue-solid)`). |
+| `counter` | `ReactNode` | — | Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count of what the metric covers, e.g. "3" open invoices). |
+| `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
+| `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 
 ### MetricCard
 Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding an XLarge Metric and a ⋮ Sub-Action.
@@ -64,18 +70,16 @@ Also accepts `MetricProps`.
 | `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | — | Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left. Short (sm, md…) or Figma (small, medium…) spelling. |
 | `variant` | `"icon-highlight" \| "title-highlight"` | — | Figma Metric-Inline type. Icon-Highlight (default, 595:55188): the Dock-Icon leads, the label sits over the number. Title-Highlight (7523:507049): the title on top (Heading/Subheading at XLarge–Medium, Caption above the number at Small/XSmall), the number and trend under it, the Dock-Icon pinned to the bottom-right corner. |
 | `action` | `ReactNode` | — | Title-Highlight, XLarge–Medium: the title row's action (Figma Button/Icon-Main XSmall Tertiary, e.g. a chevron that opens the breakdown). |
-| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 56. Default: Large at XLarge/Large, Medium below. |
+| `iconSize` | `"md" \| "lg" \| "medium" \| "large"` | — | Dock-Icon size (Figma instance swap): Medium 40 or Large 48. Default: Large at XLarge/Large, Medium below. |
+| `custom` | `ReactNode` | — | Title-Highlight: Figma Custom-Slot (Custom=Yes, added 2026-10-07): your own content under the contents — a sparkline, a ProgressBar, a breakdown — Spacing/Gap/Medium below at XLarge/Large, Spacing/Gap/Small at Medium–XSmall. The Dock-Icon stays at the contents' bottom-right corner. |
+| `metricColor` | `boolean \| string` | — | Figma Metric-Color: a dot before the label (Element-Size/Popular/XSmall, Corner-Radius/Rounded) that ties the metric to a chart series. `true` is Color/Background/Accent/Solid; a string is the series colour (`var(--zen-color-background-support-blue-solid)`). |
+| `counter` | `ReactNode` | — | Icon-Highlight: Figma Counter — a Small Neutral Subtle Badge after the label, Spacing/Gap/2XSmall from it (a count of what the metric covers, e.g. "3" open invoices). |
+| `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
+| `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |
-
-### MetricTrend
-Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral.
-
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `trend` | `"positive" \| "negative" \| "normal"` | `"normal"` |  |
-| `children` (required) | `ReactNode` | — |  |
 
 ### Types
 Object shapes the props above refer to.
@@ -110,9 +114,10 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `metric/formatted-value` | warn | Metric values are passed pre-formatted with units and separators ("$1,680.68", "2.1%"), never a raw number. | `zen-allow-metric-format: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
-| `interaction/action-without-handler` | warn | Repo examples, playgrounds and templates: every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
+| `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
 - [Carbon — Data visualization (KPI)](https://carbondesignsystem.com/data-visualization/)

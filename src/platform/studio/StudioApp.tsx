@@ -14,7 +14,7 @@ import { setStudioActivePanel, StudioBridgeContext, type StudioBridge, type Stud
 import { CanvasChrome } from "./canvas/CanvasChrome";
 import { StudioCanvas } from "./canvas/StudioCanvas";
 import { canvasApi, zoomIn, zoomOut } from "./canvas/viewport";
-import { zoomToSelection } from "./canvas/ZoomControls";
+import { zoomToSelection } from "./canvas/zoomToSelection";
 import { CodeView } from "./code/CodeView";
 import { detachSelection } from "./inspector/detach";
 import { DetachDialog } from "./inspector/DetachAction";
@@ -25,12 +25,14 @@ import { AssetsPanel } from "./edit/assets/AssetsPanel";
 import { duplicateLayers, removeLayers } from "./edit/multi";
 import { multiSelection } from "./select/multiSelection";
 import { wrapSelection } from "./select/wrapSelection";
-import { duplicateSelection, editDataItem, removeSelection } from "./slots/actions";
-import { dataItemRootOf } from "./slots/dataItems";
+import { duplicateSelection, editDataGroup, editDataItem, editDataItems, removeSelection } from "./slots/actions";
+import { itemSelection, selectedPlaces } from "./slots/itemSelection";
+import { dataGroupOfPart, dataItemRootOf } from "./slots/dataItems";
 import { selectedPartStore } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
+import { StudioHome } from "./builder/StudioHome";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { isPlaying, Player, startPlay } from "./builder/proto/Player";
 import { startPageMirror } from "./builder/store/mirrors";
@@ -42,12 +44,16 @@ import { CODE_EXPANDED_WIDTH, revealLeftPanel, toggleSidePanels, usePanelLayout 
 import { PAGE_SEARCH_ID, PagesPanel } from "./shell/PagesPanel";
 import { CanvasMenu } from "./shell/CanvasMenu";
 import { DraftsDialog } from "./shell/DraftsControls";
+import { ParityDialog } from "./mainComponent/ParityDialog";
+import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
 import { PanelResizer } from "./shell/PanelResizer";
-import { openShortcuts, ShortcutsDialog } from "./shell/ShortcutsDialog";
+import { ShortcutsDialog } from "./shell/ShortcutsDialog";
+import { openShortcuts } from "./shell/shortcutsOpen";
 import { Toolbar } from "./shell/Toolbar";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
+import { ensurePageDoc } from "./builder/localApi";
 import "./studio.css";
 
 /** An open overlay owns Escape (it closes first): a popover, menu, listbox, dialog, or an expanded combobox/trigger. */
@@ -97,12 +103,13 @@ function useRouting() {
   useState(() => {
     const location = readLocation();
     const state = studioStore.getState();
-    if (state.page !== location.page || state.collection !== location.collection || state.localPage !== location.localPage) studioStore.setState({ ...location, selection: null });
+    if (state.page !== location.page || state.collection !== location.collection || state.localPage !== location.localPage || state.space !== location.space) studioStore.setState({ ...location, selection: null });
     return null;
   });
   const page = useStudio((state) => state.page);
   const collection = useStudio((state) => state.collection);
   const localPage = useStudio((state) => state.localPage);
+  const space = useStudio((state) => state.space);
   const first = useRef(true);
   // Builder pages: connect the folder that keeps their copy (the dev server's .zen-studio/pages/, or a linked folder).
   // ?play=<screen> on a builder page opens it in Play.
@@ -111,12 +118,20 @@ function useRouting() {
     const play = new URLSearchParams(window.location.search).get("play");
     if (play !== null && studioStore.getState().localPage && !isPlaying(studioStore.getState().presenting)) startPlay(play || null);
   }, []);
+  // A builder page is a document (core rebuild M2): an older page, an import or a restored version gets one as it opens,
+  // before anything on it is selected.
+  useEffect(() => {
+    if (localPage) void ensurePageDoc(localPage);
+  }, [localPage]);
   useEffect(() => {
     const url = new URL(window.location.href);
     // A builder page kept in this browser: ?page=local:<id> (Studio builder GĐ2).
     url.searchParams.set("page", localPage ? `local:${localPage}` : page);
     if (!localPage && page === "design-tokens" && collection) url.searchParams.set("collection", collection);
     else url.searchParams.delete("collection");
+    // The Studio space with no page open keeps its own address (a builder page is Studio already).
+    if (!localPage && space === "studio") url.searchParams.set("space", "studio");
+    else url.searchParams.delete("space");
     const next = `${url.pathname}?${url.searchParams.toString()}${url.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
       // The first sync only normalises the address (no extra Back step).
@@ -124,8 +139,8 @@ function useRouting() {
       else window.history.pushState(null, "", next);
     }
     first.current = false;
-    document.title = `${localPage ? cachedPage(localPage)?.title ?? localPage : pageTitle(page, collection)} · Zen Studio`;
-  }, [page, collection, localPage]);
+    document.title = `${localPage ? cachedPage(localPage)?.title ?? localPage : space === "studio" ? "Studio" : pageTitle(page, collection)} · Zen Studio`;
+  }, [page, collection, localPage, space]);
   useEffect(() => {
     const onPopState = () => {
       const location = readLocation();
@@ -175,7 +190,10 @@ export function StudioApp() {
   const key = pageKey(page, collection, localPage);
   // Overviews, Installation and the Foundation pages are documents: a normal page, no canvas and no inspector. A
   // builder page (kept in this browser) is a canvas.
-  const docPage = !localPage && !isComponentPage(page);
+  // The Studio space with no page open shows its folders (builder/StudioHome): no canvas and no inspector either.
+  const space = useStudio((state) => state.space);
+  const studioHome = !localPage && space === "studio";
+  const docPage = studioHome || (!localPage && !isComponentPage(page));
 
   // The active playground panel: the selected layer's panel, or (playground frame selected) the last one used, else the
   // first panel of the playground.
@@ -309,7 +327,7 @@ export function StudioApp() {
       }
       if (keysOwnedByFocus(event)) return;
       // Document pages (doc/DocumentPage.tsx) have no canvas: the zoom, tool and frame keys do nothing there.
-      const doc = !state.localPage && !isComponentPage(state.page);
+      const doc = !state.localPage && (state.space === "studio" || !isComponentPage(state.page));
       // An example in use (Interact) keeps its own keys; only the zoom chords still reach the canvas.
       const inExample = state.tool === "interact" && document.activeElement?.closest(".studio-world");
       // ⌥⌘G / Ctrl+Alt+G wraps the selected layers in a Box (Figma's Frame selection), in the Select tool.
@@ -373,14 +391,21 @@ export function StudioApp() {
         const inspectorControl = Boolean(target?.closest("#studio-right") && !target.closest("[data-slot], [data-item-index]")
           && target.getAttribute("aria-expanded") !== "true");
         const here = !target || target === document.body || target.matches(".studio-viewport") || inspectorControl
-          || Boolean(row && row === target && row.getAttribute("data-kind") === "node" && row.getAttribute("aria-selected") === "true");
+          || Boolean(row && row === target && (row.getAttribute("data-kind") === "node" || row.getAttribute("data-kind") === "part") && row.getAttribute("aria-selected") === "true");
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;
         if (selection.part) {
-          // A data-slot item goes like a layer (its host stays selected); other parts are read-only.
+          // A data-slot item goes like a layer (its host stays selected); so does a nested slot's group, its title or its
+          // rows (a Sidebar section, 2026-10-10: "section title đang không xoá được"); other parts are read-only.
           const item = dataItemRootOf(selectedPartStore.get());
-          if (!item) return;
+          const group = item ? null : dataGroupOfPart(selectedPartStore.get());
+          if (!item && !group) return;
           event.preventDefault();
-          void editDataItem(selection, item.slot, "remove", item.index);
+          // Several items of the slot selected (Shift/⌘+click): all of them, one undo step.
+          const set = itemSelection.get();
+          const places = item && set && set.src === selection.src && set.instance === selection.instance ? selectedPlaces(item.index, set, item.slot.prop) : [];
+          if (item && places.length > 1) void editDataItems(selection, item.slot, places, "remove");
+          else if (item) void editDataItem(selection, item.slot, "remove", item.index);
+          else if (group) void editDataGroup(selection, group.slot, group.group, group.role === "group" ? "remove" : group.role === "title" ? "removeTitle" : "clearRows");
           return;
         }
         event.preventDefault();
@@ -400,6 +425,18 @@ export function StudioApp() {
       if (event.shiftKey) {
         // ⇧A wraps the selected layers in a Stack laid out as they render (Figma's Add auto layout).
         if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && !state.selection.part) { event.preventDefault(); void wrapSelection("stack"); return; }
+        // …and on items of a list (one or several, Shift/⌘+click): a Sidebar's or Menu's go in a section of their own, a
+        // TopNavigation's actions share one pill; a list without groups says so.
+        if (event.code === "KeyA" && !event.repeat && state.tool === "select" && state.selection?.kind === "node" && state.selection.part && !inExample) {
+          const item = dataItemRootOf(selectedPartStore.get());
+          if (item) {
+            event.preventDefault();
+            const set = itemSelection.get();
+            const places = set && set.src === state.selection.src && set.instance === state.selection.instance ? selectedPlaces(item.index, set, item.slot.prop) : [item.index];
+            void editDataItems(state.selection, item.slot, places, "group");
+            return;
+          }
+        }
         // ⇧I opens Quick insert (Figma's): search the library, Enter adds the item (builder/library/QuickInsert.tsx).
         if (event.code === "KeyI" && !event.repeat && !inExample) { event.preventDefault(); openQuickInsert(); return; }
         if (event.code === "Digit0") { event.preventDefault(); canvasApi.setZoom(1); return; }
@@ -411,6 +448,9 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       else if (key === "i") studioStore.setState({ tool: "interact" });
+      // The toolbar's placement tools (Figma's A for a frame, T for text): point, then click to place.
+      else if (key === "a") studioStore.setState({ tool: "stack" });
+      else if (key === "t") studioStore.setState({ tool: "text" });
       else if (key === "p" && state.localPage) {
         // Play the builder page from the selected Screen (else its first).
         event.preventDefault();
@@ -477,7 +517,7 @@ export function StudioApp() {
                 <StudioCanvas label={`${cachedPage(localPage)?.title ?? localPage} canvas`} viewKey={key}>
                   <BuilderBoard id={localPage} />
                 </StudioCanvas>
-              ) : docPage ? <DocumentPage page={page} collection={collection} /> : (
+              ) : studioHome ? <StudioHome /> : docPage ? <DocumentPage page={page} collection={collection} /> : (
                 <StudioCanvas label={`${pageTitle(page, collection)} canvas`} viewKey={key}>
                   <WorldContent page={page} collection={collection} />
                 </StudioCanvas>
@@ -518,6 +558,8 @@ export function StudioApp() {
           <SlotConfirm />
           <SharedConfirm />
           <DraftsDialog />
+          <ParityDialog />
+          <BindingDiffDialog />
           <CanvasMenu />
         </ChromeScope>
         {/* Popovers, menus, tooltips and dialogs of the chrome: above the canvas and its overlays. */}

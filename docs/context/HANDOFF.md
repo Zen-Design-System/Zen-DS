@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-06.
+Last updated: 2026-10-13.
 
 ## Read order
 
@@ -18,20 +18,34 @@ Last updated: 2026-10-06.
 
 ## State in short
 
-- **Git:** work is on the local branch `claude/zen-ds-0.4.0` on top of `eafb0de`; nothing is pushed and `main` still
-  points at `eafb0de`. New work shows as uncommitted changes. **Commit or push only when the user asks.**
-  Zen Studio (`tools/studio/`, `src/platform/studio/`) has never been committed: by the user's decision (2026-10-03) it
-  goes in later as one batch with every Studio session's work (canvas, drafts, resize, slots, detach, Figma-grade
-  editing, multi-select), not file by file (`detach.mjs` alone would need the untracked `jsx-source.mjs`).
+- **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
+  pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
+  on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
+  gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
+  Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
+  Bar-List, Bullet). Code + Studio = phase 2, after the user's review (BACKLOG P1).
+- **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
+  every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
+  approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user
+  reviews and publishes the library. 🔤 Typography has a Content-Hierarchy section. Installation › AI kit for Figma
+  downloads the skill `skills/zen-figma-design` + its audit harness (`npm run ai-kit:check`).
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
   labels (en/vi), `data-tone` variants and the harness are described in `HANDOFF-details.md` ("Vibe-code readiness").
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·
-  px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`).
+  px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`);
+  since 2026-10-13 Card and ListBox take the width half (`width`, `minWidth`, `maxWidth`, `alignSelf`).
   Since 2026-10-05 Text/Heading/Icon `tone` takes every resting Color/Content token by its path (81 tones, old names are
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
-- **Tokens:** repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
+- **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode
+  "Studio" for the Zen Studio chrome (ChromeScope); not in Figma — keep them on the next sync (or add them in Figma).
+  2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
+  Support/Neutral/Deep in every mode (as Brand - S1).
+  2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
+  were 3 = Pressed); every Flat/Hover is now step 2.
+  Repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
   (Figma still 260 / 280 — keep 240/260 on the next variables sync unless Figma is updated); the docs no longer pin a
   260px rail. Before it: synced from the user's exports; the latest is the 2026-10-05 evening export "Zen-Variables 2": Global Colors
   carries Figma's Zen-High-Contrast mode (equal to the algorithm) and a re-synced Mint ramp; Mode Colors (Semantic) adds
@@ -66,6 +80,91 @@ Last updated: 2026-10-06.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio clicks and booleans (2026-10-13, branch `zen/fix/studio-toggles-click`, worktree `Zen-DS-click`):**
+  clicks pass through layout wrappers and AppShell / the page body (template pages 5.6 → 2.5 double-clicks to a layer),
+  right-click › Select layer ›; every Figma boolean on template pages works or says why (slot toggles open their picker,
+  set-specific booleans show on their set only, `inspector/computedDefaults.ts`). Round 2 the same day: Layers folds
+  what clicks pass through, ⌘-click reaches texts and nested instances (`select/parts.ts deepLayerAt`), text layers edit
+  (Inspector Text, Enter), nested booleans off drop their override, edits ~2× faster (render cache in
+  `builder/render/renderPage.tsx`, sync parse, parse/sha1 caches, deferred size probes); Figma walk 14/14 tasks at
+  Figma's step count (scripts in the session log). Round 3: ⌘-click on every text (atoms too), ⇧Enter/Esc one layer
+  up (`parts.ts parentLayerOf`), Layers without Parts / empty slots; builder pages mark elements `file:@<doc id>`
+  (`select/srcIds.ts` turns them back into file:line:col; BuilderBoard sets it from `locsOf`), edits 35–60 ms.
+  2026-10-14: the icon picker leads with Recent and Related tiles (`inspector/iconSuggestions.ts` ICON_TOPICS,
+  relatedIcons; E2E IN-20). PR #43 (CI runs the full gate; merging is the user's step). Session logs 2026-10-13/14.
+- **Zen Studio, Figma usability round 1 (2026-10-10):** pictures replace like Figma everywhere (Assets › Photos click or
+  a drop on an Avatar/Image/Thumbnail/account, the Inspector's Picture; data rows and factories write that row,
+  `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:
+  `edit/assets/picture.ts`, `tools/studio/picture.mjs`); ⌘-click selects the innermost written layer; E2E SE-36. The
+  usability check and the remaining program: `docs/research/studio-usability-eval-2026-10-10.md`; follow-ups in BACKLOG.
+- **Zen Studio nested instances (2026-10-10, branch `zen/feat/nested-overrides`, worktree `Zen-CodeBase/Zen-DS-nested`):**
+  plan `docs/research/studio-doc-engine-plan-2026-10-10.md`; the user chose fast path A (§9). Library `overrides` +
+  `_shared/nested.tsx` (`useNested`/`nest`) on 64 components; Studio edits any nested instance on pages you made as the
+  owner's overrides (`inspector/OverrideProperties.tsx`, `select/parts.ts nestedPathOf`); harness
+  `api/overrides-studio-only`; E2E NO-01…04. Don't add nested-edit tracers: add `nest()` to the component instead.
+- **Zen Studio core rebuild M2 (2026-10-11, branch `zen/feat/studio-doc-engine` on top of the above):** a builder page
+  keeps its `.zen.tsx` text as written and a JSON document with stable element ids beside it in IndexedDB
+  (`tools/studio/doc.mjs`, `PageRecord.doc`; the user's choice "cách 2"); `localApi` edits through `editDoc` (the engine
+  twice: shown text + id print). `studio:build-check` fixed (out of date with main + a Chromium OPFS crash): only the
+  engine budget is now 160 KB gzip (the user's choice, 2026-10-11; 153.6 measured), so build-check is green.
+  M2 pushed (c670fc5). M3 (same branch): the selection follows its element by id through edits, undo and redo
+  (`locs` on each write, `remap.ts mapSrc`; `api.ts writeInFlight`), double-click goes into nested instances one level at
+  a time (`parts.ts outerNestedAt`/`drillNested`), Layers names nested instances by their Figma layer; E2E NO-06…09.
+  PR #13 (M2+M3, 76c7683) open by Giám sát. M4 on `zen/feat/studio-doc-m4`: one row of a list edits on its own
+  ("Changes go to · Row N · All rows", op `setRowProp`; a photo for one row's Avatar too); E2E NO-10…12.
+  M5 on `zen/feat/studio-doc-m5`: the export of a page with overrides and a row's own values passes the harness (app
+  mode) and tsc, and draws what the canvas draws (`tests/interaction/studio-export-parity.test.tsx`).
+  M6 (converter half) on `zen/feat/studio-doc-m6`: `tools/studio/figma-pull.mjs` (use_figma read code + JSON → page with
+  overrides; CLI), selftest 14, E2E NO-13. Live read (2026-10-11, `zen/feat/studio-figma-pull-live`): Overviews
+  14243:64878 read through use_figma (read-only, paged) and converted — slots (Card content, Sidebar brand/sections/
+  footer, Breadcrumbs/Segmented items), Fill container, grid placement, text alignment, absolute layers; fixture
+  `tools/studio/fixtures/figma-overviews.json`, selftest 38, E2E NO-19. Re-pull (`zen/feat/studio-figma-pull-diff`):
+  pulled elements keep Figma-derived document ids, the header names the frame; importing a later pull opens Update from
+  Figma (three-way diff against the last pull kept in this browser, conflicts unticked, Apply = one edit/⌘Z);
+  `tools/studio/figma-diff.mjs` + selftest 19, E2E NO-20. Table (`zen/feat/studio-figma-pull-table`): a frame of
+  Primitives/Table/Data-Row instances is read as one table and becomes `<Table columns rows>` (rows inline, so a re-pull
+  compares them), per-row Badge / Dock-Icon looks as `overrides`; Actions cells → a `content: "actions"` column (2026-10-12); fixture
+  `figma-table.json` (Demo › Table-Example 14730:78776), E2E NO-21.
+  M7 on `zen/feat/studio-doc-m7`: `tools/figma-contract/nested-paths.mjs` in the gate (15/15 components with a contract
+  name their nested layers as Figma does; DatePicker Apply → Submit, Time → Time-Picker). M8 on
+  `zen/feat/studio-doc-m8`: the avatar test passes 5/5 through the design copy (NO-14…18) after fixes to AvatarStack
+  (attributes on its root), SidePanel (modal opens inside a frame), nested pictures and Table cell photos in copies.
+  Leftovers done 2026-10-12 (`zen/feat/studio-design-words`, session log): dashboard walk 27/27; design words on every
+  page (criterion 7: `src/platform/studio/words.ts` + `useWords.ts`, Code tab keeps the line, E2E B-35 and I-31);
+  Table `content: "actions"` + `actions` (Figma Actions-Cell, pulled in by figma-pull); AiChatBubble `overrides`.
+  **Q4/Q5 built 2026-10-12 (spec `docs/research/studio-figma-push-spec-2026-10-12.md`, branch `zen/feat/figma-push`,
+  PR #24):** Studio Export › Figma + the Zen plugin's Import from Studio (plugin folder `~/Documents/zen-ds-figma-plugin-main`,
+  local git since 2026-10-12), Check Figma bindings (binding-diff.mjs), Download for Figma after a token save
+  (rebind.mjs). Coverage (2026-10-12/13, spec §8, merged to main via PRs #26 #30 #31 #32): app pages export whole
+  (AppShell, Screen chrome, code-only wrappers as frames); AppShell's top bar is a DashboardHeader navigation (72px as
+  Figma) and app frames pull back as AppShell; Clip content on Stack / Grid / Box (Studio toggle, Figma round trip);
+  a design copy keeps its Table cells; sessions "Lỗi UI" / "Kết nối file Figma Pokeslide" made the Dashboard and the
+  templates import as they look (tried in the live file, page "Studio exports — QA"; even fit grids, metric / chart
+  cards, table checkbox / sort / avatar cells, Table last-row rule in surfaces). Test any export change by running the
+  real importer in the Zen file. P3–P4 (2026-10-13, branch `zen/feat/figma-map-p3`, spec §8 "P3" / "P4"):
+  TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat, FileIcon, Flag and
+  icon sizes map both ways (shared module `tools/studio/figma-top-nav.mjs`, fixtures `figma-chat.json`,
+  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. P5 (branch
+  `zen/feat/examples-classnames`, spec §8 "P5"): Grid stackBelow, Stack / Box scroll, Box surface="canvas", Text wrap /
+  tabularNumbers (all pushed and pulled; plugin 6b823d2); docs frames in `src/platform/PlatformFrames.tsx`; examples
+  down to 112 classNames, none with a Zen prop. Left: BACKLOG P2 item.
+- **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
+  ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
+  PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,
+  platform page with 5 examples, 4 harness rules, Studio palette item and Figma props; figma-pull maps it (a custom
+  Header-Text cover → type custom; Action-Item → AppShellAction). Manifest: `docs/platform-json-audit.md` › DashboardHeader.
+  Chip's counters follow Figma's layer names (`Badge`, `Badge-Counter`; the user's choice B, branch
+  `zen/fix/chip-figma-names`); Date field waits on the Figma rename.
+- **Chart family (2026-10-12, branch `zen/feat/charts`, PR #33, worktree `Zen-CodeBase/Zen-DS-charts`):** the user's moodboard
+  in Zen tokens, one style for every chart, with motion. New BarChart (vertical/horizontal, projected, target),
+  DonutChart, RadialChart, HeatmapChart; LineChart `compare`; ChartCard `icon`/`description`/`value`; shared
+  `chartCore.tsx`; `showAverage` (Line, Bar, Stack-bar); Studio palette items; harness `chart/*`. Spec
+  `docs/research/chart-family-spec-2026-10-12.md`; the Figma side (❖ Chart page, IDs in spec §5.1) is built from it in
+  the official file at the user's request. Open: Export › Figma mapping and Figma contracts (BACKLOG).
+- **Zen Studio spaces (2026-10-09):** the toolbar centre is a Document | Studio switch (`state.space`, `?space=studio`,
+  `shell/navigation.ts setSpace`); Studio = folders of builder pages (`builder/store/folderStore.ts` in IndexedDB settings,
+  `PageRecord.folder`; `builder/StudioFolders.tsx`, `StudioHome.tsx`). Folders are not in the mirrored page files. Preview
+  modes change only in Present / Play (their bar's Modes panel); the toolbar has light/dark only. E2E: `openStudioSpace`.
 - **Zen Studio (2026-10-02) is the default docs UI:** `src/main.tsx` lazy-loads `src/platform/studio/StudioApp`
   (canvas tool: Pages/Layers, zoomable board of Playground/Examples/Docs frames, Inspector that edits source). The
   classic `PlatformApp` renders for `?ui=classic` and whenever `navigator.webdriver` is true, so `npm run qa`, audit,
@@ -215,7 +314,17 @@ Last updated: 2026-10-06.
   server `POST /promote` (admin, dialect check, `ZEN_STUDIO_PROMOTE_DIR` for the E2E server: lib/server.mjs
   promoteDirOf), `studioApi.promote`, Export panel secondary action (DEV + admin; Replace on conflict; result line
   `data-e2e="promote-result"`). E2E HO-07 (142 rows); build-check 24 steps (no Promote on the build). **GĐ5 is
-  complete** (M1–M5).
+  complete** (M1–M5), merged to main (PR #1). Backlog after it (user, 2026-10-07): batch 1 cleanup and batch 2 Studio
+  quick fixes done (E2E B-19, 143 rows; data-slot `removeItem { all }`); batch 4 examples/docs P2 done (6 fixed, 10
+  already fixed and closed); batch 5a Studio P2 done (frame Save/Discard ownership, example pages keep state through
+  keepOnHotUpdate in src/platform/hotData.ts, Effect settings, object props: + and same-file consts; E2E 147 rows, the
+  gate's Studio E2E step now has 25 min); the CI Package step stays logged (P2, not approved). Batch 5b (Studio P3 small items) is
+  done: 16 rows closed (E2E SE-08, SE-09, LB-13, LB-14, L-09; 152 rows), see the session log. Batch 5c (the five Studio decisions of batch 8, plus arrow keys on several layers, ⇧-click range in Layers and Mixed text props) is done: E2E SE-10…13, K-13, I-16; 158 rows, all working. Batch 6 (13 component decisions, plus ToggleListItem and ChipGroup composed without Figma: verify them, Backlog P2) is done: gate .qa/reports/2026-10-07T16-05-21 — browser tests 31/31, Studio E2E 158/158; the only ✗ is the cloud-only chat emoji [fit] (Backlog P3). Batches 6b, 7 and 9 are done too (gate --all .qa/reports/2026-10-07T16-41-07 after 6b: ✗ only the cloud-only TabItem axe and chat emoji [fit]); the batch 8 decision list is complete. After it: the official Inter WOFF2 (same build), the §16 pairing audit check (`roles` warn, not yet run on every page: the final --all was stopped by the user) and the docs-nav contrast skip in audit.mjs. Open from today in BACKLOG: Figma check of ToggleListItem/ChipGroup (P2), bordered boxes in phone screens (P2), cloud-only gate failures, flaky usage selftest under a parallel gate, side-panel coverage. A backlog sweep (2026-10-07) checked the ~440 open items against the code: ~145 were done or
+  duplicates and are closed with evidence (4 more close with the 5b gate); ~290 stay open (~214 work, ~63 decisions,
+  ~13 need a check by hand). New P2: qa step ④ (example coverage) reads no `examples/pages` source. Batch 8 (the
+  decision list) answered the same day (user: "theo đề xuất"): 12 rows closed, the approved work is tagged
+  "Decided 2026-10-07 … → batch N" in BACKLOG (5c Studio, 6 components, 6b examples/docs, 7 Figma and fonts, 9
+  tooling); still the user's: the Code Connect seat and package publishing; the designer questions are unchanged.
   `npm run qa` runs `studio:selftest` + `studio:e2e` when Studio files change (`uiKind` "studio" in tools/qa/lib.mjs).
 - **Studio slots (2026-10-03, session "Slot Component phân biệt"):** spec `docs/research/studio-slots-spec-2026-10-03.md`.
   Client `src/platform/studio/slots/*` is live (Slots section, insert picker, Remove/⌫, ⌘D, canvas slot outlines, Layers
@@ -360,4 +469,6 @@ asks for (new content, at most 12). Process: `docs/qa/build-qa-process.md`, skil
 
 ## Open items and Backlog
 
-Both moved to [`BACKLOG.md`](BACKLOG.md). Items that need a user or designer decision stay under "Open items" there.
+Work items are in [`BACKLOG.md`](BACKLOG.md); questions for the designer and decisions for the user are in
+[`QUESTIONS.md`](QUESTIONS.md) (since 2026-10-08). New rule (user, 2026-10-08): a bug or gate finding met while working
+is fixed in the same change; only those two kinds go to the files above.

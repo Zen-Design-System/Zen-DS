@@ -10,6 +10,8 @@ import { loadCompile } from "../engine";
 import { getPage } from "../store/pageStore";
 import { closeExport, exportPageId, subscribeExport } from "./exportState";
 import type { HandoffPackage, HtmlExport } from "./htmlExport";
+import type { FigmaExport } from "./figmaExport";
+import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 import { zipFiles } from "../../../../../tools/studio/zip.mjs";
 import { studioApi, type PromoteResult } from "../../api";
 import { useStudio } from "../../store";
@@ -21,15 +23,17 @@ import { assetBlob, assetIdsOf } from "../assets/uploads";
  * screens rendered off screen, a zip with styles.css and the photos), as a handoff package (the code, the design file,
  * handoff.md, a PNG and the HTML of each frame: one zip) or as its design file (`.zen.tsx`): the code view's Copy, or
  * Download. Opened from the page's Inspector panel and its My pages menu (exportState.ts). No dev server needed, except for
- * Promote (GĐ5 M5, admin): the page written into the repo as src/templates/studio/<Name>Template.tsx.
+ * Promote (GĐ5 M5, admin): the page written into the repo as src/templates/studio/<Name>Template.tsx. Figma (core rebuild
+ * Q4): the `.figma.json` the Zen plugin's Import from Studio places as a frame of library instances (figmaExport.ts).
  */
 
-type Tab = "react" | "html" | "handoff" | "design";
-type Result = { id: string; title: string; design: string; react: { code: string; component: string; summary: string } | { error: string } };
+type Tab = "react" | "html" | "handoff" | "figma" | "design";
+type Result = { id: string; title: string; design: string; doc: PageDoc | null; react: { code: string; component: string; summary: string } | { error: string } };
 type HtmlState = { id: string; text: string; result: HtmlExport | { error: string } };
 type HandoffState = { id: string; text: string; result: HandoffPackage | { error: string } };
 
 const loadHtml = () => import("./htmlExport");
+const loadFigma = () => import("./figmaExport");
 
 /** Saves `data` as a file named `name` (the browser's download). */
 function download(name: string, data: BlobPart, type: string) {
@@ -64,21 +68,22 @@ function promoteLine(result: PromoteResult): string {
 }
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
-const languageOf = (path: string): CodeLanguage => (path.endsWith(".css") ? "css" : path.endsWith(".html") ? "html" : path.endsWith(".md") ? "markdown" : "tsx");
+const languageOf = (path: string): CodeLanguage => (path.endsWith(".css") ? "css" : path.endsWith(".html") ? "html" : path.endsWith(".md") ? "markdown" : path.endsWith(".json") ? "json" : "tsx");
 
 async function read(id: string): Promise<Result | null> {
   const page = await getPage(id);
   if (!page) return null;
   const { compileReact } = await loadCompile();
   const compiled = compileReact(page.text, { file: `${id}.zen.tsx` });
-  if ("error" in compiled) return { id, title: page.title, design: page.text, react: { error: compiled.error } };
+  const doc = (page.doc as PageDoc | undefined) ?? null;
+  if ("error" in compiled) return { id, title: page.title, design: page.text, doc, react: { error: compiled.error } };
   const parts = [
     plural(compiled.screens.length, "screen"),
     compiled.overlays.length ? plural(compiled.overlays.length, "overlay") : null,
     compiled.handlers.length ? `${plural(compiled.handlers.length, "interaction")} to wire (TODO(dev) in the code)` : null,
     compiled.media.length ? `${plural(compiled.media.length, "photo")} to put in ./assets` : null,
   ].filter(Boolean);
-  return { id, title: page.title, design: page.text, react: { code: compiled.code, component: compiled.component, summary: parts.join(" · ") } };
+  return { id, title: page.title, design: page.text, doc, react: { code: compiled.code, component: compiled.component, summary: parts.join(" · ") } };
 }
 
 export function ExportDialog() {
@@ -89,6 +94,7 @@ export function ExportDialog() {
   const [htmlPath, setHtmlPath] = useState<string | null>(null);
   const [zipping, setZipping] = useState(false);
   const [handoff, setHandoff] = useState<HandoffState | null>(null);
+  const [figma, setFigma] = useState<{ id: string; text: string; result: FigmaExport } | null>(null);
   // Promote (GĐ5 M5): the dev server writes the page into src/templates/studio (admin only).
   const admin = useStudio((state) => state.role === "admin");
   const [promoting, setPromoting] = useState(false);
@@ -125,16 +131,32 @@ export function ExportDialog() {
     return () => { alive = false; };
   }, [tab, shown, handoff]);
 
+  // The Figma export: once its tab is open, again when the page changed.
+  useEffect(() => {
+    if (tab !== "figma" || !shown || (figma && figma.id === shown.id && figma.text === shown.design)) return undefined;
+    let alive = true;
+    void loadFigma().then(({ exportFigma }) => exportFigma({ id: shown.id, title: shown.title, text: shown.design, doc: shown.doc })).then((result) => {
+      if (alive) setFigma({ id: shown.id, text: shown.design, result });
+    }, (error: unknown) => { if (alive) setFigma({ id: shown.id, text: shown.design, result: { error: error instanceof Error ? error.message : String(error) } }); });
+    return () => { alive = false; };
+  }, [tab, shown, figma]);
+  const figmaShown = figma && shown && figma.id === shown.id && figma.text === shown.design ? figma.result : null;
+  const figmaReady = figmaShown && "json" in figmaShown ? figmaShown : null;
+
   const react = shown && "code" in shown.react ? shown.react : null;
   const handoffShown = handoff && shown && handoff.id === shown.id && handoff.text === shown.design ? handoff.result : null;
   const handoffReady = handoffShown && "files" in handoffShown ? handoffShown : null;
   const htmlShown = html && shown && html.id === shown.id && html.text === shown.design ? html.result : null;
   const htmlFiles = htmlShown && "files" in htmlShown ? htmlShown : null;
   const htmlFile = htmlFiles?.files.find((file) => file.path === htmlPath) ?? null;
-  const file = tab === "react" ? (react ? `${react.component}.tsx` : "") : tab === "html" ? htmlFile?.path ?? "" : tab === "handoff" ? (handoffReady ? "handoff.md" : "") : shown ? `${shown.id}.zen.tsx` : "";
-  const text = tab === "react" ? react?.code ?? "" : tab === "html" ? htmlFile?.text ?? "" : tab === "handoff" ? handoffReady?.markdown ?? "" : shown?.design ?? "";
+  const file = tab === "react" ? (react ? `${react.component}.tsx` : "") : tab === "html" ? htmlFile?.path ?? "" : tab === "handoff" ? (handoffReady ? "handoff.md" : "") : tab === "figma" ? figmaReady?.file ?? "" : shown ? `${shown.id}.zen.tsx` : "";
+  const text = tab === "react" ? react?.code ?? "" : tab === "html" ? htmlFile?.text ?? "" : tab === "handoff" ? handoffReady?.markdown ?? "" : tab === "figma" ? figmaReady?.json ?? "" : shown?.design ?? "";
   const description = !shown ? "Reading the page…"
     : tab === "design" ? "The page itself: open it in the Studio again with Import, or keep it with the code."
+      : tab === "figma"
+        ? (!figmaShown ? "Preparing the page for Figma…"
+          : figmaReady ? `For Figma: in the Zen plugin, Import › Import from Studio places this page as a frame of library instances on the page "Studio exports"; importing it again updates that frame.${figmaReady.notes.length ? ` Notes: ${figmaReady.notes.join("; ")}.` : ""}`
+            : `The page cannot go to Figma yet: ${"error" in figmaShown ? figmaShown.error : ""}`)
       : tab === "handoff"
         ? (!handoffShown ? "Packing the code, a picture of each frame and the HTML…"
           : handoffReady ? `Everything a developer needs in one zip: the React code, the design file, the photos, a picture and the HTML of each frame, and this handoff.md (${plural(handoffReady.files.length, "file")}).`
@@ -209,7 +231,7 @@ export function ExportDialog() {
         fullWidth
         value={tab}
         onValueChange={(next) => setTab(next as Tab)}
-        options={[{ id: "react", label: "React" }, { id: "html", label: "HTML" }, { id: "handoff", label: "Handoff" }, { id: "design", label: "Design file" }]}
+        options={[{ id: "react", label: "React" }, { id: "html", label: "HTML" }, { id: "handoff", label: "Handoff" }, { id: "figma", label: "Figma" }, { id: "design", label: "Design file" }]}
       />
       {tab === "html" && htmlFiles ? (
         <SelectField
@@ -226,7 +248,7 @@ export function ExportDialog() {
       {text ? (
         <CodeView code={text} language={languageOf(file)} title={file} maxHeight="min(60vh, 640px)" label={`${file} (preview)`} className="studio-export__code" />
       ) : (
-        <Text textStyle="Body/Small/Regular" tone="base">{!shown || (tab === "html" && !htmlShown) || (tab === "handoff" && !handoffShown) ? "Reading the page…" : "Nothing to show."}</Text>
+        <Text textStyle="Body/Small/Regular" tone="base">{!shown || (tab === "html" && !htmlShown) || (tab === "handoff" && !handoffShown) || (tab === "figma" && !figmaShown) ? "Reading the page…" : "Nothing to show."}</Text>
       )}
     </SidePanel>
   );

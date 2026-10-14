@@ -1,6 +1,7 @@
 // Inspector rows: every kind of property control writes the source it says, one undo step at a time.
 import { element, locOf } from "../lib/source.mjs";
 import { clickLoc, focusFrame, inspectorRow, rectOf, sleep, statusText, until } from "../lib/studio.mjs";
+import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const read = async (ctx, id, index = 0, file = ctx.file) => element((await ctx.api.source(file)).content, file, id, index);
@@ -13,7 +14,11 @@ export async function freshSelect(ctx, id, { frame = 0, file = ctx.file, reload 
   if (reload) await page.reload({ waitUntil: "domcontentloaded" });
   await waitSeed(page, seed);
   const loc = async () => locOf((await ctx.api.source(file)).content, id).loc;
-  await until(async () => rectOf(page, file, await loc()), { message: `${id} rendered after the reseed` });
+  await until(async () => rectOf(page, file, await loc()), { message: `${id} rendered after the reseed` }).catch(async (error) => {
+    // What the canvas shows from that file instead (stale locs after a discard, or nothing at all).
+    const shown = await page.evaluate((prefix) => [...document.querySelectorAll(`[data-zen-src^="${prefix}"]`)].map((el) => el.getAttribute("data-zen-src").slice(prefix.length)), `${file}:`).catch(() => []);
+    throw new Error(`${error.message} (want ${await loc()}; the canvas has ${shown.length ? shown.slice(0, 6).join(" ") : "nothing"} from ${file.split("/").pop()})`);
+  });
   await focusFrame(page, frame);
   const target = await loc();
   await clickLoc(page, file, target, { position });
@@ -21,14 +26,15 @@ export async function freshSelect(ctx, id, { frame = 0, file = ctx.file, reload 
   return page;
 }
 
-/** Waits until the Inspector shows file:loc read from the source ("Used in <file>:<line>", nothing still loading). */
+/** Waits until the Inspector reads file:loc (its header's data-inspector-src, same file and line) and nothing is still loading. */
 export async function waitInspector(page, file, loc) {
   const where = `${file.split("/").pop()}:${loc.split(":")[0]}`;
-  await until(async () => {
-    // "Used in" renders the file and ":<line>" as two elements: join them before comparing.
-    const text = (await page.locator("#studio-right").innerText()).replace(/\s+:/g, ":");
-    return text.includes(where) && !/Reading the source/i.test(text);
-  }, { message: `the Inspector to show ${where}` });
+  await until(async () => page.evaluate(([wantFile, wantLine]) => {
+    const panel = document.querySelector("#studio-right");
+    const src = panel?.querySelector("[data-inspector-src]")?.getAttribute("data-inspector-src") ?? "";
+    const match = /^(.*):(\d+):\d+$/.exec(src);
+    return Boolean(match && match[1] === wantFile && match[2] === wantLine && !/Reading the source/i.test(panel?.textContent ?? ""));
+  }, [file, loc.split(":")[0]]), { message: `the Inspector to show ${where}` });
   await sleep(150);
 }
 
@@ -42,8 +48,10 @@ export async function waitSeed(page, seed) {
   }
 }
 
-/** Opens the select in an Inspector row and picks `label`. */
-/** `label`: the option's whole name, or a RegExp (scale options read "md · 16", ScaleField). */
+/** Opens the select in an Inspector row and picks `label`: the option's whole name, or a RegExp (scaleStep). */
+/** A ScaleField step by its token: the row reads the token, then the pixels it measures ("md … 16px"). */
+export const scaleStep = (key) => new RegExp(`^${key}\\s*\\d+(\\.\\d)?px$`);
+
 export async function pickOption(page, prop, label) {
   await inspectorRow(page, prop).locator("button").first().click();
   await page.getByRole("option", { name: label, exact: typeof label === "string" }).click();
@@ -58,6 +66,29 @@ export async function expectSource(ctx, id, check, message, { index = 0, file = 
 }
 
 export const rows = [
+  {
+    id: "I-31", feature: "Design words on an example page too (plan criterion 7, the user 2026-10-12): after an edit the status line names the file without its line, the canvas tag and the Inspector header (\"Show code\") no file:line, notes and tooltips no code", wp: "design words 2026-10-12",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "btn-a");
+      await pickOption(page, "level", "Secondary");
+      await expectSource(ctx, "btn-a", (el) => el.attr("level") === "secondary", "level=secondary in the source");
+      await until(async () => /\b(?:Saved|Draft)\b/.test(await statusText(page)), { message: "the edit's Saved / Draft line" }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 160)})`); });
+      const seen = await page.evaluate(() => {
+        const texts = (selector) => [...document.querySelectorAll(selector)].map((el) => el.textContent ?? "");
+        return {
+          status: texts(".studio-inspector__status-text, .studio-inspector__status-details li"),
+          tag: texts('.studio-selection__outline[data-kind="selected"] .studio-selection__tag'),
+          header: texts("#studio-right .studio-inspector__src"),
+          notes: texts("#studio-right .studio-inspector__note, #studio-right .studio-inspector__row-hint"),
+          tips: [...document.querySelectorAll("#studio-right [title]")].map((el) => el.getAttribute("title") ?? ""),
+        };
+      });
+      const found = Object.entries(seen).flatMap(([where, list]) => list.flatMap((text) => codeWordsIn(text).map((word) => `${where}: ${word} in "${text.slice(0, 90)}"`)));
+      if (found.length) throw new Error(`code words on an example page: ${found.slice(0, 6).join(" · ")}`);
+      if (seen.header.join() !== "Show code") throw new Error(`header "${seen.header.join(" | ")}"`);
+      return `status "${seen.status[0]}" · tag "${seen.tag[0]}" · header "Show code" · ${seen.notes.length} notes, ${seen.tips.length} tips clean`;
+    },
+  },
   {
     id: "I-01", feature: "Variant (enum) select writes the prop", wp: "GĐ0",
     async run(ctx) {
@@ -123,7 +154,7 @@ export const rows = [
       const page = await freshSelect(ctx, "btn-a");
       await page.keyboard.press("Escape");
       await until(async () => (await inspectorRow(page, "gap").count()) > 0, { message: "the Stack's gap row" });
-      await pickOption(page, "gap", /^lg · /);
+      await pickOption(page, "gap", scaleStep("lg"));
       await expectSource(ctx, "row", (el) => el.attr("gap") === "lg", "gap=lg on the row Stack");
       return "gap sm → lg";
     },
@@ -139,13 +170,16 @@ export const rows = [
     },
   },
   {
-    id: "I-15", feature: "ScaleField: token + px, held ↑ is one edit, ⌫ resets", wp: "WP-D",
+    id: "I-15", feature: "ScaleField: token + value, held ↑ is one edit, ⌫ resets", wp: "WP-D",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
       await page.keyboard.press("Escape");
       await until(async () => (await inspectorRow(page, "gap").count()) > 0, { message: "the Stack's gap row" });
       const trigger = inspectorRow(page, "gap").locator("button").first();
-      if (!/^sm · \d+/.test((await trigger.innerText()).trim())) throw new Error(`gap reads "${(await trigger.innerText()).trim()}", not "sm · <px>"`);
+      // The field reads the token, its pixels beside the chevron (user, 2026-10-09: "token name + value", one line).
+      const smText = (await trigger.innerText()).trim();
+      const px = (await inspectorRow(page, "gap").locator(".studio-scale__px").innerText()).trim();
+      if (smText !== "sm" || !/^\d+(\.\d)?$/.test(px)) throw new Error(`gap reads "${smText}" "${px}", not "sm <px>"`);
       // Held: two key-downs (the second repeats), one release → sm → md → lg in one write.
       await trigger.focus();
       await page.keyboard.down("ArrowUp");
@@ -157,12 +191,12 @@ export const rows = [
       await expectSource(ctx, "row", (el) => el.attr("gap") === "sm", "one ⌘Z back to sm (one edit, not two)");
       // The field reads the undone value before ⌫, as a person sees it change first: a ⌫ planned from the element the
       // Inspector read before the undo is refused as stale (BACKLOG I-15, fixed 2026-10-07).
-      await until(async () => /^sm · \d+/.test((await inspectorRow(page, "gap").locator("button").first().innerText()).trim()), { message: 'the gap field back to "sm · …"' });
+      await until(async () => (await inspectorRow(page, "gap").locator("button").first().innerText()).trim() === smText, { message: `the gap field back to sm (${smText})` });
       await trigger.focus();
       await page.keyboard.press("Backspace");
       await expectSource(ctx, "row", (el) => el.attr("gap") === undefined, "⌫ removes gap");
       if (!(await inspectorRow(page, "gap").count())) throw new Error("the layer went away with ⌫");
-      return "sm · px; held ↑ → lg in one undo step; ⌫ reset";
+      return `sm ${px}; held ↑ → lg in one undo step; ⌫ reset`;
     },
   },
   {
@@ -248,6 +282,21 @@ export const rows = [
     },
   },
   {
+    id: "I-16", feature: "Mixed properties: a text prop typed once goes to both selected layers", wp: "backlog 2026-10-07",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-row", { frame: 6 });
+      await clickLoc(page, ctx.file, await at(ctx, "inst-click-row"), { modifiers: ["Shift"] });
+      const box = page.locator("#studio-right").getByRole("textbox", { name: / for 2 layers$/ }).first();
+      await until(() => box.count(), { message: "a text row for the two ListItems" });
+      const prop = (await box.getAttribute("aria-label")).replace(/ for 2 layers$/, "");
+      await box.fill("/inbox");
+      await box.press("Enter");
+      await expectSource(ctx, "inst-row", (el) => el.attr(prop) === "/inbox", `inst-row ${prop}="/inbox"`);
+      await expectSource(ctx, "inst-click-row", (el) => el.attr(prop) === "/inbox", `inst-click-row ${prop}="/inbox"`);
+      return `${prop} → "/inbox" on both rows`;
+    },
+  },
+  {
     id: "I-13", feature: "Mixed properties outside an example page (shared component file)", wp: "WP-B",
     async run(ctx) {
       const page = await freshSelect(ctx, "save-a", { frame: 4, file: ctx.saveFile });
@@ -263,6 +312,19 @@ export const rows = [
         await ctx.api.discard([ctx.saveFile]).catch(() => {});
       }
       return "both buttons → primary";
+    },
+  },
+  {
+    id: "I-30", feature: "Mixed properties: a number prop (Heading level) shows Mixed and one pick goes to both layers", wp: "backlog 2026-10-08",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "h-a", { frame: 9 });
+      await clickLoc(page, ctx.file, await at(ctx, "h-b"), { modifiers: ["Shift"] });
+      const row = inspectorRow(page, "level");
+      await until(async () => /Mixed/.test(await row.innerText().catch(() => "")), { message: "a Mixed level row for the two Headings" });
+      await pickOption(page, "level", "2");
+      await expectSource(ctx, "h-a", (el) => el.attr("level") === "{2}", "h-a level={2}");
+      await expectSource(ctx, "h-b", (el) => el.attr("level") === "{2}", "h-b level={2}");
+      return "level Mixed (3, 4) → 2 on both Headings";
     },
   },
 ];

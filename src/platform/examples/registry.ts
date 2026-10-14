@@ -11,8 +11,9 @@ const modules = import.meta.glob<ExamplePageModule>("./pages/*.tsx", { eager: tr
 
 export const rebuiltExamples: Partial<Record<PlatformPage, ExampleDef[]>> = {};
 for (const mod of Object.values(modules)) {
-  // A whole screen always takes the whole row (ExampleCard spans the row only through `wide`).
-  if (mod?.page && Array.isArray(mod.examples) && mod.examples.length) rebuiltExamples[mod.page] = mod.examples.map((e) => (e.screen ? { ...e, wide: true } : e));
+  // The page's own records (no copies): a hot update changes them in place (hotData.ts), and the readers see it. A
+  // whole screen takes the whole row through isWideExample.
+  if (mod?.page && Array.isArray(mod.examples) && mod.examples.length) rebuiltExamples[mod.page] = mod.examples;
 }
 
 // Every component and mobile page reads its examples from its pages/<page>.tsx.

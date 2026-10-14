@@ -9,8 +9,9 @@ export type FigmaPropsEntry = {
    *  and Figma option name → code value; an icon swap's `default`: its default icon in Figma. */
   own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>>; default?: string }>;
   /** Figma booleans that show a layer: on writes `on` (a text; "slot": the content-slot picker; { code }: an object or a
-   *  list written as code), off removes the prop. */
-  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;
+   *  list written as code), off removes the prop. `when`: shown only while each prop (or its default) is one of the
+   *  values — the sets that have the boolean, then the layer's own conditions. */
+  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string }; when?: ReadonlyArray<{ prop: string; oneOf: readonly string[]; default?: string }> }>;
   /** Nested layers (an Input's Label): shown while `when` is set, with their properties ("CODE": a code prop the
    *  nested Figma set has no property for, labelled here). */
   nested?: ReadonlyArray<{ name: string; figma?: string; when: string; own: ReadonlyArray<{ prop: string; label?: string; type: string }> }>;
@@ -501,6 +502,125 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "DashboardHeader": {
+    "figma": "4122:33402",
+    "own": [
+      {
+        "prop": "type",
+        "label": "Type",
+        "type": "VARIANT",
+        "options": {
+          "Navigation": "navigation",
+          "Main": "main",
+          "Control-Bar": "control-bar",
+          "Custom": "custom"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Actions",
+        "prop": "actions",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar",
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      },
+      {
+        "label": "Nav-Trailing-Block",
+        "prop": "trailing",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "navigation",
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      },
+      {
+        "label": "Controls",
+        "prop": "controls",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      },
+      {
+        "label": "Search",
+        "prop": "search",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      },
+      {
+        "label": "Subheading",
+        "prop": "subheading",
+        "on": "96 results",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "control-bar",
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      },
+      {
+        "label": "Nav-Center-Block",
+        "prop": "center",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "navigation"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      },
+      {
+        "label": "Child-Heading",
+        "prop": "childTitle",
+        "on": "2026",
+        "when": [
+          {
+            "prop": "type",
+            "oneOf": [
+              "main"
+            ],
+            "default": "control-bar"
+          }
+        ]
+      }
+    ]
+  },
   "Card": {
     "figma": "6643:51021",
     "own": [
@@ -513,7 +633,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Flat": "flat",
           "Pale": "pale",
           "Border": "border",
-          "Semi-Pale": "semi-pale"
+          "Semi-Pale": "semi-pale",
+          "On-Container": "on-container"
         }
       },
       {
@@ -641,13 +762,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": [
-      {
-        "label": "Caption",
-        "prop": "caption",
-        "on": "Caption"
-      }
-    ]
+    "toggles": []
   },
   "Divider": {
     "figma": "460:38361",
@@ -824,26 +939,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -923,26 +1039,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -1022,26 +1139,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -1061,21 +1179,22 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     "nested": [
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
           {
-            "prop": "helpText",
-            "label": "Text",
-            "type": "CODE"
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
           },
           {
             "prop": "helpTheme",
             "label": "Theme",
-            "type": "CODE"
+            "type": "VARIANT"
           },
           {
-            "prop": "helpIcon",
-            "label": "Icon",
+            "prop": "helpText",
+            "label": "Text",
             "type": "CODE"
           }
         ]
@@ -1172,7 +1291,20 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
   },
   "ListBox": {
     "figma": "14922:75297",
-    "own": [],
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Flat": "flat",
+          "Shadow": "shadow",
+          "Pale": "pale",
+          "Border": "border",
+          "On-Container": "on-container"
+        }
+      }
+    ],
     "toggles": [
       {
         "label": "Header",
@@ -1282,6 +1414,15 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Accent": "accent",
           "Neutral": "neutral",
           "Status": "status"
+        }
+      },
+      {
+        "prop": "layout",
+        "label": "Layout",
+        "type": "VARIANT",
+        "options": {
+          "Inline": "inline",
+          "Stacked": "stacked"
         }
       }
     ],
@@ -1832,6 +1973,39 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
+    "toggles": [
+      {
+        "label": "Actions",
+        "prop": "action",
+        "on": {
+          "code": "{ label: \"Action\" }"
+        }
+      }
+    ]
+  },
+  "UploaderFileItem": {
+    "figma": "1581:22739",
+    "own": [
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Overlay": "overlay"
+        }
+      },
+      {
+        "prop": "thumbnail",
+        "label": "Thumbnail",
+        "type": "VARIANT",
+        "options": {
+          "None": "none",
+          "File": "file",
+          "Photo": "photo"
+        }
+      }
+    ],
     "toggles": []
   },
   "FileUpload": {
@@ -2002,26 +2176,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -2100,26 +2275,27 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       },
       {
         "name": "Help-Text",
+        "figma": "373:97364",
         "when": "helpText",
         "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
           {
             "prop": "helpText",
             "label": "Text",
             "type": "CODE"
           },
           {
-            "prop": "helpTheme",
-            "label": "Theme",
-            "type": "CODE"
-          },
-          {
-            "prop": "helpIcon",
-            "label": "Icon",
-            "type": "CODE"
-          },
-          {
             "prop": "characterLimit",
-            "label": "Character limit",
+            "label": "Character-Limitation",
             "type": "CODE"
           }
         ]
@@ -2150,6 +2326,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "DatePickerSheet": {
+    "figma": "9923:3576",
+    "own": [],
+    "toggles": []
+  },
   "Stepper": {
     "figma": "1625:8328",
     "own": [
@@ -2176,30 +2357,9 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
-        "prop": "size",
-        "label": "Size",
-        "type": "VARIANT",
-        "options": {
-          "XLarge": "xlarge",
-          "Large": "large",
-          "Medium": "medium",
-          "Small": "small",
-          "XSmall": "xsmall"
-        }
-      }
-    ],
-    "toggles": []
-  },
-  "MetricCard": {
-    "figma": "595:55188",
-    "own": [
-      {
-        "prop": "variant",
-        "type": "SET",
-        "options": {
-          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
-          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
-        }
+        "prop": "metricColor",
+        "label": "Metric-Color",
+        "type": "BOOLEAN"
       },
       {
         "prop": "size",
@@ -2214,7 +2374,214 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       }
     ],
-    "toggles": []
+    "toggles": [
+      {
+        "label": "Trend",
+        "prop": "trend",
+        "on": {
+          "code": "{ direction: \"positive\", label: \"+12%\" }"
+        }
+      },
+      {
+        "label": "Counter",
+        "prop": "counter",
+        "on": "3",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "icon-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
+      },
+      {
+        "label": "Hint",
+        "prop": "hint",
+        "on": "How this number is worked out",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
+      },
+      {
+        "label": "Label-Icon",
+        "prop": "labelIcon",
+        "on": "icon-wallet-02-line",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
+      },
+      {
+        "label": "Custom",
+        "prop": "custom",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
+      }
+    ]
+  },
+  "MetricCard": {
+    "figma": "595:55188",
+    "own": [
+      {
+        "prop": "variant",
+        "type": "SET",
+        "options": {
+          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
+          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
+        }
+      },
+      {
+        "prop": "metricColor",
+        "label": "Metric-Color",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "XLarge": "xlarge",
+          "Large": "large",
+          "Medium": "medium",
+          "Small": "small",
+          "XSmall": "xsmall"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Trend",
+        "prop": "trend",
+        "on": {
+          "code": "{ direction: \"positive\", label: \"+12%\" }"
+        }
+      },
+      {
+        "label": "Counter",
+        "prop": "counter",
+        "on": "3",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "icon-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
+      },
+      {
+        "label": "Hint",
+        "prop": "hint",
+        "on": "How this number is worked out",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
+      },
+      {
+        "label": "Label-Icon",
+        "prop": "labelIcon",
+        "on": "icon-wallet-02-line",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          },
+          {
+            "prop": "size",
+            "oneOf": [
+              "xl",
+              "xlarge",
+              "lg",
+              "large",
+              "md",
+              "medium"
+            ],
+            "default": "xl"
+          }
+        ]
+      },
+      {
+        "label": "Custom",
+        "prop": "custom",
+        "on": "slot",
+        "when": [
+          {
+            "prop": "variant",
+            "oneOf": [
+              "title-highlight"
+            ],
+            "default": "icon-highlight"
+          }
+        ]
+      }
+    ]
   },
   "ChatMessage": {
     "figma": "6349:64085",
@@ -2370,6 +2737,20 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Default": "default",
           "Success": "success",
           "Wrong": "wrong"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "InputConditions": {
+    "figma": "373:97663",
+    "own": [
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default"
         }
       }
     ],

@@ -57,6 +57,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `disabled` | `boolean` | `false` | Search/Default is a `.Primitives/Input/Field-Only` instance, so Disabled is Field-Only State=Disabled (Input/Border/Disabled, Content/Disabled text) with its Leading/Trailing at Active=No. The clear button and the shortcut hint are hidden and the filter is locked. Use it when searching is unavailable for a reason the page shows. |
 | `shortcut` | `string` | — | Keyboard shortcut key shown as `⌘K` in the trailing slot (Figma Side-Bar Small-Density search); pressing ⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot). |
 | `onClear` | `() => void` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: "accent-base" }, Filter: { label: "Status" } }`). Written by Zen Studio; app code sets leading / trailing / theme. |
 
 ### Types
 Object shapes the props above refer to.
@@ -101,6 +102,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `search/needs-name` | warn | Search needs a placeholder that says what is searched, or an aria-label. | `zen-allow-unnamed: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References

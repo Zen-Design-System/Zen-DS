@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { FrameChrome } from "../board/FrameChrome";
 import { SelectionLayer } from "../select/SelectionLayer";
+import { VariantOutline } from "../mainComponent/VariantOutline";
 import { SlotLayer } from "../slots/SlotLayer";
 import { ConstraintLayer } from "../position/ConstraintLayer";
 import { EditLayer } from "../edit/EditLayer";
@@ -92,8 +93,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   }, [viewport, world]);
 
   // A page opens where it was left. The first visit shows the board's top-left (title, then the Playground or the
-  // document) 48px in, at the zoom that fits the Playground's width — but never below 75% (a wide playground runs off to
-  // the right, one pan away) nor above 100%; the Docs frame beside it is one pan away.
+  // document) 48px in, at the zoom that fits the Playground's width in the visible canvas — but never below 50%
+  // (FIRST_VISIT_MIN_ZOOM) nor above 100%; the Docs frame beside it is one pan away.
   useLayoutEffect(() => {
     if (!viewport || !world) return;
     keyRef.current = viewKey;
@@ -315,6 +316,7 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
         <PlatformTypographyContext value={preview.typography}>{children}</PlatformTypographyContext>
       </div>
       <SelectionLayer viewport={viewport} world={world} />
+      <VariantOutline world={world} />
       <SlotLayer viewport={viewport} world={world} />
       <ConstraintLayer viewport={viewport} world={world} />
       <EditLayer viewport={viewport} world={world} />

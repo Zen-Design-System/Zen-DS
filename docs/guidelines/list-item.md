@@ -2,7 +2,7 @@
 # List Item
 
 **Figma:** List-Item (4080:11700) + Component/List-Box (14922:75297) + .Primitives/List-Item/Mobile/* (page 4080:4632)  
-**Import:** `import { List, ListBox, ListItem } from "@zen-ds/react";`
+**Import:** `import { List, ListBox, ListItem, ToggleListItem } from "@zen-ds/react";`
 
 One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.
 
@@ -20,13 +20,15 @@ One row of a vertical list: a leading visual, a title with an optional caption, 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Switch row | `ToggleListItem title · caption · checked · onCheckedChange` | a settings row that is one switch: a press anywhere flips it, the title names it and the caption describes it (composed; no Figma master yet) |
 | Leading | `leading` | Avatar (Image-Size/Medium, 40px), Dock Icon, thumbnail — Figma Leading on/off |
 | Contents | `title · caption · children · titleLines` | Title Body/Base/Bold, one line that truncates (Figma); titleLines={2} lets it wrap to a second line before it truncates; caption Body/Small/Regular Light (may wrap), Spacing/Gap/3XSmall (2px) under the title (Info-Content); children replace the stack |
-| Trailing | `trailing` | Figma Slot-Actions: Button/Icon-Flat Medium (IconButton appearance="flat" size="md", 40px), gap Small; or a passive chevron, value or Badge |
+| Value | `value · valueCaption · valueTone` | an amount, total or count at the row's end, mirrored Info-Content: value Body/Base/Bold level with the title, valueCaption Body/Small/Regular Light level with the caption, right-aligned, tabular figures, never cut (the title truncates). valueTone = a Content tone (strongest default; positive-light / negative-light for a signed amount). Inside the row's button or link, so a clickable row reads it. Code-only: in Figma a text stack in the Trailing slot |
+| Trailing | `trailing` | Figma Slot-Actions: Button/Icon-Flat Medium (IconButton appearance="flat" size="md", 40px), gap Small; or a passive chevron or Badge (after the value) |
 | Interactive | `onClick · href` | Yes = the row has onClick or href; No = neither. Both pad Spacing/Padding/Small (12px) above and below and nothing at the sides (Figma: one set for every device); the container around the List insets it sideways. No only drops the Interactive-Background and its states. Never set or override the row padding yourself |
 | State | `selected · onClick · href` | Interactive=Yes only. Default / Hover / Pressed from real interaction; Selected = Active/Neutral/Subtle — the Interactive-Background covers the row's height and hangs Padding/Small (12px) past it sideways, corners Interactive-List-Item-Radius (Corner-Radius/Base 12px on desktop, Large 16px on tablet and mobile); leave at least 12px at the sides of clickable rows so it is not clipped |
 | List | `<List aria-label>` | ul wrapper. Gap Spacing/Gap/3XSmall (2px) between rows, static and clickable alike (Figma List-Box Body-Slot); each row pads itself 12px above and below. The List sits inside its container's padding; inset is deprecated |
-| ListBox | `<ListBox header footer theme>` | Figma Component/List-Box: the white box of rows, one component for every device (only the tokens change by mode). theme = elevation as Card's Figma Theme: flat (default, Surface alone) · shadow (Shadow/Bottom/Level-1) · pale (Support/Neutral/Pale + blur) · border (1px Border/Neutral/Pale inside). Surface/Default, Corner-Radius/2XLarge (24px), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile; the header Padding/XSmall below, the body List-Container-Vertical-Padding above and below: 12px desktop, 8px tablet and mobile); body gap 3XSmall, header/footer gap Medium. The row fill sits 12px (desktop) / 8px (phone) from its edge, concentric with Interactive-List-Item-Radius |
+| ListBox | `<ListBox header footer theme>` | Figma Component/List-Box: the white box of rows, one component for every device (only the tokens change by mode). theme = elevation as Card's Figma Theme: flat (default, Surface alone) · shadow (Shadow/Bottom/Level-1) · pale (Support/Neutral/Pale + blur) · border (1px Border/Neutral/Pale inside) · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet). Surface/Default, Corner-Radius/2XLarge (24px), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile; the header Padding/XSmall below, the body List-Container-Vertical-Padding above and below: 12px desktop, 8px tablet and mobile); body gap 3XSmall, header/footer gap Medium. The row fill sits 12px (desktop) / 8px (phone) from its edge, concentric with Interactive-List-Item-Radius |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/list-item.json`.
@@ -45,7 +47,7 @@ Also accepts `HTMLAttributes<HTMLUListElement>`.
 | `className` | `string` | — |  |
 
 ### ListItem
-Figma List-Item (4080:11700): a Wrapper row (gap Medium) of Leading · Contents · Trailing, padded Spacing/Padding/Small (12px) above and below and nothing at the sides (one set for every device; Contents = Info-Content, Title and Subtitle Spacing/Gap/3XSmall apart). - Interactive=Yes (onClick or href): an Interactive-Background Padding/Small (12px) outside the content on every side — the row's height, 12px past it sideways (Interactive-List-Item-Radius: Corner-Radius/Base 12px on desktop, Large 16px on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the container leaves at least 12px at the row's sides. - Interactive=No (neither): no background or states. Never add padding to the row: the layout around the List decides where it sits.
+Figma List-Item (4080:11700): a Wrapper row (gap Medium) of Leading · Contents · Trailing, padded Spacing/Padding/Small (12px) above and below and nothing at the sides (one set for every device; Contents = Info-Content, Title and Subtitle Spacing/Gap/3XSmall apart). - Interactive=Yes (onClick or href): an Interactive-Background Padding/Small (12px) outside the content on every side — the row's height, 12px past it sideways (Interactive-List-Item-Radius: Corner-Radius/Base 12px on desktop, Large 16px on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the container leaves at least 12px at the row's sides. - Interactive=No (neither): no background or states. - Value (`value`, `valueCaption`): a right-aligned Info-Content after the title stack, Body/Base/Bold over Body/Small/Regular Content/Neutral/Light, Spacing/Gap/3XSmall apart, tabular figures; it keeps its width and the title truncates (a transaction or a total per row). Never add padding to the row: the layout around the List decides where it sits.
 
 Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 
@@ -56,28 +58,64 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 | `titleLines` | `1 \| 2` | `1` | Lines the title may take before it truncates with an ellipsis. 1 (default) = Figma's one line (Title, textTruncation ENDING, maxLines 1); 2 when the title must be read in full, e.g. a long task or document name in a narrow list. |
 | `caption` | `ReactNode` | — | Figma Info-Content Subtitle (Body/Small/Regular, Content/Neutral/Light). |
 | `leading` | `IconName \| ReactNode` | — | Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`"icon-clock-line"`). |
-| `trailing` | `ReactNode` | — | Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron. |
+| `value` | `ReactNode` | — | A value at the row's end, read with the title: an amount, a total, a count ("+94,860,000 VND", "92 h"). Body/Base/Bold like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's button or link, so a clickable row reads it out. |
+| `valueCaption` | `ReactNode` | — | The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another currency, a date, a unit ("3,600.00 USD"). |
+| `valueTone` | `ContentTone` | `"strongest"` | Colour of `value`, a Color/Content tone as Text's `tone`: "strongest" (default, like the title); "positive-light" / "negative-light" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too: the colour never carries the meaning alone. |
+| `trailing` | `ReactNode` | — | Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`. |
 | `children` | `ReactNode` | — | Figma Contents slot override: replaces the title/caption stack. |
 | `selected` | `boolean` | `false` | Figma State=Selected (Background/Active/Neutral/Subtle). Interactive rows only (Figma has no Selected for Interactive=No): pair it with onClick or href. |
 | `onClick` | `(event: MouseEvent<HTMLButtonElement \| HTMLAnchorElement>) => void` | — | Makes the row one action: Figma Interactive=Yes (an Interactive-Background over the row's height and 12px past it sideways, Interactive-List-Item-Radius corners, Hover / Pressed from real interaction). Without onClick or href the row is Interactive=No: no background or states. Keep trailing buttons out of clickable rows. |
 | `href` | `string` | — | Renders the row as a link (Figma Interactive=Yes). |
 | `as` | `"li" \| "div"` | `"li"` | "li" (default, inside `<List>`) or "div" when used on its own. |
 | `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the row draws for an icon-name `leading`, by layer (`{ Leading: { name: "icon-heart-line" } }`). Written by Zen Studio; app code sets `leading`. Slot content (an Avatar you pass) is edited as itself. |
 
 ### ListBox
-Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill: Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and Footer are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow, pale or border.
+Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill: Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: flat (default), shadow, pale, border or on-container.
 
-Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `width` | `"hug" \| "fill" \| number` | — | Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width. `"hug"` (Hug contents): as wide as its content, never grows or stretches. `"fill"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding and may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full width. Fill children in a wrapping row need a `minWidth` to wrap. A number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box). (Container's `maxWidth` is a different prop: a token width, sm…full.) Prefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame). |
+| `minWidth` | `number` | — | Minimum width in px (Figma min width). Wins over fill's shrink-to-0. |
+| `maxWidth` | `number` | — | Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text. |
+| `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
 | `ref` | `Ref<HTMLElement>` | — | The root element. |
 | `header` | `ReactNode` | — | Figma Header-Slot (Header=Yes): what names the box, e.g. a Heading/Subheading title and a caption, or a toolbar. Pads Card-padding-medium on top and at the sides and Padding/XSmall below; its content stacks Spacing/Gap/Medium. |
 | `children` (required) | `ReactNode` | — | Figma Body-Slot: the rows, usually a `<List>` of ListItems. Pads Card-padding-medium sideways and List-Container-Vertical-Padding above and below (12px desktop, 8px tablet and mobile) and stacks its children Spacing/Gap/3XSmall, so a clickable row's fill sits 12px (desktop) or 8px (phone) from every box edge. |
 | `footer` | `ReactNode` | — | Figma Footer-Slot (Footer=Yes): what follows the rows, e.g. a "Show all" Tertiary button. Pads Card-padding-medium. |
-| `theme` | `"flat" \| "shadow" \| "pale" \| "border"` | `"flat"` | Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale: Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11). |
+| `theme` | `"flat" \| "shadow" \| "pale" \| "border" \| "on-container"` | `"flat"` | Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale: Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11). On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16). |
 | `as` | `"div" \| "section"` | `"div"` | "div" (default) or "section" when the box is a titled region (give it aria-labelledby). |
 | `className` | `string` | — |  |
+
+### ToggleListItem
+A settings row whose whole surface is one switch: a ListItem (leading, Title, Caption) with a Toggle-Button (Toggle/Toggle-Button) in its trailing slot. Composed from the Figma List-Item and Toggle-Button primitives with their own tokens — no Figma master of its own yet (backlog batch 6, user 2026-10-07). A press anywhere on the row flips the switch (the row is a `<label>` around it); the switch keeps the focus ring and Space / Enter (APG Switch).
+
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ref` | `Ref<HTMLElement>` | — | The root row element. |
+| `title` (required) | `ReactNode` | — | What the switch turns on or off (Body/Base/Bold, one line); it names the switch. |
+| `caption` | `ReactNode` | — | One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch. |
+| `leading` | `IconName \| ReactNode` | — | Icon name or element before the text, as in ListItem. |
+| `checked` | `boolean` | — | Controlled on/off state. |
+| `defaultChecked` | `boolean` | — | Initial state when uncontrolled. Default false. |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new state on a press anywhere on the row, or Space / Enter on the switch. |
+| `disabled` | `boolean` | `false` | The row and its switch do nothing; the switch shows Disabled. |
+| `toggleSize` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Toggle-Button size. Default md. |
+| `name` | `string` | — | Form field name of the switch's checkbox (submitted as "on" while checked). |
+| `as` | `"li" \| "div"` | `"li"` | Root element. Default `li` (inside a List); `div` outside one. |
+| `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the switch and icon it draws, by layer (`{ "Toggle-Button": { size: "sm" } }`). Written by Zen Studio; app code sets toggleSize / leading. |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type ContentTone = (typeof contentTones)[number]
+```
 
 ## Keyboard
 | Keys | Action |
@@ -86,12 +124,15 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | Enter / Space | Activate a clickable row |
 
 ## ✅ Do
+- Make a settings row that is one on/off switch a `<ToggleListItem>`, not a ListItem with a Toggle in its trailing slot.
 - Wrap rows in <List aria-label> so the group is named.
 - Put a box of List-Item rows in `<ListBox>` (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.
-- Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card, Dialog, SidePanel, BottomSheet).
+- Pick the ListBox theme by where it sits (usage rules §16): flat (default) on Canvas/Default and on a Surface-Alt phone screen; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).
 - Make the whole row the target (onClick / href) when it opens one thing; for drill-down add a passive chevron.
 - Put quick actions in the trailing slot as Button/Icon-Flat Medium (IconButton appearance="flat" size="md") with an aria-label. They work on clickable rows too — Figma keeps the trailing action in Hover, Pressed and Selected — and stay separate targets that don't open the row.
 - Keep to one or two trailing actions; move the rest into a More (…) menu.
+- Make a See all / Show all at a section head (beside a ListBox header title or a kicker) underlined text, not a button (user, 2026-10-13: it takes no more room than its words): <Text as="span" textStyle="Body/Base/Medium"><Link tone="inherit"> — href when it opens the full list, as="button" with aria-expanded when it expands the list in place.
+- Give a row that ends in an amount or total value + valueCaption (a transaction: "+94,860,000 VND" over "3,600.00 USD") instead of a Text stack in trailing: it lines up with the title and caption and keeps its width. Keep the sign in the text (+ / −) when valueTone colours money in or out.
 - Use titleLines={2} when the title must be read in full (long task, document or file names in a narrow list); keep the default one line in dense lists where the caption carries the detail. Keep the caption short (it may wrap to a second line).
 - Mark the current row with selected (Active/Neutral/Subtle), not a custom fill.
 - Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.
@@ -105,6 +146,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 - Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).
 - Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).
 - Don't mix leading sizes in one list — row heights stop lining up.
+- Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).
 - Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).
 - Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.
 - Don't give a static row an onClick just to get hover, and don't mark a static row selected.
@@ -126,11 +168,15 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | --- | --- | --- | --- |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `list-item/inset-not-padding` | warn | List rows keep the padding Figma sets inside List-Item (Padding/Small 12px above and below, none at the sides, for Interactive=Yes and No alike), never a padding override on .zen-list-item — the layout around the List decides where it sits (leave 12px around clickable rows for their fill). | `zen-allow-list-inset: <reason>` |
+| `listbox/on-container-in-overlay` | warn | A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme="on-container": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12). | `zen-allow-overlay-theme: <reason>` |
 | `list-item/clickable-row-toggle` | warn | A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions). | `zen-allow-row-toggle: <reason>` |
+| `list-item/switch-row` | warn | A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch. | `zen-allow-switch-row: <reason>` |
 | `list-item/trailing-button-medium` | warn | Buttons in a List-Item trailing slot are size Medium (md). | `zen-allow-trailing-size: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
+| `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |
 
 ## References
 - [Material 3 — Lists](https://m3.material.io/components/lists/guidelines)

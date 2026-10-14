@@ -23,7 +23,7 @@ import { useFormState } from "../../../components/Form";
 import type { IconName } from "../../../components/Icon";
 import { InputField, SelectField } from "../../../components/Input";
 import { Box, Container, Grid, Stack } from "../../../components/Layout";
-import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
@@ -33,18 +33,18 @@ import { Sidebar, type SidebarSection } from "../../../components/Sidebar";
 import { Table, TableMedia, TableText, type TableColumn } from "../../../components/Table";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
-import { Toggle } from "../../../components/Toggle";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, ShellPage, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
   activity, daysFromToday, files, formatBytes, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRelative, formatTime, initials,
   invoiceStatusTheme, invoices, me, people, peopleList, priorityTheme, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
   type Invoice, type Person, type PersonId, type Project, type ProjectStatus, type StudioFile, type Task, type TaskStatus, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
-import "./app-shell.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "app-shell";
 
@@ -61,10 +61,15 @@ const taskWhen = (task: Task) => (task.status === "Done" ? `Done ${formatDay(tas
     the object stays whole, so no line ends on a dot and no time or date splits; on a narrow page an unread row leads
     with New, since its Badge steps aside there. */
 const wholeDates = (text: string) => text.split(/([A-Z][a-z]{2} \d{1,2}(?: – [A-Z][a-z]{2} \d{1,2})?, \d{4})/).map((part, index) => (
-  index % 2 ? <span key={index} className="px-app-shell-value">{part}</span> : part
+  index % 2 ? whole(part) : part
 ));
+/** A run of words that never breaks: its spaces are no-break spaces. */
+const whole = (text: string) => text.replace(/ /g, "\u00a0");
+/** Where a notification leads: the invoice list, the profile (leave), or the projects the task belongs to. */
+const notificationTarget = (item: { verb: string; object: string }): "invoices" | "profile" | "projects" =>
+  /^INV-/.test(item.object) ? "invoices" : /leave/.test(item.verb) ? "profile" : "projects";
 const activityCaption = (item: { verb: string; object: string; at: Date }, leadNew = false) => (
-  <>{leadNew ? "New ·\u00a0" : null}{wholeDates(`${item.verb[0].toUpperCase()}${item.verb.slice(1)} ${item.object}`)}{" "}<span className="px-app-shell-value">{`· ${formatRelative(item.at)}`}</span></>
+  <>{leadNew ? "New ·\u00a0" : null}{wholeDates(`${item.verb[0].toUpperCase()}${item.verb.slice(1)} ${item.object}`)}{" "}{whole(`· ${formatRelative(item.at)}`)}</>
 );
 
 /** The width of an element, kept current: tables fold their columns when the page beside the Sidebar gets narrow. */
@@ -81,21 +86,21 @@ function useWidth() {
 }
 
 /** A fixed-height app window: the AppShell fills it, and its drawer (below 1024px) covers the window. */
-function AppFrame({ children }: { children: ReactNode }) {
-  return <div className="px-app-shell-frame"><div className="px-app-shell-frame__scroll">{children}</div></div>;
+function AppFrame({ windowWidth, children }: { windowWidth?: number; children: ReactNode }) {
+  return <PreviewAppFrame windowWidth={windowWidth}>{children}</PreviewAppFrame>;
 }
 
 /** The page beside the Sidebar: Container keeps the page margin; one h1 (the PageHeader), then the content xl apart. */
 // maxWidth "full": a page whose content is a non-widget Table spans the page (user rule 2026-10-03); Home and the other pages keep lg.
 function Page({ children, pageRef, maxWidth }: { children: ReactNode; pageRef?: (element: HTMLElement | null) => void; maxWidth?: "lg" | "full" }) {
-  return <Container ref={pageRef} maxWidth={maxWidth}><Stack gap="xl" className="px-app-shell-page">{children}</Stack></Container>;
+  return <ShellPage pageRef={pageRef} maxWidth={maxWidth}>{children}</ShellPage>;
 }
 
 /* The studio's mark and name. The logo slot is 24px high (20px in Small-Density): the mark is an image that fills it. */
-const studioLogo = <span className="px-app-shell-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>;
+const studioLogo = <StudioLogo src={studio.logo} name={studio.name} />;
 const studioMark = <Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
-const denseLogo = <span className="px-app-shell-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Small/Bold">{studio.name}</Text></span>;
-const denseMark = <img className="px-app-shell-mark" src={studio.logo} alt={studio.name} />;
+const denseLogo = <StudioLogo src={studio.logo} name={studio.name} textStyle="Body/Small/Bold" />;
+const denseMark = <StudioMark src={studio.logo} name={studio.name} />;
 
 type CardTheme = "shadow" | "border";
 
@@ -105,7 +110,7 @@ function AccountPage({ id, card }: { id: "profile" | "settings"; card: CardTheme
     <Page>
       <PageHeader title="Profile" description={`${me.role} · ${me.team} team`} />
       {/* A readable width keeps each term near its value. */}
-      <Card theme={card} className="px-app-shell-details">
+      <Card theme={card} width="fill" maxWidth={440}>
         <DescriptionList items={[
           { term: "Name", description: me.name },
           { term: "Email", description: me.email },
@@ -117,7 +122,7 @@ function AccountPage({ id, card }: { id: "profile" | "settings"; card: CardTheme
   ) : (
     <Page>
       <PageHeader title="Settings" description={`The ${studio.name} workspace`} />
-      <Card theme={card} className="px-app-shell-details">
+      <Card theme={card} width="fill" maxWidth={440}>
         <DescriptionList items={[
           { term: "Workspace", description: studio.name },
           { term: "Domain", description: studio.domain },
@@ -147,13 +152,13 @@ function useAccount(go: (page: "profile" | "settings") => void) {
       primaryAction={{ label: "Sign out", onClick: () => { setConfirming(false); setSignedOut(true); } }} secondaryAction={{ label: "Cancel" }} />
   );
   const screen = signedOut ? (
-    <Stack align="center" justify="center" gap="md" padding="xl" className="px-app-shell-signed-out">
+    <Box surface="canvas" height="fill"><Stack align="center" justify="center" gap="md" padding="xl" height="fill">
       <Stack align="center" gap="xs">
         <Heading level={1} textStyle="Heading/1" align="center">You’re signed out</Heading>
         <Text tone="base" align="center">{`Sign in to get back to ${studio.name}.`}</Text>
       </Stack>
       <Button level="primary" onClick={() => setSignedOut(false)}>Sign in</Button>
-    </Stack>
+    </Stack></Box>
   ) : null;
   return { menu, dialog, screen };
 }
@@ -171,6 +176,8 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
   // Remember it per person in a real app (e.g. localStorage), so the rail stays the way they left it.
   const [collapsed, setCollapsed] = useState(false);
   const [unseen, setUnseen] = useState(3);
+  // Opening a notification marks it read (its New goes) and goes to what it is about.
+  const [read, setRead] = useState<string[]>([]);
   const [list, setList] = useState(projects);
   const [creating, setCreating] = useState(false);
   const [measure, width] = useWidth();
@@ -183,7 +190,7 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
   const compactRows = width > 0 && width < 480;
   const dueId = useId();
   const projectColumns: TableColumn<Project>[] = [
-    { id: "project", header: "Project", cell: (row) => <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.client}>{row.name}</TableMedia> },
+    { id: "project", header: "Project", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.client}>{row.name}</TableMedia> },
     // On a phone-width page no column has a fixed width, so they share the room instead of scrolling sideways.
     { id: "status", header: "Status", width: narrow ? undefined : "128px", cell: (row) => badge(row.status, projectStatusTheme[row.status]) },
     ...(narrow ? [] : [
@@ -225,12 +232,16 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
         {/* A list of rows sits in a ListBox. */}
         <ListBox theme="shadow">
           <List aria-label="Notifications">
-            {activity.map((item) => (
-              <ListItem key={item.id} title={people[item.actor].name}
-                caption={activityCaption(item, item.unread && compactRows)}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />}
-                trailing={item.unread && !compactRows ? badge("New", "accent") : undefined} />
-            ))}
+            {activity.map((item) => {
+              const unread = item.unread && !read.includes(item.id);
+              return (
+                <ListItem key={item.id} title={people[item.actor].name}
+                  caption={activityCaption(item, unread && compactRows)}
+                  leading={<Avatar size="md" {...avatarOf(people[item.actor])} />}
+                  trailing={unread && !compactRows ? badge("New", "accent") : undefined}
+                  onClick={() => { setRead((ids) => ids.includes(item.id) ? ids : [...ids, item.id]); go(notificationTarget(item)); }} />
+              );
+            })}
           </List>
         </ListBox>
       </Page>
@@ -241,9 +252,9 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
         <PageHeader title="Home" description={`${plural(dueThisWeek.length, "task")} due this week across ${plural(new Set(dueThisWeek.map((task) => task.project)).size, "project")}`} />
         {/* Three peers share the neutral tile; a phone puts them two across. */}
         <Grid columns={{ mobile: 2, desktop: 3 }} gap="md">
-          <MetricCard label="Active projects" value={String(list.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="flat" />
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="flat" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="flat" />
+          <MetricCard label="Active projects" value={String(list.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
+          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
+          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
         </Grid>
         <Stack as="section" gap="md" aria-labelledby={dueId}>
           <Heading level={2} id={dueId} textStyle="Heading/4">Due this week</Heading>
@@ -252,7 +263,7 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
             <List aria-labelledby={dueId}>
               {dueThisWeek.map((task) => (
                 <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${taskWhen(task)}`}
-                  leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={compactRows ? undefined : taskBadge(task.status)} selected={false} />
+                  leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={compactRows ? undefined : taskBadge(task.status)} />
               ))}
             </List>
           </ListBox>
@@ -292,7 +303,7 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
   );
   return (
     <>
-      {narrowWindow ? <div className="px-app-shell-window"><AppFrame>{shell}</AppFrame></div> : <AppFrame>{shell}</AppFrame>}
+      <AppFrame windowWidth={narrowWindow ? 744 : undefined}>{shell}</AppFrame>
       {account.dialog}
       <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New project" field={{ kind: "name", label: "Project name", placeholder: "Saola trail guide" }}
         submitLabel="Create project" confirm={(name) => `${name} created`}
@@ -327,7 +338,7 @@ function PeopleDirectoryApp() {
   const shown = rows.filter((row) => !q || `${row.name} ${row.role} ${row.team} ${row.location}`.toLowerCase().includes(q));
   const columns: TableColumn<Row>[] = [
     { id: "person", header: "Person", cell: (row) => (
-      <TableMedia caption={row.role} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.name.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
+      <TableMedia bold caption={row.role} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.name.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
     ) },
     { id: "team", header: "Team", width: narrow ? undefined : "176px", cell: (row) => <TableText>{row.team}</TableText> },
     ...(narrow ? [] : [{ id: "office", header: "Office", width: "176px", cell: (row: Row) => <TableText>{row.location}</TableText> }]),
@@ -397,11 +408,12 @@ function PeopleDirectoryApp() {
                 { id: "teams", label: "Teams", icon: "icon-grid-01-line" },
                 { id: "activity", label: "Activity", icon: "icon-clock-line" },
               ] }]} />}
-            // A Search leads the top bar: it finds people from any page and opens the directory with the results.
-            header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
-              onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
+            // The Search sits in the top bar's middle (Figma Center-Slots, up to 400px): it finds people from any page and
+            // opens the directory with the results.
+            headerCenter={<Search placeholder="Search people" aria-label="Search people" value={query}
+              onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} />}
             headerActions={<>
-              <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} onClick={() => go("activity")} />
+              <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={news} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
               {account.menu}
             </>}
           >
@@ -509,7 +521,7 @@ function FilesApp() {
   const narrow = width > 0 && width < 640;
   const shown = allFiles.filter(folders[folder].filter);
   const columns: TableColumn<StudioFile>[] = [
-    { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size={narrow ? "lg" : "base"} />} caption={narrow ? `${formatBytes(file.bytes)} · ${formatRelative(file.updated)}` : undefined}>{file.name}</TableMedia> },
+    { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size={narrow ? "lg" : "base"} />} caption={narrow ? `${formatBytes(file.bytes)} · ${formatRelative(file.updated)}` : undefined}>{file.name}</TableMedia> },
     ...(narrow ? [] : [
       { id: "owner", header: "Owner", width: "168px", cell: (file: StudioFile) => <TableMedia bold={false} media={<Avatar size="xsmall" {...avatarOf(people[file.owner])} />}>{people[file.owner].name}</TableMedia> },
       { id: "updated", header: "Modified", width: "200px", cell: (file: StudioFile) => <TableText>{formatRelative(file.updated)}</TableText> },
@@ -594,6 +606,7 @@ function PhoneApp() {
   // A pushed screen over the current root: Notifications from Home, a project from Projects.
   const [pushed, setPushed] = useState<string | null>(null);
   const [unseen, setUnseen] = useState(true);
+  const [read, setRead] = useState<string[]>([]);
   const [list, setList] = useState(phoneProjects);
   const [creating, setCreating] = useState(false);
   const [push, setPush] = useState(true);
@@ -625,16 +638,25 @@ function PhoneApp() {
   if (pushed === "notifications") {
     return (
       <PlatformPhone key="notifications" label="Zen app" headerOverlay screenRef={screenRef} footer={footer}
-        header={<TopNavigation type="compact" title="Notifications" scrollRef={screenRef}
+        header={<TopNavigation type="compact-alt" title="Notifications" scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go('.zen-top-nav__action[aria-label^="Notifications"]', () => setPushed(null)) }} />}>
         {screen.anchor}
-        {/* Rows have no side padding of their own: the screen margin (lg, 20px) insets the List. */}
+        {/* Rows have no side padding of their own: the screen margin (lg, 20px) insets the List. A row opens what it
+            is about and marks itself read; an invoice stays a desk task (the web app). */}
         <Box paddingX="lg" paddingY="xs">
           <List aria-label="Notifications">
-            {[...activity, ...moreActivity].map((item) => (
-              <ListItem key={item.id} title={people[item.actor].name} caption={activityCaption(item)}
-                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} />
-            ))}
+            {[...activity, ...moreActivity].map((item) => {
+              const target = notificationTarget(item);
+              const open = () => {
+                setRead((ids) => ids.includes(item.id) ? ids : [...ids, item.id]);
+                if (target === "invoices") toast({ title: `${item.object} is in the web app`, children: "Invoices stay on the desktop." });
+                else screen.go('.zen-top-nav__action, .zen-list-item__wrapper', () => { setPushed(null); setRoot(target); });
+              };
+              return (
+                <ListItem key={item.id} title={people[item.actor].name} caption={activityCaption(item, Boolean("unread" in item && item.unread) && !read.includes(item.id))}
+                  leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} onClick={open} />
+              );
+            })}
           </List>
         </Box>
       </PlatformPhone>
@@ -664,7 +686,7 @@ function PhoneApp() {
     return (
       <PlatformPhone key="projects" label="Zen app" headerOverlay screenRef={screenRef} footer={footer}
         // The page's Primary (New project) becomes the root's trailing action.
-        header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef}
           trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => setCreating(true) }]} />}>
         {screen.anchor}
         {/* The screen margin (lg, 20px) insets the rows sideways; xs (8px) above and below, like a List-Box on a phone. */}
@@ -706,15 +728,13 @@ function PhoneApp() {
               <ListItem title="Office" caption={me.location} leading={<DockIcon icon="icon-marker-pin-01-line" theme="green" background="subtle" size="md" />} />
             </List>
           </Group>
-          <Stack as="section" gap="xs" aria-labelledby={`${baseId}-notify`}>
-            <Box paddingX="lg"><Heading level={2} id={`${baseId}-notify`} textStyle="Body/Small/Bold" tone="light">Notifications</Heading></Box>
-            <Card theme="flat">
-              <Stack gap="md">
-                <Toggle size="lg" label="Push notifications" caption="Comments, reviews and approvals" checked={push} onCheckedChange={setPush} />
-                <Toggle size="lg" label="Daily email digest" caption="Every morning at 8:00 am" checked={digest} onCheckedChange={setDigest} />
-              </Stack>
-            </Card>
-          </Stack>
+          {/* Settings rows whose whole surface is the switch: the switches line up on the block's right edge. */}
+          <Group id={`${baseId}-notify`} title="Notifications">
+            <List aria-labelledby={`${baseId}-notify`}>
+              <ToggleListItem title="Push notifications" caption="Comments, reviews and approvals" checked={push} onCheckedChange={setPush} />
+              <ToggleListItem title="Daily email digest" caption="Every morning at 8:00 am" checked={digest} onCheckedChange={setDigest} />
+            </List>
+          </Group>
         </Stack>
       </PlatformPhone>
     );
@@ -724,7 +744,7 @@ function PhoneApp() {
     // Home: the top bar's Notifications becomes the root's trailing action, with a dot until it is opened.
     <PlatformPhone key="home" label="Zen app" canvas="alt" headerOverlay screenRef={screenRef} footer={footer}
       header={<TopNavigation type="alt" title="Home" largeTitle="Home" scrollRef={screenRef}
-        trailing={[{ icon: "icon-bell-01-line", label: unseen ? "Notifications, new" : "Notifications", dot: unseen, onClick: () => screen.go('.zen-top-nav__action[aria-label="Back"]', () => { setUnseen(false); setPushed("notifications"); }) }]}
+        trailing={[{ icon: "icon-bell-01-line", label: unseen ? "Notifications, new" : "Notifications", dot: unseen, onClick: () => screen.go('.platform-phone__screen .zen-list-item__wrapper', () => { setUnseen(false); setPushed("notifications"); }) }]}
         topBar={false} />}>
       {screen.anchor}
       <Stack gap="lg" padding="lg">
@@ -732,14 +752,14 @@ function PhoneApp() {
           <List aria-labelledby={`${baseId}-today`}>
             {meetings.map((meeting) => {
               const p = projectById(meeting.project);
-              return <ListItem key={meeting.id} title={meeting.title} caption={`${formatTime(meeting.start)} · ${meeting.where}`} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="md" />} selected={false} />;
+              return <ListItem key={meeting.id} title={meeting.title} caption={`${formatTime(meeting.start)} · ${meeting.where}`} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="md" />} />;
             })}
           </List>
         </Group>
         <Group id={`${baseId}-due`} title="Due this week">
           <List aria-labelledby={`${baseId}-due`}>
             {dueThisWeek.map((task) => (
-              <ListItem key={task.id} title={task.title} titleLines={1} caption={`${task.key} · ${formatDue(task.due)}`} leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} selected={false} />
+              <ListItem key={task.id} title={task.title} titleLines={1} caption={`${task.key} · ${formatDue(task.due)}`} leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />
             ))}
           </List>
         </Group>
@@ -766,7 +786,7 @@ const moreActivity: { id: string; actor: PersonId; verb: string; object: string;
   { id: "a14", actor: "bao", verb: "published", object: "Zen tokens 0.4", at: daysFromToday(-12, 16, 30) },
 ];
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio app",
     description: "The frame of the studio's web app: the Sidebar, then a top bar that starts with the collapse toggle and the Breadcrumbs and keeps only utilities on the right (the plan, Notifications with its count, the account menu). Page actions stay in the PageHeader. Beside the default Sidebar every card takes its shadow and no border.",
@@ -801,18 +821,18 @@ export const examples: ExampleDef[] = [
 </AppShell>`,
   },
   {
-    title: "Search in the top bar",
-    description: "A people directory leads its top bar with a Search: typing from any page opens People with the matches, and a Team's View people searches for that team. Activity shows a dot until it is opened. On a white Canvas the Sidebar is Surface-alt and every card has a Pale border instead of a shadow.",
+    title: "Search in the middle of the top bar",
+    description: "A people directory puts its Search in the middle of the top bar (Figma Center-Slots, up to 400px): typing from any page opens People with the matches, and a Team's View people searches for that team. Activity shows a dot until it is opened. On a white Canvas the Sidebar is Surface-alt and every card has a Pale border instead of a shadow.",
     wide: true,
     screen: true,
     render: () => <PeopleDirectoryApp />,
     code: `<AppShell
   canvas="alt"
   sidebar={<Sidebar background="alt" logo={logo} sections={sections} selectedId={page} onItemClick={(item) => go(item.id)} />}
-  header={<Stack direction="row" fillChildren width={240}><Search placeholder="Search people" aria-label="Search people" value={query}
-    onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} /></Stack>}
+  headerCenter={<Search placeholder="Search people" aria-label="Search people" value={query}
+    onValueChange={(value) => { setQuery(value); if (value.trim()) go("people"); }} />}
   headerActions={<>
-    <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} onClick={() => go("activity")} />
+    <AppShellAction icon="icon-bell-01-line" aria-label="Activity" dot={hasNews} aria-current={page === "activity" ? "page" : undefined} onClick={() => go("activity")} />
     <Menu align="end" trigger={<AppShellAccount name="Alex Duong" src={alex.photo} />} items={accountItems} />
   </>}
 >
@@ -930,7 +950,7 @@ const dismiss = () => {
 const open = (id) => { if (id === root) scrollToTop(); setRoot(id); };
 
 <PlatformPhone key={root} headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef}
+  header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef}
     trailing={[{ icon: "icon-plus-line", label: "New project", onClick: () => setCreating(true) }]} />}
   footer={<BottomNavigation aria-label="Đìzai Studio" value={root} onValueChange={open} showLabels items={[
     { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
@@ -950,4 +970,4 @@ const open = (id) => { if (id === root) scrollToTop(); setRoot(id); };
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

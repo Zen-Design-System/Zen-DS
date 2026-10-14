@@ -206,6 +206,9 @@ function pageChecks({ scopeSel, mobile }) {
     const el = n.parentElement; if (!el || checked.has(el) || !n.textContent.trim() || !visible(el)) continue; checked.add(el);
     // Emoji are colour glyphs: their `color` is irrelevant, so a pure-emoji run is not text contrast.
     if (/^[\p{Extended_Pictographic}\p{Emoji_Component}️‍\s]+$/u.test(n.textContent.trim()) && !/^[\d#*\s]+$/.test(n.textContent.trim())) continue;
+    // The docs' own navigation (.official-nav) is skipped (user decision 2026-10-07). The 11 × 1.38:1 on design-tokens in
+    // the Dark pass were real: the "Token links" buttons kept the browser's black button text (fixed 2026-10-08).
+    if (el.closest(".official-nav")) continue;
     if (el.closest("[disabled], [aria-disabled='true'], [data-state='disabled'], [data-disabled='true'], input, textarea, .zen-skeleton, pre, code, svg, [data-audit-skip-contrast], .zen-chart__svg") || el.closest(".platform-guideline-visual__dont, [data-verdict='dont']")) continue;
     // Labels of disabled controls are exempt (WCAG 1.4.3 "inactive UI component").
     const control = el.closest("label, .zen-checkbox, .zen-radio, .zen-toggle, .zen-field, .zen-input-field, [class*='-field']");
@@ -384,7 +387,8 @@ function pageChecks({ scopeSel, mobile }) {
   const HEADING = "h1, h2, h3, h4, h5, h6, [role='heading']";
   const OVERLAY = "[role='dialog']:not(.pe-card), [role='alertdialog'], .zen-side-panel, .zen-bottom-sheet";
   const FIXED = ".zen-sidebar, .zen-drawer, .zen-bottom-nav";
-  const CARD = ".zen-card, .zen-chart-card, .zen-metric-card";
+  // A ListBox header names its box like a card title does (Heading/Subheading under the section title).
+  const CARD = ".zen-card, .zen-chart-card, .zen-metric-card, .zen-list-box";
   const levelOf = (h) => Number(h.getAttribute("aria-level")) || (/^H[1-6]$/.test(h.tagName) ? Number(h.tagName[1]) : 2);
   // In the outline (what a screen reader lists): visually hidden headings count, aria-hidden / display:none ones do not.
   const inOutline = (h) => { const s = getComputedStyle(h); return s.display !== "none" && s.visibility !== "hidden" && !h.closest("[aria-hidden='true'], [inert], [hidden], .pth-outline"); };

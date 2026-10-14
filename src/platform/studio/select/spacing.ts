@@ -11,6 +11,8 @@ import type { FiberHit } from "./picker";
  * A grid's gaps are the strips between its tracks (never the free part of a cell, which no gap token sizes); a Zen
  * Grid column wider than its only item shows that free space as its own area ("free"), which SpacingLayer offers to
  * remove (Fit column to content: the Grid's px column takes the item's width).
+ * A side or gap a prop sets to 0 (`none`) still gets an area to click: a thin band (ZERO_BAND) along that edge or on the
+ * seam between the two neighbours, tinted only on hover, so `none` is set and left from the canvas like any other step.
  */
 
 export type Box = { x: number; y: number; w: number; h: number };
@@ -33,10 +35,15 @@ export type SpacingArea = Box & {
   scale: SpacingScale;
   /** free: the Grid column (0-based) whose only item leaves this space, the column's width and the item's, in CSS px. */
   column?: { index: number; px: number; content: number };
+  /** A 0 length (`none`): the box is a ZERO_BAND hit band on the edge or seam, not the area (no tint until hovered). */
+  zero?: boolean;
 };
 
+/** Screen px of the band a 0 padding side (inward from its edge) or a 0 gap (centred on the seam) takes the pointer in. */
+export const ZERO_BAND = 6;
+
 /** The selected element whose spacing is shown, and whether its areas edit props (a Zen layout component). */
-export type SpacingOwner = { src: string; name: string; host: Element; editable: boolean };
+export type SpacingOwner = { src: string; name: string; host: Element; editable: boolean; /** The rendered props (a spread's live values). */ props?: Record<string, unknown> };
 
 type LayoutRule = {
   /** Gap areas between rows / between columns → props (first written wins, last is the fallback). */
@@ -68,10 +75,13 @@ const rules: Record<string, LayoutRule> = {
 /** Components whose padding and gap the selection tints (read-only unless they have a rule above). */
 export const layoutNames = new Set(["Stack", "Grid", "Box", "Container", "Form", "FormFieldset", "FormActions", "ActionBar", "Card"]);
 
-type RawArea = { kind: "gap" | "padding"; side: SpacingSide; rect: DOMRect; px: number };
+type RawArea = { kind: "gap" | "padding"; side: SpacingSide; rect: DOMRect; px: number; zero?: boolean };
 
-/** The padding sides and the gaps between laid-out children of `element`, in client pixels. */
-function measureSpacing(element: Element, withPadding: boolean): RawArea[] {
+/**
+ * The padding sides and the gaps between laid-out children of `element`, in client pixels. `zeros`: a 0 side, and a 0
+ * gap between two touching neighbours, come back too as a rect 0 px thick on that edge or seam.
+ */
+function measureSpacing(element: Element, withPadding: boolean, zeros = false): RawArea[] {
   const style = getComputedStyle(element);
   if (style.display === "none" || style.display === "contents" || style.display === "inline") return [];
   const rect = element.getBoundingClientRect();
@@ -91,15 +101,18 @@ function measureSpacing(element: Element, withPadding: boolean): RawArea[] {
       ["left", new DOMRect(inner.left, content.top, pad.left, content.bottom - content.top), style.paddingLeft],
       ["right", new DOMRect(content.right, content.top, pad.right, content.bottom - content.top), style.paddingRight],
     ];
-    for (const [side, box, value] of sides) if (box.width > 0.5 && box.height > 0.5) areas.push({ kind: "padding", side, rect: box, px: css(value) });
+    for (const [side, box, value] of sides) {
+      if (box.width > 0.5 && box.height > 0.5) areas.push({ kind: "padding", side, rect: box, px: css(value) });
+      else if (zeros && !css(value) && Math.max(box.width, box.height) > 0.5) areas.push({ kind: "padding", side, rect: box, px: 0, zero: true });
+    }
   }
   if (!/flex|grid/.test(style.display)) return areas;
   const rowGap = css(style.rowGap);
   const columnGap = css(style.columnGap);
-  if (!rowGap && !columnGap) return areas;
+  if (!rowGap && !columnGap && !zeros) return areas;
   // A grid's gaps sit between its tracks: an item narrower than its cell leaves free space, which is no gap.
   const grid = style.display.includes("grid") ? gridLayout(element) : null;
-  if (grid) return [...areas, ...gridGaps(element, grid, content, rowGap, columnGap)];
+  if (grid) return [...areas, ...gridGaps(element, grid, content, rowGap, columnGap, zeros)];
   const children = Array.from(element.children).slice(0, 80).flatMap((child) => {
     const childStyle = getComputedStyle(child);
     if (childStyle.display === "none" || childStyle.position === "absolute" || childStyle.position === "fixed") return [];
@@ -130,30 +143,37 @@ function measureSpacing(element: Element, withPadding: boolean): RawArea[] {
     const items = [...line.items].sort((a, b) => along(a) - along(b));
     const from = single ? (columnFlow ? content.left : content.top) : line.from;
     const to = single ? (columnFlow ? content.right : content.bottom) : line.to;
-    for (let index = 1; index < items.length && within; index++) {
+    for (let index = 1; index < items.length && (within || zeros); index++) {
       const a = items[index - 1];
       const b = items[index];
       const space = columnFlow ? b.top - a.bottom : b.left - a.right;
-      if (space <= 0.5) continue;
+      // A 0 gap is two neighbours that touch (an overlap from a negative margin is no gap to edit).
+      const zero = !within && Math.abs(space) <= 0.5;
+      if (!zero && (space <= 0.5 || !within)) continue;
+      const size = zero ? 0 : space;
       areas.push({
         kind: "gap",
         side: across,
-        rect: columnFlow ? new DOMRect(from, a.bottom, to - from, space) : new DOMRect(a.right, from, space, to - from),
+        rect: columnFlow ? new DOMRect(from, a.bottom, to - from, size) : new DOMRect(a.right, from, size, to - from),
         px: within,
+        ...(zero ? { zero } : {}),
       });
     }
   }
   // Between lines: the other gap, along the whole content box.
   const outer = columnFlow ? columnGap : rowGap;
-  for (let index = 1; index < lines.length && outer; index++) {
+  for (let index = 1; index < lines.length && (outer || zeros); index++) {
     const space = lines[index].from - lines[index - 1].to;
-    if (space <= 0.5) continue;
+    const zero = !outer && Math.abs(space) <= 0.5;
+    if (!zero && (space <= 0.5 || !outer)) continue;
+    const size = zero ? 0 : space;
     const at = lines[index - 1].to;
     areas.push({
       kind: "gap",
       side: columnFlow ? "column" : "row",
-      rect: columnFlow ? new DOMRect(at, content.top, space, content.bottom - content.top) : new DOMRect(content.left, at, content.right - content.left, space),
+      rect: columnFlow ? new DOMRect(at, content.top, size, content.bottom - content.top) : new DOMRect(content.left, at, content.right - content.left, size),
       px: outer,
+      ...(zero ? { zero } : {}),
     });
   }
   return areas;
@@ -164,7 +184,7 @@ function measureSpacing(element: Element, withPadding: boolean): RawArea[] {
  * spans the content box) and between rows (the content box's width), up to the last track that holds an item. A strip
  * an item spans across is left out.
  */
-function gridGaps(element: Element, grid: GridLayout, content: { left: number; top: number; right: number; bottom: number }, rowGap: number, columnGap: number): RawArea[] {
+function gridGaps(element: Element, grid: GridLayout, content: { left: number; top: number; right: number; bottom: number }, rowGap: number, columnGap: number, zeros = false): RawArea[] {
   const items = gridItems(element).flatMap(({ rect }) => {
     const columns = spanOf(grid.columns, rect.left, rect.right);
     const rows = spanOf(grid.rows, rect.top, rect.bottom);
@@ -175,13 +195,14 @@ function gridGaps(element: Element, grid: GridLayout, content: { left: number; t
   const lastRow = Math.max(...items.map((item) => item.rows.last));
   const areas: RawArea[] = [];
   const single = lastRow === 0;
-  for (let index = 0; index < lastColumn && columnGap; index++) {
+  for (let index = 0; index < lastColumn && (columnGap || zeros); index++) {
     const x = grid.columns[index].to;
     const w = grid.columns[index + 1].from - x;
-    if (w <= 0.5) continue;
+    const zero = !columnGap && Math.abs(w) <= 0.5;
+    if (!zero && (w <= 0.5 || !columnGap)) continue;
     let strip: { from: number; to: number } | null = null;
     const flush = () => {
-      if (strip) areas.push({ kind: "gap", side: "column", rect: new DOMRect(x, strip.from, w, strip.to - strip.from), px: columnGap });
+      if (strip) areas.push({ kind: "gap", side: "column", rect: new DOMRect(x, strip.from, zero ? 0 : w, strip.to - strip.from), px: columnGap, ...(zero ? { zero } : {}) });
       strip = null;
     };
     for (let row = 0; row <= lastRow; row++) {
@@ -193,10 +214,11 @@ function gridGaps(element: Element, grid: GridLayout, content: { left: number; t
     }
     flush();
   }
-  for (let index = 0; index < lastRow && rowGap; index++) {
+  for (let index = 0; index < lastRow && (rowGap || zeros); index++) {
     const y = grid.rows[index].to;
     const h = grid.rows[index + 1].from - y;
-    if (h > 0.5) areas.push({ kind: "gap", side: "row", rect: new DOMRect(content.left, y, content.right - content.left, h), px: rowGap });
+    if (rowGap && h > 0.5) areas.push({ kind: "gap", side: "row", rect: new DOMRect(content.left, y, content.right - content.left, h), px: rowGap });
+    else if (!rowGap && Math.abs(h) <= 0.5) areas.push({ kind: "gap", side: "row", rect: new DOMRect(content.left, y, content.right - content.left, 0), px: 0, zero: true });
   }
   return areas;
 }
@@ -229,16 +251,20 @@ export function spacingAreas(hit: FiberHit, part: boolean, toBox: (rect: DOMRect
   try {
     const areas: SpacingArea[] = [];
     const gapHost = rule?.gapElement?.(host) ?? null;
-    for (const raw of measureSpacing(host, true)) {
-      const box = toBox(raw.rect);
+    // 0 areas only where a prop sets them: a read-only 0 has nothing to show.
+    for (const raw of measureSpacing(host, true, Boolean(rule))) {
+      const box = raw.zero ? zeroBand(toBox(raw.rect), raw) : toBox(raw.rect);
+      const zero = raw.zero ? { zero: true } : {};
       if (raw.kind === "padding") {
         const horizontal = raw.side === "left" || raw.side === "right";
         const props = (horizontal ? rule?.paddingX : rule?.paddingY) ?? [];
+        if (raw.zero && !props.length) continue;
         const alt = props.length && rule?.alt ? { altProp: rule.alt, altClears: [...new Set([...(rule.paddingX ?? []), ...(rule.paddingY ?? [])])].filter((name) => name !== rule.alt) } : {};
-        areas.push({ ...box, kind: "padding", side: raw.side, px: raw.px, props, ...alt, scale: rule?.paddingScale && props.length ? rule.paddingScale : "padding" });
+        areas.push({ ...box, kind: "padding", side: raw.side, px: raw.px, props, ...alt, scale: rule?.paddingScale && props.length ? rule.paddingScale : "padding", ...zero });
       } else {
         const props = gapHost ? [] : (raw.side === "column" ? rule?.columnGap : rule?.rowGap) ?? [];
-        areas.push({ ...box, kind: "gap", side: raw.side, px: raw.px, props, scale: "gap" });
+        if (raw.zero && !props.length) continue;
+        areas.push({ ...box, kind: "gap", side: raw.side, px: raw.px, props, scale: "gap", ...zero });
       }
     }
     // A Zen Grid: the free space of a px column wider than its only item (SpacingLayer offers Fit column to content).
@@ -248,20 +274,28 @@ export function spacingAreas(hit: FiberHit, part: boolean, toBox: (rect: DOMRect
     if (gapHost && rule) {
       // A row of options keeps its own column gap (form.css): only the gap between lines follows the prop there.
       const row = gapHost.getAttribute("data-direction") === "row";
-      for (const raw of measureSpacing(gapHost, false)) {
+      for (const raw of measureSpacing(gapHost, false, true)) {
         const props = raw.side === "column" ? (row ? [] : rule.columnGap ?? []) : rule.rowGap ?? [];
-        areas.push({ ...toBox(raw.rect), kind: "gap", side: raw.side, px: raw.px, props, scale: "gap" });
+        if (raw.zero && !props.length) continue;
+        areas.push({ ...(raw.zero ? zeroBand(toBox(raw.rect), raw) : toBox(raw.rect)), kind: "gap", side: raw.side, px: raw.px, props, scale: "gap", ...(raw.zero ? { zero: true } : {}) });
       }
     }
     const editable = Boolean(rule) && areas.some((area) => area.props.length > 0);
-    return { owner: { src: hit.src, name: hit.name, host, editable }, areas };
+    return { owner: { src: hit.src, name: hit.name, host, editable, props: hit.props }, areas };
   } catch {
     return none;
   }
 }
 
+/** A 0 area's hit band: a padding side inward from its edge, a gap centred on the seam between its neighbours. */
+function zeroBand(box: Box, raw: RawArea): Box {
+  const across = raw.kind === "gap" ? raw.side === "column" : raw.side === "left" || raw.side === "right";
+  const shift = raw.kind === "gap" ? -ZERO_BAND / 2 : raw.side === "right" || raw.side === "bottom" ? -ZERO_BAND : 0;
+  return across ? { ...box, x: box.x + shift, w: ZERO_BAND } : { ...box, y: box.y + shift, h: ZERO_BAND };
+}
+
 const sameColumn = (a: SpacingArea["column"], b: SpacingArea["column"]) => a === b || Boolean(a && b && a.index === b.index && a.px === b.px && a.content === b.content);
-const sameArea = (a: SpacingArea, b: SpacingArea) => a.kind === b.kind && a.side === b.side && a.scale === b.scale && a.altProp === b.altProp && (a.altClears ?? []).join() === (b.altClears ?? []).join()
+const sameArea = (a: SpacingArea, b: SpacingArea) => a.kind === b.kind && a.side === b.side && a.zero === b.zero && a.scale === b.scale && a.altProp === b.altProp && (a.altClears ?? []).join() === (b.altClears ?? []).join()
   && sameColumn(a.column, b.column)
   && Math.abs(a.px - b.px) < 0.01 && a.props.join() === b.props.join()
   && Math.abs(a.x - b.x) < 0.25 && Math.abs(a.y - b.y) < 0.25 && Math.abs(a.w - b.w) < 0.25 && Math.abs(a.h - b.h) < 0.25;
@@ -385,10 +419,12 @@ export function areaState(area: SpacingArea, owner: SpacingOwner, attributes: So
     return { prop: null, value: null, key, px: area.px, bound: false, boundBy: null, mixed: false, clears: [], options: [] };
   }
   const options = spacingOptions(owner.name, prop, owner.host, area.scale);
-  const value = attributes ? valueOf(attributes, prop) : null;
+  // A spread that the live props show not to set the prop ({...rest} carrying a className) leaves it unset, editable.
+  const read = (name: string): PropValue => { const found = valueOf(attributes ?? [], name, owner.props); return found.state === "spread" && owner.props && found.live === undefined ? { state: "unset" } : found; };
+  const value = attributes ? read(prop) : null;
   // Alt edits `padding` on every side: the side props written beside it give way (an expression never does).
   const otherProp = alt && area.altProp === prop && !area.props.includes(prop);
-  const sides = otherProp && attributes ? (area.altClears ?? []).map((name) => ({ name, value: valueOf(attributes, name) })).filter((side) => side.value.state !== "unset") : [];
+  const sides = otherProp && attributes ? (area.altClears ?? []).map((name) => ({ name, value: read(name) })).filter((side) => side.value.state !== "unset") : [];
   const boundSide = sides.find((side) => side.value.state !== "literal");
   const boundBy = value && (value.state === "bound" || value.state === "spread") ? { prop, value } : boundSide ? { prop: boundSide.name, value: boundSide.value } : null;
   const bound = Boolean(boundBy);

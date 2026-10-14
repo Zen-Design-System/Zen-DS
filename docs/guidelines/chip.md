@@ -2,7 +2,7 @@
 # Chip / Pill
 
 **Figma:** Chip/Advanced, Chip/Normal, Chip/Number-Only (page 320:79626)  
-**Import:** `import { Chip } from "@zen-ds/react";`
+**Import:** `import { Chip, ChipGroup } from "@zen-ds/react";`
 
 Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.
 
@@ -19,6 +19,7 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Single choice | `ChipGroup options · value · onValueChange` | a radio group of Normal chips when exactly one value applies: one Tab stop, arrow keys move the choice, the picked chip is Selected (composed; no Figma master yet) |
 | Variant | `variant` | advanced (default) · normal · number-only |
 | Size | `size` | xsmall (normal only) · small · medium |
 | Level | `level` | primary · secondary (normal only) |
@@ -70,13 +71,34 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `onPopoverCreate` | `(value: string) => void` | — | Figma Popover/Manual-Add-New: lets users create a value that isn't listed (labels, tags). The popover gets a Search row; a "Create" + Accent Badge row appears only for a new value, Enter creates it. |
 | `popoverCreateLabel` | `ReactNode` | — |  |
 | `popoverPortal` | `boolean` | `false` | Renders the Popover in the page's overlay layer (ZenPortal), anchored under the chip, instead of inside it: a chip in a row that scrolls sideways (`overflow-x: auto` clips both axes) or in any box that clips its overflow keeps a whole, visible menu. Light dismiss, Escape and focus return work the same. Leave it off inside a Dialog or Bottom Sheet. |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the photo, icons and counters it draws, by layer (`{ Avatar: { shape: "square" }, Badge: { theme: "accent" } }`). Written by Zen Studio; app code sets photoSrc / leading / counter. |
 | `type` | _HTML attribute_ | `"button"` |  |
+
+### ChipGroup
+Single choice among a few Normal chips (Chip/Normal, Select=Yes on the picked one): one picked at a time, as radio buttons. Composed from the Figma Chip with its own tokens — no Figma master of its own yet (backlog batch 6, user 2026-10-07). APG Radio Group: the group is one Tab stop (the picked chip, else the first one); ← / → / ↑ / ↓ move the choice and focus to the next enabled chip, wrapping; Space picks the focused chip. For several picks at once, use Normal chips as toggles (`selected` + onClick) instead.
+
+Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element. |
+| `options` (required) | `ChipGroupOption[]` | — | The chips, in order. |
+| `value` | `string \| null` | — | Controlled picked value (null: none picked yet). |
+| `defaultValue` | `string \| null` | `null` | Initial picked value when uncontrolled. |
+| `onValueChange` | `(value: string) => void` | — | Called with the picked chip's value (a press, or an arrow key moving the choice). |
+| `aria-label` | `string` | — | Names the group when no visible label does (or pass `aria-labelledby`). |
+| `size` | `"xs" \| "sm" \| "md" \| "xsmall" \| "small" \| "medium"` | `"sm"` | Chip size (short or long spelling). Default sm. |
+| `level` | `"primary" \| "secondary"` | `"primary"` | Chip level. Default primary. |
+| `disabled` | `boolean` | `false` | Every chip does nothing. |
+| `className` | `string` | — |  |
+| `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the chips it draws, by layer (`{ "Chip[week]": { level: "secondary" } }`). Written by Zen Studio; app code sets the options. |
 
 ### Types
 Object shapes the props above refer to.
 
 ```ts
 type BadgeTheme = "accent" | "neutral" | "yellow" | "orange" | "red" | "crimson" | "pink" | "plum" | "purple" | "violet" | "indigo" | "blue" | "cyan" | "teal" | "green" | "brown" | "inverse" | "on-color" | "sky" | "mint" | "bronze" | "golden"
+interface ChipGroupOption { value: string; label: ReactNode; leading?: IconName | ReactNode; disabled?: boolean; }
 type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?: ReactNode; leading?: IconName | ReactNode; trailing?: IconName | ReactNode; disabled?: boolean; selected?: boolean; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; theme?: "icon" | "text-only" | "photo-small" | "photo-big" | "avatar-small" | "avatar-big" | "dock-icon" | "badge"; function?: "default" | "manual-add-new"; }
 ```
 
@@ -89,6 +111,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | Delete / Backspace | Clear the selection (when clearable) |
 
 ## ✅ Do
+- When exactly one value applies (Repeat: Daily / Weekly / Monthly), use `<ChipGroup>`: it is a radio group with roving focus and aria-checked; never hand-set role="radio" on Chips.
 - Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.
 - Put a group of chips in its own Stack (or chip row) with Spacing/Gap/XSmall (8px) between chips, never the gap of the form or fieldset around it.
 - Keep the medium size (the default) on desktop and phones, so a filter row lines up with Search and Buttons (40px); small only inside a genuinely narrow component space.
@@ -124,7 +147,9 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | `chip/popover-needs-advanced` | error | Only Chip variant=advanced opens a Popover. | `zen-allow-chip-variant: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount. | `zen-allow-chip-count: <reason>` |
+| `chip/radio-is-chip-group` | warn | Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role="radio" by hand. | `zen-allow-chip-radio: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
+| `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

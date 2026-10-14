@@ -2,11 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { ZenPortalProvider } from "../../../components/Portal";
 import { fullScreenEscapeOwners } from "../../PlatformFullScreen";
 import { PlatformPhoneModesContext } from "../../PlatformPhone";
+import { isWideExample } from "../../examples/types";
 import { ExampleCard } from "../../PlatformShowcases";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { canvasApi } from "../canvas/viewport";
-import { previewAttributes, setStudioTheme, type ModeKey } from "../shell/modes";
-import { pageKey, setFrameOverride, studioStore, useStudio } from "../store";
+import { previewAttributes, type ModeKey } from "../shell/modes";
+import { pageKey, studioStore, useStudio } from "../store";
 import { resolveFrameWidth } from "./frameLayout";
 import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
@@ -14,13 +15,10 @@ import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
 import "./board.css";
 
-// The actions live in presentFrame.ts (this module exports components only, so its hot update stays a Fast Refresh);
-// re-exported for the readers that still import them from here (inspector/FramePanel.tsx, inspector/frames.ts).
-export { presentFrame, zoomToFrame } from "./presentFrame";
-
 /** Present's own modes: what the user picked in its Modes panel. They hold while ‹ › step between examples and are
  *  forgotten when Present ends; the canvas never sees them. */
-type PresentModes = Partial<Omit<StudioPreviewSettings, "theme">>;
+/** Present's own modes for the presented example, light/dark included: the Studio (chrome and canvas) never changes. */
+type PresentModes = Partial<StudioPreviewSettings>;
 
 /** A phone screen's modes when Present has no pick of its own (PlatformPhone's defaults, as a phone app sets them). */
 const PHONE_MODES = { density: "comfortable", typography: "mobile" } as const;
@@ -33,10 +31,7 @@ export function Present() {
   useEffect(() => {
     if (!presenting) setOwn({});
   }, [presenting]);
-  const setMode = useCallback((key: ModeKey, value: string) => {
-    if (key === "theme") setStudioTheme(value === "dark" ? "dark" : "light");
-    else setOwn((modes) => ({ ...modes, [key]: value }));
-  }, []);
+  const setMode = useCallback((key: ModeKey, value: string) => setOwn((modes) => ({ ...modes, [key]: value })), []);
   const frame = presenting ? frames.find((entry) => entry.id === presenting) : undefined;
   return frame?.example ? <PresentLayer key={frame.id} frame={frame} example={frame.example} own={own} onModeChange={setMode} /> : null;
 }
@@ -55,16 +50,12 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
   // win over both.
   const [phone, setPhone] = useState(false);
   useLayoutEffect(() => setPhone(Boolean(stageRef.current?.querySelector(".platform-phone"))), []);
-  const theme = override?.theme ?? canvasModes.theme;
+  const theme = own.theme ?? override?.theme ?? canvasModes.theme;
   const preview: StudioPreviewSettings = { ...canvasModes, ...(phone ? PHONE_MODES : null), ...own, theme };
   const modes = previewAttributes(preview);
-  // Light/dark changes what is on screen: the frame's own theme when it has one, else the whole Studio's (the canvas
-  // and the chrome follow after Present).
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    if (override?.theme) setFrameOverride(key, frame.id, { theme: next });
-    else setStudioTheme(next);
-  };
+  // Light/dark changes the presented example only, like every other mode here (user, 2026-10-09: the Studio's UI keeps
+  // its own modes in Play and Present).
+  const toggleTheme = () => onModeChange("theme", theme === "dark" ? "light" : "dark");
 
   useEffect(() => {
     // The dialog itself takes focus (no ring on a control the user did not pick; Tab reaches the bar first), or the ‹ / ›
@@ -116,7 +107,7 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
         <PlatformTypographyContext value={preview.typography}>
           <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
             <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
-              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={example.wide} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
             </div>
           </PlatformPhoneModesContext>
         </PlatformTypographyContext>

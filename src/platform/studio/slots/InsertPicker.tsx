@@ -1,5 +1,7 @@
 import { useId, useMemo, useState, type RefObject } from "react";
+import { useWords } from "../useWords";
 import { Popover, PopoverItem } from "../../../components/Popover";
+import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { SourceElement, StudioSelection } from "../types";
 import { insertIntoSlot, slotHostContext } from "./actions";
@@ -24,11 +26,12 @@ type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 const sentence = (names: readonly string[]) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`);
 
 /**
- * One caption for the items the code cannot take here, by reason: a whole group by its name, else the items ("Not
- * offered here. Button, Icon button and Primary button: Actions need a component to hold useToast; …"), or the reason
- * alone for more than three. Null when nothing is hidden.
+ * The items the code cannot take here, said in one short visible line ("2 not available here") whose tooltip and
+ * accessible name give each reason ("Image: Library pictures work on example pages only."); a whole group by its name,
+ * else the items, or the reason alone for more than three. Null when nothing is hidden (user, 2026-10-13: the full
+ * sentence over the list was too long).
  */
-function hiddenCaption(result: Pick<PaletteResult, "items" | "hidden">): string | null {
+function hiddenCaption(result: Pick<PaletteResult, "items" | "hidden">): { short: string; full: string } | null {
   if (!result.hidden.length) return null;
   const offered = new Set(result.items.map((item) => item.group));
   const byReason = new Map<string, string[]>();
@@ -37,8 +40,10 @@ function hiddenCaption(result: Pick<PaletteResult, "items" | "hidden">): string 
     for (const name of offered.has(row.group) ? row.items : [row.group]) if (!names.includes(name)) names.push(name);
     byReason.set(row.reason, names);
   }
+  const count = result.hidden.reduce((total, row) => total + row.items.length, 0);
   // A long list says less than its reason ("Actions takes Badge, IconButton or Button"): then the reason alone.
-  return `Not offered here. ${[...byReason].map(([reason, names]) => (names.length > 3 ? `${reason}.` : `${sentence(names)}: ${reason}.`)).join(" ")}`;
+  const full = [...byReason].map(([reason, names]) => (names.length > 3 ? `${reason}.` : `${sentence(names)}: ${reason}.`)).join(" ");
+  return { short: `${count} not available here`, full };
 }
 
 export type InsertPickerProps = {
@@ -56,6 +61,7 @@ export type InsertPickerProps = {
 
 /** The searchable, grouped list of palette items for one slot. */
 export function InsertPicker({ open, onOpenChange, anchorRef, selection, element, slot, onPicked }: InsertPickerProps) {
+  const say = useWords();
   const [query, setQuery] = useState("");
   const listId = useId();
   // Read when it opens: the palette depends on the components around the host on the canvas (click targets, phones).
@@ -74,7 +80,9 @@ export function InsertPicker({ open, onOpenChange, anchorRef, selection, element
   }, [result, slot, query]);
   const target = useMemo(() => (open ? insertTargetFor(slot, slotContentOf(element, slot).summary) : null), [open, slot, element]);
   const noMatch = result && !sections.length ? "No component matches." : null;
-  const notes = [noMatch, target?.mode === "direct" ? target.warning : undefined, result ? hiddenCaption(result) : null].filter(Boolean).join(" ");
+  const hidden = result ? hiddenCaption(result) : null;
+  const notes = [noMatch, target?.mode === "direct" ? target.warning : undefined].filter(Boolean).join(" ");
+  const noted = Boolean(notes || hidden);
   const title = `Add to ${slot.name}`;
 
   const close = () => {
@@ -99,14 +107,19 @@ export function InsertPicker({ open, onOpenChange, anchorRef, selection, element
       onSearchChange={setQuery}
       searchPlaceholder="Find a component"
       // With a note: the list is named by the title and the note together (both in the label, the title hidden).
-      label={notes ? (
+      label={noted ? (
         <>
           <span id={`${listId}-title`} hidden>{title}</span>
-          <span id={`${listId}-note`} className={`studio-slots__picker-note ${typographyStyles["Caption/Regular"]}`}>{notes}</span>
+          <span id={`${listId}-note`} className={`studio-slots__picker-note ${typographyStyles["Caption/Regular"]}`}>
+            {notes}
+            {notes && hidden ? " " : null}
+            {/* One short line; each item's reason in its tooltip and in the list's accessible name. */}
+            {hidden ? <span title={say(hidden.full)}>{hidden.short}<VisuallyHidden>{`: ${say(hidden.full)}`}</VisuallyHidden></span> : null}
+          </span>
         </>
       ) : undefined}
-      aria-label={notes ? undefined : title}
-      aria-labelledby={notes ? `${listId}-title ${listId}-note` : undefined}
+      aria-label={noted ? undefined : title}
+      aria-labelledby={noted ? `${listId}-title ${listId}-note` : undefined}
       className="studio-slots__picker"
       autoFocus
     >
@@ -121,8 +134,8 @@ export function InsertPicker({ open, onOpenChange, anchorRef, selection, element
                 label={item.label}
                 caption={warning ? warning.short : item.caption}
                 // The caption is one line: the full reason is the item's description.
-                title={warning?.reason}
-                aria-description={warning ? `Not recommended here: ${warning.reason}` : undefined}
+                title={warning ? say(warning.reason) : undefined}
+                aria-description={warning ? `Not recommended here: ${say(warning.reason)}` : undefined}
                 onSelect={() => pick(item)}
               />
             );

@@ -11,11 +11,11 @@ import "./provider.css";
 /** Token mode axes (Figma variable modes). Each maps to a `data-*` attribute that tokens.css reads. */
 export const zenThemes = ["light", "dark", "system"] as const;
 export const zenComponentThemes = ["neutral-s1", "neutral-s2", "neutral-s3", "neutral-s4", "neutral-s5", "neutral-s6", "neutral-s7", "brand-s1", "brand-s2"] as const;
-export const zenDensities = ["compact", "comfortable"] as const;
-export const zenRadii = ["rounded", "smooth", "standard", "luxury"] as const;
+export const zenDensities = ["compact", "comfortable", "studio"] as const;
+export const zenRadii = ["rounded", "smooth", "standard", "luxury", "studio"] as const;
 export const zenEmphases = ["medium", "strong", "light"] as const;
 export const zenBreakpoints = ["auto", "desktop", "tablet", "mobile"] as const;
-export const zenTypographies = ["dashboard", "popular", "mobile"] as const;
+export const zenTypographies = ["dashboard", "popular", "mobile", "studio"] as const;
 export const zenBrands = ["zen"] as const;
 /** Contrast (Global Colors mode Zen-High-Contrast). `system` follows the OS Increase Contrast setting (prefers-contrast: more). */
 export const zenContrasts = ["standard", "high", "system"] as const;

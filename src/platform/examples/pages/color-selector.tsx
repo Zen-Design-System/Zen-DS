@@ -18,6 +18,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { projects, type Project } from "../data";
+import { keepOnHotUpdate } from "../../hotData";
 import "./color-selector.css";
 
 export const page: PlatformPage = "color-selector";
@@ -55,7 +56,7 @@ function LabelColourExample() {
     toast({ type: "positive", title: "Label created" });
   };
   return (
-    <Card theme="flat" className="px-color-selector-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       {/* Two groups in one card (lg apart): the labels so far, and the form that adds one. */}
       <Stack gap="lg">
         <Stack gap="xs">
@@ -78,7 +79,7 @@ function LabelColourExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -110,7 +111,7 @@ function CalendarColoursExample() {
     {/* A list on the stage is a ListBox (Surface, no border): the title in its Header-Slot, the rows in its Body-Slot.
         The rows are interactive with no padding of their own: the slots' padding (24px desktop, 20px on a phone) puts
         their text level with the heading, and their fill hangs 12px into it. */}
-    <ListBox className="px-color-selector-card" as="section" aria-labelledby={titleId}
+    <Stack><ListBox width="fill" maxWidth={440} alignSelf="center" as="section" aria-labelledby={titleId}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Team calendars</Heading>}>
       <List aria-labelledby={titleId}>
         {calendars.map((calendar) => (
@@ -119,7 +120,7 @@ function CalendarColoursExample() {
             leading={<DockIcon icon="icon-calendar-line" theme={calendar.hue as DockIconTheme} background="solid" />} />
         ))}
       </List>
-    </ListBox>
+    </ListBox></Stack>
       <Dialog open={Boolean(editing)} onOpenChange={(next) => { if (!next) setEditing(null); }} icon={false}
         title={`${editing?.name ?? ""} colour`} description="Events in this calendar take this colour for everyone at the studio."
         primaryAction={{ label: "Save colour", onClick: save }} secondaryAction={{ label: "Cancel" }}>
@@ -150,7 +151,7 @@ function HighlightExample() {
   // Clear highlight disables itself: focus moves to the swatches, where a new colour can be picked.
   const clear = () => { cardRef.current?.querySelector<HTMLElement>(".zen-color-selector input")?.focus(); setValue(undefined); };
   return (
-    <Card ref={cardRef} theme="flat" className="px-color-selector-card">
+    <Stack><Card ref={cardRef} theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Review notes</Heading>
@@ -166,7 +167,7 @@ function HighlightExample() {
           <Button level="tertiary" disabled={!value} onClick={clear}>Clear highlight</Button>
         </Stack>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -189,7 +190,7 @@ function ChartSeriesExample() {
   const [colours, setColours] = useState<Record<string, Hue>>({ phin: "orange", lumen: "blue", mekong: "blue" });
   const shared = clientSeries.filter((series, index) => clientSeries.some((other, j) => j !== index && colours[other.id] === colours[series.id]));
   return (
-    <Stack gap="md" className="px-color-selector-card">
+    <Stack><Stack gap="md" width="fill" maxWidth={440} alignSelf="center">
       <ChartCard title="Hours by client" headingLevel={4} theme="flat">
         <StackBarChart aria-label="Hours by client, last four weeks" height={200} format={(value) => `${value} h`}
           series={clientSeries.map((series) => ({ ...series, color: swatch(colours[series.id]).value }))} data={weeklyHours} />
@@ -210,7 +211,7 @@ function ChartSeriesExample() {
           ))}
         </Stack>
       </Card>
-    </Stack>
+    </Stack></Stack>
   );
 }
 
@@ -245,7 +246,7 @@ function PhoneProjectColourExample() {
     return (
       // One key per screen: each screen opens at the top and the large title folds again.
       <PlatformPhone key="root" label="Projects" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 0 at the sides: the screen's margin (lg) insets them, and sm above and below keeps the first and last fills clear. */}
         <Box paddingX="lg" paddingY="xs">
@@ -262,12 +263,12 @@ function PhoneProjectColourExample() {
   const hue = themes[opened.id];
   return (
     <PlatformPhone key={opened.id} label="Project colour" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title={opened.name} scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title={opened.name} scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
       {screen.anchor}
       <Stack gap="lg" padding="lg">
         <Stack gap="xs" align="center">
-          <DockIcon size="xl" icon={opened.icon} theme={hue as DockIconTheme} background="subtle" />
+          <DockIcon size="2xl" icon={opened.icon} theme={hue as DockIconTheme} background="subtle" />
           <Text tone="base" align="center">{`${opened.client} · ${plural(opened.members, "member")}`}</Text>
         </Stack>
         {/* A phone setting applies at once, so there is no Save and Back has nothing to lose. */}
@@ -280,7 +281,7 @@ function PhoneProjectColourExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Label colour",
     description: "Eight swatches ordered by hue, each a Support/Solid token and each announced by its colour name. Tab reaches the group and the arrow keys move and pick; the preview shows the label as it will look before it is created.",
@@ -364,13 +365,13 @@ const hueOf = (value) => hues.find((hue) => swatch(hue).value === value);
 // One key per screen, so the settings screen opens at the top and the Projects root folds its large title again.
 // The root's clickable rows sit in the screen margin: <Box paddingX="lg" paddingY="xs"><List>…</List></Box>.
 <PlatformPhone key={project.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title={project.name} scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title={project.name} scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }} />}>
-  <DockIcon size="xl" icon={project.icon} theme={hue} background="subtle" />
+  <DockIcon size="2xl" icon={project.icon} theme={hue} background="subtle" />
   <FormFieldset legend="Colour" helpText="Shows on the project's icon, its timeline bar and its calendar events.">
     <ColorSelector aria-label={\`\${project.name} colour\`} colors={hues.map(swatch)} value={swatch(hue).value}
       onValueChange={(value) => setHue(project.id, hueOf(value))} />
   </FormFieldset>
 </PlatformPhone>`,
   },
-];
+]);

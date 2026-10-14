@@ -15,7 +15,7 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { Form, FormActions, FormFieldset } from "../../../components/Form";
 import type { IconName } from "../../../components/Icon";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
-import { Grid, Stack } from "../../../components/Layout";
+import { Box, Grid, Stack } from "../../../components/Layout";
 import { Metric } from "../../../components/MetricWidget";
 import { Table, TableBadges, TableMedia, TableText, type TableSort } from "../../../components/Table";
 import { Heading, Text } from "../../../components/Text";
@@ -25,7 +25,7 @@ import {
   activity, daysFromToday, formatDate, formatDue, formatMoney, formatRange, formatRelative, formatTime, initials, invoices, leaveRequests, people,
   projectStatusTheme, projects, type Person, type Project,
 } from "../data";
-import "./dock-icon.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "dock-icon";
 
@@ -54,7 +54,7 @@ function ChooseProjectType() {
   return (
     <>
       {/* Without a pick, Form moves focus to the first type card and announces the group's error. */}
-      <Form className="px-dock-icon-fill" onSubmit={() => (type ? setNaming(true) : setMissing(true))} invalidMessage={() => "Choose a project type to continue"}>
+      <Box width="fill"><Form onSubmit={() => (type ? setNaming(true) : setMissing(true))} invalidMessage={() => "Choose a project type to continue"}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">New project for Mekong Freight</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">The kind of work sets the phases, the team template and the budget lines.</Text>
@@ -65,7 +65,7 @@ function ChooseProjectType() {
               <Card key={t.id} theme="border" selected={t.id === typeId} aria-pressed={t.id === typeId} onClick={() => pick(t.id)}>
                 <Stack gap="md">
                   {/* Decorative: the name is right under it. */}
-                  <DockIcon icon={t.icon} theme={t.theme} size="lg" />
+                  <DockIcon icon={t.icon} theme={t.theme} size="xl" />
                   <Stack gap="xs">
                     <Text as="span" textStyle="Body/Base/Bold">{t.name}</Text>
                     <Text as="span" textStyle="Body/Small/Regular" tone="base">{t.caption}</Text>
@@ -76,7 +76,7 @@ function ChooseProjectType() {
           </Grid>
         </FormFieldset>
         <FormActions><Button level="primary" type="submit">Create project</Button></FormActions>
-      </Form>
+      </Form></Box>
       <DemoFieldDialog open={naming} onOpenChange={setNaming} title={type ? `New ${type.name.toLowerCase()} project` : "New project"}
         description="Mekong Freight is the client. You can invite the team next."
         field={{ kind: "name", label: "Project name", placeholder: "Driver app" }} submitLabel="Create project" confirm={(name) => `${name} created`} />
@@ -97,12 +97,12 @@ function ProjectTable() {
   const [sort, setSort] = useState<TableSort | null>({ columnId: "due", direction: "asc" });
   return (
     // A section of the page: its h4 names the table, which lies on the page with no container.
-    <Stack as="section" gap="xs" aria-labelledby={titleId} className="px-dock-icon-fill">
+    <Stack as="section" gap="xs" aria-labelledby={titleId} width="fill">
       <Heading level={4} id={titleId} textStyle="Heading/4">Client projects</Heading>
       <Table aria-labelledby={titleId} rows={sortProjects(clientProjects, sort)} getRowId={(row) => row.id} sort={sort} onSortChange={setSort}
       columns={[
         { id: "name", header: "Project", sortable: true, cell: (row) => (
-          <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>{row.name}</TableMedia>
+          <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>{row.name}</TableMedia>
         ) },
         { id: "lead", header: "Lead", width: "200px", cell: (row) => (
           <TableMedia media={<Avatar size="xs" {...avatarFor(person(row.lead))} />} bold={false}>{person(row.lead).name}</TableMedia>
@@ -145,7 +145,7 @@ function Notifications() {
   };
   return (
     // A ListBox: the title, its counter and Mark all as read in its Header-Slot, the notifications in its Body-Slot.
-    <ListBox className="px-dock-icon-fill"
+    <ListBox width="fill"
       header={<Stack direction="row" align="center" justify="between" gap="xs" wrap>
         <Stack direction="row" align="center" gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Notifications</Heading>
@@ -176,7 +176,7 @@ const leaveTypes = [
 
 function LeaveBalance() {
   return (
-    <ListBox className="px-dock-icon-fill" header={<Heading level={4} textStyle="Heading/Subheading">Leave balance</Heading>}>
+    <ListBox width="fill" header={<Heading level={4} textStyle="Heading/Subheading">Leave balance</Heading>}>
       <List aria-label="Leave balance">
         {leaveTypes.map((t) => (
           <ListItem key={t.id} title={t.name} caption={t.caption} leading={<DockIcon theme="emoji" emoji={t.emoji} size="md" />} />
@@ -239,7 +239,7 @@ function PhoneSpending() {
     return (
       // Spending is a tab root: its large title folds into the bar as the list scrolls under it.
       <PlatformPhone key="spending" label="Lumen Bank app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* The day groups sit in the screen margin (Margin/Comfortable, 20px): rows and kickers share one start edge and
             the fills stay 8px off the screen edge. Kicker → rows xs (the rows pad 12px above themselves). */}
@@ -268,7 +268,7 @@ function PhoneSpending() {
   return (
     // A pushed screen: compact bar with Back, which returns focus to the row it came from.
     <PlatformPhone key={payment.id} label="Lumen Bank app" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Payment" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Payment" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-payment="${payment.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}>
       {screen.anchor}
       <Stack gap="lg" padding="lg">
@@ -285,7 +285,7 @@ function PhoneSpending() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Choose a project type",
     description: "Large Solid Dock Icons lead selectable cards, each kind of work in the colour it has everywhere else in Zen. The mark is decorative because the name sits under it; Create project without a pick moves focus to the types and says what's missing.",
@@ -298,7 +298,7 @@ export const examples: ExampleDef[] = [
       {projectTypes.map((type) => (
         <Card key={type.id} theme="border" selected={type.id === typeId} aria-pressed={type.id === typeId} onClick={() => setTypeId(type.id)}>
           <Stack gap="md">
-            <DockIcon icon={type.icon} theme={type.theme} size="lg" />
+            <DockIcon icon={type.icon} theme={type.theme} size="xl" />
             <Stack gap="xs">
               <Text as="span" textStyle="Body/Base/Bold">{type.name}</Text>
               <Text as="span" textStyle="Body/Small/Regular" tone="base">{type.caption}</Text>
@@ -322,7 +322,7 @@ export const examples: ExampleDef[] = [
 <Table aria-labelledby="client-projects" rows={sortProjects(projects, sort)} sort={sort} onSortChange={setSort}
   columns={[
     { id: "name", header: "Project", sortable: true, cell: (row) => (
-      <TableMedia media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>
+      <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="sm" />} caption={row.client}>
         {row.name}
       </TableMedia>
     ) },
@@ -365,7 +365,7 @@ export const examples: ExampleDef[] = [
 
 {/* One key per screen, so each opens at the top and the title folds again */}
 <PlatformPhone key="spending" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Spending" largeTitle="Spending" scrollRef={screenRef} />}>
   {/* In the screen margin (20px); kicker → rows xs */}
   <Stack gap="lg" paddingX="lg">
     <Stack as="section" gap="xs" aria-labelledby="today">
@@ -382,11 +382,11 @@ export const examples: ExampleDef[] = [
 
 {/* The payment screen: the same mark, Large and Solid */}
 <PlatformPhone key={payment.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Payment" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Payment" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setOpenId(null) }} />}>
   <Metric size="xl" label={payment.merchant} value={signed(payment.amount)}
     icon={category.icon} iconTheme={category.theme} iconBackground="solid" />
 </PlatformPhone>`,
     render: () => <PhoneSpending />,
   },
-];
+]);

@@ -30,6 +30,7 @@ export const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
   { id: "rating", label: "Rating" },
   { id: "side-panel", label: "Side Panel" },
   { id: "uploader", label: "Uploader" },
+  { id: "voice", label: "Voice" },
   { id: "ai-chat", label: "AI Chat" },
   { id: "bottom-navigation", label: "Bottom Navigation" },
   { id: "bottom-sheet", label: "Bottom Sheet" },
@@ -143,7 +144,7 @@ export function OverviewPage({ onCardClick }: { onCardClick: (page: PlatformPage
       <div className="official-overview__content">
         <section className="official-intro">
           <h2>Zen® Design System is a comprehensive set of UI Components, Design Guidelines, and Code. It empowers you to build beautiful and user-friendly interfaces quickly and efficiently.</h2>
-          <Button className="official-download" level="primary" size="lg" startIcon={<Icon name="ic-figma-line" decorative />}>Download Figma</Button>
+          <Button className="official-download" level="primary" size="lg" startIcon={<Icon name="ic-figma-line" decorative />} onClick={openInNewTab(ZEN_FIGMA_URL)}>Download Figma</Button>
         </section>
 
         <section className="official-card-grid" aria-label="Zen platform sections">
@@ -210,6 +211,7 @@ export const pageLabels: Record<PlatformPage, string> = {
   rating: "Rating",
   "side-panel": "Side Panel",
   uploader: "Uploader",
+  voice: "Voice",
   "ai-chat": "AI Chat",
   "bottom-navigation": "Bottom Navigation",
   "bottom-sheet": "Bottom Sheet",
@@ -241,6 +243,11 @@ function getInitialCollection(): string | null {
   const requested = new URLSearchParams(window.location.search).get("collection");
   return requested && collections.some((collection) => collection.slug === requested) ? requested : null;
 }
+
+/** The live Zen Figma library and the team's feedback board, each in a new tab (the docs' Download Figma and Feedback). */
+const ZEN_FIGMA_URL = "https://www.figma.com/design/9nZv4uW2LT21yuHabMTCh1";
+const ZEN_FEEDBACK_URL = "https://github.com/Zen-Design-System/Zen-DS/issues/new";
+const openInNewTab = (url: string) => () => { window.open(url, "_blank", "noopener,noreferrer"); };
 
 export function PlatformApp() {
   const [activePage, setActivePage] = useState<PlatformPage>(getInitialPage);
@@ -359,8 +366,8 @@ export function PlatformApp() {
         onItemClick={openNavItem}
         footer={(
           <>
-            <button aria-label="Download Figma"><Icon name="ic-figma-line" size="base" /><span>Download Figma</span></button>
-            <button aria-label="Feedback"><Icon name="icon-message-chat-circle-line" size="base" /><span>Feedback</span></button>
+            <button type="button" aria-label="Download Figma" onClick={openInNewTab(ZEN_FIGMA_URL)}><Icon name="ic-figma-line" size="base" /><span>Download Figma</span></button>
+            <button type="button" aria-label="Feedback" onClick={openInNewTab(ZEN_FEEDBACK_URL)}><Icon name="icon-message-chat-circle-line" size="base" /><span>Feedback</span></button>
           </>
         )}
       />

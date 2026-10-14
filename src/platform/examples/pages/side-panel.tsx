@@ -1,8 +1,8 @@
 /* Side Panel examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio, signed in as Alex Duong,
    Wednesday Sep 30, 2026, 10:30 am. Each example teaches one Side Panel decision: a row opens its record in a Modal
    panel and Close returns to the row; many filters wait in a Small panel that counts the results before you apply them;
-   an edit form asks before it drops changes; a Standard panel docks beside a page that stays live; and a panel keeps
-   its frame while its content loads or fails. A Side Panel has no phone variant: on a phone the same jobs are a pushed
+   an edit form asks before it drops changes; a Standard panel docks beside a page that stays live; a panel keeps
+   its frame while its content loads or fails; and a long title wraps while a long body scrolls on its own. A Side Panel has no phone variant: on a phone the same jobs are a pushed
    screen or a Bottom Sheet (those pages show them). */
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
@@ -19,7 +19,7 @@ import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Form, FormFieldset, useFormState } from "../../../components/Form";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { DateField, InputField, SelectField, TextAreaField } from "../../../components/Input";
-import { Container, Stack } from "../../../components/Layout";
+import { Box, Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { PageHeader } from "../../../components/PageHeader";
 import { RadioButton } from "../../../components/RadioButton";
@@ -30,11 +30,13 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage, PreviewWindow } from "../../PlatformFrames";
 import {
   TODAY, daysFromToday, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, leaveStatusTheme, people, peopleList, projectById, projects,
   projectStatusTheme, type LeaveKind, type LeaveStatus, type Person, type PersonId, type ProjectStatus, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./side-panel.css";
 
 export const page: PlatformPage = "side-panel";
@@ -53,7 +55,7 @@ function Kicker({ id, children }: { id: string; children: string }) {
 const projectsOf = (id: PersonId) => projects.filter((project) => project.members.includes(id) || project.lead === id);
 const directory = [...peopleList].sort((a, b) => a.name.localeCompare(b.name));
 const personColumns: TableColumn<Person>[] = [
-  { id: "name", header: "Name", cell: (person) => <TableMedia media={<Avatar size="sm" {...avatarOf(person)} />} caption={person.role}>{person.name}</TableMedia> },
+  { id: "name", header: "Name", cell: (person) => <TableMedia bold media={<Avatar size="sm" {...avatarOf(person)} />} caption={person.role}>{person.name}</TableMedia> },
   { id: "team", header: "Team", width: "180px", cell: (person) => <TableText>{person.team}</TableText> },
   { id: "office", header: "Office", width: "180px", cell: (person) => <TableText>{person.location}</TableText> },
   { id: "projects", header: "Projects", align: "right", width: "110px", cell: (person) => <TableText>{String(projectsOf(person.id as PersonId).length)}</TableText> },
@@ -72,7 +74,7 @@ function PeopleDirectoryExample() {
   };
   return (
     // A desktop page (screen card): it paints the app's Canvas, like the docked Files page.
-    <div className="px-side-panel-page"><Container maxWidth="full">
+    <PreviewPage fill><Container maxWidth="full">
       <Stack paddingY="xl" gap="xl">
         <PageHeader title="People" description={`${plural(directory.length, "person", "people")} on client projects in Ho Chi Minh City, Hanoi, Singapore and remote.`} />
         {/* Read-only rows: the whole row opens the person (Tab reaches it, Enter opens it). */}
@@ -102,7 +104,7 @@ function PeopleDirectoryExample() {
           )}
         </Stack>
       </SidePanel>
-    </Container></div>
+    </Container></PreviewPage>
   );
 }
 
@@ -135,7 +137,7 @@ const matches = (picks: Picks, status: LeaveStatus | null) => (request: Request)
   && (picks.when === "any" || (picks.when === "upcoming" ? request.from > TODAY : request.from <= TODAY));
 const datesOf = (request: Request) => (request.from.getTime() === request.to.getTime() ? formatDate(request.from) : formatRange(request.from, request.to));
 const requestColumns: TableColumn<Request>[] = [
-  { id: "person", header: "Person", cell: (request) => <TableMedia media={<Avatar size="sm" {...avatarOf(people[request.person])} />} caption={people[request.person].team}>{people[request.person].name}</TableMedia> },
+  { id: "person", header: "Person", cell: (request) => <TableMedia bold media={<Avatar size="sm" {...avatarOf(people[request.person])} />} caption={people[request.person].team}>{people[request.person].name}</TableMedia> },
   { id: "kind", header: "Type", width: "150px", cell: (request) => <TableText>{request.kind}</TableText> },
   { id: "dates", header: "Dates", width: "230px", cell: (request) => <TableText>{datesOf(request)}</TableText> },
   { id: "days", header: "Days", align: "right", width: "90px", cell: (request) => <TableText>{String(request.days)}</TableText> },
@@ -156,7 +158,7 @@ function AllFiltersExample() {
   const flip = <K extends "kinds" | "teams">(key: K, value: Picks[K][number], on: boolean) =>
     setDraft((current) => ({ ...current, [key]: on ? [...current[key], value] : (current[key] as string[]).filter((x) => x !== value) }));
   return (
-    <div className="px-side-panel-page"><Container maxWidth="full">
+    <PreviewPage fill><Container maxWidth="full">
       <Stack paddingY="xl" gap="xl">
         <PageHeader title="Leave requests" description="Everyone's time off at the studio. Requests that wait for an answer come first." />
         <Stack gap="md">
@@ -197,7 +199,7 @@ function AllFiltersExample() {
           </FormFieldset>
         </Stack>
       </SidePanel>
-    </Container></div>
+    </Container></PreviewPage>
   );
 }
 
@@ -294,7 +296,7 @@ const loyaltyFiles: LoyaltyFile[] = [
   { id: "f11", name: "Launch plan – Nov 2.xlsx", bytes: 1_260_000, owner: "duy", updated: daysFromToday(-15, 9, 15), access: [{ person: "alex", can: "Can edit" }, { person: "hana", can: "Can view" }] },
 ];
 const fileColumns: TableColumn<LoyaltyFile>[] = [
-  { id: "name", header: "Name", cell: (file) => <TableMedia media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />}>{file.name}</TableMedia> },
+  { id: "name", header: "Name", cell: (file) => <TableMedia bold media={<FileIcon format={fileIconFormatOf(file.name)} size="lg" />}>{file.name}</TableMedia> },
   { id: "updated", header: "Updated", width: "180px", cell: (file) => <TableText>{formatRelative(file.updated)}</TableText> },
   { id: "size", header: "Size", align: "right", width: "100px", cell: (file) => <TableText>{formatBytes(file.bytes)}</TableText> },
 ];
@@ -321,15 +323,15 @@ function DockedDetailsExample() {
   const file = loyaltyFiles.find((item) => item.id === selectedId)!;
   const extension = file.name.split(".").pop()!.toUpperCase();
   return (
-    <div ref={frameRef} className="px-side-panel-frame">
-      <div className="px-side-panel-frame__page">
+    <PreviewWindow ref={frameRef} height={{ min: 560, max: 720, offset: 160 }} direction="row">
+      <Box scroll="y" width="fill">
         <Stack padding="xl" gap="xl">
           <PageHeader title="Files" description="Design files, specs and plans for the Phin & Co loyalty app."
             actions={<IconButton icon="icon-layout-right-line" aria-label={open ? "Hide details" : "Show details"} aria-pressed={open} onClick={() => setOpen(!open)} />} />
           {/* Standard: the page stays live, so picking another file updates the panel beside it. */}
           <Table aria-label="Files" columns={fileColumns} rows={loyaltyFiles} onRowClick={(row) => { setSelectedId(row.id); setOpen(true); }} />
         </Stack>
-      </div>
+      </Box>
       <SidePanel type={docked ? "standard" : "modal"} size="small" open={open} onOpenChange={setOpen}
         title={file.name} description={`${extension} file · ${formatBytes(file.bytes)}`}
         primaryAction={{ label: "Copy link", onClick: () => { void navigator.clipboard?.writeText(`https://zen.dizai.studio/files/${file.id}`).catch(() => null); toast({ title: "Link copied" }); } }}>
@@ -341,7 +343,7 @@ function DockedDetailsExample() {
           { id: "viewers", term: "Can view", description: namesOf(file.access, "Can view") },
         ]} />
       </SidePanel>
-    </div>
+    </PreviewWindow>
   );
 }
 
@@ -457,8 +459,50 @@ function InvoicePanelExample() {
   );
 }
 
+// ——— 6. Long content: a long title wraps, a long history scrolls inside the panel ——————————————————————————————
+/** A brief with a long working title and a history of many changes: the panel's title wraps instead of truncating, and
+ *  only the body scrolls, so the title and the actions stay in reach. */
+const longBrief = { title: "Card controls and spending limits for the Lumen Bank mobile app, phase 2", client: "Lumen Bank", lead: people.alex };
+const briefVerbs = ["edited the scope of", "commented on", "attached a file to", "moved the due date of", "approved", "asked for changes to"];
+const briefPeople: PersonId[] = ["alex", "ava", "finn", "khoa", "hana", "chi"];
+const briefHistory = Array.from({ length: 24 }, (_, index) => {
+  const person = people[briefPeople[index % briefPeople.length]];
+  return { id: `h${index}`, person, verb: briefVerbs[index % briefVerbs.length], at: daysFromToday(-index, 16 - (index % 6), 10 + index) };
+});
+
+function LongContentExample() {
+  const { toast } = useToast();
+  const historyId = useId();
+  const [open, setOpen] = useState(false);
+  return (
+    <PreviewPage fill><Container maxWidth="full">
+      <Stack paddingY="xl" gap="xl">
+        <PageHeader title="Briefs" description="Client briefs the studio is working from" />
+        <ListBox>
+          <List aria-label="Briefs">
+            <ListItem title={longBrief.title} titleLines={2} caption={`${longBrief.client} · ${plural(briefHistory.length, "change")}`}
+              leading={<DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" />} onClick={() => setOpen(true)} />
+          </List>
+        </ListBox>
+      </Stack>
+      <SidePanel type="modal" open={open} onOpenChange={setOpen} title={longBrief.title} description={`${longBrief.client} · Lead ${longBrief.lead.name}`}
+        primaryAction={{ label: "Export history", onClick: () => toast({ title: "History exported", children: `${plural(briefHistory.length, "change")} as a CSV file` }) }}>
+        <Stack as="section" gap="xs" aria-labelledby={historyId}>
+          <Kicker id={historyId}>History</Kicker>
+          <List aria-labelledby={historyId}>
+            {briefHistory.map((entry) => (
+              <ListItem key={entry.id} title={entry.person.name} caption={`${entry.verb[0].toUpperCase()}${entry.verb.slice(1)} the brief · ${formatRelative(entry.at)}`}
+                leading={<Avatar size="md" {...avatarOf(entry.person)} />} />
+            ))}
+          </List>
+        </Stack>
+      </SidePanel>
+    </Container></PreviewPage>
+  );
+}
+
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Open a record",
     description: "A read-only row opens its person in a Modal panel: the whole row is the target, the table waits behind the scrim, and Close, Escape or the scrim put focus back on the row. Headings inside start one level below the panel's h2 title.",
@@ -576,4 +620,26 @@ const requestClose = () => (form.isDirty ? setConfirming(true) : setOpen(false))
   )}
 </SidePanel>`,
   },
-];
+  {
+    title: "Long title and history",
+    description: "A brief with a long working title opens in a Modal panel: the title wraps instead of truncating, so the whole name reads. Its 24 changes make the body long, and only the body scrolls: the title, Close and Export history stay in reach.",
+    wide: true,
+    screen: true,
+    render: () => <LongContentExample />,
+    code: `<SidePanel type="modal" open={open} onOpenChange={setOpen}
+  title="Card controls and spending limits for the Lumen Bank mobile app, phase 2" // wraps; never cut
+  description="Lumen Bank · Lead Alex Duong"
+  primaryAction={{ label: "Export history", onClick: exportHistory }}>
+  <Stack as="section" gap="xs" aria-labelledby="history">
+    <Heading level={3} id="history" textStyle="Body/Small/Bold" tone="light">History</Heading>
+    {/* Only the body scrolls: the header and the actions stay put */}
+    <List aria-labelledby="history">
+      {history.map((entry) => (
+        <ListItem key={entry.id} title={entry.person.name} caption={\`\${entry.verb} the brief · \${formatRelative(entry.at)}\`}
+          leading={<Avatar size="md" {...avatarOf(entry.person)} />} />
+      ))}
+    </List>
+  </Stack>
+</SidePanel>`,
+  },
+]);

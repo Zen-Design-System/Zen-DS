@@ -7,8 +7,9 @@
 .zen-menu__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 /* A separator gets a little more air than the 4px between rows. */
 .zen-divider.zen-menu__separator { margin-block: var(--zen-spacing-gap-3-xsmall, 2px); }
-/* Destructive actions: Content/Negative (text and icon); a disabled one stays Disabled. */
-.zen-menu__item[data-danger="true"]:not(:disabled) { color: var(--zen-color-content-negative-base); }
+/* Destructive actions: Content/Negative/Light (text and icon), as Button's danger levels — a coloured action reads in its
+   Light step (user, 2026-10-09); a disabled one stays Disabled. */
+.zen-menu__item[data-danger="true"]:not(:disabled) { color: var(--zen-color-content-negative-light); }
 /* The shortcut hugs its text instead of the 16px trailing icon slot. */
 .zen-menu__item .zen-popover__item-trailing { width: auto; height: auto; flex-basis: auto; }
 .zen-menu__shortcut { color: var(--zen-color-content-neutral-light); white-space: nowrap; }

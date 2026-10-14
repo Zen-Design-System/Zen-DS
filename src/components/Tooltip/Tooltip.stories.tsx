@@ -19,3 +19,8 @@ export const Playground: Story = {};
 
 /** Icon-only buttons name themselves with a tooltip built in. */
 export const IconOnly: Story = { render: () => <IconButton icon="icon-plus-line" aria-label="Add member" onClick={() => undefined} /> };
+
+/** Figma Close=Yes: open from the start (a phone, where touch never opens a tooltip) until its X closes it. */
+export const Closable: Story = {
+  args: { content: "New: snap a receipt and the amount fills itself in", placement: "bottom", closable: true, defaultOpen: true, children: <Button level="primary">Scan receipt</Button> },
+};

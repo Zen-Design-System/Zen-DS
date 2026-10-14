@@ -1,4 +1,11 @@
-import { useCallback, useRef } from "react";
+import { createContext, useCallback, useRef } from "react";
+
+/**
+ * True where an overlay should render in place instead of through ZenPortal: AppShell's aside, when it opens as the modal
+ * SidePanel, sits next to the shell like the navigation drawer, so a preview frame that holds fixed content (container
+ * containment, a transform) holds it too instead of the panel covering the whole docs page. Internal.
+ */
+export const InlineOverlayContext = createContext(false);
 
 /**
  * Open state shared by the overlays (Dialog, ModalForm, SidePanel, BottomSheet). `open` + `onOpenChange` is the API;

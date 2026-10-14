@@ -14,7 +14,9 @@
 //     { toggle: "startIcon", on: … }        a Figma boolean that shows a layer = the presence of a code prop: on writes
 //                                           `on` (a text value, "slot" for the content-slot picker, or { code } for an
 //                                           object written as code: `{ label: "Action" }`, or { swap: "Leading-Icon-Src" }
-//                                           for that swap property's default icon in Figma), off removes it
+//                                           for that swap property's default icon in Figma), off removes it. The row shows
+//                                           only on the sets that have the boolean (generated), and while every
+//                                           `when: [{ prop, oneOf, default? }]` holds (the layer exists only at those values)
 //     { skip: "why" }                       Figma-only (a preview state, a device frame, content written elsewhere)
 //   nested: Figma nested layer name → { when, set?, props?, code? }: a group shown while code prop `when` is set, with
 //           the nested set's properties mapped as above, then `code` rows ({ prop, label }) for code props that set has
@@ -27,8 +29,9 @@ const CHILDREN = skip("the label is the element's text (Content section)");
 const HOVER = skip("preview state: hover comes from the pointer");
 const NO_PROP = skip("no code prop");
 
-/** A field's Label and Help-Text layers (Primitives/Input/Label): the text and its options, shown while the field's Label
- *  or Help-Text boolean is on. The Help-Text set is not in the read yet: its rows are the code props, labelled here. */
+/** A field's Label and Help-Text layers (Primitives/Input/Label, .Primitives/Input/Help-Text): the text and its options,
+ *  shown while the field's Label or Help-Text boolean is on. Help-Text's set is private (a "." name, which the page read
+ *  leaves out): read on its own on 2026-10-08 (373:97364) and kept in component-properties.json with the Input page. */
 const LABEL = {
   when: "label",
   set: "Primitives/Input/Label",
@@ -41,25 +44,39 @@ const LABEL = {
     State: skip("the field's State disables it"),
   },
 };
-const HELP_TEXT = { when: "helpText", code: [{ prop: "helpText", label: "Text" }, { prop: "helpTheme", label: "Theme" }, { prop: "helpIcon", label: "Icon" }, { prop: "characterLimit", label: "Character limit" }] };
+const HELP_TEXT_PROPS = {
+  Theme: "helpTheme",
+  Icon: "helpIcon",
+  // characterLimit is `ReactNode | true` (a count or the field's own counter): the code row edits it, not a switch.
+  "Character-Limitation": skip("characterLimit is ReactNode | true: its own row (Character-Limitation) edits it"),
+};
+const HELP_TEXT = { when: "helpText", set: ".Primitives/Input/Help-Text", props: HELP_TEXT_PROPS, code: [{ prop: "helpText", label: "Text" }, { prop: "characterLimit", label: "Character-Limitation" }] };
 const FIELD_NESTED = { Label: LABEL, "Help-Text": HELP_TEXT };
 /** An action written as an object (`action={{ label: "Action" }}`): its label and handler are edited in Object properties. */
 const ACTION = { code: '{ label: "Action" }' };
+
+/** Title-Highlight's title row (Label-Icon, Hint, Action) exists at XLarge–Medium, either spelling. */
+const TITLED = { prop: "size", oneOf: ["xl", "xlarge", "lg", "large", "md", "medium"], default: "xl" };
 
 /** Metric and MetricCard (a card holding a Metric-Inline instance, with the same props). */
 const METRIC = {
   sets: { "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight", "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight" },
   setProp: "variant",
   props: {
-    Trend: skip("the trend is an object: direction and label (Object properties)"),
-    "Metric-Color": NO_PROP,
+    // Figma Trend (a boolean) shows the Metric-Trend badge; in code the trend is an object (direction, label): on writes
+    // one to start from, edited field by field in Object properties; off removes it (2026-10-13 Figma walk).
+    Trend: { toggle: "trend", on: { code: '{ direction: "positive", label: "+12%" }' } },
+    "Metric-Color": "metricColor",
     "Metric-Title": skip("the title is the required label"),
-    Counter: NO_PROP,
+    Counter: { toggle: "counter", on: "3" },
     "Dock-Icon": skip("icon={false} hides the dock icon; the icon itself is the Icon row"),
     Action: skip("a node with no content slot yet"),
-    Hint: NO_PROP,
-    "Label-Icon": NO_PROP,
+    // MetricWidget.tsx draws the hint and the label icon in the title row of XLarge–Medium only.
+    Hint: { toggle: "hint", on: "How this number is worked out", when: [TITLED] },
+    "Label-Icon": { toggle: "labelIcon", on: "icon-wallet-02-line", when: [TITLED] },
     Size: "size",
+    Custom: { toggle: "custom", on: "slot" },
+    "Custom-Slot": skip("content slot (Slots section)"),
   },
 };
 
@@ -121,6 +138,29 @@ export const FIGMA_PROPS = {
       Size: { prop: "size", values: { "Max-Fixed": "max" } },
     },
   },
+  // Figma ◇ Master-Layout Primitives/Dashboard/Header (4122:33402, read 2026-10-11): one row per Type, each boolean shows
+  // its slot. Type=Main renders PageHeader (title, childTitle, subheading as its description, actions, trailing).
+  DashboardHeader: {
+    sets: { "Primitives/Dashboard/Header": null },
+    props: {
+      Type: "type",
+      // Each boolean's layer exists on some Types only (DashboardHeader.tsx): the row shows there.
+      Search: { toggle: "search", on: "slot", when: [{ prop: "type", oneOf: ["control-bar"] }] },
+      Controls: { toggle: "controls", on: "slot", when: [{ prop: "type", oneOf: ["control-bar"] }] },
+      Subheading: { toggle: "subheading", on: "96 results", when: [{ prop: "type", oneOf: ["control-bar", "main"] }] },
+      Actions: { toggle: "actions", on: "slot", when: [{ prop: "type", oneOf: ["control-bar", "main"] }] },
+      "Nav-Center-Block": { toggle: "center", on: "slot", when: [{ prop: "type", oneOf: ["navigation"] }] },
+      "Nav-Trailing-Block": { toggle: "trailing", on: "slot", when: [{ prop: "type", oneOf: ["navigation", "main"] }] },
+      "Child-Heading": { toggle: "childTitle", on: "2026", when: [{ prop: "type", oneOf: ["main"] }] },
+      "Leading-Slots": skip("content slot (Slots section)"),
+      "Center-Slots": skip("content slot (Slots section)"),
+      "Trailing-Slots": skip("content slot (Slots section)"),
+      "Control-Slots": skip("content slot (Slots section)"),
+      "Action-Slots": skip("content slot (Slots section)"),
+      "Custome-Elements": skip("the row's children (Slots section)"),
+      "Header-Text": skip("the title text (title prop)"),
+    },
+  },
   Card: {
     sets: { Card: null },
     props: { Content: skip("content slot (Slots section)"), "Sub-Action": skip("a sub-action object or node (Object properties)"), Theme: "theme", Spacing: "spacing", Active: { prop: "active", bool: true } },
@@ -132,7 +172,8 @@ export const FIGMA_PROPS = {
   },
   Checkbox: {
     sets: { "Checkbox/Text": null },
-    props: { Caption: { toggle: "caption", on: "Caption" }, State: "state", Select: { prop: "checked", bool: true }, "Check-Side": "checkSide" },
+    // Caption moved to the nested Content's Subtext (the live file, 2026-10-13): figma-push writes it there.
+    props: { Caption: skip("the caption is the nested Content's Subtext (figma-push)"), State: "state", Select: { prop: "checked", bool: true }, "Check-Side": "checkSide" },
   },
   Divider: { sets: { Divider: null }, props: { Color: "color" } },
   DockIcon: {
@@ -162,7 +203,7 @@ export const FIGMA_PROPS = {
   AutocompleteField: {
     sets: { "Input/Autocomplete-Field": null },
     props: { "Help-Text": { toggle: "helpText", on: "Help text" }, State: skip("preview state: the code shows it through interaction") },
-    nested: { "Help-Text": { when: "helpText", code: [{ prop: "helpText", label: "Text" }, { prop: "helpTheme", label: "Theme" }, { prop: "helpIcon", label: "Icon" }] } },
+    nested: { "Help-Text": { when: "helpText", set: ".Primitives/Input/Help-Text", props: { ...HELP_TEXT_PROPS, "Character-Limitation": skip("no characterLimit here") }, code: [{ prop: "helpText", label: "Text" }] } },
   },
   RichTextField: { sets: { "Input/Richtext": null }, props: { "Control-Bar": "editorBar" } },
   HeadingField: { sets: { "Input/Heading": null }, props: { Status: "status", Size: "headingSize" } },
@@ -194,6 +235,7 @@ export const FIGMA_PROPS = {
       Header: { toggle: "header", on: "slot" },
       "Header-Slot": skip("content slot (Slots section)"),
       "Body-Slot": skip("content slot (Slots section)"),
+      Theme: "theme",
       Footer: { toggle: "footer", on: "slot" },
       "Footer-Slot": skip("content slot (Slots section)"),
     },
@@ -221,7 +263,7 @@ export const FIGMA_PROPS = {
   },
   ProgressBar: {
     sets: { "Progress-Bar": null },
-    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: skip("progress is the numeric value") },
+    props: { Text: skip("the label text (the Label row)"), Label: { toggle: "label", on: "Label" }, Theme: "theme", Progress: skip("progress is the numeric value"), Layout: "layout" },
   },
   ProgressCircle: {
     sets: { "Progress-Circle": null },
@@ -282,7 +324,7 @@ export const FIGMA_PROPS = {
     props: { Shape: "shape", Size: { prop: "size", values: { "Large - 48px": "large", "Medium - 40px": "medium", "Small - 32px": "small" } } },
   },
   Segmented: { sets: { Segmented: null }, props: { "Item-List": skip("data slot (options list)"), Level: "level" } },
-  SidePanel: { sets: { "Side-Panel": null }, props: { Contents: skip("content slot"), Type: "type", Size: "size" } },
+  SidePanel: { sets: { "Side-Panel": null }, props: { Contents: skip("content slot"), "Header-Contents": skip("the header slot (headerContent)"), "Top-Customize": skip("the top slot (top)"), Type: "type", Size: "size" } },
   Tabs: { sets: { "Tab-Bar": null }, props: { "Item-List": skip("data slot (items list)"), Style: "variant" } },
   Tag: {
     sets: { Tag: null },
@@ -297,13 +339,27 @@ export const FIGMA_PROPS = {
   Toast: {
     sets: { "Toast-Message": null },
     props: {
-      Actions: skip("an action object (Object properties)"),
+      // On: the Small action button with its label (onClick is optional: pressing it dismisses the toast).
+      Actions: { toggle: "action", on: ACTION },
       "Title-Text": "title",
       "Caption-Text": skip("the message is the element's content"),
       Title: skip("a toast without a title omits title"),
       Caption: skip("a toast without a caption has no content"),
       Close: skip("closing is onClose in the code"),
       Type: "type",
+    },
+  },
+  // One file of a FileUpload's list: Theme and Thumbnail are its own props; the rest is its `file` object (figma-push
+  // uploaderFileItemNode writes State and the texts, figma-pull reads them back).
+  UploaderFileItem: {
+    sets: { "Primitives/Uploader/File-Item": null },
+    props: {
+      Theme: "theme",
+      Thumbnail: "thumbnail",
+      State: skip("the file's state (file.state)"),
+      "✏️ Name": skip("the file's name (file.name)"),
+      "✏️ Size": skip("the file's size (file.size)"),
+      "✏️ Additional Caption": skip("the upload's caption or error (file.caption, file.error)"),
     },
   },
   FileUpload: {
@@ -352,6 +408,9 @@ export const FIGMA_PROPS = {
     setProp: "calendar",
     props: { "Time-Picker": "timePicker", Actions: "showActions", State: skip("preview state: the month and year list opens from the header") },
   },
+  // The phone date picker (a Bottom-Sheet around the calendar): Variant follows selectionMode and whether a range is
+  // chosen (figma-push datePickerSheetNode), the title is its heading's text.
+  DatePickerSheet: { sets: { "Date-Picker/Mobile": null }, props: { Variant: skip("selectionMode, and a chosen range (Multiple-Selected)") } },
   Stepper: {
     sets: { "Stepper-Bar/Horizontal": "horizontal", "Stepper-Bar/Vertical": "vertical" },
     setProp: "orientation",
@@ -399,5 +458,7 @@ export const FIGMA_PROPS = {
   },
   EmptyState: { sets: { "Empty-State": null }, props: { CTA: { toggle: "primaryAction", on: ACTION } } },
   InputConditionItem: { sets: { "Primitives/Input/Input-Conditions/Condition-Item": null }, props: { State: "state" } },
+  // The list around them: its Item-List slot holds the Condition-Items (the element's children).
+  InputConditions: { sets: { "Input-Conditions": null }, props: { "Item-List": skip("content slot (Slots section)"), State: "state" } },
   ControlBarSelectItem: { sets: { "Control-Bar/Select-Item": null }, props: { "Icon-Src": "icon", Theme: "theme", State: "state" } },
 };

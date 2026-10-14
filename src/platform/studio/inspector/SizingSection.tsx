@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
-import { Button, IconButton } from "../../../components/Button";
+import { useWords } from "../useWords";
+import { Button } from "../../../components/Button";
 import { Divider } from "../../../components/Divider";
 import { Icon } from "../../../components/Icon";
 import { InputField, InputLeadingTrailing } from "../../../components/Input";
-import { Menu, type MenuEntry } from "../../../components/Menu";
 import { Popover, PopoverItem } from "../../../components/Popover";
 import { Segmented } from "../../../components/Segmented";
 import { useIconTooltip } from "../../../components/Tooltip";
@@ -17,15 +17,16 @@ import { studioDrafts } from "../sourceDrafts";
 import type { EditOp } from "../types";
 import type { FieldApi, LayoutGroupProps } from "./fieldApi";
 import { propSpecs, valueOf, type PropValue } from "./propSchema";
-import { InspectorRow } from "./Section";
+import { InspectorFields, InspectorRow } from "./Section";
 import { fileName, inspectorStatus, saveShortcut } from "./status";
 import {
   alignSelfLiteral, alignSelfOps, alignSelfOptions, axisLetter, axisName, axisTooltip, axisView, editLabel, effectiveAlign, fillCaption,
   fillChildrenOps, holdValues, holds, hugCaption, limitOps, limitProps, limitSuffix, limitText, limitValue, limitsOf, optimisticOf, parseLimit,
-  parseSizingInput, releaseValues, removeLimitsOps, scrubbed, settleValues, sizingOps, stepBase, stepped,
+  parseSizingInput, releaseValues, scrubbed, settleValues, sizingOps, stepBase, stepped,
   type AlignSelfValue, type AxisView, type HeldValue, type LimitProp, type LiveSizing, type ParentLayout, type SizingAxis, type SizingInput,
 } from "./sizingModel";
 import "./sizing.css";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * The Design tab's Size group (spec: docs/research/studio-inspector-redesign-2026-10-03.md, "SIZE" and the control
@@ -52,7 +53,7 @@ export function hasSizing(component: string): boolean {
 }
 
 export function SizingSection(props: LayoutGroupProps) {
-  const src = props.host?.getAttribute("data-zen-src") || null;
+  const src = srcAttr(props.host) || null;
   // Another selection starts fresh: no draft, no added min / max field, no open popover.
   return <SizeGroup key={src ?? `${props.component}:no-source`} {...props} src={src} />;
 }
@@ -291,24 +292,25 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
   const values = Object.fromEntries(limitProps.map((prop) => [prop, read(prop)])) as Record<LimitProp, PropValue>;
   const limitPx = (prop: LimitProp) => limitValue(values[prop]) ?? (values[prop].state === "literal" ? null : info.limits[prop]);
   const pairShown = (axis: SizingAxis) => added.has(axis) || limitsOf[axis].some((prop) => names.has(prop) && isWritten(values[prop]));
-  const anyLimitWritten = limitProps.some((prop) => values[prop].state === "literal");
   const parentLaysOut = info.parent.kind !== "other";
 
-  const menuItems: MenuEntry[] = [
-    ...axes.filter((axis) => !pairShown(axis)).flatMap((axis) => limitsOf[axis].filter((prop) => names.has(prop)).map((prop) => ({ id: `add:${prop}`, label: limitText[prop].add }))),
-  ];
-  if (anyLimitWritten || axes.some((axis) => added.has(axis))) {
-    if (menuItems.length) menuItems.push({ type: "separator" });
-    menuItems.push({ id: "remove", label: "Remove min and max" });
-  }
-  const onMenu = (id: string) => {
-    if (id === "remove") {
-      setAdded(new Set());
-      send(removeLimitsOps(values));
+  // Figma's W / H menu: "Add min width…" / "Add max width…", or "Remove min width" once it is written. A limit the code
+  // binds or spreads has no item (its field shows it read-only).
+  const limitItems = (axis: SizingAxis): LimitItem[] => limitsOf[axis].filter((prop) => names.has(prop) && (values[prop].state === "literal" || values[prop].state === "unset")).map((prop) => (
+    values[prop].state === "literal"
+      ? { id: `remove:${prop}`, label: `Remove ${limitText[prop].add.slice(4)}`, icon: "icon-minus-line" }
+      : { id: `add:${prop}`, label: `${limitText[prop].add}…`, icon: prop.startsWith("min") ? limitIcons[axis].min : limitIcons[axis].max }
+  ));
+  const onLimit = (id: string) => {
+    const prop = id.slice(id.indexOf(":") + 1) as LimitProp;
+    const axis: SizingAxis = prop.endsWith("Width") ? "width" : "height";
+    if (id.startsWith("remove:")) {
+      const other = limitsOf[axis].find((name) => name !== prop);
+      // The pair goes when nothing is left on the axis.
+      if (!other || values[other].state !== "literal") setAdded((current) => { const next = new Set(current); next.delete(axis); return next; });
+      send(limitOps(prop, null, values[prop]));
       return;
     }
-    const prop = id.slice(4) as LimitProp;
-    const axis: SizingAxis = prop.endsWith("Width") ? "width" : "height";
     setAdded((current) => new Set(current).add(axis));
     setFocusLimit({ prop, at: Date.now() });
   };
@@ -318,7 +320,7 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
 
   return (
     <div className="studio-sizing" role="group" aria-labelledby={labelId} data-prop="width">
-      <span id={labelId} className={`studio-sizing__label ${typographyStyles["Body/Small/Regular"]}`}>Size</span>
+      <span id={labelId} className={`studio-sizing__label ${typographyStyles["Caption/Regular"]}`} title={axes.join(" · ")}>Resizing</span>
       <div className="studio-sizing__pair" data-single={axes.length === 1 || undefined}>
         {axes.map((axis) => {
           const [min, max] = limitsOf[axis];
@@ -332,20 +334,11 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
               disabled={disabled}
               align={axis === "width" ? "start" : "end"}
               onWrite={send}
+              limitItems={limitItems(axis)}
+              onLimit={onLimit}
             />
           );
         })}
-        <span className="studio-sizing__slot">
-          {menuItems.length ? (
-            <Menu
-              align="end"
-              aria-label="Min and max size"
-              trigger={<IconButton icon="icon-ruler-line" aria-label="Min and max size" appearance="flat" level="primary" size="xs" disabled={disabled} />}
-              items={menuItems}
-              onSelect={(item) => onMenu(item.id)}
-            />
-          ) : null}
-        </span>
       </div>
 
       {axes.filter(pairShown).map((axis) => (
@@ -362,7 +355,6 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
               onWrite={send}
             />
           ) : <span key={prop} />))}
-          <span className="studio-sizing__slot" />
         </div>
       ))}
 
@@ -389,11 +381,27 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
 /* ── W / H ────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 /** One W / H field. `onInput`: what the person chose goes there instead of `onWrite`'s props (an instance's Size group). */
-export function SizeField({ view, measured, parent, limits, disabled, align, onWrite, onInput }: {
+/** A min / max item of a W / H menu (Figma: "Add min width…", "Remove max width"). */
+type LimitItem = { id: string; label: string; icon: IconName };
+/** Figma's min / max glyphs per axis: min squeezes in to a line, max spreads out to its edges. */
+const limitIcons: Record<SizingAxis, { min: IconName; max: IconName }> = {
+  width: { min: "icon-align-horizontal-centre-01-line", max: "icon-spacing-width-01-line" },
+  height: { min: "icon-align-vertical-center-01-line", max: "icon-spacing-height-01-line" },
+};
+/** Fixed · Hug · Fill glyphs per axis (Figma's W / H menu). */
+const modeIcons: Record<SizingAxis, { fixed: IconName; hug: IconName; fill: IconName }> = {
+  width: { fixed: "icon-spacing-width-02-line", hug: "icon-align-horizontal-centre-01-line", fill: "icon-chevron-selector-horizontal-line" },
+  height: { fixed: "icon-spacing-height-02-line", hug: "icon-align-vertical-center-01-line", fill: "icon-chevron-selector-vertical-line" },
+};
+
+export function SizeField({ view, measured, parent, limits, disabled, align, onWrite, onInput, limitItems = [], onLimit }: {
   view: AxisView;
   measured: number | null;
   parent: ParentLayout;
   limits: string;
+  /** Min / max items after the modes (Figma's W / H menu); `onLimit` gets the picked id. */
+  limitItems?: LimitItem[];
+  onLimit?: (id: string) => void;
   disabled: boolean;
   align: "start" | "end";
   onWrite?: (ops: EditOp[] | null) => void;
@@ -414,7 +422,7 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
   const locked = !view.editable;
   const shown = pending !== null ? String(pending) : draft ?? view.text;
   const isDefault = pending === null && draft === null && !view.written;
-  const why = axisTooltip(view, parent, limits);
+  const why = useWords()(axisTooltip(view, parent, limits));
   // On the field, not the input: a text input matches :focus-visible on every click, and the hint would cover the row
   // above while typing. Hover shows it after 1s; assistive tech reads it as the input's description.
   const [onHandle, setOnHandle] = useState(false);
@@ -514,6 +522,9 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
   };
 
   const fixedPx = view.written && view.mode === "fixed" && view.px !== null ? view.px : measured;
+  // The measured px beside Hug and Fill (Figma: "390 Fill"). Auto shows no number (user, 2026-10-09), and a Fixed size is
+  // its own number unless something (a min or max) renders it at another.
+  const showMeasure = measured !== null && pending === null && (view.mode === "hug" || view.mode === "fill" || (view.mode === "fixed" && view.px !== measured));
   const mark = view.source === "bound" ? "icon-code-01-line" : "icon-lock-01-line";
   return (
     <div ref={wrapRef} className="studio-sizing__field" data-default={isDefault || undefined} data-axis={axis} data-prop={axis} {...tip.bind({})}>
@@ -557,7 +568,7 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
         )}
         trailing={(
           <span className="studio-sizing__trail">
-            {measured !== null ? <span className={`studio-sizing__measure ${typographyStyles["Body/Small/Regular"]}`}>{measured}</span> : null}
+            {showMeasure ? <span className={`studio-sizing__measure ${typographyStyles["Body/Small/Regular"]}`}>{measured}</span> : null}
             {locked ? (
               <span className="studio-sizing__mark"><Icon name={mark} size="sm" decorative /></span>
             ) : (
@@ -582,11 +593,14 @@ export function SizeField({ view, measured, parent, limits, disabled, align, onW
         autoFocus={openWithKeys}
         aria-label={`${name} sizing`}
       >
-        <PopoverItem label={`Fixed ${name.toLowerCase()}${fixedPx !== null ? ` · ${fixedPx}` : ""}`} caption="Keep the current size" selected={view.written && view.mode === "fixed"} onSelect={() => pick({ kind: "fixed-current" })} />
-        <PopoverItem label="Hug contents" caption={hugCaption(axis)} selected={view.written && view.mode === "hug"} onSelect={() => pick({ kind: "hug" })} />
-        <PopoverItem label="Fill container" caption={fillCaption(axis, parent)} selected={view.written && view.mode === "fill"} onSelect={() => pick({ kind: "fill" })} />
+        {/* Figma's W / H menu: one line per choice with its glyph, the min / max items after a divider. */}
+        <PopoverItem leading={modeIcons[axis].fixed} label={`Fixed ${name.toLowerCase()}${fixedPx !== null ? ` (${fixedPx})` : ""}`} title="Keep the current size" selected={view.written && view.mode === "fixed"} onSelect={() => pick({ kind: "fixed-current" })} />
+        <PopoverItem leading={modeIcons[axis].hug} label="Hug contents" title={hugCaption(axis)} selected={view.written && view.mode === "hug"} onSelect={() => pick({ kind: "hug" })} />
+        <PopoverItem leading={modeIcons[axis].fill} label="Fill container" title={fillCaption(axis, parent)} selected={view.written && view.mode === "fill"} onSelect={() => pick({ kind: "fill" })} />
+        {limitItems.length && onLimit ? <Divider decorative /> : null}
+        {onLimit ? limitItems.map((item) => <PopoverItem key={item.id} leading={item.icon} label={item.label} onSelect={() => { setOpen(false); onLimit(item.id); }} />) : null}
         {view.written ? <Divider decorative /> : null}
-        {view.written ? <PopoverItem label="Reset to auto" onSelect={() => pick({ kind: "auto" })} /> : null}
+        {view.written ? <PopoverItem leading="icon-reverse-left-line" label="Reset to auto" onSelect={() => pick({ kind: "auto" })} /> : null}
       </Popover>
       {tip.tooltip}
     </div>
@@ -619,7 +633,8 @@ function LimitField({ prop, value, live, prefill, disabled, focusAt, onWrite }: 
   const resting = locked ? (fed !== null ? String(fed) : "") : written !== null ? String(written) : value.state === "unset" && prefill !== null && focusAt ? String(prefill) : "";
   const shown = pending !== null ? String(pending) : draft ?? resting;
   const isDefault = pending === null && draft === null && written === null;
-  const tip = useIconTooltip(locked ? (value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`) : false);
+  const say = useWords();
+  const tip = useIconTooltip(locked ? say(value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`) : false);
 
   useEffect(() => {
     if (!focusAt) return undefined;
@@ -711,7 +726,8 @@ function LimitField({ prop, value, live, prefill, disabled, focusAt, onWrite }: 
 
 /** A bound or spread value: the live value, read-only (never editable here), with where it comes from. */
 function ReadOnlyValue({ label, text, value }: { label: string; text: string; value: Extract<PropValue, { state: "bound" | "spread" }> }) {
-  const tip = useIconTooltip(value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`);
+  const say = useWords();
+  const tip = useIconTooltip(say(value.state === "bound" ? `Bound to {${value.expression}}: change it in the code` : `Set by ${value.via}. Read-only here`));
   return (
     <div className="studio-sizing__field">
       <InputField
@@ -737,50 +753,59 @@ function AlignInParent({ value, info, disabled, onWrite }: { value: PropValue; i
   const follows = effective.baseline ? "text baseline" : selectedName.toLowerCase();
   const tip = useIconTooltip(literal ? false : `Follows the parent: ${follows}`);
   const label = <span {...tip.bind({})}>Align in parent{tip.tooltip}</span>;
-  const reset = literal && !disabled
-    ? <IconButton icon="icon-reverse-left-line" aria-label="Reset align in parent" appearance="flat" level="primary" size="xs" onClick={() => onWrite(alignSelfOps(null, value))} />
-    : <span className="studio-sizing__slot" />;
   if (value.state === "bound" || (value.state === "spread" && fed)) {
-    return <InspectorRow name="alignSelf" label={label} action={<span className="studio-sizing__slot" />}><ReadOnlyValue label="Align in parent" text={selectedName} value={value} /></InspectorRow>;
+    return <InspectorRow name="alignSelf" label={label}><ReadOnlyValue label="Align in parent" text={selectedName} value={value} /></InspectorRow>;
   }
+  // Figma's grid: the label above, the control across both field columns.
   return (
-    <InspectorRow name="alignSelf" label={label} isDefault={!literal} action={reset}>
-      <div className="studio-sizing__seg" data-default={!literal || undefined}>
-        <Segmented
-          aria-label={literal ? "Align in parent" : `Align in parent (follows the parent: ${follows})`}
-          size="sm"
-          fullWidth
-          disabled={disabled || value.state === "spread"}
-          value={selected}
-          onValueChange={(next) => onWrite(alignSelfOps(next as AlignSelfValue, value))}
-          options={options.map((option) => ({ id: option.id, label: null, leading: option.icon as IconName, "aria-label": option.name }))}
-        />
-      </div>
-    </InspectorRow>
+    <InspectorFields
+      name="alignSelf"
+      labels={["Align in parent"]}
+      code={literal ? "alignSelf" : `alignSelf · follows the parent: ${follows}`}
+      fields={[(
+        <div key="align" className="studio-sizing__seg" data-default={!literal || undefined}>
+          <Segmented
+            aria-label={literal ? "Align in parent" : `Align in parent (follows the parent: ${follows})`}
+            size="sm"
+            fullWidth
+            disabled={disabled || value.state === "spread"}
+            value={selected}
+            onValueChange={(next) => onWrite(alignSelfOps(next as AlignSelfValue, value))}
+            options={options.map((option) => ({ id: option.id, label: null, leading: option.icon as IconName, "aria-label": option.name }))}
+          />
+        </div>
+      )]}
+    />
   );
 }
 
 function Children({ value, disabled, onWrite }: { value: PropValue; disabled: boolean; onWrite: (ops: EditOp[] | null) => void }) {
   const on = value.state === "literal" ? value.value === true : value.state === "spread" ? value.live === true : false;
   const tip = useIconTooltip("Fill equally: every child takes an equal share along the direction; a child's own width or height wins");
-  const label = <span {...tip.bind({})}>Children{tip.tooltip}</span>;
+  // "Child size", not "Children": the Slots section of a layout primitive is titled Children.
+  const label = <span {...tip.bind({})}>Child size{tip.tooltip}</span>;
   if (value.state === "bound" || (value.state === "spread" && typeof value.live === "boolean")) {
-    return <InspectorRow name="fillChildren" label={label} action={<span className="studio-sizing__slot" />}><ReadOnlyValue label="Children" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
+    return <InspectorRow name="fillChildren" label={label}><ReadOnlyValue label="Child size" text={on ? "Fill equally" : "Own size"} value={value} /></InspectorRow>;
   }
   const unset = value.state === "unset" || value.state === "spread";
   return (
-    <InspectorRow name="fillChildren" label={label} isDefault={unset} action={<span className="studio-sizing__slot" />}>
-      <div className="studio-sizing__seg" data-default={unset || undefined}>
-        <Segmented
-          aria-label="Children"
-          size="sm"
-          fullWidth
-          disabled={disabled || value.state === "spread"}
-          value={on ? "fill" : "own"}
-          onValueChange={(next) => onWrite(fillChildrenOps(next === "fill", value))}
-          options={[{ id: "own", label: "Own size" }, { id: "fill", label: "Fill equally" }]}
-        />
-      </div>
-    </InspectorRow>
+    <InspectorFields
+      name="fillChildren"
+      labels={["Child size"]}
+      code="fillChildren · every child takes an equal share along the direction; a child's own width or height wins"
+      fields={[(
+        <div key="fill" className="studio-sizing__seg" data-default={unset || undefined}>
+          <Segmented
+            aria-label="Child size"
+            size="sm"
+            fullWidth
+            disabled={disabled || value.state === "spread"}
+            value={on ? "fill" : "own"}
+            onValueChange={(next) => onWrite(fillChildrenOps(next === "fill", value))}
+            options={[{ id: "own", label: "Own size" }, { id: "fill", label: "Fill equally" }]}
+          />
+        </div>
+      )]}
+    />
   );
 }

@@ -2,6 +2,7 @@
    Wednesday Sep 30, 2026, 10:30 am. Status is always a Badge from one vocabulary per domain (data.ts theme maps);
    counts are a BadgeCounter; removable labels are Badges with onRemove. */
 import { useEffect, useId, useRef, useState } from "react";
+import { useZen } from "../../../components/Provider";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter, type BadgeTheme } from "../../../components/Badge";
 import { BottomSheet } from "../../../components/BottomSheet";
@@ -27,7 +28,7 @@ import {
   type InvoiceStatus, type Priority, type Task, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
-import "./badge.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "badge";
 
@@ -48,7 +49,13 @@ function TaskStatusTable() {
       {picked ?? label}
     </Chip>
   );
-  const columns: TableColumn<Task>[] = [
+  // On a phone the assignee joins the task's caption and only Status stays beside it, so no fixed-width column is cut
+  // (backlog batch 6b).
+  const phone = useZen()?.breakpoint === "mobile";
+  const columns: TableColumn<Task>[] = phone ? [
+    { id: "task", header: "Task", cell: (task) => <TableText caption={`${task.key} · ${people[task.assignee].name}`}>{task.title}</TableText> },
+    { id: "status", header: "Status", cell: (task) => <TableBadges><Badge size="md" theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge></TableBadges> },
+  ] : [
     { id: "task", header: "Task", cell: (task) => <TableText caption={task.key}>{task.title}</TableText> },
     { id: "assignee", header: "Assignee", width: "180px", cell: (task) => {
       const person = people[task.assignee];
@@ -97,7 +104,7 @@ function InvoiceStatus() {
     // Secondary actions live in the card's Sub-Action menu; the action that moves the invoice on sits at the bottom.
     <Card as="section" theme="flat" aria-labelledby={titleId}
       subAction={
-        <Menu align="end" trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label={`Actions for ${overdue.number}`} />}
+        <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={`Actions for ${overdue.number}`} />}
           items={[
             { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: paid, onSelect: () => toast({ title: "Reminder sent", children: `${overdue.client} gets a copy of ${overdue.number}.` }) },
             { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: () => toast({ title: "Download started", children: `${overdue.number}.pdf` }) },
@@ -106,7 +113,7 @@ function InvoiceStatus() {
       <Stack gap="md" align="stretch">
         <Stack direction="row" gap="md" align="start" justify="start">
           <DockIcon icon="icon-receipt-line" theme={project.theme} background="subtle" />
-          <Stack gap="xs" align="stretch" className="px-badge-grow">
+          <Stack gap="xs" align="stretch" width="fill">
             {/* The status sits right after the number and wraps under it on a narrow card; it never truncates. */}
             <Stack direction="row" gap="sm" align="center" wrap>
               <Heading level={4} id={titleId} textStyle="Heading/Subheading">{overdue.number}</Heading>
@@ -230,7 +237,7 @@ function RemovableLabels() {
           <Stack direction="row" gap="xs" align="center" wrap>
             {/* The applied labels are a list; each Remove button is named after its label ("Remove iOS"). */}
             {applied.length ? (
-              <Stack as="ul" direction="row" gap="2xs" align="center" wrap className="px-badge-list" aria-labelledby={labelsId}>
+              <Stack as="ul" direction="row" gap="2xs" align="center" wrap aria-labelledby={labelsId}>
                 <Chip variant="advanced" dropdown leading="icon-plus-line" popoverLabel="Add a label or create one"
                   popoverItems={available.map((label) => ({ id: label.id, label: label.name }))}
                   popoverSearchValue={query} onPopoverSearchChange={setQuery} popoverSearchPlaceholder="Label name"
@@ -286,9 +293,9 @@ function MobileTasks() {
   }));
   return (
     <PlatformPhone label="Tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
       <Stack gap="md" align="stretch">
-        <Stack direction="row" gap="xs" className="px-badge-chip-row" role="group" aria-label="Filter by status">
+        <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Filter by status">
           {(["All", ...taskStatuses] as const).map((option) => (
             <Chip key={option} variant="normal" level="primary" selected={filter === option} onClick={() => setFilter(option)}>{option}</Chip>
           ))}
@@ -326,7 +333,7 @@ function MobileTasks() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Task status",
     wide: true,
@@ -383,7 +390,7 @@ const columns = [
 const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finishedLabel(task.finished) : formatDue(task.due)}\`;
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
   {["All", "To do", "In progress", "In review", "Done"].map((option) => (
     <Chip key={option} variant="normal" level="primary"
       selected={filter === option} onClick={() => setFilter(option)}>{option}</Chip>
@@ -413,7 +420,7 @@ const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finished
 
 <Card as="section" theme="flat" aria-labelledby={titleId}
   subAction={<Menu align="end"
-    trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Actions for INV-2026-0139" />}
+    trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Actions for INV-2026-0139" />}
     items={[
       { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: status === "Paid", onSelect: sendReminder },
       { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: downloadPdf },
@@ -455,4 +462,4 @@ const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finished
   onPopoverSelect={(item) => setApplied((ids) => [...ids, item.id])}
   onPopoverCreate={createLabel}>Add label</Chip>`,
   },
-];
+]);

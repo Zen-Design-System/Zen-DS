@@ -292,6 +292,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the score chips it draws, by layer (`{ \"Chip[10]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
+          "deprecated": null
         }
       ]
     }

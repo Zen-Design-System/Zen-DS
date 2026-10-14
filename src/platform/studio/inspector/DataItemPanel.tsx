@@ -1,17 +1,27 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
-import { onSourceUpdate } from "../select/picker";
+import { currentFiber, onSourceUpdate } from "../select/picker";
 import { selectPart, withoutPart } from "../select/parts";
 import { canEdit, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
-import { computedCaption, dataItemBlock, duplicateShortcut, editDataItem, groupRuns, itemGroup, itemTitle, removeShortcut, renderedItemTitle, slotGroupsAt, sourceItems, useSlotRunning, useSlotServer, type DataItemHit } from "../slots";
+import { computedCaption, dataItemBlock, duplicateShortcut, editDataItem, groupRuns, itemGroup, itemParts, itemTitle, removeShortcut, renderedItemTitle, slotGroupsAt, sourceItems, useSlotRunning, useSlotServer, type DataItemHit } from "../slots";
+import { editDataGroup, editDataItems } from "../slots/actions";
+import type { DataGroupHit } from "../slots/dataItems";
+import { sectionEntries, titleOf } from "../slots/sectionList";
+import { plural } from "../../../components/Text";
+import { PropField } from "./PropField";
 import { canvasApi } from "../canvas/viewport";
 import type { FieldApi } from "./fieldApi";
+import { useFocusContentToken } from "./focusContent";
 import { ObjectProperties } from "./ObjectProperties";
-import { propSpecs } from "./propSchema";
-import { InspectorSection } from "./Section";
+import { objectSchemaOf, useApiTypes } from "./objectSchema";
+import { componentSlug, propSpecs } from "./propSchema";
+import { InspectorItem, InspectorSection } from "./Section";
+import { Icon } from "../../../components/Icon";
+import { autoLayoutKeys, autoLayoutShortcut } from "../select/wrapSelection";
+import { undoShortcut } from "./status";
 
 /*
  * A data-slot item selected on the canvas (TopNavigation's Top-Trailing action, dataSlots.ts): Figma's nested instance in
@@ -68,8 +78,8 @@ function useOwnerSource(host: NodeSelection): { element: SourceElement | null; a
   return { element, api };
 }
 
-/** The item's own sections: what it is, its actions (move, duplicate, remove) and its fields. */
-export function DataItemSections({ selection, item }: { selection: PartSelection; item: DataItemHit }) {
+/** The item's own sections: what it is, its actions (move, duplicate, remove) and its fields (`children`: the rows after them). */
+export function DataItemSections({ selection, item, children }: { selection: PartSelection; item: DataItemHit; children?: ReactNode }) {
   const host = withoutPart(selection) as NodeSelection;
   const { element, api } = useOwnerSource(host);
   useSlotServer();
@@ -82,12 +92,19 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
   const written = shape ? itemTitle(slot, shape.fields, index) : null;
   const name = written && written !== `${slot.itemName} ${index + 1}` ? written : renderedItemTitle(item);
   const block = dataItemBlock(selection);
-  const computed = source?.state === "computed" ? computedCaption(slot, source.code) : null;
+  const computed = source?.state === "computed" ? computedCaption(slot, source.code, source.via) : null;
   const off = api.disabled ? null : block ?? computed;
   const can = !api.disabled && !off && Boolean(shape) && running === null;
   const array = slot.form !== "object";
   const spec = propSpecs(host.name).find((candidate) => candidate.name === slot.prop);
   const attr = element?.attributes.filter((candidate) => candidate.kind === "expression" && candidate.name === slot.prop).at(-1);
+  // A nested slot (Sidebar `sections[n].items`): the item's group list, edited through its own field spec (SidebarItem[]).
+  const types = useApiTypes(slot.nested ? componentSlug(host.name) : null);
+  const place = source?.state === "items" ? source.at?.[index] : undefined;
+  const groupShape = slot.nested && place && attr?.shape?.type === "array" ? attr.shape.items[place.group] : undefined;
+  const listField = groupShape?.type === "object" ? groupShape.fields.find((field) => field.key === slot.nested) : undefined;
+  const listShape = listField?.kind === "expression" ? listField.shape : undefined;
+  const listSpec = slot.nested && spec ? objectSchemaOf(spec.type, types, "array")?.fields.find((field) => field.name === slot.nested) : undefined;
   const act = (verb: "remove" | "duplicate" | "move" | "group" | "ungroup", to = 0) => { void editDataItem(selection, slot, verb, index, to); };
   const count = items.length;
   // Groups (slot.groups, for the owner as drawn now): the run it is in, and its neighbours' names for the buttons. Off (the
@@ -98,6 +115,14 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
   const ignoredGroup = slot.groups && !grouping && shape ? itemGroup(shape.fields) : null;
   const inGroup = Boolean(run && run.group !== null && run.last > run.first);
   const neighbour = (at: number) => (items[at] ? itemTitle(slot, items[at].fields, at) : null);
+  // What its unset fields draw (a crumb's level and chevron come from its place): shown in the default tone.
+  const ownerProps = item.part.owner.fiber ? currentFiber(item.part.owner.fiber).memoizedProps ?? {} : {};
+  const defaults = slot.itemDefaults?.(index, count, ownerProps);
+  // A double-click on its text the canvas cannot edit in place (a Sidebar row's label comes from a nested list) lands in
+  // its text field here.
+  const focusToken = useFocusContentToken();
+  const textField = shape?.fields.find((field) => field.kind === "string" && ["label", "title", "name", "term"].includes(field.key))?.key;
+  const focus = textField ? { field: textField, token: focusToken } : undefined;
 
   return (
     <>
@@ -133,7 +158,108 @@ export function DataItemSections({ selection, item }: { selection: PartSelection
         )}
       </InspectorSection>
       <InspectorSection title="Properties" note={computed ?? (element && !shape ? "Not found in the source — select it again" : undefined)}>
-        {spec && attr?.shape && shape ? <ObjectProperties component={host.name} props={[{ spec, shape: attr.shape }]} api={api} only={{ prop: slot.prop, index: attr.shape.type === "array" ? index : undefined }} /> : null}
+        {slot.nested
+          ? (listSpec && listShape && place ? <ObjectProperties component={host.name} props={[{ spec: listSpec, shape: listShape }]} api={api} only={{ prop: slot.nested, index: place.index }} within={{ name: slot.prop, index: place.group }} defaults={defaults} focus={focus} /> : null)
+          : spec && attr?.shape && shape ? <ObjectProperties component={host.name} props={[{ spec, shape: attr.shape }]} api={api} only={{ prop: slot.prop, index: attr.shape.type === "array" ? index : undefined }} defaults={defaults} focus={focus} /> : null}
+        {/* The props its owner passes on to every item (PartPanel's PartProperties: a crumb's Emphasis). */}
+        {children}
+      </InspectorSection>
+    </>
+  );
+}
+
+/**
+ * A nested slot's group as drawn (a Sidebar section, its Section-Title or its rows' container), selected like Figma's
+ * frame in the slot (user, 2026-10-10: "Tất cả các element trong slot phải xoá và thêm được hết", "section title đang
+ * không xoá được"): its title edited (or written, for the untitled top group), a row added at its end, and removed:
+ * the section with its rows, the title alone (its rows join the section above) or the rows.
+ */
+export function DataGroupSections({ selection, hit }: { selection: PartSelection; hit: DataGroupHit }) {
+  const host = withoutPart(selection) as NodeSelection;
+  const { element, api } = useOwnerSource(host);
+  useSlotServer();
+  const running = useSlotRunning();
+  const { slot, group, role } = hit;
+  const entries = element ? sectionEntries(element, slot) : null;
+  const title = entries?.find((entry) => entry.kind === "title" && entry.group === group);
+  const label = title?.fields.find((field) => field.key === "label");
+  const name = title?.kind === "title" ? titleOf(title) : `Section ${group + 1}`;
+  const rows = entries?.filter((entry) => entry.kind === "item" && entry.group === group).length ?? 0;
+  const can = !api.disabled && entries !== null && running === null;
+  const removeVerb = role === "group" ? "remove" : role === "title" ? "removeTitle" : "clearRows";
+  const removeLabel = role === "group" ? `Remove the section ${name}` : role === "title" ? `Remove the title ${name}` : `Remove the rows of ${name}`;
+  // A double-click on the title's text the canvas cannot edit in place lands in Label (focusContent.ts).
+  const focusToken = useFocusContentToken();
+  return (
+    <InspectorSection title={role === "title" ? "Section-Title" : role === "list" ? "Section rows" : "Section"} note={element && !entries ? `The code builds ${slot.prop}: edit it there` : undefined}>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${name} · ${plural(rows, slot.itemName)} in ${slot.name}`}</p>
+      {role !== "list" ? (
+        <PropField
+          spec={{ name: "label", type: "string", description: "", defaultValue: null, editor: { kind: "string" } }}
+          label="Label"
+          value={label?.kind === "string" ? { state: "literal", value: label.value, raw: "" } : { state: "unset" }}
+          disabled={!can}
+          autoFocusToken={focusToken}
+          onSet={(value) => { void api.apply([{ op: "setField", name: slot.prop, index: group, key: "label", value: { kind: "string", value: String(value) } }], `${host.name} ${slot.prop}[${group}].label → "${String(value)}"`); }}
+          onReset={() => { void editDataGroup(selection, slot, group, "removeTitle"); }}
+        />
+      ) : null}
+      <div className="studio-item__actions" role="group" aria-label={`${name} actions`}>
+        {/* zen-allow-accent: the add-to-slot button matches the Slots section's add buttons (user, 2026-10-04) */}
+        <IconButton appearance="flat" level="accent" size="xs" icon="icon-plus-line" aria-label={`Add ${slot.itemName} to ${name}`} disabled={!can} onClick={() => { void editDataGroup(selection, slot, group, "addRow"); }} />
+        <IconButton appearance="flat" level="primary" size="xs" icon="icon-trash-line" aria-label={removeLabel} disabled={!can || (role === "title" && !title) || (role === "list" && !rows)} onClick={() => { void editDataGroup(selection, slot, group, removeVerb); }} />
+      </div>
+    </InspectorSection>
+  );
+}
+
+/**
+ * Several items of one data slot selected (itemSelection.ts: Shift/⌘+click on the canvas or in Layers): what they are,
+ * and what Figma does with a multi-selection in a slot: ⇧A puts them in a group of their own (a Sidebar section, a Menu
+ * group), ⌫ removes them. One undo step each.
+ */
+export function DataItemsSections({ selection, item, places }: { selection: PartSelection; item: DataItemHit; places: readonly number[] }) {
+  const host = withoutPart(selection) as NodeSelection;
+  const { element, api } = useOwnerSource(host);
+  useSlotServer();
+  const running = useSlotRunning();
+  const { slot } = item;
+  const source = element ? sourceItems(element, slot) : null;
+  const entries = element && (slot.nested || slot.grouped) ? sectionEntries(element, slot) : null;
+  const rows = entries ? entries.filter((entry) => entry.kind === "item") : (source?.state === "items" ? source.items : []);
+  const names = places.map((place) => (rows[place] ? itemTitle(slot, rows[place].fields, place) : `${slot.itemName} ${place + 1}`));
+  const can = !api.disabled && running === null;
+  // Sections (a Sidebar's, a Menu's) or shared pills (TopNavigation's actions); other lists draw one row of items.
+  const groups = Boolean(slot.nested || slot.grouped || slot.groups);
+  const groupLabel = slot.groups ? "Group" : "Group into a section";
+  // One item alone (a row of the list below): the others leave the selection.
+  const selectOnly = (place: number) => {
+    const part = itemParts(item.part.owner, slot)[place];
+    if (part) selectPart(part, canvasApi.getWorldElement());
+  };
+  return (
+    <>
+      <InspectorSection title="Selection" note={groups ? undefined : `${slot.name} draws one row of ${slot.itemName.toLowerCase()}s: they cannot go in a group of their own.`}>
+        {/* The multi-selection's actions, as the layers' (SelectionActions: Stack / Box): buttons, not quiet links (user,
+            2026-10-10: "Chỗ này user khó thấy"). */}
+        <div className="studio-inspector__actions">
+          {groups ? (
+            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`${groupLabel} (${autoLayoutShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "group"); }}>
+              {groupLabel}
+            </Button>
+          ) : null}
+          <Button level="danger-subtle" size="sm" startIcon="icon-trash-line" aria-keyshortcuts="Delete" title={`Remove ${plural(places.length, slot.itemName.toLowerCase())} (${removeShortcut})`} disabled={!can} onClick={() => { void editDataItems(selection, slot, places, "remove"); }}>
+            Remove
+          </Button>
+        </div>
+        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${groups ? `${slot.groups ? "Group" : "Section"} ${autoLayoutShortcut} · ` : ""}Remove ${removeShortcut} · ${undoShortcut} to undo`}</p>
+      </InspectorSection>
+      <InspectorSection title="Selected items">
+        <ul aria-label="Selected items" className="studio-inspector__items">
+          {places.map((place, k) => (
+            <InspectorItem key={place} icon={<Icon name="icon-cube-line" size={16} />} component name={names[k]} meta={`${slot.itemName} · ${place + 1}`} onClick={() => selectOnly(place)} />
+          ))}
+        </ul>
       </InspectorSection>
     </>
   );

@@ -37,6 +37,7 @@ import {
   projectStatusTheme, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./card.css";
 
 export const page: PlatformPage = "card";
@@ -169,7 +170,7 @@ function InvoiceSide() {
       <Card ref={invoiceCard} as="section" theme="flat" aria-labelledby={invoiceId}
         subAction={
           <Menu align="end"
-            trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Invoice actions" />}
+            trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
             items={[
               { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", disabled: status === "Paid", onSelect: () => toast({ title: "Reminder sent", children: `To ${email}` }) },
               { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: () => toast({ title: "PDF downloaded", children: "INV-2026-0142.pdf" }) },
@@ -234,7 +235,7 @@ function DueThisWeek() {
             {rows.map((task) => (
               <Stack key={task.id} direction="row" gap="md" align="center">
                 <SkeletonShape shape="round" size="md" />
-                <SkeletonText lines={2} className="px-card-grow" />
+                <SkeletonText lines={2} />
               </Stack>
             ))}
           </Stack>
@@ -310,13 +311,13 @@ function WorkspacePlan() {
     );
   };
   return (
-    <Stack gap="md" className="px-card-scope">
+    <Stack gap="md">
       <Stack direction="row" gap="xs" align="center" wrap>
         <Segmented aria-label="Billing period" value={period} onValueChange={(value) => setPeriod(value as "monthly" | "yearly")}
           options={[{ id: "monthly", label: "Monthly" }, { id: "yearly", label: "Yearly" }]} />
         <Text as="span" textStyle="Body/Small/Regular" tone="base">Yearly billing saves 20%</Text>
       </Stack>
-      <Grid columns={{ mobile: 1, desktop: 3 }} className="px-card-stack">
+      <Grid columns={{ mobile: 1, desktop: 3 }} stackBelow={640}>
         {plans.map((plan) => {
           const titleId = `${baseId}-${plan.id}`;
           return (
@@ -401,13 +402,13 @@ function NotificationSettings() {
   };
   const baseId = useId();
   return (
-    <Stack gap="xl" className="px-card-scope">
+    <Stack gap="xl">
       {settingGroups.map((group, index) => {
         const titleId = `${baseId}-${group.id}`;
         return (
           <Stack key={group.id} gap="xl">
             {index > 0 ? <Divider /> : null}
-            <Grid as="section" aria-labelledby={titleId} columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start" className="px-card-stack">
+            <Grid as="section" aria-labelledby={titleId} columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start" stackBelow={640}>
               <Stack gap="xs">
                 <Heading level={4} id={titleId} textStyle="Heading/4">{group.title}</Heading>
                 <Text textStyle="Body/Small/Regular" tone="base">{group.summary}</Text>
@@ -466,7 +467,7 @@ function PhoneOrderType() {
     return (
       // One key per screen: each screen opens at its top and its Top Navigation measures its own fold.
       <PlatformPhone key="cart" label="Cart" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
+        header={<TopNavigation type="alt" title="Cart" largeTitle="Cart" scrollRef={screenRef} />}
         footer={<ActionBar position="static"
           summary={<Text as="span" textStyle="Body/Base/Medium">{`Subtotal ${formatMoney(subtotal, true)}`}</Text>}
           primaryAction={{ label: "Go to checkout", onClick: () => go("checkout", '.zen-top-nav__action[aria-label="Back"]') }} />}>
@@ -489,7 +490,7 @@ function PhoneOrderType() {
     // An end state keeps a way out: Done starts again from the cart.
     return (
       <PlatformPhone key="placed" label="Order placed" headerOverlay screenRef={screenRef}
-        header={<TopNavigation type="compact" title="Order placed" scrollRef={screenRef} />}
+        header={<TopNavigation type="compact-alt" title="Order placed" scrollRef={screenRef} />}
         footer={<ActionBar position="static" primaryAction={{ label: "Done", onClick: () => go("cart", ".zen-action-bar button") }} />}>
         {screen.anchor}
         <Stack gap="lg" padding="lg">
@@ -505,7 +506,7 @@ function PhoneOrderType() {
 
   return (
     <PlatformPhone key="checkout" label="Checkout" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => go("cart", ".zen-action-bar button") }} />}
       footer={<ActionBar position="static"
         summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{`Total ${formatMoney(total, true)}`}</Text>}
@@ -521,7 +522,7 @@ function PhoneOrderType() {
                 onClick={() => setType(option.id)}>
                 <Stack direction="row" gap="md" align="center">
                   <DockIcon icon={option.icon} theme="neutral" background="subtle" />
-                  <Stack gap="2xs" className="px-card-grow">
+                  <Stack gap="2xs" width="fill">
                     <Text as="span" textStyle="Body/Base/Bold">{option.name}</Text>
                     <Text as="span" textStyle="Body/Small/Regular" tone="base">{option.detail}</Text>
                   </Stack>
@@ -540,7 +541,7 @@ function PhoneOrderType() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Browse projects",
     wide: true,
@@ -582,7 +583,7 @@ export const examples: ExampleDef[] = [
 
 <Card as="section" theme="flat" aria-labelledby={invoiceId}
   subAction={<Menu align="end"
-    trigger={<IconButton appearance="flat" level="primary" size="sm" icon="icon-dots-horizontal-line" aria-label="Invoice actions" />}
+    trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Invoice actions" />}
     items={[
       { id: "remind", label: "Send reminder", icon: "icon-mail-01-line", onSelect: sendReminder },
       { id: "pdf", label: "Download PDF", icon: "icon-download-01-line", onSelect: downloadPdf },
@@ -599,7 +600,7 @@ export const examples: ExampleDef[] = [
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone key="checkout" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Checkout" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Checkout" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => setStep("cart") }} />}
   footer={<ActionBar position="static" summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`Total \${formatMoney(total, true)}\`}</Text>}
     primaryAction={{ label: "Place order", onClick: () => setStep("placed") }} />}>
@@ -698,4 +699,4 @@ export const examples: ExampleDef[] = [
       </List>}
 </Card>`,
   },
-];
+]);

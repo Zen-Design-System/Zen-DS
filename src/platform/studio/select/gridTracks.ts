@@ -59,6 +59,13 @@ export function withTrackPx(list: string, index: number, px: number): string | n
   return tracks.map((item, at) => (at === index ? sized.write(px) : item)).join(" ");
 }
 
+/** The list with column `index` written as `track` ("auto": the column hugs its content); null without that column. */
+export function withTrack(list: string, index: number, track: string): string | null {
+  const tracks = splitTracks(list);
+  if (!tracks || index >= tracks.length) return null;
+  return tracks.map((item, at) => (at === index ? track : item)).join(" ");
+}
+
 /** The responsive keys Grid reads at each breakpoint, first written wins (Layout.tsx: tracks of desktop / tablet / mobile). */
 const keysAt: Record<Breakpoint, Breakpoint[]> = {
   desktop: ["desktop", "tablet", "mobile"],

@@ -20,7 +20,7 @@ export default {
     // Browser, not Figma: Chrome forces `line-height: initial !important` on input::placeholder (author !important cannot
     // override it). Measured: the placeholder glyphs sit on the same pixel rows as typed text, so only the reported value differs.
     // Pinned to the Dashboard Heading/1–3 size and tracking (variables export 2026-09-28).
-    ...[["H1", "28px", "-0.56px"], ["H2", "25px", "-0.5px"], ["H3", "22px", "-0.44px"]].map(([Size, size, ls]) => ({
+    ...[["H1", "28px", "-0.84px"], ["H2", "25px", "-0.75px"], ["H3", "22px", "-0.66px"]].map(([Size, size, ls]) => ({
       vp: { Size }, layer: "Container/Heading", prop: "text", code: `Inter 600 ${size}/normal ls=${ls} none`,
       note: "Chrome forces line-height: initial on input::placeholder; placeholder glyphs render on the same rows as typed text.",
     })),

@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "../../../components/Avatar";
-import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
+import { BottomNavigation, BottomNavigationItem } from "../../../components/BottomNavigation";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
@@ -25,6 +25,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./bottom-navigation.css";
 
 export const page: PlatformPage = "bottom-navigation";
@@ -130,7 +131,7 @@ function RootDestinationsExample() {
   const grouped = tab === "home" || tab === "projects";
   return (
     <PlatformPhone label="Zen app" canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-      header={<TopNavigation type={grouped ? "alt" : "default"} title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={<BottomNavigation items={items} value={tab} onValueChange={open} />}>
       {/* Body padding lg (20px, the phone margin); groups lg apart. */}
       {tab === "home" ? (
@@ -277,7 +278,7 @@ function ActionInBarExample() {
   const title = expenseTabs.find((item) => item.id === tab)!.label;
   return (
     <PlatformPhone label="Đìzai expenses" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       // Default bar: the action is one more cell after the destinations, a 48px Primary button that opens a task.
       footer={<BottomNavigation items={expenseTabs} value={tab} onValueChange={open}
         action={{ icon: "icon-plus-line", label: "New expense", onClick: start }} />}>
@@ -289,7 +290,7 @@ function ActionInBarExample() {
               {list.map((expense) => (
                 <ListItem key={expense.id} title={expense.merchant} caption={`${expense.category} · ${formatRelative(expense.at)}`}
                   leading={<DockIcon icon={categoryLook[expense.category].icon} theme={categoryLook[expense.category].theme} background="subtle" size="md" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{formatMoney(expense.amount, true)}</Text>} />
+                  trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{formatMoney(expense.amount, true)}</Text>} />
               ))}
             </List>
           </Box>
@@ -310,7 +311,7 @@ function ActionInBarExample() {
           <List aria-label="Waiting for your approval">
             {waiting.map((item) => (
               <ListItem key={item.id} title={people[item.person].name} caption={item.what} leading={<Avatar size="md" {...avatarOf(people[item.person])} />}
-                trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{formatMoney(item.amount, true)}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{formatMoney(item.amount, true)}</Text>} />
             ))}
           </List>
         </Box>
@@ -393,7 +394,7 @@ function FloatingCreateExample() {
   return (
     // Floating: the pill sits over the content on a fade to Surface; the screen keeps room under its last row.
     <PlatformPhone label="Zen tasks" headerOverlay screenRef={screenRef}
-      header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+      header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={<BottomNavigation type="floating" items={items} value={tab} onValueChange={open}
         action={{ icon: "icon-plus-line", label: "New task", onClick: start }} />}>
       {tab === "tasks" ? (
@@ -550,8 +551,13 @@ function BrandLabelsExample() {
   const grouped = tab === "menu";
   return (
     <PlatformPhone label="Phin & Co" canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-      header={<TopNavigation type={grouped ? "alt" : "default"} title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
-      footer={<BottomNavigation theme="accent" showLabels aria-label="Phin & Co" items={phinTabs} value={tab} onValueChange={open} />}>
+      header={<TopNavigation type="alt" title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
+      footer={(
+        // The destinations as BottomNavigationItem children (Figma's Nav-Items slot); an items array works the same.
+        <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open}>
+          {phinTabs.map((item) => <BottomNavigationItem key={item.id} {...item} />)}
+        </BottomNavigation>
+      )}>
       {tab === "home" ? (
         <Stack gap="lg" paddingY="xs">
           <Box paddingX="lg"><Metric size="xl" label="Your points" value={points.toLocaleString("en-US")} icon="icon-gift-01-line" iconTheme="pink" iconBackground="solid" /></Box>
@@ -562,7 +568,7 @@ function BrandLabelsExample() {
                 {visits.map((visit) => (
                   <ListItem key={visit.id} title={visit.store} caption={formatRelative(visit.at)}
                     leading={<DockIcon icon="icon-coffee-cup-line" theme="brown" background="subtle" size="md" />}
-                    trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{`+${visit.points} pts`}</Text>} />
+                    trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{`+${visit.points} pts`}</Text>} />
                 ))}
               </List>
             </Box>
@@ -575,7 +581,7 @@ function BrandLabelsExample() {
             <ListGroup key={group.id} id={`${sectionId}-${group.id}`} title={group.title}>
               {group.drinks.map((drink) => (
                 <ListItem key={drink.id} title={drink.name} caption={drink.note} leading={<DockIcon icon="icon-coffee-cup-line" theme={group.theme} background="subtle" size="md" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{formatMoney(drink.price, true)}</Text>} />
+                  trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{formatMoney(drink.price, true)}</Text>} />
               ))}
             </ListGroup>
           ))}
@@ -587,7 +593,7 @@ function BrandLabelsExample() {
             {rewards.map((reward) => (
               <ListItem key={reward.id} title={reward.name} caption={reward.points <= points ? "Ready to redeem" : `${(reward.points - points).toLocaleString("en-US")} points to go`}
                 leading={<DockIcon icon="icon-gift-01-line" theme="pink" background="subtle" size="md" />}
-                trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{`${reward.points.toLocaleString("en-US")} pts`}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{`${reward.points.toLocaleString("en-US")} pts`}</Text>} />
             ))}
           </List>
         </Box>
@@ -597,7 +603,7 @@ function BrandLabelsExample() {
           <List aria-label="Stores">
             {stores.map((store) => (
               <ListItem key={store.id} title={store.name} caption={store.address} leading={<DockIcon icon="icon-marker-pin-01-line" theme="teal" background="subtle" size="md" />}
-                trailing={<Text as="span" textStyle="Body/Small/Regular" tone="base" className="px-bottom-navigation-value">{store.distance}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Small/Regular" tone="base" wrap={false} tabularNumbers>{store.distance}</Text>} />
             ))}
           </List>
         </Box>
@@ -616,7 +622,7 @@ function BrandLabelsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Root destinations",
     description: "Four root screens, one tap apart: the selected destination switches to its solid glyph, each screen's large title folds as it scrolls, and tapping the current one again scrolls back to the top. Home and Projects group their rows, so they are grouped lists on the Surface-Alt screen. The Inbox dot clears once Inbox opens; until then its label says how many are new.",
@@ -635,7 +641,7 @@ const open = (id: string) => {
 const grouped = tab === "home" || tab === "projects";
 
 <PlatformPhone canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type={grouped ? "alt" : "default"} title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={
     <BottomNavigation value={tab} onValueChange={open} items={[
       { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
@@ -671,7 +677,7 @@ const [tab, setTab] = useState("expenses");
 const [creating, setCreating] = useState(false);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={
     <BottomNavigation value={tab} onValueChange={open} items={[
         { id: "expenses", label: "Expenses", icon: "icon-receipt-line", selectedIcon: "icon-receipt-solid" },
@@ -710,7 +716,7 @@ const form = useFormState({
 });
 
 <PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title={title} largeTitle={title} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
   footer={
     <BottomNavigation type="floating" value={tab} onValueChange={open} items={[
         { id: "tasks", label: "Tasks", icon: "icon-check-square-line", selectedIcon: "icon-check-square-solid" },
@@ -747,17 +753,17 @@ const form = useFormState({
 const grouped = tab === "menu";
 
 <PlatformPhone canvas={grouped ? "alt" : "default"} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type={grouped ? "alt" : "default"} title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
+  header={<TopNavigation type="alt" title={current.label} largeTitle={current.label} scrollRef={screenRef} />}
   footer={
-    <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open} items={[
-      { id: "home", label: "Home", icon: "icon-home-smile-line", selectedIcon: "icon-home-smile-solid" },
-      { id: "menu", label: "Menu", icon: "icon-coffee-cup-line", selectedIcon: "icon-coffee-cup-solid" },
-      { id: "rewards", label: "Rewards", icon: "icon-gift-01-line", selectedIcon: "icon-gift-01-solid" },
-      { id: "stores", label: "Stores", icon: "icon-marker-pin-01-line", selectedIcon: "icon-marker-pin-01-solid" },
-      { id: "account", label: "Account", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },
-    ]} />
+    <BottomNavigation theme="accent" showLabels aria-label="Phin & Co" value={tab} onValueChange={open}>
+      <BottomNavigationItem id="home" label="Home" icon="icon-home-smile-line" selectedIcon="icon-home-smile-solid" />
+      <BottomNavigationItem id="menu" label="Menu" icon="icon-coffee-cup-line" selectedIcon="icon-coffee-cup-solid" />
+      <BottomNavigationItem id="rewards" label="Rewards" icon="icon-gift-01-line" selectedIcon="icon-gift-01-solid" />
+      <BottomNavigationItem id="stores" label="Stores" icon="icon-marker-pin-01-line" selectedIcon="icon-marker-pin-01-solid" />
+      <BottomNavigationItem id="account" label="Account" icon="icon-user-circle-line" selectedIcon="icon-user-circle-solid" />
+    </BottomNavigation>
   }>
   {screens[tab]}
 </PlatformPhone>`,
   },
-];
+]);

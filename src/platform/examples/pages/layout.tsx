@@ -35,12 +35,14 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { platformMedia, type PlatformPhoto } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage, PreviewShell } from "../../PlatformFrames";
 import {
   daysFromToday, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRange, initials, invoiceStatusTheme, invoices,
   people, projectById, projectStatusTheme, projects, studio, tasks, taskStatusTheme,
   type Person, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./layout.css";
 
 export const page: PlatformPage = "layout";
@@ -53,8 +55,10 @@ const statusBadge = (status: TaskStatus) => <Badge theme={taskStatusTheme[status
 const taskStatuses: TaskStatus[] = ["To do", "In progress", "In review", "Done"];
 /** A row caption of whole values: it wraps between values, never inside a key or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
 const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
-  <Fragment key={`${index}:${value}`}>{index ? " " : null}<span className="px-layout-value">{index ? "· " : null}{value}</span></Fragment>
+  <Fragment key={`${index}:${value}`}>{index ? " " : null}{whole(`${index ? "· " : ""}${value}`)}</Fragment>
 ));
+/** A run of words that never breaks: its spaces are no-break spaces. */
+const whole = (text: string) => text.replace(/ /g, "\u00a0");
 
 /** The width of an element, kept current: the table folds its columns when the main column gets narrow. */
 function useWidth() {
@@ -94,24 +98,22 @@ function ProjectOverview() {
   const teamId = useId();
   const detailsId = useId();
   const shown = rows.filter((task) => !status || task.status === status);
-  // A phone-width column keeps the task and its status; the assignee and due date wait for a wider page.
+  // A phone-width card lists the tasks (title and status) instead of a table: two table columns inside the card's
+  // padding left the titles four lines tall. The assignee and due date wait for a wider page.
   const narrow = width > 0 && width < 560;
-  const columns: TableColumn<ProjectTask>[] = narrow ? [
-    { id: "task", header: "Task", cell: (task) => <TableText bold>{task.title}</TableText> },
-    // No fixed widths on a phone: the columns share the room instead of scrolling sideways.
-    { id: "status", header: "Status", cell: (task) => statusBadge(task.status) },
-  ] : [
+  const columns: TableColumn<ProjectTask>[] = [
     // The column that names the row is bold, as TableMedia is by default.
     { id: "task", header: "Task", cell: (task) => <TableText bold>{task.title}</TableText> },
     { id: "assignee", header: "Assignee", width: "176px", cell: (task) => <TableMedia bold={false} media={<Avatar size="xsmall" {...avatarOf(people[task.assignee])} />}>{people[task.assignee].name}</TableMedia> },
     { id: "status", header: "Status", width: "144px", cell: (task) => statusBadge(task.status) },
     { id: "due", header: "Due", width: "136px", cell: (task) => <TableText>{formatDate(task.due)}</TableText> },
   ];
+  const tasksEmpty = <EmptyState headingLevel={3} illustration={false} title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>;
   const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `LUM-${102 + list.length - lumenTasks.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
   const invite = (email: string) => setTeam((list) => [...list, { id: email, title: email, caption: "Invited just now" }]);
 
   return (
-    <Box className="px-layout-page">
+    <PreviewPage margin="block">
       <Container maxWidth="full">
         {/* Page sections xl apart: the header, then the two columns. */}
         <Stack gap="xl">
@@ -120,10 +122,13 @@ function ProjectOverview() {
             description={`${lumen.client} · ${lumen.progress}% done · Due ${formatDate(lumen.due)}`}
             actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>} />
           {/* Main two-thirds, aside one-third, lg apart; on phones the aside moves under the main column. */}
-          <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start">
-            <Stack as="section" gap="md" aria-labelledby={tasksId} ref={measure}>
+          {/* The two columns stop at xl (1440px), so the 1/3 aside does not keep growing on a wide screen (backlog batch 6b). */}
+          <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
+            {/* Every widget of the two columns is the same flat card: tops line up, titles share one style. */}
+            <Card as="section" theme="flat" aria-labelledby={tasksId}>
+              <Stack gap="md" ref={measure}>
               <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-                <Heading level={2} id={tasksId} textStyle="Heading/4">Tasks</Heading>
+                <Heading level={2} id={tasksId} textStyle="Heading/Subheading">Tasks</Heading>
                 <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status"
                   popoverItems={taskStatuses.map((option) => ({ id: option, label: option, selected: option === status }))}
                   onPopoverSelect={(item) => setStatus(item.id === status ? null : (item.id as TaskStatus))}
@@ -131,10 +136,15 @@ function ProjectOverview() {
                   {status ?? "Status"}
                 </Chip>
               </Stack>
-              {/* The section's table lies on the page: no Card around it. */}
-              <Table aria-labelledby={tasksId} rows={shown} columns={columns}
-                empty={<EmptyState headingLevel={3} illustration={false} title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>} />
-            </Stack>
+              {narrow ? (
+                shown.length ? (
+                  <List aria-labelledby={tasksId}>
+                    {shown.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} trailing={statusBadge(task.status)} />)}
+                  </List>
+                ) : tasksEmpty
+              ) : <Table aria-labelledby={tasksId} rows={shown} columns={columns} empty={tasksEmpty} />}
+              </Stack>
+            </Card>
             <Stack as="aside" gap="md" aria-label="About this project">
               {/* Rows → a ListBox (title and Invite in its header); Details is not rows → a Card. */}
               <ListBox as="section" aria-labelledby={teamId}
@@ -171,7 +181,7 @@ function ProjectOverview() {
         field={{ kind: "name", label: "Task name", placeholder: "Review the savings goals flow" }} submitLabel="Create task" confirm={() => "Task created"} onSubmit={addTask} />
       <DemoFieldDialog open={dialog === "invite"} onOpenChange={(open) => setDialog(open ? "invite" : null)} title="Invite to the team"
         field={{ kind: "email", label: "Email address", placeholder: "name@dizai.studio" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} onSubmit={invite} />
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -213,7 +223,7 @@ function AnnotatedSettings() {
     onSubmit: (values, { reset }) => { reset(values); toast({ type: "positive", title: "Settings saved" }); },
   });
   return (
-    <Box className="px-layout-page">
+    <PreviewPage margin="block">
       {/* A form reads best at a readable width: Container md (960) centres it with the page margin outside. */}
       <Container maxWidth="md">
         <Stack gap="xl">
@@ -242,7 +252,7 @@ function AnnotatedSettings() {
           </Form>
         </Stack>
       </Container>
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -323,7 +333,7 @@ function ProfileSkills() {
     toast({ title: "Skill removed", children: skill, action: { label: "Undo", onClick: () => setSkills((list) => (list.includes(skill) ? list : [...list.slice(0, index), skill, ...list.slice(index)])) } });
   };
   return (
-    <Card as="section" theme="flat" className="px-layout-profile" aria-labelledby={titleId}>
+    <Stack><Card as="section" theme="flat" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}>
       {/* Groups inside one surface lg apart; each kicker xs above its cluster. */}
       <Stack gap="lg">
         <Stack direction="row" gap="md" align="center">
@@ -352,7 +362,7 @@ function ProfileSkills() {
       </Stack>
       <DemoFieldDialog open={adding} onOpenChange={setAdding} title="Add skill" field={{ kind: "name", label: "Skill", placeholder: "Content design" }}
         submitLabel="Add skill" confirm={() => "Skill added"} onSubmit={(skill) => setSkills((list) => (list.includes(skill) ? list : [...list, skill]))} />
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -370,7 +380,7 @@ function ClientInvoices() {
   return (
     // Header at the top, footnote at the bottom; the ListBox body grows. Empty, it centres the empty state; with an
     // invoice the list starts at the top.
-    <ListBox as="section" className="px-layout-cover" aria-labelledby={titleId}
+    <Stack><ListBox as="section" className="px-layout-cover" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}
       header={<Stack gap="xs">
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">Invoices</Heading>
         <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
@@ -389,7 +399,7 @@ function ClientInvoices() {
           </EmptyState>
         )}
       </Stack>
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 
@@ -528,14 +538,12 @@ const dueThisWeek = tasks.filter((task) => task.status !== "Done" && task.due <=
 const outstanding = invoices.filter((invoice) => invoice.status === "Sent" || invoice.status === "Overdue").reduce((sum, invoice) => sum + invoice.amount, 0);
 const clientCount = new Set(projects.map((project) => project.client)).size;
 
-/** A Surface panel at the Sidebar's elevation (Shadow/Bottom/Level-1, no border): the desktop block of rows (radius 2xl,
- *  padding xl) around static rows, which pad 0, so their text sits 24px from every edge. Nothing in it is clickable, so
- *  it is a Box, not a Card. */
+/** A block of rows at the Sidebar's elevation: a ListBox with theme="shadow" (Shadow/Bottom/Level-1, no border). */
 function ElevatedList({ children, ...name }: { children: ReactNode; "aria-label"?: string; "aria-labelledby"?: string }) {
   return (
-    <Box surface="surface" radius="2xl" padding="xl" clip={false}>
+    <ListBox theme="shadow">
       <List {...name}>{children}</List>
-    </Box>
+    </ListBox>
   );
 }
 
@@ -579,11 +587,11 @@ function ElevatedPanels() {
     content = (
       <>
         <PageHeader title="Home" description={`${plural(dueThisWeek.length, "task")} due this week`} />
-        {/* MetricCard's default theme is the same elevation: Shadow/Bottom/Level-1 and no border. */}
+        {/* MetricCard theme="shadow" is the same elevation: Shadow/Bottom/Level-1 and no border. */}
         <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="flat" />
-          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="flat" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="flat" />
+          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
+          <MetricCard label="Active projects" value={String(projects.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
+          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
         </Grid>
         <Stack as="section" gap="md" aria-labelledby={dueId}>
           <Heading level={2} id={dueId} textStyle="Heading/4">Due this week</Heading>
@@ -600,13 +608,12 @@ function ElevatedPanels() {
   return (
     // A Canvas/Default page beside the default Sidebar (Surface + Shadow/Bottom/Level-1, no border): every Surface on the
     // screen takes the same elevation.
-    <div className="pe-shell" data-canvas="default">
+    <PreviewShell>
       <Sidebar logo={<Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text>} sections={shellSections} selectedId={page}
-        onItemClick={(item) => setPage(item.id as ShellPage)}
-        background="flat" />
+        onItemClick={(item) => setPage(item.id as ShellPage)} />
       {/* Page body padded xl (Margin-Comfortable); sections xl apart. */}
       <Stack ref={measure} gap="xl" padding="xl" width="fill">{content}</Stack>
-    </div>
+    </PreviewShell>
   );
 }
 
@@ -692,7 +699,7 @@ function StudioEvents() {
   return (
     // The tab root: the large title folds as the feed scrolls under the bar.
     <PlatformPhone key="events" label={studio.name} headerOverlay screenRef={screenRef}
-      header={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}>
+      header={<TopNavigation type="alt" title="Events" largeTitle="Events" scrollRef={screenRef} />}>
       {screen.anchor}
       <Stack as="ul" gap="md" padding="lg" aria-label="Upcoming events">
         {studioEvents.map((item) => {
@@ -724,10 +731,10 @@ function StudioEvents() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Main column and aside",
-    description: "A project page: the PageHeader, then a Grid of a two-thirds main column and a one-third aside, xl apart as page sections. The task table sits on the page under its heading and Status filter; the aside stacks its cards md apart, and on phones it moves under the main column.",
+    description: "A project page: the PageHeader, then a Grid of a two-thirds main column and a one-third aside, xl apart as page sections. Every widget is the same flat card — Tasks (title, Status filter, the table; a List of title + status on phones) in the main column, Team and Details stacked md apart in the aside — so their tops line up and their titles share Heading/Subheading; on phones the aside moves under the main column.",
     wide: true,
     screen: true,
     render: () => <ProjectOverview />,
@@ -738,19 +745,24 @@ export const examples: ExampleDef[] = [
       description="Lumen Bank · 38% done · Due Dec 15, 2026"
       actions={<><Button level="tertiary" onClick={share}>Share</Button><Button level="primary" onClick={newTask}>New task</Button></>} />
     {/* Layout columns: lg. One column on phones, the aside under the main column. */}
-    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start">
-      <Stack as="section" gap="md" aria-labelledby="tasks">
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 2fr) minmax(0, 1fr)" }} gap="lg" align="start" maxWidth={1440}>
+      {/* Every widget is the same flat card: tops line up, titles share one style */}
+      <Card as="section" theme="flat" aria-labelledby="tasks">
+        <Stack gap="md">
         {/* Heading and its filter: one toolbar row, xs */}
         <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-          <Heading level={2} id="tasks" textStyle="Heading/4">Tasks</Heading>
+          <Heading level={2} id="tasks" textStyle="Heading/Subheading">Tasks</Heading>
           <Chip variant="advanced" dropdown selected={status !== null} popoverLabel="Status"
             popoverItems={statuses.map((s) => ({ id: s, label: s, selected: s === status }))}
             onPopoverSelect={(item) => setStatus(item.id === status ? null : item.id)}
             onClearSelection={() => setStatus(null)}>{status ?? "Status"}</Chip>
         </Stack>
-        {/* A section's table sits on the page: no Card */}
-        <Table aria-labelledby="tasks" rows={shown} columns={columns} empty={<EmptyState … />} />
-      </Stack>
+        {/* Phone-width card: a List (title + status Badge); wider: the Table */}
+        {narrow
+          ? <List aria-labelledby="tasks">{shown.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} trailing={statusBadge(task.status)} />)}</List>
+          : <Table aria-labelledby="tasks" rows={shown} columns={columns} empty={<EmptyState … />} />}
+        </Stack>
+      </Card>
       {/* Cards in a stack: md */}
       <Stack as="aside" gap="md" aria-label="About this project">
         {/* Rows → ListBox; the Details DescriptionList → Card */}
@@ -899,7 +911,7 @@ function SettingsSection({ id, title, description, children }) {
   },
   {
     title: "Elevated panel",
-    description: "Beside the default Sidebar on a Canvas/Default page, every Surface on the screen takes the Sidebar's elevation: a Box with effectStyle=\"Shadow/Bottom/Level-1\" and no border, like the MetricCards above it. The rows are static, so the panel is the desktop block of rows (radius 2xl, padding xl) as a Box rather than a Card.",
+    description: "Beside the default Sidebar on a Canvas/Default page, every Surface on the screen takes the Sidebar's elevation: a ListBox with theme=\"shadow\" (Shadow/Bottom/Level-1, no border), like the MetricCards above it.",
     wide: true,
     screen: true,
     render: () => <ElevatedPanels />,
@@ -907,15 +919,15 @@ function SettingsSection({ id, title, description, children }) {
 <Sidebar logo={logo} sections={sections} selectedId={page} onItemClick={(item) => setPage(item.id)} />
 <Stack gap="xl" padding="xl" width="fill">
   <PageHeader title="Home" description="7 tasks due this week" />
-  {/* MetricCard's default theme is the same elevation */}
+  {/* MetricCard theme="shadow" is the same elevation */}
   <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-    <MetricCard label="Due this week" value="7" icon="icon-calendar-line" />
+    <MetricCard label="Due this week" value="7" icon="icon-calendar-line" theme="shadow" />
     …
   </Grid>
   <Stack as="section" gap="md" aria-labelledby="due">
     <Heading level={2} id="due" textStyle="Heading/4">Due this week</Heading>
-    {/* A Surface panel at the same elevation: shadow, no border; rows pad 0 at the sides, so xl puts their text 24px from every edge */}
-    <Box surface="surface" effectStyle="Shadow/Bottom/Level-1" radius="2xl" padding="xl">
+    {/* The block of rows at the same elevation: shadow, no border */}
+    <ListBox theme="shadow">
       <List aria-labelledby="due">
         {tasks.map((task) => (
           <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`}
@@ -923,7 +935,7 @@ function SettingsSection({ id, title, description, children }) {
             trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
         ))}
       </List>
-    </Box>
+    </ListBox>
   </Stack>
 </Stack>`,
   },
@@ -984,7 +996,7 @@ const rsvp = (event, next) => {
 
 // The Events feed: each photo is a frame its layers pin to.
 <PlatformPhone key="events" headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Events" largeTitle="Events" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Events" largeTitle="Events" scrollRef={screenRef} />}>
   <Stack as="ul" gap="md" padding="lg" aria-label="Upcoming events">
     {events.map((event) => (
       // The frame owns the radius and clips the photo to it
@@ -1042,4 +1054,4 @@ const rsvp = (event, next) => {
   </Box>
 </PlatformPhone>`,
   },
-];
+]);

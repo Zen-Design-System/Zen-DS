@@ -12,7 +12,9 @@ import { fileURLToPath } from "node:url";
  *   - Shadows are listed top-most first in CSS, i.e. the reverse of Figma's effect array.
  *   - Shadow colours use their bound variable: var(--zen-<variable>, <resolved fallback>).
  *   - BACKGROUND_BLUR radius r → backdrop-filter: blur(r / 2); LAYER_BLUR r → filter: blur(r / 2).
- *   - GLASS has no CSS equivalent in Figma codegen; parameters are kept in the manifest only.
+ *   - GLASS has no CSS equivalent in Figma codegen: its parameters go to the manifest and to
+ *     src/styles/generated/glass-styles.ts, which the Liquid Glass renderer
+ *     (src/components/_shared/liquid-glass.ts) reads for the refraction, dispersion and frost it draws.
  *   - Paint layers are listed top-most first; bound colours use their variable.
  *   - Figma applies shadow `spread` only on rectangles/ellipses or on frames, components and instances with a
  *     visible fill AND clipsContent (Plugin API DropShadowEffect.spread). On any other node the spread is ignored,
@@ -25,6 +27,7 @@ const exportPath = path.join(root, "styles/source/figma/styles.json");
 const fullPath = path.join(root, "styles/source/figma/figma-styles.full.json");
 const manifestPath = path.join(root, "src/styles/generated/style-manifest.json");
 const cssPath = path.join(root, "src/styles/style-effects.css");
+const glassPath = path.join(root, "src/styles/generated/glass-styles.ts");
 const tokensCssPath = path.join(root, "src/styles/tokens.css");
 
 const exported = JSON.parse(fs.readFileSync(exportPath, "utf8")).styles;
@@ -179,7 +182,7 @@ const css = [
   "}",
   "",
   ...effectStyles.flatMap((effect) => [
-    ...(effect.glass.length ? [`/* ${effect.name}: Figma GLASS effect has no CSS equivalent; see style-manifest.json. */`] : []),
+    ...(effect.glass.length ? [`/* ${effect.name}: the GLASS effect is drawn by useLiquidGlass (glass-styles.ts); CSS keeps its shadows. */`] : []),
     `.zen-effect-${effect.token} {`,
     `  box-shadow: var(${effect.cssVariable});`,
     ...(effect.backdropFilter ? [`  backdrop-filter: var(--zen-style-${effect.token}-backdrop-filter);`] : []),
@@ -204,6 +207,29 @@ const notInExport = effectStyles.filter((style) => !exportedNames.has(style.name
 fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 fs.writeFileSync(cssPath, `${css}\n`);
+
+// The GLASS parameters, one entry per effect style that has one (Figma: frost = blur radius, depth in px, light angle in
+// degrees). Rounded to 3 decimals: Figma stores them as float32.
+const round = (value) => Math.round(value * 1000) / 1000;
+const glassEntries = effectStyles.filter((effect) => effect.glass.length).map((effect) => {
+  const [g] = effect.glass;
+  return `  ${JSON.stringify(effect.token)}: { frost: ${round(g.radius)}, refraction: ${round(g.refraction)}, depth: ${round(g.depth)}, dispersion: ${round(g.dispersion)}, lightAngle: ${round(g.lightAngle)}, lightIntensity: ${round(g.lightIntensity)}, splay: ${round(g.splay)} },`;
+});
+fs.writeFileSync(glassPath, [
+  "/* Generated from styles/source/figma/figma-styles.full.json by scripts/build-style-manifest.mjs. Do not edit directly. */",
+  "",
+  "/** A Figma GLASS effect: frost (background blur radius), refraction (0–1), depth (px the bend reaches in from the edge),",
+  " *  dispersion (0–1, colour fringes), light angle (degrees) and intensity, splay. */",
+  "export type GlassParams = { frost: number; refraction: number; depth: number; dispersion: number; lightAngle: number; lightIntensity: number; splay: number };",
+  "",
+  "/** Every effect style with a GLASS effect, by its token (zen-effect-<token>). */",
+  "export const glassStyles = {",
+  ...glassEntries,
+  "} as const satisfies Record<string, GlassParams>;",
+  "",
+  "export type GlassStyleName = keyof typeof glassStyles;",
+  "",
+].join("\n"));
 console.log(
   `Generated ${paintStyles.length} color, ${full.text.length} text, ${effectStyles.length} effect and ${full.grid.length} grid styles.` +
     (notInExport.length ? ` Missing from the plugin export (styles.json): ${notInExport.join(", ")}.` : ""),

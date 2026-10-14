@@ -10,54 +10,51 @@ import { studioStore } from "../store";
 const componentIds = new Set<PlatformPage>(componentNavigation.map((item) => item.id));
 export const isComponentPage = (page: PlatformPage) => componentIds.has(page);
 
-export function readLocation(): { page: PlatformPage; collection: string | null; localPage: string | null } {
+export function readLocation(): { page: PlatformPage; collection: string | null; localPage: string | null; space: "document" | "studio" } {
   const params = new URLSearchParams(window.location.search);
   const requested = params.get("page");
   // A builder page kept in this browser (Studio builder GĐ2): ?page=local:<id>. The docs page stays as it was.
   const local = requested ? /^local:([a-z0-9][a-z0-9-]{0,63})$/.exec(requested)?.[1] ?? null : null;
-  if (local) return { page: studioStore.getState().page, collection: studioStore.getState().collection, localPage: local };
+  if (local) return { page: studioStore.getState().page, collection: studioStore.getState().collection, localPage: local, space: "studio" };
   const page = requested && requested in pageLabels ? (requested as PlatformPage) : "overviews";
   const slug = params.get("collection");
   const collection = page === "design-tokens" && slug && collections.some((item) => item.slug === slug) ? slug : null;
-  return { page, collection, localPage: null };
+  // ?space=studio: the Studio space with no page open (its folders).
+  return { page, collection, localPage: null, space: params.get("space") === "studio" ? "studio" : "document" };
 }
 
 /** Opens a page (a history entry is pushed by StudioApp). The selection and Present belong to the page they were on. */
 export function navigate(page: PlatformPage, collection: string | null = null) {
   const state = studioStore.getState();
   const nextCollection = page === "design-tokens" ? collection : null;
-  if (state.page === page && state.collection === nextCollection && !state.localPage) { if (state.drawer === "left") studioStore.setState({ drawer: null }); return; }
-  studioStore.setState({ page, collection: nextCollection, localPage: null, selection: null, presenting: null, drawer: state.drawer === "left" ? null : state.drawer });
+  if (state.page === page && state.collection === nextCollection && !state.localPage && state.space === "document") { if (state.drawer === "left") studioStore.setState({ drawer: null }); return; }
+  studioStore.setState({ page, collection: nextCollection, localPage: null, space: "document", selection: null, presenting: null, drawer: state.drawer === "left" ? null : state.drawer });
+}
+
+/** The last builder page open in the Studio space: switching back to Studio reopens it. */
+let lastLocalPage: string | null = null;
+
+/** The toolbar's Document | Studio switch: Document shows the docs page you were on, Studio the page you made last
+ *  opened (or its folders when there is none). */
+export function setSpace(space: "document" | "studio", reopen: (id: string) => boolean = () => true) {
+  const state = studioStore.getState();
+  if (state.space === space) return;
+  if (state.localPage) lastLocalPage = state.localPage;
+  const local = space === "studio" && lastLocalPage && reopen(lastLocalPage) ? lastLocalPage : null;
+  studioStore.setState({ space, localPage: local, selection: null, presenting: null });
 }
 
 /** Opens a builder page kept in this browser (?page=local:<id>). */
 export function openLocalPage(id: string) {
   const state = studioStore.getState();
   if (state.localPage === id) { if (state.drawer === "left") studioStore.setState({ drawer: null }); return; }
-  studioStore.setState({ localPage: id, selection: null, presenting: null, drawer: state.drawer === "left" ? null : state.drawer });
+  studioStore.setState({ localPage: id, space: "studio", selection: null, presenting: null, drawer: state.drawer === "left" ? null : state.drawer });
 }
 
 export const collectionName = (slug: string | null) => (slug ? collections.find((item) => item.slug === slug)?.name ?? slug : null);
 
 /** "Button", "Design Tokens", "Global Colors": the document title and the canvas name. */
 export const pageTitle = (page: PlatformPage, collection: string | null) => collectionName(collection) ?? pageLabels[page];
-
-export type StudioCrumb = { id: string; label: string; page?: PlatformPage; section?: string };
-
-/** Group / page, from the Pages panel sections (the classic getBreadcrumbs with the group named). */
-export function breadcrumbsFor(page: PlatformPage, collection: string | null, local?: { id: string; title: string } | null): StudioCrumb[] {
-  // A builder page kept in this browser (Studio builder GĐ2).
-  if (local) return [{ id: "mine", label: "My pages" }, { id: `local:${local.id}`, label: local.title }];
-  if (page === "overviews" || page === "installation") return [{ id: "get-started", label: "Get started", section: "get-started" }, { id: page, label: pageLabels[page] }];
-  if (page === "design-tokens") {
-    const name = collectionName(collection);
-    return name
-      ? [{ id: "foundation", label: "Foundation", section: "foundation" }, { id: "design-tokens", label: "Design Tokens", page: "design-tokens" }, { id: collection!, label: name }]
-      : [{ id: "foundation", label: "Foundation", section: "foundation" }, { id: page, label: pageLabels[page] }];
-  }
-  if (page === "typography" || page === "iconography") return [{ id: "foundation", label: "Foundation", section: "foundation" }, { id: page, label: pageLabels[page] }];
-  return [{ id: "components", label: "Components", section: "components" }, { id: page, label: pageLabels[page] }];
-}
 
 export type PageNavItem = { id: string; label: string; page: PlatformPage; collection?: string; icon: IconName; children?: PageNavItem[] };
 export type PageNavSection = { id: string; label: string; items: PageNavItem[] };

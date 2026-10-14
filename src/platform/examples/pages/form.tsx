@@ -26,9 +26,10 @@ import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import { TODAY, daysFromToday, formatDay, formatMoney, formatTime, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
-import "./form.css";
+import { keepOnHotUpdate } from "../../hotData";
 
 export const page: PlatformPage = "form";
 
@@ -132,7 +133,7 @@ function NewClientExample() {
   return (
     // The screen card stretches its direct child: the Box paints the app's Canvas (the page layer) and holds the
     // Container that keeps the form at a readable width.
-    <Box ref={rootRef} className="px-form-page"><Container maxWidth={screen === "new" ? "md" : "full"}>
+    <PreviewPage ref={rootRef} fill><Container maxWidth={screen === "new" ? "md" : "full"}>
       {screen === "list" ? (
         <Stack paddingY="xl" gap="xl">
           <PageHeader title="Clients" description={`${plural(clients.length, "company", "companies")} the studio invoices.`}
@@ -176,7 +177,7 @@ function NewClientExample() {
         description="The details you entered are lost."
         primaryAction={{ label: "Discard client", level: "danger", onClick: discard }}
         secondaryAction={{ label: "Keep editing", autoFocus: true }} />
-    </Container></Box>
+    </Container></PreviewPage>
   );
 }
 
@@ -218,7 +219,7 @@ function WorkspaceAddressExample() {
   };
   const preview = form.values.slug.trim().toLowerCase() || address;
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId} className="px-form-card">
+    <Stack><Card as="section" theme="flat" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center">
       <Stack gap="md">
         <CardHeader id={titleId} title="Workspace address">Everyone at Đìzai Studio signs in here. Old links keep working for 30 days.</CardHeader>
         <Form ref={formRef} form={form} gap="md">
@@ -231,7 +232,7 @@ function WorkspaceAddressExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -341,15 +342,15 @@ function DraftInvoiceExample() {
 
   if (status === "Deleted") {
     return (
-      <Card ref={cardRef} as="section" theme="flat" aria-label="Draft invoices" className="px-form-card">
+      <Stack><Card ref={cardRef} as="section" theme="flat" aria-label="Draft invoices" width="fill" maxWidth={720} alignSelf="center">
         <EmptyState illustration={false} headingLevel={4} title="No draft invoices" primaryAction={{ label: "New draft", onClick: restart }}>
           Start a draft from a project milestone.
         </EmptyState>
-      </Card>
+      </Card></Stack>
     );
   }
   return (
-    <Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId} className="px-form-card" surface="default">
+    <Stack><Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center" surface="default">
       <Stack gap="md">
         <CardHeader id={titleId} title="INV-2026-0144" badge={{ label: status, theme: sent ? "blue" : "neutral" }}>
           {sent ? `Sent to ${billTo} at ${formatTime(TODAY)}` : "Phin & Co · Loyalty app · Milestone 3"}
@@ -388,7 +389,7 @@ function DraftInvoiceExample() {
         description={`INV-2026-0144 for Phin & Co (${formatMoney(amount, true)}) is deleted for everyone. This can't be undone.`}
         primaryAction={{ label: "Delete draft", level: "danger", onClick: remove }}
         secondaryAction={{ label: "Cancel" }} />
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -448,7 +449,7 @@ function PhonePickupExample() {
   if (!creating) {
     return (
       <PlatformPhone key="root" label="Shipments" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Shipments" largeTitle="Shipments" scrollRef={screenRef}
           trailing={[{ icon: "icon-plus-line", label: "New pickup", onClick: () => screen.go('.zen-top-nav__action[aria-label="Close"]', () => setCreating(true)) }]} />}>
         {screen.anchor}
         {/* The shipments only show their status (Interactive=No rows, no side padding of their own): the page margin (lg)
@@ -467,7 +468,7 @@ function PhonePickupExample() {
   }
   return (
     <PlatformPhone key="new" label="New pickup" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="New pickup" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
         leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
       // The footer sits outside the form, so its submit names the form by id. The summary follows the parcel count.
       footer={<ActionBar position="static"
@@ -482,8 +483,10 @@ function PhonePickupExample() {
           <SelectField label="Deliver to" helpText="Your last pickup went here" options={stores.map((store) => ({ value: store, label: store }))} {...form.selectField("to")} />
           <DateField label="Pickup day" today={TODAY} minDate={startOfToday} {...form.dateField("day")} />
           <FormFieldset kind="radio" legend="Pickup time" error={form.fieldError("window")}>
-            <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
-            <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+            <Stack gap="sm" direction="row">
+              <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
+              <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+            </Stack>
           </FormFieldset>
           <NumberField label="Parcels" min={1} max={20} helpText="Up to 25 kg each" align="center" {...form.numberField("parcels")} />
           <TextAreaField label="Note for the driver" labelOptional rows={3} placeholder="Ring the bell at the side gate" {...form.field("note")} />
@@ -498,7 +501,7 @@ function PhonePickupExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Add a client",
     description: "A create page: useFormState binds every field in one spread and checks a field when you leave it. Add client (or Enter) checks them all, moves focus to the first problem and announces how many need attention; Cancel asks before it drops what you typed.",
@@ -598,7 +601,7 @@ export const examples: ExampleDef[] = [
 const formId = useId();
 
 <PlatformPhone key="new" headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="New pickup" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="New pickup" scrollRef={screenRef}
     leading={{ icon: "icon-x-medium-line", label: "Close", onClick: close }} />}
   footer={<ActionBar position="static"
     summary={<Text as="span" role="status" textStyle="Body/Base/Medium">{\`\${plural(parcels, "parcel")} · \${formatMoney(fee, true)}\`}</Text>}
@@ -608,8 +611,10 @@ const formId = useId();
       <SelectField label="Deliver to" options={stores} {...form.selectField("to")} />
       <DateField label="Pickup day" today={TODAY} minDate={TODAY} {...form.dateField("day")} />
       <FormFieldset kind="radio" legend="Pickup time" error={form.fieldError("window")}>
-        <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
-        <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+        <Stack gap="sm" direction="row">
+          <RadioButton label="Morning" caption="8:00 am – 12:00 pm" {...form.radioField("window", "morning")} />
+          <RadioButton label="Afternoon" caption="1:00 pm – 5:00 pm" {...form.radioField("window", "afternoon")} />
+        </Stack>
       </FormFieldset>
       <NumberField label="Parcels" min={1} max={20} {...form.numberField("parcels")} />
     </Stack>
@@ -640,4 +645,4 @@ const formId = useId();
   description="INV-2026-0144 for Phin & Co ($24,500.00) is deleted for everyone. This can't be undone."
   primaryAction={{ label: "Delete draft", level: "danger", onClick: remove }} secondaryAction={{ label: "Cancel" }} />`,
   },
-];
+]);

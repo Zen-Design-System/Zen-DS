@@ -8,11 +8,13 @@ import { onSourceUpdate, rectOf, type FiberHit } from "../select/picker";
 import { ChromePortalContext, ChromeScope } from "../shell/ChromeScope";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
-import { canStructurallyEdit, inPlayground, slotPickerRequests, useSlotRunning, useSlotServer } from "./actions";
+import { canStructurallyEdit, editDataItem, inPlayground, slotPickerRequests, useSlotRunning, useSlotServer } from "./actions";
 import { slotContentOf } from "./content";
+import { itemParts, sourceItems } from "./dataItems";
+import { dataSlotOf, dataSlotsOf } from "./dataSlots";
 import { containerOf, hostRootOf, isConcealed, selectedHit } from "./dom";
 import { InsertPicker } from "./InsertPicker";
-import { activeSlotsOf, isLayoutPrimitive, slotContentElements, slotFlowOf, slotGhostAnchor, slotOf, type ContentSlot, type HostProps } from "./registry";
+import { activeSlotsOf, hostPropsOf, isLayoutPrimitive, slotsOf, slotContentElements, slotFlowOf, slotGhostAnchor, slotOf, type ContentSlot, type HostProps } from "./registry";
 import "./slots.css";
 
 /*
@@ -28,13 +30,18 @@ import "./slots.css";
  * rects again. Overlays rendered in the page portal (a modal Dialog, ModalForm, SidePanel) sit above
  * the canvas: their slots are edited from the inspector's Slots section. The chips are pointer-only (the inspector's
  * "Add to {Slot}" is the keyboard path), like the resize handles.
+ * A data slot (dataSlots.ts: TopNavigation's Top-Trailing, whose items the code writes as objects) is outlined around the
+ * items it draws, with its name, and its + chip adds an item (editDataItem "add", as the Slots section's +); an empty
+ * list slot shows a ghost at the component's end edge. A slot at its most items (`max`) offers no chip.
  */
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 type Box = { x: number; y: number; w: number; h: number };
 /** One slot of the selected instance: its outline (none for a layout primitive: the selection outline is it) and chip point. */
-/** `tagBelow`: a ghost just below its anchor names itself under the strip, not over the anchor (TopNavigation's title). */
-type SlotMark = Box & { prop: string; tag: string; ghost: boolean; outline: boolean; chip: { x: number; y: number } | null; tagBelow?: boolean };
+/** `tagBelow`: a ghost just below its anchor names itself under the strip, not over the anchor (TopNavigation's title).
+ *  `tagEnd`: a narrow ghost at the end of a row ends its tag at its right edge, over the row, not past the component. */
+/** `data`: a data slot's mark (its chip adds an item instead of opening the insert picker); `count`: items it holds. */
+type SlotMark = Box & { prop: string; tag: string; ghost: boolean; outline: boolean; chip: { x: number; y: number } | null; tagBelow?: boolean; tagEnd?: boolean; data?: boolean; count?: number };
 type Marks = { src: string; slots: SlotMark[]; playground: Array<Box & { tag: string }> };
 
 const EMPTY: Marks = { src: "", slots: [], playground: [] };
@@ -46,7 +53,7 @@ const CHIP = 24;
 const TAG_ROOM = { w: 72, h: 24 };
 
 const round = (value: number) => Math.round(value * 2) / 2;
-const keyOf = (marks: Marks) => JSON.stringify([marks.src, marks.slots.map((m) => [m.prop, m.tag, m.ghost, m.outline, Boolean(m.tagBelow), round(m.x), round(m.y), round(m.w), round(m.h), m.chip ? [round(m.chip.x), round(m.chip.y)] : null]), marks.playground.map((m) => [m.tag, round(m.x), round(m.y), round(m.w), round(m.h)])]);
+const keyOf = (marks: Marks) => JSON.stringify([marks.src, marks.slots.map((m) => [m.prop, m.tag, m.ghost, m.outline, Boolean(m.tagBelow), Boolean(m.tagEnd), round(m.x), round(m.y), round(m.w), round(m.h), m.chip ? [round(m.chip.x), round(m.chip.y)] : null]), marks.playground.map((m) => [m.tag, round(m.x), round(m.y), round(m.w), round(m.h)])]);
 
 /** A ghost beside `base` on the side `place` names: a strip across a column, a bar along a row. */
 function ghostAt(base: Box, place: "before" | "after" | "first-child" | "last-child", row: boolean): Box {
@@ -76,11 +83,29 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
   }
   const props = hit.props as HostProps;
   const slots = activeSlotsOf(hit.name, props);
-  const root = slots.length ? hostRoot : null;
+  const dataSlots = dataSlotsOf(hit.name);
+  const root = slots.length || dataSlots.length ? hostRoot : null;
   // Not on the canvas (closed), or in the page portal above it (a modal overlay): edited from the inspector.
   if (!root || !world.contains(root)) return EMPTY;
   const layout = isLayoutPrimitive(hit.name);
   const marks: SlotMark[] = [];
+  for (const slot of dataSlots) {
+    const parts = itemParts(hit, slot);
+    const drawn = parts.flatMap((part) => (part ? part.hosts : []));
+    const rect = drawn.length ? rectOf(drawn) : null;
+    let box: Box | null = rect ? toBox(rect) : null;
+    // An empty list slot: a ghost at the component's end edge (where TopNavigation draws its trailing actions).
+    if (!box && slot.form === "array" && !parts.length) {
+      const base = rectOf([root]);
+      box = base ? ghostAt(toBox(base), "last-child", true) : null;
+    }
+    if (!box) continue;
+    const count = parts.length;
+    const past = CHIP / 2 + 2;
+    const chip = !count ? { x: box.x + box.w / 2, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
+    const full = slot.form === "object" ? count > 0 : count >= slot.max;
+    marks.push({ ...box, prop: slot.prop, tag: count ? slot.name : `${slot.name} · Empty`, ghost: !count, outline: true, chip: full ? null : chip, data: true, count });
+  }
   for (const slot of slots) {
     const row = slotFlowOf(slot, props) === "row";
     const container = containerOf(root, slot);
@@ -88,10 +113,16 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
     let box: Box | null = null;
     let ghost = false;
     let tagBelow = false;
+    let tagEnd = false;
     let empty = true;
+    let partsOnly = false;
     if (container) {
       const content = slotContentElements(container, slot);
-      empty = content.length === 0;
+      // A slot that shows the component's own parts while it holds nothing (a ListItem's Contents: its title and
+      // caption) is not empty on the canvas and gets no "+" there: in the middle of the text it caught the next click,
+      // past its edge it lands on the next row (2026-10-13). The Inspector's Slots and the canvas menu still add to it.
+      partsOnly = content.length === 0 && Boolean(slot.parts && container.querySelector(slot.parts));
+      empty = content.length === 0 && !partsOnly;
       // A container shared with the component's own parts (ChartCard's header) outlines its slot content only.
       const rect = slot.parts && content.length ? rectOf(content) : rectOf([container]);
       box = rect ? toBox(rect) : null;
@@ -104,9 +135,11 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
       ghost = true;
       const anchor = slotGhostAnchor(root, slot);
       const base = rectOf([anchor?.element ?? root]);
-      const ghostRow = slot.ghostFlow ? slot.ghostFlow === "row" : row;
+      const ghostFlow = anchor?.flow ?? slot.ghostFlow;
+      const ghostRow = ghostFlow ? ghostFlow === "row" : row;
       box = base ? ghostAt(toBox(base), anchor?.place ?? "last-child", ghostRow) : null;
       tagBelow = anchor?.place === "after" && !ghostRow;
+      tagEnd = ghostRow && (anchor?.place ?? "last-child") !== "before" && anchor?.place !== "first-child";
     }
     if (!box) continue;
     // Empty: the chip sits in the slot (Figma's "+" in an empty slot). Filled: just past its end edge, clear of the content.
@@ -115,9 +148,23 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
       : row ? { x: box.x + box.w + past, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
     // A full atom slot (ListItem leading takes one layer) offers no chip on the canvas: the inspector's add still warns.
     const full = slot.max !== undefined && container !== null && slotContentElements(container, slot).length >= slot.max;
-    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full ? null : chip, ...(tagBelow ? { tagBelow } : {}) });
+    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full || partsOnly ? null : chip, ...(tagBelow ? { tagBelow } : {}), ...(tagEnd ? { tagEnd } : {}) });
   }
   return { src: selection.src, slots: marks, playground: [] };
+}
+
+/**
+ * A chip on the selection's size pill (ResizeLayer centres it under the layer: a small Box's column slot puts its chip
+ * there too) moves just below the pill, so the size stays readable.
+ */
+function clearOfPill(marks: Marks, viewport: Element | null, origin: DOMRect): Marks {
+  const rect = viewport?.querySelector(".studio-resize__pill")?.getBoundingClientRect();
+  if (!rect?.width) return marks;
+  const pill = { x: rect.left - origin.left, y: rect.top - origin.top, w: rect.width, h: rect.height };
+  const half = CHIP / 2;
+  const onPill = (chip: { x: number; y: number }) => chip.x + half > pill.x && chip.x - half < pill.x + pill.w && chip.y + half > pill.y && chip.y - half < pill.y + pill.h;
+  if (!marks.slots.some((mark) => mark.chip && onPill(mark.chip))) return marks;
+  return { ...marks, slots: marks.slots.map((mark) => (mark.chip && onPill(mark.chip) ? { ...mark, chip: { x: mark.chip.x, y: pill.y + pill.h + 4 + half } } : mark)) };
 }
 
 /** The selected element's source while it is a slot host in example content (the picker builds its palette from it). */
@@ -163,12 +210,16 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
   const writable = canEdit() && role === "admin" && server.writable;
   const check = node ? canStructurallyEdit(node) : null;
   const editable = writable && Boolean(check?.ok);
-  const hasSlots = Boolean(node && (activeSlotsOf(node.name).length || inPlayground(node)));
+  // Any slot, active or not: whether one is active depends on the instance's props (Metric's Custom-Slot only on
+  // Title-Highlight), which the source element read here gives; an empty props list would leave such slots out.
+  const hasSlots = Boolean(node && (slotsOf(node.name).length || dataSlotsOf(node.name).length || inPlayground(node)));
   const element = useHostSource(node, shown && editable && hasSlots);
 
   // Read through a ref: a frame requested before the world mounted must still measure with it (like SelectionLayer).
   const worldRef = useRef(world);
   worldRef.current = world;
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
   const measure = useCallback(() => {
     frameRequest.current = 0;
     const root = rootRef.current;
@@ -185,7 +236,8 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
           resolved = { key, hit, root: hit ? hostRootOf(hit) : null };
           resolvedRef.current = resolved;
         }
-        next = marksFor(current, resolved, canvas, root.getBoundingClientRect());
+        const origin = root.getBoundingClientRect();
+        next = clearOfPill(marksFor(current, resolved, canvas, origin), viewportRef.current, origin);
       }
     } catch {
       // A node went away mid-measure: nothing this frame.
@@ -264,7 +316,9 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
   const insertable = useMemo(() => {
     const out = new Set<string>();
     if (!element || !node || element.name !== node.name) return out;
-    for (const slot of activeSlotsOf(element.name)) if (!slotContentOf(element, slot).insertBlock) out.add(slot.prop);
+    for (const slot of activeSlotsOf(element.name, hostPropsOf(element.attributes))) if (!slotContentOf(element, slot).insertBlock) out.add(slot.prop);
+    // A data slot whose items the source writes as a literal (or not at all): the add writes one more.
+    for (const slot of dataSlotsOf(element.name)) if (sourceItems(element, slot).state !== "computed") out.add(slot.prop);
     return out;
   }, [element, node]);
 
@@ -283,7 +337,7 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
       <div ref={rootRef} className="studio-slots__frame">
         {slots.filter((mark) => mark.outline).map((mark) => (
           <div key={mark.prop} className="studio-slots__outline" data-ghost={mark.ghost || undefined} style={style(mark)} aria-hidden="true">
-            <span className={`studio-slots__tag ${typographyStyles["Caption/Medium"]}`} data-place={mark.tagBelow ? "below" : mark.w < TAG_ROOM.w || mark.h < TAG_ROOM.h ? "above" : undefined}>{mark.tag}</span>
+            <span className={`studio-slots__tag ${typographyStyles["Caption/Medium"]}`} data-place={mark.tagBelow ? "below" : mark.w < TAG_ROOM.w || mark.h < TAG_ROOM.h ? "above" : undefined} data-align={mark.tagEnd ? "end" : undefined}>{mark.tag}</span>
           </div>
         ))}
         {playground.map((mark, index) => (
@@ -292,6 +346,16 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
           </div>
         ))}
         {chips.map((mark) => {
+          const data = mark.data ? dataSlotOf(node.name, mark.prop) : null;
+          if (data) {
+            return (
+              <div key={`c${mark.prop}`} className="studio-slots__chip" style={{ transform: `translate(${mark.chip.x}px, ${mark.chip.y}px)` }} onPointerDown={(event) => event.stopPropagation()}>
+                {/* zen-allow-filter-button: the data slot's "Add item" chip on the canvas (it adds an item), not a filter or sort control */}
+                {/* zen-allow-accent: the add-to-slot chip is promoted so it stands out on any canvas content (user, 2026-10-04) */}
+                <IconButton level="accent" size="xs" icon="icon-plus-line" aria-label={`Add ${data.itemName} to ${data.name}`} tabIndex={-1} onClick={() => { void editDataItem(node, data, "add"); }} />
+              </div>
+            );
+          }
           const slot = slotOf(node.name, mark.prop);
           return (
             <div key={`c${mark.prop}`} className="studio-slots__chip" style={{ transform: `translate(${mark.chip.x}px, ${mark.chip.y}px)` }} onPointerDown={(event) => event.stopPropagation()}>

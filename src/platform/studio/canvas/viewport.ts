@@ -12,8 +12,12 @@ export const MIN_ZOOM = 0.02;
 export const MAX_ZOOM = 4;
 /** Zoom in / out walk this ladder (Figma-like steps). */
 export const zoomSteps = [0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4] as const;
-/** The first visit of a page opens at least this zoom (a wide playground runs off to the right, one pan away). */
-export const FIRST_VISIT_MIN_ZOOM = 0.75;
+/**
+ * The first visit of a page fits its first frame's width in the visible canvas, down to this zoom (below it text is too
+ * small to read; a wider frame then runs off to the right, one pan away). At 1280 and 1024 the Playground fits at ~62%
+ * (docs/research/studio-ux-audit-2026-10-04.md §03: at the old 75% floor its right edge sat under the Inspector).
+ */
+export const FIRST_VISIT_MIN_ZOOM = 0.5;
 /** Dot grid spacing at 100% (world px); it doubles while it would be denser than MIN_GRID screen px. */
 const GRID = 24;
 const MIN_GRID = 12;
@@ -213,6 +217,16 @@ export const canvasApi = {
     const margin = options?.margin ?? 48;
     const zoom = clampZoom(Math.min(options?.maxZoom ?? 1, (box.width - margin * 2) / Math.max(rect.width, 1)));
     setViewportNow({ zoom, x: box.width / 2 - (rect.x + rect.width / 2) * zoom, y: margin - rect.y * zoom }, { animate: true });
+  },
+  /** Read a frame at an exact zoom (100%): its top under `margin`, centred across when it fits the viewport, else its
+   * left edge at `margin` (the rest pans). Unlike zoomToWidth it never shrinks the frame to fit. */
+  zoomToRead: (screenRect: DOMRect, options?: { zoom?: number; margin?: number }): void => {
+    const rect = toWorldRect(screenRect);
+    const box = viewportBox();
+    const margin = options?.margin ?? 24;
+    const zoom = clampZoom(options?.zoom ?? 1);
+    const fits = rect.width * zoom + margin * 2 <= box.width;
+    setViewportNow({ zoom, x: fits ? box.width / 2 - (rect.x + rect.width / 2) * zoom : margin - rect.x * zoom, y: margin - rect.y * zoom }, { animate: true });
   },
   /** Zoom to fit (Shift+1, Figma's): every frame on the board, whole and centred, at whatever zoom that takes (never
    * above 100%). Reading starts from a frame instead (⇧2 on it, or its label). */

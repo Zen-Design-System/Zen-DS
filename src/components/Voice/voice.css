@@ -1,0 +1,110 @@
+/* Figma ❖ Voice (15081:1294): Voice Recorder (15084:79711) and AI Voice Conversation (15084:79715). */
+
+/* The frame: Spacing/Padding/XLarge around, Spacing/Gap/Medium between rows; transparent (it sits on a Card or Surface). */
+.zen-voice { display: grid; min-width: 0; box-sizing: border-box; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-spacing-padding-xlarge, 24px); color: var(--zen-color-content-neutral-strongest); }
+.zen-voice__header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The state badge keeps its word; the title is what truncates. */
+.zen-voice__header > .zen-badge { flex: 0 0 auto; }
+.zen-voice__title { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
+.zen-voice__guidance { margin: 0; color: var(--zen-color-content-neutral-base); text-align: center; }
+.zen-voice__note { margin: 0; color: var(--zen-color-content-neutral-light); text-align: center; }
+
+/* Voice actions: Large Tertiary · XLarge Primary · Large Tertiary, centred on the row. Figma's 80px columns sit
+   Spacing/Gap/Medium apart; here the columns take half of that gap on each side (80 + Medium − XSmall) and the row keeps
+   XSmall, so the buttons' centres land where Figma's do, and on a narrow screen (Comfortable at 390) the columns give
+   that margin back before anything overflows. */
+.zen-voice__actions { display: flex; min-width: 0; align-items: flex-start; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* zen-allow-slot-size: Figma's Voice action column is 80 wide, so the three names sit on one grid however long they are. */
+.zen-voice-action { display: flex; flex: 0 1 calc(80px + var(--zen-spacing-gap-medium, 16px) - var(--zen-spacing-gap-xsmall, 8px)); min-width: min-content; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-voice-action__label { max-width: 100%; color: var(--zen-color-content-neutral-base); text-align: center; }
+.zen-voice-action[data-disabled] .zen-voice-action__label { color: var(--zen-color-content-neutral-light); }
+
+/* The footer: a Border/Neutral/Pale rule, then the input and its format (Caption/Regular, Neutral/Light). */
+.zen-voice__details { display: flex; min-width: 0; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-medium, 16px); border-top: 1px solid var(--zen-color-border-neutral-pale-default); color: var(--zen-color-content-neutral-light); }
+
+/* A waveform: 3px bars, Spacing/Gap/3XSmall apart, Corner-Radius/Rounded, centred on both axes. */
+.zen-voice-wave { display: flex; min-width: 0; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow: hidden; }
+/* zen-allow-slot-size: a waveform bar is a drawn glyph, 3px wide as in Figma, and at least a dot when silent. */
+.zen-voice-wave__bar { width: 3px; min-height: 3px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; }
+/* A moving waveform's track: the take twice in a row, as tall as the box, the bars as far apart as in a still one. */
+.zen-voice-wave__track { display: flex; height: 100%; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+
+/* ── Voice Recorder ── */
+/* The audio monitor: Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium, rows Spacing/Gap/XSmall apart. */
+.zen-voice-recorder__monitor { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-alt); }
+.zen-voice-recorder__time { color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; text-align: center; }
+/* zen-allow-slot-size: Figma's waveform box is 80 high; the bars are the levels' share of it. */
+.zen-voice-recorder__wave { height: 80px; color: var(--zen-color-content-neutral-strongest); }
+.zen-voice-recorder[data-state="paused"] .zen-voice-recorder__wave { color: var(--zen-color-content-neutral-light); }
+/* Ready: a flat Border/Neutral/Subtle line (nothing recorded yet): the bars are drawn as a rule, not as text. */
+.zen-voice-recorder[data-state="ready"] .zen-voice-recorder__wave .zen-voice-wave__bar { background: var(--zen-color-border-neutral-subtle-default); }
+.zen-voice-recorder__timeline { display: flex; justify-content: space-between; color: var(--zen-color-content-neutral-light); font-variant-numeric: tabular-nums; }
+
+/* ── AI Voice Conversation ── */
+.zen-ai-voice__presence { display: flex; justify-content: center; }
+/* zen-allow-slot-size: Figma's voice signal is a 96px circle (Corner-Radius/Rounded). */
+.zen-ai-voice__signal { display: inline-flex; width: 96px; height: 96px; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 999px); background: var(--zen-color-background-surface-alt); color: var(--zen-color-content-neutral-base); }
+.zen-ai-voice:not([data-state="ready"]) .zen-ai-voice__signal { background: var(--zen-color-background-accent-subtle-default); }
+/* zen-allow-slot-size: a voice level bar is a drawn glyph, 4px wide as in Figma. */
+/* zen-allow-colour-role: Figma paints the level bars (drawn glyphs, like an icon) Content/Accent/Light. */
+.zen-ai-voice__level { width: 4px; height: var(--zen-ai-voice-level, 4px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: var(--zen-color-content-accent-light); }
+.zen-ai-voice__status { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); text-align: center; }
+.zen-ai-voice__heading { margin: 0; color: var(--zen-color-content-neutral-strongest); }
+.zen-ai-voice__guidance { color: var(--zen-color-content-neutral-light); }
+/* The transcript card: Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Small, Spacing/Gap/2XSmall. */
+.zen-ai-voice__context { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-alt); }
+.zen-ai-voice__speaker { color: var(--zen-color-content-neutral-light); }
+
+/* ── Motion (reduced motion keeps Figma's still frames: the component then draws no moving track and no data-live) ──
+   Voice moves as it does in a live recorder or a voice mode: the take scrolls in at the right edge, a voice swells per
+   syllable and drops between words. Only transform, opacity, mask, clip-path and box-shadow change, never layout. */
+/* Without its animation (Studio's HTML export stops them all) the reveal rests fully open, so the take still shows. */
+@property --zen-voice-reveal { syntax: "<length>"; inherits: false; initial-value: 9999px; }
+@property --zen-voice-energy { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --zen-voice-band { syntax: "<number>"; inherits: false; initial-value: 1; }
+/* 1 only while the voice animation runs, so a stopped one (an HTML export) shows Figma's bars without a halo. */
+@property --zen-voice-moving { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Voice Recorder: one copy of the take scrolls past in frames ÷ 7 seconds (7 bars a second: Figma's 56 bars are the
+     8-second window under it), so the bars travel with the clock; the oldest fade out at the left edge. */
+  .zen-voice-wave[data-live] { justify-content: flex-start; -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--zen-spacing-padding-medium, 16px)); mask-image: linear-gradient(to right, transparent, #000 var(--zen-spacing-padding-medium, 16px)); }
+  .zen-voice-wave__track { animation: zen-voice-scroll calc(var(--zen-voice-frames, 56) * 1s / 7) linear infinite; }
+  /* A new take starts empty: each bar enters at the right edge and travels with the scroll, at the same 7 bars a second;
+     the take's first bars fade in over Spacing/Gap/XSmall instead of starting on a cut.
+     zen-allow-motion-token: the reveal keeps the scroll's speed (400 bars at 7 a second), not a UI transition's duration. */
+  .zen-voice-wave[data-fresh] { -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--zen-spacing-padding-medium, 16px)), linear-gradient(to left, #000 calc(var(--zen-voice-reveal) - var(--zen-spacing-gap-xsmall, 8px)), transparent var(--zen-voice-reveal)); mask-image: linear-gradient(to right, transparent, #000 var(--zen-spacing-padding-medium, 16px)), linear-gradient(to left, #000 calc(var(--zen-voice-reveal) - var(--zen-spacing-gap-xsmall, 8px)), transparent var(--zen-voice-reveal)); -webkit-mask-composite: source-in; mask-composite: intersect; animation: zen-voice-reveal calc(400s / 7) linear both; }
+  /* Paused, the take holds still where it stopped (and goes on from there on Resume). */
+  .zen-voice-recorder[data-state="paused"] :is(.zen-voice-wave[data-fresh], .zen-voice-wave__track) { animation-play-state: paused; }
+  /* The Recording badge's dot glows on and off, like a recorder's light. */
+  .zen-voice-recorder[data-state="recording"] .zen-voice__header .zen-badge__leading { animation: zen-voice-blink 1.6s ease-in-out infinite; }
+
+  /* AI Voice Conversation: the circle carries the voice's loudness (syllables, gaps between words: yours irregular while
+     listening, the assistant's steadier while responding); each bar adds its own drift around it, so they move together
+     like a voice, not like an equaliser. The circle's halo swells with the voice (a 0 0 0 ring, scaled by Motion/Movement). */
+  .zen-ai-voice__signal[data-live] { box-shadow: 0 0 0 calc(max(0, var(--zen-voice-energy) - .35) * var(--zen-voice-moving) * 10px * var(--zen-motion-movement, 1)) var(--zen-color-background-accent-subtle-default); animation: zen-ai-voice-listen 2.4s ease-in-out infinite; }
+  .zen-ai-voice__signal[data-live="responding"] { animation: zen-ai-voice-speak 1.8s ease-in-out infinite; }
+  /* zen-allow-slot-size: a moving bar's box is the tallest it draws inside the 96px circle; clip-path shows its level
+     (Figma's height × the voice × its drift) with round ends, so nothing re-lays out while it moves. */
+  .zen-ai-voice__signal[data-live] > .zen-ai-voice__level { height: 72px; clip-path: inset(calc((100% - clamp(4px, var(--zen-ai-voice-level, 4px) * var(--zen-voice-energy) * var(--zen-voice-band), 100%)) / 2) 0 round var(--zen-corner-radius-rounded, 999px)); animation: zen-ai-voice-band 1.3s ease-in-out infinite alternate; }
+  .zen-ai-voice__signal[data-live] > .zen-ai-voice__level:nth-child(2n) { animation: zen-ai-voice-band 1.1s ease-in-out -.4s infinite alternate; }
+  .zen-ai-voice__signal[data-live] > .zen-ai-voice__level:nth-child(3n) { animation: zen-ai-voice-band 1.7s ease-in-out -.9s infinite alternate; }
+  .zen-ai-voice__signal[data-live] > .zen-ai-voice__level:nth-child(5n) { animation: zen-ai-voice-band .9s ease-in-out -.2s infinite alternate; }
+}
+@keyframes zen-voice-scroll { to { transform: translateX(calc(var(--zen-voice-frames, 56) * -1 * (3px + var(--zen-spacing-gap-3-xsmall, 2px)))); } }
+@keyframes zen-voice-reveal { from { --zen-voice-reveal: 0px; } to { --zen-voice-reveal: calc(400 * (3px + var(--zen-spacing-gap-3-xsmall, 2px))); } }
+@keyframes zen-voice-blink { 50% { opacity: .3; } }
+/* Your voice: syllables about four a second, a gap between words, a breath at the end of the phrase. */
+@keyframes zen-ai-voice-listen {
+  0%, 100% { --zen-voice-energy: .25; --zen-voice-moving: 1; } 5% { --zen-voice-energy: .9; } 10% { --zen-voice-energy: .55; } 15% { --zen-voice-energy: 1.15; }
+  21% { --zen-voice-energy: .6; } 26% { --zen-voice-energy: 1; } 31% { --zen-voice-energy: .35; } 37% { --zen-voice-energy: .2; }
+  42% { --zen-voice-energy: .85; } 47% { --zen-voice-energy: 1.25; } 53% { --zen-voice-energy: .7; } 58% { --zen-voice-energy: 1.05; }
+  63% { --zen-voice-energy: .45; } 70% { --zen-voice-energy: .9; } 75% { --zen-voice-energy: .5; } 80% { --zen-voice-energy: .25; } 90% { --zen-voice-energy: .15; }
+}
+/* The assistant's voice: even syllables, no long gaps, one short dip between sentences. */
+@keyframes zen-ai-voice-speak {
+  0%, 100% { --zen-voice-energy: .7; --zen-voice-moving: 1; } 8% { --zen-voice-energy: 1.1; } 16% { --zen-voice-energy: .8; } 24% { --zen-voice-energy: 1.2; }
+  32% { --zen-voice-energy: .85; } 40% { --zen-voice-energy: 1.05; } 48% { --zen-voice-energy: .75; } 56% { --zen-voice-energy: 1.15; }
+  64% { --zen-voice-energy: .9; } 72% { --zen-voice-energy: 1.2; } 80% { --zen-voice-energy: .8; } 88% { --zen-voice-energy: .5; } 94% { --zen-voice-energy: .6; }
+}
+@keyframes zen-ai-voice-band { from { --zen-voice-band: .75; } to { --zen-voice-band: 1.2; } }

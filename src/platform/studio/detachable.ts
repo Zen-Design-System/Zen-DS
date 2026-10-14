@@ -9,8 +9,11 @@ export const DETACHABLE = ["Card", "ListItem", "MetricCard", "Metric", "EmptySta
 
 export type DetachableType = (typeof DETACHABLE)[number];
 
+/** The component's own name: namespace JSX (`<Zen.ListItem>`) is the same component. */
+export const localName = (name: string) => name.slice(name.lastIndexOf(".") + 1);
+
 /** Whether a component of this name can ever be detached (an instance may still be refused, e.g. a bound layout). */
-export const isDetachableType = (name: string): name is DetachableType => (DETACHABLE as readonly string[]).includes(name);
+export const isDetachableType = (name: string): name is DetachableType => (DETACHABLE as readonly string[]).includes(localName(name));
 
 /** "Card, ListItem, … Badge and Tag": the list as a sentence. */
 export const detachableList = () => `${DETACHABLE.slice(0, -1).join(", ")} and ${DETACHABLE[DETACHABLE.length - 1]}`;

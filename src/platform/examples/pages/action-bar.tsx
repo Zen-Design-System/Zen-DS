@@ -25,6 +25,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
@@ -32,6 +33,7 @@ import {
   type LeaveKind, type LeaveStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
+import { keepOnHotUpdate } from "../../hotData";
 import "./action-bar.css";
 
 export const page: PlatformPage = "action-bar";
@@ -78,7 +80,7 @@ function PhoneRewardsExample() {
   if (!reward) {
     return (
       <PlatformPhone key="root" label="Rewards" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Rewards" largeTitle="Rewards" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 12px above and below: the screen margin (lg) insets them sideways. */}
         <Stack gap="md" paddingX="lg" paddingY="sm">
@@ -112,7 +114,7 @@ function PhoneRewardsExample() {
     <PlatformPhone key={reward.id} label={reward.name} headerOverlay screenRef={screenRef}
       header={<TopNavigation title={reward.name} scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => backToList(reward.id) }}
-        type="compact"
+        type="compact-alt"
         />}
       // Vertical: one main action leads, full width on top; the alternative sits below it. The summary says what the
       // action depends on, and why it waits when it is disabled.
@@ -126,7 +128,7 @@ function PhoneRewardsExample() {
       {/* The compact bar names the reward (the screen's h1); the price is a value of the reward, so it is a row below. */}
       <Stack padding="lg" gap="lg">
         <Stack gap="md" align="center" justify="center">
-          <DockIcon icon={reward.icon} theme={reward.theme} background="subtle" size="xl" />
+          <DockIcon icon={reward.icon} theme={reward.theme} background="subtle" size="2xl" />
           <Text tone="base" align="center">{reward.about}</Text>
         </Stack>
         <DescriptionList divider items={[
@@ -183,7 +185,7 @@ function PhoneApprovalsExample() {
     const waiting = list.filter((approval) => approval.status === "Pending").length;
     return (
       <PlatformPhone key="root" label="Approvals" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Approvals" largeTitle="Approvals" scrollRef={screenRef} />}>
+        header={<TopNavigation type="alt" title="Approvals" largeTitle="Approvals" scrollRef={screenRef} />}>
         {screen.anchor}
         {/* Rows pad 12px above and below: the screen margin (lg) insets them sideways; the count sits xs above them. */}
         <Stack gap="xs" paddingX="lg" paddingY="sm">
@@ -206,7 +208,7 @@ function PhoneApprovalsExample() {
   const pending = item.status === "Pending";
   return (
     <PlatformPhone key={item.id} label="Leave request" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
         leading={{ icon: back, label: "Back", onClick: () => screen.go(`[data-approval="${item.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />}
       // Horizontal: two peer answers side by side as Large buttons, Primary at the end; the summary takes its own row.
       footer={pending ? (
@@ -219,7 +221,7 @@ function PhoneApprovalsExample() {
       <Stack padding="lg" gap="lg">
         <Stack direction="column" gap="md" align="center">
           <Avatar size="3xl" {...avatarOf(person)} />
-          <Stack gap="2xs" className="px-action-bar-grow" width="fill">
+          <Stack gap="2xs" height="fill" width="fill">
             <Heading level={2} textStyle="Heading/2" align="center" width="fill">{person.name}</Heading>
             <Text textStyle="Body/Small/Regular" tone="light" align="center">{person.role}</Text>
           </Stack>
@@ -292,9 +294,9 @@ function UnsavedChangesExample() {
   });
   const undo = () => { form.reset(); toast({ title: "Changes undone" }); refocus(); };
   return (
-    <div className="px-action-bar-frame">
+    <PreviewWindow height={{ min: 520, max: 640, offset: 200 }}>
       {/* The page scrolls; the bar is the form's last child, so it sticks to the bottom and its Save submits the form. */}
-      <Form ref={formRef} form={form} gap="none" className="px-action-bar-frame__scroll" aria-label="Project settings">
+      <Box scroll="y" height="fill"><Form ref={formRef} form={form} gap="none" aria-label="Project settings">
         {/* The form keeps a readable width (as the create form on the Form page); the bar spans the window. The Box is
             the flex child that stretches, so the Container's auto margins centre it at up to 960px instead of shrinking
             it to its fields. */}
@@ -331,8 +333,8 @@ function UnsavedChangesExample() {
           secondaryAction={{ label: "Undo changes", onClick: undo, disabled: !changes || form.isSubmitting }}
           primaryAction={{ label: form.isSubmitting ? "Saving…" : "Save changes", type: "submit", disabled: !changes || form.isSubmitting }}
           position="fixed" />
-      </Form>
-    </div>
+      </Form></Box>
+    </PreviewWindow>
   );
 }
 
@@ -407,9 +409,9 @@ function PhoneOrderExample() {
                     leading={<DockIcon icon={line.icon} theme={line.theme} background="subtle" />}
                     trailing={(
                       <Stack direction="row" gap="2xs" align="center" role="group" aria-label={`${line.name} quantity`}>
-                        <IconButton level="tertiary" size="xs" icon="icon-minus-line" aria-label={`Remove one ${line.name}`} onClick={() => change(line, -1)} />
-                        <Text as="span" textStyle="Body/Base/Medium" className="px-action-bar-qty" width="hug">{line.qty}</Text>
-                        <IconButton level="tertiary" size="xs" icon="icon-plus-line" aria-label={`Add one ${line.name}`} onClick={() => change(line, 1)} />
+                        <IconButton level="tertiary" size="md" icon="icon-minus-line" aria-label={`Remove one ${line.name}`} onClick={() => change(line, -1)} />
+                        <Text as="span" textStyle="Body/Base/Medium" width="hug" align="center" tabularNumbers className="px-action-bar-qty">{line.qty}</Text>
+                        <IconButton level="tertiary" size="md" icon="icon-plus-line" aria-label={`Add one ${line.name}`} onClick={() => change(line, 1)} />
                       </Stack>
                     )} />
                 ))}
@@ -422,7 +424,6 @@ function PhoneOrderExample() {
               <List aria-labelledby={pickupId}>
                 <ListItem title="Phin Nguyen Hue" caption="42 Nguyen Hue, District 1 · ready in about 10 minutes"
                   leading={<DockIcon icon="icon-marker-pin-01-line" theme="neutral" background="subtle" />}
-                  selected={false}
                   as="li"
                   titleLines={1} />
               </List>
@@ -443,7 +444,7 @@ function PhoneOrderExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————————
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Footer on a phone",
     description: "In the Phin & Co app a reward's main action leads the footer: Large, full width, Primary on top, Save for later below. The summary says what Redeem depends on, and why it waits when it is disabled; Back returns to the rewards.",
@@ -467,7 +468,7 @@ export const examples: ExampleDef[] = [
     description: "Approve and Decline are peers, so the bar is horizontal: two Large buttons side by side with Approve at the end, and the summary on its own row. Either answer can be undone from the toast; once answered, the bar goes away.",
     render: () => <PhoneApprovalsExample />,
     code: `<PlatformPhone key={request.id} headerOverlay screenRef={screenRef}
-  header={<TopNavigation type="compact" title="Leave request" scrollRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Leave request" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToList }} />}
   footer={request.status === "Pending" ? (
     <ActionBar position="static" direction="horizontal"
@@ -521,13 +522,13 @@ const decide = (status) => {
         <ListItem key={line.id} title={line.name} caption={line.detail}
           leading={<DockIcon icon={line.icon} theme={line.theme} background="subtle" />}
           trailing={<>
-            <IconButton level="tertiary" size="xs" icon="icon-minus-line" aria-label={\`Remove one \${line.name}\`} onClick={() => change(line, -1)} />
+            <IconButton level="tertiary" size="md" icon="icon-minus-line" aria-label={\`Remove one \${line.name}\`} onClick={() => change(line, -1)} />
             <Text as="span" textStyle="Body/Base/Medium">{line.qty}</Text>
-            <IconButton level="tertiary" size="xs" icon="icon-plus-line" aria-label={\`Add one \${line.name}\`} onClick={() => change(line, 1)} />
+            <IconButton level="tertiary" size="md" icon="icon-plus-line" aria-label={\`Add one \${line.name}\`} onClick={() => change(line, 1)} />
           </>} />
       ))}
     </List>
   </ListBox>
 </PlatformPhone>`,
   },
-];
+]);

@@ -26,6 +26,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { keepOnHotUpdate } from "../../hotData";
 import "./segmented.css";
 
 export const page: PlatformPage = "segmented";
@@ -63,7 +64,7 @@ function FileViewsExample() {
           <Text role="status" textStyle="Body/Small/Regular" tone="base">{`Saola Outdoor · ${plural(shown.length, "file")}`}</Text>
         </Stack>
         <Stack direction="row" justify="between" align="center" gap="xs">
-          <Box className="px-segmented-search"><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+          <Box width="fill" maxWidth={320}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
           {/* Icon-only segments: each option carries its own name, the icon is decorative. */}
           <Segmented className="px-segmented-hug" aria-label="Layout" value={view} onValueChange={setView} options={[
             { id: "grid", label: null, "aria-label": "Grid view", leading: <Icon name="icon-grid-01-line" decorative /> },
@@ -82,7 +83,7 @@ function FileViewsExample() {
           </List>
         ) : (
           // Four previews a row on a desktop page, two on a phone.
-          <Grid as="ul" aria-label="Brand refresh files" minColumnWidth="clamp(104px, 22%, 220px)" gap="md" className="px-segmented-tiles">
+          <Grid as="ul" aria-label="Brand refresh files" minColumnWidth="clamp(104px, 22%, 220px)" gap="md">
             {shown.map((file) => (
               <Stack as="li" key={file.id} gap="xs">
                 {file.photo
@@ -198,7 +199,7 @@ function OpenResolvedExample() {
   };
   return (
     // A ListBox: title, caption and the view switch in its Header-Slot (stacked 16px), the comments in its Body-Slot.
-    <ListBox className="px-segmented-card"
+    <Stack><ListBox width="fill" maxWidth={440} alignSelf="center"
       header={<>
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Comments</Heading>
@@ -233,7 +234,7 @@ function OpenResolvedExample() {
           </EmptyState>
         )}
       </Box>
-    </ListBox>
+    </ListBox></Stack>
   );
 }
 
@@ -263,19 +264,19 @@ function BillingPeriodExample() {
     toast({ type: "positive", title: "Billing period changed", action: { label: "Undo", onClick: () => { setBilling(previous); setPeriod(previous); } } });
   };
   return (
-    <Card theme="flat" className="px-segmented-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => switchTo(period, billing)} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">{`${plan.name} plan`}</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">{`${studio.workspace} · ${plural(seats, "seat")}`}</Text>
         </Stack>
         {/* Primary: the period is the one decision on this card. */}
-        <Box className="px-segmented-start">
+        <Stack align="start">
           <Segmented level="primary" aria-label="Billing period" value={period} onValueChange={(id) => setPeriod(id as Billing)} options={[
             { id: "monthly", label: "Monthly" },
             { id: "yearly", label: "Yearly" },
           ]} />
-        </Box>
+        </Stack>
         <DescriptionList items={[
           { term: "Per seat", description: `${formatMoney(seatPrice[period], true)} ${per}` },
           { term: "Seats", description: String(seats) },
@@ -293,7 +294,7 @@ function BillingPeriodExample() {
           </FormActions>
         ) : null}
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -313,7 +314,7 @@ function PhoneControlBarExample() {
   return (
     // The control bar stays pinned and moves up with the large title as the list scrolls under it.
     <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={
-      <TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef}
+      <TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef}
         controlBar={<Segmented fullWidth aria-label="Team view" value={view} onValueChange={setView} options={[
           { id: "people", label: "People" },
           { id: "teams", label: "Teams" },
@@ -378,16 +379,16 @@ function PhonePeriodsExample() {
   const days = dayLogs.filter((log) => log.date >= period.from && log.date <= period.to);
   const total = days.reduce((sum, log) => sum + log.hours, 0);
   return (
-    <PlatformPhone label="Hours" headerOverlay screenRef={screenRef} header={<TopNavigation title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
+    <PlatformPhone label="Hours" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
       <Stack gap="lg" paddingY="xs">
         {/* Four periods don't fit a phone as equal segments: one row of single-choice chips that scrolls sideways. */}
-        <Box className="px-segmented-chips" role="group" aria-label="Period">
+        <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Period">
           {hourPeriods.map((item) => (
             <Chip key={item.id} variant="normal" level="primary" selected={item.id === periodId} onClick={() => setPeriodId(item.id)}>
               {item.label}
             </Chip>
           ))}
-        </Box>
+        </Stack>
         <Stack gap="xs" paddingX="lg">
           <Text role="status" textStyle="Body/Small/Regular" tone="base">{formatRange(period.from, period.to)}</Text>
           <Metric size="md" label="Logged hours" value={hoursLabel(total)} icon="icon-clock-line" iconTheme="blue" />
@@ -398,7 +399,7 @@ function PhonePeriodsExample() {
           <List aria-labelledby={headingId}>
             {days.map((log) => (
               <ListItem key={log.date.toISOString()} title={dayTitle(log.date)} caption={log.projects.map((id) => projectById(id).name).join(" · ")}
-                trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-segmented-hours">{hoursLabel(log.hours)}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{hoursLabel(log.hours)}</Text>} />
             ))}
           </List>
         </Stack>
@@ -407,7 +408,7 @@ function PhonePeriodsExample() {
   );
 }
 
-export const examples: ExampleDef[] = [
+export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Grid or list view",
     description: "Two icon-only segments switch the same files between previews and rows. Each option carries its own aria-label (the icon is decorative), so a screen reader hears “Grid view, pressed”; Tab reaches each segment and Enter or Space picks it.",
@@ -503,7 +504,7 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef} header={
-  <TopNavigation title="Team" largeTitle="Team" scrollRef={screenRef}
+  <TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef}
     controlBar={<Segmented fullWidth aria-label="Team view" value={view} onValueChange={setView} options={[
       { id: "people", label: "People" },
       { id: "teams", label: "Teams" },
@@ -521,7 +522,7 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
     description: "Four periods are wider than a phone, so they are not a Segmented: a row of Normal chips scrolls sideways, and only one is on, so the chips are Primary: the pressed one takes the Selected fill. The total and the logged days follow the choice.",
     render: () => <PhonePeriodsExample />,
     code: `<PlatformPhone headerOverlay screenRef={screenRef}
-  header={<TopNavigation title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
+  header={<TopNavigation type="alt" title="Hours" largeTitle="Hours" scrollRef={screenRef} />}>
   <Stack gap="lg" paddingY="xs">
     <div className="chip-row" role="group" aria-label="Period"> {/* flex; nowrap; overflow-x: auto; the screen margin inline */}
       {periods.map((item) => (
@@ -543,4 +544,4 @@ const [period, setPeriod] = useState("monthly");   // what the switch previews
   </Stack>
 </PlatformPhone>`,
   },
-];
+]);

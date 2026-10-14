@@ -6,7 +6,7 @@
     {
       "name": "DockIcon",
       "file": "src/components/DockIcon/DockIcon.tsx",
-      "description": "Figma Dock-Icon (308:45902): a round, fully filled icon tile (Corner-Radius/Rounded) — app, category or file-type\nmarks in lists, tables and cards. Solid → Content/On-Colors (Accent: On-Accent, Neutral: Inverse); Subtle → Content/<colour>/Light.",
+      "description": "Figma Dock-Icon (308:45902): a round, fully filled icon tile (Corner-Radius/Rounded) — app, category or file-type\nmarks in lists, tables and cards. Solid → Content/On-Colors (Neutral: Inverse/Strongest); Subtle → Content/<colour>/Light\n(Neutral: Neutral/Base). Re-synced from the live file 2026-10-09.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -28,10 +28,10 @@
         },
         {
           "name": "size",
-          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 56 · XLarge 80 (Image-Size tokens); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Figma Size: XSmall 24 · Small 32 · Medium 40 · Large 48 · XLarge 56 · 2XLarge 80 (Image-Size tokens; glyph 12 · 16 · 20 · 24 · 28 · 44, Element-Size/Popular); Theme=Emoji draws Medium 40 with a 28px glyph (Heading/1) and Large 48 with a 36px glyph (Display/3). Short (sm, md, 2xl…) or Figma (small, medium, 2xlarge…) spelling.",
           "deprecated": null
         },
         {

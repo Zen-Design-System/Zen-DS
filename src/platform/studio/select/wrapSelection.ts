@@ -262,7 +262,10 @@ export async function wrapInBox(layer: ExtraLayer, props: Record<string, EditVal
 }
 
 async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Record<string, EditValue>; label: string; done: string }): Promise<boolean> {
-  const tag = tagOf(kind);
+  // Sidebar rows go in a section of their own, as Figma groups Menu-Items under a Section-Title (user, 2026-10-10:
+  // "Hành vi này phải làm được ở mọi nơi trong thiết kế"); other layers in a Stack or Box.
+  const rows = kind === "stack" && !given && layers.every((layer) => layer.name === "SidebarMenuItem");
+  const tag = rows ? "SidebarMenuSection" : tagOf(kind);
   const ordered = [...layers].sort(sourceOrder);
   const [first, ...others] = ordered;
   const at = parseSrc(first.src);
@@ -275,11 +278,14 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
     return false;
   }
   const withLocs = others.map((layer) => parseSrc(layer.src)?.loc ?? "");
-  const op: WrapOp = { op: "wrap", tag, props: given?.props ?? (kind === "stack" ? inferStack(hits) : {}), ...(withLocs.length ? { with: withLocs } : {}) };
+  const op: WrapOp = { op: "wrap", tag, props: given?.props ?? (rows ? { label: { kind: "string", value: "Section" } } : kind === "stack" ? inferStack(hits) : {}), ...(withLocs.length ? { with: withLocs } : {}) };
   const count = ordered.length;
   const what = count > 1 ? plural(count, "layer") : first.name;
   // Everything on the canvas before the write: the new container is a new element, never one of these.
   const before = renderedNow(world);
+  // The selection the wrap starts from, read before the write: a builder page re-renders as it writes and drops a
+  // selection whose place moved (the wrapped layer), so it is gone by the time the write answers.
+  const startedFrom = studioStore.getState().selection;
   const response = await applyEdit({ file: at.file, loc: at.loc, name: fresh.name, ops: [op], hash: fresh.hash }, given?.label ?? `Wrap ${what} in ${tag}`);
   if (!response.ok) {
     inspectorStatus.set("negative", /Unknown op "wrap"/.test(response.error) ? "Restart the dev server to wrap layers" : response.error);
@@ -298,9 +304,14 @@ async function write(kind: WrapKind, layers: ExtraLayer[], given?: { props: Reco
   const snippet = response.snippet && !response.snippet.synced ? `Example code not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
   const text = [given?.done ?? `Wrapped ${what} in a ${tag}`, response.draft ? `Draft · ${saveShortcut} to save` : `${undoShortcut} to undo`, snippet].filter(Boolean).join(" · ");
   inspectorStatus.set("positive", text);
-  // Still the selection the wrap started from (or it moved with the write): select the container. Synchronously (no
-  // request in between): Vite may reload the page as soon as it sees the write.
-  if (primary?.kind === "node" && layers.some((layer) => layer.src === primary.src || mapSrc(layer.src, { file: response.file, before: response.before, after: response.after, kind: "edit" }) === primary.src)) {
+  // Still the selection the wrap started from (it moved with the write, or the write dropped it): select the container,
+  // as Figma does; a selection made meanwhile elsewhere stays. Synchronously (no request in between): Vite may reload
+  // the page as soon as it sees the write.
+  // The write as the selection remap read it (with the page's id map: where each layer went, exactly).
+  const write = { file: response.file, before: response.before, after: response.after, kind: "edit" as const, ...(response.locs ? { locs: response.locs } : {}) };
+  const wrapped = (src: string) => layers.some((layer) => layer.src === src || mapSrc(layer.src, write) === src);
+  const fromWrapped = startedFrom?.kind === "node" && wrapped(startedFrom.src);
+  if ((primary?.kind === "node" && wrapped(primary.src)) || (fromWrapped && (primary === null || primary === startedFrom))) {
     expectRender(wrapper, before, () => undefined);
     studioStore.setState({ selection: wrapper });
     flushStudioStore();

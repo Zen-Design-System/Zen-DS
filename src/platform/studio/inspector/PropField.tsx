@@ -1,4 +1,5 @@
 import { useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useWords } from "../useWords";
 import { Button, IconButton } from "../../../components/Button";
 import { InputField, NumberField, SelectField, TextAreaField } from "../../../components/Input";
 import { Popover, PopoverItem } from "../../../components/Popover";
@@ -8,14 +9,17 @@ import { contentToneGroups, contentTones, contentToneToken, contentToneVar, reso
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { studioApi } from "../api";
-import { InspectorFileContext } from "./controls/hostContext";
+import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
 import { usePendingDraft } from "./drafts";
-import { iconGroups, iconsIn } from "./iconSuggestions";
+import { iconGroups, iconsIn, relatedIcons, withRecent } from "./iconSuggestions";
 import { figmaOptions } from "./propGroups";
 import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence, matchOption, propLabel, typographyFamily, typographyKeys, type Literal, type PropSpec, type PropValue } from "./propSchema";
+import { useObjectStarter } from "./useObjectStarter";
+import { PhotoControl } from "./controls/PhotoControl";
 import { ScaleField } from "./controls/ScaleField";
 import { scaleOfType } from "./controls/scale";
 import { InspectorRow } from "./Section";
+import { toneWarning } from "./toneRules";
 
 /*
  * One editable prop (spec §6): the editor follows the prop's type; the row shows whether the source sets a literal
@@ -38,10 +42,15 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
   const source = value === undefined ? "" : String(value);
   const [draft, setDraft] = useState(source);
   const committed = useRef<string | null>(null);
+  // Only what the user typed is written. Between a new value and the effect that copies it into the draft, a selection
+  // change flushes the drafts (drafts.ts) with the old one: a Sidebar section's Label wrote "" on a double-click on the
+  // canvas (2026-10-10).
+  const edited = useRef(false);
   const ref = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
   useEffect(() => {
     setDraft(source);
     committed.current = null;
+    edited.current = false;
   }, [source]);
   useEffect(() => {
     if (!autoFocusToken) return;
@@ -49,9 +58,13 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
     ref.current?.select();
   }, [autoFocusToken]);
   const commit = () => {
-    if (disabled || draft === source || draft === committed.current) return;
+    if (disabled || !edited.current || draft === source || draft === committed.current) return;
     committed.current = draft;
     onSet(numeric && /^-?\d+(\.\d+)?$/.test(draft.trim()) ? Number(draft.trim()) : draft);
+  };
+  const change = (next: string) => {
+    edited.current = true;
+    setDraft(next);
   };
   usePendingDraft(commit);
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -63,23 +76,27 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
       event.stopPropagation();
       setDraft(source);
       committed.current = null;
+      edited.current = false;
     }
   };
   const placeholder = fallback === undefined ? "" : String(fallback);
-  if (multiline) return <TextAreaField ref={ref} aria-label={label} size="sm" value={draft} rows={3} disabled={disabled} placeholder={placeholder} onValueChange={setDraft} onBlur={commit} onKeyDown={onKeyDown} />;
-  return <InputField ref={ref} aria-label={label} size="sm" value={draft} disabled={disabled} placeholder={placeholder} onValueChange={setDraft} onBlur={commit} onKeyDown={onKeyDown} />;
+  if (multiline) return <TextAreaField ref={ref} aria-label={label} size="sm" value={draft} rows={3} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
+  return <InputField ref={ref} aria-label={label} size="sm" value={draft} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
 }
 
 /** A number committed once per value, on Enter, blur or a selection change (as TextControl). */
 export function NumberControl({ label, value, fallback, disabled, onSet }: ControlProps<number>) {
   const [draft, setDraft] = useState<number | null>(value ?? null);
   const committed = useRef<number | null>(null);
+  /** Typed by the user (see TextControl): a stale draft is never written back. */
+  const edited = useRef(false);
   useEffect(() => {
     setDraft(value ?? null);
     committed.current = null;
+    edited.current = false;
   }, [value]);
   const commit = () => {
-    if (disabled || draft === null || draft === value || draft === committed.current) return;
+    if (disabled || !edited.current || draft === null || draft === value || draft === committed.current) return;
     committed.current = draft;
     onSet(draft);
   };
@@ -91,7 +108,7 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
       value={draft}
       placeholder={fallback === undefined ? "" : String(fallback)}
       disabled={disabled}
-      onValueChange={setDraft}
+      onValueChange={(next) => { edited.current = true; setDraft(next); }}
       onBlur={commit}
       onKeyDown={(event) => {
         if (event.key === "Enter") commit();
@@ -100,6 +117,7 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
           event.stopPropagation();
           setDraft(value ?? null);
           committed.current = null;
+          edited.current = false;
         }
       }}
     />
@@ -219,13 +237,16 @@ export function TextAlignControl({ label, value, fallback, disabled, onSet, opti
 function LinesControl({ label, value, disabled, onSet }: { label: string; value: number; disabled: boolean; onSet: (value: number) => void }) {
   const [draft, setDraft] = useState<number | null>(value);
   const committed = useRef<number | null>(null);
+  /** Typed or stepped by the user (see TextControl): a stale draft is never written back. */
+  const edited = useRef(false);
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     setDraft(value);
     committed.current = null;
+    edited.current = false;
   }, [value]);
   const commit = (next: number | null = draft) => {
-    if (disabled || next === null) return;
+    if (disabled || !edited.current || next === null) return;
     const lines = Math.max(1, Math.round(next));
     if (lines === value || lines === committed.current) return;
     committed.current = lines;
@@ -242,6 +263,7 @@ function LinesControl({ label, value, disabled, onSet }: { label: string; value:
       value={draft}
       disabled={disabled}
       onValueChange={(next) => {
+        edited.current = true;
         setDraft(next);
         if (document.activeElement !== ref.current) commit(next);
       }}
@@ -254,6 +276,7 @@ function LinesControl({ label, value, disabled, onSet }: { label: string; value:
           event.stopPropagation();
           setDraft(value);
           committed.current = null;
+          edited.current = false;
         }
       }}
     />
@@ -372,7 +395,6 @@ const toneSet = new Set<string>(contentTones);
 export const isToneOptions = (options: readonly string[]) => options.length > 0 && options.every((option) => toneSet.has(option));
 const toneOf = (option: string) => resolveContentTone(option as ContentTone);
 const toneCaption = (option: string) => contentToneToken(option as ContentTone) ?? "Parent's colour";
-
 /** A round swatch in the tone's colour (its token, inline); a dashed ring for `inherit` or nothing set. */
 function ToneSwatch({ tone }: { tone: string | undefined }) {
   const token = tone && toneSet.has(tone) ? contentToneVar(tone as ContentTone) : null;
@@ -385,7 +407,7 @@ function ToneSwatch({ tone }: { tone: string | undefined }) {
  * Accent … Support, overlays, on fills) and searches by name or token; aliases (secondary, accent, inverse) select the
  * tone they paint with. The SelectField's own list stays closed (as in TypographyControl).
  */
-export function ToneControl({ label, value, fallback, disabled, onSet, options }: ControlProps<string> & { options: string[] }) {
+export function ToneControl({ label, value, fallback, disabled, onSet, options, component }: ControlProps<string> & { options: string[]; component?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -441,7 +463,7 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options }
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
             <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
             {tones.map((tone) => (
-              <PopoverItem key={tone} label={tone} caption={toneCaption(tone)} leading={<ToneSwatch tone={tone} />}
+              <PopoverItem key={tone} label={tone} caption={[toneCaption(tone), toneWarning(toneOf(tone), component)].filter(Boolean).join(" · ")} leading={<ToneSwatch tone={tone} />}
                 selected={tone === current} onSelect={() => pick(tone)} />
             ))}
           </div>
@@ -486,10 +508,42 @@ function useFileIcons(open: boolean): string[] {
   return icons;
 }
 
+/** The icons picked lately in any icon picker, newest first (this browser only: a private window starts empty). */
+const RECENT_ICONS_KEY = "zen-studio:recent-icons";
+
+function readRecentIcons(): string[] {
+  try {
+    const list: unknown = JSON.parse(window.localStorage.getItem(RECENT_ICONS_KEY) ?? "[]");
+    return Array.isArray(list) ? list.filter((name): name is string => typeof name === "string" && iconSet.has(name)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberIcon(name: string) {
+  try {
+    window.localStorage.setItem(RECENT_ICONS_KEY, JSON.stringify(withRecent(readRecentIcons(), name)));
+  } catch {
+    // No storage (a private window): the picker simply has no Recent group.
+  }
+}
+
+/** The words beside the selection for Related icons: its own text, else the nearest ancestor's within four levels (a
+ *  Metric card's dock icon → "Revenue $48,200…"), at most 160 characters. */
+function wordsNear(host: Element | null): string {
+  let element = host;
+  for (let depth = 0; element && depth < 4; depth += 1, element = element.parentElement) {
+    const text = element.textContent?.trim();
+    if (text) return text.slice(0, 160);
+  }
+  return "";
+}
+
 /**
  * Icon names with a searchable list (at most 200 shown). With no search it leads with `defaultIcon` (the swap's default
- * in Figma) and the icons the file already uses, then every icon (user 2026-10-07: Figma's preferred values are the whole
- * set). `emptyLabel`: what the field reads with no icon ("None").
+ * in Figma), the icons picked lately and the related ones (as tiles), the icons the file already uses, then every icon
+ * (user 2026-10-07: Figma's preferred values are the whole set; 2026-10-14: Recent and Related so a swap needs no
+ * typing). `emptyLabel`: what the field reads with no icon ("None").
  */
 export function IconControl({ label, value, fallback, disabled, onSet, emptyLabel = "None", defaultIcon }: ControlProps<string> & { emptyLabel?: string; defaultIcon?: string }) {
   const [open, setOpen] = useState(false);
@@ -498,6 +552,7 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
   const listId = useId();
   const shown = value ?? fallback;
   const fileIcons = useFileIcons(open);
+  const host = useContext(InspectorHostContext);
   const searching = Boolean(query.trim());
   const items = useMemo(() => {
     if (!open || !searching) return undefined;
@@ -505,10 +560,17 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
       .slice(0, 200)
       .map((name) => ({ id: name, label: name, leading: name as IconName, selected: name === value }));
   }, [open, searching, query, value]);
-  const groups = useMemo(() => (open && !searching ? iconGroups(allIconNames.slice(0, 200), asIcon(defaultIcon), fileIcons) : []), [open, searching, defaultIcon, fileIcons]);
+  const groups = useMemo(() => {
+    if (!open || searching) return [];
+    const current = asIcon(shown);
+    return iconGroups(allIconNames.slice(0, 200), {
+      defaultIcon: asIcon(defaultIcon), fileIcons, current, recent: readRecentIcons(), related: relatedIcons(current, allIconNames, wordsNear(host)),
+    });
+  }, [open, searching, defaultIcon, fileIcons, shown, host]);
   const pick = (name: string) => {
     setOpen(false);
     setQuery("");
+    rememberIcon(name);
     if (name !== value) onSet(name);
   };
   return (
@@ -545,7 +607,11 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
         {groups.map((group) => (
           <div key={group.id} role="group" aria-labelledby={`${listId}-${group.id}`} className="studio-type-control__group" data-icon-group={group.id}>
             <div id={`${listId}-${group.id}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{group.title}</div>
-            {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
+            {group.id === "recent" || group.id === "related"
+              ? <div className="studio-icon-control__tiles">
+                  {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} aria-label={name} title={name} leading={name as IconName} onSelect={() => pick(name)} />)}
+                </div>
+              : group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
           </div>
         ))}
       </Popover>
@@ -589,12 +655,22 @@ function StaticField({ text, code = false, placeholder = false, title }: { text:
 
 /** A bound expression shown read-only ("{level}"): in a field's frame, the expression in the code font. */
 export function BoundValue({ expression, hint }: { expression: string; hint?: string }) {
+  // Design words: "data: person › theme" (or "a value set in code"), not the expression.
+  const say = useWords();
+  const said = say(`{${expression}}`);
+  if (said !== `{${expression}}`) return <StaticField text={said} title={hint ? `${said} — ${say(hint)}` : said} />;
   return <StaticField text={`{${expression}}`} code title={hint ? `${expression} — ${hint}` : expression} />;
 }
+
+/** ValueChip's kinds on a page made in the Studio. */
+const DESIGN_KINDS: Readonly<Record<string, string>> = { null: "None", "ƒ()": "Action", "[…]": "List", "{…}": "Group of values" };
 
 /** A value the inspector shows but does not edit (an object, an element, a function): its kind in a field's frame. */
 function ValueChip({ value }: { value: unknown }) {
   const text = value === undefined ? "Not set" : value === null ? "null" : typeof value === "function" ? "ƒ()" : Array.isArray(value) ? "[…]" : typeof value === "object" ? "{…}" : String(value);
+  // The kind in design words (an action, a list, a group of values).
+  const said = DESIGN_KINDS[text];
+  if (said) return <StaticField text={said} />;
   return <StaticField text={text} code={text !== "Not set"} placeholder={text === "Not set"} />;
 }
 
@@ -609,10 +685,13 @@ function LiteralValue({ value }: { value: Literal }) {
 const namedOptions = (options: string[], names: Readonly<Record<string, string>> | undefined) => (names ? figmaOptions(options, names, matchOption) : { options, labels: undefined });
 
 /** The editor for a value edited at its data (text, number, a choice), showing what it renders now; null: no editor. */
-function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>): ReactNode {
+function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boolean, onSet: (value: Literal) => void, optionLabels?: Readonly<Record<string, string>>, component?: string): ReactNode {
   const editor = spec.editor;
   const common = { label, disabled, fallback: undefined };
   switch (editor.kind) {
+    case "photo":
+      // A picture from data (a row's photo): Figma's image picker; the pick is written in that row's data.
+      return <PhotoControl label={label} disabled={disabled} value={typeof live === "string" ? live : undefined} onSet={(next) => onSet(next)} people={component !== "Image"} />;
     case "enum":
       return <EnumControl {...common} {...namedOptions(editor.options, optionLabels)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
     case "number-enum":
@@ -636,7 +715,7 @@ export type PropRestore = { expression: string; onRestore: () => void };
  * The control for a value of the prop's type (enum, number, text, icon…), or null for a kind without an editor. Shared by
  * a written or unset value and a binding a fixed value may replace (its live value shown in the same control).
  */
-function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>>; defaultIcon?: string } = {}): ReactNode {
+function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Literal | null | undefined, common: { label: string; disabled: boolean }, onSet: (value: Literal) => void, extra: { autoFocusToken?: number; onReset?: () => void; optionLabels?: Readonly<Record<string, string>>; defaultIcon?: string; component?: string } = {}): ReactNode {
   const editor = spec.editor;
   switch (editor.kind) {
     case "enum": {
@@ -645,7 +724,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       const enumValue = typeof literal === "string" ? literal : literal === undefined ? undefined : String(literal);
       const enumFallback = typeof fallback === "string" ? fallback : undefined;
       return spec.name === "tone" && isToneOptions(editor.options)
-        ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} />
+        ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} component={extra.component} />
         : scale
           ? <ScaleField {...common} prop={spec.name} scale={scale} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />
           : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} />;
@@ -663,6 +742,10 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       if (literal !== undefined && typeof literal !== "string" && !(editor.kind === "string" && editor.numeric)) return null;
       // An unset slot (node) reads "None" in the placeholder tone, like Figma's empty instance swap.
       return <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={literal as string | number | undefined} fallback={fallback === undefined || fallback === null ? (editor.kind === "node" ? "None" : undefined) : String(fallback)} onSet={onSet} autoFocusToken={extra.autoFocusToken} multiline={typeof literal === "string" && (literal.length > 48 || literal.includes("\n"))} />;
+    case "photo": {
+      const text = typeof literal === "string" ? literal : undefined;
+      return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} />;
+    }
     case "typography":
       return <TypographyControl {...common} value={typeof literal === "string" ? literal : undefined} fallback={typeof fallback === "string" ? fallback : undefined} onSet={onSet} />;
     case "icon":
@@ -692,16 +775,20 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
  * data lives, or a fixed value that ↺ (Restore) turns back into the binding. A value that reads state stays read-only
  * (the keep-behaviour rule), in a field's frame so the column reads the same.
  */
-export function PropField({ spec, value, disabled, onSet, onReset, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon }: {
+export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, boundHint, label = propLabel(spec.name), autoFocusToken, resettable = true, restore, repeats, hint, optionLabels, defaultIcon, component }: {
   spec: PropSpec;
   value: PropValue;
   disabled: boolean;
   onSet: (value: Literal) => void;
   onReset: () => void;
+  /** An unset object prop whose type starts from values (objectStarter.ts): "+" writes that object as code. */
+  onAddObject?: (code: string) => void;
   /** Code value → Figma option name (generated groups): a select lists Figma's options first, by their Figma names. */
   optionLabels?: Readonly<Record<string, string>>;
   /** An icon swap's default in Figma (generated groups): its icon picker lists it first. */
   defaultIcon?: string;
+  /** The selected element's component (the tone picker warns about picks its rules flag on Text and Heading). */
+  component?: string;
   /** Why a bound value is read-only here ("Use Playground properties"): in the ƒ tooltip. */
   boundHint?: string;
   label?: string;
@@ -715,9 +802,11 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   /** A note under an editable row (why a value shows no effect yet); never hides or locks the control. */
   hint?: string;
 }) {
+  const say = useWords();
   // The label's tooltip: the whole label (it may truncate) and the prop's own name.
   // Only when it adds something: "Theme" for theme needs no "Theme · theme".
   const labelTitle = label.toLowerCase() === spec.name.toLowerCase() ? undefined : `${label} · ${spec.name}`;
+  const starter = useObjectStarter(spec.name, spec.type, Boolean(onAddObject) && !disabled && value.state === "unset" && spec.editor.kind === "readonly");
   const restoreAction = restore && !disabled
     ? <IconButton icon="icon-reverse-left-line" aria-label={`Restore ${inSentence(label)} to {${restore.expression}}`} appearance="flat" level="primary" size="xs" onClick={restore.onRestore} />
     : null;
@@ -727,24 +816,31 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
     if (dataEditable(value, boundHint) && spec.editor.kind !== "boolean") {
       // A value the code reads from data (a .map row's item, a data const, examples/data.ts): edited where that data is
       // written (op setDataField, FieldApi.setProp), so the binding stays and every place that shows the data changes.
-      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels);
+      const control = dataControl(spec, value.live, label, disabled, onSet, optionLabels, component);
       const note = `From ${dataSourceLabel(value.dataSource, value.dataSource.row)}: an edit changes it everywhere it shows.`;
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
     if (fixableBinding(value, boundHint)) {
       // A binding that reads no state (data, a condition on a const, a helper's parameter): the control shows what this
       // instance renders and an edit writes a fixed value; one source line renders every row of a .map.
-      const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : repeats;
+      // Rows are a .map's; an element rendered in several places shows its count in the panel header instead.
+      const rows = value.origin?.kind === "loop-bound" ? value.origin.rows ?? repeats : undefined;
       const note = rows && rows > 1 ? `An edit sets a fixed value for all ${rows} rows; Restore brings the binding back.` : "An edit sets a fixed value; Restore brings the binding back.";
-      const shown = spec.editor.kind === "boolean" ? Boolean(value.live) : live;
-      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon });
+      // A switch shows what renders once the live props arrived; before that (one render) the read-only binding, not a
+      // false it may not be.
+      const shown = spec.editor.kind === "boolean" ? (value.live === undefined ? undefined : Boolean(value.live)) : live;
+      const control = shown === undefined ? null : editorFor(spec, shown, undefined, { label, disabled }, onSet, { autoFocusToken, optionLabels, defaultIcon, component });
       if (control) return <InspectorRow {...row} bound={{ expression: value.expression, note }}>{control}</InspectorRow>;
     }
+    // An element written in the prop (Menu `trigger={<IconButton … />}`, ActionBar `summary={<Text …/>}`): a layer of its
+    // own, edited where it is selected, not code to change (2026-10-10 palette sweep: "bound in code").
+    const element = /^\s*<([A-Z][\w.]*)/.exec(value.expression)?.[1];
+    if (element) return <InspectorRow {...row} hint={hint ?? `Select the ${element} on the canvas or in Layers to edit it`}><StaticField text={`<${element}>`} title={`{${value.expression}}`} /></InspectorRow>;
     // State-bound (the keep-behaviour rule), or a playground's: read-only, what it renders now in a field's frame.
     const note = boundHint ?? (value.origin?.kind === "bound-state" ? "It reads state: change it in the code." : "Change it in the code.");
     return (
       <InspectorRow {...row} bound={{ expression: value.expression, note }}>
-        {live !== undefined && typeof live !== "boolean" ? <StaticField text={String(live)} title={`{${value.expression}}`} /> : <BoundValue expression={value.expression} hint={boundHint} />}
+        {live !== undefined && typeof live !== "boolean" ? <StaticField text={String(live)} title={say(`{${value.expression}}`)} /> : <BoundValue expression={value.expression} hint={boundHint} />}
       </InspectorRow>
     );
   }
@@ -756,10 +852,11 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   const editor = spec.editor;
   // A literal shown without an editor (readonly kinds, a number in a text prop) has no reset: it can't be set back.
   const shownOnly = editor.kind === "readonly" || ((editor.kind === "string" || editor.kind === "node") && literal !== undefined && typeof literal !== "string" && !(editor.kind === "string" && editor.numeric));
-  // Unset: the control shows the effective default in the lighter tone; the slot stays empty (fixed width). A fixed value
-  // that replaced a saved binding resets to that binding instead.
-  const action = restoreAction ?? (value.state === "literal" && !disabled && !shownOnly && resettable
-    ? <IconButton icon="icon-reverse-left-line" aria-label={`Reset ${inSentence(label)} to default`} appearance="flat" level="primary" size="xs" onClick={onReset} />
+  // Unset: the control shows the effective default in the lighter tone. No per-field reset (user, 2026-10-09): a control
+  // goes back to its default from inside it ("Default" / "None", Backspace) or with Reset all overrides. A fixed value
+  // that replaced a saved binding keeps its Restore; an object prop with a starter keeps its Add (real actions).
+  const action = restoreAction ?? (starter && onAddObject
+    ? <IconButton icon="icon-plus-line" aria-label={`Add ${inSentence(label)}`} tooltip={`Add ${inSentence(label)}: ${starter}`} appearance="flat" level="primary" size="xs" onClick={() => onAddObject(starter)} />
     : null);
   const common = { label, disabled: locked };
   if (editor.kind === "truncate" && !(viaSpread && value.live !== undefined && !isLiteral(value.live))) {
@@ -785,7 +882,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, boundHint, la
   let control: ReactNode;
   if (viaSpread && value.live !== undefined && !isLiteral(value.live)) control = <ValueChip value={value.live} />;
   else {
-    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels, defaultIcon });
+    control = editorFor(spec, literal, fallback, common, onSet, { autoFocusToken, onReset: value.state === "literal" && resettable && !restore ? onReset : undefined, optionLabels, defaultIcon, component });
     if (control === null) {
       control = literal !== undefined && (value.state === "literal" || editor.kind === "string" || editor.kind === "node")
         ? (value.state === "literal" ? <LiteralValue value={literal} /> : <ValueChip value={literal} />)
