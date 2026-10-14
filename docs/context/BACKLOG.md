@@ -8,6 +8,17 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
+  the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
+  and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile
+  + 8 Nav-Action sets), ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat parts, Metric
+  (re-capture); the chart family now belongs to session "Chart components với animation". P4: raw HTML and className in
+  examples. Audit and numbers: `docs/research/studio-figma-push-spec-2026-10-12.md` §8.
+- **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
+  (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
+  (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
+  published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
+  and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
 - **P1 · Review the rebound Figma styles Color Chart Sector/On-Color/Secondary and /Tertiary (user 2026-10-14: "Thử rồi
   duyệt sau"):** they bound Content/Neutral/Strongest (alpha 1) with a 48% / 20% paint opacity, and a bound colour's
   opacity follows the variable's alpha, so they drew solid everywhere. Now bound to Content/Neutral/Light (49% light /

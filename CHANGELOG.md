@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Figma: the Zen file's layers now carry Zen's names (186 layers, names only): `Action`, `Actions`, `Send`, `Attach` /
+  `Dictate` / `Submit`, `Previous` / `Next` / `Page-Size`, `Close`, `Primary` / `Secondary`, `Icon-Wrapper` and `Icon`
+  for glyph-named icons; Inline-Message's Custom slot property is `Leading`. The nested layer-name gate checks them now
+  (20 exceptions gone); the record and undo map are `docs/figma-contracts/layer-renames-2026-10-12.json`.
 - Zen Studio: Update from Figma on a page you exported to Figma now lists only what the designer changed there, and
   applying it keeps everything Figma cannot hold (a Container, a list's title lines, aria, ids, data). How it works:
   - Export › Figma keeps the pull of the frame it writes, under the export's version.

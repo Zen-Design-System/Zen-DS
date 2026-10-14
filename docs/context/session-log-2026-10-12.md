@@ -273,6 +273,18 @@
   Manually) — not a bug; Table/Cell/Header's Title (All-Caps/S, 16px line) sits in a 12px fixed Wrapper → 2px over
   top and bottom in all 8 variants (invisible, no clip); the Edit cell's 62px was the row's caption height, not the cell; its text colour follows the nested Input-Content state (Typing = Strongest for a cell with a value, user) — no library gap. Figma's Edit field is left-aligned while code right-aligns number editors (table/editor-number-right): the user keeps the code and the designer updates Figma.
 
+## Figma layers renamed to Zen's names (session "Kiểm tra tiến độ plan", branch zen/fix/figma-zen-layer-names, tier S)
+
+- User: "sửa theo Zen, đảm bảo Figma không lỗi" (Icon-Wrapper stays: a wrapper holding one icon). Dry run first
+  (read-only), then use_figma writes of names only, the same in every variant (variant switching matches by name);
+  nodes inside instances were renamed at their definition (.Primitives/Modal/Header, Primitives/Tab-Item 48 variants,
+  .Empty-State/CTAs, the Illustration). 186 layers + Inline-Message's slot property Visual → Leading (same id).
+  Checked after each write: component properties and variant counts unchanged, 0 errors, read-back of every set.
+- `saveVersionHistoryAsync` is not supported in use_figma: the undo map is `docs/figma-contracts/
+  layer-renames-2026-10-12.json` (Figma's own version history too).
+- Repo: nested-layers.json re-read for the 14 sets; 20 `ALLOWED` entries removed (44/44); Inline-Message `Visual` →
+  `Leading` in component-properties.json and figma-props.map.mjs. figma-push / pull match by set names, untouched.
+- Left for the user: publish the library (other files see the names then).
 ## Side Panel and Progress re-synced from the official Figma file (session 5c8bdb56, tier M)
 - Read-only use_figma on `9nZv4uW2LT21yuHabMTCh1`. New in Figma since the last read: Side-Panel (1573:3128) gained
   `Header-Contents` (SLOT), `Top-Customize` (BOOLEAN, hidden frame above the header) and lost the Modal heading icon
