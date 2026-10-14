@@ -2174,7 +2174,8 @@
           "size?: sm|md|small|medium = md",
           "disabled?: boolean = false",
           "aria-label?: string",
-          "className?: string"
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
         ]
       },
       "do": [

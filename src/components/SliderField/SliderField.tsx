@@ -1,5 +1,6 @@
-import { useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type Ref } from "react";
 import { scaleKey } from "../_shared/scale";
+import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./slider-field.css";
 
@@ -33,6 +34,8 @@ export interface SliderFieldProps {
   /** Name for assistive technology when `label` is not plain text. */
   "aria-label"?: string;
   className?: string;
+  /** The field's root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 const decimalsOf = (step: number) => (String(step).split(".")[1] ?? "").length;
@@ -62,19 +65,20 @@ export function SliderField({
   disabled = false,
   "aria-label": ariaLabel,
   className,
+  ref,
 }: SliderFieldProps) {
   const size: SliderFieldSizeKey = scaleKey(sizeProp, sliderFieldSizes);
   const id = useId().replace(/:/g, "");
   const decimals = decimalsOf(step);
   const snap = (next: number) => clamp(Number((Math.round((next - min) / step) * step + min).toFixed(decimals)), min, max);
-  const [internal, setInternal] = useState(() => snap(defaultValue ?? min));
-  const current = value !== undefined ? clamp(value, min, max) : internal;
+  const [current, setCurrent] = useControllableState<number>({
+    value: value === undefined ? undefined : clamp(value, min, max),
+    defaultValue: () => snap(defaultValue ?? min),
+    onChange: onValueChange,
+    name: "SliderField value",
+  });
   const format = formatValue ?? ((number: number) => number.toFixed(decimals));
-  const set = (next: number) => {
-    const snapped = snap(next);
-    if (value === undefined) setInternal(snapped);
-    if (snapped !== current) onValueChange?.(snapped);
-  };
+  const set = (next: number) => setCurrent(snap(next));
   const ratio = max > min ? (current - min) / (max - min) : 0;
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -114,6 +118,7 @@ export function SliderField({
 
   return (
     <div
+      ref={ref}
       className={["zen-slider-field", className].filter(Boolean).join(" ")}
       data-size={size}
       data-tone={theme}

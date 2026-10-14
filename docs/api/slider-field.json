@@ -113,6 +113,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The field's root `<div>`.",
+          "deprecated": null
         }
       ]
     }

@@ -45,6 +45,7 @@ Figma Slider/Field (15662:108207): a number that is also a slider. The whole fie
 | `disabled` | `boolean` | `false` |  |
 | `aria-label` | `string` | — | Name for assistive technology when `label` is not plain text. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The field's root `<div>`. |
 
 ## Keyboard
 | Keys | Action |
