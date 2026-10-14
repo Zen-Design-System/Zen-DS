@@ -24,6 +24,10 @@ removed (four unused colour ramps were, see Removed).
   each item is Border/Neutral/Pale, as in Figma (code drew Subtle). Spacing rule: rows of one group live in their own
   stack so every divider has equal space above and below (`docs/component-usage-rules.md` §13, Figma `screen-rules.md`
   §2, which also states concentric nested corners).
+- Registry access is per seat: developers sign in with their Zen account through `npm login` (browser, Google
+  sign-in only) and need a seat on the licence (owner + team members, up to its seat count); CI signs in with the
+  licence key, up to 3 CI tokens per licence (a fourth retires the oldest). Tokens from the old shared-key sign-in stop
+  working: run `npm login` again. The registry counts usage per licence (developers, CI tokens, IPs, installs).
 - Figma: the Zen file's layers now carry Zen's names (186 layers, names only): `Action`, `Actions`, `Send`, `Attach` /
   `Dictate` / `Submit`, `Previous` / `Next` / `Page-Size`, `Close`, `Primary` / `Secondary`, `Icon-Wrapper` and `Icon`
   for glyph-named icons; Inline-Message's Custom slot property is `Leading`. The nested layer-name gate checks them now

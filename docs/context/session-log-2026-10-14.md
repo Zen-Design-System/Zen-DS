@@ -188,3 +188,12 @@
   nested corners concentric (component-usage-rules §13, screen-rules §2, figma-gotchas: an inside stroke clips 1px in
   with the outer radius). BACKLOG P3: Accordion Box top/bottom Pale stroke in Figma, a designer question.
 - Checks: ai-kit:check ✓, qa (accordion, --isolated) ✓, accordion tests 21/21.
+
+## Registry seats: Google sign-in for developers, capped CI keys, usage (approved by the user)
+
+- `npm login` (web) → `/-/zen/login/<id>` page (Google only; the registry also requires a linked Google login) →
+  seat check: owner + team_members oldest first, up to max_members. CI: `--auth-type=legacy` + licence key → CI
+  token, 3 per licence (4th retires oldest, `zen-ci-tokens.json`). Basic auth with the key refused. Old tokens refused.
+- Usage per month/licence (`zen-usage.json`, `usage-report.js`). Live PocketBase: team_members list/view rules +
+  `registry_clients` (read-only; checked: registry sees members, not licence lists). Deployed; tests 28/28.
+- Not tried live: a real Google sign-in + a real CI key login (needs the user's account / key).

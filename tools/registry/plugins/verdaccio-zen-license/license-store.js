@@ -1,10 +1,12 @@
 'use strict';
 
 /**
- * Reads licenses from the PocketBase backend (`zen-license-management`).
+ * Reads licenses and team members from the PocketBase backend (`zen-license-management`).
  *
- * The registry signs in as a record of a dedicated auth collection (`registry_clients`); the licenses
- * collection's viewRule lets that collection read one license by id (it cannot list). Nothing here writes.
+ * The registry signs in as a record of a dedicated auth collection (`registry_clients`): the licenses
+ * collection's viewRule lets it read one license by id (it cannot list them), the team_members listRule lets it
+ * list a license's members (to count seats). A developer's own PocketBase token (from the browser sign-in) finds
+ * the licenses they own or belong to. Nothing here writes.
  */
 
 // PocketBase record ids: 15 lowercase alphanumerics. Checked before the id goes into a URL path.
@@ -29,7 +31,9 @@ class PocketBaseLicenseStore {
    * @param {string} options.password
    * @param {string} [options.clientCollection] Auth collection the client signs in to.
    * @param {string} [options.licensesCollection]
-   * @param {{active?: string, type?: string}} [options.fields] Field names on the licenses collection.
+   * @param {string} [options.usersCollection] Auth collection developers sign in to.
+   * @param {string} [options.membersCollection] Links users to licenses (`license`, `user`).
+   * @param {{active?: string, type?: string, owner?: string, maxMembers?: string}} [options.fields] Field names on the licenses collection.
    * @param {number} [options.timeoutMs]
    * @param {typeof fetch} [options.fetch]
    */
@@ -42,7 +46,9 @@ class PocketBaseLicenseStore {
     this.password = options.password;
     this.clientCollection = options.clientCollection || 'registry_clients';
     this.licensesCollection = options.licensesCollection || 'licenses';
-    this.fields = { active: 'active', type: 'type', ...options.fields };
+    this.usersCollection = options.usersCollection || 'users';
+    this.membersCollection = options.membersCollection || 'team_members';
+    this.fields = { active: 'active', type: 'type', owner: 'owner', maxMembers: 'max_members', ...options.fields };
     this.timeoutMs = options.timeoutMs || 5000;
     this.fetch = options.fetch || globalThis.fetch;
     this.token = null;
@@ -95,12 +101,19 @@ class PocketBaseLicenseStore {
   }
 
   toLicense(record) {
-    return { id: record.id, active: record[this.fields.active] === true, type: String(record[this.fields.type] || '') };
+    const f = this.fields;
+    return {
+      id: record.id,
+      active: record[f.active] === true,
+      type: String(record[f.type] || ''),
+      owner: String(record[f.owner] || ''),
+      maxMembers: Number(record[f.maxMembers]) || 0,
+    };
   }
 
   /**
    * @param {string} id License record id.
-   * @returns {Promise<null | {id: string, active: boolean, type: string}>} null when no such license exists.
+   * @returns {Promise<null | {id: string, active: boolean, type: string, owner: string, maxMembers: number}>} null when no such license exists.
    */
   async getLicense(id) {
     if (!RECORD_ID.test(id)) return null;
@@ -111,6 +124,62 @@ class PocketBaseLicenseStore {
     if (!res.ok) throw new StoreError(`license store returned ${res.status}`);
     return this.toLicense(await res.json());
   }
+
+  /**
+   * User ids of a license's team members, oldest first (the order seats are given in).
+   * @param {string} licenseId
+   * @returns {Promise<string[]>}
+   */
+  async getMembers(licenseId) {
+    if (!RECORD_ID.test(licenseId)) return [];
+    const filter = encodeURIComponent(`license='${licenseId}'`);
+    const res = await this.authorizedGet(
+      `/api/collections/${encodeURIComponent(this.membersCollection)}/records?filter=${filter}&sort=created&perPage=500&fields=user`,
+    );
+    if (!res.ok) throw new StoreError(`license store returned ${res.status} for team members`);
+    return (await res.json()).items.map((item) => String(item.user));
+  }
+
+  /** GET with a developer's own PocketBase token (never retried with the client token). */
+  async userGet(userToken, path) {
+    const res = await this.request(path, { headers: { authorization: userToken } });
+    if (res.status === 401 || res.status === 403) return null;
+    if (!res.ok) throw new StoreError(`license store returned ${res.status}`);
+    return res.json();
+  }
+
+  /**
+   * Checks a developer's PocketBase token (from the browser sign-in) and lists the licenses they own or belong to.
+   * @param {string} userToken
+   * @returns {Promise<null | {id: string, email: string, providers: string[], licenseIds: string[]}>} null when the token is not valid.
+   */
+  async getUser(userToken) {
+    if (typeof userToken !== 'string' || !userToken) return null;
+    const users = encodeURIComponent(this.usersCollection);
+    let res = await this.request(`/api/collections/${users}/auth-refresh`, {
+      method: 'POST',
+      headers: { authorization: userToken },
+    });
+    if (res.status === 401 || res.status === 403 || res.status === 404) return null;
+    if (!res.ok) throw new StoreError(`license store returned ${res.status} on sign-in check`);
+    const { token, record } = await res.json();
+    if (!record || !RECORD_ID.test(record.id)) return null;
+    const owned = encodeURIComponent(`${this.fields.owner}='${record.id}'`);
+    const member = encodeURIComponent(`user='${record.id}'`);
+    const linked = encodeURIComponent(`recordRef='${record.id}'`);
+    const [licenses, members, externalAuths] = await Promise.all([
+      this.userGet(token, `/api/collections/${encodeURIComponent(this.licensesCollection)}/records?filter=${owned}&perPage=100&fields=id`),
+      this.userGet(token, `/api/collections/${encodeURIComponent(this.membersCollection)}/records?filter=${member}&perPage=100&fields=license`),
+      // The user's own linked sign-ins (Google, …): PocketBase lets an account list its own.
+      this.userGet(token, `/api/collections/_externalAuths/records?filter=${linked}&perPage=20&fields=provider`),
+    ]);
+    const licenseIds = [
+      ...(licenses?.items || []).map((item) => String(item.id)),
+      ...(members?.items || []).map((item) => String(item.license)),
+    ].filter((id, i, all) => RECORD_ID.test(id) && all.indexOf(id) === i);
+    const providers = (externalAuths?.items || []).map((item) => String(item.provider));
+    return { id: record.id, email: String(record.email || ''), providers, licenseIds };
+  }
 }
 
-module.exports = { PocketBaseLicenseStore, StoreError };
+module.exports = { PocketBaseLicenseStore, StoreError, RECORD_ID };

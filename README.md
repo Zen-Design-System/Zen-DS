@@ -12,12 +12,12 @@ React 19 + TypeScript components, design tokens and icons generated from the Zen
 
 ## Use it in an app
 
-`@zen-ds/react` is licensed per company and served by the Zen registry. Once per project, add the scope line to the
-app's `.npmrc`; once per developer, sign in with your licence key (any username, the key as password):
+`@zen-ds/react` is licensed per seat and served by the Zen registry. Once per project, add the scope line to the
+app's `.npmrc`; once per developer, sign in with your Zen account (npm opens the sign-in page in your browser):
 
 ```bash
 echo "@zen-ds:registry=https://npm.dizai.studio/" >> .npmrc
-npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy
+npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds
 npm install @zen-ds/react react@^19 react-dom@^19
 ```
 
