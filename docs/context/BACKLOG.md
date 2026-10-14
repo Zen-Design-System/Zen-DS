@@ -8,6 +8,48 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P1 · Review the rebound Figma styles Color Chart Sector/On-Color/Secondary and /Tertiary (user 2026-10-14: "Thử rồi
+  duyệt sau"):** they bound Content/Neutral/Strongest (alpha 1) with a 48% / 20% paint opacity, and a bound colour's
+  opacity follows the variable's alpha, so they drew solid everywhere. Now bound to Content/Neutral/Light (49% light /
+  60% dark) and Border/Neutral/Subtle/Pressed (18% / 23%); the Bullet-Chart main's Track and the widget boards use them.
+  If the user rejects it, restore the old binding (and the layer-opacity workaround). Session log 2026-10-13.
+- **P1 · Box theme vocabulary in code (user 2026-10-13: "Figma trước, code sau"):** Figma Card / List-Box now take
+  Theme · Surface (Default|Alt|Flat) · Color (+Blue, Purple; List-Box Pale hues), Metric-Card and Chart-Card
+  expose their Card. Code next, on its own branch: Card `surface` flat + `color`, ListBox `surface` + `color`,
+  MetricCard / ChartCard pass-through, Studio figma-props map, figma-docs source text, contract re-capture,
+  usage-guard rules mirroring the Figma `theme/*` audit (Canvas → boxes, bars match the canvas, one elevation, one
+  colour mode, no gradient box). Gradient themes are gone in Figma (user 2026-10-14 "Giữ solid, xoá gradient"):
+  Card Gradient, every Semi-Pale (Neutral too) and List-Box Semi-Pale deleted; code's Card `theme="semi-pale"` is a
+  deprecated alias of pale (2026-10-14, user "OK"). The Card contract still lists Semi-Pale until this re-capture, so
+  the Studio map keeps offering it (renders pale).
+  Pointer: skills/zen-figma-design/references/screen-rules.md §1, session-log-2026-10-13 "◆ Performance".
+- **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
+  background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
+  Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
+  until then (screen-rules §1).
+- **P1 · Widget themes phase 2 — code + Studio (user, 2026-10-13; waits for the user's review of phase 1):** mirror the
+  Figma build in code and Studio: Card `color` + themes `gradient`/`solid` (Solid sets `data-theme`), MetricCard `type`
+  (7), chart components Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel, Bar-List, Bullet, the new paint styles in
+  `styles/source/figma`, `tools/figma-docs` description source, Studio figma-props map + push SETS + pull. Detail:
+  `docs/context/session-log-2026-10-13.md` ("Widget themes phase 1").
+- **P2 · Older chart sets bake their card (designer, 2026-10-13):** Bar, Donut, Radial, Heatmap (and Multi-Line) draw
+  their own Surface/Default card, so they cannot take Card Theme/Color; the new charts are card-less content that sits
+  in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).
+- **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
+  studio"):** the Figma side is fixed (`.Chart/Line-Chart/Trend` 6/7-Sectors label layers now run top → bottom like 4/12,
+  so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in
+  tools/studio/figma-push.mjs leaves Figma's sample data. Next, once the user confirms the scope: pick Sector 4/6/7/12 by
+  the point count and write X labels, the six Y ticks and the active tooltip (push; pull has no chart mapping yet).
+- **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
+  auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
+  `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.
+- **P3 · ListItem Value in Figma (user, 2026-10-13: "code first"):** code has `value` · `valueCaption` · `valueTone`
+  (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item has no primitive for it yet (built by hand
+  as a text stack in the Trailing slot). Add a `.Primitives/List-Item/…/Value` to `9nZv4uW2…` only when the user approves.
+- **P3 · Sheet-style table for long content (user, 2026-10-13):** Table rows are FIXED at Table/Cell/Size (one line,
+  ellipsis). The docs Props / API / Keyboard references still need multi-line rows: a temporary `.platform-ref`
+  override in `src/platform/platform.css` lets them grow. Replace it with the planned sheet component (needs the user's
+  approval and a Figma source).
 - ~~**P2 · Studio ↔ Figma P6b: round trip by push key**~~ done 2026-10-13 (user approved; branch zen/feat/figma-keys,
   spec §8 "P6b"). Update from Figma on an exported page now lists only the designer's edits and keeps code-only
   detail. Still open, P3:
@@ -53,8 +95,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
   browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
-- **P3 · Figma usability — Studio-made wrappers (2026-10-10):** the blank page's body Stack and ⇧A wrap Stacks are
-  layers the designer did not draw; make them transparent to the first click and in Layers.
 - **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar
   (24) and gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
   ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Designer: add
@@ -89,6 +129,34 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
 
 ## Backlog (plan before opening sessions)
+- ~~**P1 · CI "Package" step: `npm pack --json` output mixed with the build log**~~ fixed 2026-10-08 (PR #5: build:lib, then `npm pack --json --ignore-scripts`; verified under npm 11). Was: **(2026-10-08, cause of the P2 below):**
+  on CI (Node 24 / npm 11) the prepack `build:lib` output (vite "building…") lands in `npm pack --json`'s stdout, so
+  `scripts/verify-package.mjs:48` `JSON.parse` fails; same on main run 37602020509. Locally (npm 10) it passes.
+  Fix idea: build first, then `npm pack --json --ignore-scripts`. Blocks the Release workflow and CI green on PR #5.
+- ~~**P1 · verify:package fails "zen-ds-mcp answers over stdio"**~~ fixed 2026-10-08 (PR #5: the server answers what is in flight and flushes stdout before exiting). Was: **(2026-10-08, same on clean main):** `mcp/server.mjs`
+  exits when stdin ends, before the async replies to requests 4 (check_usage) and 5 (get_component) are written; the
+  check reads ids 1–3 only. Likely the cause of the P2 CI "Package" failures below. Blocks the Release workflow
+  (it runs verify:package). Pointer: `mcp/server.mjs` stdin end, `scripts/verify-package.mjs` §7.
+- ~~**P1 · usage:selftest crashes: `--list` JSON cut at 8 KB**~~ fixed 2026-10-08 (PR #5: `process.exitCode` instead of `process.exit()` in check-usage.mjs and cli.mjs). Was: **(2026-10-08, same on clean main):** `check-usage.mjs` ends
+  with `process.exit(main())`, which drops unflushed piped stdout (62 KB); the selftest's `JSON.parse` fails. CI runs it.
+  Pointer: `tools/usage-guard/check-usage.mjs:1330`, `tools/usage-guard/selftest.mjs:11`.
+- ~~**P2 · Private registry Phase 5, customer docs (2026-10-08):**~~ **Done 2026-10-08 (PR #5):** getting-started
+  (scope line, `npm login`, CI token, error table checked against a live npm), README, `AGENTS.consumer.md`, the platform
+  Installation page; `zen-ds init` writes the `.npmrc` line, `doctor` requires it and flags a committed token.
+- **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
+  LICENSE/EULA; needed before selling (legal text from the user).
+- ~~**P0 · Live license backend: anonymous read of licenses by id**~~ fixed live 2026-10-08 (user-approved, with the registry access change; verified anonymous 404 on all 30). Was: **(2026-10-08, found by the registry e2e test):**
+  `licenses.viewRule` `owner.id = @request.auth.id || team_members_via_license.user ?= @request.auth.id` lets a
+  request with no auth read any license that has no team members (26 of 30 live): `?=` over an empty back-relation
+  matches the empty auth id. Exposes owner id, type, credits, purchase date. Fix: prefix `@request.auth.id != "" && (…)`.
+  Pointer: zen-license-management `licenses` rules; `tools/registry/test/pocketbase/pb_migrations/`.
+- **P2 · Private registry Phases 3–6 (2026-10-08, plan agreed in chat):** Phase 3 kit ready (`tools/registry/deploy/`,
+  README "Deploy"); the user creates the VPS, DNS `npm.dizai.studio`, R2 bucket + `backup.env`, runs `deploy.sh`, adds
+  an uptime check, and tries one real `npm login`. Phase 4 (rename + release workflow) done 2026-10-08; the user sets
+  `ZEN_REGISTRY_PUBLISH_KEY` and deprecates the public npmjs `@zen-ds/*` packages. Then Phase 5 docs, Phase 6 payment webhook.
+- **P3 · Private registry: flag shared license keys (2026-10-08):** log installs per license (IP, version) and warn when
+  one key is used far beyond its `seats`. Pointer: `tools/registry/plugins/verdaccio-zen-license/index.js`.
+- ~~**P2 · CI "Package" step fails on every run of the 0.4.0 branch**~~ cause found and fixed 2026-10-08 (PR #5: npm 11 pack JSON + MCP replies). Was: ** (2026-10-07, seen when merging PR #1):** 14 of 14
 - **P3 · Example lint debt seen in the DockIcon re-sync gate (2026-10-09, not caused by it):** `divider.tsx:358` a
   `<Text textStyle="Heading/2">` used as a title (type/visual-heading); `action-bar.tsx:406, 521` ListItem trailing
   buttons at size xs (list-item/trailing-button-medium).
@@ -387,8 +455,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - P3 (same session, for the designer): ~~Neutral-S7 focus is faint by design~~ — resolved 2026-10-03 evening: the designer
   set `Input/Border/Focus` in Neutral-S7 to Focus/Neutral/Solid (export synced). Still open: `Input/Border/Popover-Search` stores "Focus/Neutral/Solid at
   opacity 0" in S1–S6, which the export writes as `#NANNANNAN`: a plain transparent value would export cleanly. Also
-  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px
-  Border/Active/Neutral/Subtle one (code uses the 3px ring on both).
+  `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle outer ring, Field-Only a 3px one (both
+  Focus/Neutral/Subtle since 2026-10-13; code uses the 3px ring on both). Also 2026-10-13: Field-Only's
+  Inputted-Error/Blank-Error border is Color/Focus/Negative/Solid but Text-Area's is still Color/Border/Negative/Solid/Default
+  (same colour; code uses Focus/Negative/Solid on both).
 - P2 (2026-10-03, session "Slot Component phân biệt"): Figma file — set `Bubble-Chat-Others-Business/Background/Default`
   to Color/Background/Surface/Default in all nine Component Theme modes (repo changed at the user's request); the next
   Component Theme sync reverts it otherwise.

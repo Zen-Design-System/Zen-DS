@@ -2,7 +2,7 @@
 # Layout (Stack, Grid, Box, Container)
 
 **Figma:** Auto layout + Spacing/Gap, Spacing/Padding, Corner-Radius variables  
-**Import:** `import { Box, Container, Grid, Stack } from "@zen/design-system";`
+**Import:** `import { Box, Container, Grid, Stack } from "@zen-ds/react";`
 
 Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.
 

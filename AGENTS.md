@@ -78,6 +78,7 @@ edit at once and block finishing a turn until the gate passed (not while your ow
 | Usage harness | `npm run usage:selftest` · `npm run usage:check` (the CLI, ESLint plugin and app mode are checked by the selftest) |
 | Browser tests | `npm test` — smoke + axe baseline for every component, size spellings, interactions (`ZEN_UPDATE_AXE=1 npm test -- tests/smoke` rewrites the baseline after an a11y fix) |
 | MCP server | `npm run mcp:selftest` |
+| AI kit for Figma | `npm run ai-kit:check` · `npm run ai-kit:build` (zip in dist-pack/; the platform's Installation page builds the same) |
 | Visual regression | `node tools/platform-audit/visual-diff.mjs capture <dir> --url=…` before and after, then `… compare <before> <after> --sheets=<dir>`: refactors that must not change the UI need 0 changed panels |
 | Guidelines + props docs | `npm run guidelines:build` then `npm run guidelines:check` |
 | Tokens / styles / icons | `npm run tokens:check` · `npm run styles:check` · `npm run icons:check` |
@@ -101,6 +102,7 @@ reporting work as done.
 | `src/platform`, `src/foundations` | Docs platform only; never imported by the library |
 | `tools/usage-guard` | Harness: rules (`check-usage.mjs`), scanner (`engine.mjs`), CLI (`cli.mjs`, bin `zen-usage`), ESLint plugin (`eslint.mjs`), API (`api.mjs`); guideline source and generated docs builder |
 | `mcp/` | `zen-ds-mcp`, the MCP server for AI agents (reads the shipped docs) |
+| `tools/ai-kit`, `skills/zen-figma-design` | The AI kit for designing in a Zen Figma file: the skill, the Figma audit harness, the kit builder (`kit.mjs`) |
 | `tools/zen-ds.mjs` | `npx zen-ds init / doctor / check` for apps |
 | `tests/` | Vitest browser tests (Chromium, reduced motion): `smoke/` (every component, axe baseline), `scale.test.tsx`, `interaction/` |
 | `src/components/_shared` | `scale.ts` (size spellings), `labels.ts` (en/vi built-in text), `zen-context.ts` (useZen, useZenLabels, useZenLocale), `icon.tsx` (renderIcon), `overlay.ts` / `status.ts` (accepted aliases) |

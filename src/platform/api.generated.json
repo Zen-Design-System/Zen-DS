@@ -3257,7 +3257,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "",
+          "description": "Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included.",
           "deprecated": null
         },
         {
@@ -5806,11 +5806,27 @@
           "deprecated": null
         },
         {
+          "name": "layout",
+          "type": "\"inline\" | \"stacked\"",
+          "required": false,
+          "default": "\"inline\"",
+          "description": "Figma Layout: `inline` (default: the label trails the bar) · `stacked` (a Label · Value row above a full-width bar).",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode | true",
           "required": false,
           "default": null,
-          "description": "Trailing label (Figma Label=Yes). `true` shows the rounded percentage.",
+          "description": "The label (Figma Text, shown with Label=Yes). Inline: trails the bar, and `true` shows the rounded percentage.\n Stacked: leads the row above the bar and names it; `true` leaves only the value.",
+          "deprecated": null
+        },
+        {
+          "name": "valueLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Stacked only: the text at the end of the row (Figma Value), such as \"3 of 5 steps\". Default: the rounded percentage.",
           "deprecated": null
         },
         {
@@ -7547,10 +7563,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient).",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
           "deprecated": null
         },
         {
@@ -7582,7 +7598,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -7686,7 +7702,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line.",
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take, which scrolls while\n recording and holds still when paused (still under reduced motion); Ready: a flat line. Yours are drawn as given:\n push one level every 1/7 s and drop the oldest for the same 8-second window.",
           "deprecated": null
         },
         {
@@ -7836,7 +7852,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7).",
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio.\n Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding\n (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing.",
           "deprecated": null
         },
         {
@@ -7844,7 +7860,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Mute (the left action, a toggle; off until the conversation starts).",
+          "description": "Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal\n rests while listening, and the guidance and note say the microphone is muted.",
           "deprecated": null
         },
         {
@@ -8070,11 +8086,35 @@
           "deprecated": null
         },
         {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A value at the row's end, read with the title: an amount, a total, a count (\"+94,860,000 VND\", \"92 h\"). Body/Base/Bold\n like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second\n Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's\n button or link, so a clickable row reads it out.",
+          "deprecated": null
+        },
+        {
+          "name": "valueCaption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another\n currency, a date, a unit (\"3,600.00 USD\").",
+          "deprecated": null
+        },
+        {
+          "name": "valueTone",
+          "type": "ContentTone",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "Colour of `value`, a Color/Content tone as Text's `tone`: \"strongest\" (default, like the title); \"positive-light\" /\n \"negative-light\" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too:\n the colour never carries the meaning alone.",
+          "deprecated": null
+        },
+        {
           "name": "trailing",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron.",
+          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`.",
           "deprecated": null
         },
         {
@@ -8205,10 +8245,10 @@
         },
         {
           "name": "theme",
-          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\"",
+          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\" | \"on-container\"",
           "required": false,
           "default": "\"flat\"",
-          "description": "Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame\n (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).",
+          "description": "Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
           "deprecated": null
         },
         {
@@ -9295,7 +9335,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",
@@ -9580,6 +9620,38 @@
           "deprecated": null
         },
         {
+          "name": "headerContent",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header-Contents slot: more header content under the caption (a status row, tabs, a search field), gap XSmall.",
+          "deprecated": null
+        },
+        {
+          "name": "top",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Customize slot, rendered above the header (e.g. a Stepper, a banner or a cover).",
+          "deprecated": null
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Back-Container: a back button (Button/Icon-Flat Small, icon-arrow-narrow-left-line) before the title, for a\n panel that drilled into a detail. Called on click; without it there is no back button.",
+          "deprecated": null
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the back button. Default: the locale's “Back”.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"standard\" | \"modal\"",
           "required": false,
@@ -9600,8 +9672,8 @@
           "type": "IconName | ReactElement",
           "required": false,
           "default": null,
-          "description": "Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element.",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Figma's Side-Panel no longer draws a heading icon (removed on 2026-10-12). Modal only: a 44px icon above\n the title, still drawn for now; put an icon in `top` or `headerContent` instead."
         },
         {
           "name": "children",
@@ -9656,7 +9728,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "description": "Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets onBack / the actions.",
           "deprecated": null
         }
       ]
@@ -11558,7 +11630,7 @@
           "type": "ChartCompare",
           "required": false,
           "default": null,
-          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Color Chart\n Sector/Primary line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid\n line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
           "deprecated": null
         },
         {
@@ -12154,7 +12226,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/3 like a medium Metric.",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
           "deprecated": null
         },
         {
@@ -12207,7 +12279,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",

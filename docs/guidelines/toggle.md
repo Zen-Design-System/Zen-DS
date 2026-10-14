@@ -2,7 +2,7 @@
 # Toggle
 
 **Figma:** Toggle, Toggle/Button (page 1307:27442)  
-**Import:** `import { Toggle, ToggleButton } from "@zen/design-system";`
+**Import:** `import { Toggle, ToggleButton } from "@zen-ds/react";`
 
 Turn a setting on or off with immediate effect.
 

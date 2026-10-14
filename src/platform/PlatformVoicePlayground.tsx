@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Card } from "../components/Card";
 import { AiVoiceConversation, VoiceRecorder, type AiVoiceState, type VoiceRecorderState } from "../components/Voice";
 import { PlatformCode } from "./PlatformCode";
@@ -25,17 +25,20 @@ export function VoicePlayground() {
   const [conversation, setConversation] = useState<AiVoiceState>("listening");
   const [muted, setMuted] = useState(false);
   const [seconds, setSeconds] = useState(24.18);
-  // A take counts up while it records (a tenth of a second at a time).
+  const latest = useRef(seconds);
+  latest.current = seconds;
+  // A take counts up while it records, from the real clock (the hundredths run like a stopwatch's).
   useEffect(() => {
     if (kind !== "recorder" || recorder !== "recording") return undefined;
-    const timer = window.setInterval(() => setSeconds((now) => now + 0.1), 100);
+    const from = performance.now() - latest.current * 1000;
+    const timer = window.setInterval(() => setSeconds((performance.now() - from) / 1000), 47);
     return () => window.clearInterval(timer);
   }, [kind, recorder]);
   const isRecorder = (kind ?? "recorder") === "recorder";
   const state = isRecorder ? recorder : conversation;
   const states = isRecorder ? [option("ready", "Ready"), option("recording", "Recording"), option("paused", "Paused")] : [option("ready", "Ready"), option("listening", "Listening"), option("responding", "Responding")];
   const code = isRecorder
-    ? `import { Card, VoiceRecorder } from "@zen/design-system";
+    ? `import { Card, VoiceRecorder } from "@zen-ds/react";
 
 <Card theme="flat" spacing="sm">
   <VoiceRecorder
@@ -48,7 +51,7 @@ export function VoicePlayground() {
     onRecord={start} onPause={pause} onResume={resume} onFinish={save} onDiscard={discard}
   />
 </Card>`
-    : `import { AiVoiceConversation, Card } from "@zen/design-system";
+    : `import { AiVoiceConversation, Card } from "@zen-ds/react";
 
 <Card theme="flat" spacing="sm">
   <AiVoiceConversation

@@ -22,11 +22,21 @@ export interface SidePanelProps extends OverlayOpenProps {
   headingLevel?: 1 | 2 | 3;
   /** Figma Caption (Body/Base/Regular, Neutral/Base). */
   description?: ReactNode;
+  /** Figma Header-Contents slot: more header content under the caption (a status row, tabs, a search field), gap XSmall. */
+  headerContent?: ReactNode;
+  /** Figma Top-Customize slot, rendered above the header (e.g. a Stepper, a banner or a cover). */
+  top?: ReactNode;
+  /** Figma Back-Container: a back button (Button/Icon-Flat Small, icon-arrow-narrow-left-line) before the title, for a
+   *  panel that drilled into a detail. Called on click; without it there is no back button. */
+  onBack?: () => void;
+  /** Accessible name of the back button. Default: the locale's “Back”. */
+  backLabel?: string;
   /** Figma Type: Standard (docked beside the page, non-modal) · Modal (floating over a scrim, traps focus). */
   type?: SidePanelType;
   /** Figma Size: Default 440 · Small 360. */
   size?: SidePanelSize;
-  /** Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element. */
+  /** @deprecated Figma's Side-Panel no longer draws a heading icon (removed on 2026-10-12). Modal only: a 44px icon above
+   *  the title, still drawn for now; put an icon in `top` or `headerContent` instead. */
   icon?: IconName | ReactElement;
   /** Figma Contents slot. */
   children?: ReactNode;
@@ -37,8 +47,8 @@ export interface SidePanelProps extends OverlayOpenProps {
   /** Accessible name of the close button. Default: the locale's “Close panel”. */
   closeLabel?: string;
   className?: string;
-  /** Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
-   *  app code sets icon / the actions. */
+  /** Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
+   *  app code sets onBack / the actions. */
   overrides?: NestedOverrides;
 }
 
@@ -47,14 +57,16 @@ export interface SidePanelProps extends OverlayOpenProps {
  * in place (the page layout docks it); Escape closes it (from the panel or the page beside it) and focus returns to the
  * opener. Modal: a floating Background/Container panel (Corner-Radius/XLarge, Container
  * border, Effect/Container) 8px from the viewport edge over the scrim; focus is trapped and returns to the opener.
- * Header (Modal-Padding, gap Medium): title (Standard Heading/3, Modal Heading/4 under the 44px icon) · caption; the close
- * button is pinned to the header's top-right corner; Contents; Modal/Actions footer.
+ * Sections, each Modal-Padding on every side: Top-Customize (optional) · Header (Header-Contents, gap XSmall: the row
+ * back · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents
+ * (gap Medium, scrolls) · Modal/Actions footer.
  */
-export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides }: SidePanelProps) {
+export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, headerContent, top, onBack, backLabel: backLabelProp, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides }: SidePanelProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const closeLabel = closeLabelProp ?? t.closePanel;
+  const backLabel = backLabelProp ?? t.back;
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLElement>(null);
   const modal = type === "modal";
@@ -116,18 +128,20 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
       aria-describedby={description ? `${id}-desc` : undefined}
       tabIndex={modal ? -1 : undefined}
     >
+      {top ? <div className="zen-side-panel__top">{nest.slot(top)}</div> : null}
       <header className="zen-side-panel__header">
         {modal && icon ? <span className="zen-side-panel__icon" aria-hidden="true">{nest("Icon", renderIcon(icon))}</span> : null}
+        {/* Figma Header row: the 32px Small Icon-Flat buttons sit in 20px Wrappers and overhang them by 6px (Standard
+            close), or in 28px Back- / Close-Containers (padding 2XSmall) and overhang by 2px (back; Modal close). */}
         <div className="zen-side-panel__heading">
+          {onBack ? nest("Back", <IconButton className="zen-side-panel__back" appearance="flat" level="primary" size="sm" aria-label={backLabel} onClick={onBack} icon={<Icon name="icon-arrow-narrow-left-line" />} />) : null}
           <Title id={`${id}-title`} className={`zen-side-panel__title ${typographyStyles[modal ? "Heading/4" : "Heading/3"]}`}>{title}</Title>
+          {nest("Close", <IconButton className="zen-side-panel__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} onClick={() => onOpenChange(false)} icon={<Icon name="icon-x-small-line" />} />)}
         </div>
         {description ? <p id={`${id}-desc`} className={`zen-side-panel__description ${typographyStyles["Body/Base/Regular"]}`}>{description}</p> : null}
+        {headerContent ? <div className="zen-side-panel__header-content">{nest.slot(headerContent)}</div> : null}
       </header>
       {children ? <div className="zen-side-panel__body">{nest.slot(children)}</div> : null}
-      {/* Figma: a 20px Wrapper at the header's top-right corner holds the 32px Small Icon-Flat, so the button
-          overhangs it by 6px. Standard: Wrapper at Modal-Padding; Modal: inside a 28px Close-Container (padding 4)
-          on the icon row. */}
-      {nest("Close", <IconButton className="zen-side-panel__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} onClick={() => onOpenChange(false)} icon={<Icon name="icon-x-small-line" />} />)}
       {primaryAction || secondaryAction ? nest("Actions", <ModalActions className="zen-side-panel__actions" primaryAction={primaryAction} secondaryAction={secondaryAction} onDefault={() => onOpenChange(false)} />) : null}
     </aside>
   );

@@ -177,6 +177,10 @@
 .studio-type-control__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-type-control__family { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px) 0; color: var(--zen-color-content-neutral-light); }
 .studio-type-control__empty { padding: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+/* Icon picker's Recent and Related: icon tiles six to a row (the name is the tile's tooltip and accessible name). */
+.studio-icon-control__tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-icon-control__tiles > .zen-popover__item { justify-content: center; padding: var(--zen-spacing-padding-2-xsmall, 4px); }
+.studio-icon-control__tiles > .zen-popover__item[data-has-leading] .zen-popover__item-leading { margin-right: 0; }
 /* Tone control (PropField ToneControl): a select whose trigger and options lead with a swatch of the tone's colour. The
    swatch is painted with currentColor so each tone keeps its own Color/Content token; a Pale ring keeps white and very
    light tones visible on the white panel, and `inherit` (no colour of its own) is a dashed ring. */

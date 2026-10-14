@@ -1,5 +1,5 @@
 /**
- * `@zen/design-system/icons/all` — registers every Zen icon up front, so no <Icon> ever waits for a lazy bucket.
+ * `@zen-ds/react/icons/all` — registers every Zen icon up front, so no <Icon> ever waits for a lazy bucket.
  * For docs sites, icon pickers and galleries. Apps normally skip it: icons they render load on demand.
  */
 import { registerIcons } from "../components/Icon/registry";

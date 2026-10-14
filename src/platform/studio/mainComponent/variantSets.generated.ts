@@ -975,14 +975,16 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Flat",
             "Pale",
             "Border",
-            "Semi-Pale"
+            "Semi-Pale",
+            "On-Container"
           ],
           "values": [
             "shadow",
             "flat",
             "pale",
             "border",
-            "semi-pale"
+            "semi-pale",
+            "on-container"
           ],
           "default": "shadow"
         },
@@ -1727,6 +1729,35 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "ListBox": [
+    {
+      "name": "Component/List-Box",
+      "figma": "14922:75297",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Flat",
+            "Shadow",
+            "Pale",
+            "Border",
+            "On-Container"
+          ],
+          "values": [
+            "flat",
+            "shadow",
+            "pale",
+            "border",
+            "on-container"
+          ],
+          "default": "flat"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "Dialog": [
     {
       "name": "Modal/Dialog",
@@ -1819,6 +1850,19 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "status"
           ],
           "default": "neutral"
+        },
+        {
+          "prop": "layout",
+          "label": "Layout",
+          "names": [
+            "Inline",
+            "Stacked"
+          ],
+          "values": [
+            "inline",
+            "stacked"
+          ],
+          "default": "inline"
         }
       ],
       "toggles": [

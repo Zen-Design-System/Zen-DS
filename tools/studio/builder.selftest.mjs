@@ -25,7 +25,7 @@ const stackLoc = () => parsePage(page).board.children[0].children[0].loc;
 const inserted = applyOps(page, stackLoc(), "Stack", [{ op: "insertChild", code: '<Button level="primary">Pay</Button>' }], options(page));
 check("insert into the screen's Stack", inserted.error ?? null, null);
 page = inserted.code;
-check("the import joins @zen/design-system", /import \{ Button, Stack, Text \} from "@zen\/design-system";/.test(page), true);
+check("the import joins @zen-ds/react", /import \{ Button, Stack, Text \} from "@zen-ds\/react";/.test(page), true);
 check("still a valid page", validateDialect(page, { components }), []);
 
 // A prop edit on the inserted Button.
@@ -39,7 +39,7 @@ check("describeElement reads it", describeElement(page, FILE, button.loc)?.attri
 // Remove it again: the import loses Button.
 const removed = applyOps(page, button.loc, "Button", [{ op: "removeElement" }], options(page));
 check("removeElement", removed.error ?? null, null);
-check("the import drops Button", /import \{ Stack, Text \} from "@zen\/design-system";/.test(removed.code), true);
+check("the import drops Button", /import \{ Stack, Text \} from "@zen-ds\/react";/.test(removed.code), true);
 
 // A list from the mock data: a row's field is edited at the data (setDataField), the binding stays.
 const listPage = page.replace("export const mock = {};", 'export const mock = {\n  items: [\n    { name: "Linen shirt" },\n    { name: "Canvas tote" },\n  ],\n};')
@@ -58,7 +58,7 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   const withProto = applyOps(fresh, at, "Stack", [{ op: "insertChild", code: '<Button level="primary" onClick={proto.toast({ title: "Saved" })}>Save</Button>' }], options(fresh));
   check("insert with proto.toast", withProto.error ?? null, null);
   fresh = withProto.code ?? fresh;
-  check("proto joins the builder import", /import \{ Board, Screen, proto \} from "@zen\/design-system\/builder";/.test(fresh), true);
+  check("proto joins the builder import", /import \{ Board, Screen, proto \} from "@zen-ds\/react\/builder";/.test(fresh), true);
   check("a page with an action is valid", validateDialect(fresh, { components }), []);
   const hook = applyOps(fresh, at, "Stack", [{ op: "insertChild", code: '<Button onClick={() => toast({ title: "x" })}>X</Button>', requires: ["toast"] }], options(fresh));
   check("a toast hook is refused", /no hooks/.test(hook.error ?? ""), true);
@@ -79,8 +79,8 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   const overlay = applyOps(proto, board(), "Board", [{ op: "insertChild", code: frameCode({ kind: "overlay", id: "confirm" }) }], options(proto));
   check("insert an Overlay with a Dialog", overlay.error ?? null, null);
   proto = overlay.code ?? proto;
-  check("Overlay joins the builder import", /import \{ Board, Overlay, Screen, proto \} from "@zen\/design-system\/builder";/.test(proto), true);
-  check("Dialog joins the package import", /import \{ Dialog, Stack, Text \} from "@zen\/design-system";/.test(proto), true);
+  check("Overlay joins the builder import", /import \{ Board, Overlay, Screen, proto \} from "@zen-ds\/react\/builder";/.test(proto), true);
+  check("Dialog joins the package import", /import \{ Dialog, Stack, Text \} from "@zen-ds\/react";/.test(proto), true);
   check("frames after", frames().map((frame) => `${frame.kind}:${frame.id}`), ["screen:screen-1", "screen:screen-2", "overlay:confirm"]);
   check("still a valid page", validateDialect(proto, { components }), []);
   const stack = parsePage(proto).board.children[0].children[0].loc;
@@ -108,12 +108,12 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("switch the Sidebar off", off.error ?? null, null);
   framed = off.code ?? framed;
   check("no sidebar prop, still valid", ["sidebar" in screen().props, validateDialect(framed, { components })], [false, []]);
-  const bare = framed.replace(/import \{ [^}]+ \} from "@zen\/design-system";/, 'import { BottomNavigation, PageHeader, Stack, Text, TopNavigation } from "@zen/design-system";');
+  const bare = framed.replace(/import \{ [^}]+ \} from "@zen-ds\/react";/, 'import { BottomNavigation, PageHeader, Stack, Text, TopNavigation } from "@zen-ds/react";');
   const on = applyOps(bare, parsePage(bare).board.children[0].loc, "Screen", [{ op: "insertChild", prop: "sidebar", code: screenChromeCode("sidebar", "Orders") }], options(bare));
   check("switch it on again", on.error ?? null, null);
-  check("Sidebar back, imported", [parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.name ?? null, /import \{ [^}]*\bSidebar\b[^}]* \} from "@zen\/design-system";/.test(on.code ?? "")], ["Sidebar", true]);
+  check("Sidebar back, imported", [parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.name ?? null, /import \{ [^}]*\bSidebar\b[^}]* \} from "@zen-ds\/react";/.test(on.code ?? "")], ["Sidebar", true]);
   // Its rows are Body-Content children (Figma Menu-Item instances), imported with it.
-  check("the Sidebar's rows are SidebarMenuItem children, imported", [(parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.children ?? []).filter((child) => child.kind === "element").map((child) => child.name), /import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen\/design-system";/.test(on.code ?? "")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
+  check("the Sidebar's rows are SidebarMenuItem children, imported", [(parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.children ?? []).filter((child) => child.kind === "element").map((child) => child.name), /import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen-ds\/react";/.test(on.code ?? "")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
   check("layouts", [screenLayout("phone"), screenLayout("desktop", "mobile"), screenLayout("tablet"), screenLayout("tablet", "desktop")], ["mobile", "desktop", "mobile", "desktop"]);
   const tablet = applyOps(framed, screen().loc, "Screen", [{ op: "setProp", name: "layout", value: { kind: "string", value: "desktop" } }], options(framed));
   check("a tablet laid out as desktop is valid", validateDialect(tablet.code ?? "", { components }), []);

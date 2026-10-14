@@ -184,7 +184,7 @@ export const rows = [
       await until(async () => /<Button level="tertiary" onClick=\{proto\.toast\(\{ title: "Report exported" \}\)\}>/.test((await pageText(page, id)) ?? ""), { message: "a Button with proto.toast in the page" });
       const text = await pageText(page, id);
       // The package import holds the app frame's components too (a new page comes with them).
-      if (!/import \{[^}]*\bButton\b[^}]*\} from "@zen\/design-system";/.test(text)) throw new Error("Button not imported from the package");
+      if (!/import \{[^}]*\bButton\b[^}]*\} from "@zen-ds\/react";/.test(text)) throw new Error("Button not imported from the package");
       await until(async () => (await selectedName(page)) === "Button", { message: "the new Button selected" });
       return "inserted, imported, selected";
     },
@@ -419,8 +419,8 @@ export const rows = [
       await page.getByRole("button", { name: "Add overlay" }).click();
       await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1 in the page" });
       const text = await pageText(page, id);
-      if (!/import \{ Board, Overlay, Screen, proto \} from "@zen\/design-system\/builder";/.test(text)) throw new Error("Overlay not imported");
-      if (!/import \{[^}]*\bDialog\b[^}]*\} from "@zen\/design-system";/.test(text)) throw new Error("Dialog not imported");
+      if (!/import \{ Board, Overlay, Screen, proto \} from "@zen-ds\/react\/builder";/.test(text)) throw new Error("Overlay not imported");
+      if (!/import \{[^}]*\bDialog\b[^}]*\} from "@zen-ds\/react";/.test(text)) throw new Error("Dialog not imported");
       await until(async () => (await page.locator('[data-studio-frame="overlay:overlay-1"]').count()) > 0, { message: "the overlay frame on the canvas" });
       const listed = await page.locator('[data-e2e="prototype-panel"] .studio-prototype__frame').count();
       if (listed !== 3) throw new Error(`Flow lists ${listed} frames`);
@@ -582,7 +582,7 @@ export const rows = [
       await until(async () => /<Sidebar aria-label="Workspace" selectedId="projects">\s*<SidebarMenuItem id="home"/.test((await pageText(page, id)) ?? ""), { message: "a Sidebar with its Menu-Item rows in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       const text = (await pageText(page, id)) ?? "";
       if (/useState|setSection/.test(text)) throw new Error("the page got state");
-      if (!/import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen\/design-system";/.test(text)) throw new Error("SidebarMenuItem is not imported");
+      if (!/import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen-ds\/react";/.test(text)) throw new Error("SidebarMenuItem is not imported");
       await until(async () => (await page.locator(`[data-studio-frame="screen:screen-1"] .zen-sidebar`).count()) > 0, { message: "the Sidebar on the canvas" });
       return "Sidebar inserted, selectedId fixed, no state";
     },

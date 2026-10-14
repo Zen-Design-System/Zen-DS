@@ -2,7 +2,7 @@
 # Tabs
 
 **Figma:** Tab-Bar, Primitives/Tab-Item (page 1573:3394)  
-**Import:** `import { Tabs, TabPanel } from "@zen/design-system";`
+**Import:** `import { Tabs, TabPanel } from "@zen-ds/react";`
 
 Switch between related panels of content at the same level.
 

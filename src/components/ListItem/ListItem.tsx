@@ -1,5 +1,6 @@
-import type { HTMLAttributes, MouseEvent, ReactNode, Ref } from "react";
+import type { CSSProperties, HTMLAttributes, MouseEvent, ReactNode, Ref } from "react";
 import type { IconName } from "../Icon";
+import { contentToneVar, type ContentTone } from "../_shared/contentTone";
 import { renderIcon } from "../_shared/icon";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
@@ -42,7 +43,19 @@ export interface ListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title"
   caption?: ReactNode;
   /** Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`"icon-clock-line"`). */
   leading?: IconName | ReactNode;
-  /** Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron. */
+  /** A value at the row's end, read with the title: an amount, a total, a count ("+94,860,000 VND", "92 h"). Body/Base/Bold
+   *  like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second
+   *  Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's
+   *  button or link, so a clickable row reads it out. */
+  value?: ReactNode;
+  /** The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another
+   *  currency, a date, a unit ("3,600.00 USD"). */
+  valueCaption?: ReactNode;
+  /** Colour of `value`, a Color/Content tone as Text's `tone`: "strongest" (default, like the title); "positive-light" /
+   *  "negative-light" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too:
+   *  the colour never carries the meaning alone. */
+  valueTone?: ContentTone;
+  /** Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`. */
   trailing?: ReactNode;
   /** Figma Contents slot override: replaces the title/caption stack. */
   children?: ReactNode;
@@ -73,10 +86,16 @@ export interface ListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title"
  *   on tablet and mobile) — that shows Neutral/Flat Hover · Pressed and Active/Neutral/Subtle when selected; the
  *   container leaves at least 12px at the row's sides.
  * - Interactive=No (neither): no background or states.
+ * - Value (`value`, `valueCaption`): a right-aligned Info-Content after the title stack, Body/Base/Bold over
+ *   Body/Small/Regular Content/Neutral/Light, Spacing/Gap/3XSmall apart, tabular figures; it keeps its width and the title
+ *   truncates (a transaction or a total per row).
  * Never add padding to the row: the layout around the List decides where it sits.
  */
-export function ListItem({ ref, title, titleLines = 1, caption, leading, trailing, children, selected = false, onClick, href, as: Tag = "li", className, overrides, ...rest }: ListItemProps) {
+export function ListItem({ ref, title, titleLines = 1, caption, leading, value, valueCaption, valueTone = "strongest", trailing, children, selected = false, onClick, href, as: Tag = "li", className, overrides, ...rest }: ListItemProps) {
   const nest = useNested(overrides);
+  // The default tone (strongest) is the CSS default; another tone sets the value's colour variable, inherit the parent's.
+  const valueColor = valueTone === "strongest" ? undefined : contentToneVar(valueTone);
+  const valueStyle = valueTone === "strongest" ? undefined : valueColor ? { "--zen-list-item-value-color": `var(${valueColor})` } as CSSProperties : { color: "inherit" };
   const body = (
     <>
       {leading ? <span className="zen-list-item__leading">{typeof leading === "string" ? nest("Leading", renderIcon(leading)) : nest.slot(leading)}</span> : null}
@@ -88,6 +107,12 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, trailin
           </>
         ))}
       </span>
+      {value != null || valueCaption != null ? (
+        <span className="zen-list-item__value">
+          {value != null ? <span className={`zen-list-item__value-text ${typographyStyles["Body/Base/Bold"]}`} style={valueStyle}>{value}</span> : null}
+          {valueCaption != null ? <span className={`zen-list-item__value-caption ${typographyStyles["Body/Small/Regular"]}`}>{valueCaption}</span> : null}
+        </span>
+      ) : null}
     </>
   );
   const interactive = Boolean(onClick || href);
@@ -106,8 +131,8 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, trailin
   );
 }
 
-/** ListBox elevation: Card's Figma Theme without Semi-Pale. */
-export const listBoxThemes = ["flat", "shadow", "pale", "border"] as const;
+/** ListBox elevation: Figma List-Box Theme (Flat · Shadow · Pale · Border · On-Container, the tokens of Card's Theme). */
+export const listBoxThemes = ["flat", "shadow", "pale", "border", "on-container"] as const;
 export type ListBoxTheme = (typeof listBoxThemes)[number];
 
 /**
@@ -126,10 +151,11 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
   children: ReactNode;
   /** Figma Footer-Slot (Footer=Yes): what follows the rows, e.g. a "Show all" Tertiary button. Pads Card-padding-medium. */
   footer?: ReactNode;
-  /** Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame
-   *  (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:
+  /** Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it
+   *  needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:
    *  Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px
-   *  Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11). */
+   *  Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).
+   *  On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16). */
   theme?: ListBoxTheme;
   /** "div" (default) or "section" when the box is a titled region (give it aria-labelledby). */
   as?: "div" | "section";
@@ -141,8 +167,8 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
  * tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:
  * Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium
  * sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and
- * Footer are optional (Figma Header=No / Footer=No). `theme` picks the elevation like Card's: flat (default), shadow,
- * pale or border.
+ * Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: flat (default), shadow, pale,
+ * border or on-container.
  */
 export function ListBox({ ref, header, footer, children, theme = "flat", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, style, ...rest }: ListBoxProps) {
   const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });

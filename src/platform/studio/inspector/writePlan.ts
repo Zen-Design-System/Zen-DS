@@ -1,4 +1,5 @@
 import type { EditOp, EditValue, SourceAttr, SourceElement } from "../types";
+import { computedDefault } from "./computedDefaults";
 import { literalOf, ownValueOf, propSpecs, valueOf, type Literal, type PropSpec, type PropValue } from "./propSchema";
 
 /*
@@ -45,6 +46,17 @@ export function isTwinRow(component: string, name: string): boolean {
 }
 
 /** The written attribute `name` (spreads left out). */
+/** The props written as literals (what a computed default reads before the canvas reports the live props). */
+function literalProps(attributes: readonly SourceAttr[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const attr of attributes) {
+    if (attr.kind === "spread") continue;
+    const value = valueOf(attributes as SourceAttr[], attr.name);
+    if (value.state === "literal") out[attr.name] = value.value;
+  }
+  return out;
+}
+
 const attrOf = (attributes: readonly SourceAttr[], name: string) => attributes.find((attr) => attr.kind !== "spread" && attr.name === name);
 
 /**
@@ -92,6 +104,10 @@ export function planPropWrite(component: string, attributes: SourceAttr[], name:
     } else ops.push({ op: "setProp", name: twin, value: toEditValue(value) });
     return { ops, note: twin };
   }
+  // A default the component computes (an Advanced Chip's chevron): matching it removes the prop, else it is written,
+  // `false` included (removing it would bring the computed `true` back).
+  const computed = typeof value === "boolean" ? computedDefault(component, name, { ...literalProps(attributes), ...(live ?? {}) }) : undefined;
+  if (computed !== undefined) return value === computed ? { ops: own.state === "unset" ? [] : [{ op: "removeProp", name }] } : { ops: [{ op: "setProp", name, value: toEditValue(value) }] };
   if (value === false && specOf(component, name)?.defaultValue !== true) {
     return { ops: own.state === "unset" ? [] : [{ op: "removeProp", name }] };
   }

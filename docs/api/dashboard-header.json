@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "dashboard-header",
-  "import": "import { DashboardHeader } from \"@zen/design-system\";",
+  "import": "import { DashboardHeader } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "DashboardHeader",

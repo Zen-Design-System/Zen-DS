@@ -1,12 +1,12 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "progress",
-  "import": "import { ProgressBar, ProgressCircle } from \"@zen/design-system\";",
+  "import": "import { ProgressBar, ProgressCircle } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "ProgressBar",
       "file": "src/components/Progress/Progress.tsx",
-      "description": "Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular label, gap 8.",
+      "description": "Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular text, gap XSmall.\nLayout=Inline puts the label after the bar; Layout=Stacked (15304:45…) puts a Header row (Label Body/Base/Bold fills,\nValue Body/Base/Regular hugs, baseline-aligned) above the full-width track.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -27,11 +27,27 @@
           "deprecated": null
         },
         {
+          "name": "layout",
+          "type": "\"inline\" | \"stacked\"",
+          "required": false,
+          "default": "\"inline\"",
+          "description": "Figma Layout: `inline` (default: the label trails the bar) · `stacked` (a Label · Value row above a full-width bar).",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode | true",
           "required": false,
           "default": null,
-          "description": "Trailing label (Figma Label=Yes). `true` shows the rounded percentage.",
+          "description": "The label (Figma Text, shown with Label=Yes). Inline: trails the bar, and `true` shows the rounded percentage.\n Stacked: leads the row above the bar and names it; `true` leaves only the value.",
+          "deprecated": null
+        },
+        {
+          "name": "valueLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Stacked only: the text at the end of the row (Figma Value), such as \"3 of 5 steps\". Default: the rounded percentage.",
           "deprecated": null
         },
         {
@@ -63,7 +79,7 @@
     {
       "name": "ProgressCircle",
       "file": "src/components/Progress/Progress.tsx",
-      "description": "Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on\nNeutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc + 12px icon-check-solid.",
+      "description": "Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on\nNeutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px\nicon-check-solid.",
       "deprecated": null,
       "extends": null,
       "props": [

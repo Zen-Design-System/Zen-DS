@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "action-bar",
-  "import": "import { ActionBar } from \"@zen/design-system\";",
+  "import": "import { ActionBar } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "ActionBar",

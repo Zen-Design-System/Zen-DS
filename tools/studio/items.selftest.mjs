@@ -344,8 +344,8 @@ test("setItems: the whole list rewritten at the prop's indent; null removes the 
 
 test("insertItem on a builder page: a toast handler becomes proto.toast and the runtime import gains proto", () => {
   const page = `// @zen-page {"format":1,"title":"Nav"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { TopNavigation } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { TopNavigation } from "@zen-ds/react";
 
 export default function Page() {
   return (
@@ -359,7 +359,7 @@ export default function Page() {
 `;
   const result = ok(applySlotOp(page, locOf(page, "<TopNavigation"), "TopNavigation", { op: "insertItem", prop: "trailing", code: ACTION, requires: ["toast"] }, { file: "local:nav.zen.tsx", hash: sha1(page), componentModules: { TopNavigation: "TopNavigation" } }));
   assert.match(result.code, /\{ icon: "icon-star-line", label: "Action", onClick: proto\.toast\(\{ title: "Action" \}\) \}/);
-  assert.match(result.code, /import \{ Board, proto, Screen \} from "@zen\/design-system\/builder";|import \{ Board, Screen, proto \} from "@zen\/design-system\/builder";/);
+  assert.match(result.code, /import \{ Board, proto, Screen \} from "@zen-ds\/react\/builder";|import \{ Board, Screen, proto \} from "@zen-ds\/react\/builder";/);
   assert.doesNotMatch(result.code, /useToast/);
 });
 

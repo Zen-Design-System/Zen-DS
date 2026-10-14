@@ -2077,7 +2077,7 @@ Không có exposed component properties.
 
 - Node: `1536:260`
 - Loại: Component set
-- Số variants: 15
+- Số variants: 30 (đọc lại 2026-10-12: thêm `Layout`)
 - Description: Có
 
 | Figma property | Type | Default | Options / notes |
@@ -2086,6 +2086,7 @@ Không có exposed component properties.
 | `Label` | BOOLEAN | true | — |
 | `Theme` | VARIANT | Neutral | `Accent`, `Neutral`, `Status` |
 | `Progress` | VARIANT | Done | `None`, `Low`, `Medium`, `Good`, `Done` |
+| `Layout` | VARIANT | Inline | `Inline`, `Stacked` (code `layout`) |
 
 #### Progress-Circle/Icon
 
@@ -2566,6 +2567,8 @@ Không có exposed component properties.
 | Figma property | Type | Default | Options / notes |
 |---|---|---|---|
 | `Contents` | SLOT | — | — |
+| `Header-Contents` | SLOT | — | đọc lại 2026-10-12 (code `headerContent`) |
+| `Top-Customize` | BOOLEAN | false | đọc lại 2026-10-12 (code `top`) |
 | `Type` | VARIANT | Standard | `Modal`, `Standard` |
 | `Size` | VARIANT | Small | `Default`, `Small` |
 

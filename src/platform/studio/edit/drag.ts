@@ -12,6 +12,7 @@ import { ladderOf } from "../position/PositionSection";
 import { pinOfConstraint, snap, snapText, type Ladder, type Pin, type Snap } from "../position/positionModel";
 import type { EditOp } from "../types";
 import { textEditSession } from "./textEdit";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * Drag a layer in auto layout, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 2).
@@ -290,7 +291,7 @@ function floatOf(host: HTMLElement, layer: NodeSelection): FloatMove | null {
   const own = host.dataset.position === "absolute" && host.matches(".zen-stack, .zen-grid, .zen-box");
   const box = !own && host.parentElement?.matches('.zen-box[data-position="absolute"]') && host.parentElement.children.length === 1 ? host.parentElement : null;
   const floating = own ? host : box;
-  const src = own ? layer.src : box?.getAttribute("data-zen-src");
+  const src = own ? layer.src : srcAttr(box);
   const block = floating?.offsetParent;
   if (!floating || !src || !(block instanceof HTMLElement)) return null;
   const outer = block.getBoundingClientRect();

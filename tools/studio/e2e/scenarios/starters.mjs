@@ -1,7 +1,7 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
-import { focusFrame, openStudioSpace, showLeftTab, sleep, until } from "../lib/studio.mjs";
-import { clickNamed, focusScreen, pageText } from "./builder.mjs";
+import { focusFrame, openStudioSpace, ownerOfLayer, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickNamed, focusScreen, pageText, selectedName } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
 /**
@@ -31,6 +31,44 @@ export async function pageFromFrame(ctx, frame, { on } = {}) {
   /** Console errors since the page was made (React's warnings about a copied prop show here). */
   const newErrors = () => errors.slice(errorsBefore).filter((line) => !/Failed to load resource/.test(line));
   return { page, id, text, status, newErrors };
+}
+
+/** New page › a template (the dialog's card, as a person picks it); returns the page id once the canvas shows it. */
+export async function pageFromTemplate(ctx, title) {
+  const { page } = await ctx.studio({ fresh: true });
+  await showLeftTab(page, "pages");
+  await openStudioSpace(page);
+  const from = page.url();
+  await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New page" });
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  await dialog.getByRole("radio", { name: new RegExp(`^${title}`) }).first().check({ force: true });
+  await dialog.getByRole("button", { name: "Create page" }).click();
+  await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { timeout: 40_000, message: `the ${title} page on the canvas` });
+  const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+  await focusScreen(page);
+  return { page, id };
+}
+
+/** ⌘-click (Figma's deep select) at the centre of the first element matching `selector` in the page's Screen; ⇧Enter
+ *  back to it when the click went on into its text or a nested instance (2026-10-13). */
+async function deepSelect(page, selector) {
+  const box = await page.locator(`.studio-frame ${selector}`).first().boundingBox();
+  if (!box) throw new Error(`no ${selector} on the canvas`);
+  await page.keyboard.down("Meta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("Meta");
+  await sleep(500);
+  await ownerOfLayer(page);
+  return box;
+}
+
+/** The source of the first `<Name` element of the page, up to the next element of that name. */
+async function firstElementText(page, id, name) {
+  const text = (await pageText(page, id)) ?? "";
+  const start = text.indexOf(`<${name}`);
+  const next = text.indexOf(`<${name}`, start + 1);
+  return start < 0 ? "" : text.slice(start, next < 0 ? undefined : next);
 }
 
 export const rows = [
@@ -342,6 +380,240 @@ export const rows = [
         await sleep(500);
         if ((await text()) !== before) throw new Error("the page changed while only selecting");
         return steps.join(" → ");
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-13", feature: "A page from the Dashboard template, its Metric card (user 2026-10-13: \"bật boolean … không hoạt động, đặc biệt các boolean có slot như Metric card\"): Title-Highlight lists Hint, Label-Icon and Custom but no Counter (Icon-Highlight's); Custom opens the picker and the picked item fills Custom-Slot", wp: "studio toggles 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        const panel = page.locator("#studio-right");
+        const switches = await panel.getByRole("switch").evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+        for (const label of ["Hint", "Label-Icon", "Custom"]) if (!switches.includes(label)) throw new Error(`no ${label} switch (${switches.join(", ")})`);
+        if (switches.includes("Counter")) throw new Error("Counter shows on Title-Highlight, where nothing draws it");
+        await panel.getByRole("switch", { name: "Custom", exact: true }).click();
+        const picker = page.locator(".studio-slots__picker-scope");
+        await picker.waitFor({ state: "visible", timeout: 5000 }).catch(() => { throw new Error("Custom did not open the picker"); });
+        await page.keyboard.type("Progress");
+        await picker.getByRole("option").first().click();
+        await until(async () => /custom=\{<Stack[^]*?<ProgressBar/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "custom={…ProgressBar…} written" });
+        await until(() => page.evaluate(() => Boolean(document.querySelector(".studio-frame .zen-metric-card .zen-metric__custom .zen-progress, .studio-frame .zen-metric-card .zen-metric__custom [role=progressbar]"))), { timeout: 8000, message: "the progress bar drawn in the card" });
+        return "Hint, Label-Icon, Custom (no Counter); Custom → picker → ProgressBar in Custom-Slot";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-14", feature: "A page from the Dashboard template, clicked like Figma (user 2026-10-13: \"khó click vào element muốn hơn so với figma\"): the first click on a KPI value selects a section of the page (never AppShell), three double-clicks reach the MetricCard, and right-click › Select layer › MetricCard selects it in two steps", wp: "studio click 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page } = await pageFromTemplate(ctx, "Dashboard");
+        const value = await page.locator(".studio-frame .zen-metric-card .zen-metric__value").first().boundingBox();
+        const x = value.x + value.width / 2;
+        const y = value.y + value.height / 2;
+        const steps = [];
+        await page.mouse.click(x, y); await sleep(400);
+        steps.push(await selectedName(page));
+        if (steps[0] === "AppShell" || steps[0] === "Screen") throw new Error(`the first click selected ${steps[0]}`);
+        for (let index = 0; index < 4 && steps.at(-1) !== "MetricCard"; index++) { await page.mouse.dblclick(x, y); await sleep(400); steps.push(await selectedName(page)); }
+        if (steps.at(-1) !== "MetricCard" || steps.length > 4) throw new Error(`clicks: ${steps.join(" → ")}`);
+        await page.keyboard.press("Escape"); await page.keyboard.press("Escape"); await sleep(300);
+        await page.mouse.click(x, y, { button: "right" });
+        await page.getByRole("menuitem", { name: /^Select layer/ }).click();
+        const listed = await page.getByRole("menu", { name: "Select layer" }).getByRole("menuitem").allInnerTexts().catch(() => []);
+        await page.getByRole("menu", { name: "Select layer" }).getByRole("menuitem", { name: /^MetricCard/ }).click();
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "Select layer › MetricCard" });
+        return `${steps.join(" → ")}; Select layer lists ${listed.map((item) => item.split("\n")[0]).join(", ")}`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-15", feature: "A page from the Dashboard template: an Advanced Chip's Dropdown switched off writes dropdown={false} and its chevron goes (an unset dropdown is on for Advanced chips)", wp: "studio toggles 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelect(page, ".zen-chip");
+        await until(async () => (await selectedName(page)) === "Chip", { message: "the Chip selected" });
+        const chevrons = () => page.evaluate(() => document.querySelector(".studio-frame .zen-chip")?.querySelectorAll("svg").length ?? 0);
+        const before = await chevrons();
+        await page.locator("#studio-right").getByRole("switch", { name: "Dropdown", exact: true }).click();
+        await until(async () => /dropdown=\{false\}/.test(await firstElementText(page, id, "Chip")), { timeout: 8000, message: "dropdown={false} written" });
+        await until(async () => (await chevrons()) < before, { timeout: 8000, message: "the chevron gone" });
+        return `dropdown={false}; icons ${before} → ${await chevrons()}`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-16", feature: "Layers lists what the canvas selects (user 2026-10-13: \"Panel Layers vẫn hiện các lớp mà click đã bỏ qua\"): on a Dashboard page AppShell › Stack › Stack › Grid › Grid › MetricCard, no Container, no List row, no Parts row under a Stack or Grid; a selected KPI card's row is the selected one", wp: "studio click 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        await showLeftTab(page, "layers");
+        const rows = await until(async () => {
+          const list = await page.locator("#studio-left [data-layer-id]").evaluateAll((els) => els.map((el) => ({ name: (el.querySelector(".studio-layers__name, [class*=name]")?.textContent ?? el.textContent ?? "").trim(), level: Number(el.getAttribute("aria-level") ?? 0), selected: el.getAttribute("aria-selected") === "true" })));
+          return list.some((row) => row.selected) ? list : null;
+        }, { message: "a selected Layers row" });
+        const selected = rows.findIndex((row) => row.selected);
+        if (!/^MetricCard/.test(rows[selected].name)) throw new Error(`the selected row is ${rows[selected].name}`);
+        // Its ancestors as Layers shows them, nearest first.
+        const chain = [];
+        for (let index = selected - 1, level = rows[selected].level; index >= 0 && level > 1; index--) if (rows[index].level < level) { chain.unshift(rows[index].name.replace(/Empty$/, "")); level = rows[index].level; }
+        const joined = chain.join(" › ");
+        if (/Container|(^| › )List( › |$)/.test(joined)) throw new Error(`Layers still lists a passed-through layer: ${joined}`);
+        if (!/AppShell › Stack › Stack › Grid › Grid$/.test(joined)) throw new Error(`ancestors: ${joined}`);
+        const partsUnderLayout = rows.some((row, index) => /^Parts/.test(row.name) && index > 0 && /^(Stack|Grid)\b/.test(rows.slice(0, index).reverse().find((other) => other.level === row.level - 1)?.name ?? ""));
+        if (partsUnderLayout) throw new Error("a Parts row under a Stack or Grid");
+        return `${joined} › MetricCard`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-17", feature: "⌘-click goes into an instance to its text, as Figma's deep select (user 2026-10-13): a KPI value is the Text layer of the MetricCard, its Text › Value field writes value=, Enter edits it in place; a Badge's label is its Text too, ⇧Enter goes up to the Badge", wp: "studio click 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        const box = await page.locator(".studio-frame .zen-metric-card .zen-metric__value").first().boundingBox();
+        await page.keyboard.down("Meta"); await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await page.keyboard.up("Meta");
+        await until(async () => /^Text\b/.test(await selectedName(page)), { message: "the value's Text layer selected" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        const field = page.locator('#studio-right [data-prop="value"] input').first();
+        await field.fill("$600K"); await field.press("Enter");
+        await until(async () => /value="\$600K"/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: 'value="$600K" written' });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Enter");
+        await until(() => page.evaluate(() => Boolean(document.activeElement?.isContentEditable)), { timeout: 4000, message: "Enter edits the text in place" });
+        await page.keyboard.press("Meta+a"); await page.keyboard.type("$700K"); await page.keyboard.press("Enter");
+        await until(async () => /value="\$700K"/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: 'value="$700K" from the canvas' });
+        const badge = await page.locator(".studio-frame .zen-table tbody .zen-badge").first().boundingBox();
+        await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+        await page.keyboard.down("Meta"); await page.mouse.click(badge.x + badge.width / 2, badge.y + badge.height / 2); await page.keyboard.up("Meta");
+        await until(async () => /^Text\b/.test(await selectedName(page)), { message: "⌘-click on a Badge's label selects its Text (Figma)" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        await page.locator(".studio-viewport").focus(); await page.keyboard.press("Shift+Enter");
+        await until(async () => /^Badge\b/.test(await selectedName(page)), { message: "⇧Enter goes up to the Badge" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        return "value → Text layer → $600K (field) → $700K (Enter on the canvas); Badge label → Text → ⇧Enter → Badge";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-18", feature: "A nested boolean switched back off returns to the main component (user 2026-10-13: off left `hint: false`): a MetricCard's Metric › Hint on writes overrides, off removes them all", wp: "studio overrides 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        const card = await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        // One level in (Figma's double-click): the Metric the card draws.
+        // On its icon (a double-click on its words edits them in place).
+        const icon = await page.locator(".studio-frame .zen-metric-card .zen-dock-icon").first().boundingBox();
+        await page.mouse.dblclick(icon.x + icon.width / 2, icon.y + icon.height / 2); await sleep(500);
+        await until(async () => /^Metric\b/.test(await selectedName(page)), { message: "the nested Metric selected" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        const hint = page.locator("#studio-right").getByRole("switch", { name: "Hint", exact: true }).first();
+        await hint.click();
+        await until(async () => /overrides=\{\{ "Metric": \{ hint: "/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "the Hint override written" });
+        await hint.click();
+        await until(async () => !/overrides=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "no override left (not hint: false)" }).catch(async (error) => { throw new Error(`${error.message}: ${(await firstElementText(page, id, "MetricCard")).match(/overrides=\{[^}]*\}\s*\}/)?.[0]}`); });
+        return "Hint on → overrides; off → no overrides prop";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-19", feature: "Figma walk fixes on template pages (2026-10-13): Add to Action-Slots › Button joins the page header's row of buttons (was refused: a fragment in a prop); a Sidebar item renamed on the canvas (⌘-click, double-click its label, type) writes its label; Trend off hides one card's trend", wp: "studio walk 2026-10-13",
+    timeout: 90_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Admin list");
+        // Sidebar item label, in place.
+        const label = await page.locator(".studio-frame .zen-sidebar__item-group").nth(1).evaluate((group) => { const walker = document.createTreeWalker(group, NodeFilter.SHOW_TEXT); for (let node = walker.nextNode(); node; node = walker.nextNode()) { const text = (node.textContent ?? "").trim(); if (text.length > 2) { const r = node.parentElement.getBoundingClientRect(); return { x: r.x + Math.min(r.width / 2, 20), y: r.y + r.height / 2, text }; } } return null; });
+        if (!label) throw new Error("no Sidebar item label");
+        await page.keyboard.down("Meta"); await page.mouse.click(label.x, label.y); await page.keyboard.up("Meta"); await sleep(400);
+        await page.mouse.dblclick(label.x, label.y);
+        await until(() => page.evaluate(() => Boolean(document.activeElement?.isContentEditable)), { timeout: 4000, message: "the item's label edits in place" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)}; status: ${await statusText(page)})`); });
+        await page.keyboard.press("Meta+a"); await page.keyboard.type("People"); await page.keyboard.press("Enter");
+        await until(async () => /label: "People"/.test((await pageText(page, id)) ?? ""), { timeout: 8000, message: 'label: "People" in the sections' });
+        // A button into the page header's actions row.
+        await page.keyboard.press("Escape"); await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+        const title = await page.locator(".studio-frame .zen-page-header h1").first().boundingBox();
+        await page.keyboard.down("Meta"); await page.mouse.click(title.x + title.width + 40, title.y + title.height / 2); await page.keyboard.up("Meta"); await sleep(400);
+        await until(async () => (await selectedName(page)) === "PageHeader", { message: "the PageHeader selected" });
+        const before = (await firstElementText(page, id, "PageHeader")).split("<Button").length;
+        await page.locator("#studio-right").getByRole("button", { name: /Add to Action-Slots/ }).first().click();
+        await page.getByRole("option", { name: /^Button/ }).first().click();
+        await until(async () => (await firstElementText(page, id, "PageHeader")).split("<Button").length > before, { timeout: 8000, message: "a Button in the header's actions" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+        if (/actions=\{<>/.test(await firstElementText(page, id, "PageHeader"))) throw new Error("a fragment in actions");
+        return `Sidebar "${label.text}" → People in place; Button added to the header's actions`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-20", feature: "Figma's Trend boolean on a Metric card (2026-10-13): off removes that card's trend (its badge goes), on writes a starting trend again", wp: "studio walk 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        const trend = page.locator("#studio-right").getByRole("switch", { name: "Trend", exact: true }).first();
+        await trend.click();
+        await until(async () => !/trend=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "trend removed from the first card" });
+        await until(() => page.evaluate(() => !document.querySelector(".studio-frame .zen-metric-card")?.querySelector(".zen-metric__content .zen-badge")), { timeout: 8000, message: "its badge gone" });
+        await trend.click();
+        await until(async () => /trend=\{\{/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "a trend written again" });
+        return "Trend off → no trend; on → a trend";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-21", feature: "A page made in the Studio marks its elements by document id (user 2026-10-13: \"Refactor định danh layer để sửa gần như tức thì\"): a switch that adds a line leaves the marks of the elements below it as they were, and the Studio still reads their place (a click on one selects it, its Inspector edits it)", wp: "studio ids 2026-10-13",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+        // The page's document exists after its first edit: one edit first (Hint on the first card, then off).
+        await deepSelect(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        const hint = page.locator("#studio-right").getByRole("switch", { name: "Hint", exact: true }).first();
+        await hint.click();
+        await until(async () => /hint=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "hint written" });
+        // Every mark the page's elements put in the DOM (components that pass their attributes on).
+        const marks = () => page.evaluate(() => [...document.querySelectorAll('.studio-frame [data-zen-src^="local:"]')].map((el) => el.getAttribute("data-zen-src")));
+        const before = await marks();
+        if (before.length < 10 || !before.every((mark) => /:@[\w-]+$/.test(mark ?? ""))) throw new Error(`not marked by id (${before.length}): ${before.slice(0, 3).join(", ")}`);
+        await hint.click();
+        await until(async () => !/hint=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "hint removed (a line fewer)" });
+        const after = await marks();
+        if (after.join("|") !== before.join("|")) throw new Error("the marks of the elements below changed with the line count");
+        // Their place is still read right: ⌘-click a ListBox's padding selects the ListBox.
+        const list = await page.locator(".studio-frame .zen-list-box").first().boundingBox();
+        await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+        await page.keyboard.down("Meta"); await page.mouse.click(list.x + 4, list.y + 4); await page.keyboard.up("Meta");
+        await until(async () => (await selectedName(page)) === "ListBox", { message: "the ListBox selected by its mark" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
+        return `${before.length} marks kept through an edit that removed a line; ListBox selected`;
       } finally {
         await ctx.studio({ fresh: true });
       }

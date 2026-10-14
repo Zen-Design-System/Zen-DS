@@ -7,7 +7,7 @@
  * - Money is USD. Tables and details show it whole (formatMoney), charts and KPI tiles may shorten it ({ compact }).
  * - Status vocabularies are fixed per domain and always render as a Badge with the theme from its map.
  */
-import type { AvatarTheme, BadgeTheme, DockIconTheme, FlagName, IconName, TextTone } from "@zen/design-system";
+import type { AvatarTheme, BadgeTheme, DockIconTheme, FlagName, IconName, TextTone } from "@zen-ds/react";
 import accountPhoto from "./assets/account-photo.jpg";
 import workspaceLogo from "./assets/workspace-logo.png";
 

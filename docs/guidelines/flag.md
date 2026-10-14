@@ -2,7 +2,7 @@
 # Flag
 
 **Figma:** Flag (7063:63834, 🍑 Iconography)  
-**Import:** `import { Flag, flagNames } from "@zen/design-system";`
+**Import:** `import { Flag, flagNames } from "@zen-ds/react";`
 
 A round country or region flag that helps people spot a country next to its name.
 

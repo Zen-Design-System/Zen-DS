@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "text",
-  "import": "import { Text, Heading } from \"@zen/design-system\";",
+  "import": "import { Text, Heading } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Text",

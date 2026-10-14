@@ -27,8 +27,8 @@ const newId = () => `t${(ids += 1)}`;
 /* ── a print reads back as the same page ───────────────────────────────────────────────────────────────────────── */
 
 const RICH = `// @zen-page {"format":1,"title":"Rich page","os":"ios"}
-import { Board, Screen, proto } from "@zen/design-system/builder";
-import { Avatar, Badge, Button, Card, List, ListItem, Stack, Table, Text } from "@zen/design-system";
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Avatar, Badge, Button, Card, List, ListItem, Stack, Table, Text } from "@zen-ds/react";
 
 export const mock = {
   people: [

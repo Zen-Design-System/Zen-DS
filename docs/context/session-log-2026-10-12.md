@@ -105,6 +105,15 @@
   frames later (`focusFirstInvalidField`), the page moved 88px after `pointAt` measured, and the click landed on the
   photo. Fixed at its owner: `behaviour.mjs` checks the point still hits the button (`B.hits`) and measures again.
 
+## SidePanel body children squeezed (Studio Export tabs cut off) (tier S)
+
+- User screenshot: Studio Export's Segmented (React · HTML · Handoff · Figma · Design file) clipped to a thin strip.
+- Cause: `.zen-side-panel__body` is a scrolling flex column; its children kept `flex-shrink: 1`, and a child whose
+  min-height resolves to 0 (Segmented clips with `overflow-x: auto`, the code block has its own overflow, or any fixed
+  height) shrank instead of the body scrolling. Repro in the browser: Segmented 25px (should be 40), a 56px block 30px.
+- Fix at the owner: `side-panel.css` gives body children `flex-shrink: 0`. After: 40 / 56, body scrolls (572 of 613).
+- Gate (`--files=side-panel.css`): passed; sheets side-panel 390/1512 looked at, no change.
+
 ## Studio → Figma: app pages imported as an empty frame; coverage audit; P1 (tier S/M)
 
 - User: Studio export of Dashboard / Admin list imports into Figma as an empty frame. Both `.figma.json` in Downloads
@@ -264,6 +273,67 @@
   Manually) — not a bug; Table/Cell/Header's Title (All-Caps/S, 16px line) sits in a 12px fixed Wrapper → 2px over
   top and bottom in all 8 variants (invisible, no clip); the Edit cell's 62px was the row's caption height, not the cell; its text colour follows the nested Input-Content state (Typing = Strongest for a cell with a value, user) — no library gap. Figma's Edit field is left-aligned while code right-aligns number editors (table/editor-number-right): the user keeps the code and the designer updates Figma.
 
+## Side Panel and Progress re-synced from the official Figma file (session 5c8bdb56, tier M)
+- Read-only use_figma on `9nZv4uW2LT21yuHabMTCh1`. New in Figma since the last read: Side-Panel (1573:3128) gained
+  `Header-Contents` (SLOT), `Top-Customize` (BOOLEAN, hidden frame above the header) and lost the Modal heading icon
+  (Icon-Wrapper); Progress-Bar (1536:260) gained `Layout` = Inline | Stacked (15 → 30 variants, 15304:45…).
+- Evidence (Figma → code → browser at 1512, light/Compact):
+
+| Layer | Figma | Code | Browser | |
+|---|---|---|---|---|
+| Side-Panel Header / Block-Placeholder / Actions | each padding Modal-Padding on 4 sides (48 between sections) | `__header`, `__body`, `__actions` padding `--zen-modal-padding` | header→first content 24+24, actions pad 24 | Khớp |
+| Header-Contents | gap XSmall; row gap Medium (back · Heading-Div fill · close) | `__header` gap XSmall, `__heading` flex gap Medium | caption y = title + 28 + 8 | Khớp |
+| Close (Standard Wrapper 20 / Modal Close-Container 28) | 32px Icon-Flat overhangs by 6 / 2 | margins from Element-Size/Base, Button/Size/Small, Padding/2XSmall | 18/18 Standard, 22/22 Modal; title w 332 Modal | Khớp |
+| Back-Container (hidden) | p 2XSmall + Wrapper 20, icon-arrow-narrow-left-line | `onBack` → `__back` | x 22, title x 68 (Modal) | Khớp |
+| Top-Customize | p Modal-Padding, slot gap Medium | `top` → `__top` | header starts after top + 24 | Khớp |
+| Progress Stacked | V gap XSmall; Header H baseline gap XSmall (Label fill, Value hug), track fill 8px | `layout="stacked"`, `__header`, `__value` | header 20, track y +28, value 31.5 wide | Khớp |
+| Progress-Circle/Icon Base | fill Neutral/Subtle + 2px Support/*/Subtle ring; Done disc covers it | bg Neutral/Subtle, Done `box-shadow: none` | rgba(2,2,2,.075); Done ring none | Khớp |
+
+- API: SidePanel `top`, `headerContent`, `onBack`/`backLabel`, `icon` @deprecated (still drawn); ProgressBar `layout`,
+  `valueLabel`; both now take the "Progress" fallback name from `useZenLabels()`. Close moved into the header row, so
+  Tab reaches back → close before the contents.
+- Studio data: component-properties.json (2 sets), figma-props.map (Layout → layout; Top-Customize / Header-Contents
+  skipped as slots, like ModalForm), nested-layers.json Side-Panel re-read, nested-paths ALLOWED (Back; Icon deprecated);
+  figmaProps / variantSets / nestedLayers / compile-api regenerated. Platform: playground Layout chip, Back + Top slot
+  toggles (icon removed), Background export example uses the stacked bar.
+- Kept on purpose: the actions stay pinned to the panel bottom (body scrolls) where Figma's static frame lets them follow
+  the contents.
+
+## List-Box Theme pushed back to Figma (tier S, user: "chưa update ListBox ngược lại Figma")
+
+- Figma (user-approved write, `use_figma`, file 9nZv4uW2LT21yuHabMTCh1): Component/List-Box 14922:75297 gets a Theme
+  variant property, Flat (default) · Shadow · Pale · Border. The 4 old variants were renamed `Theme=Flat, …` (12
+  instances kept, all Flat); 12 new variants (15321:476…619) take Card Theme's paints/styles: Shadow = effect style
+  Shadow/Bottom/Level-1, Pale = Support/Neutral/Pale fill + Effect/Overlay, Border = Border/Neutral/Pale/Default 1px
+  inside with `strokesIncludedInLayout = false` (as Card Border; else the content shrinks 2px).
+- Gotcha: `variant.clone()` turns the variant's SLOT nodes into plain frames (the slots are lost). Cloning the SLOT node
+  itself keeps it a SLOT: put it in place of the frame and set `componentPropertyReferences = { slotContentId }`.
+  Checked: every new variant's tree (types, names, sizes, bindings, slot refs, texts) equals its Flat sibling's, and a
+  temp instance's Body-Slot accepts content.
+- The user then added a 5th option in Figma, Theme=On-Container (final: Color/Background/Surface/Flat fill, no effect,
+  no stroke; its rows and their 40px button match Flat — only the empty, unfilled Trailing frame reports 56px tall
+  through the API, with no override and nothing visible). On the user's ask I added the same option to
+  Card (6643:51021, 15323:80733…80751): a 5th grid row (Medium/Small × Active No/Yes) cloned from Flat with the
+  Surface/Flat fill; Active=Yes keeps Card/Border/Active. `clone()` also dropped Sub-Action's `visible` ref: copied
+  back from Flat (every ref re-checked). Grid rows: auto tracks off → 5 HUG rows → back to ROWS.
+- Pokeslide (wE65jR5z3xfQqNczG2OQME, a copy of the Zen file with the same node ids), on the user's ask: List-Box Theme
+  Flat · Shadow · Pale · Border · On-Container (16 new variants, styles from that file's own Card variants; 32
+  instances kept) and Card On-Container (5th row). All new variants match their Flat source.
+- Then the user said yes, with the rule "Dùng trên các Modal, Side Panel": Card and ListBox `theme="on-container"`
+  (Surface/Flat; Card keeps it when selected, as in Figma), usage rules §16 row (Dialog, ModalForm, SidePanel; a card in
+  a card, a ListBox or a BottomSheet keeps the Pale border), both guidelines, contract (List-Box 5 options, Card 6),
+  figmaProps/variantSets regenerated, Studio detach maps it to Box surface (approx), push selftest, stories OnContainer.
+  No example or template nests a Card/ListBox in a modal today (checked with a JSX-ancestry scan), so none changed.
+- User, next: BottomSheet too (same Container fill) and a harness rule, yes to both. Rules `card/on-container-in-overlay`
+  and `listbox/on-container-in-overlay` (warn, allow `overlay-theme`): the nearest enclosing box (Card, ListBox,
+  MetricCard, ChartCard) or overlay (Dialog, ModalForm, SidePanel, BottomSheet) of the element is an overlay and its
+  literal theme is not on-container (an expression theme or a spread is skipped). Fixtures: bad 2, good 4 (nested
+  ListBox in an on-container Card, a self-closing Dialog before a ListBox). Repo scan: 0 findings. The two component CSS
+  lines carry `zen-allow-surface-flat` (layer/surface-flat-is-navigation), and the background-layers guideline names
+  On-Container as Surface/Flat's second use.
+- Repo: component-properties.json (List-Box Theme, 4 options), figma-props.map `Theme: "theme"`, figmaProps /
+  variantSets regenerated (this also picked up the Progress session's pending Layout axis), push selftest
+  "ListBox theme", ListBox JSDoc cites Figma's Theme, guidelines rebuilt, CHANGELOG.
 ## Chart family with motion, code + Figma (session "Chart components với animation", worktree `../Zen-DS-charts`, branch `zen/feat/charts`)
 
 The user asked for the library's chart components with animation for Zen Studio, built back into the official Figma
@@ -321,3 +391,13 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
   resting mouse hovered the first sector — the test wrapper now has pointer-events: none. Merged main (#35) again.
 - 2026-10-13 (the user): Multi-Line's comparison at 40% and dash 4 / 5 (their edit on the cover instance) → moved into
   the main component 15426:2663, instance override cleared; chart.css `stroke-opacity: .4; stroke-dasharray: 4 5`.
+- 2026-10-13 (the user): the average line loses its white ring — chart.css plain dots; Figma `Rule-Ring` deleted in
+  Bar (both), Multi-Line, Line-Chart, Stack-Bar. Branch zen/fix/chart-average-dots (after #33 merged as f3b0e05).
+- 2026-10-13 (the user): horizontal bars' Tooltip covered the bars → a value column (all rows, active Strongest); the
+  down Average tag gets a centred 10 × 6 tip and rounded corners (code + Figma); the chart playground covers all 7
+  kinds with Compare / Average toggles at 520px (was Line / Stack at 345px).
+- 2026-10-13 (the user): the comparison line and dot → Color/Border/Neutral/Solid (not the Sector style); moved into the
+  Multi-Line main, cover instance cleared; code COMPARE_COLOUR = border-neutral-solid. Memory note: the exception.
+- 2026-10-13 (the user): donut slices 4px round corners (code: rounded sector paths, sweep mask; Figma: Slice booleans
+  flattened, cornerRadius → Corner-Radius/XSmall); Multi-Line legend/Tooltip dots = Background/Accent/Solid and
+  Background/Neutral/Solid (their Figma edit); the phone example drops its Chart Card (one main chart on a phone).

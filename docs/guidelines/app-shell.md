@@ -2,7 +2,7 @@
 # App Shell
 
 **Figma:** ◇ Master-Layout: Patterns/Pages/Density-Medium (4122:41886), Header/Dashboard (4122:34662) with Primitives/Dashboard/Header Type=Navigation (4122:33400), Header/Action-Item (12280:19532) + Notification-Dot (4116:21789), Patterns/Sidebar (6040:67524); as used on ◆ HR-Platform (1128:29542)  
-**Import:** `import { AppShell, AppShellAction, AppShellAccount, useAppShell } from "@zen/design-system";`
+**Import:** `import { AppShell, AppShellAction, AppShellAccount, useAppShell } from "@zen-ds/react";`
 
 The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.
 

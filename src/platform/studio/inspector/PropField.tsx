@@ -9,9 +9,9 @@ import { contentToneGroups, contentTones, contentToneToken, contentToneVar, reso
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { studioApi } from "../api";
-import { InspectorFileContext } from "./controls/hostContext";
+import { InspectorFileContext, InspectorHostContext } from "./controls/hostContext";
 import { usePendingDraft } from "./drafts";
-import { iconGroups, iconsIn } from "./iconSuggestions";
+import { iconGroups, iconsIn, relatedIcons, withRecent } from "./iconSuggestions";
 import { figmaOptions } from "./propGroups";
 import { allIconNames, dataEditable, dataSourceLabel, fixableBinding, inSentence, matchOption, propLabel, typographyFamily, typographyKeys, type Literal, type PropSpec, type PropValue } from "./propSchema";
 import { useObjectStarter } from "./useObjectStarter";
@@ -508,10 +508,42 @@ function useFileIcons(open: boolean): string[] {
   return icons;
 }
 
+/** The icons picked lately in any icon picker, newest first (this browser only: a private window starts empty). */
+const RECENT_ICONS_KEY = "zen-studio:recent-icons";
+
+function readRecentIcons(): string[] {
+  try {
+    const list: unknown = JSON.parse(window.localStorage.getItem(RECENT_ICONS_KEY) ?? "[]");
+    return Array.isArray(list) ? list.filter((name): name is string => typeof name === "string" && iconSet.has(name)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberIcon(name: string) {
+  try {
+    window.localStorage.setItem(RECENT_ICONS_KEY, JSON.stringify(withRecent(readRecentIcons(), name)));
+  } catch {
+    // No storage (a private window): the picker simply has no Recent group.
+  }
+}
+
+/** The words beside the selection for Related icons: its own text, else the nearest ancestor's within four levels (a
+ *  Metric card's dock icon → "Revenue $48,200…"), at most 160 characters. */
+function wordsNear(host: Element | null): string {
+  let element = host;
+  for (let depth = 0; element && depth < 4; depth += 1, element = element.parentElement) {
+    const text = element.textContent?.trim();
+    if (text) return text.slice(0, 160);
+  }
+  return "";
+}
+
 /**
  * Icon names with a searchable list (at most 200 shown). With no search it leads with `defaultIcon` (the swap's default
- * in Figma) and the icons the file already uses, then every icon (user 2026-10-07: Figma's preferred values are the whole
- * set). `emptyLabel`: what the field reads with no icon ("None").
+ * in Figma), the icons picked lately and the related ones (as tiles), the icons the file already uses, then every icon
+ * (user 2026-10-07: Figma's preferred values are the whole set; 2026-10-14: Recent and Related so a swap needs no
+ * typing). `emptyLabel`: what the field reads with no icon ("None").
  */
 export function IconControl({ label, value, fallback, disabled, onSet, emptyLabel = "None", defaultIcon }: ControlProps<string> & { emptyLabel?: string; defaultIcon?: string }) {
   const [open, setOpen] = useState(false);
@@ -520,6 +552,7 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
   const listId = useId();
   const shown = value ?? fallback;
   const fileIcons = useFileIcons(open);
+  const host = useContext(InspectorHostContext);
   const searching = Boolean(query.trim());
   const items = useMemo(() => {
     if (!open || !searching) return undefined;
@@ -527,10 +560,17 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
       .slice(0, 200)
       .map((name) => ({ id: name, label: name, leading: name as IconName, selected: name === value }));
   }, [open, searching, query, value]);
-  const groups = useMemo(() => (open && !searching ? iconGroups(allIconNames.slice(0, 200), asIcon(defaultIcon), fileIcons) : []), [open, searching, defaultIcon, fileIcons]);
+  const groups = useMemo(() => {
+    if (!open || searching) return [];
+    const current = asIcon(shown);
+    return iconGroups(allIconNames.slice(0, 200), {
+      defaultIcon: asIcon(defaultIcon), fileIcons, current, recent: readRecentIcons(), related: relatedIcons(current, allIconNames, wordsNear(host)),
+    });
+  }, [open, searching, defaultIcon, fileIcons, shown, host]);
   const pick = (name: string) => {
     setOpen(false);
     setQuery("");
+    rememberIcon(name);
     if (name !== value) onSet(name);
   };
   return (
@@ -567,7 +607,11 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
         {groups.map((group) => (
           <div key={group.id} role="group" aria-labelledby={`${listId}-${group.id}`} className="studio-type-control__group" data-icon-group={group.id}>
             <div id={`${listId}-${group.id}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{group.title}</div>
-            {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
+            {group.id === "recent" || group.id === "related"
+              ? <div className="studio-icon-control__tiles">
+                  {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} aria-label={name} title={name} leading={name as IconName} onSelect={() => pick(name)} />)}
+                </div>
+              : group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
           </div>
         ))}
       </Popover>

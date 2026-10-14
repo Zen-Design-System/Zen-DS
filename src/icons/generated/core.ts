@@ -68,6 +68,11 @@ export const coreIcons: Partial<Record<IconName, IconDefinition>> = {
     "content": "<g fill=\"none\"><path d=\"M10.8333 15.4886L17.1549 9.16699L18.3333 10.3454L10.5892 18.0895C10.2637 18.415 9.7362 18.4149 9.41077 18.0895L1.66663 10.3454L2.84501 9.16699L9.16663 15.4886V1.66699H10.8333V15.4886Z\" fill=\"currentColor\"/></g>",
     "colorMode": "monochrome"
   },
+  "icon-arrow-narrow-left-line": {
+    "viewBox": "0 0 20 20",
+    "content": "<g fill=\"none\"><path d=\"M9.18127 4.51302L4.51575 9.16634H18.3333V10.833H4.51575L9.18127 15.4863L8.00452 16.6663L1.91158 10.5897C1.7548 10.4333 1.66663 10.2211 1.66663 9.99967C1.66663 9.77827 1.75481 9.56601 1.91158 9.40967L8.00452 3.33301L9.18127 4.51302Z\" fill=\"currentColor\"/></g>",
+    "colorMode": "monochrome"
+  },
   "icon-arrow-up-line": {
     "viewBox": "0 0 20 20",
     "content": "<g fill=\"none\"><path d=\"M9.41077 1.91107C9.7362 1.58563 10.2637 1.58563 10.5892 1.91107L18.3333 9.65521L17.1549 10.8336L10.8333 4.51198V18.3336H9.16663V4.51198L2.84501 10.8336L1.66663 9.65521L9.41077 1.91107Z\" fill=\"currentColor\"/></g>",

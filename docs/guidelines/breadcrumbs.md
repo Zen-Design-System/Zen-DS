@@ -2,7 +2,7 @@
 # Breadcrumbs
 
 **Figma:** Breadcrumbs (4031:20161), Primitives/Breadcrumbs/Item/Slot (4031:20158), .Primitives/Breadcrumbs/Item (292:43787)  
-**Import:** `import { Breadcrumbs } from "@zen/design-system";`
+**Import:** `import { Breadcrumbs } from "@zen-ds/react";`
 
 Show where the current page sits in a hierarchy and let users go up.
 

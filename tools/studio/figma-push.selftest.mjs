@@ -60,8 +60,8 @@ const TEAM = {
 // 2. A page made in the Studio: a row that spreads and wraps, a Grid, a centred title, an icon Button, a named
 //    IconButton, a Card holding layers, an Icon.
 const PAGE = `// @zen-page {"format":1,"title":"Projects"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Button, Card, Grid, Icon, IconButton, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, Card, Grid, Icon, IconButton, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -180,8 +180,8 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
 //    AppShell as the Zen components it renders, the Screen's app frame, PageHeader as the Dashboard header Type=Main,
 //    wrappers as frames of their layers, Heading as text, a Menu as its trigger.
 const SHELL = `// @zen-page {"format":1,"title":"Team"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -278,8 +278,8 @@ export default function Page() {
 //    overlapping): columns that fit as a wrapping row, MetricCard and ChartCard as a Card around Figma's metric and
 //    chart, ListItem and ListBox parts, Text in its default style and tone, icon names as Figma's cuts.
 const DASH = `// @zen-page {"format":1,"title":"Dash"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { AppShell, Avatar, ChartCard, Chip, DockIcon, Grid, IconButton, LineChart, List, ListBox, ListItem, MetricCard, Search, Segmented, Sidebar, SidebarMenuItem, Stack, StackBarChart, Text, Button, Heading } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, Avatar, ChartCard, Chip, DockIcon, Grid, IconButton, LineChart, List, ListBox, ListItem, MetricCard, Search, Segmented, Sidebar, SidebarMenuItem, Stack, StackBarChart, Text, Button, Heading } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -337,6 +337,9 @@ export default function Page() {
   check("Segmented: as wide as its items (not fullWidth), its items its Level and Size, the selected one Select Yes", [seg.hugW, seg.slots[0].hugW, seg.slots[0].children.map((item) => [item.text, item.props.Level, item.props.Size, item.props.Select])], [true, true, [["Day", "Primary", "Small", "No"], ["Week", "Primary", "Small", "Yes"]]]);
   const listBox = fixed.children[0];
   check("ListBox: Header on, its header row one frame filling Header-Slot, the List filling Body-Slot", { header: listBox.props.Header, slots: listBox.slots.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.layout?.mode, child.fillW])]) }, { header: true, slots: [["Header-Slot", [["FRAME", "HORIZONTAL", true]]], ["Body-Slot", [["FRAME", "VERTICAL", true]]]] });
+  const bordered = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const onContainer = find(push(DASH.replace("<ListBox header=", '<ListBox theme="on-container" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  check("ListBox theme: Figma's Theme (Flat by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Flat", "Border", "On-Container"]);
   const [withAvatar, withDock] = listBox.slots[1].children[0].children;
   check("ListItem: Title and Subtitle, its leading Avatar (theme, initials) in Figma's Avatar", [withAvatar.texts, withAvatar.nested[0].set.name, withAvatar.nested[0].props.Theme, withAvatar.nested[0].text], [{ Title: "Checkout shared", Subtitle: "Bao Nguyen" }, "Avatar/Single", "Green", "BN"]);
   check("ListItem: a Dock Icon swaps in for the Avatar; no caption hides Subtitle", [withDock.nested[0].set.name, withDock.nested[0].props["Icon-Src"], withDock.hide], ["Dock-Icon", "icon-file-check-line", ["Subtitle"]]);
@@ -353,8 +356,8 @@ export default function Page() {
 //     sample words; hidden text and an inactive tab's panel were drawn; long text ran past its column; links in a text
 //     were lost.
 const FORMS = `// @zen-page {"format":1,"title":"Forms"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Avatar, Badge, Box, DescriptionList, Divider, InlineMessage, InputField, Link, List, ListBox, ListItem, SelectField, Stack, Stepper, TabPanel, Tabs, Text, Toggle, VisuallyHidden } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Avatar, Badge, Box, DescriptionList, Divider, InlineMessage, InputField, Link, List, ListBox, ListItem, SelectField, Stack, Stepper, TabPanel, Tabs, Text, Toggle, VisuallyHidden } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -425,8 +428,8 @@ export default function Page() {
 //     gutter and maxWidth, grid tracks), an even Figma grid where it is known, a wrapping row where it is not.
 //     Breadcrumbs draw their chevrons (Dash) and Level; InlineMessage's close button follows onClose.
 const WIDTHS = `// @zen-page {"format":1,"title":"Widths"}
-import { Board, Screen, proto } from "@zen/design-system/builder";
-import { AppShell, Breadcrumbs, Card, Container, Grid, IconButton, InlineMessage, Segmented, Sidebar, SidebarMenuItem, Stack, Text } from "@zen/design-system";
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { AppShell, Breadcrumbs, Card, Container, Grid, IconButton, InlineMessage, Segmented, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -502,8 +505,8 @@ export default function Page() {
 //     does (user rule, 2026-10-12): `strokeBottom: 0` on that row's cells, which the importer applies to the weight only.
 //     A Table on the page canvas, or in a plain Box, keeps it.
 const SURFACE_TABLES = `// @zen-page {"format":1,"title":"Surfaces"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Box, Card, Container, Stack, Table } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Card, Container, Stack, Table } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -539,8 +542,8 @@ export default function Page() {
 // 14. Templates compared with the Studio sheets (2026-10-12): tracks with a px maximum, a selectable and sorted Table,
 //     a table Avatar cell's own Avatar, Form's gap, the account's Subtle Avatar.
 const MEMBERS = `// @zen-page {"format":1,"title":"Team"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { AppShell, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -595,8 +598,8 @@ export default function Page() {
 //     `within`) in the Button the Type draws, the control bar padded in Control-Slot; the Screen's mobile chrome round trip.
 {
   const nav = `// @zen-page {"format":1,"title":"Inbox"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Segmented, Stack, Text, TopNavigation } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Segmented, Stack, Text, TopNavigation } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -643,8 +646,8 @@ export default function Page() {
 //     chosen one Select=Yes, a colour that is no token noted; the pull gives the ColorSelector back.
 {
   const page = `// @zen-page {"format":1,"title":"Labels"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { ColorSelector, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ColorSelector, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -673,8 +676,8 @@ export default function Page() {
 //     badge's count in its Badge-Counter; the pull reads the labels (not the Label variant's True), badges and Size.
 {
   const page = `// @zen-page {"format":1,"title":"Inbox"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Stack, TabItem, Tabs } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, TabItem, Tabs } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -707,8 +710,8 @@ export default function Page() {
 //     label its text (the set has no text property); the pull gives the labels back.
 {
   const page = `// @zen-page {"format":1,"title":"Password"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { InputConditionItem, InputConditions, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { InputConditionItem, InputConditions, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -738,8 +741,8 @@ export default function Page() {
 //     hidden; the pull gives the file back.
 {
   const page = `// @zen-page {"format":1,"title":"Files"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Stack, UploaderFileItem } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, UploaderFileItem } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -768,8 +771,8 @@ export default function Page() {
 //     its title in the heading; a closed sheet is not pushed; the pull opens it again.
 {
   const page = `// @zen-page {"format":1,"title":"Stay"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { DatePickerSheet, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { DatePickerSheet, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -798,8 +801,8 @@ export default function Page() {
 //     pull gives the same page back, from the push and from the real Figma read of the import (fixtures/figma-chat.json).
 {
   const page = `// @zen-page {"format":1,"title":"Chat"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { ChatMessage, ChatThread } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ChatMessage, ChatThread } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -837,8 +840,8 @@ export default function Page() {
 //     avatar cell without a caption.
 {
   const page = `// @zen-page {"format":1,"title":"People"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Avatar, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Avatar, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -864,8 +867,8 @@ export default function Page() {
 //     the trend's override on its Badge).
 {
   const page = `// @zen-page {"format":1,"title":"KPIs"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Metric, MetricCard, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Metric, MetricCard, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -898,8 +901,8 @@ export default function Page() {
 //     reads them back.
 {
   const page = `// @zen-page {"format":1,"title":"Icons"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { FileIcon, Flag, Icon, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { FileIcon, Flag, Icon, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -933,8 +936,8 @@ export default function Page() {
 //     frame's max height back.
 {
   const layers = (device) => `// @zen-page {"format":1,"title":"Layers"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Box, Grid, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Grid, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -968,8 +971,8 @@ export default function Page() {
   const framed = pageFromFigma({ ...frame, children: [{ ...well, layout: { ...well.layout, gap: 12, gapVar: "Spacing/Gap/Small" }, children: [well.children[0], well.children[0]] }] }, { mapping }).text;
   ok("pull: a surface frame with a gap is a Box around a Stack", /<Box surface="subtle" padding="md">\s*<Stack gap="sm">/.test(framed));
   const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Grid, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Grid, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1014,8 +1017,8 @@ export default function Page() {
   ok("pull: a text's tone from its Content variable", text.includes('<Text textStyle="Body/Small/Regular" tone="base">Sep 21 – Sep 27, 2026</Text>'));
   ok("pull: a List-Item's leading swapped for a file icon (read from its main component) and its IconButton trailing", text.includes('<ListItem title="Usability plan – transfers.pdf" caption="1.2 MB · Ava Chen · Yesterday at 4:05 pm" leading={<FileIcon format="pdf" />} trailing={<IconButton icon="icon-trash-line" appearance="flat" aria-label="Delete Usability plan – transfers.pdf" />} />'));
   const page = `// @zen-page {"format":1,"title":"Controls"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Checkbox, DockIcon, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Checkbox, DockIcon, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1037,8 +1040,8 @@ export default function Page() {
   check("push: an emoji Dock-Icon's emoji as its text", dock.text, "🏝️");
   // A Heading's level rides on its layer's name, so it comes back a Heading (its level's text style unsaid).
   const headings = `// @zen-page {"format":1,"title":"Headings"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Heading, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Heading, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1068,8 +1071,8 @@ export default function Page() {
   ok("pull: Description List rows are their Term and Value", shell.text.includes('<DescriptionList items={[{ term: "Team", description: "Design" }, { term: "Email", description: "chi@dizai.studio" }, { term: "Location", description: "Hanoi" }]} />'));
   ok("pull: Dashboard/Header Type=Main is a PageHeader, its Subheading the description", shell.text.includes('<PageHeader title="Chi Tran" description="Product Designer · Hanoi" />'));
   const sidebarPage = (sidebar) => `// @zen-page {"format":1,"title":"Shell"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Sidebar, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Sidebar, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1100,7 +1103,8 @@ export default function Page() {
   const counter = () => { let n = 0; return () => `k${++n}`; };
   const { pkg } = figmaPackage(fixture.page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "p6b-breadcrumbs-top-bar-trail", title: "P6b" }, newId: counter() });
   const current = docFromText(fixture.page, { newId: counter() }).doc;
-  const base = pageFromFigma({ ...pkg.frame, page: "p6b-breadcrumbs-top-bar-trail", version: "v1" }, { mapping }).doc;
+  // The base is the pull of the frame as it was exported then (the Studio keeps it at export: a later push may differ).
+  const base = pageFromFigma({ ...fixture.exported, page: "p6b-breadcrumbs-top-bar-trail", version: "v1" }, { mapping }).doc;
   check("pushed: the export's keys are the page's ids (the frame read back carries them)", [pkg.frame.key, fixture.untouched.key, current.board.children[0].id], ["k2", "k2", "k2"]);
   const untouched = pageFromFigma(fixture.untouched, { mapping }).doc;
   check("pushed: a pull names the Studio page and the export", untouched.header.figma, { file: "9nZv4uW2LT21yuHabMTCh1", node: "15459:3", page: "p6b-breadcrumbs-top-bar-trail", version: "v1" });

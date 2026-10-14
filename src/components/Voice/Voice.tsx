@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import { memo, useId, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Badge } from "../Badge";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
@@ -17,23 +17,48 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
  * either side of an XLarge Primary one, each over its Label/Small/Medium name (Spacing/Gap/XSmall).
  */
 
-/** A waveform: one bar per level (0–1), 3px wide, 2px apart, Corner-Radius/Rounded, centred in its box. */
-function Waveform({ levels, className }: { levels: readonly number[]; className: string }) {
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+const watchMotion = (change: () => void) => {
+  const query = typeof window === "undefined" ? undefined : window.matchMedia?.(REDUCED_MOTION);
+  query?.addEventListener?.("change", change);
+  return () => query?.removeEventListener?.("change", change);
+};
+/** Whether the viewer allows motion (a server render is still): only then do the sample waveform scroll and the voice
+ *  signal move. Reduced motion keeps Figma's still frames. */
+function useMotionAllowed() {
+  return useSyncExternalStore(watchMotion, () => !window.matchMedia?.(REDUCED_MOTION).matches, () => false);
+}
+
+const bar = (level: number, key: string) => (
+  // zen-allow-inline-style: each bar's height is its sound level (a data value, not a token).
+  <span key={key} className="zen-voice-wave__bar" style={{ height: `${Math.max(0, Math.min(1, level)) * 100}%` }} />
+);
+
+/**
+ * A waveform: one bar per level (0–1), 3px wide, 2px apart, Corner-Radius/Rounded, centred in its box. `loop` draws the
+ * levels twice on a track that voice.css scrolls right to left by one copy per cycle, at Figma's 7 bars a second (56
+ * bars = the 8-second window under it), so a take in progress moves like a live recorder's.
+ */
+const Waveform = memo(function Waveform({ levels, className, loop = false, fresh = false }: { levels: readonly number[]; className: string; loop?: boolean; fresh?: boolean }) {
   return (
-    <span className={`zen-voice-wave ${className}`} aria-hidden="true">
-      {levels.map((level, index) => (
-        // zen-allow-inline-style: each bar's height is its sound level (a data value, not a token).
-        <span key={index} className="zen-voice-wave__bar" style={{ height: `${Math.max(0, Math.min(1, level)) * 100}%` }} />
-      ))}
+    <span className={`zen-voice-wave ${className}`} aria-hidden="true" data-live={loop || undefined} data-fresh={(loop && fresh) || undefined}>
+      {loop ? (
+        // zen-allow-inline-style: the scroll distance and speed follow the number of bars in one copy (a data value).
+        <span className="zen-voice-wave__track" style={{ "--zen-voice-frames": levels.length } as CSSProperties}>
+          {levels.map((level, index) => bar(level, `a${index}`))}
+          {levels.map((level, index) => bar(level, `b${index}`))}
+        </span>
+      ) : levels.map((level, index) => bar(level, String(index)))}
     </span>
   );
-}
+});
 
 /** One Voice action: an icon button over its visible name (the button's accessible name; the text is not read twice). */
 function VoiceAction({ icon, label, main = false, disabled = false, pressed, onClick }: { icon: IconName; label: string; main?: boolean; disabled?: boolean; pressed?: boolean; onClick?: () => void }) {
   return (
     <span className="zen-voice-action" data-main={main || undefined} data-disabled={disabled || undefined}>
-      {/* zen-allow-no-tooltip: the action's name is printed under it (Figma's Voice action), so a tooltip would repeat it */}
+      {/* zen-allow-no-tooltip: the action's name is printed under it (Figma's Voice action), so a tooltip would repeat it.
+          A toggle that is on (Mute) shows it to everyone, not only to screen readers: the button's Figma Pressed look. */}
       <IconButton
         appearance="main"
         level={main ? "primary" : "tertiary"}
@@ -41,6 +66,7 @@ function VoiceAction({ icon, label, main = false, disabled = false, pressed, onC
         icon={icon}
         aria-label={label}
         aria-pressed={pressed}
+        state={pressed && !disabled ? "pressed" : undefined}
         tooltip={false}
         disabled={disabled}
         onClick={onClick}
@@ -58,6 +84,27 @@ export type VoiceRecorderState = "ready" | "recording" | "paused";
 const SAMPLE_TAKE = [8, 16, 12, 25, 18, 32, 44, 28, 18, 38, 54, 40, 26, 14, 22, 46, 62, 48, 34, 20, 12, 30, 48, 36, 20, 14, 28, 40, 56, 68, 50, 34, 22, 42, 58, 44, 32, 18, 26, 48, 64, 42, 24, 16, 36, 52, 38, 22, 12, 20, 36, 26, 16, 10, 18, 8].map((px) => px / 80);
 const FLAT_TAKE = Array.from({ length: 56 }, () => 4 / 80);
 
+/**
+ * More of the same take, so the sample can scroll without a visible repeat: speech at the waveform's 7 bars a second —
+ * words of 3–8 bars that swell and fade, a quiet bar or two between them, a breath now and then — from a fixed seed, so
+ * every recorder draws the same take. It ends quiet, as Figma's sample starts, so the loop has no seam.
+ */
+function speechTake(bars: number, seed: number) {
+  let state = seed;
+  const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 2 ** 32; };
+  const take: number[] = [];
+  while (take.length < bars - 2) {
+    const word = 3 + Math.floor(random() * 6);
+    const peak = 0.3 + random() * 0.55;
+    for (let index = 0; index < word; index += 1) take.push(0.08 + peak * Math.sin(((index + 0.5) / word) * Math.PI) * (0.65 + random() * 0.35));
+    const gap = random() < 0.2 ? 3 + Math.floor(random() * 3) : 1 + Math.floor(random() * 2);
+    for (let index = 0; index < gap; index += 1) take.push(0.05 + random() * 0.07);
+  }
+  return [...take.slice(0, bars - 2), 0.08, 0.06];
+}
+/** One loop of the moving sample: Figma's 56 bars first (the first frame is Figma's), then 23 seconds more. */
+const SAMPLE_LOOP = [...SAMPLE_TAKE, ...speechTake(104, 15084)];
+
 export type VoiceRecorderProps = {
   /** Figma State: Ready (nothing recorded yet), Recording, Paused. Your recorder drives it. */
   state?: VoiceRecorderState;
@@ -68,7 +115,9 @@ export type VoiceRecorderProps = {
   /** The waveform window's start and end times under it ("00:16", "00:24"). */
   start?: string;
   end?: string;
-  /** The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line. */
+  /** The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take, which scrolls while
+   *  recording and holds still when paused (still under reduced motion); Ready: a flat line. Yours are drawn as given:
+   *  push one level every 1/7 s and drop the oldest for the same 8-second window. */
   levels?: readonly number[];
   /** The line under the waveform. Default: what the state means ("Capturing audio from your microphone."). */
   guidance?: ReactNode;
@@ -103,7 +152,14 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
   const nest = useNested(overrides);
   const titleId = useId();
   const ready = state === "ready";
-  const wave = ready ? FLAT_TAKE : levels ?? SAMPLE_TAKE;
+  const moving = useMotionAllowed();
+  // A take started here from Ready is new: its bars come in from the right edge. One shown already recording (Figma's
+  // frame, a page that opens mid-take) is full from the start.
+  const startedHere = useRef(ready);
+  if (ready) startedHere.current = true;
+  // Without your levels the sample take moves as a live recorder does (paused, it holds still where it stopped).
+  const loop = !ready && !levels && moving;
+  const wave = ready ? FLAT_TAKE : levels ?? (loop ? SAMPLE_LOOP : SAMPLE_TAKE);
   const main = state === "recording"
     ? { icon: "icon-pause-solid" as const, label: t.voicePause, onClick: onPause }
     : state === "paused"
@@ -120,7 +176,7 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
       </div>
       <div className="zen-voice-recorder__monitor">
         <span className={`zen-voice-recorder__time ${typographyStyles["Heading/Subheading"]}`} role="timer" aria-live="off">{elapsed}</span>
-        <Waveform levels={wave} className="zen-voice-recorder__wave" />
+        <Waveform levels={wave} className="zen-voice-recorder__wave" loop={loop} fresh={startedHere.current} />
         <span className={`zen-voice-recorder__timeline ${typographyStyles["Caption/Regular"]}`} aria-hidden="true">
           <span>{start}</span>
           <span>{end}</span>
@@ -165,9 +221,12 @@ export type AiVoiceConversationProps = {
   speaker?: ReactNode;
   /** The transcript card's text (Figma AI/Chat-Bubble Side=AI): a suggestion when ready, what you say, what it says. */
   transcript?: ReactNode;
-  /** The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7). */
+  /** The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio.
+   *  Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding
+   *  (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing. */
   levels?: readonly number[];
-  /** Mute (the left action, a toggle; off until the conversation starts). */
+  /** Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal
+   *  rests while listening, and the guidance and note say the microphone is muted. */
   muted?: boolean;
   onMutedChange?: (muted: boolean) => void;
   /** The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding). */
@@ -197,7 +256,12 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
   const nest = useNested(overrides);
   const nameId = useId();
   const ready = state === "ready";
-  const bars = levels?.map((level) => level * 96) ?? (state === "responding" ? RESPONDING_LEVELS : LISTENING_LEVELS);
+  // Muted while it is your turn: the microphone hears nothing, so the signal rests as dots and the words say why.
+  const silent = state === "listening" && muted;
+  const shown = levels?.map((level) => level * 96) ?? (state === "responding" ? RESPONDING_LEVELS : LISTENING_LEVELS);
+  const bars = silent ? shown.map(() => 4) : shown;
+  // Without your levels the bars move like speech (voice.css; still under reduced motion).
+  const live = !ready && !silent && !levels;
   const main = state === "listening"
     ? { icon: "icon-stop-solid" as const, label: t.voiceDoneSpeaking, onClick: onDone }
     : state === "responding"
@@ -212,16 +276,16 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
         {nest("Status", <Badge size="sm" theme={ready ? "neutral" : "accent"} background="subtle">{status}</Badge>)}
       </div>
       <div className="zen-ai-voice__presence">
-        <span className="zen-ai-voice__signal" aria-hidden="true">
+        <span className="zen-ai-voice__signal" aria-hidden="true" data-live={live ? state : undefined}>
           {ready ? <Icon name="icon-microphone-line" size="lg" decorative /> : bars.map((px, index) => (
             // zen-allow-inline-style: each bar's height is the live voice level (a data value, not a token).
-            <span key={index} className="zen-ai-voice__level" style={{ height: `${Math.max(4, Math.min(96, px))}px` }} />
+            <span key={index} className="zen-ai-voice__level" style={{ "--zen-ai-voice-level": `${Math.max(4, Math.min(96, px))}px` } as CSSProperties} />
           ))}
         </span>
       </div>
       <div className="zen-ai-voice__status" aria-live="polite">
         <Heading className={`zen-ai-voice__heading ${typographyStyles["Heading/Subheading"]}`}>{heading ?? (state === "listening" ? t.voiceListeningHeading : state === "responding" ? t.voiceRespondingHeading : t.voiceReadyHeading)}</Heading>
-        <span className={`zen-ai-voice__guidance ${typographyStyles["Body/Small/Regular"]}`}>{guidance ?? (state === "listening" ? t.voiceListeningGuidance : state === "responding" ? t.voiceRespondingGuidance : t.voiceReadyConversationGuidance)}</span>
+        <span className={`zen-ai-voice__guidance ${typographyStyles["Body/Small/Regular"]}`}>{guidance ?? (silent ? t.voiceMutedGuidance : state === "listening" ? t.voiceListeningGuidance : state === "responding" ? t.voiceRespondingGuidance : t.voiceReadyConversationGuidance)}</span>
       </div>
       {transcript ? (
         <div className="zen-ai-voice__context">
@@ -234,7 +298,7 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
         <VoiceAction main icon={main.icon} label={main.label} onClick={main.onClick} />
         <VoiceAction icon="icon-x-circle-solid" label={t.voiceEnd} disabled={ready} onClick={onEnd} />
       </div>
-      <p className={`zen-voice__note ${typographyStyles["Caption/Regular"]}`}>{note ?? (ready ? t.voiceMicOffNote : t.voiceConnectedNote)}</p>
+      <p className={`zen-voice__note ${typographyStyles["Caption/Regular"]}`}>{note ?? (ready ? t.voiceMicOffNote : muted ? t.voiceMutedNote : t.voiceConnectedNote)}</p>
     </div>
   );
 }

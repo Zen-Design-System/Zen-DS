@@ -28,8 +28,8 @@ check("guideline: none of a section it lacks", guidelineNotes("# X\n\n**Import:*
 
 // The names a page writes.
 const page = parsePage(`// @zen-page {"format":1,"title":"Team"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Badge, Box, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Badge, Box, Stack, Text } from "@zen-ds/react";
 
 export const mock = { people: [{ name: "Ava" }] };
 
@@ -84,9 +84,9 @@ const input = {
 const markdown = handoffMarkdown(input);
 const headings = markdown.split("\n").filter((line) => line.startsWith("## "));
 check("file: its sections in order", headings, ["## In this package", "## Setup", "## Components", "## Tokens and text styles", "## Prototype flow", "## Data contract", "## Accessibility", "## Picture notes", "## Open questions"]);
-ok("file: setup with the version, styles and provider", markdown.includes("`npm install @zen/design-system@^0.3.0`") && markdown.includes('`<ZenProvider theme="light" density="compact">`'));
+ok("file: setup with the version, styles and provider", markdown.includes("`npm install @zen-ds/react@^0.3.0`") && markdown.includes('`<ZenProvider theme="light" density="compact">`'));
 ok("file: a phone page names the mobile modes", markdown.includes('breakpoint="mobile" typography="mobile" density="comfortable"'));
-ok("file: components sharing a guideline share a row", markdown.includes("| List, ListItem | One row of a list. | `node_modules/@zen/design-system/docs/guidelines/list-item.md` |") && markdown.split("\n").filter((line) => line.includes("guidelines/list-item.md")).length === 1);
+ok("file: components sharing a guideline share a row", markdown.includes("| List, ListItem | One row of a list. | `node_modules/@zen-ds/react/docs/guidelines/list-item.md` |") && markdown.split("\n").filter((line) => line.includes("guidelines/list-item.md")).length === 1);
 ok("file: interactions in the frames' order, elements as code", /\| people \| `<Button>` onClick \| opens overlay `invite` \| `setOverlay\("invite"\)` \|\n\| overlay invite \| `<Dialog>` primaryAction\.onClick \| closes the overlay/.test(markdown));
 ok("file: the TODO lines", markdown.includes('- `<ListItem>` onClick navigates to "person"'));
 ok("file: the data type in a block", markdown.includes("```ts\nexport type TeamMock = {"));

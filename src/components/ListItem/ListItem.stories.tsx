@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Avatar } from "../Avatar";
 import { IconButton } from "../Button";
+import { DockIcon } from "../DockIcon";
 import { Icon } from "../Icon";
 import { List, ListItem } from "./ListItem";
 
@@ -22,3 +23,11 @@ export const Static: Story = {};
 export const Selected: Story = { args: { selected: true, onClick: () => undefined, trailing: undefined } };
 /** `titleLines={2}`: a title that must be read in full wraps to a second line before it truncates (Figma's Title is one line). */
 export const TwoLineTitle: Story = { args: { titleLines: 2, title: "Quarterly performance review for the platform design team and partners", caption: "Updated today" } };
+/** `value` + `valueCaption`: an amount mirrored to the right of the title stack; it keeps its width and the title
+ *  truncates. `valueTone="positive-light"` marks money in; the sign stays in the text. */
+export const Value: Story = {
+  args: {
+    title: "From Saola Outdoor", caption: "Received · Today", value: "+94,860,000 VND", valueCaption: "3,600.00 USD", valueTone: "positive-light",
+    leading: <DockIcon size="md" icon="icon-arrow-down-line" theme="neutral" background="subtle" />, trailing: undefined,
+  },
+};

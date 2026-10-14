@@ -241,39 +241,48 @@ function EffectSettings({ id, style }: { id: string; style: string }) {
 
 /**
  * Effects of a Card, MetricCard or ChartCard: its theme draws them (shadow: the Level-1 drop shadow; pale, semi-pale: the
- * background blur), so the row is read-only and "Edit theme" goes to the Theme property. Flat and border draw none.
+ * background blur; flat and border: none). One Figma effect row, no label (user, 2026-10-13: the label, a two-line
+ * "From … theme" note and a floating "Edit theme" button read oddly): the style's swatch and full name, which opens the
+ * effects a card can have — each picks the theme that draws it — and one short line saying the theme sets it.
  */
+const CARD_EFFECT_CHOICES: ReadonlyArray<{ theme: string; label: string; caption: string }> = [
+  { theme: "shadow", label: "Shadow/Bottom/Level-1", caption: "Shadow theme" },
+  { theme: "pale", label: "Effect/Overlay", caption: "Pale theme" },
+  { theme: "flat", label: "No effect", caption: "Flat theme" },
+];
+
 export function CardEffectsSection({ api, component }: { api: FieldApi; component: string }) {
   const [settings, setSettings] = useState(false);
   const settingsId = useId();
   const value = api.valueFor("theme");
   const effect = cardThemeEffect(component, value.state === "literal" && typeof value.value === "string" ? value.value : value.state === "unset" ? undefined : "");
-  const shown = effect?.style ? effectStyleOf(effect.style) : null;
-  if (!effect || !shown) return null;
-  const editTheme = () => {
-    const row = document.querySelector<HTMLElement>('#studio-right .studio-inspector__row[data-prop="theme"]');
-    row?.scrollIntoView({ block: "nearest" });
-    row?.querySelector<HTMLElement>("button, input, [tabindex]")?.focus();
-  };
+  if (!effect) return null;
+  // Flat and Border draw none: the row says so and still offers the others, as Figma's empty Effects offers its "+".
+  const shown = effect.style ? effectStyleOf(effect.style) : null;
+  const name = shown?.name ?? "No effect";
+  const themeName = `${effect.theme.charAt(0).toUpperCase()}${effect.theme.slice(1).replace(/-/g, " ")}`;
+  const items = CARD_EFFECT_CHOICES.map((choice) => ({
+    id: choice.theme,
+    label: choice.label,
+    caption: choice.caption,
+    icon: <span className="studio-effect__swatch" data-effect={choice.theme === "flat" ? undefined : effectKey(choice.label)} aria-hidden="true" />,
+    onSelect: () => { if (choice.theme !== effect.theme) api.setProp("theme", choice.theme); },
+  }));
   return (
-    <InspectorSection title="Effects" actions={<EffectSettingsButton open={settings} controls={settingsId} onToggle={() => setSettings((open) => !open)} />}>
-      <InspectorRow
-        label="Effect"
-        name="effectStyle"
-        hint={(
-          <span className="studio-effect__from">
-            From {component} theme · {effect.theme.charAt(0).toUpperCase()}{effect.theme.slice(1)}
-            {/* zen-allow-compact-button: the read-only row's way to the Theme property (spec §4.2) */}
-            <Button appearance="flat" level="primary" size="xs" onClick={editTheme}>Edit theme</Button>
-          </span>
-        )}
-      >
-        <span className={`studio-effect__readonly ${typographyStyles["Body/Small/Regular"]}`} title={`${shown.name} (from the theme: edit the theme to change it)`}>
-          <span className="studio-effect__swatch" data-effect={effectKey(shown.name)} aria-hidden="true" />
-          <span className="studio-effect__name">{shown.name}</span>
-        </span>
-      </InspectorRow>
-      {settings ? <EffectSettings id={settingsId} style={shown.name} /> : null}
+    <InspectorSection title="Effects" actions={shown ? <EffectSettingsButton open={settings} controls={settingsId} onToggle={() => setSettings((open) => !open)} /> : undefined}>
+      <div className="studio-effect" data-prop="effectStyle">
+        <Menu
+          aria-label={`${component} effect`}
+          items={items}
+          trigger={(
+            <Button appearance="flat" level="primary" size="md" className="studio-effect__style" title={name} disabled={api.disabled} startIcon={<span className="studio-effect__swatch" data-effect={shown ? effectKey(shown.name) : undefined} aria-hidden="true" />}>
+              {name}
+            </Button>
+          )}
+        />
+      </div>
+      <p className={`studio-effect__from ${typographyStyles["Caption/Regular"]}`}>Set by Theme · {themeName}</p>
+      {settings && shown ? <EffectSettings id={settingsId} style={shown.name} /> : null}
     </InspectorSection>
   );
 }

@@ -191,6 +191,7 @@ function Editor({ target, viewport }: { target: TextTarget; viewport: HTMLElemen
 export function TextEditor({ viewport }: { viewport: HTMLElement | null }) {
   const target = useTextEditSession();
   if (!target || !viewport) return null;
-  const part = target.op.kind === "prop" ? target.op.name : target.op.kind === "text" ? target.op.index : `${target.op.prop ?? target.op.child}@${target.op.row ?? ""}`;
+  const op = target.op;
+  const part = op.kind === "prop" ? op.name : op.kind === "text" ? op.index : op.kind === "field" ? `${op.name}[${op.index ?? ""}]${(op.path ?? []).map((step) => `.${step.key}[${step.index ?? ""}]`).join("")}.${op.key}` : `${op.prop ?? op.child}@${op.row ?? ""}`;
   return <Editor key={`${target.src}|${target.op.kind}|${part}`} target={target} viewport={viewport} />;
 }

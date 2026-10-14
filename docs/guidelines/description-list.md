@@ -2,7 +2,7 @@
 # Description List
 
 **Figma:** Description List (14859:79180) + .Primitives/Description-List/Item (14859:78890), page ❖ Description List (14857:3)  
-**Import:** `import { DescriptionList, DescriptionItem } from "@zen/design-system";`
+**Import:** `import { DescriptionList, DescriptionItem } from "@zen-ds/react";`
 
 Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata.
 

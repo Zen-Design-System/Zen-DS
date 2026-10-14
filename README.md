@@ -12,21 +12,25 @@ React 19 + TypeScript components, design tokens and icons generated from the Zen
 
 ## Use it in an app
 
+`@zen-ds/react` is licensed per company and served by the Zen registry. Once per project, add the scope line to the
+app's `.npmrc`; once per developer, sign in with your licence key (any username, the key as password):
+
 ```bash
-npm run pack:local            # in this repo → dist-pack/zen-design-system-<version>.tgz
-npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz   # in your app
+echo "@zen-ds:registry=https://npm.dizai.studio/" >> .npmrc
+npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy
+npm install @zen-ds/react react@^19 react-dom@^19
 ```
 
 ```tsx
-import "@zen/design-system/styles.css";
-import { Button, ZenProvider } from "@zen/design-system";
+import "@zen-ds/react/styles.css";
+import { Button, ZenProvider } from "@zen-ds/react";
 
 <ZenProvider theme="system">
   <Button level="primary">Save changes</Button>
 </ZenProvider>;
 ```
 
-Full setup (modes, dark mode, mobile, icons, fonts): [docs/getting-started.md](docs/getting-started.md).
+Full setup (CI tokens, install errors, modes, dark mode, mobile, icons, fonts): [docs/getting-started.md](docs/getting-started.md).
 Per-component docs: [docs/guidelines/](docs/guidelines/README.md) and [docs/api/](docs/api).
 
 ## Develop (repo only)
@@ -58,3 +62,7 @@ Adding or changing a component: follow the definition of done in [AGENTS.md](AGE
 [Icons](docs/icon-architecture.md) · [Usage rules](docs/component-usage-rules.md) ·
 [Figma → platform workflow](docs/figma-to-platform-workflow.md) · [Platform template lock](docs/platform-template-lock.md) ·
 [QA](docs/qa/platform-audit.md) · [Session logs](docs/context/README.md)
+
+## License
+
+Commercial. Use of Zen DS requires an active licence from Dizai Studio; see [LICENSE.md](LICENSE.md).

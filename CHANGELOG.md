@@ -26,6 +26,95 @@ removed (four unused colour ramps were, see Removed).
   - A pull of the frame comes back with the page's own element ids.
   - A spot changed in the Studio since the export is flagged as a conflict.
   - A layer the designer duplicated comes in as new.
+- Zen Studio's icon picker leads with tiles you can click without typing: **Recent** (your last picks) and **Related**
+  (the icon's own family and the icons that mean the same as it and as the words beside it: a Revenue card's coins →
+  wallet, bank, card, currency, receipt). A nested icon's picker (a Metric card's dock icon) lists the icons the page
+  uses again, under "Used in this file".
+- Zen Studio, round 3: ⌘-click lands on every text as Figma's deep select (a Button's, Badge's or Chip's label too; a
+  picture's initials stay the picture), ⇧Enter / Esc go up one layer inside an instance; Layers shows an instance's own
+  layers by their Figma names and texts by their words, with no "Parts" folder, no empty slots and no slot row that
+  only repeats its layer's name. Edits on a page you made reach the canvas in 35–60 ms (was 160–260 before these
+  rounds): its elements are marked by their stable document ids, so an added line no longer redraws the page below it,
+  and the Studio's own panels redraw after the canvas has painted.
+- Zen Studio, Figma parity round 2: Layers lists what the canvas selects (no Container, a card's content Stack, a list's
+  `<ul>` or Parts row under a Stack / Grid); ⌘-click goes into an instance to its text or nested instance (a KPI value,
+  a list title, a table cell's name, an icon, a Badge), a text layer edits in the Inspector (Text) or with Enter in
+  place; a nested boolean switched back off removes its override; Metric's Trend is a boolean; a button added to a page
+  header's actions joins its row; a Sidebar item or a trend label renames in place on a page you made.
+- Zen Studio edits reach the canvas about twice as fast (45–120 ms, was 160–260 on a template page): the page is parsed
+  in the render that brings it, unchanged parts are not rendered again, parses and hashes are reused, and size probes
+  wait until the canvas has painted.
+- Zen Studio clicks like Figma on pages made from templates: layout wrappers that draw nothing (a Stack, Grid or
+  Container around one layer, a card's content column, a list's `<ul>`) are passed through, and AppShell and the page's
+  body count as the frame, so a KPI card is three double-clicks away instead of seven (5.6 → 2.5 on average over six
+  templates). Right-click › **Select layer ›** lists every layer under the pointer.
+- Zen Studio booleans that did nothing now work or hide: Metric's Counter shows on Icon-Highlight only, Hint and
+  Label-Icon on Title-Highlight XLarge–Medium; Metric / Metric card **Custom** and DashboardHeader's Search, Controls,
+  Actions, Center and Trailing open their slot (they had no slot, and a page from a template never opened the picker);
+  an Advanced Chip's Dropdown switched off writes `dropdown={false}`; switches that cannot draw in the current state
+  (Line chart legend without a comparison, an action's dot under a count, the workspace bar) say why.
+- Badge: `leadingIcon={false}` hides a custom `leading` icon too, as Figma's Leading-Icon boolean hides the layer.
+- Zen Studio: the insert picker says "N not available here" in one line (the reasons in its tooltip, in design words);
+  a card's Effects row is one Figma style row — the effect's swatch and name, which picks the theme that draws it.
+- Charts take their card from Card (2026-10-14, user, live Figma): Bar, Donut, Radial and Heatmap no longer paint their
+  own surface; like every chart they sit in Chart-Card's Content slot, so Theme, Surface and Color work on them. The
+  AI kit for Figma no longer treats a standalone chart as a box (`theme/box-on-canvas`, `theme/mixed-elevation`).
+- Chart card value (2026-10-14, live Figma): the header's Value text is Heading/2 (25/32) on every chart; Line,
+  Stack-Bar, Donut, Radial and Multi-Line were still Heading/3 (22/28). In code the `ChartCard` value and the
+  `DonutChart` total beside the ring (`totalPosition="start"`) are Heading/2 too (were Heading/3).
+- No gradient surfaces (2026-10-14, user): Card `theme="semi-pale"` is deprecated and renders as `pale` (it stays in
+  the type, off the theme list). Figma dropped the Card Gradient and Semi-Pale themes and their styles, so
+  `--zen-style-semi-pale-fill` and `.zen-fill-semi-pale` are gone from `style-effects.css`.
+- Chat reply, synced from Figma (2026-10-13, user): a quote that leads with a photo, a file or an icon starts 8px in
+  (text-only quotes keep 12), and the composer's Replying-to bar shows a file as a Small Dock Icon at 2/3 (21px, was 16),
+  as the designer set Chat/Reply/Quote and Chat/Composer-Reply.
+- Voice motion (2026-10-13, user): `VoiceRecorder` without `levels` scrolls its sample take while recording (7 bars a
+  second, so it keeps pace with the 8-second window; a new take enters at the right edge; Paused holds still) and its
+  Recording dot glows; `AiVoiceConversation` bars move like speech (yours irregular, the assistant's steadier) with a
+  halo that swells with the voice; `ChatVoice` bars fade in as playback reaches them. Reduced motion keeps Figma's
+  still frames. Muted while listening, the signal rests, the guidance and note say the microphone is muted (labels
+  `voiceMutedGuidance`, `voiceMutedNote`) and Mute shows its Pressed look. Review: `docs/research/voice-usability-review-2026-10-13.md`.
+- Chart sectors (2026-10-13, repo + live Figma): `Chart/Sector/Primary` is Support/Brand/Solid and
+  `Chart/Sector/Secondary` Support/Neutral/Deep in every Component Theme mode, as Brand - S1 (the Neutral modes had them
+  the other way round), so a chart's first series is the brand colour everywhere. LineChart's `compare` line is
+  Border/Neutral/Solid at 40% (Figma Multi-Line Compare), a neutral reference that no longer turns brand with it.
+- Chart sector style (2026-10-13, live Figma): "Color Chart Sector/Septenary" now references Support/Green/Soft (was
+  Red/Soft); `--zen-style-color-chart-sector-septenary-fill` and `.zen-fill-color-chart-sector-septenary` follow.
+  `chartPalette` now walks the seven styles in order: a 6th series is Support/Orange/Solid (was Green/Solid) and a 7th
+  Support/Green/Soft (was Orange/Solid).
+- Focus rings (2026-10-13, live Figma): four new tokens, `--zen-color-focus-positive-solid|subtle` and
+  `--zen-color-focus-negative-solid|subtle` (Color/Focus/Positive|Negative/*, the same steps as the Accent pair). Button
+  (Main, Flat, Icon-Main, Icon-Flat) now draws its 3px ring in Focus/Accent/Solid (was Accent/Subtle); Danger levels use
+  Focus/Negative/Solid and Positive levels Focus/Positive/Solid. Input's Inputted-Error / Blank-Error border reads
+  Focus/Negative/Solid (same colour as before). Top Navigation actions keep a 3px clear gap to their ring (was 2px).
+  The 3px field ring of Input (Focused/Typing, and the code-only error-focus and read-only-focus rings) is
+  Focus/Neutral/Subtle, a step lighter than Border/Active/Neutral/Subtle; AiChatField and the Chat composer, which take
+  the Input ring, follow. Stepper: Focused ring Focus/Neutral/Subtle, Error ring Focus/Negative/Subtle. New harness rule
+  `focus/ring-token` (error): a focus ring's colour comes from `--zen-color-focus-*`.
+- Text on a Zen accent solid (2026-10-13, live Figma): Base Colors On-Brand-Default (Light, Dark) and Light/On-Brand-Hover
+  are black 86% instead of white, so `--zen-color-content-on-accent-*` passes contrast on Zen pink (white was 2.5:1).
+- Table rows (2026-10-13, user rule, Figma Table/Cell/Default FIXED): every body row is exactly Table/Cell/Size and the
+  header Table/Header/Size in every density (rows were 1px taller, and long text wrapped onto more lines). Cells hold
+  one line: long text ends in an ellipsis, right-aligned values stay whole, Badge/Tag items no longer wrap (Figma
+  NO_WRAP). Long, multi-line content is not Table's job; a sheet-style component will cover it.
+- Typography (2026-10-13, Figma re-sync, mode Dashboard): headings and display text track tighter and Body/Small
+  gains -0.12px — Letter-Spacing Display-1…4, Heading-1…4 and Body-Small re-synced (e.g. Heading-1 -0.56 → -0.84px);
+  the Studio mode follows. Every text style and component reads the variables, so nothing else changes.
+- Card and List Box `theme="on-container"` (2026-10-12, user): Surface/Flat, for a Card or ListBox inside a Modal
+  (Dialog, ModalForm), a SidePanel or a BottomSheet, on their Container fill — no border, no shadow; a selected card
+  keeps it. Usage rules §16 and both guidelines say so (a card in a card or in a ListBox keeps the Pale border); the
+  harness warns on a Card or ListBox right inside one of them with another theme (`card/on-container-in-overlay`,
+  `listbox/on-container-in-overlay`, allow `overlay-theme`). Figma Card and Component/List-Box have the same
+  Theme=On-Container; stories `OnContainer`.
+- List Box `theme` is in Figma too (2026-10-12): Component/List-Box (14922:75297) has a Theme variant property,
+  Flat (default) · Shadow · Pale · Border · On-Container, with the tokens of Card's Theme (Border's stroke stays out of
+  the layout, like Card's). Zen Studio shows it in the Properties panel, and Export › Figma writes it
+  (`figma-props.map.mjs`).
+- Side Panel synced with Figma's Side-Panel (1573:3128): the header, contents and actions each keep Modal-Padding on
+  every side (contents start 24px lower, the actions 12px lower); the back and close buttons sit in the title row.
+  `icon` is deprecated: Figma no longer draws the Modal heading icon (it still renders for now).
+- Progress-Circle: the ring has its Neutral/Subtle fill again, and Done is a plain solid disc (no ring over it), as in
+  Figma's Progress-Circle/Icon.
 - Zen Studio ↔ Figma keeps more of a page through a push and a pull. This was tested by placing the examples in the
   real Zen file and reading them back. Fixes:
   - A Checkbox, Toggle or Radio keeps its label and caption (Figma moved them into the Content primitive).
@@ -85,16 +174,67 @@ removed (four unused colour ramps were, see Removed).
   "Show code" and the canvas tag shows no file:line on every page; a status line keeps the file's name without its
   line ("Draft · uploader.tsx · ⌘S to save"). A Date field's `Leading` layer matches Figma (its `Leading-Icon` is the
   calendar inside Trailing): no Figma rename is needed.
+- **The package is now `@zen-ds/react`** (was `@zen/design-system`): imports become `@zen-ds/react`,
+  `@zen-ds/react/styles.css`, `@zen-ds/react/icons/all`, `@zen-ds/react/eslint`, …; the docs, templates, MCP server and
+  usage harness follow. It is published to the licensed registry `npm.dizai.studio` (`publishConfig`), by the new
+  `Release` workflow on a `v*` tag.
+- **Licence:** Zen DS is commercial software under `LICENSE.md` (Dizai Studio; per-company subscription, apps but not
+  competing kits; draft pending legal review). `package.json` `license` points to it.
+- **Install from the Zen registry:** `docs/getting-started.md`, the README, `AGENTS.consumer.md` and the platform's
+  Installation page now cover the `.npmrc` scope line, the one-time `npm login` with the licence key, CI tokens and
+  the install errors. `npx zen-ds init` adds `@zen-ds:registry=https://npm.dizai.studio/` to `.npmrc`; `npx zen-ds
+  doctor` requires it and fails on a registry token written into the project's `.npmrc`.
+
+### Fixed
+- `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit
+  before the async `tools/call` answers were written).
+- `zen-usage --json` and `check-usage.mjs --list`: large output piped to another program is no longer cut off at 8 KB.
 
 ### Added
+- Support background Rich (2026-10-14, user): every Support background set (the 18 colours, Brand and Neutral) gains
+  `Color/Background/Support/<colour>/Rich` = ramp step 11, between Solid (9) and Deep (12), as
+  `--zen-color-background-support-<colour>-rich` in Light and Dark; created in the live Figma file too. The foundations
+  page lists each set as Deep, Rich, Solid, Soft, Subtle, Pale.
+- Chat reply in Figma (2026-10-13, user, live file): page ❖ Chat › "Chat Reply" now holds `Chat/Reply/Quote` (Side ×
+  Kind: Text · Photo · File · Call · Voice · Deleted), `Chat/Conversation/Reply` (the reply bubble tucked 12px over its
+  quote, Avatar / Sent / bubble swap as Chat/Conversation/Bubble) and `Chat/Composer-Reply` (the Replying-to bar above
+  Chat-Control), built from `ChatReply` with its tokens and measurements.
+- ListItem `value` · `valueCaption` · `valueTone` (2026-10-13, user): a row that ends in an amount (a transaction, a
+  total) mirrors the title stack on the right — Body/Base/Bold over Body/Small/Regular Light, right-aligned, tabular
+  figures, never cut (the title truncates first); `valueTone` takes a Content tone (`positive-light` for money in).
+  Code-only (Figma: a text stack in the Trailing slot). New example "Transactions on a phone" on List Item.
+- House rule (2026-10-13, user): a See all / Show all at a section head is underlined text, not a button (it takes
+  no more room than its words): `<Link tone="inherit">` in a Body/Base/Medium Text, `href` when it opens the full list,
+  `as="button"` + `aria-expanded` when it expands the list in place. Link and List Item guidelines; Dashboard template
+  "Recent activity" and the Transactions example follow it.
+- Figma descriptions (2026-10-13, user): the live library now describes all 168 public component sets (when to use,
+  what instead, properties, rules), 592 variables (semantic colours by layer and role, the spacing ladder, radii,
+  breakpoints, emphasis, dimensions) and every text, effect and paint style, written from the guidelines, usage rules
+  and harness by `tools/figma-docs/build.mjs` (rerun it after a rule changes). The 🔤 Typography page has a new
+  Content-Hierarchy section: the heading/text-style ladder for desktop, phone and overlays plus the outline rules.
+- AI kit for Figma (2026-10-13, user): Installation › AI kit for Figma downloads `zen-figma-ai-kit.zip` (built in the
+  browser from the repo) so Claude or ChatGPT/Codex can design in a Zen Figma file through Figma's MCP server: the skill
+  `skills/zen-figma-design` (setup, hard rules, build steps, screen rules, Plugin API gotchas), the read-only audit
+  harness `harness/zen-figma-audit.js` (24 rules: unbound colours/spacing/radii, text and effect styles, paint overrides
+  and lost icon colours inside instances, overflow (Zen's bleed, one button centred in a smaller non-clipping wrapper
+  like Sidebar Collapse, is allowed), clipping, a drop shadow cut by a clipping frame (measured from the effect; an
+  error on the screen's own frames), crushed or shifted text, placeholder copy, and theme pairing: boxes and navigation
+  surfaces that clash with the Canvas, one elevation and one colour mode per screen, no gradient boxes), the generated
+  Figma component-property and variable/style references, the usage rules and every guideline. `npm run ai-kit:build`
+  writes the same zip to dist-pack/, `npm run ai-kit:check` verifies it.
+- Side Panel: `top` (Figma Top-Customize, above the header), `headerContent` (Figma Header-Contents, under the caption)
+  and `onBack` / `backLabel` (Figma Back-Container: a back button before the title).
+- ProgressBar `layout="stacked"` (Figma Layout=Stacked): the label and the value on a row above the bar; `valueLabel`
+  replaces the percentage ("3 of 5 steps"). The stacked label is Body/Base/Bold, the value Body/Base/Regular (Figma
+  re-read 2026-10-13).
 - **Chart family in one style, with motion** (the user, 2026-10-12; spec `docs/research/chart-family-spec-2026-10-12.md`):
   new `BarChart` (vertical or `orientation="horizontal"`, `projected` bars hatched, a `target` track), `DonutChart`
   (% pills, the total in the centre), `RadialChart` (ring gauges over dotted tracks) and `HeatmapChart` (row × column on
   five Support/Brand steps, 2D keys). `LineChart` takes `compare` (the line chart plus one dashed comparison line and a
   legend, Figma Chart/Multi-Line-Chart); `ChartCard` takes `icon`, `description` and `value`. Every chart shares the grid, labels, Tooltip, legend
   and keyboard, and draws itself in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop; reduced
-  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean with an
-  "Avg" tag (Figma Show Average). DonutChart slices are parted by even, straight 4px gaps, and
+  motion fades; `animate={false}`). `showAverage` on LineChart, BarChart and StackBarChart draws a dotted rule at the mean (plain dots, no ring) with an
+  "Avg" tag (Figma Show Average). Horizontal bars end each row with its value instead of a Tooltip over the bars. DonutChart slices are parted by even, straight 4px gaps and have 4px round corners, and
   `totalPosition="start"` puts the total beside the ring above the legend. Stacked columns now take Corner-Radius/Small
   on every corner, like the bars; projected bars and target tracks take the Figma hatch (Support/Neutral/Pale under
   Border/Neutral/Pale stripes). Zen
@@ -952,6 +1092,13 @@ removed (four unused colour ramps were, see Removed).
   Breadcrumbs or a Search, notifications and the account menu.
 
 ### Fixed
+- Figma List-Box (2026-10-14, user): a heading no longer starts in from the edge when the box is wider than 311px.
+  Header-Slot and Footer-Slot align their content left and the default Heading / Footer texts fill the slot (they were
+  fixed at 263px in a centred slot), as `.zen-list-box__header` lays it out; the 30 List-Boxes on ◆ Performance were
+  fixed too. Publish the library so files that use it get the change. The AI kit's Figma audit reports the pattern as
+  `text/shifted` (fixed-width left-aligned text pushed in by a centred column).
+- Docs phone previews (2026-10-13): a bar's blur no longer smears the black bezel into the screen's corners (Bottom
+  Navigation Floating). The screen is the backdrop root of its blurs and the bezel is drawn as its own layer.
 - Zen Studio: a page made from a template or example frame (New page from this frame) keeps its Table cells as the
   Table draws them from row fields: a TableMedia cell becomes an avatar / photo / icon / Dock Icon column (label,
   caption, bold, the picture or icon, each row's colour as its override), TableBadges / TableTags a badge / tag column
@@ -972,6 +1119,8 @@ removed (four unused colour ramps were, see Removed).
   trigger, List / Container / Form… as frames of their layers. A Sidebar's rows go in Body-Content with the selected
   one marked, a Dashboard header turns on the blocks whose slots hold content, and Export › Figma says why when nothing
   on a page can go to Figma rather than downloading an empty frame.
+- SidePanel: content in the body no longer shrinks when the body overflows; it scrolls. A Segmented or code block
+  was squeezed instead (Studio Export's tabs at 25px, labels cut off).
 - Zen Studio → Figma: the Dashboard imports as it looks in the Studio (tried in the live Zen file). A Grid whose
   columns fit the width is an even Figma grid of as many columns as fit the page (a wrapping row where the width is not
   known), a Grid of N columns is Figma's grid with rows that hug; MetricCard is a
@@ -1533,7 +1682,7 @@ removed (four unused colour ramps were, see Removed).
   Card's Figma Theme (same tokens; no Semi-Pale), default `flat`. Examples and templates pick it by usage rules §16:
   flat on Canvas/Default and on Surface-Alt phone screens, shadow beside a default Sidebar (elevation follows the
   Sidebar), border on a white page or phone and inside another Surface. Exported `listBoxThemes` / `ListBoxTheme`;
-  stories in `ListBox.stories.tsx`. Figma's Component/List-Box has no Theme property yet.
+  stories in `ListBox.stories.tsx`. Figma's Component/List-Box had no Theme property then (added 2026-10-12).
 - **List Box only for List-Item rows (2026-10-06, user rule):** in the examples, templates and the List Item
   playground, a container whose content is a list of List-Item rows (with an optional title, search or filters above
   and buttons or pagination below) is now a `<ListBox header footer>` instead of a Card; everything else (Description

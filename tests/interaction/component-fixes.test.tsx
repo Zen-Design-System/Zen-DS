@@ -4,6 +4,7 @@
  * the composer's focus indicator.
  */
 import { describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import {
   Badge, BottomNavigation, ChatCall, ChatComposer, ChatConversationItem, ChatMessage, ChatThread, InlineMessage, Pagination, ZenProvider,
@@ -46,7 +47,10 @@ describe("BottomNavigation idle labels", () => {
       );
       const nav = document.querySelector<HTMLElement>(".zen-bottom-nav")!;
       const background = getComputedStyle(nav).backgroundColor;
-      const idle = document.querySelector<HTMLElement>(".zen-bottom-nav__item[data-selected='false']")!;
+      // The pointer can rest where an earlier test left it, and a hovered idle item on the Default bar takes the label's
+      // colour (bottom-navigation.css): measure an idle item the pointer is not on.
+      await userEvent.unhover(nav);
+      const idle = [...document.querySelectorAll<HTMLElement>(".zen-bottom-nav__item[data-selected='false']")].find((item) => !item.matches(":hover"))!;
       const label = idle.querySelector<HTMLElement>(".zen-bottom-nav__label")!;
       const probe = document.createElement("span");
       probe.style.color = "var(--zen-color-content-neutral-light)";
@@ -124,6 +128,22 @@ describe("Badge remove", () => {
     expect(onRemove).toHaveBeenCalledTimes(1);
     await expect.element(screen.getByRole("button", { name: "Xoá Thiết kế" })).toBeInTheDocument();
     await expect.element(screen.getByRole("button", { name: "Remove", exact: true })).toBeInTheDocument();
+  });
+});
+
+describe("Badge Leading-Icon", () => {
+  // Figma's Leading-Icon boolean hides the leading layer whatever its swap holds (2026-10-13 Studio boolean sweep).
+  it("hides a custom leading icon when leadingIcon is false, and shows it otherwise", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <Badge data-testid="shown" leading="icon-check-line">Paid</Badge>
+        <Badge data-testid="hidden" leading="icon-check-line" leadingIcon={false}>Paid</Badge>
+        <Badge data-testid="dot">Paid</Badge>
+      </ZenProvider>,
+    );
+    expect(screen.getByTestId("shown").element().querySelectorAll("svg").length).toBe(1);
+    expect(screen.getByTestId("hidden").element().querySelectorAll("svg").length).toBe(0);
+    expect(screen.getByTestId("dot").element().querySelectorAll("svg").length).toBe(1);
   });
 });
 

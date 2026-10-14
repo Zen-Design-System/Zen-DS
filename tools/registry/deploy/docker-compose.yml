@@ -1,0 +1,46 @@
+# Zen DS registry stack: Verdaccio behind Caddy (automatic HTTPS). Run from tools/registry/deploy:
+#   docker compose up -d --build
+# Settings come from deploy/.env (REGISTRY_DOMAIN, ports) and the secrets file at
+# ZEN_REGISTRY_ENV (default /etc/zen-registry/registry.env, mode 600).
+name: zen-registry
+
+services:
+  registry:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: zen-registry:local
+    restart: unless-stopped
+    env_file: ${ZEN_REGISTRY_ENV:-/etc/zen-registry/registry.env}
+    volumes:
+      - storage:/verdaccio/storage
+    expose:
+      - "4873"
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  caddy:
+    image: caddy:2.11.7
+    restart: unless-stopped
+    depends_on:
+      registry:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    environment:
+      REGISTRY_DOMAIN: ${REGISTRY_DOMAIN:-npm.dizai.studio}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+volumes:
+  storage:      # published packages + Verdaccio's token secret (.verdaccio-db.json): backed up nightly
+  caddy_data:   # TLS certificates
+  caddy_config:

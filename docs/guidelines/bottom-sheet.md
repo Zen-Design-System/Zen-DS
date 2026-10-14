@@ -2,7 +2,7 @@
 # Bottom Sheet
 
 **Figma:** Bottom-Sheet (page ❖ Bottom Sheet, 4059:14161)  
-**Import:** `import { BottomSheet } from "@zen/design-system";`
+**Import:** `import { BottomSheet } from "@zen-ds/react";`
 
 A surface that slides up from the bottom for supplementary content, a short task or a list of actions, without leaving the screen.
 

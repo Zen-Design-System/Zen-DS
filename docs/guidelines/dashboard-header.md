@@ -2,7 +2,7 @@
 # Dashboard Header
 
 **Figma:** ◇ Master-Layout Primitives/Dashboard/Header (4122:33402): Type Control-Bar · Navigation · Main · Custom  
-**Import:** `import { DashboardHeader } from "@zen/design-system";`
+**Import:** `import { DashboardHeader } from "@zen-ds/react";`
 
 One row of a dashboard page's header: a control bar (Search, filter Chips, a result count and the page's actions), a navigation bar (Breadcrumbs, notifications and the account), the page title row or your own row.
 

@@ -2,7 +2,7 @@
 # Badge & Badge-Counter
 
 **Figma:** Badge, Badge-Counter (page 239:18960)  
-**Import:** `import { Badge, BadgeCounter } from "@zen/design-system";`
+**Import:** `import { Badge, BadgeCounter } from "@zen-ds/react";`
 
 Non-interactive status, category or count labels.
 
@@ -41,7 +41,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color">`.
 | `color` | `"accent" \| "neutral" \| "yellow" \| "orange" \| "red" \| "crimson" \| "pink" \| "plum" \| "purple" \| "violet" \| "indigo" \| "blue" \| "cyan" \| "teal" \| "green" \| "brown" \| "inverse" \| "on-color" \| "sky" \| "mint" \| "bronze" \| "golden"` | — | **Deprecated:** Use theme (same values).  |
 | `background` | `"solid" \| "subtle"` | `"solid"` |  |
 | `leading` | `IconName \| ReactNode` | — | Leading icon: an icon name (`"icon-check-line"`) or a node; replaces the default dot. |
-| `leadingIcon` | `boolean` | `true` |  |
+| `leadingIcon` | `boolean` | `true` | Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included. |
 | `remove` | `boolean` | `false` | Shows the remove button (icon-x-circle-solid), named "Remove `<label>`" from a text label (the locale's `removeItem`). |
 | `onRemove` | `() => void` | — |  |
 | `removeLabel` | `string` | — | Name of the remove button. Default: "Remove" and the badge text from the locale's labels ("Remove Design"); pass it when the label is not plain text (a node, an icon, a number) so the button still says what it removes. |

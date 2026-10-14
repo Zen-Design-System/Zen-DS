@@ -36,6 +36,17 @@ const SHORT = { "2xsmall": "2xs", xsmall: "xs", small: "sm", medium: "md", large
 const normal = (option) => option.replace(/\(base\)/i, "").trim().toLowerCase().replace(/\s+/g, "-");
 const literals = (type) => new Set([...type.matchAll(/"([^"]+)"/g)].map((match) => match[1]));
 
+// Each component's documented defaults as strings ('"icon-highlight"' → icon-highlight), for conditions on unset props.
+const codeDefaults = new Map();
+for (const entry of apiEntries.values()) {
+  const defaults = new Map();
+  for (const prop of entry.props) {
+    const match = /^"([^"]*)"$/.exec(String(prop.defaultValue?.value ?? prop.default ?? ""));
+    if (match) defaults.set(prop.name, match[1]);
+  }
+  codeDefaults.set(entry.name, defaults);
+}
+
 const icons = new Set(iconNames);
 const errors = [];
 const notes = [];
@@ -56,6 +67,8 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
     for (const option of prop.options ?? []) if (!merged.options.includes(option)) merged.options.push(option);
   }
   const entry = { figma: found[0].id, own: [], toggles: [] };
+  // The set prop's value when it is unset: the code default, else the primary (first) set's.
+  const setDefault = spec.setProp ? (codeDefaults.get(component)?.get(spec.setProp) ?? Object.values(spec.sets)[0]) : null;
   if (spec.setProp) {
     const type = own.get(spec.setProp);
     if (type === undefined) errors.push(`${component}: set prop "${spec.setProp}" is not a code prop`);
@@ -80,7 +93,20 @@ for (const [component, spec] of Object.entries(FIGMA_PROPS)) {
         if (!swap?.default || !icons.has(swap.default)) { errors.push(`${component}: toggle "${prop.name}" starts from ${on.swap}'s default, which is not an icon (${swap?.default ?? "no such swap"})`); continue; }
         on = swap.default;
       } else if (typeof on === "object" && !/^\s*[{[]/.test(on.code ?? "")) errors.push(`${component}: toggle "${prop.name}" writes code that is not an object or a list`);
-      entry.toggles.push({ label: prop.name, prop: mapping.toggle, on });
+      // A boolean only some of the sets have (Metric's Counter: Icon-Highlight) shows a layer the others never draw: the
+      // row shows only on those sets, then while the map's own conditions hold (a Type, a Size).
+      const when = [];
+      const inSets = setNames.filter((name, index) => found[index].props.some((other) => other.name === prop.name));
+      if (spec.setProp && inSets.length < setNames.length) when.push({ prop: spec.setProp, oneOf: inSets.map((name) => spec.sets[name]), default: setDefault });
+      for (const condition of mapping.when ?? []) {
+        if (!own.has(condition.prop)) { errors.push(`${component}: toggle "${prop.name}" shows when "${condition.prop}", not a code prop`); continue; }
+        const values = literals(own.get(condition.prop));
+        const unknown = condition.oneOf.filter((value) => values.size && !values.has(value));
+        if (unknown.length) errors.push(`${component}: toggle "${prop.name}": ${condition.prop} has no value ${unknown.join(", ")}`);
+        const fallback = condition.default ?? codeDefaults.get(component)?.get(condition.prop);
+        when.push({ prop: condition.prop, oneOf: condition.oneOf, ...(fallback !== undefined ? { default: fallback } : {}) });
+      }
+      entry.toggles.push({ label: prop.name, prop: mapping.toggle, on, ...(when.length ? { when } : {}) });
       continue;
     }
     const codeProp = typeof mapping === "string" ? mapping : mapping.prop;
@@ -142,8 +168,9 @@ export type FigmaPropsEntry = {
    *  and Figma option name → code value; an icon swap's \`default\`: its default icon in Figma. */
   own: ReadonlyArray<{ prop: string; label?: string; type: string; options?: Readonly<Record<string, string>>; default?: string }>;
   /** Figma booleans that show a layer: on writes \`on\` (a text; "slot": the content-slot picker; { code }: an object or a
-   *  list written as code), off removes the prop. */
-  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string } }>;
+   *  list written as code), off removes the prop. \`when\`: shown only while each prop (or its default) is one of the
+   *  values — the sets that have the boolean, then the layer's own conditions. */
+  toggles: ReadonlyArray<{ label: string; prop: string; on: string | { code: string }; when?: ReadonlyArray<{ prop: string; oneOf: readonly string[]; default?: string }> }>;
   /** Nested layers (an Input's Label): shown while \`when\` is set, with their properties ("CODE": a code prop the
    *  nested Figma set has no property for, labelled here). */
   nested?: ReadonlyArray<{ name: string; figma?: string; when: string; own: ReadonlyArray<{ prop: string; label?: string; type: string }> }>;
