@@ -12,6 +12,7 @@ deactivated licence or a removed team member stops working with a token issued e
 | `test/plugin.test.js` | Unit tests with a fake store and clock |
 | `test/e2e.test.js` | Real PocketBase + Verdaccio + npm: publish, install, revoke, restore, browser `npm login`, seats, CI cap, usage |
 | `test/pocketbase/pb_migrations/` | A copy of the live license schema + the registry-access changes (licenses, team_members) |
+| `scripts/build-login-page.mjs` | Renders the sign-in page from Zen DS (real components + the CSS they use + Inter) into `plugins/verdaccio-zen-license/login/` (committed). Rerun after Zen changes: `npm run build:lib` in the root, then this script |
 | `scripts/fetch-pocketbase.mjs` | Downloads the pinned PocketBase (0.39.11) into `.bin/` for the e2e test |
 | `deploy/` | Dockerfile, docker-compose (Verdaccio + Caddy), server setup, backup/restore to R2, deploy script |
 

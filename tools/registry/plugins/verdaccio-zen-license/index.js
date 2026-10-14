@@ -25,7 +25,7 @@ const crypto = require('node:crypto');
 const path = require('node:path');
 const { PocketBaseLicenseStore, StoreError, RECORD_ID } = require('./license-store');
 const { CiTokens, Usage } = require('./state');
-const { loginPage } = require('./login-page');
+const { loginPage, loginAsset } = require('./login-page');
 
 const CUSTOMER_GROUP = 'zen-customer';
 const PUBLISHER_GROUP = 'zen-publisher';
@@ -329,6 +329,12 @@ class ZenLicensePlugin {
       this.logins.delete(loginId);
       this.done.delete(req.params.doneId);
       res.status(200).json({ token: login.token });
+    });
+
+    app.get('/-/zen/static/:file', (req, res, next) => {
+      const asset = loginAsset(req.params.file);
+      if (!asset) return next(httpError(404, 'not found'));
+      res.status(200).set('content-type', asset.type).set('cache-control', 'public, max-age=86400').send(asset.body);
     });
 
     app.get('/-/zen/login/:loginId', (req, res) => {
