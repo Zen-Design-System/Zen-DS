@@ -25,7 +25,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
-  formatDate, formatMoney, formatRange, invoiceStatusTheme, invoices, leaveRequests, me, projectById, studio, studioMonths, studioTeamHours,
+  formatCompactMoney, formatDate, formatMoney, formatRange, invoiceStatusTheme, invoices, leaveRequests, me, projectById, studio, studioMonths, studioTeamHours,
   type Invoice, type InvoiceStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -551,6 +551,99 @@ function RevenueByChannel() {
   );
 }
 
+/* ───────────── Metric-Card types (Figma Metric-Card Type, 6643:64008) ───────────── */
+
+const usd = (value: number) => formatMoney(value);
+const monthOf = (id: string) => studioMonths.find((m) => m.id === id)!;
+/** The last twelve months the studio invoiced, oldest first (the sparkline's series). */
+const invoicedSeries = studioMonths.map((m) => m.invoiced);
+/** Billable hours logged per week, the last twelve weeks (Jul 13 – Sep 28, the current week last): the studio's offsite
+ *  week (Aug 3) and the National Day holiday week (Aug 31) run low, so the bars vary as real weeks do. */
+const weeklyHours = [1012, 1086, 1048, 760, 1131, 1176, 1104, 640, 1153, 1067, 1132, 1284];
+const collectedIn = (...ids: string[]) => ids.reduce((total, id) => total + monthOf(id).collected, 0);
+const q3Collected = collectedIn("jul", "aug", "sep");
+const q2Collected = collectedIn("apr", "may", "jun");
+/** What the studio invoiced each month this year (the Hero's line) and in total (its number). */
+const thisYear = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep"].map((id) => monthOf(id).invoiced);
+const thisYearTotal = thisYear.reduce((total, value) => total + value, 0);
+const statusOrder: InvoiceStatus[] = ["Paid", "Sent", "Overdue", "Draft"];
+const byStatus = statusOrder.map((status) => ({ id: status.toLowerCase(), label: status, value: invoices.filter((row) => row.status === status).reduce((total, row) => total + row.amount, 0) }));
+const statusTotal = byStatus.reduce((total, item) => total + item.value, 0);
+const overdueCount = invoices.filter((row) => row.status === "Overdue").length;
+
+/** Three typed MetricCards in one row: a sparkline, spark bars and a goal. */
+function MetricTypesRow() {
+  return (
+    <Grid columns="repeat(auto-fit, minmax(min(100%, 260px), 1fr))" gap="md">
+      <MetricCard theme="flat" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
+        trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
+      <MetricCard theme="flat" type="spark-bars" label="Hours logged" value={hoursLabel(weeklyHours[weeklyHours.length - 1])} series={weeklyHours} format={hoursLabel}
+        trend={{ direction: "positive", label: `${changeOf(weeklyHours[11], weeklyHours[10])} vs. last week` }} />
+      <MetricCard theme="flat" type="goal-progress" label="Collected in Q3" value={usd(q3Collected)} format={usd}
+        goal={{ value: q3Collected, target: 290000 }} trend={{ direction: "positive", label: `${changeOf(q3Collected, q2Collected)} vs. Q2` }} />
+    </Grid>
+  );
+}
+
+/** A comparison of three numbers and the split of one total, side by side (stacked on a narrow screen). */
+function CashFlowRow() {
+  return (
+    <Grid columns="repeat(auto-fit, minmax(min(100%, 420px), 1fr))" gap="md">
+      <MetricCard theme="flat" type="comparison" label="Cash flow · September" comparison={[
+        { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` } },
+        { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: `${changeOf(monthOf("sep").collected, monthOf("aug").collected)} vs. August` } },
+        { id: "overdue", label: "Overdue", value: usd(byStatus.find((item) => item.id === "overdue")!.value), trend: { direction: "normal", label: plural(overdueCount, "invoice") } },
+      ]} />
+      <MetricCard theme="flat" type="category-bar" label="Open and paid invoices" value={usd(statusTotal)} categories={byStatus} format={usd} />
+    </Grid>
+  );
+}
+
+/** The one Hero of a dashboard: Brand Pale, or the dark Solid Neutral widget (Button level inverse on it). */
+function HeroMetric() {
+  const { toast } = useToast();
+  const [look, setLook] = useState<"brand" | "dark">("brand");
+  const dark = look === "dark";
+  return (
+    <Stack gap="md">
+      <Segmented aria-label="Hero style" value={look} onValueChange={(id) => setLook(id as "brand" | "dark")} options={[{ id: "brand", label: "Brand" }, { id: "dark", label: "Dark" }]} />
+      <MetricCard type="hero" theme={dark ? "solid" : "pale"} color={dark ? "neutral" : "brand"} label="Invoiced this year" value={usd(thisYearTotal)}
+        trend={{ direction: "positive", label: "+12% vs. 2025" }} series={thisYear} format={formatCompactMoney}
+        footer={<Button size="sm" appearance={dark ? "overlay" : "main"} level={dark ? "inverse" : "primary"} onClick={() => toast({ title: "Report for 2026 opened in a new tab" })}>View report</Button>} />
+    </Stack>
+  );
+}
+
+/** The month on the studio's phone app: the Hero, then the cash-flow columns stacked. */
+function PhoneMetricTypes() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  return (
+    <PlatformPhone label="This month" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="September" largeTitle="September" scrollRef={screenRef} />}>
+      <Stack gap="md" padding="lg">
+        <MetricCard theme="flat" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
+          trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
+        <MetricCard theme="flat" type="comparison" label="Cash flow" comparison={[
+          { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: "+9% vs. August" } },
+          { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: "−8% vs. August" } },
+        ]} />
+        <MetricCard theme="flat" type="category-bar" label="Invoices by status" value={usd(statusTotal)} categories={byStatus} format={usd} />
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+/** A new client's first weeks: no revenue yet, one week of hours, a goal already passed. */
+function FirstWeeksMetrics() {
+  return (
+    <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
+      <MetricCard theme="flat" type="sparkline" label="Revenue" value={noData} series={[]} trend={{ direction: "normal", label: "First invoice due Oct 31" }} />
+      <MetricCard theme="flat" type="spark-bars" label="Hours logged" value={hoursLabel(38)} series={[38]} trend={{ direction: "normal", label: "Week 1 of the project" }} />
+      <MetricCard theme="flat" type="goal-progress" label="Deposit collected" value={usd(5600)} format={usd} goal={{ value: 5600, target: 5000 }}
+        trend={{ direction: "positive", label: "$600 over the deposit" }} />
+    </Grid>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio overview",
@@ -766,5 +859,77 @@ const paid = sumOf(rows, ["Paid"]);
 <MetricCard theme="flat" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
   hint="Paid invoices from the last 14 days, less the 2.9% card fee. Pays out every second Friday."
   value="$4,812.40" icon="icon-bank-line" iconTheme="green" trend={{ direction: "normal", label: "Friday, Oct 16" }} />`,
+  },
+  {
+    title: "Metric types in a row",
+    wide: true,
+    description: "MetricCard type draws Figma's Metric-Card types under a Title-Highlight number: a sparkline of the last twelve months, spark bars with the current week in Chart Sector/Secondary, and a stacked ProgressBar toward the quarter's goal. The marks draw in on load; screen readers hear the numbers and a summary of each series.",
+    render: () => <MetricTypesRow />,
+    code: `{/* display: grid; repeat(auto-fit, minmax(260px, 1fr)); gap: 16px */}
+<MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700" format={formatCompactMoney}
+  series={[71200, 76500, 68900, 74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]}
+  trend={{ direction: "positive", label: "+9% vs. August" }} />
+<MetricCard theme="flat" type="spark-bars" label="Hours logged" value="1,284 h" format={hoursLabel}
+  series={[1012, 1086, 1048, 760, 1131, 1176, 1104, 640, 1153, 1067, 1132, 1284]}
+  trend={{ direction: "positive", label: "+13% vs. last week" }} />
+<MetricCard theme="flat" type="goal-progress" label="Collected in Q3" value="$275,800" format={formatMoney}
+  goal={{ value: 275800, target: 290000 }} trend={{ direction: "positive", label: "+8% vs. Q2" }} />`,
+  },
+  {
+    title: "Cash flow at a glance",
+    wide: true,
+    description: "Comparison puts three numbers side by side under one title, each with its own trend; Category-Bar splits one total into its parts, each row saying its amount and a share that adds up to 100%. On a narrow card the columns stack.",
+    render: () => <CashFlowRow />,
+    code: `<MetricCard theme="flat" type="comparison" label="Cash flow · September" comparison={[
+  { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
+  { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
+  { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } },
+]} />
+<MetricCard theme="flat" type="category-bar" label="Open and paid invoices" value="$95,520.50" format={formatMoney}
+  categories={[
+    { id: "paid", label: "Paid", value: 49640.5 }, { id: "sent", label: "Sent", value: 21000 },
+    { id: "overdue", label: "Overdue", value: 12880 }, { id: "draft", label: "Draft", value: 12000 },
+  ]} />`,
+  },
+  {
+    title: "One hero metric",
+    description: "The Hero is the one widget of a dashboard that stands out: a Brand Pale card with neutral marks and a Primary button, or the dark Solid Neutral card, whose content turns Inverse and whose button is the white overlay Inverse one. Its trend sits in a white On-Color badge.",
+    render: () => <HeroMetric />,
+    code: `const [look, setLook] = useState<"brand" | "dark">("brand");
+const dark = look === "dark";
+
+<Segmented aria-label="Hero style" value={look} onValueChange={(id) => setLook(id as "brand" | "dark")}
+  options={[{ id: "brand", label: "Brand" }, { id: "dark", label: "Dark" }]} />
+<MetricCard type="hero" theme={dark ? "solid" : "pale"} color={dark ? "neutral" : "brand"} label="Invoiced this year"
+  value="$798,300" trend={{ direction: "positive", label: "+12% vs. 2025" }} format={formatCompactMoney}
+  series={[74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]} // a month each
+  footer={<Button size="sm" appearance={dark ? "overlay" : "main"} level={dark ? "inverse" : "primary"} onClick={openReport}>View report</Button>} />`,
+  },
+  {
+    title: "Metric types on a phone",
+    description: "On the studio's phone app the typed cards fill the screen's width: the sparkline and the category bar take the card's width, and the comparison stacks its columns with a rule above each.",
+    render: () => <PhoneMetricTypes />,
+    code: `<PlatformPhone header={<TopNavigation type="alt" title="September" largeTitle="September" scrollRef={screenRef} />}>
+  <Stack gap="md" padding="lg">
+    <MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700" series={invoiced} format={formatCompactMoney}
+      trend={{ direction: "positive", label: "+9% vs. August" }} />
+    <MetricCard theme="flat" type="comparison" label="Cash flow" comparison={[
+      { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
+      { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
+    ]} />
+    <MetricCard theme="flat" type="category-bar" label="Invoices by status" value="$95,520.50" categories={byStatus} format={formatMoney} />
+  </Stack>
+</PlatformPhone>`,
+  },
+  {
+    title: "First weeks of a project",
+    description: "Edge cases keep their shape: with no data yet the sparkline keeps its height and the number reads a dash (\"No data\" to screen readers); one week of hours is one current bar; a goal already passed fills the bar and reads 112%.",
+    render: () => <FirstWeeksMetrics />,
+    code: `<MetricCard theme="flat" type="sparkline" label="Revenue" value={noData} series={[]}
+  trend={{ direction: "normal", label: "First invoice due Oct 31" }} />
+<MetricCard theme="flat" type="spark-bars" label="Hours logged" value="38 h" series={[38]}
+  trend={{ direction: "normal", label: "Week 1 of the project" }} />
+<MetricCard theme="flat" type="goal-progress" label="Deposit collected" value="$5,600" format={formatMoney}
+  goal={{ value: 5600, target: 5000 }} trend={{ direction: "positive", label: "$600 over the deposit" }} />`,
   },
 ]);

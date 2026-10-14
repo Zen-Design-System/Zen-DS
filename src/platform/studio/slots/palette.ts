@@ -19,10 +19,10 @@ import type { ContentSlot, HostProps } from "./registry";
  * Pure: no DOM, no React, type-only imports and erasable TypeScript, so `node palette.selftest.mjs` imports it.
  */
 
-export type PaletteGroup = "Text" | "Actions" | "Navigation" | "Data display" | "Charts" | "Feedback" | "Inputs" | "Overlays" | "Layout" | "Page" | "Chat";
+export type PaletteGroup = "Text" | "Actions" | "Navigation" | "Data display" | "Charts" | "Widgets" | "Feedback" | "Inputs" | "Overlays" | "Layout" | "Page" | "Chat";
 
 /** The picker's group order (after "Preferred for {slot}"). */
-export const PALETTE_GROUPS: readonly PaletteGroup[] = ["Text", "Actions", "Navigation", "Data display", "Charts", "Feedback", "Inputs", "Overlays", "Layout", "Page", "Chat"];
+export const PALETTE_GROUPS: readonly PaletteGroup[] = ["Text", "Actions", "Navigation", "Data display", "Charts", "Widgets", "Feedback", "Inputs", "Overlays", "Layout", "Page", "Chat"];
 
 export type PaletteContext = {
   /** The component whose slot takes the item (`slot.component`; a Stack / Grid / Box for layout children). */
@@ -134,6 +134,33 @@ const MEDIA = ["media"] as const;
 const state = (name: string, initial: string, type?: string): StateDecl => (type ? { name, initial, type } : { name, initial });
 /** A ref entry (StateDecl `ref`): `const name = useRef<type>(null)`, e.g. the element a Popover anchors to. */
 const ref = (name: string, type: string): StateDecl => ({ name, initial: "null", type, ref: true });
+
+/*
+ * Widgets (docs/research/widget-patterns-spec-2026-10-14.md): one whole dashboard widget each, the code the platform's
+ * Widgets page shows (examples/pages/widgets.tsx renders the same JSX; palette.selftest.mjs compares the two). The data is
+ * Đìzai Studio's (examples/data.ts: its months, teams, clients and projects). A `format` callback is code a builder page
+ * cannot hold: there (`builder`) the widget keeps the chart's own number format, and Figma draws its own sample data.
+ */
+type WidgetSpec = Pick<PaletteItem, "id" | "label" | "caption" | "root" | "components" | "requires"> & {
+  /** A control inside (the Hero's button): never in a click target. */
+  interactive?: boolean;
+  /** The JSX; `fmt(prop, fn)` writes ` prop={fn}` in the code and nothing on a builder page; `act(args)` an action that
+   *  shows a toast: `() => toast(args)` in the code, `proto.toast(args)` on a builder page (its prototype runtime). */
+  code: (ctx: PaletteContext, fmt: (prop: string, fn: string) => string, act: (args: string) => string) => string;
+};
+const widget = ({ code, interactive = false, ...item }: WidgetSpec): PaletteItem => ({
+  ...item, group: "Widgets", interactive, input: false,
+  build: (ctx) => code(ctx, (prop, fn) => ` ${prop}={${fn}}`, (args) => `() => toast(${args})`),
+  builder: (ctx) => code(ctx, () => "", (args) => `proto.toast(${args})`),
+});
+/** A ChartCard's headingLevel, written only when it is not its default 3. */
+const cardLevel = (ctx: PaletteContext) => { const n = Math.min(4, level(ctx)); return n === 3 ? "" : ` headingLevel={${n}}`; };
+/** Charts and KPI tiles may abbreviate ("$105.7K"), the figure over a chart never does ("$559,300"). */
+const MONEY_K = '(value) => (value ? `$${value / 1000}K` : "$0")';
+const MONEY = '(value) => `$${value.toLocaleString("en-US")}`';
+const HOURS = '(value) => `${value.toLocaleString("en-US")} h`';
+const PERCENT = '(value) => `${value}%`';
+const GOALS = '(value, row) => (row.label === "Revenue" ? `$${value / 1000}K` : row.label === "Utilisation" ? `${value}%` : `${value}`)';
 
 /** Everything the InsertPicker can add, in group order. */
 export const PALETTE: readonly PaletteItem[] = [
@@ -540,6 +567,235 @@ export const PALETTE: readonly PaletteItem[] = [
       `  ]} />`,
     ),
   },
+  /* Widgets: metrics (Figma Metric-Card Type, 6643:64008) */
+  widget({
+    id: "widget-kpi", label: "KPI card", caption: "Icon, number and trend", root: "MetricCard", components: ["MetricCard"],
+    code: () => lines(
+      `<MetricCard theme="flat" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"`,
+      `  trend={{ direction: "positive", label: "+4% vs. August" }} />`,
+    ),
+  }),
+  widget({
+    id: "widget-kpi-sparkline", label: "KPI with sparkline", caption: "Metric card, sparkline", root: "MetricCard", components: ["MetricCard"],
+    code: (_ctx, fmt) => lines(
+      `<MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700"${fmt("format", MONEY_K)}`,
+      `  trend={{ direction: "positive", label: "+9% vs. August" }}`,
+      `  series={[71200, 76500, 68900, 74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]} />`,
+    ),
+  }),
+  widget({
+    id: "widget-kpi-spark-bars", label: "KPI with spark bars", caption: "Metric card, spark bars", root: "MetricCard", components: ["MetricCard"],
+    code: (_ctx, fmt) => lines(
+      `<MetricCard theme="flat" type="spark-bars" label="Hours logged" value="1,284 h"${fmt("format", HOURS)}`,
+      `  trend={{ direction: "positive", label: "+13% vs. last week" }}`,
+      `  series={[1012, 1086, 1048, 760, 1131, 1176, 1104, 640, 1153, 1067, 1132, 1284]} />`,
+    ),
+  }),
+  widget({
+    id: "widget-goal-progress", label: "Goal progress", caption: "Metric card, goal", root: "MetricCard", components: ["MetricCard"],
+    code: (_ctx, fmt) => lines(
+      `<MetricCard theme="flat" type="goal-progress" label="Collected in Q3" value="$275,800"${fmt("format", MONEY)}`,
+      `  trend={{ direction: "positive", label: "+8% vs. Q2" }}`,
+      `  goal={{ value: 275800, target: 290000 }} />`,
+    ),
+  }),
+  widget({
+    id: "widget-period-comparison", label: "Period comparison", caption: "Metric card, columns", root: "MetricCard", components: ["MetricCard"],
+    code: () => lines(
+      `<MetricCard theme="flat" type="comparison" label="Cash flow · September" comparison={[`,
+      `  { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },`,
+      `  { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },`,
+      `  { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } },`,
+      `]} />`,
+    ),
+  }),
+  widget({
+    id: "widget-category-split", label: "Category split", caption: "Metric card, category bar", root: "MetricCard", components: ["MetricCard"],
+    code: (_ctx, fmt) => lines(
+      `<MetricCard theme="flat" type="category-bar" label="Billable hours · September" value="5,900 h"${fmt("format", HOURS)}`,
+      `  categories={[`,
+      `    { id: "design", label: "Design", value: 2650 }, { id: "engineering", label: "Engineering", value: 1990 },`,
+      `    { id: "delivery", label: "Delivery", value: 750 }, { id: "client-services", label: "Client Services", value: 510 },`,
+      `  ]} />`,
+    ),
+  }),
+  widget({
+    // The row's one stand-out: Card Solid Neutral (the dark widget), its button Overlay Inverse (Figma Button/Overlay).
+    id: "widget-hero", label: "Hero metric", caption: "Solid stand-out", root: "MetricCard", components: ["MetricCard", "Button"], requires: TOAST, interactive: true,
+    code: (_ctx, fmt, act) => lines(
+      `<MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300"${fmt("format", MONEY_K)}`,
+      `  trend={{ direction: "positive", label: "+12% vs. 2025" }}`,
+      `  series={[74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]}`,
+      `  footer={<Button size="sm" appearance="overlay" level="inverse" onClick={${act('{ title: "Revenue report opened" }')}}>View report</Button>} />`,
+    ),
+  }),
+  /* Widgets: trends */
+  widget({
+    id: "widget-revenue-trend", label: "Revenue trend", caption: "Area chart, 12 months", root: "ChartCard", components: ["ChartCard", "AreaChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Revenue"${cardLevel(ctx)} icon="icon-line-chart-up-line" description="Invoiced over the last 12 months" value="$1,014,900">`,
+      `  <AreaChart aria-label="Revenue invoiced per month, Oct 2025 – Sep 2026" height={200}${fmt("format", MONEY_K)}`,
+      `    series={[{ id: "invoiced", label: "Invoiced" }]}`,
+      `    data={[`,
+      `      { label: "Oct", values: { invoiced: 71200 } }, { label: "Nov", values: { invoiced: 76500 } }, { label: "Dec", values: { invoiced: 68900 } },`,
+      `      { label: "Jan", values: { invoiced: 74300 } }, { label: "Feb", values: { invoiced: 79600 } }, { label: "Mar", values: { invoiced: 85100 } },`,
+      `      { label: "Apr", values: { invoiced: 82300 } }, { label: "May", values: { invoiced: 91800 } }, { label: "Jun", values: { invoiced: 88400 } },`,
+      `      { label: "Jul", values: { invoiced: 94100 } }, { label: "Aug", values: { invoiced: 97000 } }, { label: "Sep", values: { invoiced: 105700 } },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-hours-by-team", label: "Hours by team", caption: "Stacked area", root: "ChartCard", components: ["ChartCard", "AreaChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Billable hours by team"${cardLevel(ctx)} icon="icon-clock-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">`,
+      `  <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" height={200}${fmt("format", HOURS)}`,
+      `    series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }, { id: "client-services", label: "Client Services" }]}`,
+      `    data={[`,
+      `      { label: "Apr", values: { design: 2500, engineering: 1880, delivery: 700, "client-services": 480 } },`,
+      `      { label: "May", values: { design: 2510, engineering: 1880, delivery: 700, "client-services": 480 } },`,
+      `      { label: "Jun", values: { design: 2720, engineering: 2040, delivery: 770, "client-services": 520 } },`,
+      `      { label: "Jul", values: { design: 2920, engineering: 2190, delivery: 820, "client-services": 560 } },`,
+      `      { label: "Aug", values: { design: 2550, engineering: 1910, delivery: 720, "client-services": 490 } },`,
+      `      { label: "Sep", values: { design: 2650, engineering: 1990, delivery: 750, "client-services": 510 } },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-invoiced-collected", label: "Invoiced vs collected", caption: "Line with a comparison", root: "ChartCard", components: ["ChartCard", "LineChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Invoiced vs. collected"${cardLevel(ctx)} icon="icon-coins-stacked-01-line" description="Collected of $559,300 invoiced, Apr – Sep 2026" value="$531,400">`,
+      `  <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" height={200} label="Invoiced" legendPosition="top"${fmt("format", MONEY_K)}`,
+      `    data={[`,
+      `      { label: "Apr", value: 82300 }, { label: "May", value: 91800 }, { label: "Jun", value: 88400 },`,
+      `      { label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 },`,
+      `    ]}`,
+      `    compare={{ label: "Collected", values: [79500, 90100, 86000, 91700, 95800, 88300] }} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-forecast", label: "Forecast", caption: "Bars, forecast hatched", root: "ChartCard", components: ["ChartCard", "BarChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Revenue forecast"${cardLevel(ctx)} icon="icon-bar-chart-01-line" description="Invoiced and forecast for 2026" value="$1,122,800">`,
+      `  <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" height={200} showAverage${fmt("format", MONEY_K)}`,
+      `    data={[`,
+      `      { label: "Jan", value: 74300 }, { label: "Feb", value: 79600 }, { label: "Mar", value: 85100 },`,
+      `      { label: "Apr", value: 82300 }, { label: "May", value: 91800 }, { label: "Jun", value: 88400 },`,
+      `      { label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 },`,
+      `      { label: "Oct", value: 108000, projected: true }, { label: "Nov", value: 112500, projected: true }, { label: "Dec", value: 104000, projected: true },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  /* Widgets: comparisons */
+  widget({
+    id: "widget-year-over-year", label: "This year vs last", caption: "Grouped bars", root: "ChartCard", components: ["ChartCard", "GroupedBarChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="This year vs last"${cardLevel(ctx)} icon="icon-bar-chart-01-line" description="Invoiced Apr – Sep 2026, up 12% on 2025" value="$559,300">`,
+      `  <GroupedBarChart aria-label="Revenue invoiced per month, Apr – Sep, 2025 and 2026" height={200}${fmt("format", MONEY_K)}`,
+      `    series={[{ id: "lastYear", label: "2025" }, { id: "thisYear", label: "2026" }]}`,
+      `    data={[`,
+      `      { label: "Apr", values: { lastYear: 74600, thisYear: 82300 } }, { label: "May", values: { lastYear: 81900, thisYear: 91800 } },`,
+      `      { label: "Jun", values: { lastYear: 80300, thisYear: 88400 } }, { label: "Jul", values: { lastYear: 84200, thisYear: 94100 } },`,
+      `      { label: "Aug", values: { lastYear: 86900, thisYear: 97000 } }, { label: "Sep", values: { lastYear: 90400, thisYear: 105700 } },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-revenue-margin", label: "Revenue and margin", caption: "Bars and a line", root: "ChartCard", components: ["ChartCard", "ComboChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Revenue and margin"${cardLevel(ctx)} icon="icon-bar-chart-01-line" description="Invoiced and the share kept after costs, Apr – Sep 2026" value="$559,300">`,
+      `  <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin" height={200}${fmt("format", MONEY_K)}${fmt("lineFormat", PERCENT)}`,
+      `    data={[`,
+      `      { label: "Apr", bar: 82300, line: 31 }, { label: "May", bar: 91800, line: 34 }, { label: "Jun", bar: 88400, line: 29 },`,
+      `      { label: "Jul", bar: 94100, line: 36 }, { label: "Aug", bar: 97000, line: 38 }, { label: "Sep", bar: 105700, line: 41 },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-busiest-hours", label: "Busiest hours", caption: "Heatmap, day × hour", root: "ChartCard", components: ["ChartCard", "HeatmapChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Busiest hours"${cardLevel(ctx)} icon="icon-activity-line" description="Hours logged per hour of the day, September">`,
+      `  <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026"${fmt("format", HOURS)}`,
+      `    columns={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}`,
+      `    rows={["9 am", "10 am", "11 am", "12 pm", "1 pm", "2 pm", "3 pm", "4 pm", "5 pm", "6 pm"]}`,
+      `    values={[`,
+      `      [38, 41, 40, 39, 35, 4, 0], [62, 66, 64, 63, 55, 6, 2], [71, 74, 72, 70, 61, 7, 2], [34, 36, 35, 33, 30, 5, 1], [52, 55, 53, 51, 44, 6, 1],`,
+      `      [68, 72, 70, 69, 52, 5, 2], [70, 75, 73, 71, 48, 4, 1], [61, 64, 63, 60, 39, 3, 0], [42, 44, 43, 41, 22, 2, 0], [12, 14, 13, 12, 5, 0, 0],`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  /* Widgets: goals */
+  widget({
+    id: "widget-utilisation", label: "Utilisation", caption: "Gauge against a target", root: "ChartCard", components: ["ChartCard", "GaugeChart"],
+    code: (ctx) => lines(
+      `<ChartCard title="Utilisation"${cardLevel(ctx)} icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">`,
+      `  <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026" value={5900} max={7564} target={6429} actualLabel="Billable" />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-quarter-goals", label: "Quarter goals", caption: "Bullet chart", root: "ChartCard", components: ["ChartCard", "BulletChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Quarter goals"${cardLevel(ctx)} icon="icon-target-04-line" description="Q3 2026 against target" value="1 of 3 met">`,
+      `  <BulletChart aria-label="Quarter goals, Q3 2026"${fmt("format", GOALS)}`,
+      `    data={[`,
+      `      { label: "Revenue", value: 296800, target: 320000 },`,
+      `      { label: "New clients", value: 5, target: 4 },`,
+      `      { label: "Utilisation", value: 78, target: 80, max: 100 },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-budget-rings", label: "Budget rings", caption: "Radial chart", root: "ChartCard", components: ["ChartCard", "RadialChart"],
+    code: (ctx) => lines(
+      `<ChartCard title="Budget used"${cardLevel(ctx)} icon="icon-target-04-line" description="Client projects, spent of budget">`,
+      `  <RadialChart aria-label="Budget used on client projects, September 30, 2026"`,
+      `    data={[{ id: "lumen", label: "Online banking redesign", value: 36 }, { id: "phin", label: "Loyalty app", value: 61 }, { id: "mekong", label: "Shipment tracking", value: 23 }]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  /* Widgets: shares and rankings */
+  widget({
+    id: "widget-sales-funnel", label: "Sales funnel", caption: "Funnel", root: "ChartCard", components: ["ChartCard", "FunnelChart"],
+    code: (ctx) => lines(
+      `<ChartCard title="Sales funnel"${cardLevel(ctx)} icon="icon-filter-funnel-line" description="Leads to signed projects, Q3 2026" value="62 signed">`,
+      `  <FunnelChart aria-label="Leads to signed projects, Q3 2026"`,
+      `    data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Negotiation", value: 94 }, { label: "Signed", value: 62 }]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-top-clients", label: "Top clients", caption: "Bar list", root: "ChartCard", components: ["ChartCard", "BarList"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Top clients"${cardLevel(ctx)} icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026" value="$296,800">`,
+      `  <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }}${fmt("format", MONEY)}`,
+      `    data={[`,
+      `      { label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, { label: "Mekong Freight", value: 53400 },`,
+      `      { label: "Hanoi Book Fair", value: 50500 }, { label: "Other clients", value: 35600 },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
+  widget({
+    id: "widget-revenue-by-client", label: "Revenue by client", caption: "Donut chart", root: "ChartCard", components: ["ChartCard", "DonutChart"],
+    code: (ctx, fmt) => lines(
+      `<ChartCard title="Revenue by client"${cardLevel(ctx)} icon="icon-pie-chart-01-line" description="Invoiced in Q3 2026">`,
+      `  <DonutChart aria-label="Revenue by client, Q3 2026" size={168} legendPosition="start"${fmt("format", MONEY_K)}`,
+      `    data={[`,
+      `      { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },`,
+      `      { id: "mekong", label: "Mekong Freight", value: 53400 }, { id: "bookfair", label: "Hanoi Book Fair", value: 50500 },`,
+      `      { id: "other", label: "Other clients", value: 35600 },`,
+      `    ]} />`,
+      `</ChartCard>`,
+    ),
+  }),
   /* Feedback */
   {
     id: "inline-message", label: "Inline message", group: "Feedback", caption: "Info", root: "InlineMessage", components: ["InlineMessage"], interactive: false, input: false,
@@ -939,6 +1195,20 @@ const byId = new Map(PALETTE.map((item) => [item.id, item]));
 
 /** One palette item by id. */
 export const paletteItem = (id: string) => byId.get(id) ?? null;
+
+/** Where the platform's Widgets page writes a widget: on an example stage, under the card's h3 (ChartCard's default). */
+export const WIDGET_PAGE_CONTEXT: PaletteContext = {
+  host: "Stack", headingLevel: 3, mobile: false, uid: "widgets",
+  slot: { component: "Stack", prop: "children", name: "Children", kind: "layout", container: null, mountsWhenEmpty: true, flow: "column", gap: "own" },
+};
+
+/** A Widgets entry's code as the platform's Widgets page shows it: its import line, then the JSX the Studio inserts. */
+export function widgetCode(id: string): string {
+  const item = paletteItem(id);
+  if (!item || item.group !== "Widgets") return "";
+  const names = [...new Set(item.components)].sort((a, b) => a.localeCompare(b));
+  return `import { ${names.join(", ")} } from "@zen-ds/react";\n\n${item.build(WIDGET_PAGE_CONTEXT)}`;
+}
 
 /** Figma "preferred instances" per slot (item ids, in order): shown first in the picker. */
 const PREFERRED: Readonly<Record<string, readonly string[]>> = {

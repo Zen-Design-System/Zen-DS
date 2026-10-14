@@ -755,7 +755,8 @@
 .pe-shell { position: relative; isolation: isolate; }
 /* The shell is a mock app page, so it follows the background layers: Canvas (layer 1) → the Sidebar and the cards
    on it are Surface (layer 2). Pairings: Canvas/Default + Surface/Default, Canvas/Alt (white page) + Surface/Alt,
-   Canvas/Flat + Surface/Flat navigation (seamless in both modes) with Surface/Default cards. */
+   Canvas/Flat + Surface/Flat navigation (seamless in both modes) with Surface/Default cards, or Border cards on
+   Surface/Flat (Card theme="border" surface="flat", Figma Card Border × Surface=Flat). */
 /* zen-allow-canvas-layer: the example shell stands in for an app page */
 .pe-shell[data-canvas] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
 /* zen-allow-canvas-layer: the example shell stands in for an app page */

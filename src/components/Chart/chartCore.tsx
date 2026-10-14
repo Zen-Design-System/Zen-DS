@@ -8,13 +8,14 @@ import { typographyStyles } from "../../tokens/typography.generated";
 export interface ChartPoint {
   label: string;
   value: number;
-  /** BarChart: a forecast or a period not closed yet, drawn hatched (Border/Neutral/Subtle stripes). */
+  /** BarChart: a forecast or a period not closed yet, drawn hatched (Figma .Chart/Hatch: Border/Neutral/Pale stripes on
+   *  Support/Neutral/Pale). */
   projected?: boolean;
   /** BarChart: the goal for this bar, drawn as a hatched track behind it; the Tooltip reads "value of target". */
   target?: number;
 }
-/** How a LineChart fills the area under its line: `area` (Accent/Solid at 16%, Figma's flat area) or `none`. `gradient`
- *  is deprecated (Figma has no chart gradients since 2026-10-14) and draws the same flat area. */
+/** How a LineChart fills the area under its line: `area` (Figma's fade, Accent/Solid at the top to Accent/Subtle at the
+ *  baseline, at 30%) or `none`. `gradient` is deprecated (the area itself is the fade) and draws the same area. */
 export type ChartFill = "area" | "none" | "gradient";
 export interface ChartSeries {
   id: string;
@@ -47,6 +48,39 @@ export const chartPalette = [
 
 /** The colour of the series (or slice) at `index`: its own colour, else the palette in order. */
 export const colourAt = (item: { color?: string } | undefined, index: number) => item?.color ?? chartPalette[index % chartPalette.length];
+
+/** The fade under an area, per palette slot (Figma Chart/Line-Chart's Trend and Chart/Area-Chart, 2026-10-14): a
+ *  vertical gradient from a Solid colour at the area's highest point to its Subtle at the baseline, the whole area at 30%
+ *  (chart.css). Figma binds Background/Accent, Background/Neutral and Background/Support/Cyan Solid → Subtle for the first
+ *  three bands; the later slots fade their palette hue the same way (Red Soft → Red Subtle). */
+export const chartFades = [
+  ["var(--zen-color-background-accent-solid-default, #ff66d4)", "var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 12%))"],
+  ["var(--zen-color-background-neutral-solid-default, #111)", "var(--zen-color-background-neutral-subtle-default, rgb(2 2 2 / 7%))"],
+  ["var(--zen-color-background-support-cyan-solid, #21b8d8)", "var(--zen-color-background-support-cyan-subtle, rgb(0 168 236 / 16%))"],
+  ["var(--zen-color-background-support-violet-solid, #7a5af8)", "var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%))"],
+  ["var(--zen-color-background-support-yellow-solid, #f5b800)", "var(--zen-color-background-support-yellow-subtle, rgb(245 184 0 / 16%))"],
+  ["var(--zen-color-background-support-orange-solid, #f5832a)", "var(--zen-color-background-support-orange-subtle, rgb(245 131 42 / 16%))"],
+  ["var(--zen-color-background-support-red-soft, #ffc0af)", "var(--zen-color-background-support-red-subtle, rgb(255 192 175 / 16%))"],
+] as const;
+
+/** The fade of the series at `index`: the palette slot's Solid → Subtle, or a series' own `color` fading to 16% of itself
+ *  (about the Support ramps' Subtle). */
+export const fadeAt = (item: { color?: string } | undefined, index: number) => {
+  if (item?.color) return { top: item.color, bottom: item.color, bottomOpacity: 0.16 };
+  const [top, bottom] = chartFades[index % chartFades.length];
+  return { top, bottom, bottomOpacity: undefined };
+};
+
+/** An area's fade as an SVG gradient: top → bottom over the area's own bounds (objectBoundingBox), as Figma's linear
+ *  gradient on the area vector. Paint the area with `fill="url(#id)"`. */
+export function ChartFade({ id, top, bottom, bottomOpacity }: { id: string; top: string; bottom: string; bottomOpacity?: number }) {
+  return (
+    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" style={{ stopColor: top }} />
+      <stop offset="1" style={{ stopColor: bottom, stopOpacity: bottomOpacity }} />
+    </linearGradient>
+  );
+}
 
 /** "1.2K" from 1,000 up, else the value to one decimal at most (a mean of 306.666… reads "306.7"). */
 export const defaultFormat = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`);

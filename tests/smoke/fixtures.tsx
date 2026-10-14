@@ -54,6 +54,10 @@ export const fixtures: Record<string, Fixture> = {
   RadialChart: { props: { "aria-label": "Budget used", data: [{ id: "a", label: "Loyalty app", value: 61 }, { id: "b", label: "Shipment tracking", value: 23 }] } },
   HeatmapChart: { props: { "aria-label": "Hours logged by weekday and hour", rows: ["9 am", "10 am"], columns: ["Mon", "Tue", "Wed"], values: [[3, 8, 5], [9, 12, 0]] } },
   ChartCard: { props: { title: "Visits", children: "Chart" } },
+  // value is optional (type="comparison" draws none); the KPI card keeps its number. The types: tests/interaction/metric-card-types.test.tsx.
+  MetricCard: { props: { label: "Revenue", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } } },
+  // A Solid Neutral card (the dark widget): its content and ⋮ read Content/Inverse/* in light and dark (Card.tsx color).
+  Card: { props: { theme: "solid", color: "neutral", subAction: { label: "More actions", onClick: noop }, children: "Invoiced this year" } },
   BarList: { props: { "aria-label": "Revenue by client", headers: { label: "Client", value: "Revenue" }, data: [{ label: "Lumen Bank", value: 96400 }, { label: "Phin & Co", value: 71200 }, { label: "Mekong Freight", value: 54800 }] } },
   BulletChart: { props: { "aria-label": "Quarter goals", data: [{ label: "Revenue", value: 798, target: 900 }, { label: "New clients", value: 18, target: 24 }] } },
   GaugeChart: { props: { "aria-label": "Billable share of logged hours", value: 82, target: 85, label: "Billable" } },

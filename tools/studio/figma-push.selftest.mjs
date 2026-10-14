@@ -1252,6 +1252,141 @@ export default function Page() {
   check("round trip twice: the same sets, variants and titles", sets(again), sets(frame));
 }
 
+// Card Theme=Solid and Color (2026-10-14): written as Figma's variant, Neutral where Figma has none (a Solid hue it does
+// not draw, a theme with no Color, a selected coloured card); MetricCard and ChartCard pass theme and color to the Card
+// around them; the pull gives the colours back.
+{
+  const COLOURED = `// @zen-page {"format":1,"title":"Colour"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Card, ChartCard, LineChart, MetricCard, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Colour" device="desktop">
+        <Stack>
+          <Card theme="solid" color="brand"><Text>Invoiced</Text></Card>
+          <Card theme="pale" color="violet" spacing="small"><Text>Design hours</Text></Card>
+          <Card theme="solid" color="green"><Text>Collected</Text></Card>
+          <Card theme="flat" color="cyan"><Text>Outstanding</Text></Card>
+          <Card theme="pale" color="orange" selected><Text>Plan</Text></Card>
+          <MetricCard theme="solid" color="neutral" label="Invoiced this year" value="$798,300" />
+          <ChartCard title="Revenue" theme="pale" color="cyan"><LineChart data={[{ label: "Apr", value: 1 }]} /></ChartCard>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes: colourNotes } = push(COLOURED);
+  const cards = [];
+  const walk = (node) => { if (node.set?.name === "Card") cards.push([node.props.Theme, node.props.Color, node.props.Active ?? null]); for (const child of [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)]) walk(child); };
+  walk(frame);
+  check("card colour: Theme × Color × Active as Figma variants (Solid Green → Neutral, Flat takes no Color, a selected card is Neutral)", cards, [
+    ["Solid", "Brand", null], ["Pale", "Violet", null], ["Solid", "Neutral", null], ["Flat", "Neutral", null], ["Pale", "Neutral", "Yes"], ["Solid", "Neutral", null], ["Pale", "Cyan", null],
+  ]);
+  ok("card colour: a note names the Solid hue Figma does not draw", colourNotes.some((note) => /Figma has no Solid Green/.test(note)));
+  const { text: back } = pageFromFigma(frame, { mapping });
+  ok("card colour round trip: Solid Brand, Pale Violet and the ChartCard's Pale Cyan come back", /<Card theme="solid" color="brand">/.test(back) && /<Card theme="pale" color="violet" spacing="small">/.test(back) && /<ChartCard title="Revenue" theme="pale" color="cyan">/.test(back));
+  ok("card colour round trip: the Solid Neutral MetricCard comes back as a MetricCard", /<MetricCard [^>]*theme="solid"/.test(back));
+}
+
+// Card Surface (2026-10-14): Alt on Flat and Border, Flat on Border only; Shadow on alt goes up as Flat on Surface/Alt (the
+// code draws it so), a Surface the theme does not take as Default, with notes; ChartCard passes its surface to its Card;
+// a KPI MetricCard is still a Card around Metric-Inline; the pull gives the surfaces back.
+{
+  const SURFACED = `// @zen-page {"format":1,"title":"Surfaces"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Card, ChartCard, LineChart, MetricCard, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Surfaces" device="desktop">
+        <Stack>
+          <Card theme="border" surface="flat"><Text>Hours</Text></Card>
+          <Card theme="flat" surface="alt"><Text>Leave</Text></Card>
+          <Card theme="shadow" surface="alt"><Text>Invoices</Text></Card>
+          <Card theme="flat" surface="flat"><Text>Clients</Text></Card>
+          <Card theme="pale" color="green" surface="alt"><Text>Budget</Text></Card>
+          <ChartCard title="Revenue" theme="border" surface="alt"><LineChart data={[{ label: "Apr", value: 1 }]} /></ChartCard>
+          <MetricCard label="Collected" value="$275,800" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes: surfaceNotes } = push(SURFACED);
+  const cards = [];
+  const walk = (node) => { if (node.set?.name === "Card") cards.push([node.props.Theme, node.props.Surface ?? null, node.slots?.[0]?.children?.[0]?.set?.name ?? null]); for (const child of [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)]) walk(child); };
+  walk(frame);
+  check("card surface: Theme × Surface as Figma variants (Shadow on Alt → Flat, Flat on Flat → Default, Pale on Alt → Default); the KPI MetricCard a Card around Metric-Inline", cards.map(([theme, surface, inner]) => [theme, surface, inner && /Metric-Inline/.test(inner) ? "Metric-Inline" : null]), [
+    ["Border", "Flat", null], ["Flat", "Alt", null], ["Flat", "Alt", null], ["Flat", "Default", null], ["Pale", "Default", null], ["Border", "Alt", null], ["Shadow", null, "Metric-Inline"],
+  ]);
+  ok("card surface: notes name Shadow on Alt and the surfaces a theme does not take", surfaceNotes.some((note) => /Shadow on Surface\/Alt draws as Flat/.test(note)) && surfaceNotes.some((note) => /no Flat card on Surface Flat/.test(note)) && surfaceNotes.some((note) => /no Pale card on Surface Alt/.test(note)));
+  const { text: back } = pageFromFigma(frame, { mapping });
+  ok("card surface round trip: Border on Flat, Flat on Alt and the ChartCard's Border on Alt come back", /<Card theme="border" surface="flat">/.test(back) && /<Card theme="flat" surface="alt">/.test(back) && /<ChartCard title="Revenue" theme="border" surface="alt">/.test(back));
+  ok("card surface round trip: the KPI MetricCard comes back", /<MetricCard [^>]*label="Collected"/.test(back));
+}
+
+// MetricCard type (metric-types, 2026-10-14; figma-metric.mjs): a typed MetricCard is Figma's Metric-Card of that Type
+// (6643:64008) — its title and number, trend, Card Theme / Color / Sub-Action, Comparison's three columns, the Hero's
+// button words; Figma draws its own marks (a note). The pull gives the type, texts and Card back and takes the marks' data
+// from the Studio palette's widget of that type; a fresh Figma Hero (Solid Brand, its fill overridden Pale) is the code's
+// Hero default. A KPI MetricCard keeps its Card + Metric-Inline push.
+{
+  const TYPED = `// @zen-page {"format":1,"title":"Metric types"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, MetricCard, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Metric types" device="desktop">
+        <Stack gap="md">
+          <MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "+9% vs. August" }} series={[1, 2, 3]} />
+          <MetricCard type="comparison" label="Cash flow · October" comparison={[{ id: "in", label: "Invoiced", value: "$98,100", trend: { direction: "negative", label: "−7% vs. September" } }, { id: "out", label: "Collected", value: "$91,000" }]} />
+          <MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300" series={[1, 2]} footer={<Button size="sm" appearance="overlay" level="inverse">Open report</Button>} />
+          <MetricCard theme="flat" label="Billable hours" value="5,900 h" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes: typedNotes } = push(TYPED);
+  const found = [];
+  const walk = (node) => { if (node.set?.name === "Metric-Card" || node.set?.name === "Card") found.push(node); else [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
+  walk(frame);
+  const [spark, compare, hero, kpi] = found;
+  check("metric type: a typed MetricCard is one Metric-Card instance of its Type; KPI stays a Card", found.map((node) => [node.set.name, node.props.Type ?? node.props.Theme]), [["Metric-Card", "Sparkline"], ["Metric-Card", "Comparison"], ["Metric-Card", "Hero"], ["Card", "Flat"]]);
+  check("metric type: Sparkline's title, number, trend and Card (Flat, no ⋮)", [spark.texts, spark.nested], [{ Label: "Revenue", "Metric-Number": "$105,700" }, [{ path: "Card", props: { "Sub-Action": false, Theme: "Flat" } }, { path: "Title-Highlight", props: { Trend: true } }, { path: "Title-Highlight/Trend", props: { Trend: "Positive" }, textList: ["+9% vs. August"] }]]);
+  check("metric type: Comparison's title and its columns (one without a trend), the variant's Shadow left alone", [compare.texts, compare.nested], [{ "Cash flow · September": "Cash flow · October" }, [
+    { path: "Card", props: { "Sub-Action": false } },
+    { path: "Title-Highlight[0]", props: { Trend: true }, texts: { Label: "Invoiced", "Metric-Number": "$98,100" } }, { path: "Title-Highlight[0]/Trend", props: { Trend: "Negative" }, textList: ["−7% vs. September"] },
+    { path: "Title-Highlight[1]", props: { Trend: false }, texts: { Label: "Collected", "Metric-Number": "$91,000" } },
+  ]]);
+  check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button", textList: ["Open report"] }]);
+  ok("metric type: notes say Figma draws its own marks and keeps three comparison columns", typedNotes.some((note) => /Metric-Card Sparkline draws its own sample line/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
+  ok("metric type: KPI keeps its Metric-Inline", kpi.slots?.[0]?.children?.[0]?.set?.name === "Primitives/Metric/Metric-Inline/Icon-Highlight");
+  const { text: back } = pageFromFigma(frame, { mapping });
+  ok("metric type round trip: Sparkline comes back typed, its texts, trend and theme, its series the Studio sample's", /<MetricCard theme="flat" type="sparkline" label="Revenue" value="\$105,700" trend=\{\{ direction: "positive", label: "\+9% vs\. August" \}\} series=\{\[71200,/.test(back));
+  ok("metric type round trip: Comparison's columns come back from Figma's texts", /<MetricCard type="comparison" label="Cash flow · October" comparison=\{\[\{ id: "invoiced", label: "Invoiced", value: "\$98,100", trend: \{ direction: "negative", label: "−7% vs\. September" \} \}, \{ id: "collected", label: "Collected", value: "\$91,000" \}\]\} \/>/.test(back));
+  ok("metric type round trip: the dark Hero keeps Solid Neutral and its button words", /<MetricCard theme="solid" color="neutral" type="hero"[^]*?footer=\{<Button[^>]*>Open report<\/Button>\}/.test(back));
+  // A fresh Hero placed in Figma: its Card is Solid Brand (fill overridden to Brand Pale) with ⋮ on — the code's default Hero.
+  const fresh = { type: "FRAME", name: "Board", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ type: "INSTANCE", name: "Metric-Card", set: { id: "6643:64008", name: "Metric-Card" }, props: { Type: "Hero" }, texts: { Label: "Invoiced this year", "Metric-Number": "$798,300" }, nested: [{ path: "Card", props: { Theme: "Solid", Color: "Brand", "Sub-Action": true } }, { path: "Title-Highlight", props: { Trend: false } }, { path: "Button", textList: ["View report"] }] }] };
+  const { text: freshBack, notes: freshNotes } = pageFromFigma(fresh, { mapping });
+  ok("metric type pull: Figma's own Hero is the code's default Hero (no theme or color written)", /<MetricCard type="hero" label="Invoiced this year" value="\$798,300" series=/.test(freshBack) && !/<MetricCard type="hero"[^>]*theme=/.test(freshBack));
+  ok("metric type pull: Figma's ⋮ on is a note (subAction needs its handler)", freshNotes.some((note) => /Sub-Action shows in Figma; set subAction/.test(note)));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

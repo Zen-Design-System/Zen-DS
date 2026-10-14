@@ -11,8 +11,8 @@ under `--zen-chart-reveal`, reduced-motion fade, focusable plot with ←/→ Hom
 
 Figma's descriptions of the seven sets are older than the file (they still say Value Heading/3, Semi-Pale, Gradient,
 "Gradients/Chart/Area"): read the nodes, not the descriptions. Since 2026-10-14 the charts are card-less content that
-sits in Chart-Card's Content slot; areas are the series' solid style at layer opacity 0.16 (no gradient); the header
-Value is Heading/2.
+sits in Chart-Card's Content slot; the header Value is Heading/2. Areas were the series' solid style at layer opacity
+0.16 (no gradient) when this card was written; later the same day the designer made them fades (§4.x Figma re-sync).
 
 ## 1. Page manifest (❖ Chart, read 2026-10-14)
 
@@ -186,9 +186,9 @@ sector columns, X pill, live summary and top-lane Tooltip are the family's own):
 
 | Element (Figma layer) | Figma | Code |
 | --- | --- | --- |
-| Area (15484:2594) | vector from the first column's centre to the last, fill style Color Chart Sector/Primary, layer opacity 0.16, no gradient | `.zen-chart__area-band` fill = `colourAt(series)`, `fill-opacity: .16` |
+| Area (15484:2594) | vector from the first column's centre to the last; was fill style Color Chart Sector/Primary at layer opacity 0.16 — since the re-sync a linear gradient Background/Accent/Solid → Accent/Subtle, paint opacity 0.30 | `.zen-chart__area-band` fill = `ChartFade` (`fadeAt(series)`), `fill-opacity: .3` |
 | Line (15484:2595) | 2px, round caps, straight segments, stroke style Color Chart Sector/Primary | `.zen-chart__area-line` 2px, round caps/joins, `M … L` segments, non-scaling stroke |
-| Stacked bands (15484:2647/2649/2651) | each band between the previous top and its own, styles Primary · Secondary · Tertiary, layer opacity 0.24; a line on each band's top | bands from the running totals, `fill-opacity: .24` (`[data-type="stacked"]`); lines in Figma's order (band, line per series, bottom first) |
+| Stacked bands (15484:2647/2649/2651) | each band between the previous top and its own; was styles Primary · Secondary · Tertiary at layer opacity 0.24 — since the re-sync each a gradient Solid → Subtle (Accent · Neutral · Support/Cyan) at paint opacity 0.30; a line on each band's top | bands from the running totals, each its own fade at `.3`; lines in Figma's order (band, line per series, bottom first) |
 | Dot (15484:2597) | 12 × 12, Surface/Default, 2px inside stroke Color Chart Sector/Primary | `.zen-chart__area-dot` `--zen-element-size-popular-2-xsmall`, `--zen-color-background-surface-default`, 2px ring in the series colour; one per line when stacked |
 | Rule (15484:2596) | 1px Border/Active/Neutral/Subtle from the point to the baseline | `.zen-chart__area-rule` (PlotFrame's full-height sector rule is off for the area) |
 | Tooltip (15484:2598) | Tooltip Default · Medium beside the dot (6px gap), centred on the point | `TooltipSurface` default medium in `.zen-chart__point-tip`: a dot's width (12) from the point, before it on the end half, after it on the start half, clamped inside the plot; reads the value, or the stack's total |
@@ -300,3 +300,51 @@ occupied row/column", caught as VERTICAL); `defaultFormat` writes "Avg 306.66666
 - `useChartSelection`: until an item is picked the active one follows `initialIndex` (default), so data that arrives
   after mount (an empty first render) shows its default item instead of "No data" — every chart in the family.
 - GaugeChart: a non-number value reads 0 and a non-number target is no target (aria-valuenow stays a number).
+
+### 4.x Figma re-sync (2026-10-14, chart-sync; the user: "update lại chart, widget từ Figma")
+
+Every chart set in section Chart components (15576:3333) and the primitives `.Chart/Line-Chart/Trend`,
+`.Primitives/Chart/Sector`, `.Primitives/Chart/Column/Stack-Bar/*`, `.Chart/Legend-Item`, `.Chart/Hatch` re-read
+(read-only `use_figma`: paints with their variables / styles, gradients, stroke weights, dashes, caps, radii, gaps,
+paddings, text styles). No layer in the 15 sets is newer than this card (no node id past 15540): the edits are paint
+and property changes.
+
+| Set · element | Figma now | Code before | Code now |
+| --- | --- | --- | --- |
+| Line-Chart / Multi-Line (Trend › Chart-Visual › Base, all 4 Sector variants) | linear gradient Background/Accent/Solid → Accent/Subtle, top → bottom over the area, paint opacity 0.30 | the same (changed earlier the same day) | unchanged; the gradient now comes from the shared `ChartFade` / `chartFades[0]` (chartCore) instead of two CSS stop classes |
+| Area-Chart Type=Area · Area 15484:2594 | gradient Accent/Solid → Accent/Subtle, paint opacity 0.30, layer 1 | flat `colourAt(series)` at 16% | `ChartFade` per band (`fadeAt`), `fill-opacity: .3` |
+| Area-Chart Type=Stacked · Design / Engineering / Delivery-Area | gradients Accent, Neutral, Support/Cyan Solid → Subtle, paint opacity 0.30 | flat palette colours at 24% | the same fades (`chartFades` 0–2; slots 3–6 fade Violet, Yellow, Orange Solid and Red Soft to their Subtle; a series' own `color` fades to 16% of itself), `.3` |
+| `.Primitives/Chart/Sector` Select=Default · Line (4388:8675) | the rule's paint is hidden: idle sectors draw no rule | line charts drew every idle rule Active/Accent/Subtle at 35% | idle rules gone; the active sector keeps its rule (Accent/Solid on lines, Neutral/Subtle on bars) |
+
+Unchanged, on purpose (documented):
+- Donut `Centre > Value` is Heading/Subheading in Figma, Heading/4 in code: the user's "giữ nguyên" (session log
+  2026-10-14).
+- Multi-Line legend on top in Figma, `legendPosition` bottom by default in code (Studio push/pull notes it).
+- Area / Grouped / Combo lanes, `height` 280, and the other deviations listed under charts-xy, charts-meter and
+  charts-list above: Figma unchanged since.
+
+Long-standing differences that predate today's edits (the 10-12 family was built code-first; questions for the designer,
+not changed here):
+- X label pill: the old `.Primitives/Chart/Sector` (Line, Multi-Line, Stack-Bar) draws the active label as a pill as wide
+  as the sector, 16 tall (Padding/3XSmall above and below), Label/Small/Bold; Bar-Chart's ticks hug the label with
+  Padding/2XSmall (4) all round, 20 tall, Label/Small/Medium; the horizontal bars' category pills Padding/2XSmall ×
+  Padding/XSmall. Code keeps one family pill (20 tall, Padding/XSmall sides, Label/Small/Medium; spec 2026-10-12 §2).
+- Stack-Bar columns: Figma `maxWidth` 48 bound to the global primitive `dm-48`; code caps every bar and stack at 40
+  (Bar-Chart's own `maxWidth` 40, unbound).
+- Bar-Chart plot lanes: Figma 38 / 26 (Y-Axis padding Spacing/Padding/2XLarge / Large around the 12px labels); code
+  36 / 28. Horizontal bars: axis labels Spacing/Gap/XSmall under the last bar in Figma, Spacing/Gap/Medium in code.
+- Heatmap: Figma's Less → More scale sits Spacing/Gap/2XSmall + Padding/2XSmall (8) under the last row; code keeps the
+  family's chart → legend gap (Spacing/Gap/Medium, 16).
+
+Figma bugs met (reported, Figma not edited):
+- Bar-Chart Orientation=Vertical `Average › Rule` 15335:2421 has `strokeCap` NONE: its 0.01px dashes draw nothing, so
+  Show Average shows the tag with no dots (every other Average Rule is ROUND).
+- `Segmented` in Line-Chart, Stack-Bar-Chart, the four Multi-Line variants and Chart-Card's nested chart (plus the hidden
+  ones in Radial and Heatmap): `Item-List` is FIXED 114 wide with three FILL items 38 wide, so "Quarterly / Monthly /
+  Weekly" (and "Department / Category / Project") overlap and start left of the control.
+- The area fades bind Background/Accent and Background/Neutral while the lines take the Color Chart Sector styles
+  (Support/Brand/Solid, Support/Neutral/Deep): a theme where they differ draws an area unlike its line.
+
+New set in the section, not a chart: `Chart/Curve-Preview` 15663:110887 (Type = Spring · Bounce · Ease-Out ·
+Ease-In-Out), a motion-curve preview from the property-panel Figma work (session log 2026-10-14); no code component.
+

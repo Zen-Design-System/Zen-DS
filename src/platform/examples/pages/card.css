@@ -8,3 +8,6 @@
 /* Playground (Spacing=small): the dashed content slot fills the card, so its corners follow the card's (outer radius
    minus the inset: 16 − 16 = square corners) instead of the slot's own 12px, and the nested corners stay concentric. */
 .zen-card[data-spacing="small"] .platform-slot { border-radius: max(0px, calc(var(--zen-card-radius) - var(--zen-card-padding))); }
+/* Settings section: the example stands in for a Canvas/Flat settings page (pe-shell data-canvas="flat" paints it). */
+.px-card-flat-page { padding: var(--zen-spacing-padding-2-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); }
+@media (max-width: 620px) { .px-card-flat-page { padding: var(--zen-spacing-padding-medium, 16px); } }

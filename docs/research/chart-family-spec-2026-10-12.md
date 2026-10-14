@@ -27,17 +27,17 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Axis labels (Y values, X periods, heatmap rows/columns, horizontal categories) | Label/Small/Medium · Content/Neutral/Light |
 | Active X label | 20px pill, Corner-Radius/Rounded, Background/Active/Neutral/Subtle · Content/Neutral/Strongest |
 | Gridlines | 1px dashed Border/Neutral/Pale, baseline solid (`zen-allow-dashed-color`, a data guide) |
-| Sector rule | 1px Border/Active/Accent/Subtle at 35% (line), Solid when active; Neutral/Subtle for bars |
+| Sector rule | 1px, on the active sector only: Border/Active/Accent/Solid (line), Neutral/Subtle for bars. Idle sectors draw none (Figma `.Primitives/Chart/Sector` Default hides its rule; line charts drew Accent/Subtle at 35% until the 2026-10-14 re-sync) |
 | Tooltip | `TooltipSurface` default medium, in the plot's top lane (a seventh of the height for line and stack, 36px for bars) |
 | Legend | 12px dot (Element-Size/Popular/2XSmall), Spacing/Gap/2XSmall to its label, Caption/Regular · Content/Neutral/Strongest; items gap 4/8; `legendPosition` bottom (default) or top |
 | Categorical colours (series, slices, rings) | `chartPalette` = the Figma colour styles Color Chart Sector/Primary · Secondary · Tertiary (Support Cyan) · Quaternary (Violet) · Quinary (Yellow) · Senary (Orange Solid) · Septenary (Red Soft). In Figma, chart marks take these **styles**, never the variables directly (the user, 2026-10-13) |
-| Single measure | Line: Border/Accent/Solid + Accent area (unchanged). Bars: Chart/Sector/Primary, the active bar Chart/Sector/Secondary |
+| Single measure | Line: Border/Accent/Solid over an area fading Accent/Solid → Accent/Subtle at 30% (Figma 2026-10-14; Area-Chart's areas fade the same way, `chartFades`). Bars: Chart/Sector/Primary, the active bar Chart/Sector/Secondary |
 | Projected bar, target track | Hatch (the user's Figma edit, 2026-10-13): Support/Neutral/Pale under 1.5px Border/Neutral/Pale stripes at 45°, 6px apart along the axis, no outline |
 | Heatmap ramp (5 levels, low → high) | Support/Brand Pale · Soft · Solid · Rich · Deep (Rich replaced Subtle 2026-10-14: even lightness steps) |
 | Bars, heatmap cells | Corner-Radius/Small on every corner (stack: the column, outer corners) |
 | Ring and donut tracks | Dotted ring: Border/Neutral/Subtle, dash 0 × 6 round caps |
 | Donut % pill | Surface/Default, Label/Small/Medium · Content/Neutral/Strongest, Corner-Radius/Rounded; shown when the slice ≥ 6% |
-| Centre figure (Donut, Radial) | Heading/4 · Content/Neutral/Strongest, caption Caption/Regular · Content/Neutral/Light |
+| Centre figure (Donut, Radial) | Heading/4 · Content/Neutral/Strongest, caption Caption/Regular · Content/Neutral/Light (Figma's Donut `Centre > Value` is Heading/Subheading; the user keeps both as they are, 2026-10-14) |
 | Average line (`showAverage`: Line, Bar, Stack bar) | 2px Border/Neutral/Solid dots every 6px, no ring (the user, 2026-10-13: the Surface ring went); tag Label/Small/Medium · Content/Inverse/Strongest on Background/Neutral/Solid, Corner-Radius/XSmall, 6px tip pointing along the rule; at the plot's start (vertical), on top (horizontal bars). Mean of the first series · closed bars · column totals |
 | Card header | [Icon 20 Content/Neutral/Strongest] Heading/Subheading title … chevron IconButton (main tertiary 2xs); description Body/Small/Regular · Content/Neutral/Base; value Heading/2 (Figma Heading > Value, 2026-10-14) |
 

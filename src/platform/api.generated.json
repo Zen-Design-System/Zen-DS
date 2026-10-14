@@ -7511,7 +7511,7 @@
   "card": [
     {
       "name": "Card",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">, LayoutWidthProps",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\" | \"color\">, LayoutWidthProps",
       "props": [
         {
           "name": "width",
@@ -7563,10 +7563,18 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills\n Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/<Color>/Solid).\n `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\"\n (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid; Figma has no Solid\n violet, green, blue or purple, which render as Solid Neutral — harness card/solid-color). Shadow, Flat, Border and\n On-Container ignore it (harness card/color-ignored). A Solid card re-points the content, border and track tokens\n its children read (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*); the page keeps its mode.",
           "deprecated": null
         },
         {
@@ -7595,10 +7603,10 @@
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\"",
+          "type": "\"default\" | \"alt\" | \"flat\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) ·\n Surface/Flat (Border only, 15530:502–520: a Border card on a Canvas/Flat page). Unset follows an inherited\n --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container / Solid keep their own\n fill, and `flat` on a theme other than Border is ignored (harness card/surface-ignored). With theme=\"shadow\", `alt`\n drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on\n Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -9187,22 +9195,118 @@
     },
     {
       "name": "MetricCard",
-      "extends": "MetricProps",
+      "extends": null,
       "props": [
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\"). Every type shows it but `comparison`, whose columns\n carry the numbers.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
+          "required": false,
+          "default": null,
+          "description": "Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme=\"pale\" color=\"brand\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": null,
+          "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue. Solid Neutral is the dark widget; see Card.",
+          "deprecated": null
+        },
+        {
+          "name": "subAction",
+          "type": "CardSubAction | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"kpi\" | \"sparkline\" | \"spark-bars\" | \"goal-progress\" | \"comparison\" | \"category-bar\" | \"hero\"",
+          "required": false,
+          "default": "\"kpi\"",
+          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): an Icon-Highlight Metric, as before. Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button.",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "sparkline · spark-bars · hero: the values in order, oldest first; the last is the current period (the Secondary bar).\n The line spans the lowest to the highest value. The card's `value` and `trend` say the numbers; the marks get an\n accessible summary.",
+          "deprecated": null
+        },
+        {
+          "name": "seriesLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "sparkline · spark-bars · hero: the marks' accessible name, instead of \"Trend over 12 periods: from … to …, low …, high …\".",
+          "deprecated": null
+        },
+        {
+          "name": "goal",
+          "type": "MetricGoal",
+          "required": false,
+          "default": null,
+          "description": "goal-progress: the amount reached and the goal.",
+          "deprecated": null
+        },
+        {
+          "name": "comparison",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "comparison: two to four columns side by side (Spacing/Gap/Medium, a Border/Neutral/Subtle rule before each but the\n first); they stack on a narrow card.",
+          "deprecated": null
+        },
+        {
+          "name": "categories",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours).",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount).\n Default \"1.2K\".",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Content under the type's own (Figma Hero: a Small Button — level=\"primary\" on a hue card, appearance=\"overlay\"\n level=\"inverse\" on Solid Neutral, as Figma's Button/Overlay Inverse).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Draw the marks in on mount and when their data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
         {
           "name": "label",
           "type": "ReactNode",
           "required": true,
           "default": null,
           "description": "Figma Metric-Title.",
-          "deprecated": null
-        },
-        {
-          "name": "value",
-          "type": "ReactNode",
-          "required": true,
-          "default": null,
-          "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\").",
           "deprecated": null
         },
         {
@@ -9331,22 +9435,6 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
-          "deprecated": null
-        },
-        {
-          "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
-          "required": false,
-          "default": "\"shadow\"",
-          "description": "Card theme (Figma Metric-Card uses Shadow).",
-          "deprecated": null
-        },
-        {
-          "name": "subAction",
-          "type": "CardSubAction | ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
           "deprecated": null
         }
       ]
@@ -11686,7 +11774,7 @@
           "type": "\"area\" | \"none\" | \"gradient\"",
           "required": false,
           "default": "\"area\"",
-          "description": "The area under the line: `area` (default, Accent/Solid at 16%) or `none`; `gradient` is deprecated and draws the same area.",
+          "description": "The area under the line: `area` (default: Figma's fade, Accent/Solid at the top to Accent/Subtle at the baseline, at\n 30%) or `none`; `gradient` is deprecated and draws the same area.",
           "deprecated": null
         },
         {
@@ -12514,7 +12602,7 @@
           "type": "ChartSeries[]",
           "required": true,
           "default": null,
-          "description": "The measured series, bottom first: one for `type=\"area\"` (only the first is drawn), 2–4 for `\"stacked\"`\n (harness: chart/area-series-count). Colours walk the Figma styles Color Chart Sector/Primary … unless a series sets `color`.",
+          "description": "The measured series, bottom first: one for `type=\"area\"` (only the first is drawn), 2–4 for `\"stacked\"`\n (harness: chart/area-series-count). Lines walk the Figma styles Color Chart Sector/Primary …, areas fade from the\n slot's Solid to its Subtle (Accent, Neutral, Support Cyan …; `chartFades`), unless a series sets `color`.",
           "deprecated": null
         },
         {
@@ -12522,7 +12610,7 @@
           "type": "\"area\" | \"stacked\"",
           "required": false,
           "default": "\"area\"",
-          "description": "Figma Type: `area` (default) — one measure as a line over its area at 16%; `stacked` — 2–4 series as bands stacked\n bottom-up (each at 24%) with a line on top of each band, so the top line reads the period's total.",
+          "description": "Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands\n stacked bottom-up with a line on top of each band, so the top line reads the period's total.",
           "deprecated": null
         },
         {
@@ -12881,18 +12969,26 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
           "deprecated": null
         },
         {
-          "name": "surface",
-          "type": "\"default\" | \"alt\"",
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card).",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\" | \"flat\"",
+          "required": false,
+          "default": null,
+          "description": "Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card.",
           "deprecated": null
         },
         {

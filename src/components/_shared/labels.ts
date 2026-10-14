@@ -167,6 +167,10 @@ export type ZenLabels = {
   chartTarget: string;
   /** A funnel stage's share of the first stage, in its summary: "65% of Leads". */
   chartShareOf: (share: string, of: string) => string;
+  /** A MetricCard sparkline's or spark bars' accessible name: "Trend over 12 periods: from 61 to 106, low 61, high 106". */
+  metricSeries: (count: number, first: string, last: string, low: string, high: string) => string;
+  /** A Goal-Progress MetricCard's bar label: "of $135,000 goal". */
+  metricGoalOf: (target: string) => string;
   /** The caption under a donut's total. */
   total: string;
   noData: string;
@@ -433,6 +437,8 @@ const en: ZenLabels = {
   chartActual: "Actual",
   chartTarget: "Target",
   chartShareOf: (share, of) => `${share} of ${of}`,
+  metricSeries: (count, first, last, low, high) => `Trend over ${count} periods: from ${first} to ${last}, low ${low}, high ${high}`,
+  metricGoalOf: (target) => `of ${target} goal`,
   total: "Total",
   noData: "No data",
   colour: "Colour",
@@ -673,6 +679,8 @@ const vi: ZenLabels = {
   chartActual: "Thực tế",
   chartTarget: "Mục tiêu",
   chartShareOf: (share, of) => `${share} của ${of}`,
+  metricSeries: (count, first, last, low, high) => `Xu hướng qua ${count} kỳ: từ ${first} đến ${last}, thấp nhất ${low}, cao nhất ${high}`,
+  metricGoalOf: (target) => `trên mục tiêu ${target}`,
   total: "Tổng",
   noData: "Không có dữ liệu",
   colour: "Màu",

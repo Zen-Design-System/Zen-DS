@@ -30,8 +30,10 @@
 .zen-chart__marks { position: absolute; inset: 0; }
 .zen-chart__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .zen-chart__line { fill: none; stroke: var(--zen-color-border-accent-solid-default, #ff66d4); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
-/* The area under the line: a flat Accent/Solid at 16% (Figma Chart Sector/Primary at layer opacity .16, no gradient). */
-.zen-chart__area { fill: var(--zen-color-background-accent-solid-default, #ff66d4); fill-opacity: .16; }
+/* The area under the line fades as Figma's Line-Chart (.Chart/Line-Chart/Trend › Chart-Visual › Base, the user
+   2026-10-14): a vertical gradient from Accent/Solid at its highest point to Accent/Subtle at the baseline, the whole
+   area at 30%. Its `fill` is the gradient (chartCore ChartFade, chartFades[0], an SVG attribute), so no CSS fill here. */
+.zen-chart__area { fill-opacity: .3; }
 /* The comparison (LineChart compare, Figma Chart/Multi-Line-Chart Compare, the user's 2026-10-13 edits): a 2px
    Border/Neutral/Solid line at 40%, dashed 4 / 5, round caps — a neutral reference, not a chart-palette series; its
    active dot (Surface fill, 2px Border/Neutral/Solid ring) stays full colour.
@@ -40,12 +42,14 @@
 .zen-chart__dot[data-compare="true"] { border-color: var(--zen-color-border-neutral-solid-default, #111); }
 .zen-chart__dot { position: absolute; width: 10px; height: 10px; box-sizing: border-box; border: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); pointer-events: none; transform: translate(-50%, -50%); }
 
-/* Sectors: one column per X value; a 1px rule (Active/Accent/Subtle, Solid when active) and the X label (a pill when active). */
+/* Sectors: one column per X value; a 1px rule on the active one only (Active/Accent/Solid on lines, Active/Neutral/Subtle
+   on bars) and the X label (a pill when active). */
 .zen-chart__sectors { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--zen-chart-count, 4), minmax(0, 1fr)); }
 .zen-chart__sector { position: relative; display: flex; min-width: 0; align-items: flex-end; justify-content: center; padding: 0; border: 0; background: transparent; cursor: pointer; font: inherit; }
 .zen-chart__sector::before { position: absolute; top: var(--zen-chart-lane-top); bottom: var(--zen-chart-lane-bottom); left: 50%; width: 0; border-left: 1px solid transparent; content: ""; }
-/* Figma: idle sector rules are Active/Accent/Subtle at 35% opacity. */
-.zen-chart[data-kind="line"] .zen-chart__sector::before, .zen-chart__sector:hover::before { border-left-color: var(--zen-color-border-active-accent-subtle, rgb(255 2 152 / 35%)); opacity: .35; }
+/* Figma .Primitives/Chart/Sector Select=Default (4388:8675): the idle rule's paint is hidden, so idle sectors draw no rule
+   (line charts drew Active/Accent/Subtle at 35% until 2026-10-14); only the active sector shows its rule. */
+.zen-chart__sector:hover::before { border-left-color: var(--zen-color-border-active-accent-subtle, rgb(255 2 152 / 35%)); opacity: .35; }
 .zen-chart__sector[data-active]::before { opacity: 1; }
 .zen-chart__sector[data-active="accent"]::before { border-left-color: var(--zen-color-border-active-accent-solid, #ff66d4); }
 .zen-chart__sector[data-active="neutral"]::before { border-left-color: var(--zen-color-border-active-neutral-subtle, rgb(1 1 1 / 14%)); }
@@ -344,10 +348,11 @@
    (half of Label/Small's line height, Figma's 6px); the rule runs from the dot down, not across the whole plot. */
 .zen-chart.zen-chart--area { --zen-chart-lane-top: calc(var(--zen-typography-line-height-label-small, 12px) / 2); }
 .zen-chart--area .zen-chart__sector::before { content: none; }
-/* Flat areas in the series' style: one area at layer opacity 16% (Type=Area 15484:2552), stacked bands at 24%
-   (Type=Stacked 15484:2605); no gradient (Figma, 2026-10-14). 2px straight lines with round caps on top. */
-.zen-chart__area-band { fill-opacity: .16; }
-.zen-chart__marks[data-type="stacked"] .zen-chart__area-band { fill-opacity: .24; }
+/* Each area and stacked band fades top → bottom from its slot's Solid to its Subtle (Background/Accent, Neutral,
+   Support/Cyan …; chartCore chartFades), the whole band at 30%, as the line chart's area (Figma Type=Area 15484:2594,
+   Type=Stacked 15484:2647/2649/2651, the designer's 2026-10-14 edit; was a flat 16% / 24%). Its `fill` is the gradient
+   (an SVG attribute). 2px straight lines with round caps on top. */
+.zen-chart__area-band { fill-opacity: .3; }
 .zen-chart__area-line, .zen-chart__combo-line { fill: none; stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
 /* The active period: a 1px Border/Active/Neutral/Subtle rule from the top dot to the baseline and a 12px dot
    (Element-Size/Popular/2XSmall) on each line: Surface/Default with a 2px ring in the series colour. Combo: an 8px dot

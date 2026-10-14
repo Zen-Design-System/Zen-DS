@@ -156,6 +156,16 @@ export const Bad = () => <>
   <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
   {/* expect: card/on-container-in-overlay */}
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="border">Brief</Card></SidePanel>
+  {/* expect: card/color-ignored */}
+  <Card theme="flat" color="brand">Revenue</Card>
+  {/* expect: card/color-ignored */}
+  <MetricCard color="cyan" label="Invoiced" value="$48,200" />
+  {/* expect: card/solid-color */}
+  <Card theme="solid" color="green">Collected</Card>
+  {/* expect: card/surface-ignored */}
+  <Card theme="flat" surface="flat">Hours</Card>
+  {/* expect: card/surface-ignored */}
+  <ChartCard title="Revenue" theme="pale" surface="alt"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
   {/* expect: listbox/on-container-in-overlay */}
   <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
   {/* expect: list-item/switch-row */}
@@ -186,6 +196,12 @@ export const Bad = () => <>
   <Rating value={stars} onChange={setStars} />
   {/* expect: metric/formatted-value */}
   <Metric label="Revenue" value={1680.68} />
+  {/* expect: metric/type-data */}
+  <MetricCard type="sparkline" label="Revenue" value="$105,700" />
+  {/* expect: metric/type-data */}
+  <MetricCard label="Revenue" value="$105,700" series={[61, 66, 64, 73]} />
+  {/* expect: metric/category-count */}
+  <MetricCard type="category-bar" label="Invoices" value="$184,200" categories={[{ id: "paid", label: "Paid", value: 184200 }]} />
   {/* expect: uploader/needs-label */}
   <FileUpload caption="PDF only" onFilesAdd={add} />
   {/* expect: uploader/accept-caption */}

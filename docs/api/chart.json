@@ -6,7 +6,7 @@
     {
       "name": "LineChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. Like Figma's Chart-Visual it starts at the plot's left edge (level\nwith the first value) and ends on the last sector's centre. With `compare` it is Figma Chart/Multi-Line-Chart (set\n15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the\nTooltip and a legend. ←/→, Home/End move between points.",
+      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector, the active one marked by an Active/Accent/Solid\nrule (idle sectors draw none, as Figma's Sector Default) and a Tooltip with its value. Like Figma's Chart-Visual it starts at the plot's left edge (level\nwith the first value) and ends on the last sector's centre. With `compare` it is Figma Chart/Multi-Line-Chart (set\n15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the\nTooltip and a legend. ←/→, Home/End move between points.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -87,7 +87,7 @@
           "type": "\"area\" | \"none\" | \"gradient\"",
           "required": false,
           "default": "\"area\"",
-          "description": "The area under the line: `area` (default, Accent/Solid at 16%) or `none`; `gradient` is deprecated and draws the same area.",
+          "description": "The area under the line: `area` (default: Figma's fade, Accent/Solid at the top to Accent/Subtle at the baseline, at\n 30%) or `none`; `gradient` is deprecated and draws the same area.",
           "deprecated": null
         },
         {
@@ -928,7 +928,7 @@
     {
       "name": "AreaChart",
       "file": "src/components/Chart/AreaChart.tsx",
-      "description": "Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605): straight 2px lines (round caps)\nfrom the first period's centre to the last over flat areas in the same Color Chart Sector style (`chartPalette`) — one\narea at layer opacity 16%, stacked bands at 24% — on the bar charts' frame: Y labels (Label/Small/Medium,\nContent/Neutral/Light) right-aligned in a column Spacing/Padding/XSmall before the plot, dashed 4 / 4\nBorder/Neutral/Pale gridlines, a solid Border/Active/Neutral/Subtle baseline, X labels under it (the active one a pill).\nThe active period shows a 12px dot on each line (Surface/Default, 2px ring in the series colour), a 1px\nBorder/Active/Neutral/Subtle rule from the top dot to the baseline and the Tooltip beside the dot, a dot's width away:\nthe value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items\nSpacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.",
+      "description": "Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605): straight 2px lines (round caps)\nin the Color Chart Sector styles (`chartPalette`) from the first period's centre to the last, each over an area that\nfades top → bottom from Solid to Subtle at 30% (Figma 2026-10-14: Background/Accent, then Neutral, then Support/Cyan,\nas the line chart's area; `chartFades`) — one area, or stacked bands — on the bar charts' frame: Y labels (Label/Small/Medium,\nContent/Neutral/Light) right-aligned in a column Spacing/Padding/XSmall before the plot, dashed 4 / 4\nBorder/Neutral/Pale gridlines, a solid Border/Active/Neutral/Subtle baseline, X labels under it (the active one a pill).\nThe active period shows a 12px dot on each line (Surface/Default, 2px ring in the series colour), a 1px\nBorder/Active/Neutral/Subtle rule from the top dot to the baseline and the Tooltip beside the dot, a dot's width away:\nthe value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items\nSpacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -945,7 +945,7 @@
           "type": "ChartSeries[]",
           "required": true,
           "default": null,
-          "description": "The measured series, bottom first: one for `type=\"area\"` (only the first is drawn), 2–4 for `\"stacked\"`\n (harness: chart/area-series-count). Colours walk the Figma styles Color Chart Sector/Primary … unless a series sets `color`.",
+          "description": "The measured series, bottom first: one for `type=\"area\"` (only the first is drawn), 2–4 for `\"stacked\"`\n (harness: chart/area-series-count). Lines walk the Figma styles Color Chart Sector/Primary …, areas fade from the\n slot's Solid to its Subtle (Accent, Neutral, Support Cyan …; `chartFades`), unless a series sets `color`.",
           "deprecated": null
         },
         {
@@ -953,7 +953,7 @@
           "type": "\"area\" | \"stacked\"",
           "required": false,
           "default": "\"area\"",
-          "description": "Figma Type: `area` (default) — one measure as a line over its area at 16%; `stacked` — 2–4 series as bands stacked\n bottom-up (each at 24%) with a line on top of each band, so the top line reads the period's total.",
+          "description": "Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands\n stacked bottom-up with a line on top of each band, so the top line reads the period's total.",
           "deprecated": null
         },
         {
@@ -1321,18 +1321,26 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
           "deprecated": null
         },
         {
-          "name": "surface",
-          "type": "\"default\" | \"alt\"",
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Figma nested Card Color, for theme=\"pale\" or \"solid\": the Card's hue (Solid Neutral is the dark widget; see Card).",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\" | \"flat\"",
+          "required": false,
+          "default": null,
+          "description": "Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card.",
           "deprecated": null
         },
         {

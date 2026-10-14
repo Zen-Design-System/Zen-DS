@@ -1,1 +1,1 @@
-export { Card, cardSpacings, cardThemes, type CardProps, type CardSpacing, type CardSubAction, type CardSurface, type CardTheme } from "./Card";
+export { Card, cardColors, cardSolidColors, cardSpacings, cardSurfaces, cardThemes, type CardColor, type CardProps, type CardSpacing, type CardSubAction, type CardSurface, type CardTheme } from "./Card";

@@ -179,6 +179,7 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Icon": "DockIcon",
     "Label-Icon": "Icon",
     "Metric": "Metric",
+    "Progress-Bar": "ProgressBar",
     "Trend": "MetricTrend"
   },
   "MetricTrend": {

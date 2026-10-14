@@ -2,16 +2,17 @@ import { useMemo, type CSSProperties } from "react";
 import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
-import { ChartBlock, ChartLegend, PlotFrame, colourAt, defaultFormat, niceScale, signatureOf, useChartSelection, type ChartDatum, type ChartSeries } from "./chartCore";
+import { ChartBlock, ChartFade, ChartLegend, PlotFrame, colourAt, defaultFormat, fadeAt, niceScale, signatureOf, useChartId, useChartSelection, type ChartDatum, type ChartSeries } from "./chartCore";
 
 export interface AreaChartProps {
   /** One period per item, a value per series id (`{ label: "Sep", values: { design: 750, … } }`). Keep 4–12 periods. */
   data: ChartDatum[];
   /** The measured series, bottom first: one for `type="area"` (only the first is drawn), 2–4 for `"stacked"`
-   *  (harness: chart/area-series-count). Colours walk the Figma styles Color Chart Sector/Primary … unless a series sets `color`. */
+   *  (harness: chart/area-series-count). Lines walk the Figma styles Color Chart Sector/Primary …, areas fade from the
+   *  slot's Solid to its Subtle (Accent, Neutral, Support Cyan …; `chartFades`), unless a series sets `color`. */
   series: ChartSeries[];
-  /** Figma Type: `area` (default) — one measure as a line over its area at 16%; `stacked` — 2–4 series as bands stacked
-   *  bottom-up (each at 24%) with a line on top of each band, so the top line reads the period's total. */
+  /** Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands
+   *  stacked bottom-up with a line on top of each band, so the top line reads the period's total. */
   type?: "area" | "stacked";
   /** Formats axis labels, the Tooltip and the summary (`2,210 h`, `$23.4K`). Default: 1.2K. */
   format?: (value: number) => string;
@@ -38,8 +39,9 @@ const pathOf = (pts: readonly Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M
 
 /**
  * Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605): straight 2px lines (round caps)
- * from the first period's centre to the last over flat areas in the same Color Chart Sector style (`chartPalette`) — one
- * area at layer opacity 16%, stacked bands at 24% — on the bar charts' frame: Y labels (Label/Small/Medium,
+ * in the Color Chart Sector styles (`chartPalette`) from the first period's centre to the last, each over an area that
+ * fades top → bottom from Solid to Subtle at 30% (Figma 2026-10-14: Background/Accent, then Neutral, then Support/Cyan,
+ * as the line chart's area; `chartFades`) — one area, or stacked bands — on the bar charts' frame: Y labels (Label/Small/Medium,
  * Content/Neutral/Light) right-aligned in a column Spacing/Padding/XSmall before the plot, dashed 4 / 4
  * Border/Neutral/Pale gridlines, a solid Border/Active/Neutral/Subtle baseline, X labels under it (the active one a pill).
  * The active period shows a 12px dot on each line (Surface/Default, 2px ring in the series colour), a 1px
@@ -74,15 +76,18 @@ export function AreaChart({ data, series, type = "area", format = defaultFormat,
   const legendOn = showLegend ?? drawn.length > 1;
   const legend = legendOn && drawn.length ? <ChartLegend gap="small" items={drawn.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si) }))} /> : undefined;
   const peak = active !== null && lines.length ? lines[lines.length - 1][active] : undefined;
+  const fadeId = `zen-chart-fade-${useChartId()}`;
   return (
     <ChartBlock kind="area" legend={legend} position={legendPosition}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--area", className].filter(Boolean).join(" ")} kind="bar" animate={animate} tooltip={null} summary={summary}>
         <div className="zen-chart__marks" key={signature} data-type={type}>
           <svg className="zen-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {/* Figma Area / *-Area: each band's own vertical fade, Solid at its top → Subtle at its foot. */}
+            <defs>{drawn.map((s, si) => <ChartFade key={s.id} id={`${fadeId}-${si}`} {...fadeAt(s, si)} />)}</defs>
             {drawn.map((s, si) => (
               <g key={s.id}>
-                <path className="zen-chart__area-band" d={bands[si]} style={{ fill: colourAt(s, si) }} />
+                <path className="zen-chart__area-band" d={bands[si]} fill={`url(#${fadeId}-${si})`} />
                 <path className="zen-chart__area-line" d={pathOf(lines[si])} style={{ stroke: colourAt(s, si) }} vectorEffect="non-scaling-stroke" />
               </g>
             ))}

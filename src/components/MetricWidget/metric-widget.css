@@ -40,3 +40,82 @@
 .zen-metric__custom { display: flex; min-width: 0; flex-direction: column; }
 /* A Metric Card stretched by its grid row keeps the number at the bottom (Figma Contents: Space between, Fill). */
 .zen-metric-card > .zen-card__content { flex: 1 1 auto; }
+
+/* ── Metric-Card Type (Figma 6643:64008; MetricCard `type`, MetricMarks.tsx) ──
+   Every type but KPI: Figma Metric-Body, a column Spacing/Gap/Medium apart — the Title-Highlight Metric, the type's own
+   content, then the footer. */
+.zen-metric-card__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+/* A card stretched by its grid row: Figma's Metric-Body grows with the card and keeps its content at the top (the Metric
+   hugs, so numbers line up under the titles across the row; the space stays under the type's content). */
+.zen-metric-card__body > .zen-metric[data-variant="title-highlight"] { flex: 0 0 auto; }
+.zen-metric-card__footer { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The title row never runs under the card's ⋮ Sub-Action (absolute at the card's top-right, Element-Size/Popular/Base). */
+.zen-metric-card:has(> .zen-card__sub-action) :is(.zen-metric-card__body > .zen-metric .zen-metric__header, .zen-metric-card__title) { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-xsmall, 8px)); }
+/* Comparison (15481:1848): a Heading/Subheading title over columns of Small Title-Highlight Metrics, Spacing/Gap/Medium
+   apart, each after the first with Spacing/Padding/Medium and a 1px Border/Neutral/Subtle rule before it. */
+.zen-metric-card__title { min-width: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-metric-card__columns { display: flex; min-width: 0; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-metric-card__column { display: flex; min-width: 0; flex: 1 1 0; }
+.zen-metric-card__column + .zen-metric-card__column { padding-inline-start: var(--zen-spacing-padding-medium, 16px); border-inline-start: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(0 0 0 / 13%)); }
+/* A narrow card (a phone) stacks the columns, the rule above each instead. The body is the query container; where the
+   card hugs its content it is as wide as Figma's Comparison content (512px = 32rem). */
+.zen-metric-card[data-type="comparison"] .zen-metric-card__body { container-type: inline-size; contain-intrinsic-inline-size: 32rem; }
+@container (max-width: 440px) {
+  .zen-metric-card__columns { flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+  .zen-metric-card__column + .zen-metric-card__column { padding-block-start: var(--zen-spacing-padding-small, 12px); padding-inline-start: 0; border-block-start: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(0 0 0 / 13%)); border-inline-start: 0; }
+}
+
+/* Sparkline (15480:89548) and the Hero's line (15481:2047), both 64 tall (the user's Figma update, 2026-10-14): a 2px
+   line (round caps and joins) 4px inside the frame's top and bottom, over an area whose top edge is the line itself and
+   which runs to the frame's bottom, a vertical gradient from the Solid token at the line's highest point to the Subtle
+   one at the bottom (each at its own alpha), the whole area at 16%. No end dot. */
+.zen-metric-spark { --zen-metric-mark: var(--zen-color-border-accent-solid-default, #ff66d4); position: relative; height: 64px; }
+.zen-metric-spark[data-tone="neutral"] { --zen-metric-mark: var(--zen-color-border-neutral-solid-default, #111); }
+.zen-metric-spark__marks { position: absolute; inset: 0; }
+.zen-metric-spark__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.zen-metric-spark__line { fill: none; stroke: var(--zen-metric-mark); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+.zen-metric-spark__area { fill-opacity: .16; }
+/* Sparkline: Accent/Solid → Accent/Subtle. */
+.zen-metric-spark__fade-top { stop-color: var(--zen-color-background-accent-solid-default, #ff66d4); }
+.zen-metric-spark__fade-bottom { stop-color: var(--zen-color-background-accent-subtle-default, rgb(255 102 212 / 12%)); }
+/* Hero: neutral marks — Border/Neutral/Solid line, Neutral/Solid → Neutral/Subtle area. On a Solid Neutral card (the dark
+   Hero, 15487:89034) the Card re-points the line and the Subtle stop to Inverse; the fade starts at Content/Inverse/
+   Strongest and ends at Content/Inverse/Disabled, as Figma's dark Hero (Neutral/Solid is that card's own fill). */
+.zen-metric-spark[data-tone="neutral"] .zen-metric-spark__fade-top { stop-color: var(--zen-color-background-neutral-solid-default, #111); }
+.zen-metric-spark[data-tone="neutral"] .zen-metric-spark__fade-bottom { stop-color: var(--zen-color-background-neutral-subtle-default, rgb(0 0 0 / 7%)); }
+.zen-card[data-tone="solid"][data-color="neutral"] .zen-metric-spark[data-tone="neutral"] .zen-metric-spark__fade-top { stop-color: var(--zen-color-content-inverse-strongest, #fff); }
+.zen-card[data-tone="solid"][data-color="neutral"] .zen-metric-spark[data-tone="neutral"] .zen-metric-spark__fade-bottom { stop-color: var(--zen-color-content-inverse-disabled, rgb(255 255 255 / 37%)); }
+
+/* Spark-Bars (15480:89594): a 48px row of bars, Spacing/Gap/2XSmall apart, bottom-aligned, Corner-Radius/XSmall, Chart
+   Sector/Primary; the last (current) bar Chart Sector/Secondary. */
+.zen-metric-bars { height: 48px; }
+/* A bar is never wider than one of Figma's twelve: fewer values keep that width, the current bar at the end. */
+.zen-metric-bars__marks { display: flex; height: 100%; align-items: flex-end; justify-content: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-metric-bars__bar { min-width: 0; flex: 0 1 calc((100% - 11 * var(--zen-spacing-gap-2-xsmall, 4px)) / 12); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-chart-sector-primary, #ff66d4); }
+.zen-metric-bars__bar[data-current="true"] { background: var(--zen-chart-sector-secondary, #111); }
+
+/* Category-Bar (15481:1957): a 12px bar of segments (Spacing/Gap/2XSmall, Corner-Radius/XSmall), then the rows
+   (Spacing/Gap/Medium below it, Spacing/Gap/XSmall apart): legend item · amount · share. */
+.zen-metric-categories { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-metric-categories__bar { display: flex; height: 12px; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-metric-categories__segment { min-width: 0; flex: 1 1 0; border-radius: var(--zen-corner-radius-xsmall, 4px); }
+.zen-metric-categories__rows { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
+.zen-metric-categories__row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; }
+.zen-metric-categories__name { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-metric-categories__dot { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); }
+.zen-metric-categories__amount { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; text-align: end; }
+.zen-metric-categories__share { min-width: 4ch; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 69%)); font-variant-numeric: tabular-nums; text-align: end; }
+
+/* Motion (the chart family's, docs/research/chart-family-spec-2026-10-12.md §3): the line wipes in left → right over
+   Slow × 2.5 (Standard); bars rise from the baseline and segments grow from the start (Slow, Emphasized, staggered
+   Xfast × 0.5). Only clip-path moves; reduced motion fades instead. */
+@keyframes zen-metric-wipe { from { clip-path: inset(-8px 100% -8px -8px); } to { clip-path: inset(-8px -8px -8px -8px); } }
+@keyframes zen-metric-rise { from { clip-path: inset(100% 0 0 0 round var(--zen-corner-radius-xsmall, 4px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-xsmall, 4px)); } }
+@keyframes zen-metric-grow { from { clip-path: inset(0 100% 0 0 round var(--zen-corner-radius-xsmall, 4px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-xsmall, 4px)); } }
+@keyframes zen-metric-fade { from { opacity: 0; } }
+.zen-metric-spark:not([data-animate="false"]) .zen-metric-spark__marks { animation: zen-metric-wipe calc(var(--zen-motion-duration-slow, 280ms) * 2.5) var(--zen-motion-ease-standard, ease) both; }
+.zen-metric-bars:not([data-animate="false"]) .zen-metric-bars__bar { animation: zen-metric-rise var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-motion-duration-xfast, 80ms) * 0.5 * var(--zen-chart-i, 0)); }
+.zen-metric-categories:not([data-animate="false"]) .zen-metric-categories__segment { animation: zen-metric-grow var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-motion-duration-xfast, 80ms) * 0.5 * var(--zen-chart-i, 0)); }
+@media (prefers-reduced-motion: reduce) {
+  .zen-metric-spark:not([data-animate="false"]) .zen-metric-spark__marks, .zen-metric-bars:not([data-animate="false"]) .zen-metric-bars__bar, .zen-metric-categories:not([data-animate="false"]) .zen-metric-categories__segment { animation-name: zen-metric-fade; }
+}

@@ -6,9 +6,9 @@
     {
       "name": "Card",
       "file": "src/components/Card/Card.tsx",
-      "description": "Figma Card (6643:51021): a Content slot on one of six surfaces, padded Card-padding-medium/small.\nA clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).",
+      "description": "Figma Card (6643:51021): a Content slot on one of six themes (Pale and Solid in a Color), padded Card-padding-medium/small.\nA clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).",
       "deprecated": null,
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">, LayoutWidthProps",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\" | \"color\">, LayoutWidthProps",
       "props": [
         {
           "name": "width",
@@ -60,10 +60,18 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills\n Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/<Color>/Solid).\n `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme=\"solid\"\n (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid; Figma has no Solid\n violet, green, blue or purple, which render as Solid Neutral — harness card/solid-color). Shadow, Flat, Border and\n On-Container ignore it (harness card/color-ignored). A Solid card re-points the content, border and track tokens\n its children read (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*); the page keeps its mode.",
           "deprecated": null
         },
         {
@@ -92,10 +100,10 @@
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\"",
+          "type": "\"default\" | \"alt\" | \"flat\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) ·\n Surface/Flat (Border only, 15530:502–520: a Border card on a Canvas/Flat page). Unset follows an inherited\n --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container / Solid keep their own\n fill, and `flat` on a theme other than Border is ignored (harness card/surface-ignored). With theme=\"shadow\", `alt`\n drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on\n Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {

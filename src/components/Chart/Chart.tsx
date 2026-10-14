@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from "react";
-import { Card, type CardSurface, type CardTheme } from "../Card";
+import { Card, type CardColor, type CardSurface, type CardTheme } from "../Card";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
@@ -12,7 +12,7 @@ import "./chart.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import {
-  ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartSelection,
+  ChartBlock, ChartFade, ChartLegend, PlotFrame, SeriesValues, chartFades, colourAt, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection,
   type ChartCompare, type ChartDatum, type ChartFill, type ChartPoint, type ChartSeries,
 } from "./chartCore";
 
@@ -55,7 +55,8 @@ export interface LineChartProps {
   initialIndex?: number;
   /** `smooth` (default, Figma's curve) or `linear` segments. */
   curve?: "smooth" | "linear";
-  /** The area under the line: `area` (default, Accent/Solid at 16%) or `none`; `gradient` is deprecated and draws the same area. */
+  /** The area under the line: `area` (default: Figma's fade, Accent/Solid at the top to Accent/Subtle at the baseline, at
+   *  30%) or `none`; `gradient` is deprecated and draws the same area. */
   fill?: ChartFill;
   /** The legend of the line and its comparison (default on with `compare`; colour is never the only key). */
   showLegend?: boolean;
@@ -69,8 +70,8 @@ export interface LineChartProps {
 
 /**
  * Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a
- * dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)
- * and the active sector shows a Tooltip with its value. Like Figma's Chart-Visual it starts at the plot's left edge (level
+ * dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector, the active one marked by an Active/Accent/Solid
+ * rule (idle sectors draw none, as Figma's Sector Default) and a Tooltip with its value. Like Figma's Chart-Visual it starts at the plot's left edge (level
  * with the first value) and ends on the last sector's centre. With `compare` it is Figma Chart/Multi-Line-Chart (set
  * 15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the
  * Tooltip and a legend. ←/→, Home/End move between points.
@@ -89,6 +90,7 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
   const leadIn = (list: readonly (readonly [number, number])[]) => (list.length ? [[0, list[0][1]] as const, ...list] : list);
   const path = linePath(leadIn(pts), curve);
   const area = pts.length ? `${path} L ${pts[pts.length - 1][0]} 100 L 0 100 Z` : "";
+  const fadeId = `zen-chart-fade-${useChartId()}`;
   const comparePts = compared ? pointsOf(compared) : undefined;
   const name = label ?? ariaLabel;
   const current = active === null ? undefined : data[active];
@@ -108,7 +110,13 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
         tooltip={tooltip} summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
         <div className="zen-chart__marks" key={signature}>
           <svg className="zen-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {fill === "none" ? null : <path className="zen-chart__area" d={area} />}
+            {/* Figma Trend › Chart-Visual › Base: a vertical fade over the area's bounds, Accent/Solid → Accent/Subtle. */}
+            {fill === "none" ? null : (
+              <>
+                <defs><ChartFade id={fadeId} top={chartFades[0][0]} bottom={chartFades[0][1]} /></defs>
+                <path className="zen-chart__area" d={area} fill={`url(#${fadeId})`} />
+              </>
+            )}
             {comparePts ? <path d={linePath(leadIn(comparePts), curve)} className="zen-chart__line" data-compare="true" vectorEffect="non-scaling-stroke" /> : null}
             <path d={path} className="zen-chart__line" vectorEffect="non-scaling-stroke" />
           </svg>
@@ -207,6 +215,9 @@ export interface ChartCardProps {
   /** Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas
    *  next to other Shadow cards (metric cards on a dashboard). */
   theme?: CardTheme;
+  /** Figma nested Card Color, for theme="pale" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). */
+  color?: CardColor;
+  /** Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card. */
   surface?: CardSurface;
   /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
@@ -222,13 +233,13 @@ export interface ChartCardProps {
  * (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·
  * Show Open properties).
  */
-export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", surface, children, className, overrides }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", color, surface, children, className, overrides }: ChartCardProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
   const Title = `h${headingLevel}` as const;
   return (
-    <Card theme={theme} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
+    <Card theme={theme} color={color} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <div className="zen-chart-card__titlebar">

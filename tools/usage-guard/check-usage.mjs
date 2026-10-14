@@ -968,6 +968,31 @@ export const rules = [
   { id: "card/on-container-in-overlay", components: ["Card"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/card.md",
     summary: "A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
     check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "shadow") },
+  { id: "card/color-ignored", components: ["Card", "MetricCard", "ChartCard"], severity: "warn", allow: "card-color", guideline: "docs/guidelines/card.md",
+    summary: "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+    check: ({ tag, attrs }) => {
+      const own = topLevel(attrs);
+      if (!has(own, "color") || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
+      const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "flat" : "shadow");
+      return !["pale", "semi-pale", "solid"].includes(theme) && `sets color on theme="${theme}", which has no Color in Figma — use theme="pale" (colour on a box) or theme="solid" (the one widget that stands out), or drop color.`;
+    } },
+  { id: "card/surface-ignored", components: ["Card", "ChartCard"], severity: "warn", allow: "card-surface", guideline: "docs/guidelines/card.md",
+    summary: "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
+    check: ({ tag, attrs }) => {
+      const own = topLevel(attrs);
+      const surface = literal(own, "surface");
+      if (!surface || surface === "default" || opaque(attrs) || (has(own, "theme") && literal(own, "theme") === undefined)) return false;
+      const theme = literal(own, "theme") ?? (tag === "ChartCard" ? "flat" : "shadow");
+      const takes = { shadow: ["alt"], flat: ["alt"], border: ["alt", "flat"] }[theme === "semi-pale" ? "pale" : theme] ?? [];
+      return !takes.includes(surface) && `sets surface="${surface}" on theme="${theme}", which Figma draws without it — ${surface === "flat" ? "Surface=Flat is a Border card's (theme=\"border\")" : "Pale, On-Container and Solid keep their own fill"}; drop surface or change the theme.`;
+    } },
+  { id: "card/solid-color", components: ["Card", "MetricCard", "ChartCard"], severity: "error", allow: "card-color", guideline: "docs/guidelines/card.md",
+    summary: "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+    check: ({ attrs }) => {
+      const own = topLevel(attrs);
+      const color = literal(own, "color");
+      return literal(own, "theme") === "solid" && ["violet", "green", "blue", "purple"].includes(color) && `is theme="solid" color="${color}": Figma has no Solid ${color} and it renders as Solid Neutral — use theme="pale" color="${color}", or a Solid colour Figma draws (neutral, brand, cyan, yellow, orange).`;
+    } },
   { id: "listbox/on-container-in-overlay", components: ["ListBox"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/list-item.md",
     summary: "A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
     check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "flat") },
@@ -1079,6 +1104,20 @@ export const rules = [
     summary: "Metric values are passed pre-formatted with units and separators (\"$1,680.68\", \"2.1%\"), never a raw number.",
     // Only the Metric's own value: a ProgressBar `value={79}` inside `custom` (or any other nested element) is not it.
     check: ({ attrs }) => { const own = ownExpr(attrs, "value"); return /^\s*-?\d+(\.\d+)?\s*$/.test(own ?? "") && `passes a raw number (${own.trim()}) — format it with units and separators.`; } },
+  { id: "metric/type-data", components: ["MetricCard"], severity: "error", allow: "metric-type-data", guideline: "docs/guidelines/metric.md",
+    summary: "A typed MetricCard gets the data its type draws (sparkline, spark-bars, hero → series; goal-progress → goal; comparison → comparison; category-bar → categories), and no data another type draws.",
+    check: ({ attrs }) => {
+      const NEEDS = { sparkline: "series", "spark-bars": "series", hero: "series", "goal-progress": "goal", comparison: "comparison", "category-bar": "categories" };
+      const type = has(attrs, "type") ? literal(attrs, "type") : "kpi";
+      if (type === undefined || opaque(attrs)) return false;
+      const need = NEEDS[type];
+      if (need && !has(attrs, need)) return `has type="${type}" without ${need} — the card would draw an empty ${type === "comparison" ? "row" : "frame"}; pass ${need}${need === "series" ? " (numbers, oldest first)" : ""}.`;
+      const stray = ["series", "goal", "comparison", "categories"].find((name) => name !== need && has(attrs, name));
+      return stray && `passes ${stray} but has type="${type}", which doesn't draw it — set the type that draws ${stray} (${Object.entries(NEEDS).filter(([, prop]) => prop === stray).map(([key]) => `"${key}"`).join(", ")}) or drop it.`;
+    } },
+  { id: "metric/category-count", components: ["MetricCard"], severity: "warn", allow: "metric-categories", guideline: "docs/guidelines/metric.md",
+    summary: "A category-bar MetricCard splits its total into 2–7 parts (the chart palette's seven colours); fold the smallest into an \"Other\" part.",
+    check: ({ attrs }) => { const n = arrayObjects(expr(attrs, "categories")).length; return n > 0 && (n < 2 || n > 7) && `splits its total into ${n} part${n === 1 ? "" : "s"} — a category bar reads 2–7; ${n < 2 ? "one part is the whole: drop type=\"category-bar\"" : "fold the smallest into an \"Other\" part, or use a DonutChart or BarList"}.`; } },
   { id: "uploader/needs-label", components: ["FileUpload"], severity: "warn", allow: "upload-label", guideline: "docs/guidelines/uploader.md",
     summary: "A File Upload has a visible label saying what to upload.",
     check: ({ attrs }) => !present(attrs, "label") && "has no label." },

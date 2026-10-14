@@ -11,18 +11,21 @@ A surface that groups related content about one subject — a project, a stat, a
 - KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).
 - A selectable option with rich content (Active marks the choice).
 - Framing a List or a group of settings (Border).
+- A dashboard widget in colour: Pale in any of the nine hues, or the one widget of a row that stands out (Solid).
 
 ## Use something else for
 - Page sections that are just spacing → layout, not a card.
 - A single line of content → ListItem.
 - Rows of comparable data → Table.
 - Messages → Inline Message.
+- Darkening one card with a mode switch (data-theme) → theme="solid" color="neutral".
 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Theme | `theme` | shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet); semi-pale is deprecated and renders as pale |
-| Surface | `surface` | default · alt — Surface/Default or Surface/Alt to suit the page Canvas; on a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default |
+| Theme | `theme` | shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) · solid (the one widget of a row that stands out); semi-pale is deprecated and renders as pale |
+| Color | `color` | neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple, for pale (Support/<Color>/Pale, all nine) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · yellow · orange: Support/<Color>/Solid with neutral content; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card |
+| Surface | `surface` | default · alt · flat — Figma Surface per theme: alt on Flat and Border (Shadow on alt draws as Flat on Surface/Alt), flat on Border only (a Border card on a Canvas/Flat page); Pale, On-Container and Solid keep their own fill (harness card/surface-ignored). On a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default. ChartCard passes it to its Card |
 | Spacing | `spacing` | medium (Card-padding-medium, Radius 2XLarge) · small (Card-padding-small, Radius Large) |
 | Active | `selected` | Surface + 2px Card/Border/Active (active is the deprecated alias) |
 | Clickable | `onClick · aria-label` | role=button, Enter/Space; Border steps up to Neutral/Subtle |
@@ -32,9 +35,9 @@ A surface that groups related content about one subject — a project, a stat, a
 Generated from the TypeScript source; full JSON in `docs/api/card.json`.
 
 ### Card
-Figma Card (6643:51021): a Content slot on one of six surfaces, padded Card-padding-medium/small. A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
+Figma Card (6643:51021): a Content slot on one of six themes (Pale and Solid in a Color), padded Card-padding-medium/small. A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
 
-Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick">, LayoutWidthProps`.
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick" | "color">, LayoutWidthProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -44,11 +47,12 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick">, LayoutW
 | `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
 | `ref` | `Ref<HTMLElement>` | — | The root element. |
 | `children` | `ReactNode` | — |  |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"shadow"` | Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale. |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "solid" \| "semi-pale"` | `"shadow"` | Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/`<Color>`/Pale + Effect/Overlay blur) · Border · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/`<Color>`/Solid). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale. |
+| `color` | `"neutral" \| "brand" \| "cyan" \| "violet" \| "green" \| "yellow" \| "orange" \| "blue" \| "purple"` | `"neutral"` | Figma Color, for theme="pale" (Support/`<Color>`/Pale, all nine: 15480:87358…, 15530:526, 15530:550) and theme="solid" (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/`<Color>`/Solid; Figma has no Solid violet, green, blue or purple, which render as Solid Neutral — harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). A Solid card re-points the content, border and track tokens its children read (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*); the page keeps its mode. |
 | `spacing` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Figma Spacing: Medium (Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large). Short (sm, md…) or Figma (small, medium…) spelling. |
 | `selected` | `boolean` | — | Figma Active=Yes: the selected card — Surface fill with a 2px Card/Border/Active stroke. |
 | `active` | `boolean` | — | **Deprecated:** Use selected. Figma Active=Yes (the selected card). |
-| `surface` | `"default" \| "alt"` | — | Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme="shadow", `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. |
+| `surface` | `"default" \| "alt" \| "flat"` | — | Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) · Surface/Flat (Border only, 15530:502–520: a Border card on a Canvas/Flat page). Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container / Solid keep their own fill, and `flat` on a theme other than Border is ignored (harness card/surface-ignored). With theme="shadow", `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. |
 | `onClick` | `(event: MouseEvent<HTMLElement> \| KeyboardEvent<HTMLElement>) => void` | — | Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards. |
 | `aria-label` | `string` | — | Accessible name for a clickable card when its content does not start with a clear title. |
 | `subAction` | `CardSubAction \| ReactNode` | — | Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮). It takes no room: the Content slot keeps the full width. A node (e.g. a Menu) should use the same trigger. |
@@ -77,7 +81,10 @@ interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick
 - Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.
 - Put secondary card actions in the Sub-Action menu.
 - Card shadow = Box effectStyle="Shadow/Bottom/Level-1": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.
-- Pick surface from the page Canvas: default on Canvas/Default, surface="alt" passed explicitly on a white Canvas/Alt page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.
+- Pick surface from the page Canvas: default on Canvas/Default, surface="alt" passed explicitly on a white Canvas/Alt page, theme="border" surface="flat" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.
+- Put colour on a box with theme="pale" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.
+- Let at most one widget per row stand out with theme="solid"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) suits one time-sensitive figure.
+- Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read Content/Inverse/* by themselves; pick Button appearance="overlay" level="inverse" and Badge theme="on-color" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).
 - Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan).
 
 ## ❌ Don't
@@ -85,10 +92,14 @@ interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick
 - Don't nest cards inside cards.
 - Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).
 - Don't use Active as decoration; it means selected.
+- Don't make a whole row Solid: one widget stands out, the rest share the row's theme.
+- Don't set data-theme or a dark mode on one card to darken it: one page is one mode, and theme="solid" color="neutral" re-points only its content tokens.
+- Don't put fields, Search or other Surface controls on a Solid card; they keep the page's Surface fill.
 
 ## Accessibility
 - Clickable cards are one focusable role=button with a visible focus ring; static cards are plain containers.
 - Keep reading order: title first, then meta.
+- Solid and Pale colours keep AA text contrast in light and dark: Strongest and Base text measure at least 4.5:1 on every Solid fill (a hue Solid reads Light as Base), and Pale tints keep Content/Neutral.
 
 ## Content
 - Title first, then one line of meta.
@@ -99,6 +110,9 @@ interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick
 | --- | --- | --- | --- |
 | `card/clickable-no-nested-controls` | error | A clickable Card (onClick) is one button: it must not contain buttons, links, inputs or a subAction. | `zen-allow-card-nested-control: <reason>` |
 | `card/on-container-in-overlay` | warn | A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme="on-container": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12). | `zen-allow-overlay-theme: <reason>` |
+| `card/color-ignored` | warn | Card color is the Figma Color of theme="pale" (nine hues) and theme="solid"; Shadow, Flat, Border and On-Container have no Color and ignore it. | `zen-allow-card-color: <reason>` |
+| `card/surface-ignored` | warn | Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill. | `zen-allow-card-surface: <reason>` |
+| `card/solid-color` | error | Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast). | `zen-allow-card-color: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

@@ -3758,24 +3758,31 @@
       "Grids of objects users scan and pick (projects, templates, plans).",
       "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
       "A selectable option with rich content (Active marks the choice).",
-      "Framing a List or a group of settings (Border)."
+      "Framing a List or a group of settings (Border).",
+      "A dashboard widget in colour: Pale in any of the nine hues, or the one widget of a row that stands out (Solid)."
     ],
     "avoid": [
       "Page sections that are just spacing → layout, not a card.",
       "A single line of content → ListItem.",
       "Rows of comparable data → Table.",
-      "Messages → Inline Message."
+      "Messages → Inline Message.",
+      "Darkening one card with a mode switch (data-theme) → theme=\"solid\" color=\"neutral\"."
     ],
     "api": [
       [
         "Theme",
         "theme",
-        "shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet); semi-pale is deprecated and renders as pale"
+        "shadow (default) · flat · border · pale · on-container (Surface/Flat, inside a Dialog, ModalForm, SidePanel or BottomSheet) · solid (the one widget of a row that stands out); semi-pale is deprecated and renders as pale"
+      ],
+      [
+        "Color",
+        "color",
+        "neutral (default) · brand · cyan · violet · green · yellow · orange · blue · purple, for pale (Support/<Color>/Pale, all nine) and solid (neutral: Background/Neutral/Solid with Content/Inverse/* content; brand · cyan · yellow · orange: Support/<Color>/Solid with neutral content; violet, green, blue and purple render as Solid Neutral, harness card/solid-color). Shadow, Flat, Border and On-Container ignore it (harness card/color-ignored). MetricCard and ChartCard pass it to their Card"
       ],
       [
         "Surface",
         "surface",
-        "default · alt — Surface/Default or Surface/Alt to suit the page Canvas; on a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default"
+        "default · alt · flat — Figma Surface per theme: alt on Flat and Border (Shadow on alt draws as Flat on Surface/Alt), flat on Border only (a Border card on a Canvas/Flat page); Pale, On-Container and Solid keep their own fill (harness card/surface-ignored). On a Canvas/Alt page pass alt explicitly (only an explicit alt drops the Shadow theme's shadow); unset follows an inherited --zen-card-surface, else default. ChartCard passes it to its Card"
       ],
       [
         "Spacing",
@@ -3816,18 +3823,25 @@
       "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
       "Put secondary card actions in the Sub-Action menu.",
       "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-      "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+      "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+      "Put colour on a box with theme=\"pale\" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.",
+      "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) suits one time-sensitive figure.",
+      "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read Content/Inverse/* by themselves; pick Button appearance=\"overlay\" level=\"inverse\" and Badge theme=\"on-color\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
       "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
     ],
     "dont": [
       "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
       "Don't nest cards inside cards.",
       "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
-      "Don't use Active as decoration; it means selected."
+      "Don't use Active as decoration; it means selected.",
+      "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
+      "Don't set data-theme or a dark mode on one card to darken it: one page is one mode, and theme=\"solid\" color=\"neutral\" re-points only its content tokens.",
+      "Don't put fields, Search or other Surface controls on a Solid card; they keep the page's Surface fill."
     ],
     "a11y": [
       "Clickable cards are one focusable role=button with a visible focus ring; static cards are plain containers.",
-      "Keep reading order: title first, then meta."
+      "Keep reading order: title first, then meta.",
+      "Solid and Pale colours keep AA text contrast in light and dark: Strongest and Base text measure at least 4.5:1 on every Solid fill (a hue Solid reads Light as Base), and Pale tints keep Content/Neutral."
     ],
     "content": [
       "Title first, then one line of meta.",
@@ -3856,6 +3870,24 @@
         "severity": "warn",
         "summary": "A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
         "allow": "overlay-theme"
+      },
+      {
+        "id": "card/color-ignored",
+        "severity": "warn",
+        "summary": "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "allow": "card-color"
+      },
+      {
+        "id": "card/surface-ignored",
+        "severity": "warn",
+        "summary": "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
+        "allow": "card-surface"
+      },
+      {
+        "id": "card/solid-color",
+        "severity": "error",
+        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+        "allow": "card-color"
       },
       {
         "id": "api/deprecated-prop",
@@ -4727,16 +4759,23 @@
   },
   "metric": {
     "title": "Metric Widget",
-    "purpose": "Show one key number with its label, an identifying icon and how it changed.",
+    "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
     "use": [
       "Dashboard KPI tiles (MetricCard).",
       "Summary rows above tables or charts (Metric Small/Medium inline).",
-      "A single highlighted figure in a card or panel."
+      "A single highlighted figure in a card or panel.",
+      "A KPI and the shape of its last periods → MetricCard type=\"sparkline\" (a line) or \"spark-bars\" (bars, the current one highlighted).",
+      "A number toward its goal → MetricCard type=\"goal-progress\".",
+      "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
+      "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
+      "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
     ],
     "avoid": [
-      "Series over time → a chart.",
+      "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
       "Many comparable numbers → Table.",
-      "Progress toward a goal → Progress."
+      "Progress of a task, an upload or a quota → ProgressBar.",
+      "More than 7 parts of a total → DonutChart, BarList or a Table.",
+      "More than one hero in a row → one hero, the rest plain MetricCards."
     ],
     "api": [
       [
@@ -4768,11 +4807,49 @@
         "Icon colour",
         "iconTheme · iconBackground · iconEmoji",
         "any Dock-Icon theme (Neutral default) · Subtle / Solid · Theme=Emoji"
+      ],
+      [
+        "Type",
+        "MetricCard type",
+        "kpi (default: Icon-Highlight XLarge) · sparkline · spark-bars · goal-progress · category-bar (Title-Highlight Large) · comparison (Heading/Subheading title + Small columns) · hero (Title-Highlight XLarge); Figma Metric-Card Type"
+      ],
+      [
+        "Series",
+        "series · seriesLabel · format",
+        "sparkline · spark-bars · hero: numbers oldest first, the last the current period; 64px line (Border/Accent/Solid over an Accent/Solid → Subtle area at 16%) · 48px bars (Chart Sector/Primary, the last Sector/Secondary) · 64px neutral line (hero); an accessible summary (\"Trend over 12 periods: from … to …, low …, high …\")"
+      ],
+      [
+        "Goal",
+        "goal {value, target, label?, valueLabel?}",
+        "goal-progress: a stacked Accent ProgressBar, \"of {target} goal\" and the share (past 100% too)"
+      ],
+      [
+        "Comparison",
+        "comparison[] {id, label, value, trend?}",
+        "2–4 columns Spacing/Gap/Medium apart, a Border/Neutral/Subtle rule before each but the first; stacked under 440px"
+      ],
+      [
+        "Categories",
+        "categories[] {id, label, value, color?}",
+        "category-bar: a 12px bar of shares in the chart palette, then a row per category (Caption label, Body/Small/Medium amount, a Neutral/Base share adding up to 100%)"
+      ],
+      [
+        "Hero",
+        "type=\"hero\" · theme · color · footer",
+        "Brand Pale by default with neutral marks and an On-Color Solid trend badge; theme=\"solid\" (color neutral) is the dark widget: Inverse content, a Button appearance=\"overlay\" level=\"inverse\" in the footer"
+      ],
+      [
+        "Motion",
+        "MetricCard animate",
+        "The line wipes in, bars rise, segments grow (the chart family's timing); reduced motion fades; animate={false} turns it off"
       ]
     ],
     "keyboard": [],
     "do": [
       "Format the value with units and separators (harness: metric/formatted-value).",
+      "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
+      "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
+      "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
       "Always say what the trend compares against (\"vs. last month\").",
       "Use the same size for metrics in one row; one hero metric at most.",
       "Pair a worrying trend with guidance (Inline Message) or a link to details.",
@@ -4786,7 +4863,8 @@
       "Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status."
     ],
     "a11y": [
-      "The trend badge has text (not colour alone); icons are decorative."
+      "The trend badge has text (not colour alone); icons are decorative.",
+      "A sparkline or spark bars is one image (role=\"img\") named by a summary of the series (or seriesLabel); the category bar is decorative and its rows say every amount and share; goal-progress is a named progressbar."
     ],
     "content": [
       "Labels are nouns (\"Revenue\"); trends read \"+12% vs. last month\"."
@@ -4804,10 +4882,34 @@
     "file": "docs/guidelines/metric.md",
     "rules": [
       {
+        "id": "card/color-ignored",
+        "severity": "warn",
+        "summary": "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "allow": "card-color"
+      },
+      {
+        "id": "card/solid-color",
+        "severity": "error",
+        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+        "allow": "card-color"
+      },
+      {
         "id": "metric/formatted-value",
         "severity": "warn",
         "summary": "Metric values are passed pre-formatted with units and separators (\"$1,680.68\", \"2.1%\"), never a raw number.",
         "allow": "metric-format"
+      },
+      {
+        "id": "metric/type-data",
+        "severity": "error",
+        "summary": "A typed MetricCard gets the data its type draws (sparkline, spark-bars, hero → series; goal-progress → goal; comparison → comparison; category-bar → categories), and no data another type draws.",
+        "allow": "metric-type-data"
+      },
+      {
+        "id": "metric/category-count",
+        "severity": "warn",
+        "summary": "A category-bar MetricCard splits its total into 2–7 parts (the chart palette's seven colours); fold the smallest into an \"Other\" part.",
+        "allow": "metric-categories"
       },
       {
         "id": "api/overrides-studio-only",
@@ -6486,12 +6588,12 @@
       [
         "Line",
         "LineChart data[] {label, value} · label · compare {label, values} · curve · fill (area · none) · showLegend · legendPosition",
-        "Accent/Solid 2px line + a flat Accent area at 16% from the plot's left edge to the last period's centre; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart: pick its Sector 4 · 6 · 7 · 12 to match the periods); lanes a seventh of the height above and below the grid, Y labels in a 32px column"
+        "Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle (at 30%, as Figma's Line-Chart) from the plot's left edge to the last period's centre; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart: pick its Sector 4 · 6 · 7 · 12 to match the periods); lanes a seventh of the height above and below the grid, Y labels in a 32px column; only the active period draws its sector rule"
       ],
       [
         "Bar",
         "BarChart data[] {label, value, projected, target} · orientation · color · activeColor",
-        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small"
+        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); Corner-Radius/Small"
       ],
       [
         "Stack bar",
@@ -6501,7 +6603,7 @@
       [
         "Donut",
         "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)",
-        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/3 figure)"
+        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/2 figure)"
       ],
       [
         "Radial",
@@ -6536,7 +6638,7 @@
       [
         "Area",
         "AreaChart data[] {label, values} · series[] {id, label, color} · type (area · stacked) · initialIndex · showLegend · legendPosition",
-        "Straight 2px lines (round caps) from the first period's centre to the last over flat areas in the series' Color Chart Sector style, 16% (one area) or 24% (stacked bands); the active period: a 12px dot per line, a Border/Active/Neutral/Subtle rule down to the baseline and the Tooltip beside the dot (the value, or the stack's total); the bar charts' frame, its top lane half a Y label; legend on by default when stacked"
+        "Straight 2px lines (round caps) in the series' Color Chart Sector style from the first period's centre to the last, each over an area fading from its slot's Solid to its Subtle at 30% (Accent, then Neutral, Support Cyan …, as the line chart's area); the active period: a 12px dot per line, a Border/Active/Neutral/Subtle rule down to the baseline and the Tooltip beside the dot (the value, or the stack's total); the bar charts' frame, its top lane half a Y label; legend on by default when stacked"
       ],
       [
         "Grouped bar",
@@ -6561,7 +6663,7 @@
       [
         "Card",
         "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/3 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
       ]
     ],
     "keyboard": [
@@ -6627,6 +6729,24 @@
     ],
     "file": "docs/guidelines/chart.md",
     "rules": [
+      {
+        "id": "card/color-ignored",
+        "severity": "warn",
+        "summary": "Card color is the Figma Color of theme=\"pale\" (nine hues) and theme=\"solid\"; Shadow, Flat, Border and On-Container have no Color and ignore it.",
+        "allow": "card-color"
+      },
+      {
+        "id": "card/surface-ignored",
+        "severity": "warn",
+        "summary": "Figma Card Surface per theme: alt on Flat and Border (Shadow on alt renders as Flat), flat on Border only; Pale, On-Container and Solid keep their own fill.",
+        "allow": "card-surface"
+      },
+      {
+        "id": "card/solid-color",
+        "severity": "error",
+        "summary": "Figma draws Theme=Solid in Neutral, Brand, Cyan, Yellow and Orange only; other hues render as Solid Neutral (they would fail contrast).",
+        "allow": "card-color"
+      },
       {
         "id": "chart/stack-needs-legend",
         "severity": "error",
