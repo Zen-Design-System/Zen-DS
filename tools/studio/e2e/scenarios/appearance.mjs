@@ -27,7 +27,8 @@ export const rows = [
       await expectSource(ctx, "box", (el) => el.attr("effectStyle") === "Shadow/Bottom/Level-1", "Shadow/Bottom/Level-1 added");
       await page.locator("#studio-right").getByRole("button", { name: "Hide effect" }).click();
       await expectSource(ctx, "box", (el) => el.attr("effectStyle") === undefined, "hidden: effectStyle removed");
-      if (!(await page.locator("#studio-right").getByText("Hidden. Hidden effects aren't saved in code.").count())) throw new Error("no hidden row");
+      // The source loses effectStyle before the inspector re-renders with the hidden row: wait for the row, not just the write.
+      await until(async () => (await page.locator("#studio-right").getByText("Hidden. Hidden effects aren't saved in code.").count()) > 0, { message: "no hidden row" });
       await page.locator("#studio-right").getByRole("button", { name: "Show effect" }).click();
       await expectSource(ctx, "box", (el) => el.attr("effectStyle") === "Shadow/Bottom/Level-1", "shown again");
       await page.locator("#studio-right").getByRole("button", { name: "Remove effect" }).click();
