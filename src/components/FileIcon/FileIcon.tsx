@@ -1,4 +1,4 @@
-import type { CSSProperties, SVGAttributes } from "react";
+import type { CSSProperties, Ref, SVGAttributes } from "react";
 import { iconSizes, type IconSize } from "../Icon";
 import { fileIconData, type FileIconFormat } from "./fileIconData";
 import "../Icon/icon.css";
@@ -11,13 +11,15 @@ export type FileIconProps = Omit<SVGAttributes<SVGSVGElement>, "children"> & {
   size?: IconSize | number;
   /** Accessible name; without it the icon is decorative (the file name usually sits next to it). */
   title?: string;
+  /** Forwarded to the root `<svg>`. */
+  ref?: Ref<SVGSVGElement>;
 };
 
 /**
  * Figma `icon-media-file` (Iconography → Special Icons → File): a coloured file shape (Content/Support/…/Light,
  * Figma uses Background/Support/Violet/Solid) with an On-Colors glyph. Identifies content types — never an action icon.
  */
-export function FileIcon({ format, size = "base", title, className, style, ...svgProps }: FileIconProps) {
+export function FileIcon({ format, size = "base", title, className, style, ref, ...svgProps }: FileIconProps) {
   const icon = fileIconData[format];
   if (!icon) return null;
   const named = typeof size === "string" && (iconSizes as readonly string[]).includes(size) ? size : undefined;
@@ -25,6 +27,7 @@ export function FileIcon({ format, size = "base", title, className, style, ...sv
   return (
     <svg
       {...svgProps}
+      ref={ref}
       className={["zen-icon", "zen-file-icon", className].filter(Boolean).join(" ")}
       data-format={format}
       data-tone={icon.tone}

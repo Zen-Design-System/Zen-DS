@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Button, type ButtonAppearance, type ButtonLevel } from "../Button";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
@@ -52,6 +52,8 @@ export interface ToastProps {
   /** Accessible name of the close control. Default: the locale's “Dismiss”. */
   closeLabel?: string;
   className?: string;
+  /** Forwarded to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio;
    *  app code sets icon / action. */
   overrides?: NestedOverrides;
@@ -62,7 +64,7 @@ export interface ToastProps {
  * gap Medium; the Body groups the Title/Caption stack (gap 3XSmall) with the action (gap XSmall).
  * Subtle is the Popover surface with a 1px OUTSIDE Border/Popover/Subtle stroke.
  */
-export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides }: ToastProps) {
+export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref }: ToastProps) {
   const nest = useNested(overrides);
   const type: ToastType = typeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
@@ -77,7 +79,7 @@ export function Toast({ type: typeProp, status, title, children, icon = true, ac
     if (!action?.keepOpen) onClose?.();
   };
   return (
-    <div className={["zen-toast", className].filter(Boolean).join(" ")} data-type={type} role={urgent ? "alert" : "status"}>
+    <div ref={ref} className={["zen-toast", className].filter(Boolean).join(" ")} data-type={type} role={urgent ? "alert" : "status"}>
       {leading ? <span className="zen-toast__icon" aria-hidden="true">{leading}</span> : null}
       <div className="zen-toast__body">
         <div className="zen-toast__content">

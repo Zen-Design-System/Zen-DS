@@ -42,6 +42,7 @@ Figma Toast-Message (1579:13276): Corner-Radius/2XLarge surface with Effect/Popo
 | `onClose` | `() => void` | — | Shows the close control (icon-x-small-line). |
 | `closeLabel` | `string` | — | Accessible name of the close control. Default: the locale's “Dismiss”. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon and Button it draws, by layer (`{ Action: { level: "primary" } }`). Written by Zen Studio; app code sets icon / action. |
 
 ### ToastStack
@@ -57,6 +58,7 @@ Toast queue with motion: a new toast rises in from the screen edge while its row
 | `inline` | `boolean` | `false` | Render in place (e.g. inside a demo card) instead of the fixed viewport layer. |
 | `closeLabel` | `string` | — | Accessible name of every toast's close button (a toast's own `closeLabel` wins). Default: the locale's “Dismiss”. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the stack's root `<div>` (portalled into the toast layer unless `inline`). |
 
 ### ToastProvider
 Owns the toast queue and renders one ToastStack. ZenProvider already includes it (outermost provider), so apps only call useToast(); render ToastProvider yourself only outside a ZenProvider.
@@ -72,7 +74,7 @@ Owns the toast queue and renders one ToastStack. ZenProvider already includes it
 Object shapes the props above refer to.
 
 ```ts
-interface ToastItem extends Omit<ToastProps, "onClose" | "className"> { id: string | number; duration?: number | null; }
+interface ToastItem extends Omit<ToastProps, "onClose" | "className" | "ref"> { id: string | number; duration?: number | null; }
 ```
 
 ## Keyboard

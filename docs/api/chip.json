@@ -11,6 +11,14 @@
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the chip's `<button>`; a static Number-only count (see the component docs) renders a `<span>`, which it\n then points at.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": false,

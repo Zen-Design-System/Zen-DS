@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { PageHeader } from "../PageHeader";
 import { Text } from "../Text";
 import { useNested, type NestedOverrides } from "../_shared/nested";
@@ -48,6 +48,8 @@ export interface DashboardHeaderProps extends Omit<HTMLAttributes<HTMLElement>, 
   children?: ReactNode;
   /** Figma instance overrides of the components in its slots, by layer. Written by Zen Studio; app code sets the slots. */
   overrides?: NestedOverrides;
+  /** Ref to the root DOM element. */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
@@ -60,10 +62,7 @@ export interface DashboardHeaderProps extends Omit<HTMLAttributes<HTMLElement>, 
  *   <DashboardHeader search={<Search size="md" placeholder="Search leaves" />} controls={<Chip variant="advanced">Status</Chip>}
  *     actions={<><Button level="tertiary">Export</Button><Button level="primary">Submit leave</Button></>} />
  */
-export const DashboardHeader = forwardRef<HTMLElement, DashboardHeaderProps>(function DashboardHeader(
-  { type = "control-bar", leading, center, trailing, search, controls, subheading, actions, title, childTitle, headingLevel = 1, children, className, overrides, ...rest },
-  ref,
-) {
+export function DashboardHeader({ type = "control-bar", leading, center, trailing, search, controls, subheading, actions, title, childTitle, headingLevel = 1, children, className, overrides, ref, ...rest }: DashboardHeaderProps) {
   const nest = useNested(overrides);
   const classes = ["zen-dashboard-header", className].filter(Boolean).join(" ");
   if (type === "main") {
@@ -92,4 +91,4 @@ export const DashboardHeader = forwardRef<HTMLElement, DashboardHeaderProps>(fun
       )}
     </div>
   );
-});
+}

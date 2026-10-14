@@ -35,6 +35,7 @@ Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutra
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `role="group"` element. |
 | `options` | `SegmentedOption[]` | — |  |
 | `value` | `string` | — |  |
 | `defaultValue` | `string` | — |  |

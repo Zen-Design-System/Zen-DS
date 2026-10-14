@@ -1,4 +1,4 @@
-import { cloneElement, createContext, forwardRef, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type FocusEvent, type HTMLAttributes, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type FocusEvent, type HTMLAttributes, type MouseEvent as ReactMouseEvent, type ReactNode, type Ref } from "react";
 import { Avatar, type AvatarTheme } from "../Avatar";
 import { IconButton } from "../Button";
 import { DashboardHeader } from "../DashboardHeader";
@@ -18,6 +18,9 @@ import { NotificationDot } from "../_shared/notification-dot";
 import { InlineOverlayContext } from "../_shared/overlay";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
+import { useStableCallback } from "../_shared/use-stable-callback";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export type AppShellLayout = "sidebar" | "drawer";
 
@@ -116,6 +119,8 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   /** Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio;
    *  app code keeps the defaults. */
   overrides?: NestedOverrides;
+  /** Ref to the shell's root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Below this width the Sidebar leaves the page for a drawer (the Tablet and Mobile breakpoints). */
@@ -124,7 +129,6 @@ const SIDEBAR_MIN_SHELL_WIDTH = 1024;
 const TABLET_MIN_WIDTH = 744;
 /** Figma Side-Panel Size=Default, assumed until the docked panel has been measured once. */
 const SIDE_PANEL_DEFAULT_WIDTH = 440;
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /**
  * An element's border-box size on one axis in CSS px, kept current by a ResizeObserver: 0 without the element; a hidden
@@ -263,6 +267,7 @@ export function AppShell({
   style,
   children,
   overrides,
+  ref,
   ...rest
 }: AppShellProps) {
   const t = useZenLabels();
@@ -275,6 +280,7 @@ export function AppShell({
   const drawerRef = useRef<HTMLDivElement>(null);
   // Measured parts (state refs, so a part that mounts later is measured too).
   const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
+  const rootRef = useMergedRefs(ref, setRootEl);
   const [bannerEl, setBannerEl] = useState<HTMLDivElement | null>(null);
   const [sidebarEl, setSidebarEl] = useState<HTMLDivElement | null>(null);
   const [asideEl, setAsideEl] = useState<HTMLDivElement | null>(null);
@@ -311,24 +317,22 @@ export function AppShell({
     if (collapsedProp === undefined) setInnerCollapsed(Boolean(declaredCollapsed));
   }
   const sidebarCollapsed = ownCollapse ? Boolean(sidebarElement?.props.collapsed) : Boolean(collapsedProp ?? innerCollapsed);
-  const collapseHandlers = useRef({ ownCollapse, controlled: collapsedProp !== undefined, onSidebarCollapsedChange });
-  collapseHandlers.current = { ownCollapse, controlled: collapsedProp !== undefined, onSidebarCollapsedChange };
-  const setSidebarCollapsed = useCallback((next: boolean) => {
-    const handlers = collapseHandlers.current;
-    if (handlers.ownCollapse) { handlers.ownCollapse(next); return; }
-    if (!handlers.controlled) setInnerCollapsed(next);
-    handlers.onSidebarCollapsedChange?.(next);
-  }, []);
+  // Not useControllableState: a Sidebar with its own onCollapsedChange owns the rail, the Sidebar's `collapsed` re-seeds
+  // the uncontrolled value, and onSidebarCollapsedChange fires on every request (also one that changes nothing).
+  const setSidebarCollapsed = useStableCallback((next: boolean) => {
+    if (ownCollapse) { ownCollapse(next); return; }
+    if (collapsedProp === undefined) setInnerCollapsed(next);
+    onSidebarCollapsedChange?.(next);
+  });
 
   // Drawer. One stable setter: the shared focus trap re-runs whenever its handler changes identity.
   const [innerOpen, setInnerOpen] = useState(defaultNavOpen);
   const open = compact && Boolean(sidebar) && Boolean(navOpenProp ?? innerOpen);
-  const openHandlers = useRef({ controlled: navOpenProp !== undefined, onNavOpenChange });
-  openHandlers.current = { controlled: navOpenProp !== undefined, onNavOpenChange };
-  const setNavOpen = useCallback((next: boolean) => {
-    if (!openHandlers.current.controlled) setInnerOpen(next);
-    openHandlers.current.onNavOpenChange?.(next);
-  }, []);
+  // Not useControllableState: onNavOpenChange fires on every request, also closeNav() on a closed drawer.
+  const setNavOpen = useStableCallback((next: boolean) => {
+    if (navOpenProp === undefined) setInnerOpen(next);
+    onNavOpenChange?.(next);
+  });
   const closeFromModal = useCallback((next: boolean) => { if (!next) setNavOpen(false); }, [setNavOpen]);
   const presence = usePresence(open, 200);
   // Modal: focus the current page's row (else the drawer), trap Tab, Escape closes, the page stops scrolling, and
@@ -373,9 +377,11 @@ export function AppShell({
   // it; otherwise a SidePanel opens as the modal panel (Type=Modal) and anything else stacks under the page.
   const asideElement = isValidElement<SidePanelProps>(aside) && aside.type === SidePanel ? aside : null;
   const measuredAside = useElementSize(aside ? asideEl : null, "width");
-  const lastAsideWidth = useRef(0);
-  if (measuredAside > 0) lastAsideWidth.current = measuredAside;
-  const asideDocked = !compact && (!shellWidth || shellWidth - sidebarWidth - (lastAsideWidth.current || SIDE_PANEL_DEFAULT_WIDTH) >= TABLET_MIN_WIDTH);
+  // The last width it had while docked (state from an earlier render, set during render as React documents).
+  const [lastAsideWidth, setLastAsideWidth] = useState(0);
+  if (measuredAside > 0 && measuredAside !== lastAsideWidth) setLastAsideWidth(measuredAside);
+  const asideWidth = measuredAside > 0 ? measuredAside : lastAsideWidth;
+  const asideDocked = !compact && (!shellWidth || shellWidth - sidebarWidth - (asideWidth || SIDE_PANEL_DEFAULT_WIDTH) >= TABLET_MIN_WIDTH);
 
   const toggle = showCollapseToggle || showMenuButton ? (
     <span ref={setToggleEl} className="zen-app-shell__toggle">
@@ -393,7 +399,7 @@ export function AppShell({
 
   return (
     <AppShellContext value={context}>
-      <div {...rest} ref={setRootEl} className={["zen-app-shell", className].filter(Boolean).join(" ")} style={shellStyle} data-canvas={canvas} data-layout={layout} data-floating={floatingAction ? "true" : undefined} inert={open || undefined}>
+      <div {...rest} ref={rootRef} className={["zen-app-shell", className].filter(Boolean).join(" ")} style={shellStyle} data-canvas={canvas} data-layout={layout} data-floating={floatingAction ? "true" : undefined} inert={open || undefined}>
         {/* Moves focus without touching the URL, so hash routers and history are left alone; href stays for no-JS. */}
         <VisuallyHidden as="a" href={`#${mainId}`} focusable onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>{t.skipToContent}</VisuallyHidden>
         {banner ? <div ref={setBannerEl} className="zen-app-shell__banner">{banner}</div> : null}
@@ -469,6 +475,8 @@ export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButto
   /** Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets icon / appearance. */
   overrides?: NestedOverrides;
+  /** Ref to the icon button element, so the action can be a `<Menu trigger>`. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -477,10 +485,7 @@ export interface AppShellActionProps extends Omit<ButtonHTMLAttributes<HTMLButto
  * Color/Background/{Negative|Positive|Accent}/Solid with a 2px Color/Border/Inverse ring, at the button's top-right.
  * It forwards its ref and props to the button, so it can be a <Menu trigger>.
  */
-export const AppShellAction = forwardRef<HTMLButtonElement, AppShellActionProps>(function AppShellAction(
-  { icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, overrides, ...buttonProps },
-  ref,
-) {
+export function AppShellAction({ icon, count, dot = false, tone = "default", appearance = "tertiary", tooltip, className, "aria-label": label, overrides, ref, ...buttonProps }: AppShellActionProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const unread = typeof count === "number" && count > 0 ? Math.floor(count) : 0;
@@ -495,7 +500,7 @@ export const AppShellAction = forwardRef<HTMLButtonElement, AppShellActionProps>
       ) : dot ? <NotificationDot className="zen-app-shell-action__dot" tone={tone} /> : null}
     </span>
   );
-});
+}
 
 export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   /** The signed-in person's name: the accessible name (“Account: Ava Chen”), the tooltip and the initials without a photo. */
@@ -507,6 +512,8 @@ export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButt
   /** Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: "square" } }`). Written by Zen Studio;
    *  app code sets src / theme. */
   overrides?: NestedOverrides;
+  /** Ref to the account button element, so it can be a `<Menu trigger>`. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -514,10 +521,7 @@ export interface AppShellAccountProps extends Omit<ButtonHTMLAttributes<HTMLButt
  * it in a Menu for the account actions: `<Menu align="end" trigger={<AppShellAccount name="Ava Chen" src={photo} />} items={…} />`.
  * Keyboard focus shows the Avatar's own focus ring.
  */
-export const AppShellAccount = forwardRef<HTMLButtonElement, AppShellAccountProps>(function AppShellAccount(
-  { name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, overrides, ...buttonProps },
-  ref,
-) {
+export function AppShellAccount({ name, src, theme = "neutral", className, type = "button", onFocus, onBlur, "aria-label": ariaLabel, overrides, ref, ...buttonProps }: AppShellAccountProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const accessibleName = ariaLabel ?? t.accountOf(name);
@@ -539,4 +543,4 @@ export const AppShellAccount = forwardRef<HTMLButtonElement, AppShellAccountProp
       {tip.tooltip}
     </>
   );
-});
+}

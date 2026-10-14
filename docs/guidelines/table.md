@@ -69,48 +69,54 @@ Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or B
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `children` (required) | `ReactNode` | — |  |
-| `caption` | `ReactNode` | — |  |
-| `bold` | `boolean` | `false` |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>` element. |
+| `children` (required) | `ReactNode` | — | The cell's label. |
+| `caption` | `ReactNode` | — | Optional Subtext under the label. |
+| `bold` | `boolean` | `false` | Render the label in Body/Base/Bold. |
 
 ### TableMedia
 Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one. `bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `media` (required) | `ReactNode` | — |  |
-| `children` (required) | `ReactNode` | — |  |
-| `caption` | `ReactNode` | — |  |
-| `bold` | `boolean` | `false` |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>` element. |
+| `media` (required) | `ReactNode` | — | The visual: Avatar, photo, Icon or DockIcon. |
+| `children` (required) | `ReactNode` | — | The cell's label. |
+| `caption` | `ReactNode` | — | Optional Subtext under the label. |
+| `bold` | `boolean` | `false` | Render the label in Body/Base/Bold. |
 
 ### TableTrend
 Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with icon-trend-down-01-line, Neutral grey with icon-minus-line.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `trend` (required) | `"up" \| "down" \| "neutral"` | — |  |
-| `children` (required) | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>` element (the Badge). |
+| `trend` (required) | `"up" \| "down" \| "neutral"` | — | Direction: up (green), down (red) or neutral (grey). |
+| `children` (required) | `ReactNode` | — | The Badge text. |
 
 ### TableBadges
 Figma Badge-Cell (1603:6158): an Items slot of Badge/Size=Medium, gap 2XSmall.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `children` (required) | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>` element. |
+| `children` (required) | `ReactNode` | — | The Badges. |
 
 ### TableTags
 Figma Tag-Cell (1603:23304): an Items slot of Tag (Medium), gap 2XSmall.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `children` (required) | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>` element. |
+| `children` (required) | `ReactNode` | — | The Tags. |
 
 ### TableActions
 Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned to the cell's end.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `children` (required) | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>` element. |
+| `children` (required) | `ReactNode` | — | The icon buttons. |
 
 ### Types
 Object shapes the props above refer to.

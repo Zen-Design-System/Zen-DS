@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -36,6 +36,8 @@ export interface BulletChartProps {
   "aria-label": string;
   /** Extra class on the chart (not the legend). */
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** A row active at first (the others' marks dim). Default none: every row reads alike until one is picked. */
   initialIndex?: number;
   /** Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced
@@ -52,7 +54,7 @@ export interface BulletChartProps {
  * pick a row (the others' marks dim), hover too; the summary reads "Revenue: $798K of $900K (1 of 3)".
  * Figma Chart/Bullet-Chart 15487:2516 (the chart body and Show Legend; the header is ChartCard's).
  */
-export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true }: BulletChartProps) {
+export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true, ref }: BulletChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null, "vertical");
@@ -70,7 +72,7 @@ export function BulletChart({ data, actualLabel, targetLabel, showLegend = true,
     <ChartLegend gap="small" align="start" items={[{ id: "actual", label: actualLabel ?? t.chartActual, color: chartPalette[0] }, { id: "target", label: targetLabel ?? t.chartTarget, color: chartPalette[1] }]} />
   ) : undefined;
   return (
-    <ChartBlock kind="bullet" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="bullet" legend={legend} position={legendPosition}>
       <div className={["zen-chart", "zen-chart--bullet", className].filter(Boolean).join(" ")} data-kind="bullet" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__bullets" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}

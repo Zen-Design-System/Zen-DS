@@ -113,6 +113,14 @@
           "default": null,
           "description": "Figma instance overrides of the components in its slots, by layer. Written by Zen Studio; app code sets the slots.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root DOM element.",
+          "deprecated": null
         }
       ]
     }

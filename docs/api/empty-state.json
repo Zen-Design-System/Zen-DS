@@ -114,6 +114,14 @@
           "default": "\"icon-user-circle-line\"",
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
+          "deprecated": null
         }
       ]
     }

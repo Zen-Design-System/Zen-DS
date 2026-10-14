@@ -49,6 +49,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root element (`<hr>`, or a `<div>` when vertical or decorative).",
+          "deprecated": null
         }
       ]
     }

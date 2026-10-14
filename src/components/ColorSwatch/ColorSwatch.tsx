@@ -1,4 +1,4 @@
-import type { CSSProperties, HTMLAttributes } from "react";
+import type { CSSProperties, HTMLAttributes, Ref } from "react";
 import { scaleKey } from "../_shared/scale";
 import "./color-swatch.css";
 
@@ -17,6 +17,8 @@ export interface ColorSwatchProps extends Omit<HTMLAttributes<HTMLSpanElement>, 
   size?: ColorSwatchSize;
   /** Names the swatch for assistive technology (e.g. "Brand colour, #1F6FEB"). Without it the swatch is decorative. */
   "aria-label"?: string;
+  /** The swatch's `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
 /**
@@ -26,11 +28,12 @@ export interface ColorSwatchProps extends Omit<HTMLAttributes<HTMLSpanElement>, 
  * the field around it: Corner-Radius/XSmall at sm (12 − 8), 2XSmall at md and lg (12 − 10, 16 − 14).
  * For picking one colour from a set use ColorSelector; this chip only shows a value.
  */
-export function ColorSwatch({ color, size: sizeProp = "md", className, style, "aria-label": ariaLabel, ...rest }: ColorSwatchProps) {
+export function ColorSwatch({ color, size: sizeProp = "md", className, style, "aria-label": ariaLabel, ref, ...rest }: ColorSwatchProps) {
   const size: ColorSwatchSizeKey = scaleKey(sizeProp, colorSwatchSizes);
   return (
     <span
       {...rest}
+      ref={ref}
       className={["zen-swatch", className].filter(Boolean).join(" ")}
       data-size={size}
       role={ariaLabel ? "img" : undefined}

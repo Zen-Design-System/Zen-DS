@@ -58,6 +58,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect">`.
 | `width` | `"fill" \| "hug" \| number` | — | Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every value below stays at least 240px wide, and at most the viewport less 16px on each side. `"fill"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar. `"hug"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole. A number: a Fixed width in px. |
 | `maxWidth` | `number` | — | Maximum width in px when `width` is set (never below 240): a longer row ends in "…". |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[alex]/Avatar": { shape: "square" }, "Item[draft]/Badge": { theme: "accent" } }`). Written by Zen Studio; app code sets the items. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element (the surface). |
 
 ### PopoverItem
 The 240px Popover/Item primitive.
@@ -79,6 +80,7 @@ Also accepts `Omit<HTMLAttributes<HTMLButtonElement>, "onSelect">`.
 | `control` | `"check" \| "checkbox"` | `"check"` | `checkbox`: multi-select row — a trailing Checkbox/Mark shows the selection instead of the Single-Selected fill + check icon. |
 | `itemRole` | `"option" \| "menuitem" \| "menuitemcheckbox" \| "menuitemradio"` | `"option"` | ARIA role of the row. `option` (default) in a listbox, with aria-selected from `selected`; `menuitem` in a Menu (no aria-selected); `menuitemcheckbox` / `menuitemradio` for a checkable menu row, with aria-checked from `selected`. |
 | `onSelect` | `() => void` | — |  |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the row's `<button>` element. |
 
 ### PopoverSearch
 | Prop | Type | Default | Description |

@@ -55,6 +55,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps`.
 | `tabularNumbers` | `boolean` | `false` | Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes does not move the text around it. |
 | `htmlFor` | `string` | — | For `as="label"`. |
 | `children` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ### Heading
 A real heading (h1–h6) in a Figma text style. The level follows the page outline; the default look follows the ladder, and textStyle sets it by the kind of content. A page title (h1, Heading/1), a section (h2, Heading/4 by default) and a card title right under the page title (h2, always Heading/Subheading): <Heading level={1}>Billing`</Heading>` <Heading level={2}>Invoices`</Heading>` <Heading level={2} textStyle="Heading/Subheading">Current plan`</Heading>`
@@ -79,6 +80,7 @@ Also accepts `Omit<HTMLAttributes<HTMLHeadingElement>, "color">, LayoutSizingPro
 | `wrap` | `boolean` | `true` | `false`: one line that never wraps (Figma text Auto width), as on Text. Default true. |
 | `tabularNumbers` | `boolean` | `false` | Figma Number: Tabular (OpenType tnum): digits of one width, as on Text. |
 | `children` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLHeadingElement>` | — | Ref to the rendered heading element (`<h1>`–`<h6>`). |
 
 ### Types
 Object shapes the props above refer to.

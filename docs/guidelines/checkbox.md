@@ -44,6 +44,7 @@ Generated from the TypeScript source; full JSON in `docs/api/checkbox.json`.
 | `name` | `string` | — |  |
 | `value` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLInputElement>` | — | The native checkbox input (the element that takes focus), e.g. to focus it or read `validity`. |
 
 ### CheckboxMarkIndicator
 Figma Checkbox/Mark on its own (16px, State=Default): the visual control for rows that own the interaction themselves, e.g. multi-select Popover items. Decorative — the row carries the state.
@@ -54,6 +55,7 @@ Figma Checkbox/Mark on its own (16px, State=Default): the visual control for row
 | `indeterminate` | `boolean` | `false` |  |
 | `disabled` | `boolean` | `false` |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>` element. |
 
 ## Keyboard
 | Keys | Action |

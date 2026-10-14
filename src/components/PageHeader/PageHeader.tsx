@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import { type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import { Heading, Text } from "../Text";
@@ -44,6 +44,8 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
   /** Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets back. */
   overrides?: NestedOverrides;
+  /** Ref to the root DOM element. */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
@@ -53,10 +55,7 @@ export interface PageHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "titl
  *   <PageHeader title="Team members" description="12 members · Design workspace"
  *     actions={<><Button level="tertiary">Export</Button><Button level="primary">Invite member</Button></>} />
  */
-export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function PageHeader(
-  { title, childTitle, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, overrides, ...rest },
-  ref,
-) {
+export function PageHeader({ title, childTitle, description, breadcrumbs, eyebrow, actions, meta, trailing, tabs, back, headingLevel = 1, className, overrides, ref, ...rest }: PageHeaderProps) {
   const nest = useNested(overrides);
   return (
     <header {...rest} ref={ref} className={["zen-page-header", className].filter(Boolean).join(" ")}>
@@ -86,4 +85,4 @@ export const PageHeader = forwardRef<HTMLElement, PageHeaderProps>(function Page
       {tabs ? <div className="zen-page-header__tabs">{tabs}</div> : null}
     </header>
   );
-});
+}

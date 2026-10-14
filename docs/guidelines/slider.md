@@ -51,6 +51,7 @@ Figma Slider/Horizontal (4010:35946): a rounded Neutral/Subtle rail with a fille
 | `aria-label` | `string` | — |  |
 | `aria-labelledby` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element (the wrapper around the range input and the limits). |
 
 ## Keyboard
 | Keys | Action |

@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import "./divider.css";
 
 export const dividerColors = ["default", "medium", "high"] as const;
@@ -13,14 +14,17 @@ export interface DividerProps {
   /** Purely visual: hidden from assistive tech (e.g. between toolbar groups that are already labelled). */
   decorative?: boolean;
   className?: string;
+  /** Forwarded to the root element (`<hr>`, or a `<div>` when vertical or decorative). */
+  ref?: Ref<HTMLElement>;
 }
 
 /**
  * Figma Divider (460:38361): a 1px INSIDE stroke line. Default (Pale) is the everyday rule; Medium (Subtle) and
  * High (Solid) add emphasis only when the design calls for it.
  */
-export function Divider({ color = "default", orientation = "horizontal", dashed = false, decorative = false, className }: DividerProps) {
+export function Divider({ color = "default", orientation = "horizontal", dashed = false, decorative = false, className, ref }: DividerProps) {
   const props = {
+    ref: ref as Ref<HTMLDivElement & HTMLHRElement> | undefined,
     className: ["zen-divider", className].filter(Boolean).join(" "),
     "data-color": color,
     "data-orientation": orientation,

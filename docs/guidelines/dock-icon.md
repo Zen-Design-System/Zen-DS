@@ -41,6 +41,7 @@ Figma Dock-Icon (308:45902): a round, fully filled icon tile (Corner-Radius/Roun
 | `background` | `"solid" \| "subtle"` | `"solid"` | Solid (default) or Subtle; Pale is always subtle, Inverse / On-Color / Surface / Emoji always solid. |
 | `label` | `string` | — | Accessible name when the icon carries meaning on its own; omit when a text label sits next to it. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
 
 ### Types
 Object shapes the props above refer to.

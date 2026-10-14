@@ -1,4 +1,5 @@
-import { useId, useState, type CSSProperties, type ReactElement } from "react";
+import { useId, type CSSProperties, type ReactElement, type Ref } from "react";
+import { useControllableState } from "../_shared/use-controllable-state";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
 import { scaleKey } from "../_shared/scale";
@@ -38,21 +39,23 @@ export interface SliderProps {
   "aria-label"?: string;
   "aria-labelledby"?: string;
   className?: string;
+  /** The root element (the wrapper around the range input and the limits). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
  * Figma Slider/Horizontal (4010:35946): a rounded Neutral/Subtle rail with a filled track inset 1px that ends at the
  * thumb (.Primitives/Slider/Slide-Dot). A native range input on top provides keyboard, pointer and screen-reader support.
  */
-export function Slider({ value, defaultValue = 50, onValueChange, onChange, min = 0, max = 100, step = 1, theme = "neutral", size: sizeProp = "md", disabled = false, icon = "icon-star-93-solid", showLimits = false, valueText, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, className }: SliderProps) {
+export function Slider({ value, defaultValue = 50, onValueChange, onChange, min = 0, max = 100, step = 1, theme = "neutral", size: sizeProp = "md", disabled = false, icon = "icon-star-93-solid", showLimits = false, valueText, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, className, ref }: SliderProps) {
   const size = scaleKey(sizeProp, sliderSizes);
-  const [internal, setInternal] = useState(defaultValue);
-  const current = Math.min(max, Math.max(min, value ?? internal));
+  const [raw, setValue] = useControllableState({ value, defaultValue, onChange: (next: number) => { onValueChange?.(next); onChange?.(next); }, name: "Slider value" });
+  const current = Math.min(max, Math.max(min, raw));
   const ratio = max > min ? (current - min) / (max - min) : 0;
   const resolvedTheme = theme === "white" && size === "small" ? "neutral" : theme;
   const limitsId = useId();
   return (
-    <div className={["zen-slider", className].filter(Boolean).join(" ")} data-tone={resolvedTheme} data-size={size} data-disabled={disabled ? "true" : undefined} style={{ "--zen-slider-ratio": ratio } as CSSProperties}>
+    <div ref={ref} className={["zen-slider", className].filter(Boolean).join(" ")} data-tone={resolvedTheme} data-size={size} data-disabled={disabled ? "true" : undefined} style={{ "--zen-slider-ratio": ratio } as CSSProperties}>
       <div className="zen-slider__control">
         <input
           className="zen-slider__input"
@@ -66,7 +69,7 @@ export function Slider({ value, defaultValue = 50, onValueChange, onChange, min 
           aria-labelledby={ariaLabelledBy}
           aria-valuetext={valueText?.(current)}
           aria-describedby={showLimits ? limitsId : undefined}
-          onChange={(event) => { const next = Number(event.target.value); if (value === undefined) setInternal(next); onValueChange?.(next); onChange?.(next); }}
+          onChange={(event) => setValue(Number(event.target.value))}
         />
         <span className="zen-slider__rail" aria-hidden="true">
           <span className="zen-slider__fill">

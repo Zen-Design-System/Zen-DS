@@ -19,6 +19,13 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Every component takes `ref` as a plain React 19 prop and puts it on its root (overlays: the panel; fields: the native
+  control, as before). `forwardRef` is gone; component names are unchanged. Tooltip and Menu wrap their trigger, which
+  keeps its own ref.
+  ToggleButton's `ref` now reaches the `role="switch"` element people focus (it used to land on the hidden input).
+- Tabs and Segmented no longer call `onValueChange` / `onChange` when the selected item is clicked again (value controls
+  now share one controlled/uncontrolled hook and report real changes only). Switching a control between controlled and
+  uncontrolled warns in development.
 - Accordion Medium: Title → Contents is 12 (Gap/Small, as Large), was 8, in Figma and code, so a list of fields (rows
   8 apart) reads as the item's content; Box keeps its outer padding (inset 16 − 12). Accordion Divider: the rule under
   each item is Border/Neutral/Pale, as in Figma (code drew Subtle). Spacing rule: rows of one group live in their own
@@ -211,6 +218,13 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Security: RichTextField sanitises the HTML it receives as `value` / `defaultValue` (scripts, event handlers and
+  `javascript:` URLs are dropped); Link adds `rel="noopener noreferrer"` to any `target="_blank"`, not only `external`.
+- A press inside a popup opened from another popup (a Select or Menu inside a Popover, a DatePicker in a Chip filter) no
+  longer closes the outer one.
+- Open modals (Dialog, ModalForm, modal SidePanel, BottomSheet) make the rest of the page `inert`, so screen readers and
+  pointers can't reach the background; the scroll lock keeps the scrollbar's width (no layout jump) and works with
+  stacked modals; focus returns to the opener only if it is still on the page.
 - Zen plugin, Import from Studio: an imported page now takes every property it sets (variants, booleans, icons, sizes:
   Avatars at their size, Dashboard Header rows, button sizes, badge colours), swaps its icons, and importing it again
   updates the same layers. Before, the plugin set none of them in Figma. Import the page again into the same frame to
@@ -232,6 +246,9 @@ removed (four unused colour ramps were, see Removed).
   App Shell and Chart lost their second advice); each advice is its own line now, and the page keeps the full text.
 
 ### Added
+- `docs/qa/component-review-checklist.md`: the review checklist (Figma, a11y, security, React, code, tests).
+- `tests/smoke/conformance.test.tsx`: every public component renders under StrictMode, forwards `ref`, keeps
+  `className` and leaves nothing behind after unmount.
 - Popover `width` (2026-10-14, user): unset keeps Figma's Fixed 240; `"fill"` takes the anchor's width (suggestions
   under a long search bar), `"hug"` grows to the longest row and is never narrower than the anchor (long domains, file
   paths), a number is a Fixed width; `maxWidth` caps it. All keep Figma's 240 min width and stay inside the window.

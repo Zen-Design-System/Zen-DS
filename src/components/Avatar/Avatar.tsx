@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode, type Ref } from "react";
 import { scaleKey } from "../_shared/scale";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels } from "../_shared/zen-context";
@@ -44,10 +44,12 @@ export interface AvatarProps {
   alt?: string;
   children?: ReactNode;
   className?: string;
+  /** Forwarded to the root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
 /** Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on the theme fill, optional status dot. */
-export function Avatar({ size: sizeProp = "md", theme = "neutral", background = "solid", shape = "circle", status = false, focus = false, src, alt = "", children, className }: AvatarProps) {
+export function Avatar({ size: sizeProp = "md", theme = "neutral", background = "solid", shape = "circle", status = false, focus = false, src, alt = "", children, className, ref }: AvatarProps) {
   const t = useZenLabels();
   const size = scaleKey(sizeProp, avatarSizes);
   // Initials: up to two characters; XSmall and 2XSmall show a single one.
@@ -63,7 +65,7 @@ export function Avatar({ size: sizeProp = "md", theme = "neutral", background = 
   const name = alt.trim();
   const named = !src && Boolean(name);
   return (
-    <span className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}
+    <span ref={ref} className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}
       role={named ? "img" : undefined} aria-label={named ? [name, status ? t.online : null].filter(Boolean).join(", ") : undefined}>
       <span className="zen-avatar__inner">
         {src ? <img src={src} alt={alt} /> : <span className={`zen-avatar__initials ${typographyStyles[initialsStyle[size]]}`} aria-hidden={named || !name ? true : undefined}>{initials}</span>}
@@ -86,7 +88,7 @@ export interface AvatarStackProps extends Omit<AvatarProps, "children" | "alt" |
 const STACK_ROOT_PROP = /^(?:data-|aria-)|^(?:id|className|style|title)$/;
 
 /** Figma Avatar/Stack: 1–5 avatars, first on top, no overflow chip (`showMore` is an opt-in extension). */
-export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp = "md", overrides, ...rest }: AvatarStackProps) {
+export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp = "md", overrides, ref, ...rest }: AvatarStackProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, avatarSizes);
   const visible = items.slice(0, max);
@@ -94,5 +96,5 @@ export function AvatarStack({ items, max = 5, showMore = false, size: sizeProp =
   const root: Record<string, unknown> = {};
   const props: Record<string, unknown> = {};
   for (const [name, value] of Object.entries(rest)) (STACK_ROOT_PROP.test(name) ? root : props)[name] = value;
-  return <span {...root} className={["zen-avatar-stack", root.className].filter(Boolean).join(" ")} data-size={size}>{visible.map((item, index) => nest("Avatar", <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />, index))}{showMore && remaining > 0 ? nest("More", <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar>) : null}</span>;
+  return <span {...root} ref={ref} className={["zen-avatar-stack", root.className].filter(Boolean).join(" ")} data-size={size}>{visible.map((item, index) => nest("Avatar", <Avatar key={`${item.alt ?? "avatar"}-${index}`} {...props} {...item} size={size} className="zen-avatar-stack__item" />, index))}{showMore && remaining > 0 ? nest("More", <Avatar {...props} size={size} theme="neutral" background="subtle" alt={`+${remaining}`} className="zen-avatar-stack__item">+{remaining}</Avatar>) : null}</span>;
 }

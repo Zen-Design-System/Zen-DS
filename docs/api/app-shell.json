@@ -185,6 +185,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: \"secondary\" }, Collapse: { appearance: \"main\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the shell's root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -258,6 +266,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / appearance.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the icon button element, so the action can be a `<Menu trigger>`.",
+          "deprecated": null
         }
       ]
     },
@@ -298,6 +314,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: \"square\" } }`). Written by Zen Studio;\n app code sets src / theme.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the account button element, so it can be a `<Menu trigger>`.",
           "deprecated": null
         },
         {

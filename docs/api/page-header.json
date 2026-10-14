@@ -105,6 +105,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets back.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root DOM element.",
+          "deprecated": null
         }
       ]
     }

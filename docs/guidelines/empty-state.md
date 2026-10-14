@@ -53,6 +53,7 @@ Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `icon` | `IconName \| ReactElement` | `"icon-user-circle-line"` |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | The root `<span>` element. |
 
 ### Types
 Object shapes the props above refer to.

@@ -83,6 +83,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -162,6 +170,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the stack's root `<div>` (portalled into the toast layer unless `inline`).",
+          "deprecated": null
         }
       ]
     },
@@ -208,6 +224,6 @@
     }
   ],
   "types": {
-    "ToastItem": "interface ToastItem extends Omit<ToastProps, \"onClose\" | \"className\"> { id: string | number; duration?: number | null; }"
+    "ToastItem": "interface ToastItem extends Omit<ToastProps, \"onClose\" | \"className\" | \"ref\"> { id: string | number; duration?: number | null; }"
   }
 }

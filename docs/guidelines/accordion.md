@@ -32,6 +32,7 @@ Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box 
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `.zen-accordion` element. |
 | `title` (required) | `ReactNode` | — |  |
 | `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | `3` | Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}>`<button>``), default 3. Take it from where the accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2 section, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never larger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section; XLarge (Heading/3) only directly under the page h1. |
 | `children` | `ReactNode` | — | Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base). |

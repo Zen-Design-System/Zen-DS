@@ -38,6 +38,7 @@ Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; B
 | `aria-label` | `string` | — | Accessible name when there is no visible label. |
 | `scale` | `"completion" \| "quota"` | `"completion"` | Status theme only: `quota` for usage against a limit (high = bad); default `completion`. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 
 ### ProgressCircle
 Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border on Neutral/Subtle) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px icon-check-solid.
@@ -49,6 +50,7 @@ Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px rin
 | `label` | `ReactNode \| true` | — |  |
 | `aria-label` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 
 ## ✅ Do
 - Label every progress (visible label or aria-label).

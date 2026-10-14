@@ -233,6 +233,40 @@
 - Open (BACKLOG): BarList leader at 78% in Figma vs full track in code (designer); chart sets missing from the
   component-properties contract (inspector rows); Figma descriptions of the seven sets are stale (widget themes P1).
 
+## Component best-practice refactor (branch `zen/refactor/component-best-practices`, worktree `../Zen-DS-refactor`)
+
+User asked for a review checklist, then "refactor all components to match rules" and to apply practices from high-quality
+open-source libraries. Tier L (every component), done in a worktree so other sessions on `main` were not disturbed.
+
+- **Checklist:** `docs/qa/component-review-checklist.md` (Figma/tokens, a11y, security, React 19, code, tests; [gate] marks
+  what a gate already checks).
+- **Scan:** exact JSX parse (Babel) of all 65 folders: buttons all typed, no literal labels/text, no `any`, no positive
+  tabIndex. Index keys and click-on-div hits were all deliberate (positional lists; pointer shortcuts with keyboard paths).
+- **Research:** Radix, React Aria, Base UI, Ariakit, Headless UI, Fluent v9, Mantine, Ark, shadcn compared with our code;
+  the top gaps drove the work below.
+- **Security (fixed):** RichTextField assigned `value` to `innerHTML` (stored `<img onerror>` ran) → `_shared/sanitize-html.ts`
+  allowlist; Link `target="_blank"` without `external` had no `rel`. Tests: `tests/interaction/security.test.tsx`.
+- **Shared helpers (`_shared`):** useControllableState, useStableCallback, mergeRefs/useMergedRefs, composeEventHandlers,
+  useIsomorphicLayoutEffect (8 copies removed), isDev, layers.ts (nested dismissable layers; order taken at render so a
+  parent and child opening in one commit still nest; StrictMode-safe), modal-isolation.ts (hide-others `inert` from the
+  modal's portal root up to the frame/body, ref-counted; scroll lock with scrollbar compensation, ref-counted).
+  `useModal(..., { isolate })` is on for portalled Dialog/ModalForm/SidePanel/BottomSheet, off for inline previews and
+  the Chat picker. Tests: `tests/interaction/shared-hooks.test.tsx`.
+- **Migrations (14 agents, disjoint folders):** controlled state → hook in ~30 components (left hand-rolled where callbacks
+  fire for unchanged values: AppShell nav/collapse, Tooltip/Menu open, NpsScale, SelectField value, Chip popover);
+  every forwardRef → ref prop; refs on ~110 components/parts; refs written during render removed; DatePicker's
+  "on open" effects → useEffectEvent (eslint-disables gone); Tabs focuses the next tab by id.
+- **Conformance:** `tests/smoke/conformance.test.tsx` (StrictMode, ref reaches DOM, className kept, clean unmount);
+  shares `tests/smoke/api-components.ts` with the smoke test. New fixtures: PopoverSearch, PopoverManualAddNew, ModalActions.
+- **Found while testing:** Popover label at 3.75:1 → axe baseline + BACKLOG designer question.
+- **Not done (needs approval, new API):** `render` prop / asChild for Button-as-router-link, shared roving-focus hook with
+  RTL, Tabs context so TabPanel wires itself, usePress for non-native controls, rich-text sanitiser as a prop.
+- Checks: tsc clean, guidelines build/check, usage selftest, `vitest run` 842 passed, 11 skipped, twice in a row.
+  `npm run qa` not run (user rule: gates only on approval).
+- Review (one reviewer agent): fixed open toasts going inert under a modal (`.zen-toast-layer` kept), isolation with an
+  app's own ZenPortalProvider container (useModal gets the real container), Tabs focus scoped to its tablist, layer
+  order kept through StrictMode's replay. Kept on purpose: Tabs/Segmented no re-fire for the same value (CHANGELOG).
+
 ## Popover width variant (tier S, user request)
 
 - User: Popover is a fixed width; wants a variant that scales for long search bars with suggestions and domain pickers

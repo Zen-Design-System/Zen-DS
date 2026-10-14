@@ -33,6 +33,14 @@
           "default": null,
           "description": "Accessible name for a flag that stands alone. Omit it when the country name sits next to the flag (decorative).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<SVGSVGElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<svg>`.",
+          "deprecated": null
         }
       ]
     }

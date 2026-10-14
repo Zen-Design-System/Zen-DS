@@ -50,6 +50,7 @@ Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Su
 | `onFinish` | `() => void` | — | Finish the take (Recording, Paused). |
 | `onDiscard` | `() => void` | — | Throw the take away (Recording, Paused). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the status badge it draws, by layer (`{ Status: { theme: "orange" } }`). Written by Zen Studio; app code sets state. |
 
 ### AiVoiceConversation
@@ -73,6 +74,7 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 | `onEnd` | `() => void` | — | End the conversation (off while Ready). |
 | `note` | `ReactNode` | — | The note under the actions (Caption/Regular Neutral/Light). Default: what the microphone is doing. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the status badge and transcript bubble it draws, by layer (`{ Status: { theme: "green" } }`). Written by Zen Studio; app code sets state / transcript. |
 
 ## ✅ Do

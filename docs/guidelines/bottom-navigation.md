@@ -49,6 +49,7 @@ Figma Bottom-Navigation (page ❖ Bottom-Navigations, 7042:38507): 3–5 root de
 | `aria-label` | `string` | — | Accessible name of the navigation landmark. Default: the locale's “Main”. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icons it draws, by layer (`{ "Item[home]/Icon": { name: "icon-home-02-solid" }, "Action/Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the items and action. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root `<nav>`. |
 
 ### Types
 Object shapes the props above refer to.

@@ -1,4 +1,4 @@
-import { forwardRef, type AnchorHTMLAttributes, type ComponentPropsWithRef, type ElementType, type ReactElement, type ReactNode } from "react";
+import { type AnchorHTMLAttributes, type ComponentPropsWithRef, type ElementType, type ReactElement, type ReactNode, type Ref } from "react";
 import { Icon } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { useZenLabels } from "../_shared/zen-context";
@@ -44,10 +44,12 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
   as?: ElementType;
   /** The link text. Name the destination (“Billing settings”), never “click here”. The font comes from the surrounding Text. */
   children?: ReactNode;
+  /** Ref to the rendered `<a>` element (or to the `as` component's element). */
+  ref?: Ref<HTMLAnchorElement>;
 }
 
 /** `<Link as={C}>`: Link's own props plus every prop the rendered component accepts (a router link's `to`, `replace`…). */
-export type PolymorphicLinkProps<C extends ElementType = "a"> = Omit<LinkProps, "as"> & { as?: C } & Omit<ComponentPropsWithRef<C>, keyof LinkProps | "as">;
+export type PolymorphicLinkProps<C extends ElementType = "a"> = Omit<LinkProps, "as" | "ref"> & { as?: C } & Omit<ComponentPropsWithRef<C>, Exclude<keyof LinkProps, "ref"> | "as">;
 
 /** Link's call signature: `as` decides which extra props (and which ref type) are accepted. */
 export type LinkComponent = {
@@ -80,10 +82,7 @@ function withExternalGlyph(children: ReactNode) {
  *   <Link href="https://status.zen.design" external>Status page</Link>
  *   <Link as={RouterLink} to="/projects">All projects</Link>
  */
-export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
-  { as: Element = "a", href, external = false, tone = "hyperlink", underline = tone === "inherit" ? "always" : "hover", visited = false, target, rel, className, children, ...rest },
-  ref,
-) {
+export const Link = function Link({ as: Element = "a", href, external = false, tone = "hyperlink", underline = tone === "inherit" ? "always" : "hover", visited = false, target, rel, className, children, ref, ...rest }: LinkProps) {
   const t = useZenLabels();
   return (
     <Element
@@ -91,7 +90,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
       ref={ref}
       href={href}
       target={external ? "_blank" : target}
-      rel={external ? mergeRel(rel, ["noopener", "noreferrer"]) : rel}
+      rel={external || target === "_blank" ? mergeRel(rel, ["noopener", "noreferrer"]) : rel}
       className={["zen-link", className].filter(Boolean).join(" ")}
       data-tone={tone}
       data-underline={underline}
@@ -107,4 +106,4 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
     </Element>
   );
   // Typed as LinkComponent so `as` brings its own props (`as={RouterLink} to="/x"`).
-}) as unknown as LinkComponent;
+} as unknown as LinkComponent;

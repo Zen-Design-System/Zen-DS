@@ -51,6 +51,7 @@ Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives
 | `extended` | `boolean` | `true` | Figma DragDrop-Field Extended: Yes (default) stacks icon, text and caption; No is a single 48px row (icon + text). |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: "secondary" }, "File-Item[f1]/Remove": { level: "secondary" } }`). Written by Zen Studio; app code sets files / buttonLabel. |
+| `ref` | `Ref<HTMLDivElement>` | — | The root `<div>` element. |
 
 ### UploaderFileItem
 Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Corner-Radius/Large. Name Body/Base/Bold · details Caption/Regular Neutral/Light (gap XSmall, 4px dot) · 8px Neutral progress while uploading. Alert switches to Negative/Subtle with the error as help text. Actions are 16px icons 12px apart (24px hit areas). When the item is removed while focus is in it (or right after its Remove button), focus moves to the next item's Remove button, else the previous item's, else the field's upload button, so keyboard users stay in the list.
@@ -63,6 +64,7 @@ Figma Primitives/Uploader/File-Item (1581:22739): padding Medium, gap Small, Cor
 | `onRemove` | `(file: UploaderFile) => void` | — |  |
 | `onReplace` | `(file: UploaderFile) => void` | — | Replaceable: swap the file. |
 | `onRetry` | `(file: UploaderFile) => void` | — | Alert: try again. |
+| `ref` | `Ref<HTMLLIElement>` | — | The root `<li>` element. |
 
 ### Types
 Object shapes the props above refer to.

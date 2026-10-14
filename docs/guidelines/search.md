@@ -58,6 +58,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `shortcut` | `string` | — | Keyboard shortcut key shown as `⌘K` in the trailing slot (Figma Side-Bar Small-Density search); pressing ⌘/Ctrl + key focuses the field. Hidden while the field has a value (the clear button takes the slot). |
 | `onClear` | `() => void` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: "accent-base" }, Filter: { label: "Status" } }`). Written by Zen Studio; app code sets leading / trailing / theme. |
+| `ref` | `Ref<HTMLInputElement>` | — | The native `<input type="search">`. |
 
 ### Types
 Object shapes the props above refer to.

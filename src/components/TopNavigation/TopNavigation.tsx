@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode, type Ref, type RefObject } from "react";
 import type { IconName } from "../Icon";
 import { usePresence } from "../Motion";
 import { useIconTooltip } from "../Tooltip";
@@ -10,6 +10,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./top-navigation.css";
 import "../Icon/core";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 /**
  * Figma Top-Navigation/Mobile (12014:45167) Type. Each type pairs a background with a Nav-Action style:
@@ -136,6 +137,8 @@ export interface TopNavigationProps {
   sticky?: boolean;
   "aria-label"?: string;
   className?: string;
+  /** Ref to the root `<header>`. */
+  ref?: Ref<HTMLElement>;
 }
 
 const isAction = (value: unknown): value is TopNavigationAction => typeof value === "object" && value !== null && "icon" in value && "label" in value;
@@ -165,13 +168,21 @@ function trailingItems(lead: TopNavigationAction[], trailing: TopNavigationActio
 }
 
 /** Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle with a 24px icon. */
-export function TopNavigationActionButton({ action, variant, className, state }: { action: TopNavigationAction; variant: string; className?: string; state?: "open" | "closing" }) {
+export function TopNavigationActionButton({ action, variant, className, state, ref }: {
+  action: TopNavigationAction;
+  variant: string;
+  className?: string;
+  state?: "open" | "closing";
+  /** Ref to the action's `<button>`. */
+  ref?: Ref<HTMLButtonElement>;
+}) {
   // Icon-only: the label shows as a tooltip after 1s hover (Zen rule); below the bar so it never covers the status bar.
   const tip = useIconTooltip(state === "closing" ? false : action.label, { placement: "bottom" });
   // Figma Nav-Action/Liquid-Glass (12015:46174): its Container has Liquid-Glass/Normal's GLASS effect.
   const glass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
+  const buttonRef = useMergedRefs<HTMLButtonElement>(ref, glass);
   return (
-    <button ref={glass} type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
+    <button ref={buttonRef} type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
       {renderIcon(action.icon)}
       {action.dot ? <NotificationDot className="zen-top-nav__dot" /> : null}
       {tip.tooltip}
@@ -270,7 +281,7 @@ function useScrollFold(scrollRef: TopNavigationProps["scrollRef"], linked: boole
   return state;
 }
 
-export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className }: TopNavigationProps) {
+export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref }: TopNavigationProps) {
   const t = useZenLabels();
   const titleId = useId();
   const variant = actionStyleFor(type);
@@ -278,6 +289,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const groupGlass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   const identity = Boolean(subtitle || titleLeading);
   const rootRef = useRef<HTMLElement>(null);
+  const headerRef = useMergedRefs(ref, rootRef);
   // The fold is kept as state (a callback ref), so a fold that unmounts and mounts again (root → child → root) is
   // measured again and the bar keeps folding.
   const [foldNode, setFoldNode] = useState<HTMLDivElement | null>(null);
@@ -308,7 +320,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const search = usePresence(foldsSearch && (linked ? scroll.folded : collapsed), 120);
   const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick } : null;
   return (
-    <header ref={rootRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={ariaLabel}>
+    <header ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={ariaLabel}>
       {progressive ? <ProgressiveBlur className="zen-top-nav__progressive" strong="top" /> : null}
       <div ref={barRef} className="zen-top-nav__bar">
         <div className="zen-top-nav__leading">

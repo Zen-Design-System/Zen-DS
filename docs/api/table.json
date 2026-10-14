@@ -180,11 +180,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The cell's label.",
           "deprecated": null
         },
         {
@@ -192,7 +200,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Optional Subtext under the label.",
           "deprecated": null
         },
         {
@@ -200,7 +208,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Render the label in Body/Base/Bold.",
           "deprecated": null
         }
       ]
@@ -213,11 +221,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "media",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The visual: Avatar, photo, Icon or DockIcon.",
           "deprecated": null
         },
         {
@@ -225,7 +241,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The cell's label.",
           "deprecated": null
         },
         {
@@ -233,7 +249,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Optional Subtext under the label.",
           "deprecated": null
         },
         {
@@ -241,7 +257,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Render the label in Body/Base/Bold.",
           "deprecated": null
         }
       ]
@@ -254,11 +270,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element (the Badge).",
+          "deprecated": null
+        },
+        {
           "name": "trend",
           "type": "\"up\" | \"down\" | \"neutral\"",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "Direction: up (green), down (red) or neutral (grey).",
           "deprecated": null
         },
         {
@@ -266,7 +290,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The Badge text.",
           "deprecated": null
         }
       ]
@@ -279,11 +303,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The Badges.",
           "deprecated": null
         }
       ]
@@ -296,11 +328,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The Tags.",
           "deprecated": null
         }
       ]
@@ -313,11 +353,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The icon buttons.",
           "deprecated": null
         }
       ]

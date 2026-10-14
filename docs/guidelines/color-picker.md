@@ -49,6 +49,7 @@ Figma Color-Picker (15708:5927): pick any colour. The Saturation area (saturatio
 | `aria-label` | `string` | — |  |
 | `aria-labelledby` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The panel's root `<div>`. |
 
 ### ColorField
 Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field anatomy (Label → Field → Help-Text) with a ColorSwatch before the hex (after it with `layout="inline"`, Figma Input/Inline-Field Type=Color); the swatch size follows the field's leading icon (sm 16 in Small, md 20 in Medium and Large, lg 24 in XLarge). A click in the field or ArrowDown opens ColorPicker under it (State=Focused while open); Escape closes it and leaves focus in the field. Typing edits the hex: six digits apply at once, a shorter one on Enter or blur, anything else goes back to the colour. The picker is the same popover on every device (Figma has no mobile pattern for it yet).
@@ -77,6 +78,7 @@ Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field an
 | `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
+| `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
 
 ### ColorSwatch
 Figma `.Primitives/Input/Color-Swatch` (15659:110090): the colour chip of a colour value, inside ColorField, an inline colour field and ColorPicker. One shape: the value is the fill and an inside 1px Border/Neutral/Subtle keeps white or canvas-coloured values visible. Size: Element-Size/Popular Small 16 · Base 20 · Medium 24. Radius is concentric with the field around it: Corner-Radius/XSmall at sm (12 − 8), 2XSmall at md and lg (12 − 10, 16 − 14). For picking one colour from a set use ColorSelector; this chip only shows a value.
@@ -88,6 +90,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "color" | "children">`.
 | `color` (required) | `string` | — | The colour it shows: any CSS colour, usually the value of a colour field (`"#1F6FEB"`) or a token (`var(--zen-…)`). |
 | `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Follows the leading icon of the field it sits in: sm 16 (Small fields), md 20 (Medium and Large fields, default), lg 24 (XLarge fields). Short or Figma spelling. |
 | `aria-label` | `string` | — | Names the swatch for assistive technology (e.g. "Brand colour, #1F6FEB"). Without it the swatch is decorative. |
+| `ref` | `Ref<HTMLSpanElement>` | — | The swatch's `<span>`. |
 
 ### Types
 Object shapes the props above refer to.

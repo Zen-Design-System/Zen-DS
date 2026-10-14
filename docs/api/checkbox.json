@@ -129,6 +129,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native checkbox input (the element that takes focus), e.g. to focus it or read `validity`.",
+          "deprecated": null
         }
       ]
     },
@@ -169,6 +177,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
           "deprecated": null
         }
       ]

@@ -35,6 +35,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
+          "deprecated": null
+        },
+        {
           "name": "lines",
           "type": "number",
           "required": false,
@@ -76,6 +84,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
+          "deprecated": null
+        },
+        {
           "name": "size",
           "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
           "required": false,
@@ -114,6 +130,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         },
         {

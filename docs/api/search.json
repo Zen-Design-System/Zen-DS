@@ -201,6 +201,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: \"accent-base\" }, Filter: { label: \"Status\" } }`). Written by Zen Studio;\n app code sets leading / trailing / theme.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input type=\"search\">`.",
+          "deprecated": null
         }
       ]
     }

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { forwardRef, type AnchorHTMLAttributes } from "react";
+import { type AnchorHTMLAttributes, type Ref } from "react";
 import { Text } from "../Text";
 import { Link, linkTones, linkUnderlines } from "./Link";
 
@@ -48,9 +48,9 @@ export const InheritTone: Story = {
   render: () => <Text textStyle="Body/Small/Regular" tone="light">By continuing you agree to the <Link href="#terms" tone="inherit">Terms of service</Link> and the <Link href="#privacy" tone="inherit">Privacy policy</Link>.</Text>,
 };
 
-const RouterLink = forwardRef<HTMLAnchorElement, Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { to: string }>(function RouterLink({ to, ...rest }, ref) {
+function RouterLink({ to, ref, ...rest }: Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { to: string; ref?: Ref<HTMLAnchorElement> }) {
   return <a {...rest} ref={ref} href={`#${to}`} />;
-});
+}
 
 /** `as` renders a router's link and forwards its own props (`to`). */
 export const AsRouterLink: Story = {

@@ -145,6 +145,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"danger\" }, Icon: { name: \"icon-trash-line\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the dialog panel `<div>` (role=dialog); set while the dialog is open.",
+          "deprecated": null
         }
       ]
     },
@@ -346,6 +354,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the modal panel `<div>` (role=dialog); set while the modal is open.",
+          "deprecated": null
         }
       ]
     },
@@ -418,6 +434,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element (the actions row).",
           "deprecated": null
         }
       ]

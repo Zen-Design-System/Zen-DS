@@ -34,6 +34,7 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `role="tablist"` element. |
 | `items` | `TabOption[]` | — | The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value="general" label="General" />`. |
 | `children` | `ReactNode` | — | The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the selection, the roving focus and the ids, so give each one `value`, `label` and optionally `icon`, `badge`, `disabled`, `aria-label`. |
 | `value` | `string` | — |  |
@@ -76,6 +77,7 @@ Panel paired with a tab: `<TabPanel idPrefix="settings" id="general" hidden={tab
 | `children` (required) | `ReactNode` | — |  |
 | `hidden` | `boolean` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the panel's root `<div>`. |
 
 ### Types
 Object shapes the props above refer to.

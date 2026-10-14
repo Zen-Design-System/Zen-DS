@@ -66,6 +66,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `aria-labelledby` | `string` | — | id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ "Actions/Submit": { level: "accent" }, "Header[0]/Previous": { appearance: "flat" } }`). Written by Zen Studio; app code sets the actions. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the calendar surface (the root `<div>`, a popover or the inline group). |
 
 ### DateField
 | Prop | Type | Default | Description |
@@ -88,6 +89,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
+| `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
 | `datePicker` | `boolean` | `true` |  |
 | `datePickerActions` | `boolean` | `false` | The calendar's Cancel + Submit (Figma Actions): a picked day is a draft until Submit writes it to the field; Cancel and Escape keep the date the field had. |
 | `onDateChange` | `(date: Date \| null) => void` | — | The day in the field: called when one is picked in the calendar and when a complete MM/DD/YYYY is typed; null when the field is emptied or a typed date stops being a real day. |
@@ -125,6 +127,7 @@ Also accepts `OverlayOpenProps`.
 | `cancelLabel` | `ReactNode` | — | Cancel button label (single). Default: the locale's "Cancel". |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: "accent" } }`). Written by Zen Studio; app code sets applyLabel. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open. |
 
 ### DatePickerItem
 The day primitive from `.Primitives/Date-Picker/Item` (455:33517): Medium 32px on Corner-Radius/Action/Small, Small 24px on Corner-Radius/Action/XSmall. The button paints the In-Range strip, its label span the day. State=Today carries `aria-current="date"` (the calendar sets it on today's day in every state, selected included).
@@ -151,6 +154,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `back` | `boolean` | `true` | Figma `Back` / `Next`. A hidden button keeps its 32px slot so the label stays centred (desktop). |
 | `next` | `boolean` | `true` |  |
 | `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together at the end; a hidden button leaves no slot. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
 ### DatePickerAction
 `.Primitives/Date-Picker/Action` (460:38871): Button/Main Small Tertiary "Cancel" + Primary "Submit", gap Spacing/Gap/XSmall.
@@ -164,6 +168,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `applyLabel` | `ReactNode` | — | Text of the Primary button. Default: the locale's "Submit". |
 | `cancelDisabled` | `boolean` | — | Cancel in its Button/Main Disabled state, e.g. while there is nothing to cancel. |
 | `applyDisabled` | `boolean` | — | Submit in its Button/Main Disabled state, e.g. until a range has its end date. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root `<footer>` element. |
 
 ### DatePickerMonthYear
 `.Primitives/Date-Picker/Calendar` Type=Select-Month-Year: the focused month/year header, a month wheel and a year wheel (Heading/4, 5 visible rows), then Cancel / Submit.
@@ -173,6 +178,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `month` (required) | `Date` | — |  |
 | `onSubmit` | `(month: Date) => void` | — |  |
 | `onCancel` | `() => void` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the month/year wheels `<div>` (the Cancel / Submit row follows it as a sibling). |
 
 ### DatePickerTimePicker
 Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small times with an AM/PM picker and Checkbox/Text "All day", Spacing/Gap/Medium apart (Gap/XSmall between a range side's field and its checkbox).
@@ -183,6 +189,7 @@ Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small 
 | `value` (required) | `DatePickerTime` | — |  |
 | `onValueChange` (required) | `(time: DatePickerTime) => void` | — |  |
 | `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
 ### Types
 Object shapes the props above refer to.

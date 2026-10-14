@@ -44,6 +44,7 @@ Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
 | `rightIcon` | `IconName \| ReactNode` | — | **Deprecated:** Use endIcon (same values).  |
 | `children` (required) | `ReactNode` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the icon props. |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the rendered `<button>` element. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ### IconButton
@@ -61,6 +62,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `state` | `"default" \| "hover" \| "pressed" \| "focused" \| "disabled"` | — |  |
 | `tooltip` | `ReactNode \| false` | — | Zen rule: an icon-only button shows its name as a tooltip after 1s of hover (at once on keyboard focus). Defaults to `aria-label`; pass text for a longer hint, or `false` only when a visible label already sits beside it. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon the button draws, by layer (`{ "Leading-Icon": { name: "icon-plus-line" } }`). Written by Zen Studio; app code sets the icon props. |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the rendered `<button>` element. |
 | `type` | _HTML attribute_ | `"button"` |  |
 
 ## Keyboard

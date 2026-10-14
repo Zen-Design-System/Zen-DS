@@ -46,6 +46,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 | `summary` | `ReactNode` | — | Context for the actions: a total, a selection count or a status line. Above the buttons when vertical, at the start when horizontal. |
 | `children` | `ReactNode` | — | Custom actions (Buttons, in visual order: Primary first when vertical, last when horizontal). With primaryAction / secondaryAction they sit on the side away from the Primary. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: "danger" } }`). Written by Zen Studio; app code sets primaryAction / secondaryAction. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the bar's root element. |
 
 ### Types
 Object shapes the props above refer to.

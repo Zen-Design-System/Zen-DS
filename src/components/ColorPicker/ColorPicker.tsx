@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type Ref, type RefObject } from "react";
 import { ColorSelector, type ColorOption } from "../ColorSelector";
 import { InputField, SelectField } from "../Input";
 import { Slider } from "../Slider";
 import { useAnchoredPosition } from "../Popover/useAnchoredPosition";
 import { useExclusivePopover } from "../Popover/useExclusivePopover";
+import { useMergedRefs } from "../_shared/merge-refs";
+import { useControllableState } from "../_shared/use-controllable-state";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { colorFormats, formatChannels, hexToHsb, hexToRgb, hsbToHex, normalizeHex, parseChannel, type ColorFormat, type Hsb } from "./color";
@@ -35,6 +37,8 @@ export interface ColorPickerProps {
   "aria-label"?: string;
   "aria-labelledby"?: string;
   className?: string;
+  /** The panel's root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 const FORMAT_LABELS: Record<ColorFormat, string> = { hex: "Hex", rgb: "RGB", hsl: "HSL", hsb: "HSB" };
@@ -100,10 +104,15 @@ export function ColorPicker({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
+  ref,
 }: ColorPickerProps) {
   const t = useZenLabels();
-  const [internalHex, setInternalHex] = useState(() => normalizeHex(defaultValue) ?? "#000000");
-  const hex = (value !== undefined ? normalizeHex(value) : null) ?? internalHex;
+  const [hex, setHex] = useControllableState<string>({
+    value: value === undefined ? undefined : normalizeHex(value) ?? "#000000",
+    defaultValue: () => normalizeHex(defaultValue) ?? "#000000",
+    onChange: onValueChange,
+    name: "ColorPicker value",
+  });
   // HSB is the picker's own state: it keeps the hue of a grey and the saturation of black while you drag.
   const [hsb, setHsb] = useState<Hsb>(() => hexToHsb(hex) ?? { h: 0, s: 0, b: 0 });
   useEffect(() => {
@@ -113,16 +122,13 @@ export function ColorPicker({
   }, [hex]); // eslint-disable-line react-hooks/exhaustive-deps -- only a value set from outside resyncs
   const commit = (next: Hsb) => {
     setHsb(next);
-    const nextHex = hsbToHex(next);
-    if (value === undefined) setInternalHex(nextHex);
-    if (nextHex !== hex) onValueChange?.(nextHex);
+    setHex(hsbToHex(next));
   };
-  const [internalFormat, setInternalFormat] = useState<ColorFormat>(defaultFormat);
-  const format = formatProp ?? internalFormat;
-  const setFormat = (next: ColorFormat) => { setInternalFormat(next); onFormatChange?.(next); };
+  const [format, setFormat] = useControllableState<ColorFormat>({ value: formatProp, defaultValue: defaultFormat, onChange: onFormatChange, name: "ColorPicker format" });
 
   // Popover behaviour, as DatePicker: anchored under the field, one popover at a time, light dismiss, Escape.
   const rootRef = useRef<HTMLDivElement>(null);
+  const mergedRef = useMergedRefs(rootRef, ref);
   const placement = useAnchoredPosition(rootRef, open, { anchor: () => anchorRef?.current?.querySelector<HTMLElement>(".zen-input__control") ?? anchorRef?.current ?? null });
   const closeRef = useRef<() => void>(() => undefined);
   closeRef.current = () => { onClose?.(); onOpenChange?.(false); };
@@ -175,7 +181,7 @@ export function ColorPicker({
   if (!open) return null;
   return (
     <div
-      ref={rootRef}
+      ref={mergedRef}
       className={["zen-color-picker", className].filter(Boolean).join(" ")}
       role={inline ? "group" : "dialog"}
       aria-label={ariaLabelledBy ? undefined : ariaLabel ?? t.chooseColour}

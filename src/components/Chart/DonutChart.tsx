@@ -1,4 +1,4 @@
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { useId, type CSSProperties, type ReactNode, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -28,6 +28,8 @@ export interface DonutChartProps {
    *  start column, under the total. */
   legendPosition?: ChartLegendPosition;
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
 }
@@ -67,7 +69,7 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
  * to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365
  * (Legend=Bottom · Start).
  */
-export function DonutChart({ data, format = defaultFormat, size = 200, "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true }: DonutChartProps) {
+export function DonutChart({ data, format = defaultFormat, size = 200, "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, ref }: DonutChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const sweepId = `${useId().replace(/:/g, "")}-sweep`;
@@ -135,7 +137,7 @@ export function DonutChart({ data, format = defaultFormat, size = 200, "aria-lab
   );
   if (totalPosition === "start") {
     return (
-      <ChartBlock kind="donut" className="zen-chart-round" layout="total-start">
+      <ChartBlock ref={ref} kind="donut" className="zen-chart-round" layout="total-start">
         <div className="zen-chart__side">
           <div className="zen-chart__total" aria-hidden="true">
             <span className={`zen-chart__total-label ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
@@ -148,7 +150,7 @@ export function DonutChart({ data, format = defaultFormat, size = 200, "aria-lab
     );
   }
   return (
-    <ChartBlock kind="donut" legend={legend} position={legendPosition} className="zen-chart-round">
+    <ChartBlock ref={ref} kind="donut" legend={legend} position={legendPosition} className="zen-chart-round">
       {ring}
     </ChartBlock>
   );

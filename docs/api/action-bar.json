@@ -73,6 +73,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets primaryAction / secondaryAction.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the bar's root element.",
+          "deprecated": null
         }
       ]
     }

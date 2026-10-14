@@ -1,4 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
+import { useStableCallback } from "../_shared/use-stable-callback";
 
 /**
  * One popover at a time: opening a popover for one object closes any popover that is open for another object
@@ -10,12 +11,11 @@ type OpenPopover = { close: () => void; root: () => HTMLElement | null };
 const openPopovers = new Set<OpenPopover>();
 
 export function useExclusivePopover(open: boolean, close: (() => void) | undefined, rootRef: RefObject<HTMLElement | null>, anchorRef?: RefObject<HTMLElement | null>) {
-  const closeRef = useRef(close);
-  closeRef.current = close;
+  const closeLatest = useStableCallback(close);
   const closable = Boolean(close);
   useEffect(() => {
     if (!open || !closable) return undefined;
-    const self: OpenPopover = { close: () => closeRef.current?.(), root: () => rootRef.current };
+    const self: OpenPopover = { close: () => { closeLatest(); }, root: () => rootRef.current };
     const mine = [anchorRef?.current, rootRef.current].filter((node): node is HTMLElement => Boolean(node));
     for (const other of [...openPopovers]) {
       const otherRoot = other.root();
