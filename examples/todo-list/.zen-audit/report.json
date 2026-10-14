@@ -1,0 +1,36 @@
+{
+  "started": "2026-10-14T06:45:16.917Z",
+  "axe": true,
+  "pages": [
+    {
+      "url": "http://localhost:5173/",
+      "width": 1440,
+      "theme": "light",
+      "findings": {},
+      "screenshot": ".zen-audit/localhost-5173-1440.png"
+    },
+    {
+      "url": "http://localhost:5173/",
+      "width": 1440,
+      "theme": "dark",
+      "findings": {},
+      "screenshot": ".zen-audit/localhost-5173-1440-dark.png"
+    },
+    {
+      "url": "http://localhost:5173/",
+      "width": 390,
+      "theme": "light",
+      "findings": {},
+      "screenshot": ".zen-audit/localhost-5173-390.png"
+    },
+    {
+      "url": "http://localhost:5173/",
+      "width": 390,
+      "theme": "dark",
+      "findings": {},
+      "screenshot": ".zen-audit/localhost-5173-390-dark.png"
+    }
+  ],
+  "errors": 0,
+  "warnings": 0
+}
