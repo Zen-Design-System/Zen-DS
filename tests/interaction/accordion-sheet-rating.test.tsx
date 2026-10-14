@@ -12,10 +12,10 @@ const rect = (el: Element) => el.getBoundingClientRect();
 const px = (value: string) => Number.parseFloat(value);
 
 describe("Accordion Box", () => {
-  // Figma Accordion/Text 239:16847 Theme=Box: padding Medium 16 / Large 16 / XLarge 24, header gap 8 / 12 / 16,
-  // radius Large 16 / Large 16 / 2XLarge 24 (Rounded). Inset = padding − gap; trigger radius = box radius − inset.
+  // Figma Accordion/Text 239:16847 Theme=Box: padding Medium 16 / Large 16 / XLarge 24, header gap 12 / 12 / 16
+  // (Medium was 8 until 2026-10-14), radius Large 16 / Large 16 / 2XLarge 24 (Rounded). Inset = padding − gap; trigger radius = box radius − inset.
   const cases = [
-    { size: "md", padding: 16, inset: 8, radius: 16 },
+    { size: "md", padding: 16, inset: 4, radius: 16 },
     { size: "lg", padding: 16, inset: 4, radius: 16 },
     { size: "xl", padding: 24, inset: 8, radius: 24 },
   ] as const;
@@ -64,11 +64,11 @@ describe("Accordion Box", () => {
     expect(onExpandedChange).toHaveBeenLastCalledWith(true);
     const title = box.querySelector(".zen-accordion__title") as HTMLElement;
     const content = box.querySelector(".zen-accordion__content") as HTMLElement;
-    // Medium: Title → Contents gap XSmall 8, contents start at the 16px padding, box bottom padding 16; the header does
-    // not move when the panel opens.
+    // Medium: Title → Contents gap Small 12 (one step above the rows inside, 2026-10-14), contents start at the 16px
+    // padding, box bottom padding 16; the header does not move when the panel opens.
     const style = getComputedStyle(content);
     const c = rect(content);
-    expect(c.top + px(style.paddingTop) - rect(title).bottom).toBeCloseTo(8, 0);
+    expect(c.top + px(style.paddingTop) - rect(title).bottom).toBeCloseTo(12, 0);
     expect(c.left + px(style.paddingLeft) - b.left).toBeCloseTo(16, 0);
     expect(rect(box).bottom - (c.bottom - px(style.paddingBottom))).toBeCloseTo(16, 0);
     expect(rect(title).top - rect(box).top).toBeCloseTo(16, 0);
