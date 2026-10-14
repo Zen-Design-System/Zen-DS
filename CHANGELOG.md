@@ -179,6 +179,9 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Getting started, CI: the registry token now goes into the CI job's own `~/.npmrc`, not the project's `.npmrc` (a
+  `${ZEN_DS_NPM_TOKEN}` line there overrode every developer's `npm login` and failed with `E401`); `npx zen-ds doctor`
+  flags any token line in the project's `.npmrc`. Added notes on the password spinner, Yarn 2+ and Docker builds.
 - `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit
   before the async `tools/call` answers were written).
 - `zen-usage --json` and `check-usage.mjs --list`: large output piped to another program is no longer cut off at 8 KB.

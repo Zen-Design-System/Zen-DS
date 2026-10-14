@@ -135,3 +135,15 @@
 - Live: full Dashboard twice in one run (130 created, then 118 updated / 12 re-made, no duplicates, Avatars 32/40),
   then again in a new run (130 updated, 0 created, 0 removed); swap re-import 0 notes. QA frames and the stray layers
   of my failed runs removed; the user's own "Dashboard" frame (15598:100161, empty) untouched.
+
+## Registry deploy (npm.dizai.studio) — Podman on 51.79.205.10
+
+- Deployed tools/registry to 51.79.205.10 (Ubuntu 26.04, shared with the PocketBase server agent and its system Caddy)
+  with Podman (user's choice): Quadlet `zen-registry.service`, host network, Verdaccio on 127.0.0.1:4873 (ufw's forward
+  policy DROP blocked bridged containers from the license store), `npm.dizai.studio` block appended to the host
+  Caddyfile, Let's Encrypt cert. Kit: `tools/registry/deploy/podman/`. Web UI tried, then turned off again (user).
+- Secret `ZEN_REGISTRY_PUBLISH_KEY` set; first release `v0.3.0` published by the Release workflow.
+- Customer guide fix: CI token goes into the job's `~/.npmrc` (a `${ZEN_DS_NPM_TOKEN}` line in the project's .npmrc
+  overrode every developer's login → E401, reproduced); `zen-ds doctor` flags any token line. Spinner, Yarn 2+, Docker notes.
+- Open: R2 backups (no backup.env yet), uptime check, `npm deprecate` of public @zen-ds/react 0.1.0, where customers see
+  their licence id (question for the user).

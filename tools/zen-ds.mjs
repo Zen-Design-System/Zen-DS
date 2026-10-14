@@ -25,8 +25,9 @@ const REGISTRY = pkg.publishConfig?.registry ?? "https://npm.dizai.studio/";
 const REGISTRY_HOST = new URL(REGISTRY).host;
 const scopeLine = `@zen-ds:registry=${REGISTRY}`;
 const hasScopeLine = (npmrc) => /^\s*@zen-ds:registry\s*=/m.test(npmrc ?? "");
-// A token written into the project's .npmrc gets committed; `${ENV_VAR}` references are fine.
-const hasLiteralToken = (npmrc) => new RegExp(`^\\s*//${REGISTRY_HOST.replace(/\./g, "\\.")}/:_(authToken|auth|password)\\s*=\\s*(?!\\$\\{)\\S`, "m").test(npmrc ?? "");
+// No registry token line in the project's .npmrc: a literal one gets committed, and even a `${ENV_VAR}` one overrides
+// each developer's `npm login` token (empty where the variable is unset → E401). CI adds it to ~/.npmrc instead.
+const hasTokenLine = (npmrc) => new RegExp(`^\\s*//${REGISTRY_HOST.replace(/\./g, "\\.")}/:_(authToken|auth|password)\\s*=`, "m").test(npmrc ?? "");
 
 const AGENTS_MARKER = "<!-- zen-ds -->";
 const agentsSection = `${AGENTS_MARKER}
@@ -94,7 +95,7 @@ function doctor() {
   add(Boolean(appPkg), "package.json found", "run zen-ds from your app's root folder");
   const npmrc = readApp(".npmrc");
   add(hasScopeLine(npmrc), ".npmrc points @zen-ds at the Zen registry", `add "${scopeLine}" to .npmrc (npx zen-ds init)`);
-  add(!hasLiteralToken(npmrc), "no registry token written in the project's .npmrc", `remove it and use //${REGISTRY_HOST}/:_authToken=\${ZEN_DS_NPM_TOKEN} (docs/getting-started.md, CI)`);
+  add(!hasTokenLine(npmrc), "no registry token line in the project's .npmrc", `remove the //${REGISTRY_HOST}/:_authToken line: it overrides each developer's npm login; CI writes it to ~/.npmrc (docs/getting-started.md, CI)`);
   add(Boolean(deps["@zen-ds/react"]), "@zen-ds/react is a dependency", "npm install @zen-ds/react");
   const reactVersion = (() => { try { return JSON.parse(fs.readFileSync(path.join(app, "node_modules/react/package.json"), "utf8")).version; } catch { return null; } })();
   add(Boolean(reactVersion && Number(reactVersion.split(".")[0]) >= 19), `React ≥ 19 installed${reactVersion ? ` (${reactVersion})` : ""}`, "npm install react@^19 react-dom@^19");

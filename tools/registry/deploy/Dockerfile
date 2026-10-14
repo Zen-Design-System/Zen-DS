@@ -1,5 +1,5 @@
 # Zen DS registry image: Verdaccio + the zen-license auth plugin + config.yaml. Build context: tools/registry.
-FROM verdaccio/verdaccio:6.10.5
+FROM docker.io/verdaccio/verdaccio:6.10.5
 
 USER root
 COPY --chown=10001:65533 plugins/ /verdaccio/plugins/

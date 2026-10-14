@@ -165,14 +165,14 @@ else {
   const npmrc = fs.readFileSync(npmrcFile, "utf8");
   const registry = packageJson.publishConfig?.registry;
   npmrc.includes(`@zen-ds:registry=${registry}`) ? pass("zen-ds init adds the @zen-ds registry line to .npmrc", registry) : fail("zen-ds init adds the @zen-ds registry line to .npmrc", npmrc);
-  // doctor: a token written into the project's .npmrc fails, an env reference passes.
+  // doctor: any token line in the project's .npmrc fails, an env reference too (it overrides each developer's login).
   const host = new URL(registry).host;
   const doctorWith = (line) => { fs.writeFileSync(npmrcFile, `${npmrc}${line}\n`); return spawnSync(process.execPath, [zenDs, "doctor"], { cwd: app, encoding: "utf8" }); };
   const literal = doctorWith(`//${host}/:_authToken=abc123`);
   const fromEnv = doctorWith(`//${host}/:_authToken=\${ZEN_DS_NPM_TOKEN}`);
   fs.writeFileSync(npmrcFile, npmrc);
-  literal.status === 1 && /✗ no registry token/.test(literal.stdout) && fromEnv.status === 0
-    ? pass("zen-ds doctor flags a registry token written in .npmrc") : fail("zen-ds doctor flags a registry token written in .npmrc", `${literal.stdout}\n${fromEnv.stdout}`);
+  [literal, fromEnv].every((r) => r.status === 1 && /✗ no registry token line/.test(r.stdout))
+    ? pass("zen-ds doctor flags a registry token line in .npmrc") : fail("zen-ds doctor flags a registry token line in .npmrc", `${literal.stdout}\n${fromEnv.stdout}`);
 }
 
 // 9. Registry-only extras

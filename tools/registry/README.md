@@ -98,6 +98,12 @@ It copies `tools/registry` to `/opt/zen-registry`, the two env files to `/etc/ze
 existing ones are kept), then runs `deploy/setup.sh` on the server: security updates, Docker, firewall (22, 80,
 443 only), `docker compose up -d --build`, and the backup cron.
 
+**Host that already runs Caddy (Podman)** — the live server 51.79.205.10 hosts the PocketBase agent and its own
+system Caddy on 80/443, so the stack there runs under Podman instead: `deploy/podman/deploy.sh root@51.79.205.10 -i
+~/.ssh/tungnt620` installs the Quadlet unit `zen-registry.service` (Verdaccio on 127.0.0.1:4873, volume
+`zen-registry-storage`) and appends `deploy/podman/Caddyfile.snippet` to `/etc/caddy/Caddyfile` once (backup kept
+next to it). Logs: `journalctl -u zen-registry`.
+
 **Check**
 
 ```bash

@@ -1,0 +1,23 @@
+# Podman Quadlet for hosts that already run a system Caddy (e.g. 51.79.205.10): Verdaccio on 127.0.0.1:4873,
+# the host Caddy proxies npm.dizai.studio to it (podman/Caddyfile.snippet). Installed by podman/deploy.sh.
+# Host network: ufw's forward policy (DROP) blocks bridged containers from reaching the license store, so the
+# container shares the host's network and listens on loopback only.
+[Unit]
+Description=Zen DS npm registry (Verdaccio)
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=zen-registry
+Image=localhost/zen-registry:local
+EnvironmentFile=/etc/zen-registry/registry.env
+Volume=zen-registry-storage:/verdaccio/storage
+Network=host
+Environment=VERDACCIO_ADDRESS=127.0.0.1
+LogDriver=journald
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

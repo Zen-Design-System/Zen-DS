@@ -31,6 +31,10 @@ npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legac
 #   Username: anything (your name)   Password: your licence key   Email: anything
 ```
 
+npm keeps a spinner turning while you type the password, which hides what you type: it is waiting for you, not
+stuck. Type or paste the key and press Enter (`--no-progress` hides the spinner). On success npm prints
+`Logged in to scope @zen-ds on https://npm.dizai.studio/`.
+
 npm stores a token in your user `~/.npmrc` (not the project's), valid for 365 days. The registry re-checks the
 licence on every request, so the token stops working when the subscription ends; run `npm login` again after
 renewing, or once a year.
@@ -41,36 +45,53 @@ renewing, or once a year.
 npm install @zen-ds/react react@^19 react-dom@^19
 ```
 
+With pnpm, the same `.npmrc` and `npm login` work as they are. Yarn 2 or later ignores `.npmrc`; put the scope in
+`.yarnrc.yml` instead and sign in with `yarn npm login --scope zen-ds` (same licence key):
+
+```yaml
+npmScopes:
+  zen-ds:
+    npmRegistryServer: "https://npm.dizai.studio/"
+```
+
 Peer dependencies: `react` and `react-dom` 19. The package is ES modules with TypeScript declarations. Every
 component file starts with `"use client"`, so React Server Component frameworks import it from client components.
 
 ### CI and Docker builds
 
-Sign in once on your machine as in step 2, copy the token from the `//npm.dizai.studio/:_authToken=…` line of your
-`~/.npmrc` into a CI secret named `ZEN_DS_NPM_TOKEN`, and add this line to the project's `.npmrc` (it reads the secret
-from the environment, so it is safe to commit):
-
-```ini
-//npm.dizai.studio/:_authToken=${ZEN_DS_NPM_TOKEN}
-```
-
-Then set `ZEN_DS_NPM_TOKEN` in the CI job's environment. For example, in GitHub Actions:
+Sign in once on your machine as in step 2 and copy the token from the `//npm.dizai.studio/:_authToken=…` line of your
+`~/.npmrc` into a CI secret named `ZEN_DS_NPM_TOKEN`. The CI job writes that line into its own user `~/.npmrc` before
+installing. Do not put the token line in the project's `.npmrc`, not even as `${ZEN_DS_NPM_TOKEN}`: the project file
+wins over each developer's own sign-in, and on a machine without the variable every install fails with `E401`
+(`npx zen-ds doctor` flags it). In GitHub Actions:
 
 ```yaml
-- run: npm ci
+- run: echo "//npm.dizai.studio/:_authToken=${ZEN_DS_NPM_TOKEN}" >> ~/.npmrc
   env:
     ZEN_DS_NPM_TOKEN: ${{ secrets.ZEN_DS_NPM_TOKEN }}
+- run: npm ci
 ```
 
-In a Dockerfile, pass the token as a build secret rather than a build argument, so it does not end up in an image
-layer. Replace the token before it expires after 365 days.
+In a Dockerfile, mount the token as a build secret rather than a build argument, so it does not end up in an image
+layer:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+COPY package.json package-lock.json .npmrc ./
+RUN --mount=type=secret,id=zen_npm_token \
+    echo "//npm.dizai.studio/:_authToken=$(cat /run/secrets/zen_npm_token)" > /root/.npmrc \
+    && npm ci && rm /root/.npmrc
+```
+
+Build it with `docker build --secret id=zen_npm_token,env=ZEN_DS_NPM_TOKEN .`. Replace the token before it expires
+after 365 days.
 
 ### When the install fails
 
 | npm says | Why | What to do |
 | --- | --- | --- |
 | `E409` … `sign-up is closed: use your license key` (on `npm login`) | Wrong key, or the licence is not active | Copy the key again from your Zen account; check that the subscription is active |
-| `E401` `Unable to authenticate, your authentication token seems to be invalid` | Not signed in on this machine, the token is over 365 days old, or the CI token is missing | Step 2 again, or set `ZEN_DS_NPM_TOKEN` |
+| `E401` `Unable to authenticate, your authentication token seems to be invalid` | Not signed in on this machine, the token is over 365 days old, the CI token is missing, or the project's `.npmrc` has an `_authToken` line | Step 2 again, or set `ZEN_DS_NPM_TOKEN`; remove any token line from the project's `.npmrc` |
 | `E403` … `license is not active` | The subscription ended or was suspended | Renew it; the old token works again within 5 minutes |
 | `E404` for `@zen-ds/…` on registry.npmjs.org, or version `0.1.0` installed | The `.npmrc` scope line is missing | Step 1, then `npm install @zen-ds/react@latest` |
 | `E503` … `license service unavailable` | The licence service is briefly unreachable | Try again in a few minutes |
