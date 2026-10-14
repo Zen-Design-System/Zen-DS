@@ -36,13 +36,8 @@ const ALLOWED = {
   ChatConversationItem: { "Avatar-Group": "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it", Avatar: "the item's Figma set (…/List-Item/Content) is its text part; the avatars sit in the List-Item around it" },
   ListItem: { Leading: "Figma's List-Item leads with Avatar/Single; a leading icon is the code's" },
   Metric: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
-  MetricCard: {
-    Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw",
-    // MetricCard type (2026-10-14): layers of Figma's Metric-Card set (6643:64008), outside the Metric-Inline sets this
-    // component's contract reads; figma-metric.mjs maps the set itself.
-    "Progress-Bar": "Metric-Card Type=Goal-Progress (15481:1803) › Metric-Body › Progress-Bar, beside the Metric-Inline",
-    Column: "Metric-Card Type=Comparison (15481:1848) › Columns › Column, a frame per column holding a Metric-Inline",
-  },
+  // MetricCard reads Figma's Metric-Card set (6643:64008, nested-layers.json 2026-10-14) since its `type` maps there.
+  MetricCard: { Counter: "a second Badge (the count) Figma's Metric-Card and Metric-Inline sets do not draw" },
   Pagination: { Page: "Figma names each page by its number (1, 2, 3, …)" },
   Popover: { Avatar: "a Popover item can lead with an Avatar in code; Figma's Popover/Default sample has none", Badge: "a Popover item can end with a Badge in code; Figma's Popover/Default sample has none" },
   SidePanel: { Icon: "the deprecated `icon` prop: Figma removed the heading icon (Icon-Wrapper) on 2026-10-12", Back: "unnamed in Figma: Back-Container › Wrapper › Button/Icon-Flat" },

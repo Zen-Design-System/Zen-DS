@@ -426,6 +426,11 @@ check("searchPalette: every word", searchPalette(PALETTE, "data list").map((item
   };
   const widgets = PALETTE.filter((item) => item.group === "Widgets");
   check("widgets: every Widgets entry has its pattern on the page", widgets.map((item) => item.id).filter((id) => !patterns.some(([pid]) => pid === id)), []);
+  // The examples array writes each widget's title literally (the coverage gate counts literal titles): it must be the
+  // entry's label, and every Widgets entry has one example.
+  const titled = [...fs.readFileSync(pageFile, "utf8").matchAll(/\{ title: ("(?:\\.|[^"\\])*"), \.\.\.widgetExample\("([^"]+)"\) \}/g)].map((m) => [JSON.parse(m[1]), m[2]]);
+  check("widgets: each example's title is its entry's label", titled.filter(([title, id]) => paletteItem(id)?.label !== title).map(([title, id]) => `${id}: "${title}"`), []);
+  check("widgets: every Widgets entry has one example", widgets.map((item) => item.id).filter((id) => titled.filter(([, tid]) => tid === id).length !== 1), []);
   check("widgets: every pattern on the page is a Widgets entry, once", [patterns.filter(([id]) => paletteItem(id)?.group !== "Widgets").map(([id]) => id), patterns.length === new Set(patterns.map(([id]) => id)).size], [[], true]);
   for (const [id, name] of patterns) {
     const item = paletteItem(id);

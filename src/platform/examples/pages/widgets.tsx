@@ -383,8 +383,36 @@ function NoDataExample() {
 
 /* ───────────── Examples ───────────── */
 
+/** A Widgets example's body (description, render, code) from its pattern; the title is written at the call. */
+const widgetExample = (id: string): Omit<ExampleDef, "title"> => {
+  const entry = groups.flatMap((group) => group.patterns).find((item) => item.id === id);
+  if (!entry) throw new Error(`No widget pattern ${id}`);
+  return { description: entry.description, render: () => <entry.Widget />, code: widgetCode(entry.id) };
+};
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
-  ...groups.flatMap((group) => group.patterns.map((entry): ExampleDef => ({ title: entry.title, description: entry.description, render: () => <entry.Widget />, code: widgetCode(entry.id) }))),
+  // One literal title per widget (the palette entry's label: palette.selftest §4b checks it), so the coverage gate
+  // counts them; the rest comes from the pattern.
+  { title: "KPI card", ...widgetExample("widget-kpi") },
+  { title: "KPI with sparkline", ...widgetExample("widget-kpi-sparkline") },
+  { title: "KPI with spark bars", ...widgetExample("widget-kpi-spark-bars") },
+  { title: "Goal progress", ...widgetExample("widget-goal-progress") },
+  { title: "Period comparison", ...widgetExample("widget-period-comparison") },
+  { title: "Category split", ...widgetExample("widget-category-split") },
+  { title: "Hero metric", ...widgetExample("widget-hero") },
+  { title: "Revenue trend", ...widgetExample("widget-revenue-trend") },
+  { title: "Hours by team", ...widgetExample("widget-hours-by-team") },
+  { title: "Invoiced vs collected", ...widgetExample("widget-invoiced-collected") },
+  { title: "Forecast", ...widgetExample("widget-forecast") },
+  { title: "This year vs last", ...widgetExample("widget-year-over-year") },
+  { title: "Revenue and margin", ...widgetExample("widget-revenue-margin") },
+  { title: "Busiest hours", ...widgetExample("widget-busiest-hours") },
+  { title: "Utilisation", ...widgetExample("widget-utilisation") },
+  { title: "Quarter goals", ...widgetExample("widget-quarter-goals") },
+  { title: "Budget rings", ...widgetExample("widget-budget-rings") },
+  { title: "Sales funnel", ...widgetExample("widget-sales-funnel") },
+  { title: "Top clients", ...widgetExample("widget-top-clients") },
+  { title: "Revenue by client", ...widgetExample("widget-revenue-by-client") },
   {
     title: "Widgets on a phone",
     description: "A phone screen is Canvas/Default too, so the widgets stay flat and stack one a row under a kicker heading (h2 between the large title and the card titles). Pick widgets whose chart keeps its width in a card: a gauge, a ranking.",
