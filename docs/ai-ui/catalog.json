@@ -15,17 +15,12 @@
   "statuses": {
     "stable": "documented in docs/api and a guideline, smoke- and conformance-tested",
     "verified": "stable, and a Figma parity suite covers its folder",
-    "experimental": "kept out of a runtime catalog unless asked for"
+    "experimental": "a required prop has no JSON form (see `unavailable`), or marked so in catalog.config.mjs; rejected unless validateSpec gets { experimental: true }"
   },
   "excludedPropNames": [
     "className",
-    "controlId",
     "dangerouslySetInnerHTML",
-    "form",
-    "htmlFor",
-    "id",
     "key",
-    "labelId",
     "overrides",
     "ref",
     "state",
@@ -579,8 +574,15 @@
           "description": "Short (sm, md…) or Figma (small, medium…) spelling."
         },
         "leading": {
-          "x-kind": "node",
-          "x-icon": true,
+          "anyOf": [
+            {
+              "x-kind": "node",
+              "x-icon": true
+            },
+            {
+              "type": "boolean"
+            }
+          ],
           "default": true,
           "description": "Figma Leading: `true` shows the theme icon, `false` hides it, or pass a custom icon (an icon name or a node)."
         },
@@ -1108,6 +1110,9 @@
       ],
       "description": "Figma Input/Autocomplete-Field (1241:5616): Label, a wrapping Tag list (gap 4, Tag Remove=Yes) and an \"Add Item\" Button/Main XSmall Secondary that opens Popover/Default (Search + \"",
       "props": {
+        "id": {
+          "type": "string"
+        },
         "label": {
           "x-kind": "node"
         },
@@ -1205,7 +1210,6 @@
         }
       ],
       "excluded": [
-        "id (not for a generated UI)",
         "errorMessage (deprecated: Use error (same meaning).)",
         "onChange (deprecated: Use onValueChange (same arguments).)",
         "onCreate ((label: string) => string | void)",
@@ -3034,7 +3038,14 @@
           "description": "Accessible name for a clickable card when its content does not start with a clear title."
         },
         "subAction": {
-          "x-kind": "node",
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "$ref": "#/$defs/CardSubAction"
+            }
+          ],
           "description": "Figma Sub-Action: an absolute layer over the top-right corner holding Button/Icon-Flat Small Secondary (default ⋮)."
         },
         "as": {
@@ -3601,6 +3612,10 @@
           "x-required": true,
           "description": "Figma Bubble-*-Content: plain text is wrapped in a text bubble; pass ChatFile / ChatCall / ChatPhotos as-is."
         },
+        "id": {
+          "type": "string",
+          "description": "Message id (→ data-message-id): lets a reply's quote jump back to this message."
+        },
         "replyTo": {
           "$ref": "#/$defs/ChatReplyTarget",
           "description": "This message replies to another: a quote of the original sits above the bubble (ChatReplyQuote)."
@@ -3670,7 +3685,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "id (not for a generated UI)",
         "className (not for a generated UI)",
         "overrides (not for a generated UI)",
         "ref (not for a generated UI)"
@@ -3680,7 +3694,7 @@
       "name": "ChatReactorsPanel",
       "slug": "chat",
       "folder": "Chat",
-      "status": "verified",
+      "status": "experimental",
       "import": "import { ChatMessage, ChatComposer, ChatThread, ChatConversationItem, ChatComposerReply, ChatReplyQuote, ChatEmojiPicker, ChatReactorsPanel, ChatBubble, ChatFile, ChatCall, ChatVoice, ChatPhotos, ChatReactions, ChatReactionPicker, ChatReadList, ChatDateDivider, ChatAvatarGroup } from \"@zen-ds/react\";",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
       "use": [
@@ -3759,6 +3773,10 @@
         "glyph ((kind: ChatReactionKind) => string)",
         "anchorRef (RefObject<HTMLElement | null>)",
         "ref (not for a generated UI)"
+      ],
+      "unavailable": [
+        "glyph: (kind: ChatReactionKind) => string",
+        "anchorRef: RefObject<HTMLElement | null>"
       ]
     },
     "ChatReplyQuote": {
@@ -4374,7 +4392,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -5047,7 +5072,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -5785,8 +5817,15 @@
           "default": "default"
         },
         "icon": {
-          "x-kind": "node",
-          "x-icon": true,
+          "anyOf": [
+            {
+              "x-kind": "node",
+              "x-icon": true
+            },
+            {
+              "type": "boolean"
+            }
+          ],
           "default": true,
           "description": "Figma Modal-Icon."
         },
@@ -6287,7 +6326,14 @@
           "description": "Figma Caption (Body/Base/Regular, Content/Neutral/Light)."
         },
         "illustration": {
-          "x-kind": "node",
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
           "default": true,
           "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it."
         },
@@ -6837,6 +6883,10 @@
       ],
       "description": "A `<form noValidate>` laid out as a Stack (gap lg between groups).",
       "props": {
+        "form": {
+          "$ref": "#/$defs/FormSubmitSource",
+          "description": "The state from `useFormState()`."
+        },
         "onSubmit": {
           "x-kind": "action",
           "params": [
@@ -6901,7 +6951,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "form (not for a generated UI)",
         "invalidMessage ((count: number) => string)",
         "ref (not for a generated UI)"
       ]
@@ -7033,12 +7082,23 @@
           "description": "Figma Label `Optional`: appends \"(Optional)\"."
         },
         "labelTooltip": {
-          "x-kind": "node",
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
           "description": "Figma Label `Tooltip-Icon`: an info icon with this text as a tooltip."
         },
         "labelAction": {
           "x-kind": "node",
           "description": "Figma Label `Action`: a right-aligned link or text button (\"Reset to default\")."
+        },
+        "controlId": {
+          "type": "string",
+          "description": "id given to the control (default: generated)."
         },
         "children": {
           "x-kind": "element",
@@ -7061,7 +7121,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "controlId (not for a generated UI)",
         "overrides (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -8795,8 +8854,15 @@
           "description": "Figma Caption (Body/Small/Regular)."
         },
         "icon": {
-          "x-kind": "node",
-          "x-icon": true,
+          "anyOf": [
+            {
+              "x-kind": "node",
+              "x-icon": true
+            },
+            {
+              "type": "boolean"
+            }
+          ],
           "default": true,
           "description": "`false` hides the icon; an icon name or a node replaces it."
         },
@@ -8872,7 +8938,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -9772,6 +9845,10 @@
       ],
       "description": "One action row (role=menuitem) on the Popover/Item primitive.",
       "props": {
+        "id": {
+          "type": "string",
+          "description": "Stable id, handed back to the Menu's `onSelect`."
+        },
         "label": {
           "type": "string",
           "x-required": true,
@@ -9816,7 +9893,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "id (not for a generated UI)",
         "className (not for a generated UI)"
       ]
     },
@@ -10094,7 +10170,14 @@
           "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue."
         },
         "subAction": {
-          "x-kind": "node",
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "$ref": "#/$defs/CardSubAction"
+            }
+          ],
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat)."
         },
         "type": {
@@ -10733,7 +10816,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -11756,6 +11846,9 @@
       ],
       "description": "Figma `Input/Richtext` (6385:17480): the Editor-Bar (Control-Bar, optional) above a Text-Area field, gap Spacing/Gap/XSmall.",
       "props": {
+        "id": {
+          "type": "string"
+        },
         "size": {
           "enum": [
             "sm",
@@ -11850,7 +11943,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -11889,7 +11989,6 @@
         }
       ],
       "excluded": [
-        "id (not for a generated UI)",
         "ref (not for a generated UI)",
         "errorMessage (deprecated: Use error (same meaning).)",
         "state (not for a generated UI)",
@@ -12280,7 +12379,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -12738,8 +12844,23 @@
       "description": "Figma Primitives/Side-Bar/Menu-Item/Master (1536:27473) placed in a slot: Body-Content (`<Sidebar>` children), Footer-Content (`footer`), a `SidebarMenuSection` or a `SidebarSubMen",
       "props": {
         "children": {
-          "x-kind": "node",
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/SidebarItem"
+              }
+            }
+          ],
           "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`."
+        },
+        "id": {
+          "type": "string",
+          "x-required": true,
+          "description": "Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it."
         },
         "label": {
           "type": "string",
@@ -12796,7 +12917,6 @@
       "excluded": [
         "overrides (not for a generated UI)",
         "ref (not for a generated UI)",
-        "id (not for a generated UI)",
         "state (not for a generated UI)",
         "indent (deprecated: No effect: a nested row is indented by its level (`children`).)"
       ]
@@ -14694,6 +14814,10 @@
           "default": false,
           "description": "Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes does not move the text around it."
         },
+        "htmlFor": {
+          "type": "string",
+          "description": "For `as=\"label\"`."
+        },
         "children": {
           "x-kind": "node"
         },
@@ -14713,7 +14837,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "htmlFor (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
     },
@@ -14779,7 +14902,14 @@
           "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel)."
         },
         "labelTooltip": {
-          "x-kind": "node"
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
         },
         "labelAction": {
           "x-kind": "node"
@@ -15067,8 +15197,15 @@
           "description": "Figma Caption (Body/Small/Regular)."
         },
         "icon": {
-          "x-kind": "node",
-          "x-icon": true,
+          "anyOf": [
+            {
+              "x-kind": "node",
+              "x-icon": true
+            },
+            {
+              "type": "boolean"
+            }
+          ],
           "default": true,
           "description": "`true` (default) shows the type's icon, `false` hides it; an icon name or a node replaces it."
         },
@@ -15599,7 +15736,14 @@
           "description": "Level of the screen title — the large title while it shows, else the bar title."
         },
         "leading": {
-          "x-kind": "node",
+          "anyOf": [
+            {
+              "x-kind": "node"
+            },
+            {
+              "$ref": "#/$defs/TopNavigationAction"
+            }
+          ],
           "description": "Figma Top-Leading: an action (usually Back) or a visual (e.g."
         },
         "trailing": {
@@ -15810,6 +15954,10 @@
           "type": "string",
           "description": "With `as=\"a\"`: the link target, e.g."
         },
+        "htmlFor": {
+          "type": "string",
+          "description": "With `as=\"label\"`: the id of the control it labels."
+        },
         "children": {
           "x-kind": "node",
           "description": "The text for assistive technology (and for the visible pill while a focusable one has focus)."
@@ -15830,7 +15978,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "htmlFor (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
     },
@@ -15923,7 +16070,7 @@
       "name": "ZenPortalProvider",
       "slug": "provider",
       "folder": "Portal",
-      "status": "stable",
+      "status": "experimental",
       "chrome": true,
       "import": "import { ZenProvider, ZenPortalProvider } from \"@zen-ds/react\";",
       "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
@@ -15949,6 +16096,9 @@
       "bindings": [],
       "excluded": [
         "container (HTMLElement | null)"
+      ],
+      "unavailable": [
+        "container: HTMLElement | null"
       ]
     },
     "ZenProvider": {
@@ -16081,6 +16231,9 @@
           ],
           "description": "Where toasts from useToast() appear (the outermost provider hosts them; nested providers share it)."
         },
+        "id": {
+          "type": "string"
+        },
         "children": {
           "x-kind": "node"
         },
@@ -16101,7 +16254,6 @@
       "bindings": [],
       "excluded": [
         "as (ElementType)",
-        "id (not for a generated UI)",
         "className (not for a generated UI)",
         "style (not for a generated UI)"
       ]
@@ -18705,6 +18857,16 @@
       ],
       "additionalProperties": false
     },
+    "FormSubmitSource": {
+      "type": "object",
+      "properties": {
+        "isSubmitting": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
     "GridTracks": {
       "anyOf": [
         {
@@ -19534,7 +19696,7 @@
       "required": [
         "id"
       ],
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "TopNavigationAction": {
       "type": "object",

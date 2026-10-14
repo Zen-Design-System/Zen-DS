@@ -38,6 +38,18 @@
       "import": "./dist/tokens/index.js",
       "default": "./dist/tokens/index.js"
     },
+    "./ai-ui": {
+      "types": "./dist/ai-ui/index.d.ts",
+      "import": "./dist/ai-ui/index.js",
+      "default": "./dist/ai-ui/index.js"
+    },
+    "./ai-ui/lint": {
+      "types": "./tools/ai-ui/lint.d.mts",
+      "import": "./tools/ai-ui/lint.mjs",
+      "default": "./tools/ai-ui/lint.mjs"
+    },
+    "./ai-ui/catalog.json": "./docs/ai-ui/catalog.json",
+    "./ai-ui/catalog.index.json": "./docs/ai-ui/catalog.index.json",
     "./eslint": "./tools/usage-guard/eslint.mjs",
     "./usage": "./tools/usage-guard/api.mjs",
     "./package.json": "./package.json"
@@ -59,7 +71,14 @@
     "tools/zen-ds.mjs",
     "tools/zen-audit/audit.mjs",
     "tools/zen-audit/app-checks.mjs",
-    "tools/platform-audit/quality-checks.mjs"
+    "tools/platform-audit/quality-checks.mjs",
+    "docs/ai-ui/README.md",
+    "docs/ai-ui/catalog.json",
+    "docs/ai-ui/catalog.index.json",
+    "docs/ai-ui/composer-rules.md",
+    "src/ai-ui",
+    "tools/ai-ui/lint.mjs",
+    "tools/ai-ui/lint.d.mts"
   ],
   "scripts": {
     "dev": "vite",

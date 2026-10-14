@@ -73,7 +73,7 @@
       "name": "AutocompleteField",
       "status": "verified",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
-      "props": "label? helpText? helpTheme? helpIcon? error? options value? defaultValue? onValueChange? invalidValues? readOnly? disabled? addLabel? popoverLabel? searchPlaceholder? createLabel?"
+      "props": "id? label? helpText? helpTheme? helpIcon? error? options value? defaultValue? onValueChange? invalidValues? readOnly? disabled? addLabel? popoverLabel? searchPlaceholder? createLabel?"
     },
     {
       "name": "Avatar",
@@ -194,11 +194,11 @@
       "name": "ChatMessage",
       "status": "verified",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
-      "props": "side domain? author? showName? continued? time? status? failed? onRetry? reactions? seenBy? children replyTo? onJumpToReply? holdActions? onHoldAction? reaction? onReact? onMoreReactions?"
+      "props": "side domain? author? showName? continued? time? status? failed? onRetry? reactions? seenBy? children id? replyTo? onJumpToReply? holdActions? onHoldAction? reaction? onReact? onMoreReactions?"
     },
     {
       "name": "ChatReactorsPanel",
-      "status": "verified",
+      "status": "experimental",
       "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
       "props": "reactions mine? onRemoveMine? device side open onOpenChange"
     },
@@ -364,7 +364,7 @@
       "name": "Form",
       "status": "stable",
       "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
-      "props": "onSubmit? gap? noValidate? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "form? onSubmit? gap? noValidate? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "FormActions",
@@ -376,7 +376,7 @@
       "name": "FormField",
       "status": "stable",
       "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
-      "props": "label? helpText? error? required? optional? labelTooltip? labelAction? children aria-label? aria-labelledby? aria-describedby?"
+      "props": "label? helpText? error? required? optional? labelTooltip? labelAction? controlId? children aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "FormFieldset",
@@ -496,7 +496,7 @@
       "name": "MenuItem",
       "status": "stable",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
-      "props": "label icon? caption? shortcut? danger? disabled? onSelect?"
+      "props": "id? label icon? caption? shortcut? danger? disabled? onSelect?"
     },
     {
       "name": "MenuSeparator",
@@ -599,7 +599,7 @@
       "name": "RichTextField",
       "status": "verified",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
-      "props": "size? value? defaultValue? onValueChange? placeholder? readOnly? required? maxLength? editorBar? editorBarTheme? onFocus? onBlur? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error?"
+      "props": "id? size? value? defaultValue? onValueChange? placeholder? readOnly? required? maxLength? editorBar? editorBarTheme? onFocus? onBlur? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error?"
     },
     {
       "name": "Search",
@@ -630,7 +630,7 @@
       "name": "SidebarMenuItem",
       "status": "verified",
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
-      "props": "children? label icon? active? selected? disabled? theme? dropdown? counter? notificationDot? trailingAction? href?"
+      "props": "children? id label icon? active? selected? disabled? theme? dropdown? counter? notificationDot? trailingAction? href?"
     },
     {
       "name": "SidebarMenuSection",
@@ -720,7 +720,7 @@
       "name": "Text",
       "status": "stable",
       "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? textStyle? tone? as? truncate? align? verticalAlign? wrap? tabularNumbers? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? textStyle? tone? as? truncate? align? verticalAlign? wrap? tabularNumbers? htmlFor? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "TextAreaField",
@@ -787,7 +787,7 @@
       "name": "VisuallyHidden",
       "status": "stable",
       "purpose": "Adds text that only assistive technology reads: names for icon-only table headers, context for repeated links, status announcements, hidden headings and skip links that appear on focus.",
-      "props": "as? focusable? href? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "as? focusable? href? htmlFor? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "VoiceRecorder",
@@ -797,7 +797,7 @@
     },
     {
       "name": "ZenPortalProvider",
-      "status": "stable",
+      "status": "experimental",
       "chrome": true,
       "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
       "props": "children"
@@ -807,7 +807,7 @@
       "status": "stable",
       "chrome": true,
       "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
-      "props": "theme? componentTheme? density? radius? emphasis? breakpoint? typography? brand? contrast? locale? labels? paint? syncDocument? portal? toastPlacement? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "theme? componentTheme? density? radius? emphasis? breakpoint? typography? brand? contrast? locale? labels? paint? syncDocument? portal? toastPlacement? id? children? aria-label? aria-labelledby? aria-describedby?"
     }
   ]
 }

@@ -4,10 +4,11 @@
 
 /**
  * Props a generated UI may never set, by name. Styling escape hatches (className, style, overrides) would let a model
- * leave the token system; refs, keys and DOM ids belong to the app; `state` is the Figma visual state a design shows,
- * never something a running UI sets (Disabled is the one static toggle, through `disabled`).
+ * leave the token system; refs and keys belong to React; `state` is the Figma visual state a design shows, never
+ * something a running UI sets (Disabled is the one static toggle, through `disabled`). A documented `id` prop stays: it
+ * is the component's own data (SidebarMenuItem), not the DOM attribute (which react-docgen never lists).
  */
-export const EXCLUDED_PROP_NAMES = new Set(["className", "style", "overrides", "ref", "key", "id", "state", "dangerouslySetInnerHTML", "htmlFor", "labelId", "controlId", "form"]);
+export const EXCLUDED_PROP_NAMES = new Set(["className", "style", "overrides", "ref", "key", "state", "dangerouslySetInnerHTML"]);
 
 /** Type names whose props are excluded wherever they appear (refs, element types, CSS, DOM nodes). */
 export const EXCLUDED_TYPE_RE = /\b(Ref|RefObject|MutableRefObject|ElementType|ComponentType|CSSProperties|HTMLElement|Element|SVGSVGElement|ZenFormApi|FormApi)\b/;

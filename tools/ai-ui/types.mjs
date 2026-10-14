@@ -209,11 +209,13 @@ function unionSchema(members, ctx) {
     others.push(schema);
   }
   if (node) {
-    // ReactNode admits text, booleans and elements already; an icon name is text.
+    // ReactNode admits text, booleans and elements already; an icon name is text. Other shapes beside it (CardSubAction |
+    // ReactNode) stay as alternatives.
     const schema = { "x-kind": "node" };
     if (icon) schema["x-icon"] = true;
     if (literals.length) schema["x-values"] = literals;
-    return nullable ? { ...schema, "x-nullable": true } : schema;
+    const out = others.length ? { anyOf: [schema, ...others] } : schema;
+    return nullable ? { ...out, "x-nullable": true } : out;
   }
   const out = [];
   if (literals.length) out.push({ enum: [...new Set(literals)] });
@@ -297,6 +299,8 @@ function namedSchema(name, ctx) {
         const base = typeSchema(parent, ctx);
         const resolved = base?.$ref ? ctx.defs[base.$ref.split("/").pop()] : base;
         if (resolved?.type === "object" && schema) { schema.properties = { ...resolved.properties, ...schema.properties }; schema.required = [...new Set([...(resolved.required ?? []), ...(schema.required ?? [])])]; }
+        // A parent docs/api does not declare (ToastItem extends ToastProps): its fields are unknown, so the object stays open.
+        else if (schema) schema.additionalProperties = true;
       }
     } else if (alias) {
       const body = alias[1].trim();

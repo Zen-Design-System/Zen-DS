@@ -225,7 +225,8 @@ export function validateSpec(spec, catalog, options = {}) {
         if (schema.additionalProperties === false) { const hint = nearest(field, Object.keys(properties)); error("unknown-field", `${path}.${field}`, `"${field}" is not a field of ${ctx.prop ?? "this object"} (${Object.keys(properties).join(", ")}).`, hint ? { hint: `Did you mean "${hint}"?` } : {}); }
         else checkValue(item, {}, `${path}.${field}`, depth, scope, { ...ctx, prop: field });
       }
-      for (const field of schema.required ?? []) if (!(field in value)) error("required-field", `${path}.${field}`, `${ctx.prop ?? "this object"} needs "${field}".`);
+      // A required handler field (TableBulkAction.onClick) is filled by the renderer, which reports it as an action.
+      for (const field of schema.required ?? []) if (!(field in value) && resolve(properties[field])["x-kind"] !== "action") error("required-field", `${path}.${field}`, `${ctx.prop ?? "this object"} needs "${field}".`);
       return;
     }
     if (schema.type === "string" || schema.type === "number" || schema.type === "boolean") {

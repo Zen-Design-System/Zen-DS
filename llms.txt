@@ -8,6 +8,12 @@
 - [docs/getting-started.md](docs/getting-started.md): install, entry points, ZenProvider modes, dark mode, mobile, icons, fonts
 - [docs/guidelines/index.json](docs/guidelines/index.json): every component with purpose, use/avoid, compact props, Do/Don't and harness rules
 
+## AI-composed UI (runtime)
+
+- [docs/ai-ui/README.md](docs/ai-ui/README.md): the spec a model composes, the catalog, validation, lint, the renderer (`@zen-ds/react/ai-ui`), ops and Markdown
+- [docs/ai-ui/catalog.index.json](docs/ai-ui/catalog.index.json): tier 1 — every component in one line (purpose, prop names); [catalog.json](docs/ai-ui/catalog.json) is tier 2 (props as schema, bindings, Do/Don't)
+- [docs/ai-ui/composer-rules.md](docs/ai-ui/composer-rules.md): the prompt pack for the composing model
+
 ## Components
 
 - [Button & IconButton](docs/guidelines/button.md): Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button. Props: docs/api/button.json

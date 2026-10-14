@@ -262,6 +262,14 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- **AI UI runtime** (`@zen-ds/react/ai-ui`, 2026-10-14, branch `zen/feat/ai-ui-runtime-20261014`): the layer for UI a
+  model composes at run time (docs/ai-ui/README.md). A generated catalog (`docs/ai-ui/catalog.json`, 133 public
+  components: props as a JSON-Schema subset, controlled-pair bindings, required actions, stable / verified / experimental
+  status, page chrome flagged; `npm run ai-ui:build` / `ai-ui:check`), a spec format (nodes with `$ref`, `$state`,
+  `$action`, `$map`, `pending`), `validateSpec` (coded errors with hints), `toJsx` + `lintSpec` (the usage harness on a
+  spec, `@zen-ds/react/ai-ui/lint`), `<AiUi>` (renders with the real components, binds pairs to shared state, emits
+  actions, Skeletons while loading), `applyOps` (edits by node id) and `markdownToSpec`. Tests: `npm run ai-ui:selftest`,
+  `tests/ai-ui`.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

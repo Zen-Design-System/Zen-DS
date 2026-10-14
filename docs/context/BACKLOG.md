@@ -8,6 +8,19 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · AI UI: `verified` status is a heuristic (2026-10-14, user):** `tools/ai-ui/build-catalog.mjs` marks a component
+  `verified` when a Figma contract file or suite name matches its folder (41 components). Confirm the list or set it in
+  `tools/ai-ui/catalog.config.mjs` `STATUS_OVERRIDES`. Pointer: docs/ai-ui/README.md "Open decisions".
+- **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
+  node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
+- **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls
+  sideways in its own box (tests/ai-ui/narrow.test.tsx). Keep, or a compact mode that folds columns (Figma first)?
+- **P3 · AI UI: prose has no code block (2026-10-14, designer):** `markdownToSpec` renders fenced code as `Text as="code"`;
+  no mono text style or CodeBlock / Prose component exists. Needs Figma.
+- **P3 · AI UI: ChatReactorsPanel is experimental (2026-10-14, user):** its required `glyph` is a formatter function with
+  no JSON form (`unavailable` in the catalog). Give it a JSON form if chat reactions should be composable.
+- **P3 · AI UI: `data-ai-ui-id` on components that do not forward HTML attributes (2026-10-14):** the Skeletons (and any
+  part that keeps `...rest`) carry no id in the DOM; decide whether every component should forward `data-*`.
 - **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
   PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
   tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?

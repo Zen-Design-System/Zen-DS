@@ -386,3 +386,35 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   (`.studio-portal-root`), so a canvas modal only isolates other overlays in that layer. An app has no mark: unchanged.
 - Checks: shared-hooks "stays inside a data-zen-isolation-root" fails without the fix, passes with it; E2E overlays
   O-01–O-04 4/4; tsc.
+
+## AI UI runtime: catalog, spec, renderer (tier L, user: "Tách nhánh riêng đặt tên rồi làm. Không merge khi chưa có yêu cầu. Đảm bảo những thứ plan làm là những thứ chưa làm")
+
+- Context: the user's handoff for a conversational UI product (a person types anything, the UI for that context is composed
+  from Zen at run time and is interactive at once). Readiness read on the repo first: 65–70 % for a booking pilot, 55–60 %
+  for the open-ended case; the missing part was the runtime layer, and Zen Studio already held ~60 % of it (dialect tree,
+  renderPage, ops). Plan W1–W7 approved as a whole; branch `zen/feat/ai-ui-runtime-20261014` from `origin/main` (a04b390).
+- Checked "not already done" before each item: no `docs/specs`, no catalog or JSON schema anywhere, no library-level
+  renderer (Studio's is platform-only), `tools/studio/compile-api-build.mjs` derives only required functions. Reused its
+  type-text helpers' approach and `check-unions`' source resolver idea (own implementation in `tools/ai-ui/types.mjs`).
+- Built (docs/ai-ui/README.md has the detail): `tools/ai-ui/build-catalog.mjs` → `docs/ai-ui/{catalog.json, catalog.index.json,
+  spec.schema.json, composer-rules.md}` (133 public components, 52 shared types, 56 binding pairs, 41 verified, 2
+  experimental; decisions in `catalog.config.mjs`); `src/ai-ui/` = `@zen-ds/react/ai-ui` (spec helpers, `validateSpec`,
+  `toJsx`, `applyOps`, `markdownToSpec`, `<AiUi>` / `renderSpec`); `tools/ai-ui/lint.mjs` = `@zen-ds/react/ai-ui/lint`;
+  `npm run ai-ui:build / ai-ui:check / ai-ui:selftest`; CI step; `vite.lib.config.ts` entry, `tsconfig.build.json`,
+  `build-lib-types.mjs` copies the `.d.mts`, package exports and files; `examples/consumer-smoke/ssr.mjs` renders a spec
+  in Node (verify:package).
+- Decisions made on the way (to confirm, BACKLOG "AI UI"): spec = Zen's own node tree with `$ref` / `$state` / `$action` /
+  `$map` / `pending` markers (the Studio dialect's shape, so Studio and the runtime can share it); props excluded by name
+  (`className`, `style`, `overrides`, `ref`, `key`, `state`) and by type (refs, element types, CSS, formatters); a documented
+  `id` prop stays (SidebarMenuItem); HTML attributes admitted per `extends`; `value` / `defaultValue` written out from
+  `on<X>Change`; auto-binding by node id for `value`, `checked`, `open`, `page`, `range`, `expanded`, `selected`; a required
+  prop with no JSON form makes the component `experimental`; a required handler field inside an object (TableBulkAction
+  `onClick`) is never required in a spec (the renderer emits it as an action); bound props fall back to the component's
+  own default (DatePicker `open` = true) so controlled components never flip.
+- Gates: tsc, `usage:check` (457 files, 200 rules, 1 pre-existing warning), `guidelines:check`, `style:check`, `ai-ui:check`,
+  `ai-ui:selftest` (24 checks), `tests/ai-ui` 137 passed / 13 skipped, `tests/smoke` + content-tone + scale 394 passed,
+  `verify:package` OK (13 entry points, tsc with skipLibCheck:false on the `.d.mts`). Browser tests ran on the sandbox's
+  Chromium 1194 through a symlink for Playwright's 1243 (download blocked); no repo change for that.
+- Fixed on the way: `tests/smoke/fixtures.tsx` Sidebar fixture carried a stray `id` on a section (the type has none).
+- Findings: a 4-column Table needs ~608 px and scrolls sideways inside its own box at 600 / 390 px; `data-ai-ui-id` does
+  not reach the DOM on the Skeletons; fenced code has no code-block component. BACKLOG lines added; no PR opened.

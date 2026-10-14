@@ -8,5 +8,5 @@
     "rootDir": "src"
   },
   "include": [],
-  "files": ["src/index.ts", "src/icons/all.ts", "src/icons/names.ts", "src/tokens/index.ts", "src/vite-env.d.ts"]
+  "files": ["src/index.ts", "src/icons/all.ts", "src/icons/names.ts", "src/tokens/index.ts", "src/ai-ui/index.ts", "src/vite-env.d.ts"]
 }

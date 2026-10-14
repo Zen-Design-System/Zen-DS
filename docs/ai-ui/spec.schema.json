@@ -1955,22 +1955,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -3118,6 +3125,16 @@
           "props": {
             "type": "object",
             "properties": {
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
               "label": {
                 "anyOf": [
                   {
@@ -6653,22 +6670,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
+                        "$ref": "#/$defs/CardSubAction"
                       }
                     ]
                   },
@@ -7913,6 +7937,17 @@
                   }
                 ],
                 "description": "Figma Bubble-*-Content: plain text is wrapped in a text bubble; pass ChatFile / ChatCall / ChatPhotos as-is."
+              },
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Message id (→ data-message-id): lets a reply's quote jump back to this message."
               },
               "replyTo": {
                 "anyOf": [
@@ -9548,22 +9583,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -10996,22 +11038,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -12658,22 +12707,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -13557,22 +13613,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -14463,6 +14526,17 @@
           "props": {
             "type": "object",
             "properties": {
+              "form": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/FormSubmitSource"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The state from `useFormState()`."
+              },
               "onSubmit": {
                 "anyOf": [
                   {
@@ -14887,22 +14961,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -14941,6 +15022,17 @@
                   }
                 ],
                 "description": "Figma Label `Action`: a right-aligned link or text button (\"Reset to default\")."
+              },
+              "controlId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "id given to the control (default: generated)."
               },
               "children": {
                 "anyOf": [
@@ -17696,22 +17788,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -17912,22 +18011,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -19767,6 +19873,17 @@
           "props": {
             "type": "object",
             "properties": {
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Stable id, handed back to the Menu's `onSelect`."
+              },
               "label": {
                 "anyOf": [
                   {
@@ -20483,22 +20600,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
+                        "$ref": "#/$defs/CardSubAction"
                       }
                     ]
                   },
@@ -22008,22 +22132,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -24217,6 +24348,16 @@
           "props": {
             "type": "object",
             "properties": {
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
               "size": {
                 "anyOf": [
                   {
@@ -24461,22 +24602,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -25456,22 +25604,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -26721,21 +26876,31 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "array",
                         "items": {
-                          "$ref": "#/$defs/child"
+                          "$ref": "#/$defs/SidebarItem"
                         }
                       }
                     ]
@@ -26745,6 +26910,17 @@
                   }
                 ],
                 "description": "Nested rows (Figma Level=Child): `<SidebarMenuItem>` children, or a `SidebarItem[]`."
+              },
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Unique among the Sidebar's rows: `selectedId` and `onItemClick` name the row by it."
               },
               "label": {
                 "anyOf": [
@@ -26929,6 +27105,7 @@
               }
             },
             "required": [
+              "id",
               "label"
             ],
             "additionalProperties": false
@@ -30318,6 +30495,17 @@
                 ],
                 "description": "Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes does not move the text around it."
               },
+              "htmlFor": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "For `as=\"label\"`."
+              },
               "children": {
                 "anyOf": [
                   {
@@ -30530,22 +30718,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -31192,22 +31387,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
                         "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
                       }
                     ]
                   },
@@ -32391,22 +32593,29 @@
                   {
                     "anyOf": [
                       {
-                        "type": "string"
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/$defs/child"
+                            }
+                          }
+                        ]
                       },
                       {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      },
-                      {
-                        "$ref": "#/$defs/node"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/$defs/child"
-                        }
+                        "$ref": "#/$defs/TopNavigationAction"
                       }
                     ]
                   },
@@ -32812,6 +33021,17 @@
                   }
                 ],
                 "description": "With `as=\"a\"`: the link target, e.g."
+              },
+              "htmlFor": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `as=\"label\"`: the id of the control it labels."
               },
               "children": {
                 "anyOf": [
@@ -33475,6 +33695,16 @@
                   }
                 ],
                 "description": "Where toasts from useToast() appear (the outermost provider hosts them; nested providers share it)."
+              },
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
               },
               "children": {
                 "anyOf": [
@@ -34646,6 +34876,16 @@
       "required": [
         "label"
       ],
+      "additionalProperties": false
+    },
+    "FormSubmitSource": {
+      "type": "object",
+      "properties": {
+        "isSubmitting": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
       "additionalProperties": false
     },
     "GridTracks": {
@@ -35978,7 +36218,7 @@
       "required": [
         "id"
       ],
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "TopNavigationAction": {
       "type": "object",
