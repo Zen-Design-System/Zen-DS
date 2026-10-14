@@ -270,9 +270,9 @@ function BillingPeriodExample() {
           <Heading level={4} textStyle="Heading/Subheading">{`${plan.name} plan`}</Heading>
           <Text textStyle="Body/Small/Regular" tone="base">{`${studio.workspace} · ${plural(seats, "seat")}`}</Text>
         </Stack>
-        {/* Primary: the period is the one decision on this card. */}
+        {/* Secondary: the form's submit is this card's one Primary; the switch only previews the price. */}
         <Stack align="start">
-          <Segmented level="primary" aria-label="Billing period" value={period} onValueChange={(id) => setPeriod(id as Billing)} options={[
+          <Segmented level="secondary" aria-label="Billing period" value={period} onValueChange={(id) => setPeriod(id as Billing)} options={[
             { id: "monthly", label: "Monthly" },
             { id: "yearly", label: "Yearly" },
           ]} />
@@ -475,13 +475,13 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Billing period",
-    description: "Primary gives the switch more weight when it is the card's one decision. It only previews the price; the form's submit, Switch to yearly, commits it and a Toast offers Undo, while Cancel goes back to the current period.",
+    description: "Secondary keeps the switch calm beside the form's Primary submit: it only previews the price; the form's submit, Switch to yearly, commits it and a Toast offers Undo, while Cancel goes back to the current period.",
     render: () => <BillingPeriodExample />,
     code: `const [billing, setBilling] = useState("monthly"); // what the workspace pays today
 const [period, setPeriod] = useState("monthly");   // what the switch previews
 
 <Form onSubmit={() => switchTo(period)} gap="md">
-  <Segmented level="primary" aria-label="Billing period" value={period} onValueChange={setPeriod} options={[
+  <Segmented level="secondary" aria-label="Billing period" value={period} onValueChange={setPeriod} options={[
     { id: "monthly", label: "Monthly" },
     { id: "yearly", label: "Yearly" },
   ]} />

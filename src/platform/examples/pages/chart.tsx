@@ -524,7 +524,7 @@ function PhoneWeekGaugeExample() {
       header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
       <Stack gap="lg" padding="lg">
         <Stack as="section" gap="md" aria-labelledby={gaugeId}>
-          <Heading level={2} id={gaugeId} textStyle="Heading/Subheading">Hours logged</Heading>
+          <Heading level={2} id={gaugeId} textStyle="Heading/Subheading" align="center">Hours logged</Heading>
           <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={weekLogged} max={weekHours} format={hours} actualLabel="Logged"
             caption={`${hours(weekHours - weekLogged)} to go`} />
         </Stack>
@@ -970,7 +970,7 @@ const retry = () => {
   header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
   <Stack gap="lg" padding="lg">
     <Stack as="section" gap="md" aria-labelledby={gaugeId}>
-      <Heading level={2} id={gaugeId} textStyle="Heading/Subheading">Hours logged</Heading>
+      <Heading level={2} id={gaugeId} textStyle="Heading/Subheading" align="center">Hours logged</Heading>
       <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={18} max={40} format={hours} actualLabel="Logged" caption="22 h to go" />
     </Stack>
     {/* … the week's entries: a ListBox under a Body/Small/Bold kicker */}
