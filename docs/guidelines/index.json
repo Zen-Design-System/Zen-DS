@@ -205,14 +205,16 @@
       "title": "Input fields",
       "file": "docs/guidelines/input.md",
       "apiFile": "docs/api/input.json",
-      "figma": "Input/Text-Field, Select-Field, Date-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)",
-      "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+      "figma": "Input/Text-Field, Select-Field, Date-Field, Color-Field, Inline-Field, Number-Align-Left/Center, Text-Area, Autocomplete-Field, Heading (page 373:97258)",
+      "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "use": [
         "Free text → InputField.",
         "Long text → TextAreaField.",
         "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
         "Dates → DateField.",
+        "Any colour → ColorField (it opens ColorPicker).",
+        "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
         "Quantities → NumberField (steppers).",
         "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
         "Formatted long text (announcements, descriptions) → RichTextField."
@@ -238,6 +240,7 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
@@ -258,6 +261,7 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "options?: SelectFieldOption[] = []",
@@ -289,6 +293,7 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
@@ -299,6 +304,30 @@
           "minDate?: Date",
           "maxDate?: Date",
           "today?: Date"
+        ],
+        "ColorField": [
+          "value?: string",
+          "defaultValue?: string",
+          "onValueChange?: (value: string) => void",
+          "colorPicker?: boolean = true",
+          "pickerFormat?: hex|rgb|hsl|hsb",
+          "savedColors?: string[]",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLInputElement>"
         ],
         "NumberField": [
           "align?: left|center = left",
@@ -324,6 +353,7 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLInputElement>"
@@ -439,6 +469,7 @@
         "input/needs-label",
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
+        "color-picker/hex-value",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
@@ -1153,6 +1184,7 @@
           "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
           "leading?: IconName|ReactNode",
           "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "onValueChange?: (value: string) => void",
@@ -2612,7 +2644,7 @@
         "Brand or theme accent choices in settings."
       ],
       "avoid": [
-        "Free colour input (any hex) → a colour field with a picker.",
+        "Free colour input (any hex) → ColorField (it opens ColorPicker).",
         "Status that must mean something → a semantic Badge theme, chosen by the system."
       ],
       "props": {
@@ -2642,6 +2674,94 @@
         "rating/needs-name",
         "color-selector/token-values",
         "api/deprecated-prop",
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
+      ]
+    },
+    {
+      "slug": "color-picker",
+      "title": "Color Picker",
+      "file": "docs/guidelines/color-picker.md",
+      "apiFile": "docs/api/color-picker.json",
+      "figma": "Input/Color-Field, Color-Picker, .Primitives/Input/Color-Swatch (page 373:97258)",
+      "import": "import { ColorPicker, ColorField, ColorSwatch } from \"@zen-ds/react\";",
+      "purpose": "Pick or type any colour. ColorField is the Input field (a swatch and the hex) that opens ColorPicker under it; ColorPicker is the panel itself (the saturation × brightness area, the hue, a Format select with its channels, saved colours), inline by default; ColorSwatch is the colour chip that shows a value.",
+      "use": [
+        "Brand, theme, chart or shadow colours where any value is allowed (ColorField in a form or settings).",
+        "A property panel or inspector: ColorField layout=\"inline\" (the label inside the field, the swatch after the hex).",
+        "An always-open picker in a panel: an inline ColorPicker; under your own trigger pass open, onOpenChange and anchorRef.",
+        "Showing a colour value next to its name (a legend, a table cell): ColorSwatch with an aria-label."
+      ],
+      "avoid": [
+        "A small curated set (labels, tags, series) → ColorSelector.",
+        "A colour that must mean something (status) → a semantic Badge theme chosen by the system.",
+        "Picking a Zen token for a component → its theme or color prop, not a free colour."
+      ],
+      "props": {
+        "ColorPicker": [
+          "value?: string",
+          "defaultValue?: string = #000000",
+          "onValueChange?: (value: string) => void",
+          "format?: hex|rgb|hsl|hsb",
+          "defaultFormat?: hex|rgb|hsl|hsb = hex",
+          "onFormatChange?: (format: ColorFormat) => void",
+          "savedColors?: string[] = []",
+          "open?: boolean = true",
+          "onOpenChange?: (open: boolean) => void",
+          "onClose?: () => void",
+          "anchorRef?: RefObject<HTMLElement|null>",
+          "aria-label?: string",
+          "aria-labelledby?: string",
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ColorField": [
+          "value?: string",
+          "defaultValue?: string",
+          "onValueChange?: (value: string) => void",
+          "colorPicker?: boolean = true",
+          "pickerFormat?: hex|rgb|hsl|hsb",
+          "savedColors?: string[]",
+          "label?: ReactNode",
+          "helpText?: ReactNode",
+          "labelOptional?: boolean",
+          "labelTooltip?: boolean|ReactNode",
+          "labelAction?: ReactNode",
+          "helpTheme?: neutral|negative|warning|positive",
+          "helpIcon?: boolean",
+          "characterLimit?: ReactNode|true",
+          "error?: ReactNode",
+          "errorMessage?: ReactNode (deprecated)",
+          "state?: default|hover|focused|typing|inputted|read-only|disabled|inputted-error|blank-error|error",
+          "trailing?: IconName|ReactNode",
+          "layout?: stacked|inline",
+          "className?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLInputElement>"
+        ],
+        "ColorSwatch": [
+          "color: string",
+          "size?: sm|md|lg|small|medium|large = md",
+          "aria-label?: string",
+          "ref?: Ref<HTMLSpanElement>"
+        ]
+      },
+      "do": [
+        "Give ColorField a label that names what the colour is for (\"Brand colour\"), not \"Colour\".",
+        "Keep the picker's saved colours to the palette people reuse (the brand, the last picks), 6 at most so they fit one row.",
+        "Pass hex values (\"#1F6FEB\") to value and savedColors; store the hex the field returns."
+      ],
+      "dont": [
+        "Don't use ColorField to pick a status or a Zen token: those come from the system (harness: color-picker/hex-value).",
+        "Don't pass a CSS colour name, rgb() or a token as ColorField or ColorPicker value: the field shows and returns a hex (harness: color-picker/hex-value).",
+        "Don't place a ColorSwatch as the only cue of meaning; name it or show the value beside it."
+      ],
+      "rules": [
+        "input/needs-label",
+        "input/placeholder-not-label",
+        "color-picker/hex-value",
+        "api/deprecated-prop",
+        "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]

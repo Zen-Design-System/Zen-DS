@@ -1,0 +1,71 @@
+/* Figma Color-Picker (15708:5927): Popover/Background, Popover/Border 1px, Effect/Popover, Corner-Radius/Large,
+   padding Spacing/Padding/Small (12, minus the 1px border), gap Spacing/Gap/Small between Area, Hue, Value and Saved. */
+.zen-color-picker {
+  position: absolute;
+  z-index: 40;
+  display: flex;
+  width: 240px;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: var(--zen-spacing-gap-small, 12px);
+  padding: calc(var(--zen-spacing-padding-small, 12px) - 1px);
+  border: 1px solid var(--zen-popover-border, var(--zen-color-border-popover-subtle));
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: var(--zen-popover-background, var(--zen-color-background-popover-default));
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+/* Inline (no onClose / onOpenChange / anchorRef): a panel in the flow of its container, without the popover surface. */
+.zen-color-picker[data-placement="inline"] { position: relative; z-index: auto; width: 100%; min-width: 216px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+
+/* Saturation area: the hue, white → transparent to the right, transparent → black upwards. Corner-Radius/XSmall is
+   concentric with the panel (Large 16 − Padding/Small 12).
+   zen-allow-raw-colour: the saturation × brightness area is the colour space itself (pure white and black over the
+   picked hue), not a themed surface; it must not change with Light/Dark. */
+.zen-color-picker__area {
+  position: relative;
+  height: 160px;
+  flex: none;
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: linear-gradient(to top, rgb(0 0 0), rgb(0 0 0 / 0%)), linear-gradient(to right, rgb(255 255 255), rgb(255 255 255 / 0%)), var(--zen-color-picker-hue, rgb(255 0 0));
+  cursor: crosshair;
+  touch-action: none;
+}
+.zen-color-picker__area:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 2px; }
+/* The handle is the Slider's knob (Figma .Primitives/Slider/Slide-Dot Style=White, Medium): 20px, Background/White. */
+.zen-color-picker__handle {
+  position: absolute;
+  width: var(--zen-element-size-popular-base, 20px);
+  height: var(--zen-element-size-popular-base, 20px);
+  box-sizing: border-box;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-color-background-white-solid-default, #fff);
+  /* zen-allow-raw-shadow: Slide-Dot's Medium Thumb (6455:2141) carries a local drop shadow, not an Effect style: 0 0 4
+     in Color/Shadow/Neutral/Strong, as the Slider knob (slider.css). */
+  box-shadow: 0 0 4px var(--zen-color-shadow-neutral-strong);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+/* zen-allow-raw-shadow: the same Slide-Dot thumb shadow plus a 3px Focus/Neutral/Subtle ring. */
+.zen-color-picker__area:focus-visible .zen-color-picker__handle { box-shadow: 0 0 4px var(--zen-color-shadow-neutral-strong), 0 0 0 3px var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); }
+
+/* Hue: Slider Theme=White with no filled part; its track is the spectrum, red held half a thumb at each end so 0° and
+   360° sit where the thumb centre stops (thumb centre = dot/2 + value × (width − dot)). */
+.zen-color-picker .zen-color-picker__hue { --zen-slider-fill: transparent; min-width: 0; }
+/* zen-allow-raw-colour: the hue spectrum is the colour space itself, not a themed surface. */
+.zen-color-picker .zen-color-picker__hue .zen-slider__rail {
+  background: linear-gradient(to right, rgb(255 0 0) calc(var(--zen-slider-dot, 24px) / 2), rgb(255 255 0), rgb(0 255 0), rgb(0 255 255), rgb(0 0 255), rgb(255 0 255), rgb(255 0 0) calc(100% - var(--zen-slider-dot, 24px) / 2));
+}
+
+/* Value: the Format select and that format's channels, Spacing/Gap/XSmall apart. */
+.zen-color-picker__value,
+.zen-color-picker__saved { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Fields align to the start of a column by default (input.css); the Format row spans the panel, as in Figma. */
+.zen-color-picker__value > .zen-input-field { align-self: stretch; }
+.zen-color-picker__channels { display: flex; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-color-picker__channels > * { min-width: 0; flex: 1 1 0; }
+/* Saved: Body/Small/Medium in Content/Neutral/Light (the Popover label), then the swatches spread across the width:
+   Figma lays the six 32px Color-Selectors out space-between in 216px (≈ 5px apart), so their gap drops to
+   Spacing/Gap/2XSmall here; a seventh wraps to a second row. */
+.zen-color-picker__saved-label { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-color-picker__saved .zen-color-selector { justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); }

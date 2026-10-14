@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "input",
-  "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+  "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "InputField",
@@ -120,6 +120,14 @@
           "required": false,
           "default": null,
           "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -273,6 +281,14 @@
           "required": false,
           "default": null,
           "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -517,6 +533,14 @@
           "deprecated": null
         },
         {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,
@@ -594,6 +618,199 @@
           "required": false,
           "default": null,
           "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty.\nDefault: the device clock.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ColorField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field anatomy (Label → Field → Help-Text) with\na ColorSwatch before the hex (after it with `layout=\"inline\"`, Figma Input/Inline-Field Type=Color); the swatch size\nfollows the field's leading icon (sm 16 in Small, md 20 in Medium and Large, lg 24 in XLarge). A click in the field or\nArrowDown opens ColorPicker under it (State=Focused while open); Escape closes it and leaves focus in the field.\nTyping edits the hex: six digits apply at once, a shorter one on Enter or blur, anything else goes back to the colour.\nThe picker is the same popover on every device (Figma has no mobile pattern for it yet).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The colour as a hex value (`\"#1F6FEB\"`; 3-digit and lowercase are read too). Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with `\"#RRGGBB\"` when the field holds a new complete colour: a pick in the picker, six typed digits, or a\nshorter hex completed on Enter or blur.",
+          "deprecated": null
+        },
+        {
+          "name": "colorPicker",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Open ColorPicker under the field (default true) on a click in the field or ArrowDown; false: a hex field with its swatch.",
+          "deprecated": null
+        },
+        {
+          "name": "pickerFormat",
+          "type": "\"hex\" | \"rgb\" | \"hsl\" | \"hsb\"",
+          "required": false,
+          "default": null,
+          "description": "The Format the picker opens on: `hex` (default), `rgb`, `hsl` or `hsb`; the person can switch it there.",
+          "deprecated": null
+        },
+        {
+          "name": "savedColors",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "Saved colours in the picker, as hex values (Figma Color-Picker `Saved`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": false,
+          "default": "\"md\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
           "deprecated": null
         }
       ]
@@ -787,6 +1004,14 @@
           "required": false,
           "default": null,
           "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
