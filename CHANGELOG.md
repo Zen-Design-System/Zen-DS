@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Figma library: the six property-panel sets (Input/Inline-Field, Input/Color-Field, Color-Picker,
+  .Primitives/Input/Color-Swatch, Slider/Field, Chart/Curve-Preview) carry Zen descriptions with their code component
+  (`tools/figma-docs`), no longer "Draft, not yet in code".
 - Segmented follows the live Figma (2026-10-14): items are 4px taller (`Segmented/Size` Medium 36 / 44, Small 28 / 36)
   in a track padded by Spacing/Padding/3XSmall (2px), so the control keeps its outer height; `level="primary"` has an
   outlined track (no fill, 2px Border/Neutral/Subtle ring). `Segmented/Size/XSmall` is removed (Figma deleted it, nothing

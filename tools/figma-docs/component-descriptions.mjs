@@ -364,6 +364,18 @@ export const componentDescriptions = {
     props: [["Theme", "Neutral · Accent · White (on imagery)"], ["Size", "Small · Medium · Large"], ["State", "Default · Hover · Hold · Disabled"]],
     code: "`<Slider>`",
   }),
+  "Slider/Field": card({
+    what: "A number field that is also a slider: the whole field is the track, the Fill shows the value inside min–max, the label sits left and the number right. Drag anywhere to scrub (State=Dragging), click to type an exact number (State=Typing, the fill hides), arrow keys step.",
+    use: ["Tuning values in dense property panels and inspectors: offset, scale, opacity, duration, bounce.", "Rows beside Input/Inline-Field: the same height, radius and label position."],
+    instead: ["A value tuned by feel, with no number to read → Slider/Horizontal.", "An exact quantity with steppers in a form → Input/Number field.", "2–5 named options → Segmented."],
+    props: [["Theme", "Neutral (Background/Neutral/Subtle fill) · Accent (Background/Accent/Subtle)"], ["Size", "Medium 40 · Small 32, the Input sizes and tokens"], ["State", "Default · Hover · Dragging · Typing · Disabled"], ["Label · Value", "text properties: what it changes, and the number with its unit (\"2 px\", \"0.50 s\", \"60%\")"]],
+    rules: [
+      "Set the value with the Track frame padding-right: the remaining share × the width (60% of 320 → 128), as Slider/Horizontal sets its Track-Wrapper.",
+      "Pick min, max and step so the fill means something: the whole field is the range.",
+      "The border is a top \"Border\" layer (same radius, inside stroke), not the root stroke: a root stroke would clip the Fill 1px inside the edge and leave a gap at the corners.",
+    ],
+    code: "`<SliderField>`",
+  }),
 
   // ❖ Sidebar
   "Side-Bar/Master/Basic": card({
@@ -681,6 +693,50 @@ export const componentDescriptions = {
   "Input-Conditions": card({ what: "A checklist of rules under a field (password strength, requirements), each met, unmet or wrong.", code: "`<InputConditions>`" }),
   "Primitives/Input/Input-Conditions/Condition-Item": part("One rule of Input-Conditions (Default, Success, Wrong).", "Input-Conditions"),
   "Control-Bar/Select-Item": part("One option of a field's leading or trailing picker (units, country codes).", "the Input/* fields"),
+  "Input/Inline-Field": card({
+    what: "A one-line field for dense property panels and inspectors: the label sits inside the box (left) and the value on the right, as text, an option or a colour. Built on .Primitives/Input/Field-Only, so its states and sizes follow the Input family.",
+    use: ["Property panels and inspectors (a tweak panel, layer or widget settings) where a stacked Label → Field → Help-Text would double the height.", "Rows beside Slider/Field: the same height, radius and label position."],
+    instead: ["Forms people fill once → Input/Text-Field, Input/Select-Field or Input/Color-Field (label above).", "Numbers people drag → Slider/Field.", "On/off → Toggle.", "2–5 options → Segmented."],
+    props: [["Type", "Text (free text) · Select (opens the Popover of options; chevron) · Color (the hex and a Color-Swatch; opens Color-Picker)"], ["State", "Inputted (rest) · Hover · Typing (editing, cursor) · Disabled"], ["Size", "Medium 40 · Small 32"]],
+    rules: [
+      "The label is the text in the Leading slot (Content/Neutral/Base) and the value is the Content text (right-aligned): edit both texts directly.",
+      "Group rows per section, Spacing/Gap/XSmall apart; the section title sits 12 above its rows (the Accordion's own gap).",
+    ],
+    code: "`<InputField layout=\"inline\">` · `<SelectField layout=\"inline\">` · `<ColorField layout=\"inline\">`",
+  }),
+  "Input/Color-Field": card({
+    what: "Pick or type one colour (any hex): the field shows the value as a Color-Swatch (leading) and its hex; clicking it opens Color-Picker under the field (State=Focused), typing edits the hex (State=Typing).",
+    use: ["Brand, theme, chart or shadow colours where any value is allowed, in a form or settings."],
+    instead: ["A small curated set (labels, tags, series) → Color-Selector.", "A colour that must mean something (status) → a semantic Badge theme chosen by the system.", "A dense property panel → Input/Inline-Field Type=Color.", "A Zen token for a component → its Theme or Color property, not a free colour."],
+    props: [["Label · Help-Text", "booleans, as Input/Text-Field (Label → Field → Help-Text)"], ["Size", "Small · Medium (Base) · Large · XLarge, the Input sizes"], ["State", "Inputted · Hover · Focused (the picker open) · Typing · Disabled · Inputted-Error"]],
+    rules: [
+      "The Color-Swatch fill is the value: override it on the instance (the one fill override Zen allows).",
+      "The label names what the colour is for (\"Brand colour\"), not \"Colour\".",
+      "Hex values are upper-case with a # (\"#1F6FEB\").",
+    ],
+    code: "`<ColorField>`",
+  }),
+  "Color-Picker": card({
+    what: "The panel that picks any colour, under Input/Color-Field (or Input/Inline-Field Type=Color) or open inside a panel: drag in the Saturation area (saturation → right, brightness → up), pick the hue on the Hue slider, type the value in the channels of its Format, or reuse a Saved colour.",
+    instead: ["A few fixed colours → Color-Selector.", "A Zen token for a component → its Theme or Color property."],
+    props: [["Format", "Hex · RGB · HSL · HSB: the Format select (Inline-Field Type=Select, a Popover with the four) and the channels of that format (Inline-Field Type=Text, the channel letter inside: # · R G B · H S L · H S B)"], ["Saved", "boolean: the row of saved colours (Color-Selector), 6 at most so they fit one row"]],
+    rules: [
+      "Built from Zen parts: the Popover container tokens (Popover/Background, Popover/Border, Effect/Popover, Corner-Radius/Large), Slider/Horizontal (White, Medium) as the Hue slider, .Primitives/Slider/Slide-Dot (White) as the saturation handle, Color-Selector for saved colours.",
+      "The saturation area and the hue spectrum are the colour space itself, so their gradients are raw colours by design (the saturation base takes the picked hue); the Hue track spectrum is its one paint override.",
+    ],
+    code: "`<ColorPicker>`, inline by default; a Popover with open, onOpenChange and anchorRef",
+  }),
+  ".Primitives/Input/Color-Swatch": card({
+    what: "The colour chip that shows a colour value: inside Input/Color-Field, Input/Inline-Field Type=Color and Color-Picker, or next to a colour name (a legend, a table cell).",
+    props: [["Size", "the field leading icon: Small 16 (Element-Size/Popular/Small) in Small fields · Medium 20 (Popular/Base) in Medium and Large fields · Large 24 (Popular/Medium) in XLarge fields"]],
+    rules: [
+      "Its fill IS the value: override the fill of the swatch instance (the only fill override Zen allows; the value is content, like a photo), as Color-Selector does.",
+      "One shape: the fill and the inside border (Border/Neutral/Subtle, keeps white or canvas-coloured values visible) sit on one layer, so the corners never show a gap.",
+      "Radius is concentric with the field: the field radius minus the swatch inset (Small 12 − 8 = 4, Corner-Radius/XSmall; Medium 12 − 10 = 2, Corner-Radius/2XSmall; Large and XLarge Corner-Radius/2XSmall).",
+      "Never the only cue of meaning: name it or show the value beside it.",
+    ],
+    code: "`<ColorSwatch>`",
+  }),
 
   // ❖ Voice
   "Voice Recorder": card({
@@ -697,6 +753,17 @@ export const componentDescriptions = {
   }),
 
   // ❖ Chart (the newer chart sets keep their specific descriptions)
+  "Chart/Curve-Preview": card({
+    what: "A picture of a motion curve: how a value moves from its start (bottom left) to its target (the dashed line) over time, left → right: a spring, a bounce or an easing curve. Not a control, and not data.",
+    use: ["Above the motion settings it previews (Type, Duration, Bounce) in a property panel, so people see the effect of a change at once.", "Comparing easing choices side by side."],
+    instead: ["Data over time → Chart/Line-Chart.", "A progress value → Progress.", "Choosing the curve → Segmented or Input/Select-Field next to the preview."],
+    props: [["Type", "Spring (light damping, about 4% overshoot) · Bounce (visible overshoot) · Ease-Out (Zen emphasized curve, cubic-bezier .16 1 .3 1) · Ease-In-Out (.65 0 .35 1)"]],
+    rules: [
+      "Grid lines Border/Neutral/Pale (as the charts), the target dashed Border/Neutral/Subtle, the curve Content/Neutral/Strongest 2px; the surface uses the Input tokens so it sits with fields.",
+      "The Curve vector scales with the frame (constraints Scale): let it take the panel width; the height stays 176.",
+    ],
+    code: "`<CurvePreview>`",
+  }),
   "Chart/Chart-Card": card({
     what: "The frame of a dashboard chart: title, range switch and the chart, beside Metric-Cards.",
     instead: ["One number → Metric-Card.", "Exact values to compare or export → Table.", "More than about seven series → split the chart."],
@@ -746,4 +813,6 @@ export const componentDescriptions = {
  * one-line placeholders). A description that matches none of these is kept unless its set is listed in FORCE.
  */
 export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualization elements/, /^Purpose-specific voice component/, /^\s*$/];
-export const FORCE = new Set([]);
+// Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
+// 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55.
+export const FORCE = new Set(["Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview"]);
