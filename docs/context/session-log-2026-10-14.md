@@ -147,3 +147,32 @@
   overrode every developer's login → E401, reproduced); `zen-ds doctor` flags any token line. Spinner, Yarn 2+, Docker notes.
 - Open: R2 backups (no backup.env yet), uptime check, `npm deprecate` of public @zen-ds/react 0.1.0, where customers see
   their licence id (question for the user).
+
+## Figma plugin: Import from Studio set no property in Figma (tier M, user: "Bug import. Bạn phải test kỹ phần này"; plugin repo `~/Documents/zen-ds-figma-plugin-main`)
+
+- User's frame (Studio exports › Dashboard 15617:100928, from `~/Downloads/dashboard-5.figma.json`): every variant,
+  boolean and icon property at its default (Avatars 3XLarge, Dashboard Header Control-Bar sample rows, Button XLarge,
+  home icons, black badges, "TITLE" headers, Footer). Texts were set.
+- Cause: the manifest's `documentAccess: "dynamic-page"` makes Figma throw on `instance.mainComponent`. studio-import.js
+  read it in try/catch since its first version (53d42d2), so `setOf` was null: no property set (338 notes "X is not a
+  property of its component"), no `swapIcon`, and every re-import made new instances (`setOf(existing) === …` false).
+  `use_figma`, the live test bed, does not enforce dynamic-page (`figma.getNodeById` works there), so every earlier live
+  test passed.
+- Fix (plugin): `mainOf` / `setOf` read `getMainComponentAsync`; `nestedAt` and `applyIcon` async; layers compared by
+  id (`sameNode`); `setTextStyleIdAsync` only; the exports page loaded before reading its layers.
+  Tests: the mock throws on the sync getter/setter as Figma does (old code fails: properties `{}`), and
+  `plugin-source-safety` bans sync dynamic-page APIs in studio-import.js. `npm test` passes, and dist is rebuilt (backup
+  `backups/zen-ds-dist-before-dynamic-page-import-fix-*.tgz`).
+- Live (Zen file, QA frames with page ids `qa-…`, removed after; package stored in shared plugin data, importer minified):
+  - T1: the user's own package imports with every property (Avatars 32/40, Header rows, badge colours, metric icons).
+  - T2: re-import gives 0 created, 138 updated, 0 removed, 1217/1217 layers identical.
+  - T3: the old importer with its sync reads emulated as failing reproduced the user's picture exactly. Importing
+    that frame again with the fix matches T1 on 1217 layers (only 7 hidden Trailing layers 40×40 vs 40×56).
+- Found while testing, fixed (push/pull, Zen-DS):
+  - A Table `photo` cell without a picture is now Avatar-Cell with a Square Avatar. Figma's Photo-Cell holds a Photo
+    rectangle, so "Photo-Cell › Avatar: no such nested instance" ×8 and the sample photo. Pull reads it back as photo.
+  - MetricCard `custom` now goes to Metric-Inline's Custom-Slot (the note said "no Figma slot"; the empty slot made the
+    card taller). Selftests: push 201, pull 53, new checks fail on the old code. Live T4/T5: 0 notes; re-import gives
+    3 created (the custom layers), 139 updated.
+- Not fixed (BACKLOG P3): a Grid in a Grid cell does not stretch to its row in Figma; Swap Project Colors' sync
+  `getVariableById`. Charts still draw Figma's sample data (BACKLOG P2, awaiting scope).

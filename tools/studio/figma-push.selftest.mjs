@@ -325,6 +325,15 @@ export default function Page() {
   const metric = metricCard.slots[0].children[0];
   check("MetricCard: a Card (Shadow, no ⋮) around Metric-Inline, its Label and Metric-Number, Trend, Dock-Icon and Action on", { card: [metricCard.set.name, metricCard.props.Theme, metricCard.props["Sub-Action"]], metric: [metric.set.name, metric.texts, metric.props.Trend, metric.props["Dock-Icon"], metric.props.Action] }, { card: ["Card", "Shadow", false], metric: ["Primitives/Metric/Metric-Inline/Title-Highlight", { Label: "Revenue", "Metric-Number": "$541.4K" }, true, true, true] });
   check("MetricCard: its trend badge, Dock Icon (its background written too: Metric's Subtle) and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", Background: "Subtle", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
+  // MetricCard custom (2026-10-14: Custom was on and its Custom-Slot empty, the card taller than its row with nothing in it).
+  const CUSTOM = DASH.replace("import { AppShell,", "import { ProgressBar, AppShell,").replace('aria-label="Revenue breakdown" />} />', 'aria-label="Revenue breakdown" />} custom={<Stack gap="xs"><Text>Goal</Text><ProgressBar value={60} label aria-label="Goal" /></Stack>} />');
+  const customPush = push(CUSTOM);
+  const customMetric = find(customPush.frame, (node) => node.set?.name === "Primitives/Metric/Metric-Inline/Title-Highlight");
+  const customSlot = customMetric.slots?.find((slot) => slot.name === "Custom-Slot");
+  check("MetricCard custom: Custom on, its content one frame (its own Stack, Gap/XSmall) filling Custom-Slot", [customMetric.props.Custom, customSlot?.children.map((child) => [child.type, child.layout?.gap, child.fillW, child.children.length])], [true, [["FRAME", 8, true, 2]]]);
+  ok("MetricCard custom: no note that it has no Figma slot", !customPush.notes.some((note) => /custom holds layers/.test(note)));
+  const customBack = pageFromFigma(customPush.frame, { mapping }).text;
+  ok("round trip: the MetricCard's custom comes back (its Stack, Text and ProgressBar)", /<MetricCard[^>]*custom=\{<Stack gap="xs"><Text>Goal<\/Text><ProgressBar\b/.test(customBack));
   const line = lineCard.slots[0].children[0];
   check("ChartCard: a Card around Figma's chart of its kind, the title its Label, ranges as Segmented items, no open button without onOpen", { set: line.set.name, texts: line.texts, items: line.slots?.[0]?.children.map((item) => `${item.text}:${item.props.Select}`), hide: line.hide }, { set: "Chart/Line-Chart", texts: { Label: "Revenue" }, items: ["Revenue:Yes", "Profit:No"], hide: ["Button/Icon-Main"] });
   check("ChartCard without ranges: its Segmented hidden", barCard.slots[0].children[0].hide, ["Segmented", "Button/Icon-Main"]);
@@ -577,6 +586,18 @@ export default function Page() {
   check("AppShellAccount: a Subtle Avatar, as AppShell.tsx draws it", find(frame, (node) => node.name === "Linh Hoang")?.props.Background, "Subtle");
   const back = pageFromFigma(frame, { mapping }).text;
   ok("round trip: the checkbox column is not a column of the Table", !/id: "select"/.test(back));
+}
+{
+  // Dashboard's Active projects (2026-10-14): a photo cell drew Figma's sample picture, and its Avatar override found no
+  // layer ("Photo-Cell › Avatar: no such nested instance"): Figma's Photo-Cell holds a Photo rectangle, no Avatar.
+  const PHOTOS = MEMBERS.replace('content: "avatar", captionField: "email" }', 'content: "photo", captionField: "email", mediaField: "pic" }').replace('member: "An Mai",', 'member: "An Mai", pic: "/team/an.png",');
+  const { frame } = push(PHOTOS);
+  const [, ...rows] = find(frame, (node) => node.name === "Members").children;
+  const [pictured, initials] = rows.map((row) => row.slots[0].children[1].slots[0].children[0]);
+  check("a photo cell with its picture: Photo-Cell, the picture filling its Photo (no Avatar to find)", [pictured.set.name, pictured.image, pictured.nested.some((part) => part.path === "Avatar")], ["Primitives/Table/Cell/Photo-Cell", "/team/an.png", false]);
+  const avatar = initials.nested.find((part) => part.path === "Avatar");
+  // (figma-pull reads it back as a photo column: figma-pull.selftest, "Avatar-Cell with a Square Avatar".)
+  check("a photo cell without one: Avatar-Cell with the square Avatar the Table draws (Small, the row's Green, initials)", [initials.set.name, avatar.props.Shape, avatar.props.Size, avatar.props.Theme, avatar.text], ["Primitives/Table/Cell/Avatar-Cell", "Square", "Small", "Green", "BN"]);
 }
 {
   // HR Home's hero (2026-10-12): AiChatBlock was a bare frame of its field (no greeting, no chips, Figma's model shown).

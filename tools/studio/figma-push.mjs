@@ -106,12 +106,15 @@ const SLOT_OF_PROP = {
   Sidebar: { brand: "Header-Content", footer: "Footer-Content" },
   DashboardHeader: { leading: "Leading-Slots", center: "Center-Slots", trailing: "Trailing-Slots", controls: "Control-Slots", actions: "Action-Slots" },
   ListBox: { header: "Header-Slot", footer: "Footer-Slot" },
+  // Metric-Inline's Custom-Slot (Custom shows it): MetricCard's own content under the number (MetricWidget.tsx custom).
+  MetricCard: { custom: "Custom-Slot" },
 };
 /**
  * Node props whose layers go in their slot as one frame: a ListBox header row keeps its row (title left, action right),
- * a Sidebar brand its logo beside its name (Figma's Header-Content spreads its layers apart).
+ * a Sidebar brand its logo beside its name (Figma's Header-Content spreads its layers apart), a MetricCard's custom
+ * content its own Stack and gap.
  */
-const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]) };
+const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]), MetricCard: new Set(["custom"]) };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
 const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
@@ -1153,22 +1156,26 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // Media cells: the label (and Subtext) in their nested Text-Cell (the live file: Content-Div › Text-Cell › Label,
       // Caption), the Dock Icon's or icon's own look, the photo.
       const media = column.mediaField ? row[column.mediaField] : undefined;
-      const node = { type: "INSTANCE", name: set.name.split("/").pop(), set, props: onlyOwn(set, { Bold: column.bold ? "Yes" : "No", Subtext: caption ? "Yes" : "No" }), nested: [{ path: "Text-Cell", props: { Caption: Boolean(caption) }, textList: caption ? [label, caption] : [label] }] };
+      const pictured = typeof media === "string" && media !== "";
+      // A photo cell without its picture draws a square Avatar with the label's initials (Table.tsx cellVisual): that is
+      // Figma's Avatar-Cell with a Square Avatar, since Photo-Cell's Photo is a rectangle (figma-pull reads it back as photo).
+      const cellSet = kind === "photo" && !pictured ? CELL_SETS.avatar : set;
+      const node = { type: "INSTANCE", name: cellSet.name.split("/").pop(), set: cellSet, props: onlyOwn(cellSet, { Bold: column.bold ? "Yes" : "No", Subtext: caption ? "Yes" : "No" }), nested: [{ path: "Text-Cell", props: { Caption: Boolean(caption) }, textList: caption ? [label, caption] : [label] }] };
       if (kind === "dock-icon") {
         const dock = instanceOf("DockIcon", { size: "xs", theme: "neutral", background: "subtle", ...(typeof media === "string" ? { icon: media } : {}), ...own("Dock-Icon") }, where);
         if (dock) node.nested.push({ path: "Dock-Icon", set: dock.set, props: dock.props, ...(typeof own("Dock-Icon").emoji === "string" ? { text: own("Dock-Icon").emoji } : {}) });
       }
       if (kind === "icon" && typeof media === "string") node.swapIcon = media;
       // Its Avatar as Table.tsx draws it (cellVisual): Subtle, Small over a Subtext (XSmall alone), a photo or the
-      // label's initials on Neutral, the row's Avatar override on top (Figma's sample is a Photo placeholder).
-      if (kind === "avatar" || kind === "photo") {
-        const photo = typeof media === "string" && media !== "";
+      // label's initials on Neutral, the row's Avatar override on top (Figma's sample is a Photo placeholder). A photo
+      // cell with its picture has no Avatar in Figma: the picture fills Photo-Cell's Photo.
+      if (kind === "avatar" || (kind === "photo" && !pictured)) {
         const mine = own("Avatar");
-        const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: "subtle", theme: photo ? "photo" : "neutral", ...mine }, where);
+        const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: "subtle", theme: pictured ? "photo" : "neutral", ...mine }, where);
         // The page's own initials (an override's children: "Bich Ngoc Ha" → BH) win over the label's first two words.
-        if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(photo ? {} : { text: avatarInitials(typeof mine.children === "string" ? mine.children : initialsOf(label), mine.size ?? (caption ? "sm" : "xs")) }) });
+        if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(pictured ? {} : { text: avatarInitials(typeof mine.children === "string" ? mine.children : initialsOf(label), mine.size ?? (caption ? "sm" : "xs")) }) });
       }
-      if ((kind === "avatar" || kind === "photo") && typeof media === "string") { node.image = media; images.add(media); }
+      if ((kind === "avatar" || kind === "photo") && pictured) { node.image = media; images.add(media); }
       return node;
     };
     // Inside a surface the last row's cells drop their bottom rule (only the weight: the paint keeps its variable).
