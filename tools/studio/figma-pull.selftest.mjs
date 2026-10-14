@@ -156,6 +156,11 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("table: a first checkbox column is `selectable`, not a column", /<Table[^>]*\bselectable\b/.test(back) && !/id: "column-1"|content: "checkbox"/.test(back));
   ok("table: the sorted column's glyph gives `sort`", back.includes('sort={{ columnId: "member", direction: "asc" }}'));
   ok("table: an avatar cell's Avatar theme other than Neutral, and initials other than the label's, are its row's override", back.includes('"Row[row-2]/member/Avatar": { theme: "green", children: "BX" }') && !back.includes("Row[row-1]/member/Avatar"));
+  // A photo cell without its picture: figma-push draws it as an Avatar-Cell with a Square Avatar (2026-10-14).
+  const square = JSON.parse(JSON.stringify(frame));
+  square.children[0].rows.forEach((row) => { row.cells[1].parts[0].props.Shape = "Square"; });
+  const photos = pageFromFigma(square, { mapping }).text;
+  ok("table: an Avatar-Cell with a Square Avatar is a photo column; the square is not a row's override", /content: "photo"/.test(photos) && photos.includes('"Row[row-2]/member/Avatar": { theme: "green", children: "BX" }') && !/shape: "square"/.test(photos));
 }
 
 if (failures.length) {

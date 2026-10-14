@@ -529,6 +529,9 @@ const SLOT_PROPS = {
   Sidebar: { "Header-Content": "brand", "Footer-Content": "footer" },
   DashboardHeader: { "Leading-Slots": "leading", "Center-Slots": "center", "Trailing-Slots": "trailing", "Control-Slots": "controls", "Action-Slots": "actions" },
   ListBox: { "Header-Slot": "header", "Footer-Slot": "footer" },
+  // Metric-Inline's Custom-Slot: the Metric's (and so the MetricCard's) custom content (figma-push SLOT_OF_PROP).
+  Metric: { "Custom-Slot": "custom" },
+  MetricCard: { "Custom-Slot": "custom" },
 };
 /**
  * A Sidebar header's own layers: Figma's sample LOGO and its Collapse button are the component's (Sidebar.tsx draws the
@@ -622,7 +625,9 @@ function tableElement(node, ctx) {
   for (let index = selectable ? 1 : 0; index < Math.max(header.length, sample.length); index += 1) {
     const head = header[index] ?? {};
     const cell = sample[index] ?? {};
-    const content = cell.kind === "Control-Cell" ? { Checkbox: "checkbox", Toggle: "toggle" }[cell.props?.Type] ?? null : cell.kind ? CELL_CONTENT[cell.kind] ?? null : "text";
+    // An Avatar-Cell with a Square Avatar is a photo cell without its picture (Table.tsx cellVisual; figma-push draws it so).
+    const squareAvatar = cell.kind === "Avatar-Cell" && (cell.parts ?? []).some((part) => /^Avatar\b/.test(part.set?.name ?? "") && part.props?.Shape === "Square");
+    const content = cell.kind === "Control-Cell" ? { Checkbox: "checkbox", Toggle: "toggle" }[cell.props?.Type] ?? null : squareAvatar ? "photo" : cell.kind ? CELL_CONTENT[cell.kind] ?? null : "text";
     const named = head.label ? `the “${head.label}” column` : `column ${index + 1}`;
     if (!content) { notes.push(`${where}: ${named} (${cell.kind}${cell.props?.Type ? ` ${cell.props.Type}` : ""}) has no Table content in code: left out`); continue; }
     // Actions-Cell: its icon buttons become the column's `actions` (the first row's; another row's own icon is an override).

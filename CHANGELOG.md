@@ -202,6 +202,12 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Zen plugin, Import from Studio: an imported page now takes every property it sets (variants, booleans, icons, sizes:
+  Avatars at their size, Dashboard Header rows, button sizes, badge colours), swaps its icons, and importing it again
+  updates the same layers. Before, the plugin set none of them in Figma. Import the page again into the same frame to
+  repair it.
+- Zen Studio, Export › Figma: a Table photo cell without a picture draws its square Avatar with initials (Figma's
+  Avatar-Cell), not Figma's sample photo; a MetricCard's `custom` content fills Metric-Inline's Custom-Slot.
 - Getting started, CI: the registry token now goes into the CI job's own `~/.npmrc`, not the project's `.npmrc` (a
   `${ZEN_DS_NPM_TOKEN}` line there overrode every developer's `npm login` and failed with `E401`); `npx zen-ds doctor`
   flags any token line in the project's `.npmrc`. Added notes on the password spinner, Yarn 2+ and Docker builds.
