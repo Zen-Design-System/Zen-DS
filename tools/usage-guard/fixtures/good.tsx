@@ -135,6 +135,15 @@ export const Good = () => <>
   <RadialChart aria-label="Budget used by project" data={slices} legendPosition="end" />
   <LineChart aria-label="Weekly visits" data={data} showLegend={false} />
   <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} />
+  <BarList aria-label="Revenue by client, 2026 so far" headers={{ label: "Client", value: "Revenue" }} data={[{ label: "Lumen Bank", value: 96400 }, { label: "Phin & Co", value: 71200 }, { label: "Mekong Freight", value: 54800 }, { label: "Other clients", value: 60100 }]} />
+  <BulletChart aria-label="Quarter goals, Q3 2026" data={[{ label: "Revenue", value: 798, target: 900 }, { label: "New clients", value: 18, target: 24 }, { label: "Utilisation", value: 82, target: 85 }]} />
+  <GaugeChart aria-label="Billable share of logged hours, September 2026" value={82} target={85} actualLabel="Billable" />
+  <GaugeChart aria-label="Billable hours of logged hours, September 2026" value={1052} max={1284} target={1091} />
+  <FunnelChart aria-label="Leads to signed projects, Q3 2026" data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Signed", value: 62 }]} />
+  <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" data={data} series={[{ id: "hours", label: "Billable hours" }]} />
+  <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" data={data} series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }]} />
+  <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
+  <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="Margin" lineMax={100} />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
   <TableMedia media={<Avatar size="xsmall" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="xsmall" />}>Spec.pdf</TableMedia>

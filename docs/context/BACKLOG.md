@@ -50,9 +50,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   until then (screen-rules §1).
 - **P1 · Widget themes phase 2 — code + Studio (user, 2026-10-13; waits for the user's review of phase 1):** mirror the
   Figma build in code and Studio: Card `color` + themes `gradient`/`solid` (Solid sets `data-theme`), MetricCard `type`
-  (7), chart components Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel, Bar-List, Bullet, the new paint styles in
-  `styles/source/figma`, `tools/figma-docs` description source, Studio figma-props map + push SETS + pull. Detail:
-  `docs/context/session-log-2026-10-13.md` ("Widget themes phase 1").
+  (7), the new paint styles in `styles/source/figma`, `tools/figma-docs` description source (the seven new chart sets'
+  Figma descriptions still say Value Heading/3, Semi-Pale and Gradient), Studio figma-props map. Detail:
+  `docs/context/session-log-2026-10-13.md` ("Widget themes phase 1"). The charts part is done (2026-10-14, branch
+  `zen/feat/charts-phase2`: seven components, Studio palette, push/pull of all 15 chart sets).
+- **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
+  `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
+  Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
+- **P2 · BarList leader length (designer, 2026-10-14):** Figma Chart/Bar-List draws the leader bar at 78% of its track
+  (216 of 276px); code fills the track with the leader. Which is meant?
 - **P2 · Older chart sets bake their card (designer, 2026-10-13):** Bar, Donut, Radial, Heatmap (and Multi-Line) draw
   their own Surface/Default card, so they cannot take Card Theme/Color; the new charts are card-less content that sits
   in a Card. Align the old ones the same way? (a component property cannot reach slot content of a nested Card).

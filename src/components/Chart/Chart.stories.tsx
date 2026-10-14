@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { BarChart, ChartCard, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart } from "./index";
+import { AreaChart, BarList, BulletChart, ComboChart, FunnelChart, GaugeChart, GroupedBarChart } from "./index";
 
 const visits = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label, index) => ({ label, value: [1200, 1850, 1640, 2100, 2480, 1720, 1510][index] }));
 
@@ -94,6 +95,92 @@ export const CardHeader: Story = {
   render: () => (
     <ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
       <BarChart aria-label="Revenue per month" data={["Jul", "Aug", "Sep"].map((label, i) => ({ label, value: [94, 97, 106][i] }))} />
+    </ChartCard>
+  ),
+};
+
+/** A ranking: each bar is its share of the leader, the name inside, the value at the end; ↑/↓ move the active row. */
+export const BarListRanking: Story = {
+  render: () => (
+    <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue, 2026 so far" value="$296,800">
+      <BarList aria-label="Revenue by client, 2026 so far" headers={{ label: "Client", value: "Revenue" }} format={(v) => `$${v.toLocaleString("en-US")}`}
+        data={[{ label: "Lumen Bank", value: 96400 }, { label: "Phin & Co", value: 71200 }, { label: "Mekong Freight", value: 54800 }, { label: "Hanoi Book Fair", value: 38100 }, { label: "Other clients", value: 36300 }]} />
+    </ChartCard>
+  ),
+};
+
+/** Goals against their targets, each on its own scale; the legend names the bar and the tick. */
+export const Bullet: Story = {
+  render: () => (
+    <ChartCard title="Quarter goals" icon="icon-target-04-line" description="Q3 2026 against target" value="2 of 3 on track">
+      <BulletChart aria-label="Quarter goals, Q3 2026"
+        format={(v, row) => (row.label === "Revenue" ? `$${v}K` : row.label === "Utilisation" ? `${v}%` : String(v))}
+        data={[{ label: "Revenue", value: 798, target: 900 }, { label: "New clients", value: 18, target: 24 }, { label: "Utilisation", value: 82, target: 85, max: 100 }]} />
+    </ChartCard>
+  ),
+};
+
+/** One measure against 100% as a half ring, its target a tick across the ring; the legend names both. */
+export const Gauge: Story = {
+  render: () => (
+    <ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours" value="1,052 of 1,284 h">
+      <GaugeChart aria-label="Billable share of logged hours, September 2026" value={82} target={85} actualLabel="Billable" />
+    </ChartCard>
+  ),
+};
+
+/** Stages from first contact to outcome, each bar its share of the first; ↑/↓ pick a stage. */
+export const Funnel: Story = {
+  render: () => (
+    <ChartCard title="Proposal funnel" icon="icon-filter-funnel-line" description="Leads to signed projects, Q3" value="62 signed">
+      <FunnelChart aria-label="Leads to signed projects, Q3 2026"
+        data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Negotiation", value: 94 }, { label: "Signed", value: 62 }]} />
+    </ChartCard>
+  ),
+};
+
+const months6 = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+const hoursOf = (value: number) => `${value.toLocaleString("en-US")} h`;
+const money = (value: number) => `$${Math.round(value / 1000)}K`;
+
+/** One measure over time as a line over its flat area; the Tooltip stands beside the active dot (Figma Type=Area). */
+export const Area: Story = {
+  render: () => (
+    <ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, 2026" value="11,480 h">
+      <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" format={hoursOf} series={[{ id: "hours", label: "Billable hours" }]}
+        data={months6.map((label, i) => ({ label, values: { hours: [1510, 1670, 1600, 1880, 2030, 2210][i] } }))} />
+    </ChartCard>
+  ),
+};
+
+/** Two to four series stacked as bands; the top line reads the total and the legend names every band (Figma Type=Stacked). */
+export const StackedArea: Story = {
+  render: () => (
+    <ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged by team, 2026" value="11,480 h">
+      <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" format={hoursOf}
+        series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }]}
+        data={months6.map((label, i) => ({ label, values: { design: [510, 570, 550, 630, 690, 750][i], engineering: [640, 700, 680, 800, 850, 920][i], delivery: [360, 400, 370, 450, 490, 540][i] } }))} />
+    </ChartCard>
+  ),
+};
+
+/** Two or three series side by side per period, with a legend; the Tooltip reads each value after its dot. */
+export const GroupedBars: Story = {
+  render: () => (
+    <ChartCard title="Invoiced vs. collected" icon="icon-bar-chart-01-line" description="Last six months" value="$560,000">
+      <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" format={money}
+        series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]}
+        data={months6.map((label, i) => ({ label, values: { invoiced: [82300, 91800, 88400, 94100, 97000, 105700][i], collected: [79500, 90100, 86000, 91700, 95800, 88300][i] } }))} />
+    </ChartCard>
+  ),
+};
+
+/** Bars on the start axis and a line on the end axis, on shared gridlines. */
+export const Combo: Story = {
+  render: () => (
+    <ChartCard title="Revenue and margin" icon="icon-bar-chart-01-line" description="Monthly, 2026" value="$560,000">
+      <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin" format={money} lineFormat={(v) => `${v}%`}
+        data={months6.map((label, i) => ({ label, bar: [82300, 91800, 88400, 94100, 97000, 105700][i], line: [31, 34, 29, 36, 38, 41][i] }))} />
     </ChartCard>
   ),
 };

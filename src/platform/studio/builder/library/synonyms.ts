@@ -49,6 +49,13 @@ export const SYNONYM_ROWS: ReadonlyArray<readonly [terms: readonly string[], ids
   [["graph", "plot", "analytics", "biểu đồ", "đồ thị"], ["chart-card", "line-chart", "bar-chart"]],
   [["trend", "time series", "đường"], ["line-chart", "chart-card"]],
   [["bar", "column chart", "stacked", "cột"], ["bar-chart"]],
+  [["area", "area chart", "filled line", "biểu đồ vùng", "vùng"], ["area-chart", "stacked-area-chart"]],
+  [["grouped bars", "clustered bars", "side by side", "cột nhóm", "cột ghép"], ["grouped-bar-chart"]],
+  [["combo chart", "bar and line", "dual axis", "hai trục", "cột và đường"], ["combo-chart"]],
+  [["gauge", "meter", "dial", "speedometer", "đồng hồ đo"], ["gauge-chart", "radial-chart"]],
+  [["funnel", "conversion", "pipeline", "phễu", "chuyển đổi"], ["funnel-chart"]],
+  [["ranking", "top list", "leaderboard", "ranked", "xếp hạng"], ["bar-list"]],
+  [["bullet", "goal", "target", "against target", "mục tiêu"], ["bullet-chart", "gauge-chart"]],
   // Feedback
   [["callout", "note", "hint box", "ghi chú"], ["inline-message"]],
   [["alert", "banner", "warning", "cảnh báo"], ["alert-banner", "inline-message"]],

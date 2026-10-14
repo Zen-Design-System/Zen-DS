@@ -178,6 +178,12 @@
 .zen-chart__scale-step { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
 .zen-chart__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
+/* ChartLegend gap="small": the phase-2 legends (Area 15484:2653, Grouped-Bar 15485:2511, Combo 15485:2581, Gauge
+   15486:2489, Bullet 15487:2554) keep items Spacing/Gap/Small apart and rows Spacing/Gap/XSmall; the older ones (Multi-Line,
+   Donut, Radial) keep XSmall / 2XSmall above. A legend beside a round chart stays a column, Spacing/Gap/XSmall apart.
+   align="start": the legend leads at the start (Bullet). */
+.zen-chart__legend[data-gap="small"] { gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); }
+.zen-chart__legend[data-align="start"] { justify-content: flex-start; }
 /* Legend item (6643:73387): a 12px dot, Spacing/Gap/2XSmall before its label. */
 .zen-chart__legend li { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); }
@@ -219,4 +225,163 @@
 @media (prefers-reduced-motion: reduce) {
   .zen-chart:not([data-animate="false"]) .zen-chart__column > .zen-chart__bar, .zen-chart:not([data-animate="false"]) .zen-chart__stack, .zen-chart:not([data-animate="false"]) .zen-chart__htrack > .zen-chart__bar,
   .zen-chart:not([data-animate="false"]) .zen-chart__marks, .zen-chart:not([data-animate="false"]) .zen-chart__sweep, .zen-chart:not([data-animate="false"]) .zen-chart__arc, .zen-chart:not([data-animate="false"]) .zen-chart__cell { animation-name: zen-chart-fade; }
+}
+
+/* ───────────── BarList (Figma Chart/Bar-List 15487:2473) ─────────────
+   Column labels (Caption/Medium, Content/Neutral/Light) over 32px rows, Spacing/Gap/XSmall apart: a track whose bar is
+   its share of the leader (Color Chart Sector/Primary at 24%, the active row 48%, Corner-Radius/Small) with the name
+   inside (Body/Small/Medium, Strongest, Spacing/Padding/Small in), then the value column Spacing/Gap/Small after it
+   (Body/Small/Medium, Strongest, end-aligned). Every row shares the two columns (subgrid), so the tracks end on one line. */
+.zen-chart--list { display: block; }
+.zen-chart__list { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__list:focus-visible, .zen-chart__bullets:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+.zen-chart__list-head, .zen-chart__list-rows, .zen-chart__list-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
+.zen-chart__list-rows { row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chart__list-head { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chart__list-head > :last-child, .zen-chart__list-value { justify-self: end; text-align: end; }
+.zen-chart__list-row { align-items: center; }
+.zen-chart__list-track { position: relative; display: flex; min-width: 0; height: 32px; align-items: center; }
+.zen-chart__list-bar { position: absolute; top: 0; bottom: 0; left: 0; width: calc(var(--zen-chart-share, 0) * 100%); border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-chart-sector-primary, #ff66d4); opacity: .24; }
+.zen-chart__list-row[data-active="true"] .zen-chart__list-bar { opacity: .48; }
+.zen-chart__list-name { position: relative; min-width: 0; padding-inline: var(--zen-spacing-padding-small, 12px); overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.zen-chart__list-value { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ───────────── BulletChart (Figma Chart/Bullet-Chart 15487:2516) ─────────────
+   1–4 goals Spacing/Gap/Medium apart; each: label (Body/Small/Medium, Strongest) and "actual of target" (Body/Small/
+   Regular, Content/Neutral/Base) over a 16px Corner-Radius/Rounded track (Figma Color Chart Sector/On-Color/Tertiary =
+   Border/Neutral/Subtle/Pressed, at layer opacity 50%), Spacing/Gap/XSmall between them. The actual is an 8px Color Chart
+   Sector/Primary bar inset Spacing/Padding/2XSmall (4) in the track; the target a 3px Color Chart Sector/Secondary tick
+   that stands 4px past the track on both sides. Both measure on the track's inner length. A picked row keeps its marks,
+   the others' dim. The legend (Show Legend) leads at the start, items Spacing/Gap/Small apart (ChartLegend gap="small"
+   align="start"). */
+.zen-chart--bullet { display: block; }
+.zen-chart__bullets { border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__bullet-rows { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-chart__bullet { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chart__bullet-head { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chart__bullet-name { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.zen-chart__bullet-reading { flex: none; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zen-chart__bullet[data-active="true"] .zen-chart__bullet-reading { color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart__bullet-track { position: relative; display: block; height: 16px; }
+.zen-chart__bullet-track::before { position: absolute; inset: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-border-neutral-subtle-pressed, rgb(1 1 1 / 18%)); content: ""; opacity: .5; }
+.zen-chart__bullet-actual { position: absolute; top: var(--zen-spacing-padding-2-xsmall, 4px); bottom: var(--zen-spacing-padding-2-xsmall, 4px); left: var(--zen-spacing-padding-2-xsmall, 4px); width: calc((100% - 2 * var(--zen-spacing-padding-2-xsmall, 4px)) * var(--zen-chart-actual, 0)); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-chart-sector-primary, #ff66d4); }
+.zen-chart__bullet-target { position: absolute; top: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); bottom: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); left: calc(var(--zen-spacing-padding-2-xsmall, 4px) + (100% - 2 * var(--zen-spacing-padding-2-xsmall, 4px)) * var(--zen-chart-target, 0)); width: 3px; background: var(--zen-chart-sector-secondary, #111); transform: translateX(-50%); }
+.zen-chart__bullets[data-picked="true"] .zen-chart__bullet:not([data-active]) :is(.zen-chart__bullet-actual, .zen-chart__bullet-target) { opacity: .32; }
+
+/* BarList and BulletChart: colour and opacity follow the pointer and the keys in Fast; bars grow from the start (clip,
+   Slow, Emphasized, staggered like the horizontal bars), target ticks fade in after them; reduced motion fades. */
+.zen-chart__list-bar, .zen-chart__bullet-reading, .zen-chart__bullet-actual, .zen-chart__bullet-target {
+  transition: color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease);
+}
+.zen-chart:not([data-animate="false"]) :is(.zen-chart__list-bar, .zen-chart__bullet-actual) { animation: zen-chart-grow var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
+.zen-chart:not([data-animate="false"]) .zen-chart__bullet-target { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; animation-delay: calc(var(--zen-motion-duration-slow, 280ms) + var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
+@media (prefers-reduced-motion: reduce) {
+  .zen-chart:not([data-animate="false"]) :is(.zen-chart__list-bar, .zen-chart__bullet-actual) { animation-name: zen-chart-fade; }
+}
+
+/* ───────────── GaugeChart (Figma Chart/Gauge-Chart 15486:2467) ─────────────
+   A half ring as wide as the gauge (min(100%, size), default 240) and a tenth of it thick (Figma innerRadius 0.8): the
+   track Background/Neutral/Subtle, the value Color Chart Sector/Primary with flat ends, the target a 3px round-capped
+   Color Chart Sector/Secondary tick 4px past both edges (sizes in GaugeChart.tsx). The reading (Heading/2 · Strongest
+   over Body/Small/Regular · Content/Neutral/Base) sits centred in the hole, its foot Spacing/Gap/2XSmall under the ring's
+   base line (Figma Readout 15486:2484); the scale's ends (Label/Small/Medium · Content/Neutral/Light) stand centred
+   under the ring's two ends, 6px below it (Figma 15486:2487/2488: no 6px token, so 2XSmall + 3XSmall). The legend
+   (Figma Legend 15486:2489) keeps its items Spacing/Gap/Small apart, its lines Spacing/Gap/XSmall (ChartLegend gap="small"). */
+.zen-chart__gauge { display: flex; width: min(100%, var(--zen-chart-size, 240px)); flex-direction: column; }
+.zen-chart__gauge-dial { position: relative; aspect-ratio: 2; }
+.zen-chart__gauge-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.zen-chart__gauge-track { fill: var(--zen-color-background-neutral-subtle-default, rgb(2 2 2 / 7%)); }
+.zen-chart__gauge-value { fill: none; stroke: var(--zen-chart-sector-primary, #ff66d4); stroke-linecap: butt; }
+.zen-chart__gauge-target { stroke: var(--zen-chart-sector-secondary, #111); stroke-linecap: round; }
+.zen-chart__gauge-readout { position: absolute; right: 15%; bottom: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); left: 15%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.zen-chart__gauge-figure { max-width: 100%; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.zen-chart__gauge-caption { max-width: 100%; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+.zen-chart__gauge-ends { position: relative; height: var(--zen-typography-line-height-label-small, 12px); margin-top: calc(var(--zen-spacing-gap-2-xsmall, 4px) + var(--zen-spacing-gap-3-xsmall, 2px)); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-chart__gauge-ends > span { position: absolute; top: 0; white-space: nowrap; transform: translateX(-50%); }
+.zen-chart__gauge-ends > span:first-child { left: 5%; }
+.zen-chart__gauge-ends > span:last-child { left: 95%; }
+
+/* ───────────── FunnelChart (Figma Chart/Funnel-Chart 15486:2497) ─────────────
+   One 32px row per stage (Figma Stage, rows Spacing/Gap/XSmall apart, columns Spacing/Gap/Small): the name
+   (Body/Small/Medium · Strongest) over its count (Caption/Regular · Content/Neutral/Base) in an 84px start column (wider
+   names widen it), the bar centred in its track as wide as its share of the first stage (Color Chart Sector/Primary, the
+   last stage Sector/Secondary, Corner-Radius/Small), the share in a 40px end column (Body/Small/Medium · Strongest,
+   end-aligned). Every row shares the three columns (subgrid). A picked stage keeps its bar, the others dim. */
+.zen-chart--funnel { display: block; }
+.zen-chart__funnel { position: relative; border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__funnel:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
+/* zen-allow-raw-spacing: Figma's FIXED 84px label and 40px share columns, not spacing between elements. */
+.zen-chart__stages { display: grid; grid-template-columns: minmax(84px, max-content) minmax(0, 1fr) minmax(40px, max-content); gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); }
+.zen-chart__stage { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; cursor: pointer; }
+.zen-chart__stage-label { display: flex; min-width: 0; flex-direction: column; }
+.zen-chart__stage-name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
+.zen-chart__stage-count { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+.zen-chart__stage-track { display: flex; min-width: 0; height: 32px; justify-content: center; }
+.zen-chart__stage-bar { display: block; min-width: 2px; height: 100%; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-chart-sector-primary, #ff66d4); }
+.zen-chart__stage[data-last="true"] .zen-chart__stage-bar { background: var(--zen-chart-sector-secondary, #111); }
+.zen-chart__stage-share { justify-self: end; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; text-align: end; white-space: nowrap; }
+.zen-chart__funnel[data-picked="true"] .zen-chart__stage:not([data-active]) .zen-chart__stage-bar { opacity: .32; }
+
+/* GaugeChart and FunnelChart motion: the value sweeps from 0 (stroke dash, --zen-chart-reveal, Emphasized) and the target
+   tick fades in after it; funnel bars open from their centre (clip, Slow, Emphasized, staggered like the bars); a picked
+   stage dims the others in Fast. Reduced motion fades. */
+@keyframes zen-chart-open { from { clip-path: inset(0 50% 0 50% round var(--zen-corner-radius-small, 8px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px)); } }
+.zen-chart__stage-bar { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
+.zen-chart:not([data-animate="false"]) .zen-chart__gauge-value { animation: zen-chart-sweep var(--zen-chart-reveal) var(--zen-motion-ease-emphasized, ease) both; }
+.zen-chart:not([data-animate="false"]) .zen-chart__gauge-target { animation: zen-chart-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear) both; animation-delay: var(--zen-chart-reveal); }
+.zen-chart:not([data-animate="false"]) .zen-chart__stage-bar { animation: zen-chart-open var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
+@media (prefers-reduced-motion: reduce) {
+  .zen-chart:not([data-animate="false"]) :is(.zen-chart__gauge-value, .zen-chart__stage-bar) { animation-name: zen-chart-fade; }
+}
+
+/* ───────────── AreaChart (Figma Chart/Area-Chart 15484:2663) · GroupedBarChart (15485:2457) · ComboChart (15485:2519) ─────────────
+   The three sit on the bar charts' frame (PlotFrame kind "bar": Y labels right-aligned Spacing/Padding/XSmall before the
+   plot, a 36px Tooltip lane, a 28px X-label lane). Their marks take the Figma styles Color Chart Sector/… (chartPalette);
+   their legends space items Spacing/Gap/Small apart and rows Spacing/Gap/XSmall (Figma Legend 15484:2653, ChartLegend
+   gap="small"); their baseline is Border/Active/Neutral/Subtle (Figma Baseline, a step darker than the older charts' Pale one). */
+.zen-chart:is(.zen-chart--area, .zen-chart--grouped, .zen-chart--combo) .zen-chart__grid > span[data-base="true"] { border-top-color: var(--zen-color-border-active-neutral-subtle, rgb(1 1 1 / 14%)); }
+/* Area: the Tooltip stands beside the active dot, so the top lane only centres the top Y label on the top gridline
+   (half of Label/Small's line height, Figma's 6px); the rule runs from the dot down, not across the whole plot. */
+.zen-chart.zen-chart--area { --zen-chart-lane-top: calc(var(--zen-typography-line-height-label-small, 12px) / 2); }
+.zen-chart--area .zen-chart__sector::before { content: none; }
+/* Flat areas in the series' style: one area at layer opacity 16% (Type=Area 15484:2552), stacked bands at 24%
+   (Type=Stacked 15484:2605); no gradient (Figma, 2026-10-14). 2px straight lines with round caps on top. */
+.zen-chart__area-band { fill-opacity: .16; }
+.zen-chart__marks[data-type="stacked"] .zen-chart__area-band { fill-opacity: .24; }
+.zen-chart__area-line, .zen-chart__combo-line { fill: none; stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+/* The active period: a 1px Border/Active/Neutral/Subtle rule from the top dot to the baseline and a 12px dot
+   (Element-Size/Popular/2XSmall) on each line: Surface/Default with a 2px ring in the series colour. Combo: an 8px dot
+   on every period, 12px when active. */
+.zen-chart__area-rule { position: absolute; bottom: 0; width: 0; border-left: 1px solid var(--zen-color-border-active-neutral-subtle, rgb(1 1 1 / 14%)); transform: translateX(-50%); }
+.zen-chart__area-dot, .zen-chart__combo-dot { position: absolute; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid var(--zen-chart-sector-secondary, #111); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-surface-default, #fff); pointer-events: none; transform: translate(-50%, -50%); }
+.zen-chart__area-dot, .zen-chart__combo-dot[data-active="true"] { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); }
+/* The area's Tooltip: a dot's width from the point (Figma: 6px past the 12px dot), before it on the plot's end half and
+   after it on the start half, centred on the point and kept inside the plot's height (16px = half the Tooltip). */
+.zen-chart__point-tip { position: absolute; z-index: 1; top: clamp(calc(16px - var(--zen-chart-lane-top)), var(--zen-chart-y, 50%), calc(100% - 16px)); pointer-events: none; transform: translate(calc(-100% - var(--zen-element-size-popular-2-xsmall, 12px)), -50%); }
+.zen-chart__point-tip[data-side="end"] { transform: translate(var(--zen-element-size-popular-2-xsmall, 12px), -50%); }
+/* Grouped bars: per period a centred group of 12px bars Spacing/Gap/2XSmall apart (narrower when the column can't hold
+   them), Corner-Radius/XSmall on the top corners; the groups that aren't active ease to 88%, as stacked columns. */
+.zen-chart__group, .zen-chart__combo-column { display: flex; height: 100%; min-width: 0; align-items: flex-end; justify-content: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
+.zen-chart__group { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-chart__group-bar { display: block; min-width: 2px; min-height: 2px; flex: 0 1 12px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
+.zen-chart__group:not([data-active="true"]) .zen-chart__group-bar, .zen-chart__combo-column:not([data-active="true"]) .zen-chart__combo-bar { opacity: .88; }
+/* Combo: 20px Color Chart Sector/Primary bars (Corner-Radius/XSmall top corners) on the start axis, a Color Chart
+   Sector/Secondary line on the end axis (Figma Y-Axis-End: left-aligned, Spacing/Padding/XSmall after the plot). The end
+   axis sits outside the plot frame, so it takes the bar lanes itself. The active period's rule would cut through its
+   bar: its 12px dot, X pill and Tooltip mark it instead. */
+.zen-chart-combo { --zen-chart-lane-top: 36px; --zen-chart-lane-bottom: 28px; display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; }
+.zen-chart-combo .zen-chart__sector::before { content: none; }
+.zen-chart__y-end { box-sizing: content-box; padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); text-align: left; }
+.zen-chart__y-end > span { right: auto; left: var(--zen-spacing-padding-xsmall, 8px); }
+.zen-chart__combo-bar { display: block; width: min(100%, 20px); min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-sector-primary, #ff66d4); }
+.zen-chart__combo-line { stroke: var(--zen-chart-sector-secondary, #111); }
+/* Motion: grouped and combo bars rise from the baseline under their top corners (clip, Slow, Emphasized, staggered per
+   period); areas and the combo line wipe in from the left with their dots (.zen-chart__marks, as the line chart); the
+   area's Tooltip fades in Fast; the active state changes opacity in Fast. Reduced motion fades. */
+@keyframes zen-chart-rise-top { from { clip-path: inset(100% 0 0 0 round var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0); } }
+.zen-chart__group-bar, .zen-chart__combo-bar { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
+.zen-chart:not([data-animate="false"]) :is(.zen-chart__group-bar, .zen-chart__combo-bar) { animation: zen-chart-rise-top var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-emphasized, ease) both; animation-delay: calc(var(--zen-chart-stagger) * var(--zen-chart-i, 0)); }
+.zen-chart:not([data-animate="false"]) .zen-chart__point-tip { animation: zen-chart-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
+@media (prefers-reduced-motion: reduce) {
+  .zen-chart:not([data-animate="false"]) :is(.zen-chart__group-bar, .zen-chart__combo-bar) { animation-name: zen-chart-fade; }
 }

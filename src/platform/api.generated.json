@@ -11637,7 +11637,7 @@
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "description": "Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K.",
           "deprecated": null
         },
@@ -11747,7 +11747,7 @@
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "description": "Formats axis labels, the Tooltip and the summary.",
           "deprecated": null
         },
@@ -11841,7 +11841,7 @@
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "description": "Formats axis labels, the Tooltip total and the summary.",
           "deprecated": null
         },
@@ -11927,7 +11927,7 @@
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "description": "Formats the centre figure and the summary.",
           "deprecated": null
         },
@@ -12139,7 +12139,7 @@
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "description": "Formats the Tooltip and the summary (\"14 sessions\").",
           "deprecated": null
         },
@@ -12181,6 +12181,608 @@
           "required": false,
           "default": "true",
           "description": "Fade the cells in, row by row, on mount and when the values change (default true; reduced motion only fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "BarList",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartPoint[]",
+          "required": true,
+          "default": null,
+          "description": "One row per item (`{ label, value }`), already ranked by you, largest first: the list never reorders, and the\n largest value is the full length every other bar is measured against. Keep 3–8 rows (fold the rest into \"Other\").",
+          "deprecated": null
+        },
+        {
+          "name": "headers",
+          "type": "{ label: ReactNode; value: ReactNode }",
+          "required": false,
+          "default": null,
+          "description": "Column labels above the rows: what the items are (start) and what the values measure (end), e.g.\n `{ label: \"Client\", value: \"Revenue\" }`. Caption/Medium, Content/Neutral/Light.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "Formats each row's value and the summary (\"$96,400\").",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the list ranks and over which range (\"Revenue by client, 2026 so far\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart.",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "The row active at first, its bar at 48% (the others 24%). Default 0: the leader. ↑/↓, Home/End and hover move it.",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the bars from the start on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "BulletChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartBullet[]",
+          "required": true,
+          "default": null,
+          "description": "One row per goal (`{ label, value, target, max }`); each row has its own scale, so goals in different units can\n share the chart. Keep 1–4 rows.",
+          "deprecated": null
+        },
+        {
+          "name": "actualLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The legend's name for the bar. Default the label \"Actual\".",
+          "deprecated": null
+        },
+        {
+          "name": "targetLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The legend's name for the tick. Default the label \"Target\".",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Show the legend that names the bar and the tick (Figma Show Legend, default true).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "Extract<ChartLegendPosition, \"top\" | \"bottom\">",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend below the rows (default) or above them.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number, row: ChartBullet) => string",
+          "required": false,
+          "default": null,
+          "description": "Formats the value and the target of a row (\"$798K of $900K\") and the summary. It gets the row too, so each goal can\n take its own unit: `(v, row) => (row.label === \"Utilisation\" ? v + \"%\" : String(v))`.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the goals are and for which period (\"Quarter goals, Q3 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "A row active at first (the others' marks dim). Default none: every row reads alike until one is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced\n motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "GaugeChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "default": null,
+          "description": "The reading, measured from 0 to `max` (\"1,052 h\", \"82\"). A value past `max` fills the ring and still reads as it is.",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": "The value a full half ring stands for (default 100: the value is a percentage).",
+          "deprecated": null
+        },
+        {
+          "name": "target",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "A goal on the same scale, drawn as a Chart/Sector/Secondary tick across the ring and read under the figure.",
+          "deprecated": null
+        },
+        {
+          "name": "actualLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The legend's name for the value (\"Billable\"), as BulletChart's `actualLabel`. Default \"Actual\".",
+          "deprecated": null
+        },
+        {
+          "name": "targetLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The legend's name for the target and the start of the default caption. Default \"Target\".",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under the figure. Default: the target (\"Target 85%\"), or `actualLabel` when there is no target.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "240",
+          "description": "Width of the half ring in px (default 240, as Figma); the ring is a tenth of it thick. The gauge never grows past its box.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Formats the figure, the target and the end labels. Default: the share of `max` in whole percent (\"82%\", \"0%\", \"100%\").",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "The legend names the value and the target (Figma Show Legend). Default: on when there is a target.",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend below (default), above, or beside the gauge (start / end).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the gauge measures, and when (\"Billable share of logged hours, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "FunnelChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartPoint[]",
+          "required": true,
+          "default": null,
+          "description": "One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage.\n Keep 3–6 stages.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "Formats the counts under the stage names and in the summary (the shares are whole percent of the first stage).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the funnel shows and over which range (\"Leads to signed projects, Q3 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The stage picked at first (the others dim). Default none: every stage at full strength until one is hovered or reached\n with ↑/↓.",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Open every bar from its centre on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AreaChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartDatum[]",
+          "required": true,
+          "default": null,
+          "description": "One period per item, a value per series id (`{ label: \"Sep\", values: { design: 750, … } }`). Keep 4–12 periods.",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "ChartSeries[]",
+          "required": true,
+          "default": null,
+          "description": "The measured series, bottom first: one for `type=\"area\"` (only the first is drawn), 2–4 for `\"stacked\"`\n (harness: chart/area-series-count). Colours walk the Figma styles Color Chart Sector/Primary … unless a series sets `color`.",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"area\" | \"stacked\"",
+          "required": false,
+          "default": "\"area\"",
+          "description": "Figma Type: `area` (default) — one measure as a line over its area at 16%; `stacked` — 2–4 series as bands stacked\n bottom-up (each at 24%) with a line on top of each band, so the top line reads the period's total.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "Formats axis labels, the Tooltip and the summary (`2,210 h`, `$23.4K`). Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Height of the plot in px, lanes included (6px above the grid for the top Y label, 28px below it for the X labels).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Billable hours per month, Apr – Sep 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart frame (the axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The period active at first (its dots, rule and Tooltip show). Default: the last one.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Show Legend: the legend names every series. Default: on for `stacked`, off for a single `area` (the card title\n names its one measure). Keep it on a stacked chart (harness: chart/series-need-legend).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Wipe the areas in from the left on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "GroupedBarChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartDatum[]",
+          "required": true,
+          "default": null,
+          "description": "One group per period or category, a value per series id (`{ label: \"Sep\", values: { invoiced: 105700, collected: 88300 } }`).\n Keep 3–12 groups.",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "ChartSeries[]",
+          "required": true,
+          "default": null,
+          "description": "The compared series, 2–3, side by side in each group in this order (harness: chart/grouped-series-count). Colours\n walk the Figma styles Color Chart Sector/Primary · Secondary · Tertiary unless a series sets `color`.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "Formats axis labels, the Tooltip and the summary. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Invoiced and collected per month, Apr – Sep 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart frame (the axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The group active at first (its Tooltip shows every series' value). Default: the last one.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Show Legend: the legend names every series; keep it (harness: chart/series-need-legend). Default on.",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ComboChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartComboDatum[]",
+          "required": true,
+          "default": null,
+          "description": "One period per item (`{ label: \"Sep\", bar: 105700, line: 41 }`). Keep 4–12 periods.",
+          "deprecated": null
+        },
+        {
+          "name": "barLabel",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the bars measure (\"Revenue\"), named in the legend, the Tooltip order and the summary (harness: chart/combo-needs-labels).",
+          "deprecated": null
+        },
+        {
+          "name": "lineLabel",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the line measures (\"Margin\"), named in the legend and the summary.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "Formats the bars' values and the start axis (`$105.7K`). Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "lineFormat",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "Formats the line's values and the end axis (`41%`). Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "lineMax",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The top of the end axis (100 for a share in %). Default: a round top over the line's values, on the same gridlines\n as the start axis.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Revenue and margin per month, Apr – Sep 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Extra class on the chart frame (both axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The period active at first (its Tooltip reads both values). Default: the last one.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Show Legend: the legend names the bars and the line; keep it (harness: chart/series-need-legend). Default on.",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the bars from the baseline and wipe the line in from the left on mount and when the data changes (default\n true; reduced motion fades).",
           "deprecated": null
         }
       ]

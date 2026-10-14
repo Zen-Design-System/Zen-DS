@@ -19,6 +19,7 @@ import { printPage } from "./doc.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
+import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 
@@ -127,10 +128,31 @@ const readTopNav = async (instance, set) => {
   };
   return { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), topNav };
 };
+// A chart (❖ Chart, figma-charts.mjs): its properties, whether its Heading shows (a chart on its own hides it) and the
+// items its Segmented shows; its drawing is Figma's sample data, so its layers are not read.
+const CHART_SET = /^Chart\\/(?!Chart-Card$)/;
+const readChart = async (instance, set) => {
+  const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance) };
+  const heading = instance.findOne((n) => n.type === "FRAME" && n.name === "Heading");
+  if (heading && !heading.visible) out.headingHidden = true;
+  const segmented = instance.findOne((n) => n.type === "INSTANCE" && n.name === "Segmented");
+  const list = segmented && segmented.visible ? segmented.findOne((n) => n.type === "SLOT") : null;
+  if (list) {
+    out.ranges = [];
+    for (const item of list.children) if (item.visible && item.type === "INSTANCE") out.ranges.push({ text: firstText(item), props: await propsOf(item) });
+  }
+  return out;
+};
 const readInstance = async (instance) => {
   const set = await setOf(instance);
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
   if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
+  if (set && CHART_SET.test(set.name)) return readChart(instance, set);
+  // Chart/Chart-Card is a Card holding a chart: read as that Card.
+  if (set && set.name === "Chart/Chart-Card") {
+    const card = instance.findOne((n) => n.type === "INSTANCE" && n.name === "Card");
+    if (card) return { ...(await readInstance(card)), id: instance.id, name: instance.name };
+  }
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), text: firstText(instance), nested: [], slots: [] };
   // A chat message's text is its bubble's Message (its Avatar's initials come first).
   if (set && set.name === "Chat/Conversation/Bubble") out.text = firstText(instance, "Message");
@@ -1096,6 +1118,50 @@ function aiChatBlockElement(node, ctx) {
   return { kind: "element", name: "AiChatBlock", props, children: field ? [field] : [] };
 }
 
+/* ── charts (figma-charts.mjs) ── */
+
+/** A chart whose Heading shows in Figma → its header (ChartCard's props), until the Card around it takes it. */
+const CHART_HEADS = new WeakMap();
+/** A ChartCard's open button: a builder page holds no handler, a toast stands in for the report it opens. */
+const OPEN_REPORT = { kind: "proto", action: "toast", args: [{ title: "Open report" }] };
+
+/**
+ * A ❖ Chart instance as its code chart (figma-charts.mjs chartFromFigma): the set and its variants pick the chart and
+ * its props, the data is the Studio palette sample's (Figma's drawing is a picture of its own sample).
+ */
+function chartElement(node, ctx) {
+  const chart = chartFromFigma(node, ctx.notes, `"${node.name}" (${node.set?.name})`);
+  if (!chart) return null;
+  ctx.charts = (ctx.charts ?? 0) + 1;
+  const element = { kind: "element", name: chart.name, props: chart.props, children: [] };
+  if (!headingHidden(node)) {
+    CHART_HEADS.set(element, chartHeaderOf(node));
+    (ctx.chartHeads ??= new Set()).add(element);
+  }
+  return element;
+}
+
+/** A Card holding a chart with its header (figma-push chartCardNode, the other way): the ChartCard, its theme the Card's. */
+function chartCardElement(chart, header, cardProps, where, ctx) {
+  ctx.chartHeads?.delete(chart);
+  const props = { title: literal(header.title) };
+  if (header.icon) {
+    if (isZenIcon(header.icon, ctx.mapping)) props.icon = literal(header.icon);
+    else ctx.notes.push(`${where}: its chart's Icon swaps in "${header.icon}", not a Zen icon (left out)`);
+  }
+  if (header.description) props.description = literal(header.description);
+  if (header.value) props.value = literal(header.value);
+  if (header.ranges) props.ranges = { kind: "array", items: header.ranges.map((range) => ({ kind: "object", fields: { id: literal(range.id), label: literal(range.label) } })) };
+  if (header.range) props.range = literal(header.range);
+  if (header.open) props.onOpen = OPEN_REPORT;
+  const { theme, ...rest } = cardProps;
+  // ChartCard's own default is Flat (the Card's is Shadow).
+  if (theme && !(theme.kind === "literal" && theme.value === "flat")) props.theme = theme;
+  else if (!theme) props.theme = literal("shadow");
+  if (Object.keys(rest).length) ctx.notes.push(`${where}: ${Object.keys(rest).join(", ")} of its Card left out (ChartCard draws Card Medium)`);
+  return { kind: "element", name: "ChartCard", props, children: [chart] };
+}
+
 function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
@@ -1136,6 +1202,8 @@ function convertNode(node, ctx) {
     if (setName === "icon-media-file") return { kind: "element", name: "FileIcon", props: { format: literal(String(node.props?.Format ?? "doc").toLowerCase()), ...iconSizeProps(node) }, children: [] };
     if (setName === "Flag" && node.props?.Name) return { kind: "element", name: "Flag", props: { name: literal(node.props.Name), ...(FLAG_SIZE_OF[node.sizeVar] ? { size: literal(FLAG_SIZE_OF[node.sizeVar]) } : {}) }, children: [] };
     if (setName === CHAT_SECTION) return chatThreadElement({ ...node, children: [node] }, ctx);
+    // A chart (❖ Chart): its code chart with the Studio sample's data (figma-charts.mjs).
+    if (chartSetKey(node.set)) return chartElement(node, ctx);
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -1282,6 +1350,9 @@ function convertNode(node, ctx) {
     // Metric-Inline alone is a Metric; a Card holding only one is the MetricCard (figma-push draws it so).
     const lone = children.length === 1 && children[0].kind === "element" && children[0].name === "Metric" ? children[0] : null;
     if (set.code === "Card" && lone && Object.keys(props).every((name) => name === "theme")) return { kind: "element", name: "MetricCard", props: { ...lone.props, ...props }, children: [] };
+    // A Card holding one chart whose Heading shows is the ChartCard (figma-push draws it so).
+    const charted = set.code === "Card" && children.length === 1 ? CHART_HEADS.get(children[0]) : undefined;
+    if (charted) return chartCardElement(children[0], charted, props, where, ctx);
     // Dashboard/Header Type=Main is how figma-push draws a PageHeader (title, its description in SubHeading, actions):
     // the PageHeader comes back.
     if (set.code === "DashboardHeader" && props.type?.value === "main") {
@@ -1696,6 +1767,8 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // The push's page frame around an app frame (a column holding only the AppShell): the AppShell itself.
   if (root?.name === "Stack" && root.children.length === 1 && root.children[0].name === "AppShell" && Object.keys(root.props).every((name) => name === "gap")) root = root.children[0];
   if (ctx.drawings.length) ctx.notes.push(`${ctx.drawings.length} drawings (vectors, shapes: ${[...new Set(ctx.drawings)].join(", ")}) are left out: a page has no layer for them`);
+  if (ctx.charts) ctx.notes.push(`${ctx.charts} chart${ctx.charts > 1 ? "s" : ""}: the data is the Studio's sample for its kind (Figma's chart is a picture of its own sample data)`);
+  for (const chart of ctx.chartHeads ?? []) ctx.notes.push(`${chart.name}: its heading (Title "${CHART_HEADS.get(chart).title}") shows in Figma; a chart's header is ChartCard's, so put the chart in a Card to keep it (left out)`);
   const own = (part) => (frame ? idOf(frame, ctx, part) : undefined);
   // A Stack, or an AppShell (an app frame), is the Screen's content as it is; anything else goes in a Stack.
   const content = root ? (root.name === "Stack" || root.name === "AppShell" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;

@@ -197,3 +197,26 @@
 - Usage per month/licence (`zen-usage.json`, `usage-report.js`). Live PocketBase: team_members list/view rules +
   `registry_clients` (read-only; checked: registry sees members, not licence lists). Deployed; tests 28/28.
 - Not tried live: a real Google sign-in + a real CI key login (needs the user's account / key).
+
+## Charts phase 2: seven Figma charts in code + Studio (tier L, user: "kiểm tra update lại các Chart mới từ Figma lên lại studio" → "Đủ cả")
+
+- Worktree `../Zen-DS-charts2`, branch `zen/feat/charts-phase2` (from main 1831bc8, fast-forwarded to d587171). Spec
+  card + manifest + API contract + as-built: `docs/research/chart-phase2-spec-2026-10-14.md`.
+- Agents (AGENTS §C, L): charts-xy (AreaChart, GroupedBarChart, ComboChart), charts-meter (GaugeChart, FunnelChart),
+  charts-list (BarList, BulletChart), studio (palette + push/pull), one reviewer. Each chart: component + chart.css
+  block, stories, guideline rows, harness rules + fixtures, smoke fixture, ≥ 2 examples on the Chart page (family page:
+  not 4 each), Do/Don't pair. Axe baseline: the new charts' Content/Neutral/Light axis labels, as the older charts.
+- Studio: `tools/studio/figma-charts.mjs` maps all 15 chart sets both ways; push of a ChartCard = Card (theme) + chart
+  with the header props; a bare chart hides its Heading. Real-Figma check in the Zen file (17 ChartCards + 1 bare),
+  pulled back with the same props, all test layers deleted. Found plugin bugs (re-import collapsed multi-row Grids;
+  `hide` never re-showed a layer) → fixed by the "Bug import" session in the plugin repo.
+- Fixed on the way: `useChartSelection` ignored data that arrived after mount (no default item, "No data");
+  `defaultFormat` printed "306.6666666666667"; GaugeChart could write aria-valuenow NaN; LineChart compare legend
+  start-aligned (Figma Multi-Line Legend MIN in all 4 Sector variants); the guideline renderer dropped text after a
+  second "→" (Input, App Shell, Chart lines split one advice per line). Reviewer: the five new Figma legends use
+  Gap/Small 12 · XSmall 8 → shared `ChartLegend gap="small"` (older charts keep 8 · 4). GaugeChart `label` →
+  `actualLabel` (as BulletChart).
+- Checks: tsc, usage selftest/check, style, guidelines, `npm test` 656 passed, `npm run studio:selftest` green,
+  QA gate (isolated, pages chart, input, app-shell).
+- Open (BACKLOG): BarList leader at 78% in Figma vs full track in code (designer); chart sets missing from the
+  component-properties contract (inspector rows); Figma descriptions of the seven sets are stale (widget themes P1).

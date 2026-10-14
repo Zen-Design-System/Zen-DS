@@ -45,9 +45,11 @@ function Example({ kind, example }: { kind: "do" | "dont"; example: GuidelineExa
   );
 }
 
-/** "Choosing a filter → Chip (…)" renders the recommended component emphasised. */
+/** "Choosing a filter → Chip (…)" renders the recommended component emphasised. A second "→" stays in the target
+ *  (it used to drop the rest of the line); write one situation per line instead. */
 function Alternative({ text }: { text: string }) {
-  const [situation, target] = text.split(/\s*→\s*/);
+  const [situation, ...rest] = text.split(/\s*→\s*/);
+  const target = rest.join(" → ");
   return target
     ? <><span className="pg-muted"><RichText text={situation} /></span><span className="pg-arrow" aria-hidden="true">→</span><strong className="pg-target"><RichText text={target} /></strong></>
     : <RichText text={text} />;

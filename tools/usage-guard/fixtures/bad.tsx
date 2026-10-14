@@ -246,6 +246,36 @@ export const Bad = () => <>
   <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} compare={compare} showLegend={false} />
   {/* expect: chart/heatmap-needs-scale */}
   <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} showLegend={false} />
+  {/* expect: chart/needs-name */}
+  <BarList data={ranking} />
+  {/* expect: chart/bar-list-rows */}
+  <BarList aria-label="Revenue by client, 2026 so far" data={[{ label: "A", value: 9 }, { label: "B", value: 8 }, { label: "C", value: 7 }, { label: "D", value: 6 }, { label: "E", value: 5 }, { label: "F", value: 4 }, { label: "G", value: 3 }, { label: "H", value: 2 }, { label: "I", value: 1 }]} />
+  {/* expect: chart/bar-list-ranked */}
+  <BarList aria-label="Revenue by client, 2026 so far" data={[{ label: "Phin & Co", value: 71200 }, { label: "Lumen Bank", value: 96400 }, { label: "Mekong Freight", value: 54800 }]} />
+  {/* expect: chart/bullet-rows */}
+  <BulletChart aria-label="Quarter goals, Q3 2026" data={[{ label: "Revenue", value: 798, target: 900 }, { label: "New clients", value: 18, target: 24 }, { label: "Utilisation", value: 82, target: 85 }, { label: "Churn", value: 3, target: 2 }, { label: "NPS", value: 41, target: 50 }]} />
+  {/* expect: chart/needs-name */}
+  <GaugeChart value={82} target={85} />
+  {/* expect: chart/gauge-in-range */}
+  <GaugeChart aria-label="Billable hours, September 2026" value={1052} target={1091} />
+  {/* expect: chart/funnel-stages */}
+  <FunnelChart aria-label="Leads to signed projects, Q3 2026" data={[{ label: "Leads", value: 480 }, { label: "Signed", value: 62 }]} />
+  {/* expect: chart/needs-name */}
+  <AreaChart data={data} series={series} />
+  {/* expect: chart/series-need-legend */}
+  <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={series} showLegend={false} />
+  {/* expect: chart/series-need-legend */}
+  <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" data={data} series={series} showLegend={false} />
+  {/* expect: chart/area-series-count */}
+  <AreaChart type="stacked" aria-label="Billable hours per month, Apr – Sep 2026" data={data} series={[{ id: "hours", label: "Billable hours" }]} />
+  {/* expect: chart/area-series-count */}
+  <AreaChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
+  {/* expect: chart/grouped-series-count */}
+  <GroupedBarChart aria-label="Billable hours per month by team, Apr – Sep 2026" data={data} series={[{ id: "a", label: "Design" }, { id: "b", label: "Engineering" }, { id: "c", label: "Delivery" }, { id: "d", label: "Client Services" }]} />
+  {/* expect: chart/combo-needs-labels */}
+  <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="" />
+  {/* expect: chart/funnel-stages */}
+  <FunnelChart aria-label="Leads to signed projects, Q3 2026" data={[{ label: "Leads", value: 480 }, { label: "Proposal", value: 168 }, { label: "Qualified", value: 312 }, { label: "Signed", value: 62 }]} />
   {/* expect: table/media-size-by-subtext */}
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   {/* expect: uploader/no-noop-replace */}

@@ -335,8 +335,8 @@ export default function Page() {
   const customBack = pageFromFigma(customPush.frame, { mapping }).text;
   ok("round trip: the MetricCard's custom comes back (its Stack, Text and ProgressBar)", /<MetricCard[^>]*custom=\{<Stack gap="xs"><Text>Goal<\/Text><ProgressBar\b/.test(customBack));
   const line = lineCard.slots[0].children[0];
-  check("ChartCard: a Card around Figma's chart of its kind, the title its Label, ranges as Segmented items, no open button without onOpen", { set: line.set.name, texts: line.texts, items: line.slots?.[0]?.children.map((item) => `${item.text}:${item.props.Select}`), hide: line.hide }, { set: "Chart/Line-Chart", texts: { Label: "Revenue" }, items: ["Revenue:Yes", "Profit:No"], hide: ["Button/Icon-Main"] });
-  check("ChartCard without ranges: its Segmented hidden", barCard.slots[0].children[0].hide, ["Segmented", "Button/Icon-Main"]);
+  check("ChartCard: a Card around Figma's chart of its kind, the title its Title, ranges as Segmented items (Show Ranges), no open button without onOpen", { set: line.set.name, title: line.props.Title, ranges: line.props["Show Ranges"], open: line.props["Show Open"], items: line.slots?.[0]?.children.map((item) => `${item.text}:${item.props.Select}`), hide: line.hide }, { set: "Chart/Line-Chart", title: "Revenue", ranges: true, open: false, items: ["Revenue:Yes", "Profit:No"] });
+  check("ChartCard without ranges: Show Ranges and Show Open off", [barCard.slots[0].children[0].props["Show Ranges"], barCard.slots[0].children[0].props["Show Open"]], [false, false]);
   check("ChartCard ranges: items Medium Secondary (Figma's item starts Small Primary), splitting the full-width switch", line.slots[0].children.map((item) => [item.props.Size, item.props.Level, item.fillW]), [["Medium", "Secondary", true], ["Medium", "Secondary", true]]);
   const hugging = push(DASH.replace('range="revenue"', 'range="revenue" rangesFullWidth={false}'));
   const hugLine = find(hugging.frame, (node) => node.set?.name === "Chart/Line-Chart");
@@ -1157,6 +1157,99 @@ export default function Page() {
   stack.children.push({ ...stack.children[0], id: "15460:999", characters: "Projects copy" });
   const copies = figmaChanges({ base, current, incoming: pageFromFigma(duplicated, { mapping }).doc, synced: current }).changes.filter((change) => change.kind === "add").map((change) => change.label);
   check("pushed: a duplicated layer (same key) comes in as added, the original keeps its id", copies, ["Text “Updated weekly” added", "Heading “Projects copy” added"]);
+}
+
+// 29. Every chart (chart family phase 2, 2026-10-14; figma-charts.mjs): each code chart as its ❖ Chart set, variants and
+//     Show Average / Show Legend from its props; a ChartCard as a Card (its theme) holding the chart with the header
+//     properties on (Title, Show Icon + Icon, Show Description + Description, Show Value + Value, Show Ranges, Show Open);
+//     a chart on its own with every header toggle off and its Heading hidden. The pull gives back the same charts and
+//     cards (the data is the Studio's sample: Figma draws its own).
+const CHARTS = `// @zen-page {"format":1,"title":"Charts"}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { AreaChart, BarChart, BarList, BulletChart, ChartCard, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart, Stack, StackBarChart } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Charts" device="desktop">
+        <Stack gap="md">
+          <ChartCard title="Revenue" theme="shadow" icon="icon-coins-stacked-01-line" description="Invoiced so far in 2026" value="$541.4K" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })}>
+            <LineChart aria-label="Revenue per month, Apr – Sep 2026" showAverage data={[{ label: "Apr", value: 1 }, { label: "May", value: 2 }, { label: "Jun", value: 3 }, { label: "Jul", value: 4 }, { label: "Aug", value: 5 }, { label: "Sep", value: 9 }]} />
+          </ChartCard>
+          <ChartCard title="Invoiced and collected">
+            <LineChart aria-label="Invoiced and collected" legendPosition="top" label="Invoiced" data={[{ label: "Mar", value: 1 }, { label: "Apr", value: 1 }, { label: "May", value: 1 }, { label: "Jun", value: 1 }, { label: "Jul", value: 1 }, { label: "Aug", value: 1 }, { label: "Sep", value: 1 }]} compare={{ label: "Collected", values: [1, 1, 1, 1, 1, 1, 1] }} />
+          </ChartCard>
+          <ChartCard title="Hours" theme="border"><StackBarChart aria-label="Hours" series={[{ id: "a", label: "A" }]} data={[{ label: "Apr", values: { a: 1 } }]} /></ChartCard>
+          <ChartCard title="Capacity" theme="pale"><BarChart orientation="horizontal" showAverage aria-label="Capacity" data={[{ label: "Design", value: 2650 }, { label: "Delivery", value: 750, projected: true }]} /></ChartCard>
+          <ChartCard title="Clients"><DonutChart aria-label="Clients" totalPosition="start" label="Invoiced in Q3" value="$296.8K" data={[{ id: "a", label: "A", value: 1 }]} /></ChartCard>
+          <ChartCard title="Budget"><RadialChart aria-label="Budget" legendPosition="end" data={[{ id: "a", label: "A", value: 36 }]} /></ChartCard>
+          <ChartCard title="When"><HeatmapChart aria-label="When" columns={["Mon"]} rows={["9 am"]} values={[[1]]} /></ChartCard>
+          <ChartCard title="Hours by team"><AreaChart type="stacked" aria-label="Hours by team" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 1, b: 2 } }]} /></ChartCard>
+          <ChartCard title="Invoiced vs. collected"><GroupedBarChart aria-label="Invoiced vs. collected" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 1, b: 2 } }]} /></ChartCard>
+          <ChartCard title="Revenue and margin"><ComboChart aria-label="Revenue and margin" barLabel="Revenue" lineLabel="Margin" data={[{ label: "Apr", bar: 1, line: 2 }]} /></ChartCard>
+          <ChartCard title="Utilisation"><GaugeChart aria-label="Utilisation" value={82} target={85} showLegend={false} /></ChartCard>
+          <ChartCard title="Proposal funnel"><FunnelChart aria-label="Proposal funnel" data={[{ label: "Leads", value: 240 }, { label: "Signed", value: 62 }]} /></ChartCard>
+          <ChartCard title="Top clients"><BarList aria-label="Top clients" data={[{ label: "A", value: 3 }, { label: "B", value: 2 }, { label: "C", value: 1 }]} /></ChartCard>
+          <ChartCard title="Quarter goals"><BulletChart aria-label="Quarter goals" data={[{ label: "Revenue", value: 612000, target: 600000 }]} /></ChartCard>
+          <AreaChart aria-label="Billable hours" series={[{ id: "h", label: "Hours" }]} data={[{ label: "Apr", values: { h: 1 } }]} />
+          <BarChart aria-label="Revenue" data={[{ label: "Jul", value: 94100 }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame, notes } = push(CHARTS);
+  const cards = frame.children.filter((node) => node.set?.name === "Card");
+  const charts = cards.map((card) => card.slots[0].children[0]);
+  const bare = frame.children.filter((node) => node.set?.name?.startsWith("Chart/"));
+  check("every chart: its ❖ Chart set (LineChart with compare → Multi-Line, Bar/Donut/Radial/Area…)", [...charts, ...bare].map((chart) => chart.set.name), ["Chart/Line-Chart", "Chart/Multi-Line-Chart", "Chart/Stack-Bar-Chart", "Chart/Bar-Chart", "Chart/Donut-Chart", "Chart/Radial-Chart", "Chart/Heatmap-Chart", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bar-List", "Chart/Bullet-Chart", "Chart/Area-Chart", "Chart/Bar-Chart"]);
+  ok("every chart set by its id (the plugin finds it by id, then name)", [...charts, ...bare].every((chart) => /^\d+:\d+$/.test(chart.set.id)));
+  check("ChartCard: Card by its theme (Shadow, Flat by default, Border, Pale)", cards.slice(0, 5).map((card) => card.props.Theme), ["Shadow", "Flat", "Border", "Pale", "Flat"]);
+  const head = ["Show Icon", "Icon", "Title", "Show Description", "Description", "Show Value", "Value", "Show Ranges", "Show Open"];
+  check("ChartCard header: every header property from its props (icon, title, description, value, ranges, onOpen)", Object.fromEntries(head.map((name) => [name, charts[0].props[name]])), { "Show Icon": true, Icon: "icon-coins-stacked-01-line", Title: "Revenue", "Show Description": true, Description: "Invoiced so far in 2026", "Show Value": true, Value: "$541.4K", "Show Ranges": true, "Show Open": true });
+  check("ChartCard header: a title alone turns the rest off and writes no texts", Object.fromEntries(head.map((name) => [name, charts[2].props[name]])), { "Show Icon": false, Title: "Hours", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false });
+  check("ChartCard ranges: the picked range selected", charts[0].slots[0].children.map((item) => `${item.text}:${item.props.Select}`), ["Month:No", "Quarter:Yes"]);
+  check("LineChart showAverage: Show Average on, its tag the mean as the code writes it", [charts[0].props["Show Average"], charts[0].props.Average], [true, "Avg 4"]);
+  check("LineChart compare: Multi-Line-Chart by its Sector (7 points)", [charts[1].props.Sector, charts[1].props["Show Average"]], ["7-Sectors", false]);
+  check("BarChart: Orientation, Show Average over the closed bars", [charts[3].props.Orientation, charts[3].props["Show Average"], charts[3].props.Average], ["Horizontal", true, "Avg 2.7K"]);
+  check("DonutChart totalPosition start: Legend Start, Total Start, Total Label / Total Value from label / value", ["Legend", "Total", "Total Label", "Total Value"].map((name) => charts[4].props[name]), ["Start", "Start", "Invoiced in Q3", "$296.8K"]);
+  check("RadialChart legendPosition end: Legend End", charts[5].props.Legend, "End");
+  check("AreaChart stacked: Type Stacked, Show Legend on (the code's default when stacked)", [charts[7].props.Type, charts[7].props["Show Legend"]], ["Stacked", true]);
+  check("Show Legend by the code's default: on (Grouped, Combo, Bullet); Gauge as written", [8, 9, 10, 13].map((index) => charts[index].props["Show Legend"]), [true, true, false, true]);
+  check("Funnel, Bar list, Heatmap: no variant or legend property", [6, 11, 12].map((index) => Object.keys(charts[index].props).filter((name) => !head.includes(name))), [[], [], []]);
+  check("a chart on its own: every header toggle off, its Heading hidden, the code's defaults (Area: no legend, Bar: Vertical)", bare.map((chart) => [chart.props["Show Icon"], chart.props["Show Ranges"], chart.props["Show Open"], chart.hide, chart.props["Show Legend"] ?? chart.props.Orientation]), [[false, false, false, ["Heading"], false], [false, false, false, ["Heading"], "Vertical"]]);
+  check("a chart in a ChartCard keeps its own key (its element id); the card the ChartCard's", cards.every((card) => card.key && card.slots[0].children[0].key && card.key !== card.slots[0].children[0].key), true);
+  ok("notes: Figma draws its own sample data, once per kind", notes.some((note) => /^LineChart: Figma's Chart\/Line-Chart draws its own sample data/.test(note)) && notes.some((note) => /^BulletChart: Figma's Chart\/Bullet-Chart draws its own sample data/.test(note)));
+  ok("no note that a chart has no Figma component", !notes.some((note) => /Chart.*no Figma component/.test(note)));
+  const five = push(CHARTS.replace('{ label: "Mar", value: 1 }, { label: "Apr", value: 1 }, ', "").replace("[1, 1, 1, 1, 1, 1, 1]", "[1, 1, 1, 1, 1]"));
+  check("LineChart compare, 5 points: the nearest Sector (4 or 6), with a note", [five.frame.children[1].slots[0].children[0].props.Sector, five.notes.some((note) => /5 points; Figma's Chart\/Multi-Line-Chart has 4, 6, 7 or 12 sectors \(4 drawn\)/.test(note))], ["4-Sectors", true]);
+  const legend = push(CHARTS.replace('legendPosition="end"', 'legendPosition="start"').replace("<GaugeChart ", '<GaugeChart legendPosition="end" '));
+  ok("legend positions Figma has no option for: the nearest, with a note", legend.notes.some((note) => /legendPosition="start": Figma's Chart\/Radial-Chart has its legend at Bottom or End \(End drawn\)/.test(note)) && legend.notes.some((note) => /legendPosition="end": Figma's Chart\/Gauge-Chart draws its legend below/.test(note)));
+
+  // Round trip: the same charts and cards come back (data from the samples, so it is left out of the comparison).
+  const { text: back, notes: backNotes } = pageFromFigma(frame, { mapping });
+  const DATA = new Set(["data", "series", "compare", "values", "rows", "columns", "aria-label", "height", "label", "barLabel", "lineLabel", "value", "target", "actualLabel", "headers", "legendPosition"]);
+  const charted = (text) => {
+    const out = [];
+    const walk = (node) => {
+      if (node.name === "ChartCard") out.push({ card: Object.fromEntries(Object.entries(node.props).sort(([a], [b]) => a.localeCompare(b))) });
+      else if (/Chart$|^BarList$/.test(node.name) && node.name !== "ChartCard") out.push({ chart: node.name, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => !DATA.has(name) || (node.name === "DonutChart" && (name === "label" || name === "value")) || (node.name === "RadialChart" && name === "legendPosition")).sort(([a], [b]) => a.localeCompare(b))) });
+      node.children.forEach((child) => child.name && walk(child));
+    };
+    walk(shape(text));
+    return out;
+  };
+  check("round trip: every ChartCard and chart comes back with its header, theme and variant props", charted(back), charted(CHARTS));
+  ok("round trip: the pull says the data is the Studio's sample", backNotes.some((note) => /^16 charts: the data is the Studio's sample/.test(note)));
+  check("round trip: the pulled page is valid dialect", validateDialect(back), []);
+  // Pushed again, the pulled page draws the same sets, variants and header (its sample data has the same shape).
+  const again = push(back).frame;
+  const sets = (node) => [node.set?.name?.startsWith("Chart/") ? [node.set.name, node.props.Sector ?? node.props.Orientation ?? node.props.Type ?? node.props.Legend ?? "", node.props.Title ?? ""] : null, ...[...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].flatMap(sets)].filter(Boolean);
+  check("round trip twice: the same sets, variants and titles", sets(again), sets(frame));
 }
 
 if (failures.length) {

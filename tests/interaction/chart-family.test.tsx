@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import { BarChart, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart, ZenProvider } from "../../src/index";
+import { AreaChart, BarChart, BarList, BulletChart, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart, StackBarChart, ZenProvider } from "../../src/index";
 
 // pointer-events: none keeps the runner's resting mouse from hovering an item (CI saw "Jan" picked under it).
 const wrap = (node: ReactNode, width = 480) => <ZenProvider><div style={{ width, pointerEvents: "none" }}>{node}</div></ZenProvider>;
@@ -183,5 +183,85 @@ describe("chart family layout", () => {
     const donut = document.querySelector('[aria-label="D"]')!.getBoundingClientRect();
     const legend = document.querySelector('[data-kind="donut"] > .zen-chart__legend')!.getBoundingClientRect();
     expect(legend.top >= donut.bottom || legend.right <= donut.left).toBe(true);
+  });
+});
+
+describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () => {
+  const months = [{ label: "Jan", values: { a: 1, b: 2 } }, { label: "Feb", values: { a: 3, b: 1 } }];
+  const ab = [{ id: "a", label: "A" }, { id: "b", label: "B" }];
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it("data that arrives after mount shows the default item, not \"No data\"", async () => {
+    const view = (on: boolean) => wrap(<>
+      <LineChart aria-label="Line" data={on ? [{ label: "Jan", value: 1 }, { label: "Feb", value: 2 }] : []} />
+      <GroupedBarChart aria-label="Grouped" data={on ? months : []} series={ab} />
+      <BarList aria-label="List" data={on ? [{ label: "A", value: 5 }, { label: "B", value: 3 }] : []} />
+    </>);
+    const screen = await render(view(false));
+    expect(summaryOf(await focusChart("Grouped"))).toBe("No data");
+    await screen.rerender(view(true));
+    expect(summaryOf(await focusChart("Line"))).toBe("Feb: 2 (2 of 2)");
+    expect(summaryOf(await focusChart("Grouped"))).toBe("Feb: A 3, B 1 (2 of 2)");
+    expect(summaryOf(await focusChart("List"))).toBe("A: 5 (1 of 2)");
+  });
+
+  it("AreaChart stacked: the total and every band; Home moves to the first period", async () => {
+    await render(wrap(<AreaChart type="stacked" aria-label="Area" data={months} series={ab} />));
+    const plot = await focusChart("Area");
+    expect(summaryOf(plot)).toBe("Feb: total 4; A 3, B 1 (2 of 2)");
+    await press(plot, "Home");
+    expect(summaryOf(plot)).toBe("Jan: total 3; A 1, B 2 (1 of 2)");
+    expect(plot.querySelectorAll(".zen-chart__area-dot")).toHaveLength(2);
+  });
+
+  it("ComboChart: both measures in the summary, the line on its own axis", async () => {
+    await render(wrap(<ComboChart aria-label="Combo" barLabel="Revenue" lineLabel="Margin" lineMax={100} lineFormat={(v) => `${v}%`}
+      data={[{ label: "Jan", bar: 80, line: 30 }, { label: "Feb", bar: 90, line: 40 }]} />));
+    const plot = await focusChart("Combo");
+    expect(summaryOf(plot)).toBe("Feb: Revenue 90, Margin 40% (2 of 2)");
+    await press(plot, "ArrowLeft");
+    expect(summaryOf(plot)).toBe("Jan: Revenue 80, Margin 30% (1 of 2)");
+    expect([...document.querySelectorAll(".zen-chart__y-end > span")].map((label) => label.textContent).at(-1)).toBe("100%");
+  });
+
+  it("FunnelChart: every stage first, ↓ picks one, leaving the funnel shows them all again", async () => {
+    await render(wrap(<FunnelChart aria-label="Funnel" data={[{ label: "Leads", value: 400 }, { label: "Qualified", value: 200 }, { label: "Signed", value: 40 }]} />));
+    const plot = await focusChart("Funnel");
+    const overview = "Leads 400 (100%), Qualified 200 (50%), Signed 40 (10%)";
+    expect(summaryOf(plot)).toBe(overview);
+    await press(plot, "ArrowDown", "ArrowDown");
+    expect(summaryOf(plot)).toBe("Qualified: 200, 50% of Leads (2 of 3)");
+    plot.blur();
+    await tick();
+    expect(summaryOf(plot)).toBe(overview);
+  });
+
+  it("BarList and BulletChart: ↑/↓ and End move the row", async () => {
+    await render(wrap(<>
+      <BarList aria-label="List" data={[{ label: "Lumen", value: 90 }, { label: "Phin", value: 60 }]} />
+      <BulletChart aria-label="Goals" data={[{ label: "Revenue", value: 798, target: 900 }, { label: "Clients", value: 5, target: 4 }]} />
+    </>));
+    const list = await focusChart("List");
+    expect(summaryOf(list)).toBe("Lumen: 90 (1 of 2)");
+    await press(list, "ArrowDown");
+    expect(summaryOf(list)).toBe("Phin: 60 (2 of 2)");
+    const goals = await focusChart("Goals");
+    expect(summaryOf(goals)).toBe("Revenue 798 of 900, Clients 5 of 4");
+    await press(goals, "End");
+    expect(summaryOf(goals)).toBe("Clients: 5 of 4 (2 of 2)");
+  });
+
+  it("GaugeChart is a meter with its reading; phase-2 legends keep items Spacing/Gap/Small apart, the older ones XSmall", async () => {
+    await render(wrap(<>
+      <GaugeChart aria-label="Utilisation" value={78} target={85} actualLabel="Billable" />
+      <DonutChart aria-label="Donut" data={[{ id: "a", label: "A", value: 1 }, { id: "b", label: "B", value: 1 }]} />
+    </>));
+    const meter = document.querySelector('[role="meter"]')!;
+    expect(meter.getAttribute("aria-label")).toBe("Utilisation");
+    expect(meter.getAttribute("aria-valuenow")).toBe("78");
+    expect(meter.getAttribute("aria-valuetext")).toBe("Billable 78%, Target 85%");
+    const gap = (kind: string) => getComputedStyle(document.querySelector(`[data-kind="${kind}"] > .zen-chart__legend`)!);
+    expect([gap("gauge").columnGap, gap("gauge").rowGap]).toEqual(["12px", "8px"]);
+    expect([gap("donut").columnGap, gap("donut").rowGap]).toEqual(["8px", "4px"]);
   });
 });
