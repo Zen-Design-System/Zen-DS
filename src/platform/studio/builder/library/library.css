@@ -4,7 +4,7 @@
 .studio-qi {
   position: fixed;
   z-index: 35;
-  top: calc(var(--studio-toolbar-height, 48px) + var(--zen-spacing-padding-medium, 16px));
+  top: var(--zen-spacing-padding-4-xlarge, 48px);
   left: 50%;
   display: flex;
   width: min(640px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SelectField } from "../../../components/Input";
+import { RowSelectField } from "../inspector/rowFields";
 import { tokenChoices } from "./tokens";
 
 /*
@@ -12,7 +12,7 @@ const short = (name: string) => name.replace(/^--zen-/, "");
 export function TokenField({ label, prop, token, disabled, onPick }: { label: string; prop: string; token: string; disabled: boolean; onPick: (name: string) => void }) {
   const options = useMemo(() => tokenChoices(token, prop).map((choice) => ({ value: choice.name, label: short(choice.name), meta: choice.value })), [token, prop]);
   return (
-    <SelectField
+    <RowSelectField
       aria-label={`${label} token`}
       size="sm"
       value={token}

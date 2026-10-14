@@ -8,6 +8,21 @@ import { useWords } from "../useWords";
 const FieldGridContext = createContext(false);
 
 /**
+ * The label a label-left row hands its field (Figma Input/Inline-Field, user 2026-10-15): a field that takes it draws
+ * it inside, on the left, with the value on the right, and the row gives the field its label column (inspector.css).
+ * Controls that are not one field (a switch, a Segmented) leave it and keep the label beside them.
+ */
+const InlineLabelContext = createContext<ReactNode>(null);
+
+/** The row's label for a field drawn as Figma's Inline-Field, or null outside a label-left row. */
+export const useInlineLabel = () => useContext(InlineLabelContext);
+
+/** Around a control that holds fields of its own (an icon switch and its picker): they keep their own labels. */
+export function NoInlineLabel({ children }: { children: ReactNode }) {
+  return <InlineLabelContext.Provider value={null}>{children}</InlineLabelContext.Provider>;
+}
+
+/**
  * A titled inspector block (Figma's "Layout", "Text"…): title row with optional actions, then its rows. `fieldGrid`: the
  * section is on Figma UI3's field grid (InspectorFields), and its plain rows follow it — label above, the control across
  * the two field columns, an action in the icon column (spec docs/research/studio-inspector-figma-spec-2026-10-09.md §1).
@@ -28,7 +43,8 @@ export function InspectorSection({ title, actions, children, note, className, fi
 }
 
 /**
- * One label + control row: label column, then the control filling the rest. A row with an action (Remove effect, Restore
+ * One label + control row: label column, then the control filling the rest. A field control (text, number, select,
+ * colour, icon, a read-only value) takes the label inside instead (useInlineLabel) and spans both columns. A row with an action (Remove effect, Restore
  * a binding, Min and max) adds a trailing slot sized like an xs IconButton; inputs have no per-field reset (user,
  * 2026-10-09: inputs read the same everywhere; "Reset all overrides" sets a component back). `isDefault` shows the
  * control's value in the lighter default tone. `name` (the prop, or several space-separated) lets other rows point at
@@ -39,13 +55,16 @@ export function InspectorSection({ title, actions, children, note, className, fi
 export function InspectorRow({ label, children, action, hint, isDefault, name, labelTitle, compact, bound }: { label: ReactNode; children: ReactNode; action?: ReactNode; hint?: ReactNode; isDefault?: boolean; name?: string; labelTitle?: string; compact?: boolean; bound?: RowBinding }) {
   const stacked = useContext(FieldGridContext) && !compact;
   const say = useWords();
+  const inlineLabel = !stacked && !compact && label !== "" && label !== null && label !== undefined
+    ? <>{label}{bound ? <BoundMark binding={bound} /> : null}</>
+    : null;
   return (
     <div className="studio-inspector__row" data-default={isDefault || undefined} data-prop={name} data-compact={compact || undefined} data-bound={bound ? "true" : undefined} data-action={action ? "true" : undefined} data-stacked={stacked || undefined}>
       <span className={`studio-inspector__row-label ${typographyStyles[stacked ? "Caption/Regular" : "Body/Small/Regular"]}`} title={labelTitle && say(labelTitle)}>
         {label}
         {bound ? <BoundMark binding={bound} /> : null}
       </span>
-      <div className="studio-inspector__row-control">{children}</div>
+      <div className="studio-inspector__row-control"><InlineLabelContext.Provider value={inlineLabel}>{children}</InlineLabelContext.Provider></div>
       {action ? <div className="studio-inspector__row-action">{action}</div> : null}
       {hint ? <p className={`studio-inspector__row-hint ${typographyStyles["Body/Small/Regular"]}`}>{typeof hint === "string" ? say(hint) : hint}</p> : null}
     </div>

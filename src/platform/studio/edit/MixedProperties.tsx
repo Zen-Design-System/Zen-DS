@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { SelectField } from "../../../components/Input";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc, studioApi } from "../api";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { RowSelectField } from "../inspector/rowFields";
 import { componentGroupsOf } from "../inspector/componentGroups";
 import { TextControl, TypographyControl } from "../inspector/PropField";
 import { entryLabel, entryOptions, entryProp, figmaOptions } from "../inspector/propGroups";
@@ -127,7 +127,7 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
         const label = (option: string) => (spec.editor.kind === "boolean" ? (option === "true" ? "Yes" : "No") : named.labels?.[option] ?? option);
         return (
           <InspectorRow key={spec.name} label={rowLabel} name={spec.name} hint={hint}>
-            <SelectField
+            <RowSelectField
               aria-label={`${spec.name} for ${layers.length} layers`}
               size="sm"
               disabled={!editable || bound}

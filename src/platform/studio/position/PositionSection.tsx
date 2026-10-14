@@ -10,6 +10,7 @@ import { canvasApi } from "../canvas/viewport";
 import type { FieldApi } from "../inspector/fieldApi";
 import type { PropValue } from "../inspector/propSchema";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { RowSelectField } from "../inspector/rowFields";
 import { inspectorStatus } from "../inspector/status";
 import { findBySrc, onSourceUpdate, parentHit, rectOf, selectHit } from "../select/picker";
 import { tokenPx } from "../select/spacing";
@@ -407,7 +408,7 @@ function InsetRow({ prop, value, ladder, api, name }: { prop: string; value: Pro
       isDefault={value.state === "unset"}
       hint={readOnly ? `Set in the code (${value.state === "bound" ? `{${value.expression}}` : value.via})` : undefined}
     >
-      <SelectField
+      <RowSelectField
         aria-label={`${label} offset`}
         size="sm"
         disabled={api.disabled || readOnly}
