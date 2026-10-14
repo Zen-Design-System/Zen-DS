@@ -1,0 +1,131 @@
+/* Figma Slider/Field (15662:108207): the Input field box (Input/Size, Input/Spacing, Corner-Radius/Input,
+   Input/Background + Effect/Input on one layer, Input/Border on top) with the value as a fill from the start. */
+.zen-slider-field {
+  --zen-slider-field-background: var(--zen-input-background-default, #05050508);
+  --zen-slider-field-border: var(--zen-input-border-default, #ffffff00);
+  --zen-slider-field-stroke: 1px;
+  --zen-slider-field-fill: var(--zen-color-background-neutral-subtle-hover);
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: var(--zen-input-size-medium, 40px);
+  align-items: center;
+  border-radius: var(--zen-corner-radius-input-medium, 12px);
+  color: var(--zen-color-content-neutral-strongest, #111);
+  isolation: isolate;
+}
+.zen-slider-field[data-size="small"] { height: var(--zen-input-size-small, 32px); border-radius: var(--zen-corner-radius-input-small, 12px); }
+.zen-slider-field[data-tone="accent"] { --zen-slider-field-fill: var(--zen-color-background-accent-subtle-hover); }
+
+/* Background and Effect/Input on one painted layer, as the Input field draws them. */
+.zen-slider-field::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--zen-slider-field-background);
+  box-shadow: var(--zen-style-effect-input-shadow, inset 0 0 1px 0 var(--zen-input-shadow-base, #00000014), inset 0 0 3px 0 var(--zen-input-shadow-strong, #0000001f));
+  content: "";
+  pointer-events: none;
+  backdrop-filter: var(--zen-style-effect-input-backdrop-filter);
+}
+/* The border is the top layer (Figma: a Border layer over the fill), so the fill meets the corners exactly. */
+.zen-slider-field::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border: var(--zen-slider-field-stroke) solid var(--zen-slider-field-border);
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+/* The value: a fill from the start edge, ratio × width, clipped by the field's radius. */
+.zen-slider-field__fill {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.zen-slider-field__fill::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: calc(var(--zen-slider-field-ratio, 0) * 100%);
+  background: var(--zen-slider-field-fill);
+  content: "";
+}
+
+/* Label left, number right: Input/Spacing paddings and the inside-field gap. */
+.zen-slider-field__label,
+.zen-slider-field__control,
+.zen-slider-field__input { position: relative; z-index: 1; }
+.zen-slider-field__label {
+  flex: none;
+  max-width: 60%;
+  overflow: hidden;
+  padding-inline-start: var(--zen-input-spacing-medium-horizontal-padding, 12px);
+  color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 60%));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.zen-slider-field__control,
+.zen-slider-field__input {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  margin: 0;
+  padding-inline: var(--zen-input-spacing-medium-inside-field-gap, 8px) var(--zen-input-spacing-medium-horizontal-padding, 12px);
+  border: 0;
+  border-radius: inherit;
+  outline: 0;
+  background: transparent;
+  color: var(--zen-color-content-neutral-strongest, #111);
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+.zen-slider-field__input { text-align: end; cursor: text; user-select: text; }
+.zen-slider-field[data-size="small"] .zen-slider-field__label { padding-inline-start: var(--zen-input-spacing-small-horizontal-padding, 8px); }
+.zen-slider-field[data-size="small"] :is(.zen-slider-field__control, .zen-slider-field__input) { padding-inline: var(--zen-input-spacing-small-inside-field-gap, 8px) var(--zen-input-spacing-small-horizontal-padding, 8px); }
+/* The slider is the whole field: the label is part of its target. */
+.zen-slider-field__control::before { position: absolute; inset-block: 0; inset-inline-start: -100vw; inset-inline-end: 0; content: ""; }
+.zen-slider-field { overflow: hidden; }
+
+/* Hover: Input/Background/Hover and the 2px active border (as the Input field). */
+.zen-slider-field[data-state="default"]:hover {
+  --zen-slider-field-stroke: var(--zen-emphasis-border-weight-active-primary, 2px);
+  --zen-slider-field-border: var(--zen-input-border-hover, #ffffff00);
+  --zen-slider-field-background: var(--zen-input-background-hover, #01010110);
+}
+/* Dragging: the hover box and the pressed fill. */
+.zen-slider-field[data-state="dragging"] {
+  --zen-slider-field-stroke: var(--zen-emphasis-border-weight-active-primary, 2px);
+  --zen-slider-field-border: var(--zen-input-border-hover, #ffffff00);
+  --zen-slider-field-background: var(--zen-input-background-hover, #01010110);
+  --zen-slider-field-fill: var(--zen-color-background-neutral-subtle-pressed);
+}
+.zen-slider-field[data-tone="accent"][data-state="dragging"] { --zen-slider-field-fill: var(--zen-color-background-accent-subtle-pressed); }
+/* Keyboard focus and Typing: Input/Border/Focus, Input/Background/Focused and the 3px Focus/Neutral/Subtle ring. */
+.zen-slider-field:has(.zen-slider-field__control:focus-visible),
+.zen-slider-field[data-state="typing"] {
+  --zen-slider-field-border: var(--zen-input-border-focus, #111);
+  --zen-slider-field-background: var(--zen-input-background-focused, #05050508);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle, #0000001a);
+}
+/* Typing: the number is text to edit, so the fill steps back. */
+.zen-slider-field[data-state="typing"] .zen-slider-field__fill { display: none; }
+/* Disabled: Input/Border/Disabled, Content/Disabled, Background/Neutral/Subtle fill. */
+.zen-slider-field[data-state="disabled"] {
+  --zen-slider-field-border: var(--zen-input-border-disabled, #ffffff00);
+  --zen-slider-field-fill: var(--zen-color-background-neutral-subtle-default);
+}
+.zen-slider-field[data-state="disabled"] :is(.zen-slider-field__label, .zen-slider-field__control) { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }

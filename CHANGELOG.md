@@ -267,6 +267,10 @@ removed (four unused colour ramps were, see Removed).
   `layout="inline"` on InputField, SelectField and ColorField (Figma Input/Inline-Field): the label inside the field
   for dense property panels. Harness `color-picker/hex-value`; Studio palette (Colour field, Colour picker, Colour
   swatch, Inline field) and Figma property rows; platform page Color Picker.
+- `SliderField` (2026-10-14, user, Figma Slider/Field 15662:108207): a number that is also a slider for property
+  panels. The whole field is the track (Input tokens, the value as a Background/Subtle fill); drag scrubs, a click or
+  Enter types an exact number, arrows step. Harness `slider-field/value-in-range`; Studio palette (Slider field) and
+  Figma property rows; platform page Slider Field.
 - Customize without forking or detaching: `skills/zen-component-usage/references/customize-in-code.md` and
   `skills/zen-figma-design/references/customize-without-detach.md`; Figma audit rule `bounds/stroke-clip-gap`.
 - Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,

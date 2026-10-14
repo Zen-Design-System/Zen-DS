@@ -891,6 +891,8 @@
 .platform-rating-readout, .platform-color-readout { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); font-variant-numeric: tabular-nums; }
 .platform-rating-preview > .zen-opinion-scale { width: min(560px, 100%); }
 .platform-color-preview { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+/* Slider Field playground: the field at an inspector width, the value under it. */
+.platform-slider-field-preview { flex-direction: column; align-items: stretch; gap: var(--zen-spacing-gap-small, 12px); width: 100%; max-width: 320px; }
 /* Color Picker playground: the field at a form width, the value under it. */
 .platform-color-picker-preview { flex-direction: column; align-items: stretch; gap: var(--zen-spacing-gap-small, 12px); width: 100%; max-width: 360px; }
 .platform-color-picker-preview .platform-color-readout { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }

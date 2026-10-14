@@ -39,6 +39,7 @@
 - [Empty State](docs/guidelines/empty-state.md): Explains why a screen or region has nothing to show and what the user can do next. Props: docs/api/empty-state.json
 - [Stepper](docs/guidelines/stepper.md): Shows progress through a multi-step, sequential process and where the user is in it. Props: docs/api/stepper.json
 - [Slider](docs/guidelines/slider.md): Pick a value from a continuous or stepped range by dragging, where the relative position matters more than the exact number. Props: docs/api/slider.json
+- [Slider Field](docs/guidelines/slider-field.md): A number that is also a slider: the whole field is the track, its fill shows the value inside min–max, the label sits left and the number right. Drag to scrub, click to type an exact number, arrows to step. Props: docs/api/slider-field.json
 - [Card](docs/guidelines/card.md): A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole. Props: docs/api/card.json
 - [Dock Icon](docs/guidelines/dock-icon.md): A round, filled icon tile that identifies an app, category, file type or object. Props: docs/api/dock-icon.json
 - [Voice](docs/guidelines/voice.md): Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action. Props: docs/api/voice.json

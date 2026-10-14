@@ -1802,6 +1802,35 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "SliderField": {
+    "figma": "15662:108207",
+    "own": [
+      {
+        "prop": "label",
+        "label": "Label",
+        "type": "TEXT"
+      },
+      {
+        "prop": "theme",
+        "label": "Theme",
+        "type": "VARIANT",
+        "options": {
+          "Neutral": "neutral",
+          "Accent": "accent"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "Sidebar": {
     "figma": "4081:15234",
     "own": [

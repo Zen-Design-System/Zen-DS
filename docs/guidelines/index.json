@@ -2096,6 +2096,7 @@
       ],
       "avoid": [
         "Exact numbers users type → NumberField.",
+        "A number in a dense property panel, scrubbed or typed → SliderField.",
         "A handful of discrete options → Segmented or RadioButton.",
         "On/off → Toggle."
       ],
@@ -2138,6 +2139,56 @@
         "slider/solid-icon",
         "api/deprecated-prop",
         "icon/unknown-name",
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
+      ]
+    },
+    {
+      "slug": "slider-field",
+      "title": "Slider Field",
+      "file": "docs/guidelines/slider-field.md",
+      "apiFile": "docs/api/slider-field.json",
+      "figma": "Slider/Field (page 1556:17601)",
+      "import": "import { SliderField } from \"@zen-ds/react\";",
+      "purpose": "A number that is also a slider: the whole field is the track, its fill shows the value inside min–max, the label sits left and the number right. Drag to scrub, click to type an exact number, arrows to step.",
+      "use": [
+        "Tuning values in dense property panels and inspectors: offsets, scales, opacity, duration, bounce.",
+        "Rows that sit with inline fields (InputField layout=\"inline\"): the same height, radius and label position."
+      ],
+      "avoid": [
+        "A value tuned by feel, with no number to read → Slider.",
+        "An exact quantity with steppers in a form → NumberField.",
+        "2–5 named options → Segmented."
+      ],
+      "props": {
+        "SliderField": [
+          "label: ReactNode",
+          "value?: number",
+          "defaultValue?: number",
+          "onValueChange?: (value: number) => void",
+          "min?: number = 0",
+          "max?: number = 100",
+          "step?: number = 1",
+          "formatValue?: (value: number) => string",
+          "theme?: neutral|accent = neutral",
+          "size?: sm|md|small|medium = md",
+          "disabled?: boolean = false",
+          "aria-label?: string",
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
+        ]
+      },
+      "do": [
+        "Label the number with what it changes (\"Offset X\", \"Overlay Opacity\") and show its unit through formatValue.",
+        "Pick min, max and step so the fill means something: the whole field is the range.",
+        "Stack rows of one group Spacing/Gap/XSmall apart, as inline fields."
+      ],
+      "dont": [
+        "Don't use it where the number does not matter; a Slider is calmer (harness: slider-field/value-in-range keeps the start value inside the range).",
+        "Don't make the range so wide that one pixel jumps many steps; people then type instead of scrubbing."
+      ],
+      "rules": [
+        "slider-field/value-in-range",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
       ]

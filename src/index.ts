@@ -40,6 +40,7 @@ export * from "./components/InlineMessage";
 export * from "./components/EmptyState";
 export * from "./components/Stepper";
 export * from "./components/Slider";
+export * from "./components/SliderField";
 export * from "./components/DockIcon";
 export * from "./components/Card";
 export * from "./components/ListItem";
