@@ -51,9 +51,9 @@ export interface AccordionProps {
    */
   size?: AccordionSize;
   /**
-   * Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:
-   * Support/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle,
-   * and its focus ring is concentric with the box corner.
+   * Divider: bottom Border/Neutral/Pale rule; the whole header row, its block padding included, is the toggle. Box:
+   * Support/Neutral/Pale surface, no border, with radius (Corner-Radius/Large, XLarge 2XLarge, Small Base); the whole box
+   * header is the toggle, and its focus ring is concentric with the box corner.
    */
   theme?: AccordionTheme;
   /**

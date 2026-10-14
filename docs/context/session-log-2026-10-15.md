@@ -28,4 +28,8 @@
   "Description backup 2026-10-15".
 - Code: `size` small/sm (titleStyle, contentStyle per size; CSS Small block), guideline Size and Contents rows,
   component-properties Size options, Studio maps regenerated, example Layer settings (Small in a panel).
-- Seen, not changed: the primitive's Content Width=Full variants have no Title text property reference (Medium too).
+- Fixed (user: "sửa luôn"): the primitive's 8 Content Width=Full variants had no Title text-property reference → linked
+  to Title#239:80 (16 nested instances, none customised, all read the property).
+- Box border (user removed it in Figma, 2026-10-15): all 16 Box roots of Accordion/Text, Small included, have no stroke;
+  Divider keeps its bottom Pale rule. Code draws none on Box, so nothing changes; BACKLOG P3 designer question closed,
+  Accordion JSDoc: Divider rule Pale (was Subtle), Box no border.

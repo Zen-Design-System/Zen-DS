@@ -55,7 +55,7 @@
           "type": "\"divider\" | \"box\"",
           "required": false,
           "default": "\"divider\"",
-          "description": "Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle,\nand its focus ring is concentric with the box corner.",
+          "description": "Divider: bottom Border/Neutral/Pale rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface, no border, with radius (Corner-Radius/Large, XLarge 2XLarge, Small Base); the whole box\nheader is the toggle, and its focus ring is concentric with the box corner.",
           "deprecated": null
         },
         {
