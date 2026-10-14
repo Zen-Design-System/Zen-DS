@@ -19,6 +19,13 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio: Update from Figma on a page you exported to Figma now lists only what the designer changed there, and
+  applying it keeps everything Figma cannot hold (a Container, a list's title lines, aria, ids, data). How it works:
+  - Export › Figma keeps the pull of the frame it writes, under the export's version.
+  - The Zen plugin stores the page and that version on the frame.
+  - A pull of the frame comes back with the page's own element ids.
+  - A spot changed in the Studio since the export is flagged as a conflict.
+  - A layer the designer duplicated comes in as new.
 - Zen Studio's icon picker leads with tiles you can click without typing: **Recent** (your last picks) and **Related**
   (the icon's own family and the icons that mean the same as it and as the words beside it: a Revenue card's coins →
   wallet, bank, card, currency, receipt). A nested icon's picker (a Metric card's dock icon) lists the icons the page

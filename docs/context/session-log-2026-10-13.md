@@ -527,3 +527,20 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   but the pointer can rest on that item from an earlier test, and a hovered idle item on the Default bar takes the
   label's colour. The test now unhovers the bar and measures an idle item the pointer is not on (a forced hover
   reproduces the old failure). Gate PASS (chart, bottom-navigation; full Vitest 57/57).
+
+
+## Studio ↔ Figma round trip by key (P6b; branch zen/feat/figma-keys, tier M)
+
+- The user approved P6b ("OK"). They also asked to merge #36/#40 in the sessions' order: #40 merged into #36's branch
+  (db2fbfe); CI job 1 and the platform audit (light, dark) were run locally on that head and pass. #36 waits for its
+  own CI before going into main.
+- Reader: each node's Studio `key`; the frame's `page` and `version`. Pull: ids from keys, parts as `key.part`, and slots
+  and rows by their owner's key. A duplicated key falls back to the Figma id. figma-pull.mjs loads in the browser
+  (node modules imported only by the CLI / repoMapping; shebang dropped, since Vite put an import before it).
+- figma-diff: base members are tracked; conflicts are measured against `synced` (the page when the frame matched).
+- Studio: figmaExport keeps `{ version, base, synced }` (pageStore `figmaExports`, five); findPulledPage routes a
+  pushed frame to its page; figmaBaseOf picks the base; applyPulled keeps `{ base, synced, version }`. Dialog copy fits
+  both cases.
+- Plugin: the frame keeps `version` (test added).
+- Live: frame 15459:3. Untouched → 0 changes; six designer edits → exactly 7 changes, no false conflicts, code-only
+  detail kept. Fixture figma-pushed.json. Push selftest 195; E2E HO-09/10/11 and NO-20 pass; studio:selftest passes.

@@ -1,6 +1,6 @@
 import contract from "../../../../../docs/figma-contracts/component-properties.json";
 import api from "../../../api.generated.json";
-import { printPage, type PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
+import { printPage, sha1, type PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 import { apiPropsOf, figmaMapping, type FigmaMapping } from "../../../../../tools/studio/figma-map.mjs";
 import { figmaPackage } from "../../../../../tools/studio/figma-push.mjs";
 import { iconNames } from "../../../../icons/generated/names";
@@ -9,6 +9,7 @@ import { FIGMA_PROPS } from "../../inspector/figmaProps.generated";
 import { NESTED_LAYERS } from "../../inspector/nestedLayers.generated";
 import { DATA_SLOTS } from "../../slots/dataSlots";
 import { assetBlob } from "../assets/uploads";
+import { keepFigmaExport } from "../store/pageStore";
 import { resolveMedia } from "../library/media";
 
 /*
@@ -17,6 +18,8 @@ import { resolveMedia } from "../library/media";
  * figma-push.mjs). Printed from the page's document with its ids, so the keys stay put and importing the page again
  * updates the same layers. Its pictures go inside the file (the plugin has no network): an upload from this browser's
  * store, a library photo or any other URL fetched. Loaded with the Export panel's Figma tab.
+ * Each export has a version (a hash of its frame) the plugin keeps on the frame; the page keeps the pull of that frame
+ * and itself beside it (keepFigmaExport), the base a later Update from Figma compares the designer's frame with.
  */
 
 let mapping: FigmaMapping | null = null;
@@ -59,6 +62,19 @@ export async function exportFigma({ id, title, text, doc }: { id: string; title:
   const source = doc ? printPage(doc, { ids: true }) : text;
   const { pkg, notes } = figmaPackage(source, { mapping: repoMapping(), nestedLayers: NESTED_LAYERS, page: { id, title } });
   if (!pkg) return { error: notes.join("; ") || "The page has no Screen to export" };
+  // Only a page with its document has keys that stay put (its element ids): its export is kept for Update from Figma.
+  if (doc) {
+    const version = sha1(JSON.stringify(pkg.frame)).slice(0, 12);
+    pkg.page.version = version;
+    try {
+      const { pageFromFigma } = await import("../../../../../tools/studio/figma-pull.mjs");
+      const base = pageFromFigma({ ...pkg.frame, page: id, version }, { mapping: repoMapping() }).doc;
+      await keepFigmaExport(id, { version, base, synced: doc });
+    } catch (error) {
+      // The export itself stands; a later Update from Figma compares with the page as it is then (two ways).
+      notes.push(`this export is not kept for Update from Figma (${error instanceof Error ? error.message : String(error)})`);
+    }
+  }
   const images = pkg.images ?? {};
   for (const src of Object.keys(images)) {
     images[src] = await pictureBytes(src);

@@ -378,3 +378,26 @@ importer của plugin và đọc lại bằng bộ đọc của pull. Chỉ tin 
   designer sửa và giữ mọi chi tiết chỉ có trong code.
 - Frame thử (trang "Studio exports"): 15448:3 (breadcrumbs), 15440:3323 (toast), 15440:3809 (dashboard-header), cùng các
   frame P6 trước: 15438:3, 15440:3, 15440:2284, 15440:2468.
+
+### P6b — khứ hồi theo key (2026-10-13, nhánh `zen/feat/figma-keys`; user duyệt "OK")
+
+Trang Studio đã export sang Figma, designer sửa frame, kéo về → Update from Figma chỉ liệt kê đúng chỗ designer sửa, áp
+vào vẫn giữ mọi thứ Figma không giữ được.
+
+| Bước | Ở đâu | Làm gì |
+| --- | --- | --- |
+| Export | `figmaExport.ts` | `page.version` = 12 ký tự sha1 của frame; giữ bản gốc = pull của chính frame đó (`pageFromFigma`, chạy trong trình duyệt) và trang lúc export (`synced`) vào `figmaExports` của trang (5 bản mới nhất) |
+| Plugin | `studio-import.js` | ngoài `key` từng layer và `page`, frame giữ `version` (shared plugin data "zenstudio") |
+| Đọc | `figmaReadCode` | mỗi node có `key`; frame có `key`, `page`, `version` |
+| Pull | `pageFromFigma` | id phần tử = key (id trong trang Studio); phần pull tự sinh = `key.part`; slot / hàng theo key của instance chủ; key trùng (designer nhân bản layer) → bản sau dùng id Figma ("added"); header `figma: { file, node, page, version }`. Không còn import `node:` ở đầu file (Studio tải được) |
+| So | `figma-diff.mjs` | theo dõi cả id có trong base (không chỉ `f…`); xung đột tính so với `synced` (trang lúc khớp frame), không so với base |
+| Import | `findPulledPage`, `figmaBaseOf` | frame có `page` + `version` của một export trong trình duyệt này → Update from Figma trên trang đó, base = export đó (hoặc lần cập nhật gần nhất từ cùng export); sau khi áp: base = pull, synced = trang đã merge |
+
+- Thử thật trong file Zen: trang breadcrumbs export với id k1… (frame 15459:3, version v1). Frame chưa sửa → 0 thay đổi.
+  Designer sửa 6 chỗ (title ListItem, Badge Green / Shipped, giá trị Location, tiêu đề, thêm một dòng chữ, xoá một dòng
+  danh sách) → đúng 7 thay đổi, không cái nào bị gắn xung đột; merge giữ `Container`, `titleLines`, ListBox
+  `theme="shadow"`, `aria-labelledby`, id, ảnh logo. Fixture `figma-pushed.json` (hai bản đọc thật, bản sau đã so hash
+  với bản Figma đọc).
+- E2E HO-11 (Studio thật): Export › Figma giữ export; frame kéo về sau 2 chỗ sửa → hộp thoại trên đúng trang, 2 thay đổi,
+  áp vào giữ chi tiết code. Lỗi gặp và sửa: Vite chèn import trước shebang của `figma-pull.mjs` (bỏ shebang).
+- Còn lại: frame designer tự dựng (không từ export) vẫn kéo về như trước; trình duyệt khác không có export → so hai chiều.

@@ -8,6 +8,7 @@ import { docFromText, printPage } from "./doc.mjs";
 import fs from "node:fs";
 import { figmaFromPage, figmaIdOf, figmaPackage } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
+import { figmaChanges, mergeFigma } from "./figma-diff.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
 let passed = 0;
@@ -1091,6 +1092,50 @@ export default function Page() {
   const fileLead = fileRow.frame.children[0].nested?.[0];
   check("push: a List-Item's FileIcon lead swaps its Avatar, without a size Figma cannot set inside an instance (noted)", [fileLead?.set?.name, "sizeVar" in (fileLead ?? {}), fileRow.notes.some((note) => note.includes("shows at its own size in Figma"))], ["icon-media-file", false, true]);
   check("push: a Sidebar's logo is its Header-Content (Figma's sample LOGO and Collapse go)", logoHeader.children.map((layer) => [layer.type, layer.fillW, layer.children.map((child) => child.characters)]), [["FRAME", true, ["Dizai Studio"]]]);
+}
+
+// 28. Round trip by key (P6b, 2026-10-13; fixtures/figma-pushed.json): a page exported with its ids, placed in the Zen
+//     file and read back pulls with the page's own ids (the layers' Studio keys), and names its page and export. Against
+//     the pull of the export (the base) and the page as exported (synced): the frame as placed is no change; a designer's
+//     edits are exactly the changes, and merging them keeps what Figma cannot hold.
+{
+  const fixture = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-pushed.json", import.meta.url), "utf8"));
+  const counter = () => { let n = 0; return () => `k${++n}`; };
+  const { pkg } = figmaPackage(fixture.page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "p6b-breadcrumbs-top-bar-trail", title: "P6b" }, newId: counter() });
+  const current = docFromText(fixture.page, { newId: counter() }).doc;
+  // The base is the pull of the frame as it was exported then (the Studio keeps it at export: a later push may differ).
+  const base = pageFromFigma({ ...fixture.exported, page: "p6b-breadcrumbs-top-bar-trail", version: "v1" }, { mapping }).doc;
+  check("pushed: the export's keys are the page's ids (the frame read back carries them)", [pkg.frame.key, fixture.untouched.key, current.board.children[0].id], ["k2", "k2", "k2"]);
+  const untouched = pageFromFigma(fixture.untouched, { mapping }).doc;
+  check("pushed: a pull names the Studio page and the export", untouched.header.figma, { file: "9nZv4uW2LT21yuHabMTCh1", node: "15459:3", page: "p6b-breadcrumbs-top-bar-trail", version: "v1" });
+  check("pushed: the frame as placed is no change against its export", figmaChanges({ base, current, incoming: untouched, synced: current }).changes.map((change) => change.label), []);
+  const edited = pageFromFigma(fixture.edited, { mapping }).doc;
+  const { changes } = figmaChanges({ base, current, incoming: edited, synced: current });
+  check("pushed: the designer's edits are the changes, none a conflict", changes.map((change) => `${change.kind}${change.conflict ? "!" : ""}: ${change.label}`), [
+    "prop: DescriptionList · items: changed",
+    "text: Heading: “Projects” → “Your projects”",
+    "add: Text “Updated weekly” added",
+    "prop: ListItem “Loyalty app v2” · title: “Loyalty app” → “Loyalty app v2”",
+    "prop: Badge “Shipped” · theme: “blue” → “green”",
+    "text: Badge: “Active” → “Shipped”",
+    "remove: ListItem “Zen design system” removed",
+  ]);
+  const merged = printPage(mergeFigma(current, edited, changes).doc);
+  ok("pushed: merged, the page keeps what Figma cannot hold (Container, titleLines, ListBox theme, aria, ids, the logo's Image)",
+    ["<Container>", "titleLines={2}", '<ListBox theme="shadow">', 'aria-labelledby="chi-projects"', 'id="chi-projects"', '{ id: "team:design", label: "Design" }', '<Image src="zen-media:tpl.hr.workspace-logo.png" alt="" />'].every((part) => merged.includes(part)));
+  ok("pushed: merged, the designer's edits are in", ['description: "Da Nang"', ">Your projects</Heading>", '<Text textStyle="Body/Small/Regular">Updated weekly</Text>', 'title="Loyalty app v2"', '<Badge theme="green" background="subtle">Shipped</Badge>'].every((part) => merged.includes(part)) && !merged.includes("Zen design system"));
+  // The Studio changed the heading since the export too: that change is a conflict; an edit elsewhere stays.
+  const studioEdited = JSON.parse(JSON.stringify(current));
+  const heading = (doc) => { const find = (node) => (node.name === "Heading" ? node : node.children.filter((child) => child.kind === "element").map(find).find(Boolean) ?? Object.values(node.props).filter((value) => value.kind === "element").map((value) => find(value.node)).find(Boolean) ?? null); return find(doc.board); };
+  heading(studioEdited).children = [{ kind: "text", value: "Projects 2026" }];
+  const conflicts = figmaChanges({ base, current: studioEdited, incoming: edited, synced: current }).changes.filter((change) => change.conflict).map((change) => change.label);
+  check("pushed: a spot the Studio changed since the export too is a conflict", conflicts, ["Heading: “Projects” → “Your projects”"]);
+  // A layer the designer duplicated carries the same key: the first keeps the id, the copy comes in as added.
+  const duplicated = JSON.parse(JSON.stringify(fixture.edited));
+  const stack = (function find(node) { return node.id === "15459:848" ? node : (node.children ?? []).map(find).find(Boolean) ?? null; })(duplicated);
+  stack.children.push({ ...stack.children[0], id: "15460:999", characters: "Projects copy" });
+  const copies = figmaChanges({ base, current, incoming: pageFromFigma(duplicated, { mapping }).doc, synced: current }).changes.filter((change) => change.kind === "add").map((change) => change.label);
+  check("pushed: a duplicated layer (same key) comes in as added, the original keeps its id", copies, ["Text “Updated weekly” added", "Heading “Projects copy” added"]);
 }
 
 if (failures.length) {
