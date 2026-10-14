@@ -147,3 +147,27 @@
   overrode every developer's login → E401, reproduced); `zen-ds doctor` flags any token line. Spinner, Yarn 2+, Docker notes.
 - Open: R2 backups (no backup.env yet), uptime check, `npm deprecate` of public @zen-ds/react 0.1.0, where customers see
   their licence id (question for the user).
+
+## ◆ Performance: sidebar IA and more cases (Figma only, file 9nZv4uW2LT21yuHabMTCh1, page 15478:20137)
+
+- User: "Làm dày thêm case của Performance" + review whether the sidebar covers the IA and features.
+- Sidebar: local component `.Template-Component/Performance/Sidebar-List` (15624:4222, section `.Template`, as HR's
+  Sidebar-List): General (Overview, Inbox ³, Calendar) · Work (Projects, Tasks ⁸, Leads) · People (Members,
+  Timesheets ⁵, Payments) · Insights (Performance selected, Reports, Goals); groups gap 3XSmall, between groups
+  XSmall, Section-Title per group. Footer: Settings · Help center (new) · Feedback. Placed in both existing frames;
+  every case frame is a clone, so one edit of the component reaches all 16.
+- New sections, 14 frames (1512 × 1368, clones of the page instance; overlays absolute on the screen frame):
+  Scope & filters (Period presets popover · Custom range dual calendar Jul 29 – Aug 25 · Team filter popover ·
+  Filtered by Sales with KPIs, chart value, rows, counter, pagination); Member actions (Member profile = Overlay +
+  Side-Panel Modal with kickers, On-Container Cards with Description Lists, tasks List-Box · Assign task and Add member
+  Modal/Forms · Remove member Modal/Dialog Negative · Export report Modal/Forms with checkboxes · Bulk selection with a
+  checkbox column, 3 Selected rows, Popover/Bulk-Action); Data states (Loading with Skeletons · Search no results
+  Empty-State with Clear search · No data yet with empty chart cards and an invite Empty-State · Load error with an
+  Inline-Message Negative + Retry in the Time worked card).
+- Overlay frames first used a 982 viewport: the audit flagged the page content past it (bounds/overflow) and the
+  pagination shadows cut, so every frame is full page height.
+- Audit (17 roots, harness): 0 errors; 42 warnings, all instance/colour-changed that were already in the base frame
+  (sidebar workspace chevron Neutral/Light from the library slot default; Time worked legend dots Accent/Neutral).
+- Library defaults met (worked around per instance, BACKLOG line for the designer): List-Box On-Container
+  Header=No/Footer=No has Container-Slot FIXED 369 (set HUG); Checkbox/Text Container FIXED 141 (labels wrap, set
+  FILL); Card's Sub-Action defaults on (⋮ over the first row, set off); Inline-Message Action is Button/Main-Old.

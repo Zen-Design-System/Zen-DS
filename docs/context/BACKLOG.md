@@ -38,6 +38,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
   Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
   until then (screen-rules §1).
+- **P3 · Figma library defaults that broke placed instances (designer, 2026-10-14, ◆ Performance cases):** List-Box
+  On-Container Header=No/Footer=No: Container-Slot FIXED 369 (should hug); Checkbox/Text: Container FIXED 141 (labels
+  wrap; fill?); Card: Sub-Action on by default (the ⋮ sits over content when placed fresh); Inline-Message Action is
+  still Button/Main-Old. Fixed per instance on ◆ Performance; change the mains?
 - **P1 · Widget themes phase 2 — code + Studio (user, 2026-10-13; waits for the user's review of phase 1):** mirror the
   Figma build in code and Studio: Card `color` + themes `gradient`/`solid` (Solid sets `data-theme`), MetricCard `type`
   (7), chart components Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel, Bar-List, Bullet, the new paint styles in
