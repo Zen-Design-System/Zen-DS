@@ -214,7 +214,8 @@ removed (four unused colour ramps were, see Removed).
 - Zen plugin, Import from Studio: an imported page now takes every property it sets (variants, booleans, icons, sizes:
   Avatars at their size, Dashboard Header rows, button sizes, badge colours), swaps its icons, and importing it again
   updates the same layers. Before, the plugin set none of them in Figma. Import the page again into the same frame to
-  repair it.
+  repair it. On a re-import, a Grid of three rows or more stays a grid (it fell back to one column), a Grid that lost
+  rows drops them, and a layer an earlier import hid shows again once the page no longer hides it.
 - Zen Studio, Export › Figma: a Table photo cell without a picture draws its square Avatar with initials (Figma's
   Avatar-Cell), not Figma's sample photo; a MetricCard's `custom` content fills Metric-Inline's Custom-Slot.
 - Getting started, CI: the registry token now goes into the CI job's own `~/.npmrc`, not the project's `.npmrc` (a

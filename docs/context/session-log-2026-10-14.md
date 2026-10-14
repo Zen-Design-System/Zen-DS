@@ -176,6 +176,18 @@
     3 created (the custom layers), 139 updated.
 - Not fixed (BACKLOG P3): a Grid in a Grid cell does not stretch to its row in Figma; Swap Project Colors' sync
   `getVariableById`. Charts still draw Figma's sample data (BACKLOG P2, awaiting scope).
+- Follow-up, plugin (reported by session "Donut chart font size update"):
+  - **Grid:** a re-import set `layoutMode = "GRID"` again. Figma resets a grid to 2 × 2 and refuses that when a cell
+    sits in a third row (live: "Cannot set grid row count: Cannot delete occupied row/column"). Caught, the grid fell
+    back to a column. A 2-row grid was not affected (checked live).
+  - **Hide:** a layer an earlier import hid stayed hidden.
+  - **Fix:** a grid stays GRID; `gridTracks` runs once before the cells are placed and again after (it drops emptied
+    rows). The names an import hides are kept on the instance (`hidden`) and shown again when the page no longer hides
+    them.
+  - **Tests:** mock grid semantics as measured; each new test fails without its fix.
+  - **Live:** a 3-row page imported again gives 0 created and stays GRID 2×3. Shrinking 3 → 1 row: GRID, 1 row, 4
+    removed, Segmented shown again. Growing 2 → 3: 2 created. QA frames removed. `npm test` passes, dist is rebuilt
+    (backup `backups/zen-ds-dist-before-grid-hide-import-fix-*.tgz`).
 
 ## Property-panel components in Figma, Accordion spacing + Pale rule (tier S; user: "bổ sung các component thiếu vào Figma", "Spacing giữ Title và list gần nhau quá … set rule luôn", "Accordion tự lo", "Đổi màu border của accordion sang Pale")
 - Figma only (draft sections, ids in memory `property-panel-figma-draft`): Input/Inline-Field, Input/Color-Field,
