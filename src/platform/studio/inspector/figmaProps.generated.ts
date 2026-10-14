@@ -1802,6 +1802,23 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "CurvePreview": {
+    "figma": "15663:110887",
+    "own": [
+      {
+        "prop": "type",
+        "label": "Type",
+        "type": "VARIANT",
+        "options": {
+          "Spring": "spring",
+          "Bounce": "bounce",
+          "Ease-Out": "ease-out",
+          "Ease-In-Out": "ease-in-out"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "SliderField": {
     "figma": "15662:108207",
     "own": [

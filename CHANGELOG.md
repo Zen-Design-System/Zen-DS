@@ -264,6 +264,11 @@ removed (four unused colour ramps were, see Removed).
   panels. The whole field is the track (Input tokens, the value as a Background/Subtle fill); drag scrubs, a click or
   Enter types an exact number, arrows step. Harness `slider-field/value-in-range`; Studio palette (Slider field) and
   Figma property rows; platform page Slider Field.
+- `CurvePreview` (2026-10-14, user, Figma Chart/Curve-Preview 15663:110887): a picture of a motion curve (spring,
+  bounce, ease-out, ease-in-out) for the motion settings it sits above; `bounce` (0–1) follows the panel's Bounce
+  row. Input surface, Pale grid, dashed target; the curves match Figma's to 0.05px. Harness
+  `curve-preview/bounce-range`; Studio palette (Curve preview, Charts) and the Figma Type row; platform page Curve
+  Preview.
 - Customize without forking or detaching: `skills/zen-component-usage/references/customize-in-code.md` and
   `skills/zen-figma-design/references/customize-without-detach.md`; Figma audit rule `bounds/stroke-clip-gap`.
 - Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,

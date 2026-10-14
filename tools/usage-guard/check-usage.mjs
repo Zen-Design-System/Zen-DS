@@ -1301,6 +1301,16 @@ export const rules = [
       }
       return null;
     } },
+  { id: "curve-preview/bounce-range", components: ["CurvePreview"], severity: "error", allow: "curve-bounce", guideline: "docs/guidelines/curve-preview.md",
+    summary: "A CurvePreview's bounce is 0–1 and only shapes the spring curves (spring, bounce): ease curves ignore it, so the preview would not follow the setting.",
+    check: ({ attrs }) => {
+      const text = expr(attrs, "bounce") ?? literal(attrs, "bounce");
+      if (text === undefined) return null;
+      const type = literal(attrs, "type") ?? expr(attrs, "type")?.match(/^\s*["'`]([^"'`$]*)["'`]\s*$/)?.[1];
+      if (type === "ease-out" || type === "ease-in-out") return `sets bounce on type="${type}" — an ease curve has no bounce; pass type="spring" or "bounce", or leave bounce out.`;
+      const value = /^\s*-?\d+(\.\d+)?\s*$/.test(text) ? Number(text) : undefined;
+      return value !== undefined && (value < 0 || value > 1) && `sets bounce={${value}} — bounce is 0–1 (0 settles without overshoot, 1 never settles).`;
+    } },
   { id: "color-picker/hex-value", components: ["ColorField", "ColorPicker"], severity: "error", allow: "colour-value", guideline: "docs/guidelines/color-picker.md",
     summary: "ColorField and ColorPicker hold a hex colour (\"#1F6FEB\"): a colour name, rgb(), hsl() or a token is not a value they can show or return.",
     check: ({ attrs }) => {

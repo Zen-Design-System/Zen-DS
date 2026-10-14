@@ -290,6 +290,10 @@ export const Bad = () => <>
   <Segmented level="secondary" aria-label="View" value={view} onChange={setView} options={[{ id: "grid", label: null, leading: <Icon name="icon-grid-01-line" decorative /> }, { id: "list", label: null, leading: <Icon name="icon-list-line" decorative /> }]} />
   {/* expect: slider-field/value-in-range */}
   <SliderField label="Overlay Opacity" defaultValue={60} min={0} max={1} step={0.01} />
+  {/* expect: curve-preview/bounce-range */}
+  <CurvePreview type="ease-out" bounce={0.3} />
+  {/* expect: curve-preview/bounce-range */}
+  <CurvePreview type="spring" bounce={30} />
   {/* expect: color-picker/hex-value */}
   <ColorField label="Brand colour" defaultValue="royalblue" />
   {/* expect: color-picker/hex-value */}

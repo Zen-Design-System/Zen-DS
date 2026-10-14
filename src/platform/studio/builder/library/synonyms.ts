@@ -77,6 +77,7 @@ export const SYNONYM_ROWS: ReadonlyArray<readonly [terms: readonly string[], ids
   [["editor", "wysiwyg", "formatted text", "soạn thảo"], ["rich-text-field"]],
   [["range", "volume", "thanh trượt"], ["slider", "slider-field"]],
   [["scrub", "number", "offset", "opacity", "property"], ["slider-field", "inline-field"]],
+  [["easing", "spring", "bounce", "motion curve", "transition", "animation", "đường cong", "chuyển động"], ["curve-preview"]],
   [["nps", "survey", "khảo sát"], ["nps-scale"]],
   [["color", "colour", "swatch", "palette", "màu", "màu sắc"], ["color-selector", "color-field", "color-picker", "color-swatch"]],
   [["upload", "dropzone", "file input", "tải lên"], ["file-upload"]],

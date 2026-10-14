@@ -3867,6 +3867,78 @@
       }
     ]
   },
+  "curve-preview": {
+    "title": "Curve Preview",
+    "purpose": "A picture of a motion curve: how a value moves from its start (bottom left) to its target (the dashed line) over time, left to right — a spring, a bounce or an easing curve.",
+    "use": [
+      "Above the motion settings it previews in a property panel (Type, Duration, Bounce), so people see the effect of a change at once.",
+      "Comparing easing choices side by side in documentation or a settings page."
+    ],
+    "avoid": [
+      "Data over time → LineChart.",
+      "A progress value → Progress.",
+      "Choosing the curve itself → Segmented or SelectField next to the preview; the preview is not a control."
+    ],
+    "api": [
+      [
+        "Type",
+        "type",
+        "spring (default, about 4% overshoot) · bounce (visible overshoot) · ease-out (Motion/Ease/Emphasized) · ease-in-out (.65 0 .35 1)"
+      ],
+      [
+        "Bounce",
+        "bounce",
+        "0–1, how far a spring overshoots (damping ratio = 1 − bounce); default 0.3 for spring, 0.7 for bounce; ease curves ignore it"
+      ],
+      [
+        "Name",
+        "aria-label",
+        "default \"Motion curve: <type>\" in the provider's language"
+      ]
+    ],
+    "keyboard": [],
+    "do": [
+      "Put it right above the settings it previews and pass the same values (type, bounce), so the curve follows every change.",
+      "Let it take the panel's width: the height stays 176 and the curve stretches with the width.",
+      "Name it after the setting when the type alone is not enough (\"Back photo transition: Spring, bounce 0.3\")."
+    ],
+    "dont": [
+      "Don't use it as a chart of data; it has no axes or values to read.",
+      "Don't pass a bounce outside 0–1 or a bounce to an ease curve (harness: curve-preview/bounce-range)."
+    ],
+    "a11y": [
+      "One image (role=img) named by the curve type; it is not focusable and has no keyboard of its own.",
+      "The settings next to it carry the values; the preview only repeats them as a picture."
+    ],
+    "content": [
+      "Type names as the settings show them: Spring, Bounce, Ease out, Ease in and out."
+    ],
+    "refs": [
+      [
+        "Framer Motion — Spring (bounce)",
+        "https://motion.dev/docs/spring"
+      ],
+      [
+        "Material 3 — Easing and duration",
+        "https://m3.material.io/styles/motion/easing-and-duration"
+      ]
+    ],
+    "file": "docs/guidelines/curve-preview.md",
+    "rules": [
+      {
+        "id": "curve-preview/bounce-range",
+        "severity": "error",
+        "summary": "A CurvePreview's bounce is 0–1 and only shapes the spring curves (spring, bounce): ease curves ignore it, so the preview would not follow the setting.",
+        "allow": "curve-bounce"
+      },
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      }
+    ]
+  },
   "card": {
     "title": "Card",
     "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",

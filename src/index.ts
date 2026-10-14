@@ -61,6 +61,7 @@ export * from "./components/BottomSheet";
 export * from "./components/Chat";
 export * from "./components/AiChat";
 export * from "./components/Chart";
+export * from "./components/CurvePreview";
 export * from "./components/VisuallyHidden";
 export * from "./components/DescriptionList";
 export * from "./components/ActionBar";

@@ -301,3 +301,14 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   on the step; Escape drops), drag scrubs against the whole field; tests/interaction/slider-field.test.tsx 4/4.
 - Guideline slider-field (slider's avoid list points to it), rule slider-field/value-in-range (+ fixtures), platform
   page (5 examples, 1 Do/Don't pair), Studio palette/synonyms/detach/figma-props (Slider/Field in the contract).
+
+## Batch 3: CurvePreview (tier L, stacked branch zen/feat/curve-preview-20261014 on batch 2, worktree ../Zen-DS-curve)
+- Figma's curves are exact damped springs (Spring ζ 0.7 ω 16, Bounce ζ 0.3 ω 18) and the two Béziers (Ease-Out =
+  Motion/Ease/Emphasized, Ease-In-Out .65 0 .35 1); `curve.ts` reproduces them to 0.0005 of the plot (0.05px).
+- CurvePreview: role=img named "Motion curve: <type>" (en/vi labels), SVG 320×176 stretched to the width
+  (non-scaling strokes), Input surface (Corner-Radius/Input carries zen-allow-radius-role, as Figma binds it);
+  `bounce` = 1 − damping ratio. tests/interaction/curve-preview.test.tsx 3/3.
+- Guideline curve-preview, rule curve-preview/bounce-range (+ fixtures), platform page (5 examples, 1 Do/Don't pair),
+  Studio palette/synonyms/figma-props (Chart/Curve-Preview in the contract).
+- #53 CI fix on the way: vitest optimizeDeps.include pocketbase + react-dom/client (a cold Vite cache re-optimized
+  mid-run and one suite failed to import).

@@ -35,6 +35,7 @@ import { NpsScale, OpinionScale, Rating, RatingDisplay, ratingSizes, ratingTheme
 import { ColorSelector } from "../components/ColorSelector";
 import { ColorSwatch } from "../components/ColorSwatch";
 import { SliderField } from "../components/SliderField";
+import { CurvePreview, type CurvePreviewType } from "../components/CurvePreview";
 import { Metric, MetricCard, metricSizes, type MetricSize, type MetricTrendDirection } from "../components/MetricWidget";
 import { FileUpload, type UploaderFile } from "../components/Uploader";
 import { SidePanel, type SidePanelSize, type SidePanelType } from "../components/SidePanel";
@@ -69,7 +70,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "slider-field" | "curve-preview" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -431,6 +432,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [scrubTheme, setScrubTheme] = useState<"neutral" | "accent">("neutral");
   const [scrubSize, setScrubSize] = useState<"sm" | "md">("md");
   const [scrubDisabled, setScrubDisabled] = useState(false);
+  const [curveType, setCurveType] = useState<CurvePreviewType>("spring");
+  const [curveBounce, setCurveBounce] = useState(0.3);
   const [metricSize, setMetricSize] = useState<string | undefined>("xlarge");
   const [metricTrend, setMetricTrend] = useState<string | undefined>("positive");
   const [metricIcon, setMetricIcon] = useState(true);
@@ -1740,6 +1743,25 @@ ${code}`} />
   max={1}
   step={0.01}${scrubTheme === "neutral" ? "" : `\n  theme="${scrubTheme}"`}${scrubSize === "md" ? "" : `\n  size="${scrubSize}"`}${scrubDisabled ? "\n  disabled" : ""}
 />`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "curve-preview") {
+    const springCurve = curveType === "spring" || curveType === "bounce";
+    return <ExamplePage page="curve-preview" eyebrow="Components / Curve Preview" title="Curve Preview" description="A picture of a motion curve: how a value moves from its start to its target over time. Place it above the motion settings it previews, so a change shows at once.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Curve Preview</h2>
+        <PlaygroundControls aria-label="Curve preview playground controls">
+          <PlaygroundFilterChip label="Type" value={curveType} onChange={(value) => { setCurveType(value as CurvePreviewType); setCurveBounce(value === "bounce" ? 0.7 : 0.3); }} options={[{ id: "spring", label: "Spring" }, { id: "bounce", label: "Bounce" }, { id: "ease-out", label: "Ease out" }, { id: "ease-in-out", label: "Ease in and out" }]} />
+        </PlaygroundControls>
+        <div data-typography={previewTypography} className="platform-example-row platform-curve-preview-preview">
+          <CurvePreview type={curveType} bounce={springCurve ? curveBounce : undefined} />
+          {springCurve ? <SliderField label="Bounce" value={curveBounce} onValueChange={setCurveBounce} min={0} max={0.9} step={0.01} /> : null}
+        </div>
+        <PlatformCode code={`import { CurvePreview } from "@zen-ds/react";
+
+<CurvePreview type="${curveType}"${springCurve ? ` bounce={${curveBounce}}` : ""} />`} />
       </ComponentPreview>
     </ExamplePage>;
   }

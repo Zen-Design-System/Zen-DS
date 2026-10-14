@@ -306,6 +306,12 @@ export const FIGMA_PROPS = {
       State: skip("preview state: disabled is its own prop"),
     },
   },
+  CurvePreview: {
+    sets: { "Chart/Curve-Preview": null },
+    props: {
+      Type: "type",
+    },
+  },
   SliderField: {
     sets: { "Slider/Field": null },
     props: {
