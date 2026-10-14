@@ -62,6 +62,14 @@ Components own their inner padding and gap; never change them. Between elements,
 - The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
   parent's gap, never by empty frames or nudged positions.
 - A pair that belongs together sits tight (2XSmall); separate groups get Large.
+- Accordion: Title → Contents is the Accordion's own gap (Medium and Large `Spacing/Gap/Small` 12, XLarge 16), one step
+  more than the 8 between the rows inside it (user rule 2026-10-14). Put the list frame (gap `Spacing/Gap/XSmall`)
+  straight in the Contents slot; never pad it to move it off the title.
+- Rows of one group go in their own list frame; a panel of groups stacks those frames with gap 0, so a rule (Divider,
+  Accordion Divider) always has the same space above and below. Property panel: rule → title 16, title → first row
+  12, rows 8, last row → rule 16.
+- Nested corners are concentric: inner radius = outer radius − the inset between them (a swatch 10px inside a 12px
+  field → 2, `Corner-Radius/2XSmall`; a picker area 12px inside a 16px popover → 4, `Corner-Radius/XSmall`).
 - Surfaces use `Card-padding-medium` / `Card-padding-small`; a strip inside a surface (toolbar, summary, footer) has
   `Spacing/Padding/Small` above and below and the surface's own side inset.
 

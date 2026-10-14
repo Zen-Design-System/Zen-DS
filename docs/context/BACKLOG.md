@@ -8,6 +8,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P3 · Designer question: Accordion Theme=Box draws a top and a bottom 1px Pale stroke in Figma (2026-10-14):** the
+  12 Box roots of Accordion/Text (239:16847) bind Border/Neutral/Pale with weights T1 B1 R0 L0 on a rounded Pale box;
+  code draws no border on Box. Keep (then code adds it) or drop in Figma?
 - **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
   the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
   and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile

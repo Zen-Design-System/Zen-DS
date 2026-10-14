@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Accordion Medium: Title → Contents is 12 (Gap/Small, as Large), was 8, in Figma and code, so a list of fields (rows
+  8 apart) reads as the item's content; Box keeps its outer padding (inset 16 − 12). Accordion Divider: the rule under
+  each item is Border/Neutral/Pale, as in Figma (code drew Subtle). Spacing rule: rows of one group live in their own
+  stack so every divider has equal space above and below (`docs/component-usage-rules.md` §13, Figma `screen-rules.md`
+  §2, which also states concentric nested corners).
 - Figma: the Zen file's layers now carry Zen's names (186 layers, names only): `Action`, `Actions`, `Send`, `Attach` /
   `Dictate` / `Submit`, `Previous` / `Next` / `Page-Size`, `Close`, `Primary` / `Secondary`, `Icon-Wrapper` and `Icon`
   for glyph-named icons; Inline-Message's Custom slot property is `Leading`. The nested layer-name gate checks them now

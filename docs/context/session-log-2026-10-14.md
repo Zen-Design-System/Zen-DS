@@ -176,3 +176,15 @@
     3 created (the custom layers), 139 updated.
 - Not fixed (BACKLOG P3): a Grid in a Grid cell does not stretch to its row in Figma; Swap Project Colors' sync
   `getVariableById`. Charts still draw Figma's sample data (BACKLOG P2, awaiting scope).
+
+## Property-panel components in Figma, Accordion spacing + Pale rule (tier S; user: "bổ sung các component thiếu vào Figma", "Spacing giữ Title và list gần nhau quá … set rule luôn", "Accordion tự lo", "Đổi màu border của accordion sang Pale")
+- Figma only (draft sections, ids in memory `property-panel-figma-draft`): Input/Inline-Field, Input/Color-Field,
+  .Primitives/Input/Color-Swatch, Color-Picker, Slider/Field, Chart/Curve-Preview, a Photo Stack example (Light/Dark).
+- Accordion Medium Title → Contents 8 → 12 (Figma primitive 239:18764 Medium ×4 → Spacing/Gap/Small; accordion.css;
+  test accordion-sheet-rating), one step above the rows inside; its Figma description rule via tools/figma-docs (FORCE
+  for this call, backup on 🔒 ARCHIVED). No new Stack/Box API: a paddingTop/Bottom try was reverted the same session.
+- Accordion Divider rule Subtle → Pale in accordion.css; Figma already bound Border/Neutral/Pale/Default on all 24 roots.
+- Rules: groups in their own stacks with gap 0 (a divider has 16 above and below), the Accordion owns title → rows,
+  nested corners concentric (component-usage-rules §13, screen-rules §2, figma-gotchas: an inside stroke clips 1px in
+  with the outer radius). BACKLOG P3: Accordion Box top/bottom Pale stroke in Figma, a designer question.
+- Checks: ai-kit:check ✓, qa (accordion, --isolated) ✓, accordion tests 21/21.

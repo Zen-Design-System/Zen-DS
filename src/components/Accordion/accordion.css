@@ -1,9 +1,10 @@
 /* Figma Accordion/Text (239:16847). Root padding (Divider: block only; Box: all sides), a header row of
    Title + chevron Wrapper (gap Spacing/Gap/Medium), then the content with a size-dependent gap:
-   Medium Gap/XSmall 8 · Large Gap/Small 12 · XLarge Gap/Medium 16. */
+   Medium and Large Gap/Small 12 · XLarge Gap/Medium 16, one step more than the 8 between rows inside it, so a
+   list of fields reads as the item's content without padding of its own (user, 2026-10-14). */
 .zen-accordion {
   --zen-accordion-padding: var(--zen-spacing-padding-medium, 16px);
-  --zen-accordion-gap: var(--zen-spacing-gap-xsmall, 8px);
+  --zen-accordion-gap: var(--zen-spacing-gap-small, 12px);
   --zen-accordion-icon: var(--zen-element-size-popular-base, 20px);
   --zen-accordion-icon-inset: var(--zen-spacing-padding-3-xsmall, 2px);
   --zen-accordion-radius: var(--zen-corner-radius-large, 16px);
@@ -17,7 +18,6 @@
   color: var(--zen-color-content-neutral-strongest, #111);
 }
 .zen-accordion[data-size="large"] {
-  --zen-accordion-gap: var(--zen-spacing-gap-small, 12px);
   --zen-accordion-icon: var(--zen-element-size-popular-medium, 24px);
 }
 .zen-accordion[data-size="xlarge"] {
@@ -27,12 +27,13 @@
   --zen-accordion-icon-inset: var(--zen-spacing-padding-2-xsmall, 4px);
   --zen-accordion-radius: var(--zen-corner-radius-2-xlarge, 24px);
 }
-/* Theme=Divider: 1px Border/Neutral/Subtle rule under the item. Figma centres the stroke on the edge
-   without growing the 56/88/116px box, so it is drawn as an inset shadow instead of a border. */
-.zen-accordion[data-tone="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+/* Theme=Divider: 1px Border/Neutral/Pale rule under the item (Figma's root stroke; a static line is Pale). Figma
+   centres the stroke on the edge without growing the 56/88/116px box, so it is drawn as an inset shadow instead of a
+   border. */
+.zen-accordion[data-tone="divider"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 /* Theme=Box (239:16847 Theme=Box): Support/Neutral/Pale surface, padding Padding/Medium (XLarge: Padding/XLarge) on every
    side, Corner-Radius/Large (XLarge: 2XLarge). The whole header is the toggle's hit area, so the box padding is split:
-   the box keeps an inset of padding − header gap (Medium 16 − 8 = 8 · Large 16 − 12 = 4 · XLarge 24 − 16 = 8) and the
+   the box keeps an inset of padding − header gap (Medium and Large 16 − 12 = 4 · XLarge 24 − 16 = 8) and the
    trigger takes the header gap on every side. Title, chevron and content land exactly where Figma puts them, collapsed
    and open, and the trigger's bottom padding is the Title → Contents gap, so opening does not move the header. */
 .zen-accordion[data-tone="box"] {

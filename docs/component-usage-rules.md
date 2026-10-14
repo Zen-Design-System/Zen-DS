@@ -316,6 +316,12 @@ picks the step, and the same relationship gets the same step on every screen:
   surface (toolbar, summary, footer) has `sm` block padding and the surface's horizontal inset.
 - The gap between groups is always at least one step larger than the gap inside them. Siblings are spaced by the
   parent's gap, never by margins or px.
+- Accordion: Title → Contents is the Accordion's own gap (Medium and Large `sm` 12, XLarge `md` 16), one step more than
+  the `xs` 8 between rows inside it (user rule 2026-10-14). Put the rows straight in as `<Stack gap="xs">`; never pad
+  them to move them off the title.
+- Rows of one group sit in their own Stack; a panel of groups stacks them with `gap="none"`, so a rule (Divider, the
+  Accordion's divider) has the same space above and below. Property panel: rule → title 16, title → first row 12,
+  rows 8, last row → rule 16.
 - Checked by the audit's `ladder` warning (`audit.mjs --quality`, run by `npm run qa`). It reads the rendered gaps of
   Stack, Grid and example markup and reports two things:
   - a gap that is not one of the six steps of the current density (`3xs`, `2xl`, `3xl`, `giant`, padding tokens, px);
