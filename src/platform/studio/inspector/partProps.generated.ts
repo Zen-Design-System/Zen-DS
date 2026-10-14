@@ -220,6 +220,16 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "size": "size"
     }
   },
+  "ColorField": {
+    "ColorPicker": {
+      "defaultFormat": "pickerFormat",
+      "savedColors": "savedColors"
+    },
+    "InputField": {
+      "layout": "layout",
+      "size": "size"
+    }
+  },
   "ComboChart": {
     "ChartBlock": {
       "position": "legendPosition"
@@ -395,6 +405,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "labelAction": "labelAction",
       "labelOptional": "labelOptional",
       "labelTooltip": "labelTooltip",
+      "layout": "layout",
       "leading": "leading",
       "overrides": "overrides",
       "required": "required",
@@ -557,6 +568,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "labelAction": "labelAction",
       "labelOptional": "labelOptional",
       "labelTooltip": "labelTooltip",
+      "layout": "layout",
       "leading": "leading",
       "overrides": "overrides",
       "required": "required",

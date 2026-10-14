@@ -102,7 +102,7 @@ export const SYNONYM_ROWS: ReadonlyArray<readonly [terms: readonly string[], ids
   [["editor", "wysiwyg", "formatted text", "soạn thảo"], ["rich-text-field"]],
   [["range", "volume", "thanh trượt"], ["slider"]],
   [["nps", "survey", "khảo sát"], ["nps-scale"]],
-  [["color", "colour", "swatch", "palette", "màu", "màu sắc"], ["color-selector"]],
+  [["color", "colour", "swatch", "palette", "màu", "màu sắc"], ["color-selector", "color-field", "color-picker", "color-swatch"]],
   [["upload", "dropzone", "file input", "tải lên"], ["file-upload"]],
   [["form", "biểu mẫu"], ["input-field", "modal-form", "select-field"]],
   // Overlays

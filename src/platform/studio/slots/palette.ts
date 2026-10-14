@@ -116,6 +116,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   AreaChart: "Chart", GroupedBarChart: "Chart", ComboChart: "Chart", GaugeChart: "Chart", FunnelChart: "Chart", BarList: "Chart", BulletChart: "Chart", AlertBanner: "AlertBanner",
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
+  ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
@@ -911,6 +912,22 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "nps-scale", label: "NPS scale", group: "Inputs", caption: "0 to 10", root: "NpsScale", components: ["NpsScale"], state: [state("score", "null", "number | null")], interactive: true, input: true,
     build: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" value={score} onValueChange={setScore} />`,
     builder: () => `<NpsScale aria-label="How likely are you to recommend Zen to a friend?" />`,
+  },
+  {
+    id: "color-field", label: "Colour field", group: "Inputs", caption: "Hex with a swatch, opens the picker", root: "ColorField", components: ["ColorField"], interactive: true, input: true,
+    build: () => `<ColorField label="Brand colour" defaultValue="#1F6FEB" savedColors={["#1F6FEB", "#0E9F8E", "#E07B12", "#E5533D"]} />`,
+  },
+  {
+    id: "color-picker", label: "Colour picker", group: "Inputs", caption: "Inline picker", root: "ColorPicker", components: ["ColorPicker"], interactive: true, input: true,
+    build: () => `<ColorPicker aria-label="Highlight colour" defaultValue="#E07B12" />`,
+  },
+  {
+    id: "color-swatch", label: "Colour swatch", group: "Data display", caption: "Shows a colour value", root: "ColorSwatch", components: ["ColorSwatch"], interactive: false, input: false,
+    build: () => `<ColorSwatch color="#1F6FEB" aria-label="Brand colour, #1F6FEB" />`,
+  },
+  {
+    id: "inline-field", label: "Inline field", group: "Inputs", caption: "Label inside, for property panels", root: "InputField", components: ["InputField"], interactive: true, input: true,
+    build: () => `<InputField layout="inline" label="Title" defaultValue="Japan" />`,
   },
   {
     id: "color-selector", label: "Colour selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,

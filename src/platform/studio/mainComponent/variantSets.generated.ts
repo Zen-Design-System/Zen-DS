@@ -1687,6 +1687,94 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "ColorField": [
+    {
+      "name": "Input/Color-Field",
+      "figma": "15660:8643",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Small",
+            "Medium (Base)",
+            "Large",
+            "XLarge"
+          ],
+          "values": [
+            "small",
+            "medium",
+            "large",
+            "xlarge"
+          ],
+          "default": "small"
+        },
+        {
+          "prop": "state",
+          "label": "State",
+          "names": [
+            "Inputted",
+            "Hover",
+            "Focused",
+            "Typing",
+            "Disabled",
+            "Inputted-Error"
+          ],
+          "values": [
+            "inputted",
+            "hover",
+            "focused",
+            "typing",
+            "disabled",
+            "inputted-error"
+          ],
+          "default": "inputted"
+        }
+      ],
+      "toggles": [
+        {
+          "prop": "label",
+          "label": "Label",
+          "on": "Label",
+          "default": true
+        },
+        {
+          "prop": "helpText",
+          "label": "Help-Text",
+          "on": "Help text",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "ColorPicker": [
+    {
+      "name": "Color-Picker",
+      "figma": "15708:5927",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "defaultFormat",
+          "label": "Format",
+          "names": [
+            "Hex",
+            "RGB",
+            "HSL",
+            "HSB"
+          ],
+          "values": [
+            "hex",
+            "rgb",
+            "hsl",
+            "hsb"
+          ],
+          "default": "hex"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "HeadingField": [
     {
       "name": "Input/Heading",

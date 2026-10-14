@@ -92,6 +92,10 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   "ChipGroup": {
     "Chip": "Chip"
   },
+  "ColorField": {
+    "Leading": "Icon",
+    "Trailing": "Icon"
+  },
   "DateField": {
     "Leading": "Icon",
     "Trailing": "Icon"

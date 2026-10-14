@@ -8,6 +8,8 @@
 .zen-date-field { position: relative; }
 /* Fallback before measuring; useAnchoredPosition then places it 4px from the input box (or above it). */
 .zen-date-field > .zen-date-picker { top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 0; }
+.zen-color-field { position: relative; }
+.zen-color-field > .zen-color-picker { top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 0; }
 
 .zen-input__label,
 .zen-input-label {
@@ -61,6 +63,12 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-select__trigger.zen-input__native { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-select__trigger:disabled { cursor: not-allowed; }
 .zen-select__native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; pointer-events: none; }
+/* layout="inline" (Figma Input/Inline-Field 15659:110823): the label is the first slot of the field (Content/Neutral/Base,
+   Disabled: Content/Disabled) and the value sits at the end; a Select's chevron and a Color swatch stay after it. */
+.zen-input__inline-label { position: relative; z-index: 1; flex: none; max-width: 60%; overflow: hidden; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 60%)); text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+.zen-input-field[data-state="disabled"] .zen-input__inline-label { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
+.zen-input-field[data-layout="inline"] .zen-input__native { text-align: end; }
+.zen-input-field[data-layout="inline"] .zen-select__trigger { justify-content: flex-end; }
 /* SelectField `placeholder` while nothing is selected: Content/Placeholder, like a text field's placeholder. */
 .zen-select__placeholder { color: var(--zen-color-content-placeholder, #00000045); }
 .zen-input-field[data-state="disabled"] .zen-select__placeholder { color: var(--zen-color-content-disabled, #00000045); }

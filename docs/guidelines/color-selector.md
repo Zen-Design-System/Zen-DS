@@ -11,7 +11,7 @@ Pick one colour from a small curated set of swatches.
 - Brand or theme accent choices in settings.
 
 ## Use something else for
-- Free colour input (any hex) → a colour field with a picker.
+- Free colour input (any hex) → ColorField (it opens ColorPicker).
 - Status that must mean something → a semantic Badge theme, chosen by the system.
 
 ## Figma → React

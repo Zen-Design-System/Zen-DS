@@ -1192,6 +1192,128 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
       }
     ]
   },
+  "ColorField": {
+    "figma": "15660:8643",
+    "own": [
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Small": "small",
+          "Medium (Base)": "medium",
+          "Large": "large",
+          "XLarge": "xlarge"
+        }
+      },
+      {
+        "prop": "state",
+        "label": "State",
+        "type": "VARIANT",
+        "options": {
+          "Inputted": "inputted",
+          "Hover": "hover",
+          "Focused": "focused",
+          "Typing": "typing",
+          "Disabled": "disabled",
+          "Inputted-Error": "inputted-error"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Label",
+        "prop": "label",
+        "on": "Label"
+      },
+      {
+        "label": "Help-Text",
+        "prop": "helpText",
+        "on": "Help text"
+      }
+    ],
+    "nested": [
+      {
+        "name": "Label",
+        "figma": "387:3651",
+        "when": "label",
+        "own": [
+          {
+            "prop": "labelOptional",
+            "label": "Optional",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelTooltip",
+            "label": "Tooltip-Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "labelAction",
+            "label": "Action",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "label",
+            "label": "Label",
+            "type": "TEXT"
+          }
+        ]
+      },
+      {
+        "name": "Help-Text",
+        "figma": "373:97364",
+        "when": "helpText",
+        "own": [
+          {
+            "prop": "helpIcon",
+            "label": "Icon",
+            "type": "BOOLEAN"
+          },
+          {
+            "prop": "helpTheme",
+            "label": "Theme",
+            "type": "VARIANT"
+          },
+          {
+            "prop": "helpText",
+            "label": "Text",
+            "type": "CODE"
+          },
+          {
+            "prop": "characterLimit",
+            "label": "Character-Limitation",
+            "type": "CODE"
+          }
+        ]
+      }
+    ]
+  },
+  "ColorPicker": {
+    "figma": "15708:5927",
+    "own": [
+      {
+        "prop": "defaultFormat",
+        "label": "Format",
+        "type": "VARIANT",
+        "options": {
+          "Hex": "hex",
+          "RGB": "rgb",
+          "HSL": "hsl",
+          "HSB": "hsb"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Saved",
+        "prop": "savedColors",
+        "on": {
+          "code": "[\"#1F6FEB\", \"#0E9F8E\", \"#E07B12\", \"#E5533D\"]"
+        }
+      }
+    ]
+  },
   "AutocompleteField": {
     "figma": "1241:5616",
     "own": [],

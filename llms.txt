@@ -46,6 +46,7 @@
 - [Table](docs/guidelines/table.md): Rows of structured records that users scan, compare, sort and act on. Props: docs/api/table.json
 - [Rating](docs/guidelines/rating.md): Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score. Props: docs/api/rating.json
 - [Color Selector](docs/guidelines/color-selector.md): Pick one colour from a small curated set of swatches. Props: docs/api/color-selector.json
+- [Color Picker](docs/guidelines/color-picker.md): Pick or type any colour. ColorField is the Input field (a swatch and the hex) that opens ColorPicker under it; ColorPicker is the panel itself (the saturation × brightness area, the hue, a Format select with its channels, saved colours), inline by default; ColorSwatch is the colour chip that shows a value. Props: docs/api/color-picker.json
 - [Metric Widget](docs/guidelines/metric.md): Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison). Props: docs/api/metric.json
 - [Uploader](docs/guidelines/uploader.md): Let users add files by dropping or browsing, then track each file's upload. Props: docs/api/uploader.json
 - [Side Panel](docs/guidelines/side-panel.md): Show details, filters or an edit form next to the page without leaving it. Props: docs/api/side-panel.json

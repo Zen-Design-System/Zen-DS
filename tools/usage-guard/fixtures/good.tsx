@@ -165,6 +165,9 @@ export const Good = () => <>
   <ProgressBar value={92} theme="status" scale="quota" label="Storage · 92% used" />
   <ProgressBar value={40} theme="status" label="40% set up" />
   <Segmented level="secondary" aria-label="View" value={view} onChange={setView} options={[{ id: "grid", label: null, "aria-label": "Grid view", leading: <Icon name="icon-grid-01-line" decorative /> }, { id: "list", label: null, "aria-label": "List view", leading: <Icon name="icon-list-line" decorative /> }]} />
+  <ColorField label="Brand colour" defaultValue="#1F6FEB" savedColors={["#1F6FEB", "#FFFFFF"]} />
+  <ColorPicker aria-label="Shadow tint" defaultValue="#16e" />
+  <InputField layout="inline" label="Title" defaultValue="Japan" />
   <ColorSelector aria-label="Label colour" colors={[{ value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }, { value: "var(--zen-color-background-support-green-solid)", label: "Green" }]} />
   <Icon name="icon-check-line" size="sm" decorative />
   <Icon name="icon-check-line" size={14} decorative />

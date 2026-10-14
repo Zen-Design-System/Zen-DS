@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton, type ButtonAppearance, type ButtonLevel, type ButtonSize } from "../components/Button";
 import { Chip, type ChipLevel, type ChipSize, type ChipState, type ChipTheme, type ChipVariant } from "../components/Chip";
 import { Icon, type IconName } from "../components/Icon";
-import { AutocompleteField, ControlBarSelectItem, DateField, HeadingField, headingInputSizes, type HeadingInputSize, InputConditionItem, InputConditions, InputContent, InputField, InputHelpText, InputLabel, InputLeadingTrailing, NumberField, type InputHelpTheme, RichTextEditorBar, RichTextField, SelectField, TextAreaField, type InputSize, type InputState } from "../components/Input";
+import { AutocompleteField, ColorField, ControlBarSelectItem, DateField, HeadingField, headingInputSizes, type HeadingInputSize, InputConditionItem, InputConditions, InputContent, InputField, InputHelpText, InputLabel, InputLeadingTrailing, NumberField, type InputHelpTheme, RichTextEditorBar, RichTextField, SelectField, TextAreaField, type InputSize, type InputState } from "../components/Input";
 import { Search, type SearchSize, type SearchTheme, type SearchVariant } from "../components/Search";
 import { Sidebar, SidebarSubMenu, type SidebarBackground, type SidebarSection, type SidebarVariant } from "../components/Sidebar";
 import { Segmented, type SegmentedLevel, type SegmentedSize } from "../components/Segmented";
@@ -33,6 +33,7 @@ import { Table, TableActions, TableBadges, TableMedia, TableTags, TableText, Tab
 import { VisuallyHidden } from "../components/VisuallyHidden";
 import { NpsScale, OpinionScale, Rating, RatingDisplay, ratingSizes, ratingThemes, type RatingSize, type RatingTheme } from "../components/Rating";
 import { ColorSelector } from "../components/ColorSelector";
+import { ColorSwatch } from "../components/ColorSwatch";
 import { Metric, MetricCard, metricSizes, type MetricSize, type MetricTrendDirection } from "../components/MetricWidget";
 import { FileUpload, type UploaderFile } from "../components/Uploader";
 import { SidePanel, type SidePanelSize, type SidePanelType } from "../components/SidePanel";
@@ -67,7 +68,7 @@ import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from 
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
 
-export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
+export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typography" | "iconography" | "button" | "chip" | "sidebar" | "input" | "search" | "segmented" | "toggle" | "avatar" | "checkbox" | "radio-button" | "badge" | "popover" | "tag" | "date-picker" | "tooltip" | "tabs" | "breadcrumbs" | "progress" | "dialog" | "accordion" | "alert-banner" | "pagination" | "skeleton" | "toast" | "divider" | "empty-state" | "inline-message" | "slider" | "stepper" | "card" | "dock-icon" | "list-item" | "table" | "color-selector" | "color-picker" | "metric" | "rating" | "side-panel" | "uploader" | "voice" | "ai-chat" | "bottom-navigation" | "bottom-sheet" | "chart" | "chat" | "top-navigation" | AppLayerPage;
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
@@ -420,6 +421,11 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [ratingTheme, setRatingTheme] = useState<string | undefined>("default");
   const [ratingValue, setRatingValue] = useState(4);
   const [colorValue, setColorValue] = useState("var(--zen-color-background-support-blue-solid)");
+  const [pickerValue, setPickerValue] = useState("#1F6FEB");
+  const [pickerLayout, setPickerLayout] = useState<"stacked" | "inline">("stacked");
+  const [pickerSize, setPickerSize] = useState<"sm" | "md" | "lg" | "xl">("md");
+  const [pickerFormat, setPickerFormat] = useState<"hex" | "rgb" | "hsl" | "hsb">("hex");
+  const [pickerSaved, setPickerSaved] = useState(true);
   const [metricSize, setMetricSize] = useState<string | undefined>("xlarge");
   const [metricTrend, setMetricTrend] = useState<string | undefined>("positive");
   const [metricIcon, setMetricIcon] = useState(true);
@@ -1702,6 +1708,32 @@ ${code}`} />
         <PlatformCode code={`import { ${type === "display" ? "RatingDisplay" : type === "opinion" ? "OpinionScale" : type === "nps" ? "NpsScale" : "Rating"} } from "@zen-ds/react";
 
 ${code}`} />
+      </ComponentPreview>
+    </ExamplePage>;
+  }
+
+  if (page === "color-picker") {
+    const palette = ["#1F6FEB", "#0E9F8E", "#2E9E4F", "#E07B12", "#E5533D", "#8E44C4"];
+    return <ExamplePage page="color-picker" eyebrow="Components / Color Picker" title="Color Picker" description="Pick or type any colour: ColorField shows a swatch and the hex and opens ColorPicker (the saturation and brightness area, the hue, the Format channels and saved colours); ColorSwatch shows a value.">
+      <ComponentPreview className="platform-example-panel platform-example-panel--stack">
+        <h2 className="platform-main-component__title">Color Field</h2>
+        <PlaygroundControls aria-label="Color field playground controls">
+          <PlaygroundFilterChip label="Layout" value={pickerLayout} onChange={(value) => setPickerLayout(value as "stacked" | "inline")} options={[{ id: "stacked", label: "Stacked" }, { id: "inline", label: "Inline" }]} />
+          <PlaygroundFilterChip label="Size" value={pickerSize} onChange={(value) => setPickerSize(value as "sm" | "md" | "lg" | "xl")} options={[{ id: "sm", label: "Small" }, { id: "md", label: "Medium" }, { id: "lg", label: "Large" }, { id: "xl", label: "XLarge" }]} />
+          <PlaygroundFilterChip label="Format" value={pickerFormat} onChange={(value) => setPickerFormat(value as "hex" | "rgb" | "hsl" | "hsb")} options={[{ id: "hex", label: "Hex" }, { id: "rgb", label: "RGB" }, { id: "hsl", label: "HSL" }, { id: "hsb", label: "HSB" }]} />
+          <PlaygroundToggle label="Saved colours" selected={pickerSaved} onChange={setPickerSaved} />
+        </PlaygroundControls>
+        <div data-typography={previewTypography} className="platform-example-row platform-color-picker-preview">
+          <ColorField key={pickerFormat} label="Brand colour" value={pickerValue} onValueChange={setPickerValue} layout={pickerLayout} size={pickerSize} pickerFormat={pickerFormat} savedColors={pickerSaved ? palette : undefined} />
+          <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}><ColorSwatch color={pickerValue} size="sm" /> {pickerValue}</span>
+        </div>
+        <PlatformCode code={`import { ColorField } from "@zen-ds/react";
+
+<ColorField
+  label="Brand colour"
+  value={brand}
+  onValueChange={setBrand}${pickerLayout === "inline" ? '\n  layout="inline"' : ""}${pickerSize === "md" ? "" : `\n  size="${pickerSize}"`}${pickerFormat === "hex" ? "" : `\n  pickerFormat="${pickerFormat}"`}${pickerSaved ? '\n  savedColors={["#1F6FEB", "#0E9F8E", "#2E9E4F", "#E07B12", "#E5533D", "#8E44C4"]}' : ""}
+/>`} />
       </ComponentPreview>
     </ExamplePage>;
   }
