@@ -1,0 +1,8 @@
+{
+  "name": "verdaccio-zen-license",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verdaccio auth plugin: Zen DS license keys checked against PocketBase.",
+  "main": "index.js",
+  "license": "UNLICENSED"
+}

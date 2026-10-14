@@ -290,7 +290,7 @@ function ActionInBarExample() {
               {list.map((expense) => (
                 <ListItem key={expense.id} title={expense.merchant} caption={`${expense.category} · ${formatRelative(expense.at)}`}
                   leading={<DockIcon icon={categoryLook[expense.category].icon} theme={categoryLook[expense.category].theme} background="subtle" size="md" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{formatMoney(expense.amount, true)}</Text>} />
+                  trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{formatMoney(expense.amount, true)}</Text>} />
               ))}
             </List>
           </Box>
@@ -311,7 +311,7 @@ function ActionInBarExample() {
           <List aria-label="Waiting for your approval">
             {waiting.map((item) => (
               <ListItem key={item.id} title={people[item.person].name} caption={item.what} leading={<Avatar size="md" {...avatarOf(people[item.person])} />}
-                trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{formatMoney(item.amount, true)}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{formatMoney(item.amount, true)}</Text>} />
             ))}
           </List>
         </Box>
@@ -568,7 +568,7 @@ function BrandLabelsExample() {
                 {visits.map((visit) => (
                   <ListItem key={visit.id} title={visit.store} caption={formatRelative(visit.at)}
                     leading={<DockIcon icon="icon-coffee-cup-line" theme="brown" background="subtle" size="md" />}
-                    trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{`+${visit.points} pts`}</Text>} />
+                    trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{`+${visit.points} pts`}</Text>} />
                 ))}
               </List>
             </Box>
@@ -581,7 +581,7 @@ function BrandLabelsExample() {
             <ListGroup key={group.id} id={`${sectionId}-${group.id}`} title={group.title}>
               {group.drinks.map((drink) => (
                 <ListItem key={drink.id} title={drink.name} caption={drink.note} leading={<DockIcon icon="icon-coffee-cup-line" theme={group.theme} background="subtle" size="md" />}
-                  trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{formatMoney(drink.price, true)}</Text>} />
+                  trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{formatMoney(drink.price, true)}</Text>} />
               ))}
             </ListGroup>
           ))}
@@ -593,7 +593,7 @@ function BrandLabelsExample() {
             {rewards.map((reward) => (
               <ListItem key={reward.id} title={reward.name} caption={reward.points <= points ? "Ready to redeem" : `${(reward.points - points).toLocaleString("en-US")} points to go`}
                 leading={<DockIcon icon="icon-gift-01-line" theme="pink" background="subtle" size="md" />}
-                trailing={<Text as="span" textStyle="Body/Base/Medium" className="px-bottom-navigation-value">{`${reward.points.toLocaleString("en-US")} pts`}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Base/Medium" wrap={false} tabularNumbers>{`${reward.points.toLocaleString("en-US")} pts`}</Text>} />
             ))}
           </List>
         </Box>
@@ -603,7 +603,7 @@ function BrandLabelsExample() {
           <List aria-label="Stores">
             {stores.map((store) => (
               <ListItem key={store.id} title={store.name} caption={store.address} leading={<DockIcon icon="icon-marker-pin-01-line" theme="teal" background="subtle" size="md" />}
-                trailing={<Text as="span" textStyle="Body/Small/Regular" tone="base" className="px-bottom-navigation-value">{store.distance}</Text>} />
+                trailing={<Text as="span" textStyle="Body/Small/Regular" tone="base" wrap={false} tabularNumbers>{store.distance}</Text>} />
             ))}
           </List>
         </Box>

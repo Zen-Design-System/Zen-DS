@@ -11,12 +11,12 @@ import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
 import { PartPanel } from "../inspector/PartPanel";
 import { EnumControl, IconControl, NumberControl, TextControl } from "../inspector/PropField";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
-import { InspectorFileContext } from "../inspector/controls/hostContext";
+import { InspectorFileContext, InspectorHostContext } from "../inspector/controls/hostContext";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
 import { currentFiber, fiberOf, hostsOf, onSourceUpdate, srcOf, type Fiber } from "../select/picker";
 import { useWords } from "../useWords";
-import { nestedPathOf, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
+import { nestedPathOf, selectedPartStore, withoutPart, type PartHit, ownsText } from "../select/parts";
 import { OverrideProperties } from "../inspector/OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, ObjectShape, SourceAttr, SourceElement, StudioSelection } from "../types";
@@ -220,7 +220,15 @@ export function TablePartPanel({ selection, controlsSlot }: { selection: PartSel
   if (name === TABLE_PARTS.row) return resolved ? <DataRowPanel selection={selection} part={resolved} /> : <Finding name={name} />;
   if (cell && cell.src === selection.src) return <CellPanel selection={selection} part={resolved!} cell={cell} />;
   if (tablePart) return <Finding name={name} />;
-  return <PartPanel selection={selection} controlsSlot={controlsSlot} />;
+  // The file the part's owner is written in and the part on the canvas: the icon picker's "Used in this file" and
+  // "Related" read them (iconSuggestions.ts).
+  return (
+    <InspectorFileContext.Provider value={parseSrc(selection.src)?.file ?? null}>
+      <InspectorHostContext.Provider value={resolved?.element ?? null}>
+        <PartPanel selection={selection} controlsSlot={controlsSlot} />
+      </InspectorHostContext.Provider>
+    </InspectorFileContext.Provider>
+  );
 }
 
 function Finding({ name }: { name: string }) {
@@ -380,7 +388,8 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   const kind = drawn ? (column?.content ?? "text") : contentOfWritten(content);
   const shape = drawn && column ? columnShape(table, column.id) : null;
   const columnLocked = !editable || (drawn ? !shape || "reason" in shape : !content);
-  const title = part.name === TABLE_PARTS.cell ? "Cell" : part.name;
+  // A text the cell draws reads as Figma's text layer (⌘-click's deep select lands on it).
+  const title = part.name === TABLE_PARTS.cell ? "Cell" : !part.isComponent && ownsText(part.element) ? "Text" : part.name;
   const where = `row ${cell.row + 1} · ${header} · ${selection.name}`;
 
   /** Writes fields of the column (a column without `cell`): null removes one. */

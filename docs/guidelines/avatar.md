@@ -2,7 +2,7 @@
 # Avatar & Avatar Stack
 
 **Figma:** Avatar/Single, Avatar/Stack (page 211:19487)  
-**Import:** `import { Avatar, AvatarStack } from "@zen/design-system";`
+**Import:** `import { Avatar, AvatarStack } from "@zen-ds/react";`
 
 Represent a person or workspace with a photo or initials.
 

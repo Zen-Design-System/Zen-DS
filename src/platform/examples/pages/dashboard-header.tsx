@@ -13,7 +13,7 @@ import { Chip } from "../../../components/Chip";
 import { DashboardHeader } from "../../../components/DashboardHeader";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
-import { Container, Stack } from "../../../components/Layout";
+import { Box, Container, Stack } from "../../../components/Layout";
 import { Menu, type MenuItemData } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { Segmented } from "../../../components/Segmented";
@@ -177,13 +177,13 @@ function NarrowColumn() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<LeaveStatus | null>(null);
   return (
-    <div className="pe-dashboard-narrow">
+    <Box width="fill" maxWidth={480}>
       <DashboardHeader
         search={<Search size="md" placeholder="Search requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
         controls={<FilterChip label="Status" options={statuses} value={status} onChange={setStatus} />}
         actions={<Button level="primary" onClick={() => toast({ type: "positive", title: "Leave submitted" })}>Submit leave</Button>}
       />
-    </div>
+    </Box>
   );
 }
 

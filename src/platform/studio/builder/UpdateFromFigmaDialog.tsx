@@ -61,8 +61,8 @@ export function UpdateFromFigmaDialog({ update, onClose, onApplied }: { update: 
     : !found.changes.length
       ? `“${update.title}” already matches the frame in Figma. The pull is kept as the base for the next one.`
       : found.threeWay
-        ? `What changed in Figma since “${update.title}” was last pulled. Changes on layers you also edited in the Studio are not ticked: ticking one takes Figma's.`
-        : `This browser has no record of the last pull, so every difference from the frame is listed, your own edits too. Tick the ones to take from Figma.`;
+        ? `What changed in Figma since “${update.title}” last matched the frame (its export or its last pull). Changes on layers you also edited in the Studio are not ticked: ticking one takes Figma's.`
+        : `This browser has no record of the frame's export or last pull, so every difference from the frame is listed, your own edits too. Tick the ones to take from Figma.`;
 
   return (
     <Dialog

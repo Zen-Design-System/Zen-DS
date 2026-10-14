@@ -2,7 +2,7 @@
 # Tag
 
 **Figma:** Tag (page 260:5187)  
-**Import:** `import { Tag } from "@zen/design-system";`
+**Import:** `import { Tag } from "@zen-ds/react";`
 
 A chosen value inside a field (keywords, recipients), usually removable.
 

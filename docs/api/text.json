@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "text",
-  "import": "import { Text, Heading } from \"@zen/design-system\";",
+  "import": "import { Text, Heading } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Text",
@@ -112,6 +112,22 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment inside the box (Figma Align top / middle / bottom). It shows only when the box is taller than its\ntext: a Fixed or Fill `height` (Figma's Fixed size text box). Default top.",
+          "deprecated": null
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), e.g. a time or an amount that must stay whole; the row\naround it gives it room. Unlike `truncate`, nothing is cut. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes\n does not move the text around it.",
           "deprecated": null
         },
         {
@@ -241,6 +257,22 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height.",
+          "deprecated": null
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), as on Text. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): digits of one width, as on Text.",
           "deprecated": null
         },
         {

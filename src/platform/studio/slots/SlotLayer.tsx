@@ -14,7 +14,7 @@ import { itemParts, sourceItems } from "./dataItems";
 import { dataSlotOf, dataSlotsOf } from "./dataSlots";
 import { containerOf, hostRootOf, isConcealed, selectedHit } from "./dom";
 import { InsertPicker } from "./InsertPicker";
-import { activeSlotsOf, isLayoutPrimitive, slotContentElements, slotFlowOf, slotGhostAnchor, slotOf, type ContentSlot, type HostProps } from "./registry";
+import { activeSlotsOf, hostPropsOf, isLayoutPrimitive, slotsOf, slotContentElements, slotFlowOf, slotGhostAnchor, slotOf, type ContentSlot, type HostProps } from "./registry";
 import "./slots.css";
 
 /*
@@ -115,9 +115,14 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
     let tagBelow = false;
     let tagEnd = false;
     let empty = true;
+    let partsOnly = false;
     if (container) {
       const content = slotContentElements(container, slot);
-      empty = content.length === 0;
+      // A slot that shows the component's own parts while it holds nothing (a ListItem's Contents: its title and
+      // caption) is not empty on the canvas and gets no "+" there: in the middle of the text it caught the next click,
+      // past its edge it lands on the next row (2026-10-13). The Inspector's Slots and the canvas menu still add to it.
+      partsOnly = content.length === 0 && Boolean(slot.parts && container.querySelector(slot.parts));
+      empty = content.length === 0 && !partsOnly;
       // A container shared with the component's own parts (ChartCard's header) outlines its slot content only.
       const rect = slot.parts && content.length ? rectOf(content) : rectOf([container]);
       box = rect ? toBox(rect) : null;
@@ -143,7 +148,7 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
       : row ? { x: box.x + box.w + past, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
     // A full atom slot (ListItem leading takes one layer) offers no chip on the canvas: the inspector's add still warns.
     const full = slot.max !== undefined && container !== null && slotContentElements(container, slot).length >= slot.max;
-    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full ? null : chip, ...(tagBelow ? { tagBelow } : {}), ...(tagEnd ? { tagEnd } : {}) });
+    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full || partsOnly ? null : chip, ...(tagBelow ? { tagBelow } : {}), ...(tagEnd ? { tagEnd } : {}) });
   }
   return { src: selection.src, slots: marks, playground: [] };
 }
@@ -205,7 +210,9 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
   const writable = canEdit() && role === "admin" && server.writable;
   const check = node ? canStructurallyEdit(node) : null;
   const editable = writable && Boolean(check?.ok);
-  const hasSlots = Boolean(node && (activeSlotsOf(node.name).length || dataSlotsOf(node.name).length || inPlayground(node)));
+  // Any slot, active or not: whether one is active depends on the instance's props (Metric's Custom-Slot only on
+  // Title-Highlight), which the source element read here gives; an empty props list would leave such slots out.
+  const hasSlots = Boolean(node && (slotsOf(node.name).length || dataSlotsOf(node.name).length || inPlayground(node)));
   const element = useHostSource(node, shown && editable && hasSlots);
 
   // Read through a ref: a frame requested before the world mounted must still measure with it (like SelectionLayer).
@@ -309,7 +316,7 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
   const insertable = useMemo(() => {
     const out = new Set<string>();
     if (!element || !node || element.name !== node.name) return out;
-    for (const slot of activeSlotsOf(element.name)) if (!slotContentOf(element, slot).insertBlock) out.add(slot.prop);
+    for (const slot of activeSlotsOf(element.name, hostPropsOf(element.attributes))) if (!slotContentOf(element, slot).insertBlock) out.add(slot.prop);
     // A data slot whose items the source writes as a literal (or not at all): the add writes one more.
     for (const slot of dataSlotsOf(element.name)) if (sourceItems(element, slot).state !== "computed") out.add(slot.prop);
     return out;

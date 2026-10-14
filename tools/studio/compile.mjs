@@ -344,7 +344,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   if (usesState) lines.push(`import { useState${typesProps ? ", type ComponentProps" : ""} } from "react";`);
   else if (typesProps) lines.push(`import type { ComponentProps } from "react";`);
   const zen = [...ctx.components, ...(ctx.uses.has("toast") ? ["useToast"] : [])].sort((a, b) => a.localeCompare(b));
-  lines.push(`import { ${zen.join(", ")} } from "@zen/design-system";`);
+  lines.push(`import { ${zen.join(", ")} } from "@zen-ds/react";`);
   for (const entry of ctx.media.values()) lines.push(`import ${entry.name} from "./assets/${entry.file}";`);
   lines.push("");
   if (hasMock) {

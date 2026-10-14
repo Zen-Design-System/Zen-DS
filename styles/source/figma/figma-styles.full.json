@@ -3,64 +3,6 @@
  "extractedAt": "2026-09-24T12:36:57.826Z",
  "paint": [
   {
-   "id": "S:1656daeb229b54678a573c903e413c053af014aa,",
-   "key": "1656daeb229b54678a573c903e413c053af014aa",
-   "name": "Semi-Pale",
-   "description": "",
-   "paints": [
-    {
-     "type": "GRADIENT_LINEAR",
-     "visible": true,
-     "opacity": 1,
-     "blendMode": "NORMAL",
-     "gradientStops": [
-      {
-       "position": 0,
-       "color": {
-        "r": 0.0196,
-        "g": 0.0196,
-        "b": 0.0196,
-        "a": 0.0314
-       },
-       "bound": {
-        "color": "Color/Background/Support/Neutral/Pale"
-       }
-      },
-      {
-       "position": 1,
-       "color": {
-        "r": 0.0039,
-        "g": 0.0039,
-        "b": 0.0039,
-        "a": 0.0627
-       },
-       "bound": {
-        "color": "Color/Background/Support/Neutral/Subtle"
-       }
-      }
-     ],
-     "gradientTransform": [
-      [
-       0.37861496210098267,
-       0.5007815957069397,
-       -0.14214131236076355
-      ],
-      [
-       -0.5007815957069397,
-       0.3909904360771179,
-       0.5765672922134399
-      ]
-     ]
-    }
-   ],
-   "bound": {
-    "paints": [
-     "Color/Background/Support/Neutral/Subtle",
-     "Color/Background/Support/Neutral/Pale"
-    ]
-   }
-  },
-  {
    "id": "S:637a3cde5b558cc5cad5ac76051e49919da4e876,",
    "key": "637a3cde5b558cc5cad5ac76051e49919da4e876",
    "name": ".VT-Canvas",
@@ -222,9 +164,9 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 0.0667,
-      "g": 0.0667,
-      "b": 0.0667
+      "r": 1,
+      "g": 0.4196,
+      "b": 0.8353
      },
      "bound": {
       "color": "Chart/Sector/Primary"
@@ -249,9 +191,9 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 1,
-      "g": 0.4,
-      "b": 0.8314
+      "r": 0.0706,
+      "g": 0.0706,
+      "b": 0.0706
      },
      "bound": {
       "color": "Chart/Sector/Secondary"
@@ -276,9 +218,9 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 0.0627,
-      "g": 0.6824,
-      "b": 0.8549
+      "r": 0.0706,
+      "g": 0.6353,
+      "b": 0.8078
      },
      "bound": {
       "color": "Color/Background/Support/Cyan/Solid"
@@ -357,8 +299,8 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 0.9294,
-      "g": 0.502,
+      "r": 0.8902,
+      "g": 0.4784,
       "b": 0.0078
      },
      "bound": {
@@ -384,18 +326,18 @@
      "opacity": 1,
      "blendMode": "NORMAL",
      "color": {
-      "r": 1,
-      "g": 0.7529,
-      "b": 0.6863
+      "r": 0.6745,
+      "g": 0.8549,
+      "b": 0.6824
      },
      "bound": {
-      "color": "Color/Background/Support/Red/Soft"
+      "color": "Color/Background/Support/Green/Soft"
      }
     }
    ],
    "bound": {
     "paints": [
-     "Color/Background/Support/Red/Soft"
+     "Color/Background/Support/Green/Soft"
     ]
    }
   },
@@ -1043,7 +985,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.5199999809265137
+    "value": -1.5800000429153442
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1078,7 +1020,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -1.2100000381469727
+    "value": -1.2000000476837158
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1113,7 +1055,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.9800000190734863
+    "value": -1.0800000429153442
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1148,7 +1090,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.7599999904632568
+    "value": -0.9599999785423279
    },
    "paragraphSpacing": 0,
    "paragraphIndent": 0,
@@ -1183,7 +1125,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.5600000023841858
+    "value": -0.8399999737739563
    },
    "paragraphSpacing": 28,
    "paragraphIndent": 0,
@@ -1219,7 +1161,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.5
+    "value": -0.75
    },
    "paragraphSpacing": 25,
    "paragraphIndent": 0,
@@ -1255,7 +1197,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.4399999976158142
+    "value": -0.6600000262260437
    },
    "paragraphSpacing": 22,
    "paragraphIndent": 0,
@@ -1291,7 +1233,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": -0.4000000059604645
+    "value": -0.6000000238418579
    },
    "paragraphSpacing": 20,
    "paragraphIndent": 0,
@@ -1578,7 +1520,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": 0
+    "value": -0.11999999731779099
    },
    "paragraphSpacing": 12,
    "paragraphIndent": 0,
@@ -1614,7 +1556,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": 0
+    "value": -0.11999999731779099
    },
    "paragraphSpacing": 12,
    "paragraphIndent": 0,
@@ -1650,7 +1592,7 @@
    },
    "letterSpacing": {
     "unit": "PIXELS",
-    "value": 0
+    "value": -0.11999999731779099
    },
    "paragraphSpacing": 12,
    "paragraphIndent": 0,

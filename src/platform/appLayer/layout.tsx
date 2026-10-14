@@ -68,11 +68,8 @@ function LayoutPlayground() {
   ) : kind === "box" ? (
     <Box surface={surface} border={bordered ? "pale" : "none"} radius={radius} padding={padding} className="pal-box">
       <Stack gap="sm">
-        <Stack direction="row" justify="between" align="baseline" gap="sm" wrap>
-          <Text textStyle="Body/Base/Bold" as="span">Storage</Text>
-          <Text textStyle="Body/Small/Regular" tone="base" as="span">68 GB of 100 GB</Text>
-        </Stack>
-        <ProgressBar value={68} theme="status" scale="quota" aria-label="Storage used" />
+        {/* Layout=Stacked: the bar's name and its value on one row above the track. */}
+        <ProgressBar layout="stacked" value={68} theme="status" scale="quota" label="Storage" valueLabel="68 GB of 100 GB" />
         <Text textStyle="Body/Small/Regular" tone="base">Files, recordings and backups for Zen Studio.</Text>
       </Stack>
     </Box>
@@ -94,7 +91,7 @@ function LayoutPlayground() {
     : kind === "grid"
       ? `<Grid ${columnsCode} gap="${gap}">\n  <Box surface="surface" border="pale" radius="lg" padding="sm">Overview</Box>\n  …\n</Grid>`
       : kind === "box"
-        ? `<Box surface="${surface}"${bordered ? ` border="pale"` : ""} radius="${radius}" padding="${padding}">\n  <Text textStyle="Body/Base/Bold" as="span">Storage</Text>\n  <ProgressBar value={68} theme="status" scale="quota" aria-label="Storage used" />\n</Box>`
+        ? `<Box surface="${surface}"${bordered ? ` border="pale"` : ""} radius="${radius}" padding="${padding}">\n  <ProgressBar layout="stacked" value={68} theme="status" scale="quota" label="Storage" valueLabel="68 GB of 100 GB" />\n</Box>`
         : `<Container maxWidth="${width}"${gutter ? "" : " gutter={false}"}>\n  …page content…\n</Container>`;
 
   return (
@@ -118,7 +115,7 @@ function LayoutPlayground() {
         {kind === "container" ? <PlaygroundFilterChip label="Max width" value={width} onChange={(value) => setWidth((String(value) || "sm") as (typeof widths)[number])} options={[option("sm", "sm · 640"), option("md", "md · 960"), option("lg", "lg · 1280")]} /> : null}
         {kind === "container" ? <PlaygroundToggle label="Page margin" selected={gutter} onChange={setGutter} /> : null}
       </>}
-      code={`import { ${kind === "stack" ? "Box, Stack" : kind === "grid" ? "Box, Grid" : kind === "box" ? "Box, ProgressBar, Text" : "Container"} } from "@zen/design-system";\n\n${code}`}
+      code={`import { ${kind === "stack" ? "Box, Stack" : kind === "grid" ? "Box, Grid" : kind === "box" ? "Box, ProgressBar, Text" : "Container"} } from "@zen-ds/react";\n\n${code}`}
     >
       {preview}
     </Panel>

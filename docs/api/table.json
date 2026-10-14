@@ -1,12 +1,12 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "table",
-  "import": "import { Table, TableText, TableMedia, TableTrend, TableBadges, TableTags, TableActions } from \"@zen/design-system\";",
+  "import": "import { Table, TableText, TableMedia, TableTrend, TableBadges, TableTags, TableActions } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Table",
       "file": "src/components/Table/Table.tsx",
-      "description": "Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of\nTable/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).\nCells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).",
+      "description": "Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of\nTable/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale).\nCells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).\nRows are FIXED at Table/Cell/Size (the header at Table/Header/Size): each body cell holds one line of content in its\nContent layer, and long text ends in an ellipsis instead of growing the row. Long, multi-line content (a sheet-like\ngrid) is not this component's job.",
       "deprecated": null,
       "extends": null,
       "props": [

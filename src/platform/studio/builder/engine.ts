@@ -9,7 +9,10 @@ import * as Zen from "../../../index";
 
 type Engine = typeof import("../../../../tools/studio/browser-engine.mjs");
 let loading: Promise<Engine> | null = null;
-export const loadEngine = (): Promise<Engine> => (loading ??= import("../../../../tools/studio/browser-engine.mjs"));
+let loaded: Engine | null = null;
+export const loadEngine = (): Promise<Engine> => (loading ??= import("../../../../tools/studio/browser-engine.mjs").then((engine) => { loaded = engine; return engine; }));
+/** The engine once it has loaded (null before): a render can use it at once instead of waiting a turn for the promise. */
+export const engineNow = (): Engine | null => loaded;
 
 type Detach = typeof import("../../../../tools/studio/browser-detach.mjs");
 let detaching: Promise<Detach> | null = null;

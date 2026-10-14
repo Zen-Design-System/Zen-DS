@@ -2,7 +2,7 @@
 # Page Header
 
 **Figma:** ◇ Master-Layout page title Heading/1 + Spacing, with Breadcrumbs, Button, Badge and Tabs  
-**Import:** `import { PageHeader } from "@zen/design-system";`
+**Import:** `import { PageHeader } from "@zen-ds/react";`
 
 The top of an app page: breadcrumbs or Back, the h1 title with its meta and actions, a description and optional section tabs.
 

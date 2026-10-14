@@ -10,7 +10,7 @@
  * - New expense opens a validated ModalForm; Export confirms with a Toast.
  *
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
- * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  */
 import { useId, useMemo, useState } from "react";
 import {
@@ -59,7 +59,7 @@ import {
   type IconName,
   type TableSort,
   type UploaderFile,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import { HrShell, hrModules, type HrNavigate } from "./HrShell";
 import {
   avatarOf,

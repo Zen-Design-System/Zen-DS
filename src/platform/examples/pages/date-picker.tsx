@@ -163,7 +163,7 @@ function TimeOffExample() {
               <Heading level={4} textStyle="Heading/Subheading">Annual leave</Heading>
               <Text textStyle="Body/Small/Regular" tone="base">{me.name} · {plural(LEAVE_BALANCE, "day")} left this year</Text>
             </Stack>
-            {requested ? <Badge className="px-date-picker-status" theme={leaveStatusTheme.Pending} background="subtle">Pending</Badge> : null}
+            {requested ? <Badge theme={leaveStatusTheme.Pending} background="subtle">Pending</Badge> : null}
           </Stack>
           <DescriptionList items={[
             { term: "Dates", description: range?.end ? formatRange(range.start, range.end) : range ? `From ${formatDate(range.start)}` : "No dates yet" },

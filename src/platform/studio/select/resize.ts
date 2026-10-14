@@ -1,6 +1,7 @@
 import { componentSchema, valueOf } from "../inspector/propSchema";
 import type { EditOp, EditValue, SourceAttr, SourceElement } from "../types";
 import { columnsOp, withTrack, withTrackPx, type ColumnsSource } from "./gridTracks";
+import { srcAttr, srcProp } from "./srcIds";
 
 /*
  * Resize on the canvas (Figma-like): what dragging a handle of the selected element writes. Zen auto-layout props, no
@@ -209,7 +210,7 @@ export function wrapperCandidate(host: Element): string | null {
   const parent = host.parentElement;
   if (!parent || !parent.classList.contains("zen-stack") || parent.getAttribute("data-fill-children") !== "true") return null;
   if (parent.children.length !== 1 || parent.firstElementChild !== host) return null;
-  return parent.getAttribute("data-zen-src") || null;
+  return srcAttr(parent) || null;
 }
 
 /**
@@ -350,8 +351,8 @@ export function cloningProp(list: CloningList, owner: string | null, props: Reco
     if (dot < 0 || key.slice(0, dot) !== name) continue;
     const value: unknown = props[key.slice(dot + 1)];
     if (typeof value !== "object" || value === null || !("$$typeof" in value)) continue;
-    const src = (value as { props?: Record<string, unknown> | null }).props?.["data-zen-src"];
-    if (typeof src === "string" && srcs.has(src)) return entry;
+    const src = srcProp((value as { props?: Record<string, unknown> | null }).props);
+    if (src && srcs.has(src)) return entry;
   }
   return null;
 }

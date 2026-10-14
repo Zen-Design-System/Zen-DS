@@ -2,7 +2,7 @@
 # Menu
 
 **Figma:** Popover/Default + Primitives/Popover/Item (page 815:6432), composed as an action menu  
-**Import:** `import { Menu, MenuItem, MenuSeparator, MenuGroup } from "@zen/design-system";`
+**Import:** `import { Menu, MenuItem, MenuSeparator, MenuGroup } from "@zen-ds/react";`
 
 A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.
 

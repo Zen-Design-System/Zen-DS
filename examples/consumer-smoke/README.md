@@ -1,6 +1,6 @@
 # Consumer smoke app
 
-Template used by `npm run verify:package` (scripts/verify-package.mjs). The script packs `@zen/design-system`, copies
+Template used by `npm run verify:package` (scripts/verify-package.mjs). The script packs `@zen-ds/react`, copies
 this folder to a temporary directory, installs the tarball there and checks what a real app would hit:
 
 - `tsc` with `skipLibCheck: false` against the shipped declarations (`src/app.tsx` uses a wide slice of the API);

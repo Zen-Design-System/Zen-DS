@@ -28,7 +28,6 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./link.css";
 
 export const page: PlatformPage = "link";
 
@@ -264,7 +263,7 @@ function ReadingList() {
         <Text textStyle="Body/Small/Regular" tone="base">Articles the design team keeps coming back to. Each opens on its own site, in a new tab.</Text>
       </Stack>
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box className="px-link-search"><Search placeholder="Search articles" aria-label="Search articles" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={320}><Search placeholder="Search articles" aria-label="Search articles" value={query} onValueChange={setQuery} /></Box>
         <Chip variant="advanced" dropdown selected={topic !== null} popoverLabel="Topic"
           popoverItems={topics.map((option) => ({ id: option, label: option, selected: option === topic }))}
           onPopoverSelect={(item) => setTopic(item.id === topic ? null : (item.id as Topic))} onClearSelection={() => setTopic(null)}>

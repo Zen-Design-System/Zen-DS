@@ -1,7 +1,10 @@
 {
-  "name": "@zen/design-system",
+  "name": "@zen-ds/react",
   "version": "0.3.0",
-  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "publishConfig": {
+    "registry": "https://npm.dizai.studio/"
+  },
   "description": "Zen Design System: React components, design tokens and icons generated from the Zen Figma library. AI agents: read AGENTS.consumer.md.",
   "type": "module",
   "sideEffects": [
@@ -88,6 +91,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "mcp:selftest": "node mcp/selftest.mjs",
+    "ai-kit:build": "node tools/ai-kit/build.mjs",
+    "ai-kit:check": "node tools/ai-kit/build.mjs --check",
     "platform:behaviour": "node tools/platform-audit/behaviour.mjs",
     "style:check": "node tools/style-guard/check-styles.mjs",
     "style:selftest": "node tools/style-guard/selftest.mjs",

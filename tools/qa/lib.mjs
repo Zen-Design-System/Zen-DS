@@ -5,12 +5,12 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 
-/** The Zen DS repo that owns `file` (nearest package.json named @zen/design-system), or null. */
+/** The Zen DS repo that owns `file` (nearest package.json named @zen-ds/react), or null. */
 export function repoRootOf(file) {
   let dir = path.dirname(path.resolve(file));
   for (let i = 0; i < 12 && dir !== path.dirname(dir); i++, dir = path.dirname(dir)) {
     const pkg = path.join(dir, "package.json");
-    if (fs.existsSync(pkg)) { try { if (JSON.parse(fs.readFileSync(pkg, "utf8")).name === "@zen/design-system") return dir; } catch { /* keep walking */ } }
+    if (fs.existsSync(pkg)) { try { if (JSON.parse(fs.readFileSync(pkg, "utf8")).name === "@zen-ds/react") return dir; } catch { /* keep walking */ } }
   }
   return null;
 }

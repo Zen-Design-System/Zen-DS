@@ -1,5 +1,0 @@
-/* Form examples (src/platform/examples/pages/form.tsx). Tokens only; class prefix .px-form-. */
-
-/* "Add a client" is a desktop page (screen card): it paints the app's Canvas, as every page-level screen does. */
-.px-form-page { min-height: 100%; background: var(--zen-color-background-canvas-default); }
-

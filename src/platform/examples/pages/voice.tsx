@@ -12,7 +12,6 @@ import { PlatformPhone } from "../../PlatformPhone";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
 import { keepOnHotUpdate } from "../../hotData";
-import "./voice.css";
 
 export const page: PlatformPage = "voice";
 
@@ -23,13 +22,16 @@ const clock = (seconds: number, hundredths = true) => {
   return hundredths ? `${text}.${String(Math.floor((seconds % 1) * 100)).padStart(2, "0")}` : text;
 };
 
-/** A recorder whose take counts up while it records. */
+/** A recorder whose take counts up while it records: from the real clock, so the hundredths run like a stopwatch's. */
 function useTake() {
   const [state, setState] = useState<VoiceRecorderState>("ready");
   const [seconds, setSeconds] = useState(0);
+  const latest = useRef(0);
+  latest.current = seconds;
   useEffect(() => {
     if (state !== "recording") return undefined;
-    const timer = window.setInterval(() => setSeconds((now) => now + 0.1), 100);
+    const from = performance.now() - latest.current * 1000;
+    const timer = window.setInterval(() => setSeconds((performance.now() - from) / 1000), 47);
     return () => window.clearInterval(timer);
   }, [state]);
   const props = {
@@ -48,7 +50,7 @@ function TaskVoiceNote() {
   const [status, setStatus] = useState("");
   return (
     <Stack gap="md">
-      <Card theme="flat" spacing="sm" className="pe-voice-card">
+      <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
         <VoiceRecorder
           {...take.props}
           title="Note for “Rewards screens”"
@@ -83,7 +85,7 @@ function MicrophoneBlocked() {
           Your browser blocked the microphone for this site. Allow it, then record again.
         </InlineMessage>
       ) : null}
-      <Card theme="flat" spacing="sm" className="pe-voice-card">
+      <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
         <VoiceRecorder
           {...take.props}
           input={blocked ? "No microphone allowed" : "Built-in microphone"}
@@ -100,33 +102,42 @@ function MicrophoneBlocked() {
 }
 
 // ——— 3. Talk a day through with Zen AI ———————————————————————————————————————————————————————————————————
-const ASK = "Help me plan a calm start to my day";
-const ANSWER = "Start with five quiet minutes, then choose one thing that matters today: the Rewards screens review at 10.";
+const TURNS = [
+  { ask: "Help me plan a calm start to my day", answer: "Start with five quiet minutes, then choose one thing that matters today: the Rewards screens review at 10." },
+  { ask: "Move the review to eleven", answer: "Done. The Rewards screens review is at 11 now, so your morning stays clear until then." },
+];
 
+/**
+ * A voice conversation that runs like a voice mode: your words reach the live transcript as you say them (none while
+ * muted: the microphone hears nothing), Zen's answer appears as it is spoken, and when it finishes Zen listens again
+ * for your next turn. Interrupt stops the answer and gives you the turn.
+ */
 function useConversation() {
   const [state, setState] = useState<AiVoiceState>("ready");
   const [muted, setMuted] = useState(false);
-  const [heard, setHeard] = useState("");
-  const timer = useRef<number | null>(null);
-  // While listening, the transcript fills in word by word (a live transcript).
+  const [turn, setTurn] = useState(0);
+  const [said, setSaid] = useState(0);
+  const { ask, answer } = TURNS[turn % TURNS.length];
+  const words = (state === "responding" ? answer : ask).split(" ");
   useEffect(() => {
-    if (state !== "listening") return undefined;
-    const words = ASK.split(" ");
-    let count = 0;
-    setHeard("");
-    timer.current = window.setInterval(() => { count = Math.min(words.length, count + 1); setHeard(`${words.slice(0, count).join(" ")}${count < words.length ? "…" : ""}`); }, 260);
-    return () => { if (timer.current) window.clearInterval(timer.current); };
-  }, [state]);
-  const transcript = state === "responding" ? ANSWER : state === "listening" ? heard || "…" : `“${ASK}.”`;
+    if (state === "ready" || (state === "listening" && muted)) return undefined;
+    // About 2.6 words a second for you and 2.9 for Zen; a finished answer hands the turn back after a short pause.
+    const timer = said < words.length
+      ? window.setTimeout(() => setSaid((count) => count + 1), state === "listening" ? 380 : 340)
+      : state === "responding" ? window.setTimeout(() => { setTurn((count) => count + 1); setSaid(0); setState("listening"); }, 1600) : undefined;
+    return () => window.clearTimeout(timer);
+  }, [state, muted, said, words.length]);
+  const spoken = words.slice(0, said).join(" ");
+  const transcript = state === "ready" ? `“${TURNS[0].ask}.”` : !spoken ? "…" : said < words.length ? `${spoken}…` : state === "listening" ? `${spoken}.` : spoken;
   return {
     state, muted, transcript,
     props: {
       state, muted, transcript,
       onMutedChange: setMuted,
-      onStart: () => setState("listening"),
-      onDone: () => setState("responding"),
-      onInterrupt: () => setState("listening"),
-      onEnd: () => { setState("ready"); setMuted(false); },
+      onStart: () => { setSaid(0); setState("listening"); },
+      onDone: () => { setSaid(0); setState("responding"); },
+      onInterrupt: () => { setTurn((count) => count + 1); setSaid(0); setState("listening"); },
+      onEnd: () => { setState("ready"); setMuted(false); setTurn(0); setSaid(0); },
     },
   };
 }
@@ -134,7 +145,7 @@ function useConversation() {
 function TalkWithZen() {
   const talk = useConversation();
   return (
-    <Card theme="flat" spacing="sm" className="pe-voice-card">
+    <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
       <AiVoiceConversation {...talk.props} />
     </Card>
   );
@@ -165,7 +176,7 @@ function TakeLimit() {
   }, [take, atLimit]);
   return (
     <Stack gap="md">
-      <Card theme="flat" spacing="sm" className="pe-voice-card pe-voice-card--narrow">
+      <Card theme="flat" spacing="sm" width="fill" maxWidth={320}>
         <VoiceRecorder
           {...take.props}
           title="Note for “Rewards screens — checkout copy review with Lumen Bank”"
@@ -228,7 +239,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Talk a day through with Zen AI",
-    description: "AI Voice Conversation: Start talking listens (the transcript fills in as you speak), Done speaking lets Zen answer, Interrupt takes the turn back and End closes the conversation. Mute is a toggle and stays off until you start.",
+    description: "AI Voice Conversation: Start talking listens (the transcript fills in as you speak), Done speaking lets Zen answer — its words appear as it says them, then it listens again — Interrupt takes the turn back and End closes the conversation. Mute is a toggle that stays off until you start; muted, the signal rests and the transcript stops.",
     code: `const [state, setState] = useState("ready");
 const [muted, setMuted] = useState(false);
 

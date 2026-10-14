@@ -89,12 +89,12 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("live: a Menu-Item whose Icon is off has no icon; repeated labels get their own ids", page.includes('{ id: "avatar", label: "Avatar" }') && page.includes('{ id: "component-11", label: "Component" }'));
   ok("live: the item Figma shows selected is the Sidebar's selectedId", page.includes('selectedId="overviews"'));
   ok("live: Footer-Content's Menu-Items are SidebarMenuItem rows in the footer (they fill it: no align)", page.includes('footer={<Stack gap="3xs"><SidebarMenuItem id="download-figma" label="Download Figma" icon="ic-figma-line" />'));
-  ok("live: Header-Content is the brand: the icon-zen instance an Icon, the collapse button named by its layer", page.includes('brand={<Stack direction="row" gap="xs"><Icon name="icon-zen" />') && page.includes('aria-label="Collapse"'));
-  ok("live: Breadcrumbs' Item-List is its items, ids its own (not the Sidebar's)", page.includes('<Breadcrumbs items={[{ id: "overviews", label: "Overviews" }]} />'));
+  ok("live: Header-Content is the brand: the icon-zen instance an Icon; its Collapse button is the Sidebar's own (left out, noted)", page.includes('brand={<Stack direction="row" gap="xs"><Icon name="icon-zen" />') && !page.includes('aria-label="Collapse"') && notesWith("its Collapse button is the Sidebar's own") === 1);
+  ok("live: Breadcrumbs' Item-List is its items, ids its own (not the Sidebar's); its one crumb at the Item's Sub level: master off", page.includes('<Breadcrumbs items={[{ id: "overviews", label: "Overviews" }]} master={false} />'));
   ok("live: icon-only Segments: an empty label, the icon as leading, an aria-label from it; Select = Yes the defaultValue",
     page.includes('<Segmented options={[{ id: "sun", label: "", leading: "icon-sun-solid", "aria-label": "Sun" }, { id: "moon", label: "", leading: "icon-moon-01-solid", "aria-label": "Moon" }]} defaultValue="sun" />'));
   ok("live: the app frame's Dashboard/Header Type=Navigation is AppShell's top bar: Leading-Slots its header (no toggle in Figma: sidebarToggle off), Trailing-Slots its headerActions",
-    /<AppShell sidebar=\{<Sidebar [\s\S]*?\/>\} sidebarToggle=\{false\} header=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} \/><\/Stack>\} headerActions=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
+    /<AppShell sidebar=\{<Sidebar [\s\S]*?\/>\} sidebarToggle=\{false\} header=\{<Stack direction="row"><Breadcrumbs items=\{\[\{ id: "overviews", label: "Overviews" \}\]\} master=\{false\} \/><\/Stack>\} headerActions=\{<Stack direction="row" gap="xs"><Segmented /.test(page));
   ok("live: a Type=Main row whose Header-Text holds a cover of its own is a custom row that keeps it", /<DashboardHeader type="custom">[\s\S]*?ZEN DESIGN SYSTEM[\s\S]*?<\/DashboardHeader>/.test(page) && notesWith("its Header-Text holds layers of its own (_Cover)") === 1);
   ok("live: span-2 cards on 8 columns, 2 to a row: a Grid of 2 columns", page.includes("<Grid columns={2} width=\"fill\">"));
   check("live: the cards in Figma's placement order (row by row), not the layers panel's",

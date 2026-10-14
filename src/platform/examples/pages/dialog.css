@@ -1,7 +1,4 @@
 /* Dialog examples (pages/dialog.tsx). Tokens only. */
 
-/* The token field fills the dialog column; its Copy button keeps its own width. */
-.px-dialog-fill { align-self: stretch; min-width: 0; }
-
 /* A narrow list's trailing Badge or button, under the caption: it keeps its own width. */
 .px-dialog-row-trailing { display: flex; align-self: flex-start; }

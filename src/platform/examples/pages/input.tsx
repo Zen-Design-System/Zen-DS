@@ -185,7 +185,7 @@ function SentInvoiceExample() {
         <Stack gap="md">
           <Stack direction="row" gap="sm" align="start" justify="between">
             <Heading level={4} textStyle="Heading/Subheading">Invoice for {sentInvoice.client}</Heading>
-            <Badge className="px-input-status" theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>
+            <Badge theme={invoiceStatusTheme[sentInvoice.status]} background="subtle">{sentInvoice.status}</Badge>
           </Stack>
           <InputField label="Invoice number" readOnly value={sentInvoice.number} labelAction={<button type="button" onClick={copy}>Copy</button>} />
           <InputField label="Amount" readOnly value={formatMoney(sentInvoice.amount, true)} helpText={`Locked since it was sent on ${formatDate(sentInvoice.issued)}.`} />

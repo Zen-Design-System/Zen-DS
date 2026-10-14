@@ -2,7 +2,7 @@
 # Rating
 
 **Figma:** Rating/Star, Rating-Display, Rating/Opinion-Scale, Rating/NPS-Scale (page 1536:355)  
-**Import:** `import { Rating, RatingDisplay, OpinionScale, NpsScale } from "@zen/design-system";`
+**Import:** `import { Rating, RatingDisplay, OpinionScale, NpsScale } from "@zen-ds/react";`
 
 Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.
 

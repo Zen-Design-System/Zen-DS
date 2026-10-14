@@ -27,6 +27,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PhoneToastHost } from "../../PlatformFrames";
 import { keepOnHotUpdate } from "../../hotData";
 import "./toast.css";
 
@@ -315,7 +316,7 @@ function PhoneToastExample() {
       header={<TopNavigation type="alt" title={title} largeTitle={title} scrollRef={screenRef} />}
       footer={(
         <>
-          <div className="px-toast-phone-host"><ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} /></div>
+          <PhoneToastHost><ToastStack inline toasts={toasts} onDismiss={dismiss} max={1} /></PhoneToastHost>
           <BottomNavigation aria-label="Phin & Co" items={tabs} value={tab} onValueChange={(id) => openTab(id as Tab)} showLabels />
         </>
       )}>

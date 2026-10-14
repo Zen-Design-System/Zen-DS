@@ -31,6 +31,7 @@ export interface BadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, "color
   background?: BadgeBackground;
   /** Leading icon: an icon name (`"icon-check-line"`) or a node; replaces the default dot. */
   leading?: IconName | ReactNode;
+  /** Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included. */
   leadingIcon?: boolean;
   /** Shows the remove button (icon-x-circle-solid), named "Remove <label>" from a text label (the locale's `removeItem`). */
   remove?: boolean;
@@ -52,7 +53,7 @@ export function Badge({ ref, children, size: sizeProp = "md", theme: themeProp, 
   const theme = themeProp ?? color ?? "neutral";
   const t = useZenLabels();
   const size = scaleKey(sizeProp, badgeSizes);
-  const leadingContent = renderIcon(leading) ?? (leadingIcon ? <Icon name="icon-circle-small-solid" decorative /> : null);
+  const leadingContent = leadingIcon ? renderIcon(leading) ?? <Icon name="icon-circle-small-solid" decorative /> : null;
   const textStyle = size === "xsmall" ? typographyStyles["Caption/Medium"] : size === "small" ? typographyStyles["Body/Small/Medium"] : typographyStyles["Body/Base/Medium"];
   // Like Tag: the remove button names what it removes ("Remove Design"); removeLabel names it for a non-text label, which
   // otherwise falls back to "Remove".

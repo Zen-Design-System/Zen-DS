@@ -2,7 +2,7 @@
 # Empty State
 
 **Figma:** Empty-State, Empty-State/Illustration/Placeholder, .Empty-State/CTAs (page 6062:27870)  
-**Import:** `import { EmptyState } from "@zen/design-system";`
+**Import:** `import { EmptyState } from "@zen-ds/react";`
 
 Explains why a screen or region has nothing to show and what the user can do next.
 

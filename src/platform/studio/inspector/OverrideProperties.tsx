@@ -54,6 +54,18 @@ export function OverrideProperties({ selection, part, path, title = "Properties"
     const value = literalOf(own[prop] ?? props[prop]);
     return value === undefined ? { state: "unset" } : { state: "literal", value, raw: JSON.stringify(value) };
   };
+  /*
+   * A boolean switched back to what the main component shows drops its override, as Figma's instance returns to its
+   * main component (user, 2026-10-13: off left `hint: false` behind). Off removes an override that switched the layer
+   * on, unless the owner passes the prop itself (MetricCard's hint reaches its Metric): then `false` hides it. On
+   * removes a `false` override (it only ever hid a layer the main component shows), else writes the starting value.
+   */
+  const toggleOverride = (name: string, on: boolean, start: Literal): Literal | null => {
+    const overridden = name in own;
+    const ownerPasses = Boolean(element?.attributes.some((attr) => attr.kind !== "spread" && attr.name === name));
+    if (on) return overridden && own[name] === false ? null : start;
+    return overridden && own[name] !== false && !ownerPasses ? null : false;
+  };
   const rows = nestedRows(part.name).filter((row) => holds(row.when, props));
   const count = Object.keys(own).length;
   const reset = count ? (
@@ -79,7 +91,7 @@ export function OverrideProperties({ selection, part, path, title = "Properties"
           value={{ state: "literal", value: isSetValue(own[row.spec.name] ?? props[row.spec.name]), raw: "" }}
           disabled={!editable}
           resettable={row.spec.name in own}
-          onSet={(on) => write(withOverride(table, path, row.spec.name, on === true ? row.on : false), `${owner} › ${path}: ${row.label} ${on === true ? "on" : "off"}`)}
+          onSet={(on) => write(withOverride(table, path, row.spec.name, toggleOverride(row.spec.name, on === true, row.on)), `${owner} › ${path}: ${row.label} ${on === true ? "on" : "off"}`)}
           onReset={() => write(withOverride(table, path, row.spec.name, null), `${owner} › ${path}: reset ${row.label}`)}
         />
       ) : (

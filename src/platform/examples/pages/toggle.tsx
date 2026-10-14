@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Avatar, type AvatarSize } from "../../../components/Avatar";
@@ -60,7 +61,7 @@ function NotificationSettingsExample() {
     toast({ title: "Notifications paused", action: { label: "Undo", onClick: () => setPaused(false) } });
   };
   return (
-    <div className="px-toggle-page">
+    <PreviewPage fill>
       <Container maxWidth="md">
         <Stack gap="xl" paddingY="xl">
           <PageHeader eyebrow="Settings" title="Notifications" description="Choose what Zen tells you about and where. Changes save as you make them." />
@@ -84,7 +85,7 @@ function NotificationSettingsExample() {
           ))}
         </Stack>
       </Container>
-    </div>
+    </PreviewPage>
   );
 }
 

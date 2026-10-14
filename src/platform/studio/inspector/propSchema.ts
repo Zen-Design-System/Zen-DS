@@ -347,7 +347,18 @@ function inheritedBooleans(schema: ApiComponent, depth = 0): string[] {
 /** Components whose `src` is a picture (the Studio's Picture control, a photo click or drop): one list for the Inspector and the assets (edit/assets/picture.ts). */
 export const PHOTO_PROPS: Readonly<Record<string, string>> = { Avatar: "src", AppShellAccount: "src", Image: "src", Thumbnail: "src" };
 
+/** Specs by component: the API data never changes at runtime, and an Inspector render asks for them per row. */
+const specsCache = new Map<string, PropSpec[]>();
+
 export function propSpecs(name: string): PropSpec[] {
+  const cached = specsCache.get(name);
+  if (cached) return cached;
+  const specs = buildPropSpecs(name);
+  specsCache.set(name, specs);
+  return specs;
+}
+
+function buildPropSpecs(name: string): PropSpec[] {
   const schema = componentSchema(name);
   if (!schema) return [];
   const own = [...schema.props, ...inheritedProps(schema, componentSchema)]

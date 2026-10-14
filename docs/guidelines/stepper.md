@@ -2,7 +2,7 @@
 # Stepper
 
 **Figma:** Stepper-Bar/Horizontal, Stepper-Bar/Vertical, .Primitives/Stepper/* (page 1625:3394)  
-**Import:** `import { Stepper } from "@zen/design-system";`
+**Import:** `import { Stepper } from "@zen-ds/react";`
 
 Shows progress through a multi-step, sequential process and where the user is in it.
 

@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "color-selector",
-  "import": "import { ColorSelector } from \"@zen/design-system\";",
+  "import": "import { ColorSelector } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "ColorSelector",

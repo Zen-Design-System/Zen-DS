@@ -2,7 +2,7 @@
 # Icon
 
 **Figma:** Iconography (page 1340:4450)  
-**Import:** `import { Icon } from "@zen/design-system";`
+**Import:** `import { Icon } from "@zen-ds/react";`
 
 Render a system icon from the generated set at a token size.
 
@@ -24,7 +24,7 @@ Render a system icon from the generated set at a token size.
 Generated from the TypeScript source; full JSON in `docs/api/icon.json`.
 
 ### Icon
-Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty box of the same size shows for that first frame — `preloadIcons()` or `@zen/design-system/icons/all` avoid it).
+Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty box of the same size shows for that first frame — `preloadIcons()` or `@zen-ds/react/icons/all` avoid it).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

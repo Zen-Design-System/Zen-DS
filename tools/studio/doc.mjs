@@ -16,8 +16,8 @@ import { parsePage } from "./dialect.mjs";
 
 export const ID_PROP = "data-zen-id";
 const ID_ATTRIBUTE = / data-zen-id="[^"]*"/g;
-const PACKAGE = "@zen/design-system";
-const BUILDER_PACKAGE = "@zen/design-system/builder";
+const PACKAGE = "@zen-ds/react";
+const BUILDER_PACKAGE = "@zen-ds/react/builder";
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay"]);
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 

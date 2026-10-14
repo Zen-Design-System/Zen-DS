@@ -46,7 +46,7 @@ const ALLOWED = {
   MetricCard: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
   Pagination: { Previous: "unnamed in Figma: Button/Icon-Main", Next: "unnamed in Figma: Button/Icon-Main", Page: "Figma names each page by its number (1, 2, 3, …)", "Page-Size": "unnamed in Figma: Chip/Advanced" },
   Popover: { Avatar: "a Popover item can lead with an Avatar in code; Figma's Popover/Default sample has none", Badge: "a Popover item can end with a Badge in code; Figma's Popover/Default sample has none" },
-  SidePanel: { Icon: "Figma's heading icon sits in Icon-Wrapper, named after its glyph", Close: "unnamed in Figma: Close-Container › Button/Icon-Flat" },
+  SidePanel: { Icon: "the deprecated `icon` prop: Figma removed the heading icon (Icon-Wrapper) on 2026-10-12", Back: "unnamed in Figma: Back-Container › Wrapper › Button/Icon-Flat" },
   Stepper: { Step: "Figma's steps are unnamed instances of .Primitives/Stepper/Step-Horizontal or Step-Vertical" },
   Tabs: { Icon: "Figma's tab icon is named after its glyph (icon-home-03-solid)" },
   Tag: { Avatar: "Figma's Tag shows its photo through Leading (Image, Status inside), no Avatar layer" },

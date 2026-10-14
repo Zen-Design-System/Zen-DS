@@ -7,7 +7,8 @@ import { rowOf } from "../inspector/detach";
 import { childHits, fiberOf, findBySrc, srcOf, type Fiber } from "../select/picker";
 import { canEdit, studioStore } from "../store";
 import { cellFieldOf, rowFieldsOf, tableCellOf } from "../table/tableCells";
-import type { DataSource, EditOp, SourceElement, StudioSelection } from "../types";
+import { propSpecs } from "../inspector/propSchema";
+import type { AttrShape, DataSource, EditOp, ShapeField, SourceAttr, SourceElement, StudioSelection } from "../types";
 
 /*
  * Inline text editing on the canvas (Figma: double-click a text layer, or Enter on it, edits it in place).
@@ -38,7 +39,7 @@ export type TextTarget = {
    * there (WP-C). `rowKey` / `table`: a Table cell's row key and Table loc; `field`: the row field a column without
    * `cell` draws (sent on the Table).
    */
-  op: { kind: "text"; index: number } | { kind: "prop"; name: string } | { kind: "data"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; source: string };
+  op: { kind: "text"; index: number } | { kind: "prop"; name: string } | { kind: "field"; name: string; index?: number; path?: Array<{ key: string; index?: number }>; key: string } | { kind: "data"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; source: string };
   /** The rendered text at the start (restored on a failed or empty edit). */
   original: string;
   /** How many places the edit changes (a `.map` row renders the same source several times). */
@@ -77,6 +78,9 @@ export function endTextEdit() {
 const CANVAS_ROOTS = ".studio-world, .studio-portal-root";
 /** Props whose string value never renders as the element's visible text. */
 const NOT_TEXT_PROPS = /^(className|class|style|id|key|href|src|srcSet|alt|type|role|name|value|htmlFor|target|rel|lang|dir|tabIndex|icon|leadingIcon|trailingIcon|textStyle|tone|level|size|variant|theme|as|data-.*|aria-.*)$/;
+
+/** A `value` the component shows as its words (a MetricCard's number: ReactNode in its API), unlike a field's value. */
+const shownValue = (component: string, prop: string) => prop === "value" && /\bReactNode\b/.test(propSpecs(component).find((spec) => spec.name === prop)?.type ?? "");
 
 /** Text as the comparison sees it: runs of white space (no-break spaces too) as one space, no edge spaces. */
 export const normalizeText = (value: string) => value.replace(/\s+/g, " ").trim();
@@ -224,8 +228,12 @@ async function sourceOf(chain: Array<{ src: string; fiber?: Fiber }>, text: stri
     }
     const child = element.children.find((entry) => entry.kind === "text" && normalizeText(entry.value) === wanted);
     if (child && child.kind === "text") return { element, op: { kind: "text", index: child.index } };
-    const prop = element.attributes.find((attribute) => attribute.kind === "string" && !NOT_TEXT_PROPS.test(attribute.name) && normalizeText(attribute.value ?? "") === wanted);
+    const prop = element.attributes.find((attribute) => attribute.kind === "string" && (!NOT_TEXT_PROPS.test(attribute.name) || shownValue(element.name, attribute.name)) && normalizeText(attribute.value ?? "") === wanted);
     if (prop) return { element, op: { kind: "prop", name: prop.name } };
+    // Words in an object or a list written in place (a Sidebar's `sections` › items › label on a page you made): that
+    // field, when exactly one holds them (2026-10-13 Figma walk: a Sidebar item could not be renamed on the canvas).
+    const field = shapeFieldOf(element.attributes, wanted);
+    if (field) return { element, op: { kind: "field", ...field } };
     const data = dataMatch(element, writtenProps(chain[index].fiber, chain[index].src), wanted);
     if (data?.from === "cell") {
       // A Table column's cell: the row the <tr> draws, named by its key in the data the Table reads.
@@ -250,6 +258,31 @@ async function sourceOf(chain: Array<{ src: string; fiber?: Fiber }>, text: stri
     }
   }
   return reason ? { reason } : null;
+}
+
+type FieldAt = { name: string; index?: number; path?: Array<{ key: string; index?: number }>; key: string };
+
+/** The one string field of the attributes' written shapes that holds `wanted`, as op setField addresses it; null when
+ *  none or several do (a wrong guess would rename another item). */
+function shapeFieldOf(attributes: readonly SourceAttr[], wanted: string): FieldAt | null {
+  const found: FieldAt[] = [];
+  const fields = (list: readonly ShapeField[], at: Omit<FieldAt, "key">) => {
+    for (const field of list) {
+      if (field.kind === "string" && normalizeText(field.value) === wanted) found.push({ ...at, key: field.key });
+      else if ((field.kind === "expression" || field.kind === "spread") && field.shape) shape(field.shape, at, field.key);
+    }
+  };
+  // `under`: the key of the field that holds this shape (a list one level further joins the path).
+  const shape = (value: AttrShape, at: Omit<FieldAt, "key">, under: string | null) => {
+    if (value.type === "object") { fields(value.fields, under === null ? at : { ...at, path: [...(at.path ?? []), { key: under }] }); return; }
+    value.items.forEach((item, index) => {
+      if (item.type !== "object") return;
+      const next = under === null ? { ...at, index } : { ...at, path: [...(at.path ?? []), { key: under, index }] };
+      fields(item.fields, next);
+    });
+  };
+  for (const attribute of attributes) if (attribute.kind === "expression" && attribute.shape) shape(attribute.shape, { name: attribute.name }, null);
+  return found.length === 1 ? found[0] : null;
 }
 
 /* ── starting ────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -406,6 +439,21 @@ export function startTextEditOnSelection(): boolean {
   return false;
 }
 
+/** Enter on a text layer inside an instance (⌘-click's deep select, 2026-10-13): its words edit in place, all selected,
+ *  when the owner's own source holds them (its prop or text child), as a double-click on them does. */
+export function startTextEditOnPart(element: Element, ownerSrc: string): boolean {
+  if (!canStart()) return false;
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+    if (!normalizeText(node.nodeValue ?? "")) continue;
+    const chain = annotatedChain(node, 6);
+    if (chain[0]?.src !== ownerSrc) return false;
+    void open(node, chain, "all", () => undefined);
+    return true;
+  }
+  return false;
+}
+
 /* ── committing ──────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 const short = (value: string) => (value.length > 32 ? `${value.slice(0, 32)}…` : value);
@@ -415,6 +463,10 @@ function opFor(target: TextTarget, value: string): EditOp {
     const { prop, child, row, rowKey, rowFields, table, field } = target.op;
     const at = field ? { field } : prop ? { prop } : { child };
     return { op: "setDataField", ...at, ...(row !== undefined ? { row } : {}), ...(rowKey !== undefined ? { rowKey } : {}), ...(rowFields ? { rowFields } : {}), ...(table !== undefined ? { table } : {}), value: { kind: "string", value } };
+  }
+  if (target.op.kind === "field") {
+    const { name, index, path, key } = target.op;
+    return { op: "setField", name, ...(index !== undefined ? { index } : {}), ...(path?.length ? { path } : {}), key, value: { kind: "string", value } };
   }
   return target.op.kind === "text"
     ? { op: "setText", index: target.op.index, value }

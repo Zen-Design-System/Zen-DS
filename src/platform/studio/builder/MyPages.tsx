@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Dialog, ModalForm } from "../../../components/Dialog";
 import { Icon } from "../../../components/Icon";
@@ -189,8 +189,15 @@ function StorageLine() {
   );
 }
 
-/** One page in the Studio space: the row (opens it) and its actions. `nested`: inside a folder (indented). */
-export function MyPageRow({ item, current, tabIndex, nested = false }: { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean }) {
+type MyPageRowProps = { item: PageMeta; current: boolean; tabIndex: number; nested?: boolean };
+
+/** Same row as before: its props, the page's meta field by field (the list is read anew on every page write). */
+const sameRow = (a: MyPageRowProps, b: MyPageRowProps) => a.current === b.current && a.tabIndex === b.tabIndex && a.nested === b.nested
+  && Object.keys(a.item).length === Object.keys(b.item).length && (Object.keys(a.item) as Array<keyof PageMeta>).every((key) => a.item[key] === b.item[key]);
+
+/** One page in the Studio space: the row (opens it) and its actions. `nested`: inside a folder (indented). Memoised: a
+ *  page write redraws its own row only, not every row on the way to the canvas (2026-10-13 edit latency). */
+export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nested = false }: MyPageRowProps) {
   const admin = useStudio((state) => state.role === "admin");
   const folders = useFolders();
   const [dialog, setDialog] = useState<null | "history">(null);
@@ -236,7 +243,7 @@ export function MyPageRow({ item, current, tabIndex, nested = false }: { item: P
       {dialog === "history" ? <HistoryDialog page={item} admin={admin} onClose={() => setDialog(null)} /> : null}
     </li>
   );
-}
+}, sameRow);
 
 function HistoryDialog({ page, admin, onClose }: { page: PageMeta; admin: boolean; onClose: () => void }) {
   const [rows, setRows] = useState<Revision[] | null>(null);

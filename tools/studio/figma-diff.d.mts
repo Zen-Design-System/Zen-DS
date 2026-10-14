@@ -1,7 +1,8 @@
 // Types of figma-diff.mjs (pulling a Figma frame again).
 import type { PageDoc } from "./browser-engine.mjs";
 
-export type FigmaSource = { file: string | null; node: string };
+/** The Figma frame a page was pulled from; `page` / `version`: the Studio page and export the Zen plugin placed it from. */
+export type FigmaSource = { file: string | null; node: string; page?: string; version?: string };
 
 export type FigmaChange = {
   key: string;
@@ -19,5 +20,5 @@ export function figmaSource(header: unknown): FigmaSource | null;
 export function sameFigmaSource(a: FigmaSource | null, b: FigmaSource | null): boolean;
 export function isFigmaId(id: unknown): boolean;
 export function describeNode(node: unknown): string;
-export function figmaChanges(docs: { base?: PageDoc | null; current: PageDoc; incoming: PageDoc }): { changes: FigmaChange[]; threeWay: boolean };
+export function figmaChanges(docs: { base?: PageDoc | null; current: PageDoc; incoming: PageDoc; synced?: PageDoc | null }): { changes: FigmaChange[]; threeWay: boolean };
 export function mergeFigma(current: PageDoc, incoming: PageDoc, changes: FigmaChange[]): { doc: PageDoc; skipped: string[] };

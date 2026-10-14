@@ -91,7 +91,8 @@ export const rows = [
       const page = await freshSelect(ctx, "table", { frame: TABLE_FRAME, position: { dx: 4, dy: 4 } });
       const status = await tableText(ctx, page, "In progress");
       await deepClick(page, status);
-      await until(async () => /^TableText\b/.test(await selectedName(page)), { message: "the drawn Text-Cell selected (TableText, a part of the Table)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      // Figma's deep select: the text the cell draws (2026-10-13; it was the TableText around it).
+      await until(async () => /^(Text|TableText)\b/.test(await selectedName(page)), { message: "the drawn text selected (a part of the Table)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await editInPlace(page, status.rect, "Blocked");
       await until(async () => (await ctx.text()).includes('{ id: "t-2", title: "Prototype", owner: "bao", status: "Blocked" }'), { message: "t-2's status in the fixture's list" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
       return "t-2.status edited";

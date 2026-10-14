@@ -2,7 +2,7 @@
 # Table
 
 **Figma:** Table/Cell/Header, Table/Cell/Default, Primitives/Table/* (page 1595:2631)  
-**Import:** `import { Table, TableText, TableMedia, TableTrend, TableActions } from "@zen/design-system";`
+**Import:** `import { Table, TableText, TableMedia, TableTrend, TableActions } from "@zen-ds/react";`
 
 Rows of structured records that users scan, compare, sort and act on.
 
@@ -17,13 +17,14 @@ Rows of structured records that users scan, compare, sort and act on.
 - Layout grids → CSS grid.
 - Key/value details of one record → a description list.
 - Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there).
+- Long, multi-line cell content (notes, full descriptions, a spreadsheet-like grid) → not Table: its rows stay one line at Table/Cell/Size; a separate sheet-style component will cover it.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Cell content | `columns[] {content, field, captionField, mediaField, bold, actions}` | Figma Table/Cell/Default › Content without a cell function: text · avatar · photo · icon · dock-icon · badge · tag · trend · progress · checkbox · toggle, drawn from the row's field (default the column id); actions (Figma Actions-Cell) draws the column's `actions` [{id, icon, label, size, level, onClick(row, index)}] as flat icon buttons named with their row; a `cell` function still wins |
-| Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: a narrow container scrolls the table sideways, values never wrap); leave the main column without a width so it fills (Figma FILL) |
-| Rows | `rows · getRowId` | fixed Table/Cell/Size, 1px bottom Border/Neutral/Pale; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays 52) |
+| Columns | `columns[] {id, header, align, width, sortable, icon, cell}` | header All-Caps/S Light; right-align numbers; a px width is fixed (Figma FIXED: longer text ends in an ellipsis, right-aligned values stay whole; a narrow container scrolls the table sideways); leave the main column without a width so it fills (Figma FILL) |
+| Rows | `rows · getRowId` | FIXED Table/Cell/Size (the header Table/Header/Size) in every density: one line per cell, text never wraps and ends in an ellipsis; a 32–40px Avatar, Dock Icon or icon button and a label + Subtext cell sit inside it (they spill into the padding, the row stays at the token); the 1px Border/Neutral/Pale divider is stroked inside the cell |
 | Selection | `selectable · selectedIds + onSelectionChange (controlled) or defaultSelectedIds (the Table keeps it)` | checkbox column; select-all is indeterminate when partial; a selected row's cells take Table-Cell/Background/Selected (Figma Cell State=Selected) |
 | Bulk actions | `bulkActions: TableBulkAction[] {id, icon, label, onClick, disabled, group} or (selectedIds) => TableBulkAction[]` | Popover/Bulk-Action under the table while rows are selected (sticks to the window bottom on a long table): Clear selection + "N selected" + icon-only Button/Icon-Flat Medium per action, a divider between groups; actions that don't fit (phones) move into a More menu |
 | Sort | `sort · onSortChange` | asc → desc → none; aria-sort |
@@ -38,7 +39,7 @@ Rows of structured records that users scan, compare, sort and act on.
 Generated from the TypeScript source; full JSON in `docs/api/table.json`.
 
 ### Table
-Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale). Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows).
+Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over Primitives/Table/Data-Row of Table/Cell/Default (Table/Cell/Size; padding Small × Medium; gap XSmall; 1px bottom Border/Neutral/Pale). Cells use Table-Cell/Background Default · Hover (row hover) · Selected (checked rows). Rows are FIXED at Table/Cell/Size (the header at Table/Header/Size): each body cell holds one line of content in its Content layer, and long text ends in an ellipsis instead of growing the row. Long, multi-line content (a sheet-like grid) is not this component's job.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -162,7 +163,7 @@ type TableSortDirection = "asc" | "desc"
 ## ❌ Don't
 - Don't make selectable or sortable tables without handlers (harness: table/interaction-needs-handler).
 - Don't open a read-only row from a small icon or the hover Open button: use onRowClick (a passive chevron at the end may show that rows open).
-- Don't wrap long text in every cell; truncate and show the full value on the detail view.
+- Don't count on long text wrapping: rows stay one line and cut it with an ellipsis, so show the full value on the detail view (onRowClick or onOpen).
 - Don't use colour alone for status — use a Badge with text.
 - Don't make every cell editable — it turns the table into a spreadsheet and invites accidental edits.
 - Don't commit on every keystroke; the editor saves on Enter, Tab, Escape (valid values) or clicking another cell.

@@ -22,8 +22,8 @@ export const SCREEN_STATES = ["empty", "loading", "error"];
 export const SCREEN_CANVASES = ["default", "alt", "flat"];
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "proto"]);
 const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link"]);
-const PACKAGE = "@zen/design-system";
-const BUILDER_PACKAGE = "@zen/design-system/builder";
+const PACKAGE = "@zen-ds/react";
+const BUILDER_PACKAGE = "@zen-ds/react/builder";
 const HEADER = /^﻿?\/\/ @zen-page (\{.*\})[ \t]*\r?\n/;
 
 /** The header's JSON (`// @zen-page {"format":1,…}` on line 1), or null. */
@@ -197,7 +197,7 @@ function literalValue(node) {
 
 /**
  * The page's neutral tree and the dialect errors. `components`: the Zen component names allowed (a Set); without it any
- * name imported from @zen/design-system is.
+ * name imported from @zen-ds/react is.
  */
 export function parsePage(text, { components } = {}) {
   const errors = [];

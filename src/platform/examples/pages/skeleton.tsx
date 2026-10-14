@@ -225,7 +225,7 @@ function LoadingMoreExample() {
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Activity</Heading>}
       footer={shown < allActivity.length
         ? <Stack align="start"><Button level="tertiary" onClick={showOlder}>Show older activity</Button></Stack>
-        : <Text ref={endRef} tabIndex={-1} className="px-skeleton-focus-target" textStyle="Body/Small/Regular" tone="base">That’s everything from the last 30 days.</Text>}>
+        : <Text ref={endRef} tabIndex={-1} textStyle="Body/Small/Regular" tone="base">That’s everything from the last 30 days.</Text>}>
       <List aria-labelledby={titleId} aria-busy={loadingMore}>
         {allActivity.slice(0, shown).map((item) => (
           <ListItem key={item.id} leading={personAvatar(item.actor)} title={people[item.actor].name}
@@ -269,7 +269,7 @@ function LoadingFailedExample() {
     // Body-Slot.
     <ListBox as="section" aria-labelledby={titleId}
       header={<Stack gap="2xs">
-        <Heading ref={titleRef} tabIndex={-1} className="px-skeleton-focus-target" level={4} id={titleId} textStyle="Heading/Subheading">Files</Heading>
+        <Heading ref={titleRef} tabIndex={-1} level={4} id={titleId} textStyle="Heading/Subheading">Files</Heading>
         <Text textStyle="Body/Small/Regular" tone="base">Online banking redesign · Lumen Bank</Text>
       </Stack>}>
       {phase === "failed" ? (

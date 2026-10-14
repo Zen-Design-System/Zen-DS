@@ -130,7 +130,7 @@ Wrap (Figma's Frame selection, ⌥⌘G; `{ op: "wrap", tag: "Box", props: { padd
   string or template literal and blank lines are kept as they are; a long or multi-line prop list goes one prop per
   line). Elsewhere (after `return`, `=>`, `?`, in an attribute value, inline in text) both tags go around it inline.
 - The tag joins the file's import from the Layout folder (also a spelling such as `../components/Layout/index`) or
-  from `@zen/design-system`, else a new import line, sorted as detach writes them (`@zen/design-system` in templates
+  from `@zen-ds/react`, else a new import line, sorted as detach writes them (`@zen-ds/react` in templates
   and in files that already import it). A file whose own `Box` is something else is refused ("rename it before
   wrapping"); one that imports Zen's already gets no import change.
 - Refused: docs chrome (403 `forbidden`), a `loc` that is not a JSX element's opening tag (404 `not-found`, e.g. a
@@ -212,7 +212,7 @@ Slots (`slots.mjs`; spec docs/research/studio-slots-spec-2026-10-03.md "Source o
   "Stack" | "Grid" | "Box", props }` puts the slot's content and the new element in the wrapper (gap-less slots).
 - `code` is one JSX element: no `data-zen-src`, no raw U+2028/U+2029, no names but Zen components and `toast`. Its
   line endings follow the file; its lines are re-indented where it lands (tabs in a tab-indented file). Components
-  join their folder's import (`@zen/design-system` in templates), found in every `src/components/*/index.ts` (read
+  join their folder's import (`@zen-ds/react` in templates), found in every `src/components/*/index.ts` (read
   once by the plugin). `toast` reuses Zen's toast in scope (the `useToast()` binding, a parameter typed as a
   function), else the nearest enclosing component gets `const { toast } = useToast();` as its first statement
   (refused in an arrow without a body, outside a component, and when another `toast` (a prop, state, variable) is
@@ -338,7 +338,7 @@ on the result. The op must be the edit's only op; the edit is one undo record (�
   passes `lists=<n>` > 1: "This list repeats in N places; detaching a row would change each of them".
 - **Imports**: the names the output uses join the file's import of their module (merged in code-point order, type
   specifiers last, one-per-line lists kept), or a new import line sorted among the component imports. Templates (and
-  any file that already imports it) use `@zen/design-system`, platform files `../components/<Folder>` relative paths.
+  any file that already imports it) use `@zen-ds/react`, platform files `../components/<Folder>` relative paths.
   The component's own specifier (and DescriptionItem's) goes when nothing uses it any more.
 - **Answer**: `detached: { component, loc, approximations }`, `loc` = the new root element in the new text (the
   detached branch for a `.map` row). Example snippets are not rewritten (`snippet: { synced: false, reason }`).

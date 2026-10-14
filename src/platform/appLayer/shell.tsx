@@ -135,7 +135,7 @@ function AppShellPlayground() {
         <PlaygroundToggle label="Side panel" selected={panel} onChange={setPanel} />
         <PlaygroundToggle label="Floating action" selected={floating} onChange={setFloating} />
       </>}
-      code={`import { ${imports} } from "@zen/design-system";
+      code={`import { ${imports} } from "@zen-ds/react";
 
 <AppShell${props}
 >
@@ -208,7 +208,7 @@ function PageHeaderPlayground() {
         <PlaygroundToggle label="Back" selected={withBack} onChange={setWithBack} />
         <PlaygroundToggle label="Tabs" selected={withTabs} onChange={setWithTabs} />
       </>}
-      code={`import { PageHeader } from "@zen/design-system";
+      code={`import { PageHeader } from "@zen-ds/react";
 
 <PageHeader
   title="Brand refresh"
@@ -279,7 +279,7 @@ function DashboardHeaderPlayground() {
         <PlaygroundFilterChip label="Type" value={type} onChange={(value) => setType((String(value) || "control-bar") as DashboardRow)} options={dashboardRows} />
         {toggles}
       </>}
-      code={`import { DashboardHeader } from "@zen/design-system";\n\n${code}`}
+      code={`import { DashboardHeader } from "@zen-ds/react";\n\n${code}`}
     >
       <div className="pash-dashboard-header-stage">
         {type === "control-bar" ? (

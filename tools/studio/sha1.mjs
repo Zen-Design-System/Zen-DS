@@ -5,8 +5,22 @@
 const encoder = new TextEncoder();
 const rotl = (value, count) => (value << count) | (value >>> (32 - count));
 
+/** The last texts hashed (an edit hashes the same page text several times: the write, the reads after it). */
+const recent = new Map();
+const RECENT = 8;
+
 export function sha1(text) {
-  const bytes = encoder.encode(String(text));
+  const key = String(text);
+  const known = recent.get(key);
+  if (known !== undefined) return known;
+  const digest = digestOf(key);
+  recent.set(key, digest);
+  if (recent.size > RECENT) recent.delete(recent.keys().next().value);
+  return digest;
+}
+
+function digestOf(text) {
+  const bytes = encoder.encode(text);
   const length = bytes.length;
   // Padding: 0x80, zeros, then the bit length as a 64-bit big-endian number.
   const total = (((length + 9 + 63) >> 6) << 6);

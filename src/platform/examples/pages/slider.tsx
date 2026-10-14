@@ -87,7 +87,7 @@ function BudgetAlertExample() {
             <Slider aria-labelledby={labelId} min={50} max={100} value={threshold} onValueChange={setThreshold}
               icon="icon-bell-01-solid" valueText={(value) => `${value}% of the budget`} />
             <Stack direction="row" fillChildren width="fill">
-              <NumberField aria-label="Share of the budget, percent" className="px-slider-number" min={50} max={100}
+              <NumberField aria-label="Share of the budget, percent" min={50} max={100}
                 value={threshold} onValueChange={(value) => { if (value !== null) setThreshold(value); }} trailing="%" align="center" />
             </Stack>
           </Stack>
@@ -151,7 +151,7 @@ function TeamAllocationExample() {
         <Slider aria-label={`${people[row.person].name}, share of the week`} size="sm" step={10}
           value={row.share} onValueChange={(share) => setShare(row.person, share)}
           valueText={(share) => `${share}%, ${(share * WEEK_HOURS) / 100} hours a week`} />
-        <Text as="span" textStyle="Body/Base/Regular" className="px-slider-value">{row.share}%</Text>
+        <Text as="span" textStyle="Body/Base/Regular" width="hug" align="end" tabularNumbers className="px-slider-value">{row.share}%</Text>
       </Stack>
     ) },
     { id: "hours", header: "Hours per week", align: "right", width: "132px", cell: (row) => <TableText>{(row.share * WEEK_HOURS) / 100}</TableText> },

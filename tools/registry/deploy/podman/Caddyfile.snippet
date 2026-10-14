@@ -1,0 +1,9 @@
+
+# zen-registry (tools/registry/deploy/podman)
+npm.dizai.studio {
+	encode zstd gzip
+	request_body {
+		max_size 60MB
+	}
+	reverse_proxy 127.0.0.1:4873
+}

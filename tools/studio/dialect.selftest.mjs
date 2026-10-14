@@ -18,8 +18,8 @@ check("a new page is a valid page", messages(blank), []);
 check("its header", pageHeader(blank), { format: 1, title: "Checkout" });
 
 const page = `// @zen-page {"format":1,"title":"Checkout"}
-import { Board, Overlay, Screen, proto } from "@zen/design-system/builder";
-import { Button, Dialog, List, ListItem, Stack, Text } from "@zen/design-system";
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Dialog, List, ListItem, Stack, Text } from "@zen-ds/react";
 
 export const mock = {
   items: [
@@ -64,8 +64,8 @@ check("a proto handler", stack.children[2].props.onClick, { kind: "proto", actio
 check("an object prop with a handler inside", tree.board.children[2].children[0].props.primaryAction.fields.onClick, { kind: "proto", action: "navigate", args: ["done"] });
 
 const broken = (body, extraImport = "") => `// @zen-page {"format":1,"title":"x"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Button, Stack, Text } from "@zen/design-system";${extraImport}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, Stack, Text } from "@zen-ds/react";${extraImport}
 
 export default function Page() {
   return (
@@ -85,7 +85,7 @@ check("a condition", /A child is text/.test(first(broken("{open ? <Text>a</Text>
 check("a filtered list", /Lists come from the mock data/.test(first(broken("{mock.items.filter(Boolean).map((item) => <Text>{item}</Text>)}"))), true);
 check("an inline handler", /proto/.test(first(broken("<Button onClick={() => alert(1)}>Go</Button>"))), true);
 check("a foreign import", /Imports come from/.test(first(broken("<Text>a</Text>", '\nimport { useState } from "react";'))), true);
-check("not a Zen component", /is not a Zen component/.test(first(broken("<Text>a</Text>", '\nimport { Fancy } from "@zen/design-system";'))), true);
+check("not a Zen component", /is not a Zen component/.test(first(broken("<Text>a</Text>", '\nimport { Fancy } from "@zen-ds/react";'))), true);
 check("a hook in the page", /only returns its <Board>/.test(messages(page.replace("  return (\n    <Board>", "  const [a] = useState(0);\n  return (\n    <Board>")).join("|")), true);
 check("no header", /page header/.test(messages(page.replace(/^.*\n/, "")).join("|")), true);
 check("screen id", /needs an id/.test(messages(broken("<Text>a</Text>").replace('id="s"', 'id="Bad Id"')).join("|")), true);

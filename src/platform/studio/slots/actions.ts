@@ -873,12 +873,13 @@ type CodeInsert = {
 /** Writes `code` into the host's slot (registry insertTargetFor) and selects the new element. */
 async function insertCodeInSlot(host: SlotSourceElement, { selection, slot, code, label, root, requires, state, warning, paste }: CodeInsert): Promise<boolean> {
   const content = slotContentOf(host, slot);
-  // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap). A paste
-  // after a layer stays beside that layer, in the slot itself.
+  // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap). A prop slot
+  // holding one Stack or Grid takes the new layer in it (registry insertTargetFor): its source is read for that too. A
+  // paste after a layer stays beside that layer, in the slot itself.
   let summary = content.summary;
   let frame: Target | null = null;
   const only = onlyFrame(content);
-  if (only && !paste?.after && slot.gap === "none" && slot.kind !== "atom") {
+  if (only && !paste?.after && slot.kind !== "atom" && (slot.gap === "none" || slot.prop !== "children")) {
     const child = await studioApi.element(host.file, only.loc);
     if (child && child.name === only.name) {
       summary = { ...summary, only: { name: child.name, props: hostPropsOf(child.attributes) } };

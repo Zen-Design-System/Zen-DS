@@ -19,7 +19,7 @@ import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Form, FormFieldset, useFormState } from "../../../components/Form";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { DateField, InputField, SelectField, TextAreaField } from "../../../components/Input";
-import { Container, Stack } from "../../../components/Layout";
+import { Box, Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { PageHeader } from "../../../components/PageHeader";
 import { RadioButton } from "../../../components/RadioButton";
@@ -30,6 +30,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage, PreviewWindow } from "../../PlatformFrames";
 import {
   TODAY, daysFromToday, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, leaveStatusTheme, people, peopleList, projectById, projects,
   projectStatusTheme, type LeaveKind, type LeaveStatus, type Person, type PersonId, type ProjectStatus, type StudioFile, type Team,
@@ -73,7 +74,7 @@ function PeopleDirectoryExample() {
   };
   return (
     // A desktop page (screen card): it paints the app's Canvas, like the docked Files page.
-    <div className="px-side-panel-page"><Container maxWidth="full">
+    <PreviewPage fill><Container maxWidth="full">
       <Stack paddingY="xl" gap="xl">
         <PageHeader title="People" description={`${plural(directory.length, "person", "people")} on client projects in Ho Chi Minh City, Hanoi, Singapore and remote.`} />
         {/* Read-only rows: the whole row opens the person (Tab reaches it, Enter opens it). */}
@@ -103,7 +104,7 @@ function PeopleDirectoryExample() {
           )}
         </Stack>
       </SidePanel>
-    </Container></div>
+    </Container></PreviewPage>
   );
 }
 
@@ -157,7 +158,7 @@ function AllFiltersExample() {
   const flip = <K extends "kinds" | "teams">(key: K, value: Picks[K][number], on: boolean) =>
     setDraft((current) => ({ ...current, [key]: on ? [...current[key], value] : (current[key] as string[]).filter((x) => x !== value) }));
   return (
-    <div className="px-side-panel-page"><Container maxWidth="full">
+    <PreviewPage fill><Container maxWidth="full">
       <Stack paddingY="xl" gap="xl">
         <PageHeader title="Leave requests" description="Everyone's time off at the studio. Requests that wait for an answer come first." />
         <Stack gap="md">
@@ -198,7 +199,7 @@ function AllFiltersExample() {
           </FormFieldset>
         </Stack>
       </SidePanel>
-    </Container></div>
+    </Container></PreviewPage>
   );
 }
 
@@ -322,15 +323,15 @@ function DockedDetailsExample() {
   const file = loyaltyFiles.find((item) => item.id === selectedId)!;
   const extension = file.name.split(".").pop()!.toUpperCase();
   return (
-    <div ref={frameRef} className="px-side-panel-frame">
-      <div className="px-side-panel-frame__page">
+    <PreviewWindow ref={frameRef} height={{ min: 560, max: 720, offset: 160 }} direction="row">
+      <Box scroll="y" width="fill">
         <Stack padding="xl" gap="xl">
           <PageHeader title="Files" description="Design files, specs and plans for the Phin & Co loyalty app."
             actions={<IconButton icon="icon-layout-right-line" aria-label={open ? "Hide details" : "Show details"} aria-pressed={open} onClick={() => setOpen(!open)} />} />
           {/* Standard: the page stays live, so picking another file updates the panel beside it. */}
           <Table aria-label="Files" columns={fileColumns} rows={loyaltyFiles} onRowClick={(row) => { setSelectedId(row.id); setOpen(true); }} />
         </Stack>
-      </div>
+      </Box>
       <SidePanel type={docked ? "standard" : "modal"} size="small" open={open} onOpenChange={setOpen}
         title={file.name} description={`${extension} file · ${formatBytes(file.bytes)}`}
         primaryAction={{ label: "Copy link", onClick: () => { void navigator.clipboard?.writeText(`https://zen.dizai.studio/files/${file.id}`).catch(() => null); toast({ title: "Link copied" }); } }}>
@@ -342,7 +343,7 @@ function DockedDetailsExample() {
           { id: "viewers", term: "Can view", description: namesOf(file.access, "Can view") },
         ]} />
       </SidePanel>
-    </div>
+    </PreviewWindow>
   );
 }
 
@@ -474,7 +475,7 @@ function LongContentExample() {
   const historyId = useId();
   const [open, setOpen] = useState(false);
   return (
-    <div className="px-side-panel-page"><Container maxWidth="full">
+    <PreviewPage fill><Container maxWidth="full">
       <Stack paddingY="xl" gap="xl">
         <PageHeader title="Briefs" description="Client briefs the studio is working from" />
         <ListBox>
@@ -496,7 +497,7 @@ function LongContentExample() {
           </List>
         </Stack>
       </SidePanel>
-    </Container></div>
+    </Container></PreviewPage>
   );
 }
 

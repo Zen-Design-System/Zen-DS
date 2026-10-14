@@ -18,7 +18,7 @@ import { DatePicker, type DatePickerDevice, type DatePickerTime } from "../compo
 import { Tooltip, tooltipColors, type TooltipColor, type TooltipPlacement, type TooltipSize } from "../components/Tooltip";
 import { Tabs, TabPanel, type TabSize, type TabVariant } from "../components/Tabs";
 import { Breadcrumbs, type BreadcrumbEmphasis } from "../components/Breadcrumbs";
-import { ProgressBar, ProgressCircle, progressCircleThemes, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
+import { ProgressBar, ProgressCircle, progressBarLayouts, progressCircleThemes, type ProgressBarLayout, type ProgressBarTheme, type ProgressCircleTheme } from "../components/Progress";
 import { Dialog, ModalForm, dialogThemes, modalActionDirections, modalFormLayouts, type DialogTheme, type ModalActionDirection, type ModalFormLayout } from "../components/Dialog";
 import { Accordion, type AccordionContentWidth, type AccordionSize, type AccordionTheme } from "../components/Accordion";
 import { Divider, dividerColors, type DividerColor } from "../components/Divider";
@@ -42,6 +42,7 @@ import { orders, pageOf, ScrollBox } from "./PlatformPaginationData";
 import { SkeletonHeading, SkeletonShape, SkeletonText, skeletonShapes, skeletonShapeSizes, type SkeletonHeadingSize, type SkeletonShapeSize } from "../components/Skeleton";
 import { Toast, toastTypes, type ToastType } from "../components/Toast";
 import { typographyStyles } from "../tokens/typography.generated";
+import { PlatformAiKit } from "./PlatformAiKit";
 import { FoundationOverview } from "../foundations/FoundationOverview";
 import { IconGallery } from "../foundations/IconGallery";
 import { TextStylesGallery } from "../foundations/TextStylesGallery";
@@ -119,8 +120,8 @@ function ButtonSetPlayground({ title, appearance, iconOnly, levels, sizes }: { t
   const [trailing, setTrailing] = useState(false);
   const headingId = `button-${iconOnly ? "icon-" : ""}${appearance}-heading`;
   const code = iconOnly
-    ? `import { IconButton } from "@zen/design-system";
-import { Icon } from "@zen/design-system";
+    ? `import { IconButton } from "@zen-ds/react";
+import { Icon } from "@zen-ds/react";
 
 <IconButton
   appearance="${appearance}"
@@ -130,8 +131,8 @@ import { Icon } from "@zen/design-system";
   aria-label="Add"
   icon={<Icon name="icon-plus-line" decorative />}
 />`
-    : `import { Button } from "@zen/design-system";
-import { Icon } from "@zen/design-system";
+    : `import { Button } from "@zen-ds/react";
+import { Icon } from "@zen-ds/react";
 
 
 <Button
@@ -346,6 +347,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [progressCircleTheme, setProgressCircleTheme] = useState<string | undefined>("accent");
   const [progressValue, setProgressValue] = useState(40);
   const [progressLabel, setProgressLabel] = useState(true);
+  const [progressBarLayout, setProgressBarLayout] = useState<string | undefined>("inline");
   const [dialogTheme, setDialogTheme] = useState<string | undefined>("default");
   const [accordionSize, setAccordionSize] = useState<string | undefined>("medium");
   const [accordionTheme, setAccordionTheme] = useState<string | undefined>("divider");
@@ -438,6 +440,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [panelSize, setPanelSize] = useState<string | undefined>("default");
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelDescription, setPanelDescription] = useState(true);
+  const [panelBack, setPanelBack] = useState(false);
+  const [panelTop, setPanelTop] = useState(false);
   const [tableMode, setTableMode] = useState<string | undefined>("display");
   const [tableOpenButton, setTableOpenButton] = useState(true);
   const [tableLockRow, setTableLockRow] = useState(true);
@@ -519,11 +523,11 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   photoSrc="/avatars/user.jpg"` : ""}${chipDisabled ? `
   disabled` : ""}`;
     const chipCode = resolvedChipVariant === "number-only"
-      ? `import { Chip } from "@zen/design-system";
+      ? `import { Chip } from "@zen-ds/react";
 
 <Chip variant="number-only" size="${resolvedChipSize}" value={count}${chipDisabled ? " disabled" : ""} />`
       : resolvedChipVariant === "advanced"
-        ? `import { Chip } from "@zen/design-system";
+        ? `import { Chip } from "@zen-ds/react";
 
 <Chip
   variant="advanced"
@@ -542,7 +546,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
 >
   Status
 </Chip>`
-        : `import { Chip } from "@zen/design-system";
+        : `import { Chip } from "@zen-ds/react";
 
 <Chip
   variant="normal"
@@ -667,7 +671,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
               onSubMenuClose={(event) => { if (!(event.target instanceof Element && event.target.closest(".platform-playground-controls"))) setSidebarSubMenu(false); }}
             />
           </div>
-          <PlatformCode code={`import { Sidebar } from "@zen/design-system";
+          <PlatformCode code={`import { Sidebar } from "@zen-ds/react";
 
 <Sidebar
   variant="${resolvedSidebarVariant}"
@@ -798,7 +802,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
       resolvedInputKind === "richtext" ? `${inputRichBar ? "" : "editorBar={false}\n  "}value={html}\n  onValueChange={(html, text) => { setHtml(html); setText(text); }}` : "",
     ].filter(Boolean);
     const primitiveCode: Partial<Record<string, string>> = {
-      label: `import { InputLabel } from "@zen/design-system";
+      label: `import { InputLabel } from "@zen-ds/react";
 
 <InputLabel id="workspace"${inputLabelOptional ? `
   optional` : ""}${inputLabelTooltip ? `
@@ -808,12 +812,12 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
 >
   Label
 </InputLabel>`,
-      "help-text": `import { InputHelpText } from "@zen/design-system";
+      "help-text": `import { InputHelpText } from "@zen-ds/react";
 
 <InputHelpText theme="${resolvedHelpTheme}"${inputHelpIcon ? "" : " icon={false}"}${inputHelpLimit ? ` characterLimit="0/100"` : ""}>
   ${helpMessages[resolvedHelpTheme]}
 </InputHelpText>`,
-      heading: `import { HeadingField } from "@zen/design-system";
+      heading: `import { HeadingField } from "@zen-ds/react";
 
 <HeadingField
   headingSize="${resolvedHeadingSize}"${inputHeadingMultiline ? `
@@ -825,13 +829,13 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   onValueChange={setTitle}
 />`,
     };
-    const inputCode = primitiveCode[resolvedInputKind] ?? `import { ${[inputComponentName, showLeading || showTrailing ? "InputLeadingTrailing" : ""].filter(Boolean).join(", ")} } from "@zen/design-system";${showLeading ? `
-import { Icon } from "@zen/design-system";` : ""}
+    const inputCode = primitiveCode[resolvedInputKind] ?? `import { ${[inputComponentName, showLeading || showTrailing ? "InputLeadingTrailing" : ""].filter(Boolean).join(", ")} } from "@zen-ds/react";${showLeading ? `
+import { Icon } from "@zen-ds/react";` : ""}
 
 <${inputComponentName}
   ${fieldLines.join("\n  ")}
 />`;
-    const conditionsCode = `import { InputConditionItem, InputConditions, InputField } from "@zen/design-system";
+    const conditionsCode = `import { InputConditionItem, InputConditions, InputField } from "@zen-ds/react";
 
 const rules = [
   { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
@@ -923,7 +927,7 @@ const rules = [
             <Search variant={resolvedSearchVariant} theme={resolvedSearchTheme} size={resolvedSearchSize} iconSearch={resolvedSearchIcon} disabled={searchDisabled} placeholder="Search components" value={searchValue} onChange={(event) => setSearchValue(event.target.value)}
               filterLabel="All" filterInteractive={searchFilterClickable} filterOptions={resolvedSearchTheme === "filter-dropdown" ? searchFilterOptions : undefined} filterValue={searchFilter} onFilterChange={setSearchFilter} />
           </div>
-          <PlatformCode code={`import { Search } from "@zen/design-system";
+          <PlatformCode code={`import { Search } from "@zen-ds/react";
 
 <Search${isPopoverSearch ? `
   variant="popover"` : ""}
@@ -969,7 +973,7 @@ const rules = [
           <PlaygroundToggle label="Full width" selected={segmentedFull} onChange={setSegmentedFull} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row" style={segmentedFull ? { display: "block" } : undefined}><Segmented aria-label="Section" fullWidth={segmentedFull} level={resolvedLevel} size={resolvedSize} disabled={segmentedDisabled} value={segmentedValue} onChange={setSegmentedValue} options={segmentedOptions} /></div>
-        <PlatformCode code={`import { Segmented } from "@zen/design-system";
+        <PlatformCode code={`import { Segmented } from "@zen-ds/react";
 
 <Segmented
   aria-label="Section"${segmentedFull ? `
@@ -1004,7 +1008,7 @@ const rules = [
           <PlaygroundToggle label="Disabled" selected={toggleDisabled} onChange={setToggleDisabled} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row"><Toggle size={resolvedSize} disabled={toggleDisabled} theme={resolvedTheme} selected={toggleSelected} onSelectedChange={setToggleSelected} label="Enable notifications" caption={toggleCaption ? "Receive updates for this workspace." : undefined} bold={toggleBold} /></div>
-        <PlatformCode code={`import { Toggle } from "@zen/design-system";
+        <PlatformCode code={`import { Toggle } from "@zen-ds/react";
 
 <Toggle
   size="${resolvedSize}"
@@ -1045,7 +1049,7 @@ const rules = [
             : <Avatar size={resolvedSize} theme={resolvedTheme} shape={resolvedShape} background={resolvedBackground} alt="Zen Design" status={avatarStatus === "yes"} focus={avatarFocus}>ZD</Avatar>}
           <AvatarStack size={resolvedSize} shape={resolvedShape} background={resolvedBackground} items={avatarStackPeople.slice(0, Number(avatarStackCount ?? 4))} />
         </div>
-        <PlatformCode code={`import { Avatar, AvatarStack } from "@zen/design-system";
+        <PlatformCode code={`import { Avatar, AvatarStack } from "@zen-ds/react";
 
 <Avatar
   ${avatarProps.join("\n  ")}
@@ -1076,7 +1080,7 @@ const rules = [
           <PlaygroundToggle label="Disabled" selected={checkboxDisabled} onChange={setCheckboxDisabled} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row"><Checkbox checked={checkboxChecked || checkboxIndeterminate} indeterminate={checkboxIndeterminate} onChange={(next) => { setCheckboxChecked(next); setCheckboxIndeterminate(false); }} disabled={checkboxDisabled} checkSide={resolvedSide} label="Include source maps" caption={checkboxCaption ? "Useful for debugging production builds." : undefined} bold={checkboxBold} /></div>
-        <PlatformCode code={`import { Checkbox } from "@zen/design-system";
+        <PlatformCode code={`import { Checkbox } from "@zen-ds/react";
 
 <Checkbox${resolvedSide === "right" ? `
   checkSide="right"` : ""}
@@ -1111,7 +1115,7 @@ const rules = [
         <div data-typography={previewTypography} className="platform-example-row"><div className="platform-radio-group" role="radiogroup" aria-label="Token source">
           {radioOptions.map((option) => <RadioButton key={option.id} name="radio-preview" value={option.id} checked={radioValue === option.id} onChange={() => setRadioValue(option.id)} disabled={radioDisabled} radioSide={resolvedSide} label={option.label} caption={radioCaption ? option.caption : undefined} bold={radioBold} />)}
         </div></div>
-        <PlatformCode code={`import { RadioButton } from "@zen/design-system";
+        <PlatformCode code={`import { RadioButton } from "@zen-ds/react";
 
 <div role="radiogroup" aria-label="Token source">
   {options.map((option) => (
@@ -1156,8 +1160,8 @@ const rules = [
             : <Badge size={resolvedSize} theme={resolvedTheme} background={resolvedBackground} leadingIcon={showLeading} leading={showLeading ? <Icon name="icon-check-line" decorative /> : undefined} remove={showRemove} onRemove={() => setBadgeRemoved(true)}>Approved</Badge>}
           <BadgeCounter size={resolvedSize} theme={resolvedTheme} background={resolvedBackground} value={badgeCount ?? "7"} />
         </div>
-        <PlatformCode code={`import { Badge, BadgeCounter } from "@zen/design-system";${showLeading ? `
-import { Icon } from "@zen/design-system";` : ""}
+        <PlatformCode code={`import { Badge, BadgeCounter } from "@zen-ds/react";${showLeading ? `
+import { Icon } from "@zen-ds/react";` : ""}
 
 <Badge
   size="${resolvedSize}"
@@ -1236,7 +1240,7 @@ import { Icon } from "@zen/design-system";` : ""}
             </Chip>
           )}
         </div>
-        <PlatformCode code={popoverTrigger === "bulk" ? `import { PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "@zen/design-system";
+        <PlatformCode code={popoverTrigger === "bulk" ? `import { PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "@zen-ds/react";
 
 <PopoverBulkAction aria-label="Selection actions">${popoverBulkHistory ? `
   <PopoverBulkActionGroup aria-label="History">
@@ -1256,7 +1260,7 @@ import { Icon } from "@zen/design-system";` : ""}
   <PopoverBulkActionGroup aria-label="Delete">
     <IconButton appearance="flat" size="md" aria-label="Delete selection" onClick={deleteSelection} icon={<Icon name="icon-trash-line" />} />
   </PopoverBulkActionGroup>` : ""}
-</PopoverBulkAction>` : popoverTrigger === "select" ? `import { SelectField } from "@zen/design-system";
+</PopoverBulkAction>` : popoverTrigger === "select" ? `import { SelectField } from "@zen-ds/react";
 
 // SelectField owns the trigger, open state and the shared Popover.
 <SelectField
@@ -1267,8 +1271,8 @@ import { Icon } from "@zen/design-system";` : ""}
   options={options}${popoverLabelOn ? `
   popoverLabel="${popoverSet.title}"` : ""}${popoverSearchOn ? `
   popoverSearch` : ""}
-/>` : `import { Chip } from "@zen/design-system";
-import { Icon } from "@zen/design-system";
+/>` : `import { Chip } from "@zen-ds/react";
+import { Icon } from "@zen-ds/react";
 
 // Chip (Advanced) is the trigger; it composes the shared Popover.
 <Chip
@@ -1313,8 +1317,8 @@ ${popoverChipLeading ? `  leading={selected.leading}
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setTagRemoved(false)}>Restore tag</Button>
             : <Tag leading={resolvedTheme === "leading-icon" ? <Icon name="icon-hash-02-line" decorative /> : undefined} photoSrc={resolvedTheme === "leading-photo" ? samplePhoto : undefined} error={tagError} disabled={tagDisabled} remove={tagRemove} onRemove={() => setTagRemoved(true)}>{resolvedTheme === "leading-photo" ? "Ava Chen" : "design-system"}</Tag>}
         </div>
-        <PlatformCode code={`import { Tag } from "@zen/design-system";${resolvedTheme === "leading-icon" ? `
-import { Icon } from "@zen/design-system";` : ""}
+        <PlatformCode code={`import { Tag } from "@zen-ds/react";${resolvedTheme === "leading-icon" ? `
+import { Icon } from "@zen-ds/react";` : ""}
 
 <Tag${tagProps.length ? `
   ${tagProps.join("\n  ")}
@@ -1354,7 +1358,7 @@ import { Icon } from "@zen/design-system";` : ""}
           <div className="platform-date-picker-inline" data-device={resolvedDevice}><DatePicker key={`${resolvedCalendar}-${resolvedMode}`} device={resolvedDevice} calendar={resolvedCalendar} selectionMode={resolvedMode} value={resolvedMode === "single" ? dateValue : undefined} onValueChange={resolvedMode === "single" && !actions ? setDateValue : undefined} onRangeChange={actions ? undefined : setDateRange} onApply={actions ? (date, range, time) => { if (resolvedMode === "range") setDateRange(range); else setDateValue(date); if (time) setDateTime(time); } : undefined} minDate={datePast ? today : undefined} showActions={Boolean(actions)} action={actions} timePicker={dateTimeOn} onTimeChange={actions ? undefined : setDateTime} /></div>
           <p className={`platform-date-picker-summary ${typographyStyles["Body/Base/Medium"]}`} aria-live="polite">{summary}</p>
         </div>
-        <PlatformCode code={`import { DatePicker } from "@zen/design-system";
+        <PlatformCode code={`import { DatePicker } from "@zen-ds/react";
 
 <DatePicker
 ${[
@@ -1394,7 +1398,7 @@ ${actions ? `
               onClick={() => { setTooltipDuplicated(true); window.setTimeout(() => setTooltipDuplicated(false), 1500); }} />
           </Tooltip>
         </div>
-        <PlatformCode code={`import { IconButton, Tooltip } from "@zen/design-system";
+        <PlatformCode code={`import { IconButton, Tooltip } from "@zen-ds/react";
 
 <Tooltip content={duplicated ? "Layer duplicated" : "Duplicate layer"}${color !== "default" ? ` color="${color}"` : ""}${size !== "medium" ? ` size="${size}"` : ""}${placement !== "top" ? ` placement="${placement}"` : ""} open={duplicated || undefined}>
   <IconButton aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} onClick={duplicateLayer} />
@@ -1429,7 +1433,7 @@ ${actions ? `
           <Tabs idPrefix="pg-tabs" aria-label="Project sections" variant={variant} size={size} value={tabsValue} onChange={setTabsValue} items={tabItems} />
           {tabItems.map((item) => <TabPanel key={item.id} idPrefix="pg-tabs" id={item.id} hidden={tabsValue !== item.id}><p className={`platform-tabs-panel ${typographyStyles["Body/Base/Regular"]}`}>{panelText[item.id]}</p></TabPanel>)}
         </div>
-        <PlatformCode code={`import { Tabs, TabPanel } from "@zen/design-system";
+        <PlatformCode code={`import { Tabs, TabPanel } from "@zen-ds/react";
 
 <Tabs
   idPrefix="project"
@@ -1466,7 +1470,7 @@ ${actions ? `
           <Breadcrumbs key={`${crumbCollapse}-${crumbDepth}`} items={items} emphasis={emphasis} master={crumbMaster} maxItems={crumbCollapse ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); setCrumbLast(String(item.label)); }} />
           <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{crumbLast ? `Navigated to “${crumbLast}”` : ""}</p>
         </div>
-        <PlatformCode code={`import { Breadcrumbs } from "@zen/design-system";
+        <PlatformCode code={`import { Breadcrumbs } from "@zen-ds/react";
 
 <Breadcrumbs
   items={[${items.map((item) => `\n    { id: "${item.id}", label: "${item.label}", href: "/${item.id}" }`).join(",")}
@@ -1483,6 +1487,8 @@ ${actions ? `
   if (page === "progress") {
     const isBar = (progressType ?? "bar") === "bar";
     const barTheme = (progressBarTheme ?? "accent") as ProgressBarTheme;
+    const barLayout = (progressBarLayout ?? "inline") as ProgressBarLayout;
+    const stackedLabel = isBar && barLayout === "stacked" && progressLabel;
     const circleTheme = (progressCircleTheme ?? "accent") as ProgressCircleTheme;
     const step = (delta: number) => setProgressValue((value) => Math.max(0, Math.min(100, value + delta)));
     return <ExamplePage page="progress" eyebrow="Components / Progress" title="Progress" description="Progress-Bar for linear tasks and Progress-Circle for compact status. Theme=Status colours the bar by how far along it is.">
@@ -1493,21 +1499,24 @@ ${actions ? `
           {isBar
             ? <PlaygroundFilterChip label="Theme" value={progressBarTheme} onChange={(value) => setProgressBarTheme(String(value) || undefined)} options={["neutral", "accent", "status"].map((id) => ({ id, label: id }))} />
             : <PlaygroundFilterChip label="Theme" value={progressCircleTheme} onChange={(value) => setProgressCircleTheme(String(value) || undefined)} options={progressCircleThemes.map((id) => ({ id, label: id }))} />}
+          {isBar ? <PlaygroundFilterChip label="Layout" value={progressBarLayout} onChange={(value) => setProgressBarLayout(String(value) || undefined)} options={progressBarLayouts.map((id) => ({ id, label: id }))} /> : null}
           <PlaygroundFilterChip label="Progress" value={String(progressValue)} onChange={(value) => setProgressValue(Number(value))} options={[["0", "None · 0%"], ["20", "Low · 20%"], ["40", "Medium · 40%"], ["80", "Good · 80%"], ["100", "Done · 100%"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Label" selected={progressLabel} onChange={setProgressLabel} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-progress-preview">
-          {isBar ? <ProgressBar value={progressValue} theme={barTheme} label={progressLabel ? true : undefined} aria-label="Upload progress" /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
+          {isBar ? <ProgressBar value={progressValue} theme={barTheme} layout={barLayout} label={stackedLabel ? "Uploading files" : progressLabel ? true : undefined} aria-label={stackedLabel ? undefined : "Upload progress"} /> : <ProgressCircle value={progressValue} theme={circleTheme} label={progressLabel ? true : undefined} aria-label="Task progress" />}
           <div className="pe-row">
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 0} onClick={() => step(-10)}>−10%</Button>
             <Button appearance="main" level="tertiary" size="sm" disabled={progressValue === 100} onClick={() => step(10)}>+10%</Button>
           </div>
         </div>
-        <PlatformCode code={`import { ${isBar ? "ProgressBar" : "ProgressCircle"} } from "@zen/design-system";
+        <PlatformCode code={`import { ${isBar ? "ProgressBar" : "ProgressCircle"} } from "@zen-ds/react";
 
 <${isBar ? "ProgressBar" : "ProgressCircle"}
   value={${progressValue}}
-  theme="${isBar ? barTheme : circleTheme}"${progressLabel ? `
+  theme="${isBar ? barTheme : circleTheme}"${isBar && barLayout === "stacked" ? `
+  layout="stacked" // the value (${progressValue}%) ends the row above the bar` : ""}${stackedLabel ? `
+  label="Uploading files"` : progressLabel ? `
   label // shows "${progressValue}%"` : `
   aria-label="${isBar ? "Upload progress" : "Task progress"}"`}
 />`} />
@@ -1538,7 +1547,7 @@ ${actions ? `
             {faqs.map((faq) => <Accordion key={faq.id} size={size} theme={theme} contentWidth={contentWidth} title={faq.title} expanded={accordionOpen === faq.id} onExpandedChange={(open) => setAccordionOpen(open ? faq.id : "")}><PlaygroundSlot name="Content slot" /></Accordion>)}
           </div>
         </div>
-        <PlatformCode code={`import { Accordion } from "@zen/design-system";
+        <PlatformCode code={`import { Accordion } from "@zen-ds/react";
 
 <Accordion
   size="${size}"
@@ -1574,7 +1583,7 @@ ${actions ? `
             : <AlertBanner theme={theme} size={size} leading={alertLeading} action={alertAction ? { label: "Details", onClick: () => logAction("Details", "action.onClick") } : undefined} onClose={alertClose ? () => setAlertDismissed(true) : undefined}>{messages[theme]}</AlertBanner>}
         </div>
         {actionNote}
-        <PlatformCode code={`import { AlertBanner } from "@zen/design-system";
+        <PlatformCode code={`import { AlertBanner } from "@zen-ds/react";
 
 <AlertBanner
   theme="${theme}"
@@ -1614,7 +1623,7 @@ ${actions ? `
             <Pagination theme={theme} size={size} page={paginationPage} onPageChange={setPaginationPage} pageCount={10} total={480} pageSize={paginationPageSize} onPageSizeChange={(value) => { setPaginationPageSize(value); setPaginationPage(1); }} />
           </div>
         </div>
-        <PlatformCode code={`import { Pagination } from "@zen/design-system";
+        <PlatformCode code={`import { Pagination } from "@zen-ds/react";
 
 <Pagination
   theme="${theme}"${compact ? `
@@ -1655,7 +1664,7 @@ ${actions ? `
           {type === "heading" ? <SkeletonHeading size={headingSize} animated={skeletonAnimated} /> : null}
           {type === "shape" ? <SkeletonShape shape={shape} size={shapeSize} animated={skeletonAnimated} /> : null}
         </div>
-        <PlatformCode code={`import { ${type === "text" ? "SkeletonText" : type === "heading" ? "SkeletonHeading" : "SkeletonShape"} } from "@zen/design-system";
+        <PlatformCode code={`import { ${type === "text" ? "SkeletonText" : type === "heading" ? "SkeletonHeading" : "SkeletonShape"} } from "@zen-ds/react";
 
 // Mark the loading region: <div aria-busy="true">…</div>
 ${code}`} />
@@ -1690,7 +1699,7 @@ ${code}`} />
           {preview}
           {type === "star" ? <span className={`platform-rating-readout ${typographyStyles["Body/Small/Regular"]}`}>{ratingValue} / 5</span> : null}
         </div>
-        <PlatformCode code={`import { ${type === "display" ? "RatingDisplay" : type === "opinion" ? "OpinionScale" : type === "nps" ? "NpsScale" : "Rating"} } from "@zen/design-system";
+        <PlatformCode code={`import { ${type === "display" ? "RatingDisplay" : type === "opinion" ? "OpinionScale" : type === "nps" ? "NpsScale" : "Rating"} } from "@zen-ds/react";
 
 ${code}`} />
       </ComponentPreview>
@@ -1710,7 +1719,7 @@ ${code}`} />
           <ColorSelector aria-label="Label colour" colors={colors} value={colorValue} onChange={setColorValue} />
           <span className={`platform-color-readout ${typographyStyles["Body/Small/Regular"]}`}>{picked?.label}</span>
         </div>
-        <PlatformCode code={`import { ColorSelector } from "@zen/design-system";
+        <PlatformCode code={`import { ColorSelector } from "@zen-ds/react";
 
 <ColorSelector
   aria-label="Label colour"
@@ -1746,7 +1755,7 @@ ${code}`} />
           {metricCard ? <MetricCard theme="flat" {...props} subAction={{ label: "Metric actions", icon: "icon-dots-vertical-line", onClick: () => logAction("Metric actions", "subAction.onClick") }} /> : <Metric {...props} />}
         </div>
         {actionNote}
-        <PlatformCode code={`import { ${metricCard ? "MetricCard" : "Metric"} } from "@zen/design-system";
+        <PlatformCode code={`import { ${metricCard ? "MetricCard" : "Metric"} } from "@zen-ds/react";
 
 <${metricCard ? "MetricCard" : "Metric"}
   label="Revenue"
@@ -1779,7 +1788,7 @@ ${code}`} />
     return <ExamplePage page="ai-chat" eyebrow="Components / AI Chat" title="AI Chat" description="Prompting and conversing with an assistant: the Chat-Field (Default, Surface, Liquid Glass), You / AI bubbles with feedback actions, and the empty-state Block with suggestions."><AiChatPlayground /></ExamplePage>;
   }
   if (page === "chart") {
-    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation: a Line chart for trends, a Stack-bar chart for part-to-whole comparisons, and the Chart Card that frames either with a title, range switch and report link."><ChartPlayground /></ExamplePage>;
+    return <ExamplePage page="chart" eyebrow="Components / Chart" title="Chart" description="Data visualisation in one style: a Line chart for trends (with an optional dashed comparison), Bar charts for periods and categories, a Stack-bar chart for part-to-whole over time, Donut and Radial charts for shares and goals, a Heatmap for day × hour, and the Chart Card that frames any of them with a title, figure, range switch and report link."><ChartPlayground /></ExamplePage>;
   }
   if (page === "voice") {
     return <ExamplePage page="voice" eyebrow="Components / Voice" title="Voice" description="Voice Recorder for notes and takes (Ready, Recording, Paused) and AI Voice Conversation for talking with the assistant (Ready, Listening, Responding): Zen buttons, badges and type around a waveform."><VoicePlayground /></ExamplePage>;
@@ -1804,7 +1813,7 @@ ${code}`} />
             onRemove={(file) => setUploadFiles((current) => current.filter((item) => item.id !== file.id))}
             onRetry={(file) => setUploadFiles((current) => current.map((item) => item.id === file.id ? { ...item, state: "uploading", progress: 10, caption: "Retrying…", error: undefined } : item))} />
         </div>
-        <PlatformCode code={`import { FileUpload } from "@zen/design-system";
+        <PlatformCode code={`import { FileUpload } from "@zen-ds/react";
 
 <FileUpload
   label="Attachments"${type === "button" ? `
@@ -1826,7 +1835,7 @@ ${code}`} />
     const type = (panelType ?? "modal") as SidePanelType;
     const size = (panelSize ?? "default") as SidePanelSize;
     const body = <PlaygroundSlot name="Content slot" className="platform-slot--tall" />;
-    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} icon={type === "modal" ? "icon-info-circle-solid" : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
+    const panel = <SidePanel open={panelOpen} onOpenChange={setPanelOpen} type={type} size={size} top={panelTop ? <PlaygroundSlot name="Top slot" /> : undefined} onBack={panelBack ? () => setPanelOpen(false) : undefined} title="Edit project" description={panelDescription ? "Changes apply to everyone in the workspace." : undefined} primaryAction={{ label: "Save changes", onClick: () => setPanelOpen(false) }} secondaryAction={{ label: "Cancel" }}>{body}</SidePanel>;
     return <ExamplePage page="side-panel" eyebrow="Components / Side Panel" title="Side Panel" description="A panel on the right edge: Standard docks beside the page (non-modal); Modal floats over a scrim and traps focus. Header, Contents slot and Modal/Actions footer.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Side Panel</h2>
@@ -1834,6 +1843,8 @@ ${code}`} />
           <PlaygroundFilterChip label="Type" value={panelType} onChange={(value) => { setPanelType(String(value) || undefined); setPanelOpen(false); }} options={["modal", "standard"].map((id) => ({ id, label: id }))} />
           <PlaygroundFilterChip label="Size" value={panelSize} onChange={(value) => setPanelSize(String(value) || undefined)} options={[["default", "Default (440)"], ["small", "Small (360)"]].map(([id, label]) => ({ id, label }))} />
           <PlaygroundToggle label="Caption" selected={panelDescription} onChange={setPanelDescription} />
+          <PlaygroundToggle label="Back" selected={panelBack} onChange={setPanelBack} />
+          <PlaygroundToggle label="Top slot" selected={panelTop} onChange={setPanelTop} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-side-panel-preview" data-type={type}>
           {type === "standard" ? (
@@ -1852,13 +1863,15 @@ ${code}`} />
             </>
           )}
         </div>
-        <PlatformCode code={`import { SidePanel } from "@zen/design-system";
+        <PlatformCode code={`import { SidePanel } from "@zen-ds/react";
 
 <SidePanel
   open={open}
   onOpenChange={setOpen}${type === "standard" ? `
   type="standard"` : ""}${size === "small" ? `
-  size="small"` : ""}
+  size="small"` : ""}${panelTop ? `
+  top={<Stepper … />}` : ""}${panelBack ? `
+  onBack={goBack}` : ""}
   title="Edit project"${panelDescription ? `
   description="Changes apply to everyone in the workspace."` : ""}
   primaryAction={{ label: "Save changes", onClick: save }}
@@ -1873,7 +1886,7 @@ ${code}`} />
   if (page === "card") {
     const theme = (cardTheme ?? "shadow") as CardTheme;
     const spacing = (cardSpacing ?? "medium") as CardSpacing;
-    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and Semi-Pale — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
+    return <ExamplePage page="card" eyebrow="Components / Card" title="Card" description="A Content slot on five surfaces — Shadow, Flat, Pale, Border and On-Container — in two paddings, with an Active (selected) state and a top-right Sub-Action.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Card</h2>
         <PlaygroundControls aria-label="Card playground controls">
@@ -1888,7 +1901,7 @@ ${code}`} />
           </Card>
         </div>
         {actionNote}
-        <PlatformCode code={`import { Card } from "@zen/design-system";
+        <PlatformCode code={`import { Card } from "@zen-ds/react";
 
 <Card${theme !== "shadow" ? ` theme="${theme}"` : ""}${spacing !== "medium" ? ` spacing="${spacing}"` : ""}${cardActive ? " active" : ""}${cardSubAction ? `
   subAction={{ label: "More actions", onClick: openMenu }}` : ""}>
@@ -1913,7 +1926,7 @@ ${code}`} />
         <div data-typography={previewTypography} className="platform-example-row platform-dock-preview" data-tone={theme}>
           {dockIconSizes.map((s) => <DockIcon key={s} icon="icon-colors-line" emoji="🎨" theme={theme} size={s} background={background} label={s === size ? "Design tokens" : undefined} className={s === size ? "platform-dock-preview__current" : undefined} />)}
         </div>
-        <PlatformCode code={`import { DockIcon } from "@zen/design-system";
+        <PlatformCode code={`import { DockIcon } from "@zen-ds/react";
 
 <DockIcon ${theme === "emoji" ? `theme="emoji" emoji="🎨"` : `icon="icon-colors-line"${theme !== "neutral" ? ` theme="${theme}"` : ""}`}${size !== "medium" ? ` size="${size}"` : ""}${background !== "solid" ? ` background="${background}"` : ""} />`} />
       </ComponentPreview>
@@ -1949,7 +1962,7 @@ ${code}`} />
           </ListBox>
         </div>
         {actionNote}
-        <PlatformCode code={`import { List, ListBox, ListItem } from "@zen/design-system";
+        <PlatformCode code={`import { List, ListBox, ListItem } from "@zen-ds/react";
 
 <ListBox${listBoxTheme === "flat" ? "" : ` theme="${listBoxTheme}"`}>
 <List aria-label="Team">
@@ -2010,7 +2023,7 @@ ${code}`} />
               ]} />
             <p className={`platform-date-picker-summary ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{tableEditLog}</p>
           </div>
-          <PlatformCode code={`import { Table, TableText } from "@zen/design-system";
+          <PlatformCode code={`import { Table, TableText } from "@zen-ds/react";
 
 <Table
   aria-label="Project budgets"
@@ -2059,7 +2072,7 @@ ${code}`} />
             ]} />
         </div>
         {actionNote}
-        <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions } from "@zen/design-system";
+        <PlatformCode code={`import { Table, TableMedia, TableText, TableTrend, TableActions } from "@zen-ds/react";
 
 <Table
   aria-label="Projects"
@@ -2106,7 +2119,7 @@ ${code}`} />
           <Divider color={color} orientation={orientation} dashed={dividerDashed} />
           <span className={typographyStyles["Body/Base/Regular"]}>Security</span>
         </div>
-        <PlatformCode code={`import { Divider } from "@zen/design-system";
+        <PlatformCode code={`import { Divider } from "@zen-ds/react";
 
 <Divider${color !== "default" ? ` color="${color}"` : ""}${orientation === "vertical" ? ` orientation="vertical"` : ""}${dividerDashed ? " dashed" : ""} />`} />
       </ComponentPreview>
@@ -2139,7 +2152,7 @@ ${code}`} />
             : <InlineMessage theme={theme} title={inlineTitle ? copy[theme][0] : undefined} action={inlineAction ? { label: "Learn more", onClick: () => logAction("Learn more", "action.onClick") } : undefined} onClose={inlineClose ? () => setInlineDismissed(true) : undefined}>{inlineCaption || !inlineTitle ? copy[theme][1] : undefined}</InlineMessage>}
         </div>
         {actionNote}
-        <PlatformCode code={`import { InlineMessage } from "@zen/design-system";
+        <PlatformCode code={`import { InlineMessage } from "@zen-ds/react";
 
 <InlineMessage
   theme="${theme}"${inlineTitle ? `
@@ -2167,7 +2180,7 @@ ${code}`} />
           <EmptyState title="No projects yet" illustration={emptyIllustration} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma", onClick: () => logAction("Import from Figma", "secondaryAction.onClick") } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
         </div>
         {actionNote}
-        <PlatformCode code={`import { EmptyState } from "@zen/design-system";
+        <PlatformCode code={`import { EmptyState } from "@zen-ds/react";
 
 <EmptyState
   title="No projects yet"${emptyIllustration ? `
@@ -2202,7 +2215,7 @@ ${code}`} />
         <div data-typography={previewTypography} className="platform-example-row platform-stepper-preview" data-orientation={orientation}>
           <Stepper aria-label="Sign-up progress" orientation={orientation} steps={steps} current={stepperCurrent} onStepClick={(_, index) => setStepperCurrent(index)} />
         </div>
-        <PlatformCode code={`import { Stepper } from "@zen/design-system";
+        <PlatformCode code={`import { Stepper } from "@zen-ds/react";
 
 <Stepper
   aria-label="Sign-up progress"${orientation === "vertical" ? `
@@ -2234,7 +2247,7 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
           <Slider aria-label="Volume" theme={theme} size={size} value={sliderValue} onChange={setSliderValue} icon={sliderIcon ? "icon-volume-max-solid" : false} showLimits={sliderLimits} disabled={sliderDisabled} valueText={(value) => `${value}%`} />
           <span className={`platform-slider-readout ${typographyStyles["Body/Small/Regular"]}`}>{sliderValue}%</span>
         </div>
-        <PlatformCode code={`import { Slider } from "@zen/design-system";
+        <PlatformCode code={`import { Slider } from "@zen-ds/react";
 
 <Slider
   aria-label="Volume"${theme !== "neutral" ? `
@@ -2269,7 +2282,7 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
             ? <Button appearance="main" level="tertiary" size="sm" onClick={() => setToastDismissed(false)}>Show toast again</Button>
             : <Toast type={type} title={copy[type][0]} action={toastAction ? { label: "Undo", onClick: () => setToastDismissed(true) } : undefined} onClose={toastClose ? () => setToastDismissed(true) : undefined}>{toastCaption ? copy[type][1] : undefined}</Toast>}
         </div>
-        <PlatformCode code={`import { Toast } from "@zen/design-system";
+        <PlatformCode code={`import { Toast } from "@zen-ds/react";
 
 <Toast
   type="${type}"
@@ -2303,7 +2316,7 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
   secondaryAction={{ label: "Cancel" }}` : ""}${count === 3 ? `
   tertiaryAction={{ label: "${isForm ? "Save draft" : "Learn more"}", onClick: ${isForm ? "saveDraft" : "openDocs"} }}` : ""}${direction === "vertical" ? `
   actionsDirection="vertical"` : ""}`;
-    const code = isForm ? `import { Button, ModalForm } from "@zen/design-system";
+    const code = isForm ? `import { Button, ModalForm } from "@zen-ds/react";
 
 <Button onClick={() => setOpen(true)}>New project</Button>
 <ModalForm
@@ -2318,7 +2331,7 @@ ${steps.map((step) => `    { id: "${step.id}", title: "${step.title}"${step.capt
 ${actionsCode}
 >
   {/* Main-Contents slot: your form fields */}
-</ModalForm>` : `import { Button, Dialog } from "@zen/design-system";
+</ModalForm>` : `import { Button, Dialog } from "@zen-ds/react";
 
 <Button onClick={() => setOpen(true)}>Open dialog</Button>
 <Dialog
@@ -2387,21 +2400,22 @@ ${actionsCode}
 
   if (page === "installation") {
     const steps: Array<{ title: string; text: string; command?: string; code?: string }> = [
-      { title: "1. Build the package", text: "In the Zen DS repo. It writes dist-pack/zen-design-system-<version>.tgz (ES modules, TypeScript types, styles.css).", command: "npm run pack:local" },
-      { title: "2. Add it to your app", text: "Peer dependencies: react and react-dom 19.", command: "npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz" },
-      { title: "3. Import the styles and wrap the app", text: "One stylesheet (Inter, tokens, text styles, every component). ZenProvider sets the token modes, paints the page Canvas and hosts the overlay portal.", code: `import "@zen/design-system/styles.css";
-import "@zen/design-system/reset.css"; // optional page reset
-import { Button, ZenProvider } from "@zen/design-system";
+      { title: "1. Point @zen-ds at the Zen registry", text: "Once per project: add this line to the app's .npmrc and commit it. @zen-ds/react is licensed per company and served only by the Zen registry; other packages still come from npm.", command: "@zen-ds:registry=https://npm.dizai.studio/" },
+      { title: "2. Sign in with your licence key", text: "Once per developer. Use any username and your company's licence key as the password. npm keeps the token in your own ~/.npmrc; never commit the key or the token. CI uses a token secret (docs/getting-started.md).", command: "npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy" },
+      { title: "3. Install", text: "Peer dependencies: react and react-dom 19. The package ships ES modules, TypeScript types and styles.css.", command: "npm install @zen-ds/react react@^19 react-dom@^19" },
+      { title: "4. Import the styles and wrap the app", text: "One stylesheet (Inter, tokens, text styles, every component). ZenProvider sets the token modes, paints the page Canvas and hosts the overlay portal.", code: `import "@zen-ds/react/styles.css";
+import "@zen-ds/react/reset.css"; // optional page reset
+import { Button, ZenProvider } from "@zen-ds/react";
 
 createRoot(document.getElementById("root")!).render(
   <ZenProvider theme="system" typography="dashboard">
     <Button level="primary">Save changes</Button>
   </ZenProvider>,
 );` },
-      { title: "4. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). Add one line to your app's CLAUDE.md or AGENTS.md:", command: "Read node_modules/@zen/design-system/AGENTS.consumer.md before writing UI, and follow it." },
+      { title: "5. Point your AI agent at the docs", text: "The package ships AGENTS.consumer.md (setup + the rules that go wrong most often), llms.txt, docs/getting-started.md, docs/guidelines (Do/Don't + props per component) and docs/api (props as JSON). One command adds them to your app's AGENTS.md / CLAUDE.md and registers the zen-ds MCP server:", command: "npx zen-ds init" },
     ];
     return (
-      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider.">
+      <ExamplePage eyebrow="Installation" title="Install Zen DS" description="Build the package, add it to your app, import the stylesheet once and wrap the app in ZenProvider. Designing in Figma with AI? Download the AI kit below.">
         <div className="platform-install">
           {steps.map((step) => (
             <section key={step.title} className="platform-example-panel platform-install__step">
@@ -2411,6 +2425,7 @@ createRoot(document.getElementById("root")!).render(
               {step.code ? <PlatformCode code={step.code} /> : null}
             </section>
           ))}
+          <PlatformAiKit />
         </div>
       </ExamplePage>
     );

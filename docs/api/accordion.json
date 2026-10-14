@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "accordion",
-  "import": "import { Accordion } from \"@zen/design-system\";",
+  "import": "import { Accordion } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Accordion",

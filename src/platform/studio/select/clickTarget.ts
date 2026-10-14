@@ -1,4 +1,5 @@
-import { childHits, elementFiber, hitOf, parentHit, walkAnnotated, type FiberHit } from "./picker";
+import { childHits, elementFiber, hitOf, parentHit, rectOf, walkAnnotated, type FiberHit } from "./picker";
+import { componentSchema } from "../inspector/propSchema";
 import { wrapperCandidate } from "./resize";
 
 /*
@@ -59,9 +60,28 @@ function firstLayers(frame: Element): FiberHit[] {
   return layers;
 }
 
-/** LayersPanel simplify: a div or section holding one layer, and the Studio's sizing Stack, stand for their child. */
-function folded(hit: FiberHit, next: FiberHit): boolean {
-  if ((hit.name === "div" || hit.name === "section") && shownChildren(hit).length === 1) return true;
+/** Layers that only lay out their children: they draw nothing of their own (Box can: its fill, border or radius). */
+const LAYOUT_ONLY = new Set(["Stack", "Grid", "Container", "div", "section"]);
+const LAYOUT = new Set([...LAYOUT_ONLY, "Box"]);
+
+const sameRect = (a: DOMRect | null, b: DOMRect | null) => Boolean(a && b && Math.abs(a.left - b.left) < 1.5 && Math.abs(a.top - b.top) < 1.5 && Math.abs(a.right - b.right) < 1.5 && Math.abs(a.bottom - b.bottom) < 1.5);
+
+/**
+ * A wrapper the click goes through to its one child (LayersPanel simplify, and since 2026-10-13 any layout layer: the
+ * user found reaching a card on a template page "harder than Figma" — 5.6 double-clicks on average, AppShell › Container
+ * › Stack › Stack › Grid › Grid › MetricCard): a Stack, Grid, Container, div or section holding one layer, a Box exactly
+ * as large as its one child, the one layout layer inside a component, a List's <ul>, and the Studio's sizing Stack.
+ * The wrapper stays in Layers and is reached there, by Shift+Enter from its child, or by a click on its own padding.
+ */
+function folded(hit: FiberHit, next: FiberHit, parent: FiberHit | undefined): boolean {
+  // A list's <ul> (List) is its rows' semantics only: Figma's List-Box holds its List-Items directly.
+  if (hit.name === "List") return true;
+  const children = LAYOUT.has(hit.name) ? shownChildren(hit) : [];
+  if (children.length === 1 && LAYOUT_ONLY.has(hit.name)) return true;
+  // The one layout layer inside a Zen component (a Card's content Stack) is that slot's own auto layout in Figma; an
+  // example's own component keeps its root Stack.
+  if (LAYOUT_ONLY.has(hit.name) && parent && parent.isComponent && !LAYOUT.has(parent.name) && componentSchema(parent.name) && shownChildren(parent).length === 1) return true;
+  if (children.length === 1 && hit.name === "Box" && sameRect(rectOf(hit.hosts), rectOf(children[0].hosts))) return true;
   const host = next.isComponent && next.hosts.length === 1 ? next.hosts[0] : null;
   return Boolean(host && hit.name === "Stack" && hit.isComponent && wrapperCandidate(host) === hit.src);
 }
@@ -90,8 +110,18 @@ export function layersAt(deepest: FiberHit, frame: Element | null): { path: Fibe
     }
   }
   const kept = chain.slice(start);
-  const path = kept.filter((hit, index) => index === kept.length - 1 || hit === root || !folded(hit, kept[index + 1]));
-  return { path, root: root ? path.indexOf(root) : -1 };
+  const path = kept.filter((hit, index) => index === kept.length - 1 || hit === root || !folded(hit, kept[index + 1], kept[index - 1]));
+  let at = root ? path.indexOf(root) : -1;
+  // The page's app frame and the column that holds the page stand for the frame too, as a Figma frame's own auto layout
+  // does: a click lands on the Sidebar, a header item or a section of the page, never on AppShell or the page's body
+  // Stack (which the pointer's own empty area still selects: the last layer under it never becomes the root).
+  for (let guard = 0; at >= 0 && at < path.length - 2 && guard < 8; guard++) {
+    const next = path[at + 1];
+    const shell = next.name === "AppShell" || (LAYOUT.has(next.name) && (path[at].name === "AppShell" || shownChildren(path[at]).length === 1));
+    if (!shell) break;
+    at += 1;
+  }
+  return { path, root: at };
 }
 
 /**

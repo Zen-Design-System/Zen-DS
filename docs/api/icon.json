@@ -1,12 +1,12 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "icon",
-  "import": "import { Icon } from \"@zen/design-system\";",
+  "import": "import { Icon } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Icon",
       "file": "src/components/Icon/Icon.tsx",
-      "description": "Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty\nbox of the same size shows for that first frame — `preloadIcons()` or `@zen/design-system/icons/all` avoid it).",
+      "description": "Zen icon. Icons used by Zen components draw synchronously; any other name loads its bucket on first use (an empty\nbox of the same size shows for that first frame — `preloadIcons()` or `@zen-ds/react/icons/all` avoid it).",
       "deprecated": null,
       "extends": null,
       "props": [

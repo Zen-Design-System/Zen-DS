@@ -52,7 +52,7 @@ export const rows = [
     },
   },
   {
-    id: "O-04", feature: "⌘-click twice on a Dialog's actions selects its ModalActions part; Direction writes the Dialog's actionsDirection (Figma's exposed Buttons › Direction)", wp: "parts 2026-10-09",
+    id: "O-04", feature: "⌘-click on a Dialog's actions selects its ModalActions part (Figma's deep select); Direction writes the Dialog's actionsDirection (Figma's exposed Buttons › Direction)", wp: "parts 2026-10-09",
     async run(ctx) {
       const page = await freshSelect(ctx, "open", { frame: 3 });
       const dialog = await openDialog(ctx, page);
@@ -76,9 +76,8 @@ export const rows = [
         await page.mouse.click(point.x, point.y);
         await page.keyboard.up("ControlOrMeta");
       };
-      // Figma's deep select: ⌘-click selects the deepest element there (the Dialog), ⌘-click on it its part there.
-      await deepClick();
-      await until(async () => /^Dialog\b/.test(await heading()), { message: "the Dialog selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await heading()})`); });
+      // Figma's deep select: one ⌘-click goes on into the Dialog to the nested instance there, its ModalActions (2026-10-13;
+      // it took two before).
       await deepClick();
       await until(async () => /^ModalActions\b/.test(await heading()), { message: "the ModalActions part selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await heading()})`); });
       const row = page.locator('#studio-right [data-prop="actionsDirection"]');

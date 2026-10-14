@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-12.
+Last updated: 2026-10-13.
 
 ## Read order
 
@@ -23,6 +23,15 @@ Last updated: 2026-10-12.
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.
 - **Source of truth:** the live Figma file `9nZv4uW2LT21yuHabMTCh1`, read-only through `use_figma`. The older key `yhWJ…`
   in some docs has no MCP access.
+- **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
+  gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
+  Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
+  Bar-List, Bullet). Code + Studio = phase 2, after the user's review (BACKLOG P1).
+- **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
+  every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
+  approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user
+  reviews and publishes the library. 🔤 Typography has a Content-Hierarchy section. Installation › AI kit for Figma
+  downloads the skill `skills/zen-figma-design` + its audit harness (`npm run ai-kit:check`).
 - **Library:** every Figma component is built (60 folders in `src/index.ts`, 49 guideline slugs). API vocabulary,
   labels (en/vi), `data-tone` variants and the harness are described in `HANDOFF-details.md` ("Vibe-code readiness").
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·
@@ -32,6 +41,8 @@ Last updated: 2026-10-12.
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
 - **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode
   "Studio" for the Zen Studio chrome (ChromeScope); not in Figma — keep them on the next sync (or add them in Figma).
+  2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
+  Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
   were 3 = Pressed); every Flat/Hover is now step 2.
   Repo-only edit 2026-10-06 (user): Component Size `Sidebar/Default-Width` = Compact 240 / Comfortable 260
@@ -69,6 +80,18 @@ Last updated: 2026-10-12.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio clicks and booleans (2026-10-13, branch `zen/fix/studio-toggles-click`, worktree `Zen-DS-click`):**
+  clicks pass through layout wrappers and AppShell / the page body (template pages 5.6 → 2.5 double-clicks to a layer),
+  right-click › Select layer ›; every Figma boolean on template pages works or says why (slot toggles open their picker,
+  set-specific booleans show on their set only, `inspector/computedDefaults.ts`). Round 2 the same day: Layers folds
+  what clicks pass through, ⌘-click reaches texts and nested instances (`select/parts.ts deepLayerAt`), text layers edit
+  (Inspector Text, Enter), nested booleans off drop their override, edits ~2× faster (render cache in
+  `builder/render/renderPage.tsx`, sync parse, parse/sha1 caches, deferred size probes); Figma walk 14/14 tasks at
+  Figma's step count (scripts in the session log). Round 3: ⌘-click on every text (atoms too), ⇧Enter/Esc one layer
+  up (`parts.ts parentLayerOf`), Layers without Parts / empty slots; builder pages mark elements `file:@<doc id>`
+  (`select/srcIds.ts` turns them back into file:line:col; BuilderBoard sets it from `locsOf`), edits 35–60 ms.
+  2026-10-14: the icon picker leads with Recent and Related tiles (`inspector/iconSuggestions.ts` ICON_TOPICS,
+  relatedIcons; E2E IN-20). PR #43 (CI runs the full gate; merging is the user's step). Session logs 2026-10-13/14.
 - **Zen Studio, Figma usability round 1 (2026-10-10):** pictures replace like Figma everywhere (Assets › Photos click or
   a drop on an Avatar/Image/Thumbnail/account, the Inspector's Picture; data rows and factories write that row,
   `platformMedia` bindings become the layer's own, repo files take `new URL("<file>", import.meta.url).href`:
@@ -121,7 +144,10 @@ Last updated: 2026-10-12.
   real importer in the Zen file. P3–P4 (2026-10-13, branch `zen/feat/figma-map-p3`, spec §8 "P3" / "P4"):
   TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat, FileIcon, Flag and
   icon sizes map both ways (shared module `tools/studio/figma-top-nav.mjs`, fixtures `figma-chat.json`,
-  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. Left: BACKLOG P1 item.
+  `figma-metric.json`); 90 example classNames became Card / ListBox / Layout sizing props. P5 (branch
+  `zen/feat/examples-classnames`, spec §8 "P5"): Grid stackBelow, Stack / Box scroll, Box surface="canvas", Text wrap /
+  tabularNumbers (all pushed and pulled; plugin 6b823d2); docs frames in `src/platform/PlatformFrames.tsx`; examples
+  down to 112 classNames, none with a Zen prop. Left: BACKLOG P2 item.
 - **DashboardHeader (2026-10-11, `zen/feat/dashboard-header`, the user's "Thì build ngay"):** new component for Figma
   ◇ Master-Layout Primitives/Dashboard/Header 4122:33402 — `type` control-bar (default) · navigation · main (renders
   PageHeader, which gained `childTitle`) · custom. Contract `docs/figma-contracts/dashboard-header.json`, suite 68/68,

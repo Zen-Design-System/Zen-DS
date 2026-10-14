@@ -51,12 +51,23 @@ export function isAnnotatedFile(rel) {
 
 /* ── parsing and walking ─────────────────────────────────────────────────────────────────────────────────────────── */
 
+/** The last sources parsed: an edit and the reads after it (the Inspector, the slots, the data origins) parse the same
+ *  page text several times. Studio code only reads the trees (edits are text splices), so one tree serves them all. */
+const parsed = new Map();
+const PARSED = 6;
+
 export function parseSource(code) {
+  const known = parsed.get(code);
+  if (known !== undefined) return known;
+  let tree = null;
   try {
-    return parse(code, { sourceType: "module", plugins: PLUGINS, errorRecovery: true });
+    tree = parse(code, { sourceType: "module", plugins: PLUGINS, errorRecovery: true });
   } catch {
-    return null;
+    tree = null;
   }
+  parsed.set(code, tree);
+  if (parsed.size > PARSED) parsed.delete(parsed.keys().next().value);
+  return tree;
 }
 
 const stripBom = (code) => (code.startsWith(BOM) ? code.slice(1) : code);
@@ -2198,7 +2209,7 @@ function wrapSnippet(text, ast, box, before, { tag, attrs, eol, name }) {
 /**
  * Op "wrap" { tag, props } (it cannot be combined with other ops): the element goes inside `<tag …props>` (Box, Stack
  * or Grid; props formatted like setProp, never `key` or `children`), the element's `key` moving to the wrapper; `tag`
- * joins the file's Layout import (merged into an import of the Layout folder or "@zen/design-system", else a new
+ * joins the file's Layout import (merged into an import of the Layout folder or "@zen-ds/react", else a new
  * import line, as detach writes them). `wrapped.loc` = the wrapper's opening tag in the new text (the element's old
  * position, moved by an import line above it). The example snippet that shows the element is wrapped too when its copy
  * is found once (else `snippet: { synced: false, reason }`). Refused (`invalid`) where a component clones the element
