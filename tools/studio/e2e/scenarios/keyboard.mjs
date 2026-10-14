@@ -288,5 +288,89 @@ export const rows = [
       }
     },
   },
+  {
+    id: "K-24", feature: "⌘C then ⌘V on a layer of a prop slot pastes the copy after it, in that slot (ListItem › leading)", wp: "user 2026-10-12",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-click-badge", { frame: 6 });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => (await count(ctx, "inst-click-badge")) === 2, { message: `a pasted Badge (status: ${(await statusText(page)).slice(0, 160)})` });
+      const leading = leadingOf(await ctx.text());
+      if (idsIn(leading, "inst-click-badge") !== 2) throw new Error(`the copy is not in the row's leading slot: ${leading.slice(0, 200)}`);
+      // The slot's host rule warns as the insert picker does (Leading takes Avatar or DockIcon); it pasted all the same.
+      const status = await statusText(page);
+      if (!/Not recommended: Leading takes Avatar or DockIcon/.test(status)) throw new Error(`no "Not recommended" line: ${status.slice(0, 200)}`);
+      return "ListItem › leading holds the Badge and its copy; Not recommended: Leading takes Avatar or DockIcon";
+    },
+  },
+  {
+    id: "K-25", feature: "⌘V with a Layers slot row selected pastes at the end of that slot; the row shows selected", wp: "user 2026-10-12",
+    async run(ctx) {
+      // The Badge (a Button would nest in the clickable row's <button>): selecting it also opens its row's layers, the
+      // Leading slot row among them.
+      const page = await freshSelect(ctx, "inst-click-badge", { frame: 6 });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      const row = page.locator(`.studio-layers__tree [data-layer-id="${ctx.file}:${await at(ctx, "inst-click-row")}#0/slot:leading"]`);
+      await row.scrollIntoViewIfNeeded();
+      await row.click();
+      await until(async () => (await row.getAttribute("aria-selected")) === "true", { timeout: 3000, message: "the Leading slot row selected" });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => (await count(ctx, "inst-click-badge")) === 2, { message: `a pasted Badge (status: ${(await statusText(page)).slice(0, 160)})` });
+      const leading = leadingOf(await ctx.text());
+      if (idsIn(leading, "inst-click-badge") !== 2) throw new Error(`the copy is not in the row's leading slot: ${leading.slice(0, 220)}`);
+      return "the Badge's copy at the end of ListItem › leading";
+    },
+  },
+  {
+    id: "K-26", feature: "⌘V beside a layer a local wrapper lays out in its own Stack pastes it in the wrapper's JSX (examples' Page)", wp: "user 2026-10-12",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "shell-text", { frame: 11 });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => (await count(ctx, "shell-text")) === 2, { message: `a pasted Text (status: ${(await statusText(page)).slice(0, 160)})` });
+      const all = e2eLocs(await ctx.text());
+      const [first, copy] = all.get("shell-text");
+      const button = all.get("shell-btn")[0];
+      const line = (loc) => Number(loc.split(":")[0]);
+      if (!(line(first.loc) < line(copy.loc) && line(copy.loc) < line(button.loc))) throw new Error(`the copy is not between the Text and the Button inside <Shell> (${first.loc}, ${copy.loc}, ${button.loc})`);
+      return "the copy right after the Text, inside <Shell>";
+    },
+  },
+  {
+    id: "K-27", feature: "⌘V into a layout warns as the insert picker does (a Card pasted into a Card's Stack), and pastes", wp: "user 2026-10-12",
+    async run(ctx) {
+      // The Slot frame's Card, pasted beside the Text in the Shell frame's Card (a Card never copies into itself).
+      const page = await freshSelect(ctx, "card", { frame: 2, position: { dx: 4, dy: 4 } });
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 4000, message: '"Copied"' });
+      await focusFrame(page, 11);
+      await clickLoc(page, ctx.file, await at(ctx, "shell-card-text"));
+      await sleep(300);
+      await canvas(page).focus();
+      await page.keyboard.press("ControlOrMeta+KeyV");
+      await until(async () => (await count(ctx, "card")) === 2, { message: `a pasted Card (status: ${(await statusText(page)).slice(0, 160)})` });
+      await until(async () => /Not recommended: A card never goes inside a card/.test(await statusText(page)), { timeout: 4000, message: `"Not recommended" (status: ${(await statusText(page)).slice(0, 200)})` });
+      return "Card pasted into the Shell's Card; Not recommended: A card never goes inside a card";
+    },
+  },
 ];
+
+/** How many elements in a piece of source carry data-e2e="<id>" (a piece does not parse on its own). */
+const idsIn = (piece, id) => piece.split(`data-e2e="${id}"`).length - 1;
+
+/** The source of the inst-click-row ListItem's `leading` prop, from `leading={` to the ListItem's end. */
+function leadingOf(text) {
+  const start = text.indexOf("leading=", text.indexOf('data-e2e="inst-click-row"'));
+  const next = text.indexOf("<ListItem", start);
+  const end = text.indexOf("</List>", start);
+  return text.slice(start, Math.min(...[next, end].filter((at) => at > start)));
+}
 

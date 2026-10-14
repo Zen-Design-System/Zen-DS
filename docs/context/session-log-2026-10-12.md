@@ -391,6 +391,28 @@ file, in the mood of their moodboard with Zen tokens and components, every chart
   resting mouse hovered the first sector — the test wrapper now has pointer-events: none. Merged main (#35) again.
 - 2026-10-13 (the user): Multi-Line's comparison at 40% and dash 4 / 5 (their edit on the cover instance) → moved into
   the main component 15426:2663, instance override cleared; chart.css `stroke-opacity: .4; stroke-dasharray: 4 5`.
+
+## Studio: ⌘V into a slot (branch zen/fix/studio-paste-into-slot off 5ed7836, tier S; user: "Vẫn chưa copy trực tiếp được element khác vào trong slot")
+
+- Reproduced on page-header (Playwright on this worktree's :5185): ⌘V with Export (PageHeader › Actions) selected →
+  "PageHeader can't hold layers"; with the Action-Slots row selected in Layers → "Stack has no layer inside here".
+  Cause: ⌘V only knew layouts (isDropContainer) and children (op pasteCode); a prop slot was never a paste target, and
+  a Layers slot row selects its host, so the paste went beside the host.
+- Server (`tools/studio/slots.mjs`): insertChild gains `paste` (the code may read names bound where it lands, and may
+  hold several layers, put in a fragment where one expression is needed) and `after` (the slot layer it follows).
+  Selftest +12 (1949).
+- Client: `slots/actions.ts` pasteIntoSlot / slotPasteTarget (runInsert's body shared as insertCodeInSlot); a Layers
+  slot row stays the selected row while its host is selected (focusSlot remembers the selection), ⌘V goes to its end;
+  a layer of a prop slot gets the paste after it, ⇧⌘R swaps it (swapSelection).
+- Found on the way, fixed: a paste beside a layer an example's local `Page` lays out failed ("Stack has no layer
+  inside here": the canvas parent is Page's own Stack) → `clipboard.ts` sourceParent walks up to the ancestor whose
+  source holds the layer (`<Page>`).
+- E2E K-24 (layer in ListItem › leading), K-25 (slot row), K-26 (local wrapper; fixture gains ShellFixture, frame 11).
+- The user: "Làm luôn nhé" (a paste warns as the insert picker does). `palette.ts` paletteFor's host rules move to
+  hostRules; `warningForCode` reads pasted code as the palette item it matches (components, controls, fields, a
+  `level="primary"` Button as button-primary). Slot pastes pass it as the insert's warning; layout pastes
+  (`pasteWarningIn`, the layout's children slot) add "Not recommended: …" under the edit line (`currentEditStatus`);
+  ⇧⌘R in a slot too. Palette selftest +5 (1696); E2E K-24 asserts the line, K-27 (a Card into the Shell frame's Card).
 - 2026-10-13 (the user): the average line loses its white ring — chart.css plain dots; Figma `Rule-Ring` deleted in
   Bar (both), Multi-Line, Line-Chart, Stack-Bar. Branch zen/fix/chart-average-dots (after #33 merged as f3b0e05).
 - 2026-10-13 (the user): horizontal bars' Tooltip covered the bars → a value column (all rows, active Strongest); the
