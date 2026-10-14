@@ -9,7 +9,8 @@ The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcru
 ## Use it for
 - Every signed-in web app screen (dashboards, admin, HR and settings).
 - Apps that must work from phone to desktop with one navigation.
-- Top-bar icon actions with an unread dot or count → AppShellAction; the account menu → Menu with an AppShellAccount trigger.
+- Top-bar icon actions with an unread dot or count → AppShellAction.
+- The account menu → Menu with an AppShellAccount trigger.
 
 ## Use something else for
 - Phone-only apps → TopNavigation + BottomNavigation inside ZenProvider typography="mobile".

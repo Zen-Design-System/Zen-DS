@@ -20,6 +20,17 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "tone": "tone"
     }
   },
+  "AreaChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    },
+    "PlotFrame": {
+      "animate": "animate",
+      "ariaLabel": "aria-label",
+      "format": "format",
+      "height": "height"
+    }
+  },
   "AutocompleteField": {
     "Button": {
       "disabled": "disabled"
@@ -43,6 +54,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "ariaLabel": "aria-label",
       "format": "format",
       "height": "height"
+    }
+  },
+  "BulletChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
     }
   },
   "ChartCard": {
@@ -203,6 +219,17 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "size": "size"
     }
   },
+  "ComboChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    },
+    "PlotFrame": {
+      "animate": "animate",
+      "ariaLabel": "aria-label",
+      "format": "format",
+      "height": "height"
+    }
+  },
   "DashboardHeader": {
     "PageHeader": {
       "actions": "actions",
@@ -332,6 +359,22 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "action": "labelAction",
       "optional": "optional",
       "tooltip": "labelTooltip"
+    }
+  },
+  "GaugeChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    }
+  },
+  "GroupedBarChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    },
+    "PlotFrame": {
+      "animate": "animate",
+      "ariaLabel": "aria-label",
+      "format": "format",
+      "height": "height"
     }
   },
   "Image": {

@@ -214,8 +214,27 @@ removed (four unused colour ramps were, see Removed).
 - `zen-ds-mcp`: a client that sends its requests and then closes stdin now gets every reply (the server used to exit
   before the async `tools/call` answers were written).
 - `zen-usage --json` and `check-usage.mjs --list`: large output piped to another program is no longer cut off at 8 KB.
+- Charts whose data arrives after the first render (loading) now pick their default item when it lands: before, Line,
+  Bar, Stack bar and the new charts showed no Tooltip and announced "No data" until hovered.
+- Chart values under 1,000 read at most one decimal by default ("Avg 306.7", was "Avg 306.6666666666667").
+- `LineChart compare`: the legend is start-aligned, as Figma's Multi-Line chart.
+- Guidelines: a "when to use" line with two "→" lost everything after the second arrow on the platform page (Input,
+  App Shell and Chart lost their second advice); each advice is its own line now, and the page keeps the full text.
 
 ### Added
+- Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,
+  legend, `chartPalette`, draw-in with a reduced-motion fade, keyboard and a live summary): `AreaChart` (one area, or
+  `type="stacked"` bands), `GroupedBarChart` (2–3 series side by side), `ComboChart` (bars and a line on two axes),
+  `GaugeChart` (a half-ring meter with a target tick), `FunnelChart` (stages as shares of the first), `BarList` (a
+  ranking with the names in the bars) and `BulletChart` (goals: actual bar, target tick). Each sits in a `ChartCard`,
+  has examples on the Chart page, Do/Don't pairs and harness rules (`chart/series-need-legend`,
+  `chart/area-series-count`, `chart/grouped-series-count`, `chart/combo-needs-labels`, `chart/gauge-in-range`,
+  `chart/funnel-stages`, `chart/bar-list-rows`, `chart/bar-list-ranked`, `chart/bullet-rows`). The new legends use
+  Figma's wider spacing (`ChartLegend gap="small"`).
+- Zen Studio: the Charts palette offers the seven (Area and Stacked area apart), and Export › Figma / Import from
+  Figma map every chart to its Figma set (15 kinds, Multi-Line by its number of periods), the ChartCard header and
+  theme included; a chart without a ChartCard goes to Figma with its heading hidden. Figma draws its own sample data:
+  a pulled chart takes the palette's sample.
 - Support background Rich (2026-10-14, user): every Support background set (the 18 colours, Brand and Neutral) gains
   `Color/Background/Support/<colour>/Rich` = ramp step 11, between Solid (9) and Deep (12), as
   `--zen-color-background-support-<colour>-rich` in Light and Dark; created in the live Figma file too. The foundations

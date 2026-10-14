@@ -7,9 +7,11 @@
 Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.
 
 ## Use it for
-- Free text → InputField; long text → TextAreaField.
+- Free text → InputField.
+- Long text → TextAreaField.
 - One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.
-- Dates → DateField; quantities → NumberField (steppers).
+- Dates → DateField.
+- Quantities → NumberField (steppers).
 - Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).
 - Formatted long text (announcements, descriptions) → RichTextField.
 

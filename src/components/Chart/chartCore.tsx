@@ -48,7 +48,8 @@ export const chartPalette = [
 /** The colour of the series (or slice) at `index`: its own colour, else the palette in order. */
 export const colourAt = (item: { color?: string } | undefined, index: number) => item?.color ?? chartPalette[index % chartPalette.length];
 
-export const defaultFormat = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`);
+/** "1.2K" from 1,000 up, else the value to one decimal at most (a mean of 306.666… reads "306.7"). */
+export const defaultFormat = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`);
 
 /** Round the axis max up to a nice scale: the smallest top a 1 · 2 · 2.5 · 5 step reaches in at most 5 steps, so the
  *  marks use the plot (Figma shows up to 6 labels: 0 … max). */
@@ -71,26 +72,32 @@ const STEP: Record<Keys, Record<string, number>> = {
 
 /**
  * The active item of a one-dimensional chart: ←/→ (↑/↓ for horizontal bars) and Home/End move it, pointer hover sets
- * it. `initial` null starts with no active item (Donut and Radial show their overview until one is picked).
+ * it. `initial` null starts with no active item (Donut and Radial show their overview until one is picked). Until an
+ * item is picked the active one follows `initial`, so data that arrives after mount shows its default item (not "No
+ * data"); a pick stays, clamped into the data, and `setActive(undefined)` hands it back to the default.
  */
 export function useChartSelection(count: number, initial: number | null, keys: Keys = "horizontal") {
-  const [active, setActive] = useState<number | null>(initial);
+  const [picked, setActive] = useState<number | null | undefined>(undefined);
+  const wanted = picked === undefined ? initial : picked;
+  const active = wanted === null || count === 0 ? null : Math.max(0, Math.min(count - 1, wanted));
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    const current = active ?? -1;
     const step = STEP[keys][event.key];
-    const next = step !== undefined ? (active === null && step < 0 ? count - 1 : current + step) : event.key === "Home" ? 0 : event.key === "End" ? count - 1 : null;
+    const next = step !== undefined ? (active === null ? (step < 0 ? count - 1 : 0) : active + step) : event.key === "Home" ? 0 : event.key === "End" ? count - 1 : null;
     if (next === null || count === 0) return;
     event.preventDefault();
     setActive(Math.max(0, Math.min(count - 1, next)));
   };
-  return { active: active === null ? null : Math.min(active, count - 1), setActive, onKeyDown };
+  return { active, setActive, onKeyDown };
 }
 
 /** Legend (Figma Legend item 6643:73387, .Chart/Legend-Item 15321:79362): a 12px dot, Spacing/Gap/2XSmall before its
- *  Caption/Regular label. */
-export function ChartLegend({ items, className }: { items: { id: string; label: ReactNode; color: string }[]; className?: string }) {
+ *  Caption/Regular label. `gap`: `xsmall` (default) keeps items Spacing/Gap/XSmall apart and rows Spacing/Gap/2XSmall, as
+ *  the Multi-Line, Donut and Radial legends (15426:2587, 15324:1041, 15325:1076); `small` keeps items Spacing/Gap/Small
+ *  apart and rows Spacing/Gap/XSmall, as every phase-2 legend (Area 15484:2653, Grouped-Bar 15485:2511, Combo 15485:2581,
+ *  Gauge 15486:2489, Bullet 15487:2554). `align="start"` leads at the start instead of centring (Bullet). */
+export function ChartLegend({ items, className, gap = "xsmall", align = "center" }: { items: { id: string; label: ReactNode; color: string }[]; className?: string; gap?: "xsmall" | "small"; align?: "center" | "start" }) {
   return (
-    <ul className={["zen-chart__legend", className].filter(Boolean).join(" ")}>
+    <ul className={["zen-chart__legend", className].filter(Boolean).join(" ")} data-gap={gap === "small" ? "small" : undefined} data-align={align === "start" ? "start" : undefined}>
       {items.map((item) => <li key={item.id} className={typographyStyles["Caption/Regular"]}><span className="zen-chart__swatch" style={{ background: item.color }} aria-hidden="true" />{item.label}</li>)}
     </ul>
   );

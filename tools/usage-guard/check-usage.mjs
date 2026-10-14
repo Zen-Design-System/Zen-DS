@@ -1150,7 +1150,7 @@ export const rules = [
   { id: "chart/stack-needs-legend", components: ["StackBarChart"], severity: "error", allow: "chart-legend", guideline: "docs/guidelines/chart.md",
     summary: "Stack-bar charts keep their legend so colour is never the only key.",
     check: ({ attrs }) => /showLegend=\{\s*false\s*\}/.test(attrs) && "hides the legend — colour alone can't identify a series; keep showLegend." },
-  { id: "chart/needs-name", components: ["LineChart", "BarChart", "StackBarChart", "DonutChart", "RadialChart", "HeatmapChart"], severity: "error", allow: "chart-name", guideline: "docs/guidelines/chart.md",
+  { id: "chart/needs-name", components: ["LineChart", "BarChart", "StackBarChart", "DonutChart", "RadialChart", "HeatmapChart", "BarList", "BulletChart", "GaugeChart", "FunnelChart", "AreaChart", "GroupedBarChart", "ComboChart"], severity: "error", allow: "chart-name", guideline: "docs/guidelines/chart.md",
     summary: "Every chart is named by an aria-label that says what it shows and over which range.",
     check: ({ attrs }) => !named(attrs) && "has no aria-label — name what the chart shows and over which range (\"Revenue per month, Apr – Sep 2026\")." },
   { id: "chart/shares-need-legend", components: ["DonutChart", "RadialChart", "LineChart"], severity: "error", allow: "chart-legend", guideline: "docs/guidelines/chart.md",
@@ -1159,6 +1159,50 @@ export const rules = [
   { id: "chart/heatmap-needs-scale", components: ["HeatmapChart"], severity: "warn", allow: "heatmap-scale", guideline: "docs/guidelines/chart.md",
     summary: "A heatmap keeps its Less → More scale so the five steps can be read.",
     check: ({ attrs }) => /showLegend=\{\s*false\s*\}/.test(attrs) && "hides the Less → More scale — without it the colour steps have no meaning; keep showLegend." },
+  { id: "chart/bar-list-rows", components: ["BarList"], severity: "warn", allow: "bar-list-rows", guideline: "docs/guidelines/chart.md",
+    summary: "A BarList ranks 3–8 items; past 8, keep the top 7 and fold the rest into an \"Other\" row, or use a Table.",
+    check: ({ attrs }) => { const n = arrayObjects(expr(attrs, "data")).length; return n > 8 && `ranks ${n} items — a bar list reads 3–8; keep the top 7 and fold the rest into an "Other" row, or use a Table.`; } },
+  { id: "chart/bar-list-ranked", components: ["BarList"], severity: "warn", allow: "bar-list-ranked", guideline: "docs/guidelines/chart.md",
+    summary: "A BarList never reorders its data: pass it ranked, largest first (an \"Other\" row may close the list).",
+    check: ({ attrs }) => { const rows = arrayObjects(expr(attrs, "data")).filter((o) => !/label\s*:\s*["'`]Other\b/i.test(o)).map((o) => Number((o.match(/\bvalue\s*:\s*(-?[\d.]+)/) ?? [])[1])); return rows.length > 1 && rows.every(Number.isFinite) && rows.some((v, i) => i > 0 && v > rows[i - 1]) && "isn't ranked — the list keeps your order, so pass the items largest first (the leader sets the full bar length)."; } },
+  { id: "chart/bullet-rows", components: ["BulletChart"], severity: "warn", allow: "bullet-rows", guideline: "docs/guidelines/chart.md",
+    summary: "A BulletChart shows 1–4 goals; more goals go in a Table or a second chart.",
+    check: ({ attrs }) => { const n = arrayObjects(expr(attrs, "data")).length; return n > 4 && `shows ${n} goals — a bullet chart reads 1–4; split the goals by theme into two charts, or list them in a Table.`; } },
+  { id: "chart/gauge-in-range", components: ["GaugeChart"], severity: "warn", allow: "gauge-range", guideline: "docs/guidelines/chart.md",
+    summary: "A GaugeChart's value and target sit on its 0 – max scale (max defaults to 100): pass max when the value isn't a percentage.",
+    check: ({ attrs }) => {
+      const num = (name) => { const v = expr(attrs, name); return v !== undefined && /^\s*-?\d+(\.\d+)?\s*$/.test(v) ? Number(v) : undefined; };
+      const max = has(attrs, "max") ? num("max") : 100;
+      if (max === undefined) return false;
+      const over = [["value", num("value")], ["target", num("target")]].find(([, v]) => v !== undefined && v > max);
+      return over && `has ${over[0]}={${over[1]}} past its max (${max}) — the ring fills and reads ${Math.round((over[1] / max) * 100)}%; pass max (the scale's top, e.g. the hours available) or a share of 100.`;
+    } },
+  { id: "chart/funnel-stages", components: ["FunnelChart"], severity: "warn", allow: "funnel-stages", guideline: "docs/guidelines/chart.md",
+    summary: "A FunnelChart shows 3–6 stages, in order, each no larger than the one before it.",
+    check: ({ attrs }) => {
+      const stages = arrayObjects(expr(attrs, "data"));
+      if (stages.length && (stages.length < 3 || stages.length > 6)) return `shows ${stages.length} stages — a funnel reads 3–6; ${stages.length < 3 ? "two numbers read better as a Metric with a change, or a BarChart" : "merge the minor steps, or list the stages in a Table"}.`;
+      const values = stages.map((o) => Number((o.match(/\bvalue\s*:\s*(-?[\d.]+)/) ?? [])[1]));
+      const grows = values.every(Number.isFinite) ? values.findIndex((v, i) => i > 0 && v > values[i - 1]) : -1;
+      return grows > 0 && `has a stage larger than the one before it (stage ${grows + 1}) — a funnel narrows step by step; check the order, or compare categories with a BarChart or BarList.`;
+    } },
+  { id: "chart/series-need-legend", components: ["AreaChart", "GroupedBarChart", "ComboChart"], severity: "error", allow: "chart-legend", guideline: "docs/guidelines/chart.md",
+    summary: "Stacked areas, grouped bars and a combo chart keep their legend so colour is never the only key.",
+    check: ({ tag, attrs }) => /showLegend=\{\s*false\s*\}/.test(attrs) && (tag !== "AreaChart" || literal(attrs, "type") === "stacked") && "hides the legend — colour alone can't tell the series (or the bars from the line) apart; keep showLegend." },
+  { id: "chart/area-series-count", components: ["AreaChart"], severity: "warn", allow: "area-series", guideline: "docs/guidelines/chart.md",
+    summary: "An AreaChart draws one series, or 2–4 stacked as parts of one total (type=\"stacked\").",
+    check: ({ attrs }) => {
+      const n = arrayObjects(expr(attrs, "series")).length;
+      if (!n) return false;
+      if (literal(attrs, "type") === "stacked") return (n < 2 || n > 4) && `stacks ${n} series — a stacked area reads 2–4 parts of a total; ${n < 2 ? "drop type=\"stacked\" for one measure" : "fold the smallest into an \"Other\" series, or use a StackBarChart or a Table"}.`;
+      return n > 1 && `gets ${n} series but draws only the first — pass type="stacked" when they are parts of one total, or compare two measures with LineChart compare or a GroupedBarChart.`;
+    } },
+  { id: "chart/grouped-series-count", components: ["GroupedBarChart"], severity: "warn", allow: "grouped-series", guideline: "docs/guidelines/chart.md",
+    summary: "A GroupedBarChart compares 2–3 series side by side.",
+    check: ({ attrs }) => { const n = arrayObjects(expr(attrs, "series")).length; return (n === 1 || n > 3) && `groups ${n} series — grouped bars compare 2–3; ${n === 1 ? "one measure is a BarChart" : "parts of a total are a StackBarChart, more measures a Table or two charts"}.`; } },
+  { id: "chart/combo-needs-labels", components: ["ComboChart"], severity: "error", allow: "combo-labels", guideline: "docs/guidelines/chart.md",
+    summary: "A ComboChart names both measures (barLabel, lineLabel): its legend, Tooltip order and summary read them.",
+    check: ({ attrs }) => { if (opaque(attrs)) return false; const missing = ["barLabel", "lineLabel"].filter((name) => !has(attrs, name) || literal(attrs, name)?.trim() === ""); return missing.length > 0 && `has no ${missing.join(" or ")} — name what the bars and the line measure ("Revenue", "Margin"); the legend and the summary read them.`; } },
   { id: "uploader/no-noop-replace", components: ["FileUpload", "UploaderFileItem"], severity: "warn", allow: "noop-replace", guideline: "docs/guidelines/uploader.md",
     summary: "Never pass a no-op onReplace; omit it so Replace re-opens the file picker.",
     check: ({ attrs }) => /^\s*\(\s*[\w,\s]*\)\s*=>\s*(\{\s*\}|undefined|null|void 0)\s*$/.test(expr(attrs, "onReplace") ?? "x") && "passes a no-op onReplace — the Replace action would do nothing; omit it (Replace re-opens the picker) or replace the file." },

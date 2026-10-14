@@ -5,7 +5,13 @@
   "AiVoiceConversation": [
     "color-contrast"
   ],
+  "AreaChart": [
+    "color-contrast"
+  ],
   "BarChart": [
+    "color-contrast"
+  ],
+  "BarList": [
     "color-contrast"
   ],
   "ChatComposerReply": [
@@ -23,6 +29,9 @@
   "ChatReplyQuote": [
     "color-contrast"
   ],
+  "ComboChart": [
+    "color-contrast"
+  ],
   "DatePicker": [
     "color-contrast"
   ],
@@ -31,6 +40,12 @@
     "color-contrast:dark"
   ],
   "DatePickerSheet": [
+    "color-contrast"
+  ],
+  "GaugeChart": [
+    "color-contrast"
+  ],
+  "GroupedBarChart": [
     "color-contrast"
   ],
   "HeatmapChart": [

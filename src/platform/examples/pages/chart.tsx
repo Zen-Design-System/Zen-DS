@@ -2,7 +2,10 @@
    hours and a project's budget through ChartCard, LineChart and StackBarChart; the phone example is Alex's own hours in
    the studio app. Charts and KPI tiles may abbreviate ("$105.7K"); the report behind a chart never does. */
 import { useEffect, useId, useRef, useState } from "react";
-import { BarChart, ChartCard, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart, type ChartPoint, type ChartSlice, type ChartStack } from "../../../components/Chart";
+import {
+  AreaChart, BarChart, BarList, BulletChart, ChartCard, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart, StackBarChart,
+  type ChartBullet, type ChartComboDatum, type ChartDatum, type ChartPoint, type ChartSlice, type ChartStack,
+} from "../../../components/Chart";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { InlineMessage } from "../../../components/InlineMessage";
@@ -424,6 +427,245 @@ function StudioAnalyticsExample() {
   );
 }
 
+/* ───────────── Bar list and bullet chart ───────────── */
+
+/** Revenue by client, ranked largest first: Q3 2026 ($296,800) or Jan – Sep 2026 ($798,300), the donut's shares. */
+const clientRanking = { q3: clientShares, ytd: clientSharesYtd };
+
+function TopClientsCard() {
+  const [quarter, setQuarter] = useState<"q3" | "ytd">("q3");
+  const rows = clientRanking[quarter];
+  return (
+    <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description={quarter === "q3" ? "Revenue in Q3 2026" : "Revenue, Jan – Sep 2026"}
+      value={formatMoney(rows.reduce((sum, c) => sum + c.value, 0))} ranges={quarters} range={quarter} onRangeChange={(id) => setQuarter(id as "q3" | "ytd")}>
+      <BarList key={quarter} aria-label={`Revenue by client, ${quarter === "q3" ? "Q3 2026" : "Jan – Sep 2026"}`} headers={{ label: "Client", value: "Revenue" }}
+        data={rows.map((c) => ({ label: c.label, value: c.value }))} format={(v) => formatMoney(v)} />
+    </ChartCard>
+  );
+}
+
+/** Alex's September hours by project (the same 164 h as "Hours on a phone"), ranked largest first. */
+function PhoneProjectsExample() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const headingId = useId();
+  return (
+    // The ranking is the screen's one chart: straight on the screen, no Chart Card, its column labels over the rows.
+    <PlatformPhone label="Hours by project" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Hours by project" scrollRef={screenRef} />}>
+      <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
+        <Stack gap="2xs">
+          <Heading level={2} id={headingId} textStyle="Heading/Subheading">September</Heading>
+          <Text tone="base" textStyle="Body/Small/Regular">{`${hours(septemberByProject.reduce((sum, p) => sum + p.value, 0))} on ${plural(septemberByProject.length, "project")}`}</Text>
+        </Stack>
+        <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }}
+          data={septemberByProject.map(({ project, value }) => ({ label: project.name, value }))} format={hours} />
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+/** Q3 2026 goals, each in its own unit: revenue (Jul – Sep invoiced, $296,800), new clients, utilisation (September). */
+const q3Goals: ChartBullet[] = [
+  { label: "Revenue", value: studioMonths.slice(-3).reduce((sum, m) => sum + m.invoiced, 0), target: 320000 },
+  { label: "New clients", value: 5, target: 4 },
+  { label: "Utilisation", value: 78, target: 80, max: 100 },
+];
+const goalFormat = (value: number, row: ChartBullet) => (row.label === "Revenue" ? formatCompactMoney(value) : row.label === "Utilisation" ? percent(value) : String(value));
+
+function QuarterGoalsCard() {
+  const met = q3Goals.filter((goal) => goal.value >= goal.target).length;
+  return (
+    <ChartCard title="Quarter goals" icon="icon-target-04-line" description="Q3 2026 against target" value={`${met} of ${q3Goals.length} met`}>
+      <BulletChart aria-label="Quarter goals, Q3 2026" data={q3Goals} format={goalFormat} />
+    </ChartCard>
+  );
+}
+
+/** What the studio collected in Q3 2026 (Jul – Sep, $275,800) against the plan. */
+const collectedQ3 = studioMonths.slice(-3).reduce((sum, m) => sum + m.collected, 0);
+
+function CollectedGoalCard() {
+  return (
+    <ChartCard title="Collected in Q3" icon="icon-coins-stacked-01-line" description="Against the $290K plan" value={formatMoney(collectedQ3)}>
+      <BulletChart aria-label="Collected against plan, Q3 2026" data={[{ label: "Jul – Sep 2026", value: collectedQ3, target: 290000, max: 300000 }]}
+        actualLabel="Collected" targetLabel="Plan" format={formatCompactMoney} />
+    </ChartCard>
+  );
+}
+
+/* ───────────── Gauge and funnel ───────────── */
+
+/** September: the teams' 5,900 billable hours of 7,564 logged (78%, the utilisation line's September) against 85%. */
+const septemberTeams = studioTeamHours[studioTeamHours.length - 1];
+const billableSeptember = septemberTeams.design + septemberTeams.engineering + septemberTeams.delivery + septemberTeams.clientServices;
+const loggedSeptember = 7564;
+
+function UtilisationGaugeCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="Utilisation" headingLevel={headingLevel} icon="icon-speedometer-03-line" description="Billable share of logged hours, September"
+      value={`${billableSeptember.toLocaleString("en-US")} of ${hours(loggedSeptember)}`}>
+      <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026" value={billableSeptember} max={loggedSeptember}
+        target={loggedSeptember * 0.85} actualLabel="Billable" />
+    </ChartCard>
+  );
+}
+
+/** Alex's 40-hour week: this week's entries so far (the "Hours on a phone" list, 18 h). */
+const weekHours = 40;
+const weekLogged = thisWeek.reduce((total, entry) => total + entry.value, 0);
+
+function PhoneWeekGaugeExample() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const gaugeId = useId();
+  const listId = useId();
+  return (
+    // One main chart on a phone goes straight on the screen; the entries are white blocks on the Surface-Alt screen.
+    <PlatformPhone label="This week" canvas="alt" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
+      <Stack gap="lg" padding="lg">
+        <Stack as="section" gap="md" aria-labelledby={gaugeId}>
+          <Heading level={2} id={gaugeId} textStyle="Heading/Subheading">Hours logged</Heading>
+          <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={weekLogged} max={weekHours} format={hours} actualLabel="Logged"
+            caption={`${hours(weekHours - weekLogged)} to go`} />
+        </Stack>
+        <Stack as="section" gap="xs" aria-labelledby={listId}>
+          <Box paddingX="lg"><Heading level={2} id={listId} textStyle="Body/Small/Bold" tone="light">Entries</Heading></Box>
+          <ListBox>
+            <List aria-labelledby={listId}>
+              {thisWeek.map((entry) => (
+                <ListItem key={entry.id} title={entry.note} caption={`${entry.day} · ${entry.project.client}`}
+                  leading={<DockIcon size="md" icon={entry.project.icon} theme={entry.project.theme} background="subtle" />}
+                  trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(entry.value)}</Text>} />
+              ))}
+            </List>
+          </ListBox>
+        </Stack>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+/** Q3 2026: from first contact to a signed project (Figma Chart/Funnel-Chart). */
+const proposalFunnel: ChartPoint[] = [["Leads", 480], ["Qualified", 312], ["Proposal", 168], ["Negotiation", 94], ["Signed", 62]]
+  .map(([label, value]) => ({ label: String(label), value: Number(value) }));
+
+function ProposalFunnelCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
+  return (
+    <ChartCard title="Proposal funnel" headingLevel={headingLevel} icon="icon-filter-funnel-line" description="Leads to signed projects, Q3"
+      value={`${proposalFunnel[proposalFunnel.length - 1].value} signed`}>
+      <FunnelChart aria-label="Leads to signed projects, Q3 2026" data={proposalFunnel} />
+    </ChartCard>
+  );
+}
+
+/** The studio's design hiring round, July – September 2026: six stages, the most a funnel takes. */
+const hiringFunnel: ChartPoint[] = [["Applications", 214], ["Screened", 96], ["Portfolio review", 41], ["Interview", 18], ["Offer", 5], ["Hired", 4]]
+  .map(([label, value]) => ({ label: String(label), value: Number(value) }));
+const people = (value: number) => plural(value, "person", "people");
+
+function HiringFunnelCard() {
+  return (
+    <ChartCard title="Design hiring" icon="icon-users-plus-line" description="Product designer round, Jul – Sep" value={`${people(hiringFunnel[hiringFunnel.length - 1].value)} hired`}>
+      <FunnelChart aria-label="Product designer hiring, applications to hires, July – September 2026" data={hiringFunnel} format={people} />
+    </ChartCard>
+  );
+}
+
+/* ───────────── Area, grouped bars and combo ───────────── */
+
+/** The studio's billable hours per month, Apr – Sep 2026: the four teams added up (Jul 6,490 · Aug 5,670 · Sep 5,900 h). */
+const studioHours: ChartDatum[] = teamHours.map((month) => ({ label: month.label, values: { hours: Object.values(month.values).reduce((sum, v) => sum + v, 0) } }));
+const studioHoursTotal = studioHours.reduce((sum, month) => sum + month.values.hours, 0);
+
+function HoursAreaCard() {
+  return (
+    <ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value={hours(studioHoursTotal)}>
+      <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" data={studioHours} series={[{ id: "hours", label: "Billable hours" }]} format={hours} height={240} />
+    </ChartCard>
+  );
+}
+
+function HoursByTeamAreaCard() {
+  return (
+    <ChartCard title="Billable hours by team" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value={hours(studioHoursTotal)}>
+      <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" data={teamHours} series={teams} format={hours} height={240} />
+    </ChartCard>
+  );
+}
+
+/** Invoiced and collected per month, Apr – Sep 2026 (the shared months; the Finance dashboard reads the same). */
+const invoicedCollected: ChartDatum[] = studioMonths.slice(-6).map((m) => ({ label: m.label, values: { invoiced: m.invoiced, collected: m.collected } }));
+const cashSeries = [{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }];
+const invoicedSixMonths = studioMonths.slice(-6).reduce((sum, m) => sum + m.invoiced, 0);
+
+function InvoicedCollectedCard() {
+  return (
+    <ChartCard title="Invoiced vs. collected" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value={formatMoney(invoicedSixMonths)}>
+      <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoicedCollected} series={cashSeries} format={formatCompactMoney} height={240} />
+    </ChartCard>
+  );
+}
+
+/** Alex's last six full weeks (the phone example's weekly hours), split into billable and internal time. */
+const myWeekSplit: ChartDatum[] = myHours.weekly.map((week, i) => ({ label: week.label, values: { billable: [32, 35, 29, 33, 36, 34][i], internal: week.value - [32, 35, 29, 33, 36, 34][i] } }));
+const myBillable = myWeekSplit.reduce((sum, week) => sum + week.values.billable, 0);
+const myInternal = myWeekSplit.reduce((sum, week) => sum + week.values.internal, 0);
+
+function PhoneTimeSplitExample() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const chartId = useId();
+  const totalsId = useId();
+  return (
+    // One main chart on a phone goes straight on the screen; the totals are a white block on the Surface-Alt screen.
+    <PlatformPhone label="Billable time" canvas="alt" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="alt" title="Billable time" largeTitle="Billable time" scrollRef={screenRef} />}>
+      <Stack gap="lg" padding="lg">
+        <Stack as="section" gap="md" aria-labelledby={chartId}>
+          <Stack gap="xs">
+            <Heading level={2} id={chartId} textStyle="Heading/Subheading">Billable and internal</Heading>
+            <Text textStyle="Body/Small/Regular" tone="base">Last six weeks, Aug 17 – Sep 27</Text>
+          </Stack>
+          <GroupedBarChart aria-label="Your billable and internal hours per week, Aug 17 – Sep 27, 2026" data={myWeekSplit}
+            series={[{ id: "billable", label: "Billable" }, { id: "internal", label: "Internal" }]} format={hours} height={220} />
+        </Stack>
+        <Stack as="section" gap="xs" aria-labelledby={totalsId}>
+          <Box paddingX="lg"><Heading level={2} id={totalsId} textStyle="Body/Small/Bold" tone="light">Six-week totals</Heading></Box>
+          <ListBox>
+            <List aria-labelledby={totalsId}>
+              <ListItem title="Billable" caption={`${Math.round((myBillable / (myBillable + myInternal)) * 100)}% of logged time`} trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(myBillable)}</Text>} />
+              <ListItem title="Internal" caption="Reviews, critiques and office hours" trailing={<Text as="span" textStyle="Body/Base/Medium">{hours(myInternal)}</Text>} />
+            </List>
+          </ListBox>
+        </Stack>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+/** Revenue and margin per month, Apr – Sep 2026: invoiced (the shared months) and the share kept after costs. */
+const revenueMargin: ChartComboDatum[] = studioMonths.slice(-6).map((m, i) => ({ label: m.label, bar: m.invoiced, line: [31, 34, 29, 36, 38, 41][i] }));
+
+function RevenueMarginCard() {
+  return (
+    <ChartCard title="Revenue and margin" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value={formatMoney(invoicedSixMonths)}>
+      <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={revenueMargin} barLabel="Revenue" lineLabel="Margin"
+        format={formatCompactMoney} lineFormat={percent} height={240} />
+    </ChartCard>
+  );
+}
+
+/** Billable hours (the four teams added up) and utilisation per month, Apr – Sep 2026: 78% in September. */
+const hoursUtilisation: ChartComboDatum[] = studioHours.map((month, i) => ({ label: month.label, bar: month.values.hours, line: utilisation[i].value }));
+
+function HoursUtilisationCard() {
+  return (
+    <ChartCard title="Hours and utilisation" icon="icon-clock-line" description="Billable hours and the share of available hours" value={`${percent(utilisation[utilisation.length - 1].value)} in September`}>
+      <ComboChart aria-label="Billable hours and utilisation per month, Apr – Sep 2026" data={hoursUtilisation} barLabel="Billable hours" lineLabel="Utilisation"
+        format={hours} lineFormat={percent} lineMax={100} height={240} />
+    </ChartCard>
+  );
+}
+
 /* ───────────── Examples ───────────── */
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
@@ -658,5 +900,173 @@ const retry = () => {
     {/* … then "This week" the same way: one row per time entry */}
   </Stack>
 </PlatformPhone>`,
+  },
+  {
+    title: "Top clients",
+    description: "A bar list ranks a few items with their values: each bar is its share of the leader, the name sits in the bar and the values line up at the end under their column label. The active row is stronger (48%); ↑/↓ and Home/End move it and the summary reads \"Lumen Bank: $89,000 (1 of 5)\". The range switch redraws the list.",
+    render: () => <TopClientsCard />,
+    code: `<ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026" value="$296,800"
+  ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={quarter} onRangeChange={setQuarter}>
+  {/* Ranked largest first by you: the list keeps your order. */}
+  <BarList key={quarter} aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} format={formatMoney}
+    data={[{ label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, /* … */ { label: "Other clients", value: 35600 }]} />
+</ChartCard>`,
+  },
+  {
+    title: "Ranking on a phone",
+    description: "On a phone the screen's one ranking goes straight on the screen, no Chart Card: a heading with its total, then the list at full width. Project names sit inside the bars (a short bar lets its name run past its end, a name too long for the column ends in an ellipsis) and the values keep their own column.",
+    render: () => <PhoneProjectsExample />,
+    code: `const screenRef = useRef<HTMLDivElement>(null);
+
+<PlatformPhone label="Hours by project" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="compact-alt" title="Hours by project" scrollRef={screenRef} />}>
+  <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
+    <Stack gap="2xs">
+      <Heading level={2} id={headingId} textStyle="Heading/Subheading">September</Heading>
+      <Text tone="base" textStyle="Body/Small/Regular">164 h on 4 projects</Text>
+    </Stack>
+    <BarList aria-label="Your hours by project, September 2026" headers={{ label: "Project", value: "Hours" }} format={hours}
+      data={[{ label: "Online banking redesign", value: 92 }, { label: "Zen design system", value: 48 }, /* … */]} />
+  </Stack>
+</PlatformPhone>`,
+  },
+  {
+    title: "Goals against targets",
+    description: "A bullet chart sets 1–4 goals against their targets, each on its own scale, so money, counts and percentages share one card: the bar is where a goal stands, the tick where it should be, and a bar past its tick is a goal met. ↑/↓ pick a goal (the others dim) and the summary reads \"New clients: 5 of 4 (2 of 3)\".",
+    render: () => <QuarterGoalsCard />,
+    code: `<ChartCard title="Quarter goals" icon="icon-target-04-line" description="Q3 2026 against target" value="1 of 3 met">
+  <BulletChart aria-label="Quarter goals, Q3 2026"
+    format={(v, row) => (row.label === "Revenue" ? formatCompactMoney(v) : row.label === "Utilisation" ? \`\${v}%\` : String(v))}
+    data={[
+      { label: "Revenue", value: 296800, target: 320000 },
+      { label: "New clients", value: 5, target: 4 },
+      { label: "Utilisation", value: 78, target: 80, max: 100 },
+    ]} />
+</ChartCard>`,
+  },
+  {
+    title: "One goal",
+    description: "One goal is enough for a bullet chart when its target matters: the tick shows the plan, which a progress bar can't. The legend takes the card's words (actualLabel, targetLabel) and max sets the scale.",
+    render: () => <CollectedGoalCard />,
+    code: `<ChartCard title="Collected in Q3" icon="icon-coins-stacked-01-line" description="Against the $290K plan" value="$275,800">
+  <BulletChart aria-label="Collected against plan, Q3 2026" actualLabel="Collected" targetLabel="Plan" format={formatCompactMoney}
+    data={[{ label: "Jul – Sep 2026", value: 275800, target: 290000, max: 300000 }]} />
+</ChartCard>`,
+  },
+  {
+    title: "Utilisation against a target",
+    description: "One measure against its maximum as a half ring: billable hours of the hours logged, the 85% target as a tick across the ring. Pass max (here the hours logged) and the gauge reads the share; the legend names the value and the target. Screen readers hear a meter: \"Billable 78%, Target 85%\".",
+    render: () => <UtilisationGaugeCard />,
+    code: `<ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">
+  <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026"
+    value={5900} max={7564} target={7564 * 0.85} actualLabel="Billable" />
+</ChartCard>`,
+  },
+  {
+    title: "Hours this week on a phone",
+    description: "A gauge with no target: the week's 40 hours are the scale, format reads hours at the figure and both ends, and the caption says what is left. On a phone the screen's one main chart goes straight on the screen, without a Chart Card; the week's entries follow as a white block on the Surface-Alt screen.",
+    render: () => <PhoneWeekGaugeExample />,
+    code: `<PlatformPhone canvas="alt" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="alt" title="This week" largeTitle="This week" scrollRef={screenRef} />}>
+  <Stack gap="lg" padding="lg">
+    <Stack as="section" gap="md" aria-labelledby={gaugeId}>
+      <Heading level={2} id={gaugeId} textStyle="Heading/Subheading">Hours logged</Heading>
+      <GaugeChart aria-label="Hours logged this week, of a 40-hour week" value={18} max={40} format={hours} actualLabel="Logged" caption="22 h to go" />
+    </Stack>
+    {/* … the week's entries: a ListBox under a Body/Small/Bold kicker */}
+  </Stack>
+</PlatformPhone>`,
+  },
+  {
+    title: "Proposal funnel",
+    description: "Stages from first contact to a signed project, each bar centred and as wide as its share of the first stage; the last stage takes Sector/Secondary. Every row shows its count under the name and its share at the end, so nothing floats over the bars. Hover or ↑/↓ pick a stage and dim the others.",
+    render: () => <ProposalFunnelCard />,
+    code: `<ChartCard title="Proposal funnel" icon="icon-filter-funnel-line" description="Leads to signed projects, Q3" value="62 signed">
+  <FunnelChart aria-label="Leads to signed projects, Q3 2026"
+    data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Negotiation", value: 94 }, { label: "Signed", value: 62 }]} />
+</ChartCard>`,
+  },
+  {
+    title: "Six stages with the keyboard",
+    description: "Six stages, the most a funnel takes: a long stage name widens the name column for every row, and the small last stages keep a visible bar. Tab to the funnel, then ↑/↓ move between stages and Home/End jump to the first and last; the summary reads \"Interview: 18 people, 8% of Applications (4 of 6)\".",
+    render: () => <HiringFunnelCard />,
+    code: `const people = (value: number) => plural(value, "person", "people");
+
+<ChartCard title="Design hiring" icon="icon-users-plus-line" description="Product designer round, Jul – Sep" value="4 people hired">
+  <FunnelChart aria-label="Product designer hiring, applications to hires, July – September 2026" format={people}
+    data={[{ label: "Applications", value: 214 }, { label: "Screened", value: 96 }, { label: "Portfolio review", value: 41 }, /* … */ { label: "Hired", value: 4 }]} />
+</ChartCard>`,
+  },
+  {
+    title: "Hours over time",
+    description: "An area chart reads one measure over time as a straight line over its flat area, from the first month to the last. The active month shows its dot, a rule down to the baseline and the Tooltip beside the dot; with one series the card title names the measure, so there is no legend.",
+    render: () => <HoursAreaCard />,
+    code: `<ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">
+  <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" series={[{ id: "hours", label: "Billable hours" }]}
+    data={[{ label: "Apr", values: { hours: 5560 } }, /* … */ { label: "Sep", values: { hours: 5900 } }]} format={hours} height={240} />
+</ChartCard>`,
+  },
+  {
+    title: "Stacked by team",
+    description: "type=\"stacked\" piles two to four series as bands, so the top line is the month's total and each band shows how one team moves. The legend names every band. Tab to the chart, then ←/→ move between months and Home/End jump to April and September; the Tooltip gives the total and the summary reads \"Sep: total 5,900 h; Design 2,650 h, Engineering 1,990 h, Delivery 750 h, Client Services 510 h (6 of 6)\".",
+    render: () => <HoursByTeamAreaCard />,
+    code: `const teams = [{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" },
+  { id: "delivery", label: "Delivery" }, { id: "client-services", label: "Client Services" }];
+
+<ChartCard title="Billable hours by team" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">
+  <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" series={teams} format={hours} height={240}
+    data={months} // { label: "Sep", values: { design: 2650, engineering: 1990, delivery: 750, "client-services": 510 } }
+  />
+</ChartCard>`,
+  },
+  {
+    title: "Invoiced vs. collected",
+    description: "Grouped bars put two or three measures side by side in each month, here what was invoiced next to what came in. The legend names both colours and the Tooltip reads each value after its dot. For a trend against a reference, the line with its comparison reads better; for parts of one total, a Stack Bar.",
+    render: () => <InvoicedCollectedCard />,
+    code: `<ChartCard title="Invoiced vs. collected" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value="$559,300">
+  <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" format={formatCompactMoney} height={240}
+    series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]}
+    data={[{ label: "Apr", values: { invoiced: 82300, collected: 79500 } }, /* … */ { label: "Sep", values: { invoiced: 105700, collected: 88300 } }]} />
+</ChartCard>`,
+  },
+  {
+    title: "Grouped bars on a phone",
+    description: "On a phone the chart goes straight on the screen under its heading, without a Chart Card. Six weeks of two bars still fit 390px: each bar narrows with its column. Touching a week shows its Tooltip; the totals below are a white block on the Surface-Alt screen.",
+    render: () => <PhoneTimeSplitExample />,
+    code: `<PlatformPhone label="Billable time" canvas="alt" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="alt" title="Billable time" largeTitle="Billable time" scrollRef={screenRef} />}>
+  <Stack gap="lg" padding="lg">
+    <Stack as="section" gap="md" aria-labelledby={chartId}>
+      <Stack gap="xs">
+        <Heading level={2} id={chartId} textStyle="Heading/Subheading">Billable and internal</Heading>
+        <Text textStyle="Body/Small/Regular" tone="base">Last six weeks, Aug 17 – Sep 27</Text>
+      </Stack>
+      <GroupedBarChart aria-label="Your billable and internal hours per week, Aug 17 – Sep 27, 2026" format={hours} height={220}
+        series={[{ id: "billable", label: "Billable" }, { id: "internal", label: "Internal" }]}
+        data={[{ label: "Aug 17", values: { billable: 32, internal: 6 } }, /* … */]} />
+    </Stack>
+    {/* Six-week totals: a ListBox under a Body/Small/Bold kicker */}
+  </Stack>
+</PlatformPhone>`,
+  },
+  {
+    title: "Revenue and margin",
+    description: "A combo chart reads two measures with different units over the same months: revenue as bars on the start axis, margin as a line with a dot per month on the end axis. Both axes share the gridlines, and the Tooltip reads both values for the active month.",
+    render: () => <RevenueMarginCard />,
+    code: `<ChartCard title="Revenue and margin" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value="$559,300">
+  <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin"
+    format={formatCompactMoney} lineFormat={(value) => \`\${value}%\`} height={240}
+    data={[{ label: "Apr", bar: 82300, line: 31 }, /* … */ { label: "Sep", bar: 105700, line: 41 }]} />
+</ChartCard>`,
+  },
+  {
+    title: "A share on a fixed axis",
+    description: "When the line is a share, lineMax={100} fixes the end axis at 0 – 100%, so 78% sits at 78% of the plot instead of near the top of a tighter scale. The end axis still takes the start axis' gridlines (0, 25, 50, 75, 100%).",
+    render: () => <HoursUtilisationCard />,
+    code: `<ChartCard title="Hours and utilisation" icon="icon-clock-line" description="Billable hours and the share of available hours" value="78% in September">
+  <ComboChart aria-label="Billable hours and utilisation per month, Apr – Sep 2026" barLabel="Billable hours" lineLabel="Utilisation"
+    format={hours} lineFormat={(value) => \`\${value}%\`} lineMax={100} height={240}
+    data={[{ label: "Apr", bar: 5560, line: 77 }, /* … */ { label: "Sep", bar: 5900, line: 78 }]} />
+</ChartCard>`,
   },
 ]);

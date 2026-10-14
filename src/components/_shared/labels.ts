@@ -162,6 +162,11 @@ export type ZenLabels = {
   /** The average line's tag ("Avg $95.4K") and its screen-reader form ("average $95.4K"). */
   chartAverage: (value: string) => string;
   chartAverageLong: (value: string) => string;
+  /** A goal chart's legend names (BulletChart; GaugeChart's target): the measured value and its goal. */
+  chartActual: string;
+  chartTarget: string;
+  /** A funnel stage's share of the first stage, in its summary: "65% of Leads". */
+  chartShareOf: (share: string, of: string) => string;
   /** The caption under a donut's total. */
   total: string;
   noData: string;
@@ -425,6 +430,9 @@ const en: ZenLabels = {
   chartMore: "More",
   chartAverage: (value) => `Avg ${value}`,
   chartAverageLong: (value) => `average ${value}`,
+  chartActual: "Actual",
+  chartTarget: "Target",
+  chartShareOf: (share, of) => `${share} of ${of}`,
   total: "Total",
   noData: "No data",
   colour: "Colour",
@@ -662,6 +670,9 @@ const vi: ZenLabels = {
   chartMore: "Nhiều",
   chartAverage: (value) => `TB ${value}`,
   chartAverageLong: (value) => `trung bình ${value}`,
+  chartActual: "Thực tế",
+  chartTarget: "Mục tiêu",
+  chartShareOf: (share, of) => `${share} của ${of}`,
   total: "Tổng",
   noData: "Không có dữ liệu",
   colour: "Màu",

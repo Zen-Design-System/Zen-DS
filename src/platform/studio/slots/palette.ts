@@ -32,6 +32,9 @@ export type PaletteContext = {
   headingLevel: number;
   /** Inside a BottomSheet or PlatformPhone: Toggle size lg, fields md or larger (mobile/full-size-controls). */
   mobile: boolean;
+  /** The nearest surface around the slot is a Dialog, ModalForm, SidePanel or BottomSheet: a Card or ListBox there takes
+   *  theme="on-container" (card/on-container-in-overlay, listbox/on-container-in-overlay). */
+  overlay?: boolean;
   /** Unique per insert ([a-z0-9]): radio group names, so groups in other example cards never merge. */
   uid: string;
 };
@@ -109,7 +112,8 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
   AvatarStack: "Avatar", RatingDisplay: "Rating", Rating: "Rating", NpsScale: "Rating", Table: "Table", TableText: "Table",
-  Image: "Image", LineChart: "Chart", StackBarChart: "Chart", ChartCard: "Chart", BarChart: "Chart", DonutChart: "Chart", RadialChart: "Chart", HeatmapChart: "Chart", AlertBanner: "AlertBanner",
+  Image: "Image", LineChart: "Chart", StackBarChart: "Chart", ChartCard: "Chart", BarChart: "Chart", DonutChart: "Chart", RadialChart: "Chart", HeatmapChart: "Chart",
+  AreaChart: "Chart", GroupedBarChart: "Chart", ComboChart: "Chart", GaugeChart: "Chart", FunnelChart: "Chart", BarList: "Chart", BulletChart: "Chart", AlertBanner: "AlertBanner",
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
@@ -281,8 +285,8 @@ export const PALETTE: readonly PaletteItem[] = [
   },
   {
     id: "list-box", label: "List box", group: "Data display", caption: "Box of rows", root: "ListBox", components: ["ListBox", "List", "ListItem", "DockIcon"], interactive: false, input: false,
-    build: () => lines(
-      `<ListBox>`,
+    build: (ctx) => lines(
+      ctx.overlay ? `<ListBox theme="on-container">` : `<ListBox>`,
       `  <List>`,
       `    <ListItem title="Loyalty app" caption="Phin & Co · Due Oct 14"`,
       `      leading={<DockIcon icon="icon-mobile-line" theme="orange" background="subtle" />} />`,
@@ -311,7 +315,7 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "card", label: "Card", group: "Data display", caption: "Nested surface", root: "Card", components: ["Card", "Stack", "Heading", "Text"], interactive: false, input: false,
     build: (ctx) => lines(
-      `<Card theme="border" spacing="sm">`,
+      `<Card theme="${ctx.overlay ? "on-container" : "border"}" spacing="sm">`,
       `  <Stack gap="xs">`,
       `    <Heading level={${level(ctx)}} textStyle="Heading/Subheading">Milestone 2</Heading>`,
       `    <Text textStyle="Body/Small/Regular" tone="base">Rewards screens and the points ledger</Text>`,
@@ -458,6 +462,82 @@ export const PALETTE: readonly PaletteItem[] = [
       `<HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026"`,
       `  columns={["Mon", "Tue", "Wed", "Thu", "Fri"]} rows={["9 am", "11 am", "1 pm", "3 pm", "5 pm"]}`,
       `  values={[[38, 41, 40, 39, 35], [71, 74, 72, 70, 61], [52, 55, 53, 51, 44], [70, 75, 73, 71, 48], [42, 44, 43, 41, 22]]} />`,
+    ),
+  },
+  {
+    id: "area-chart", label: "Area chart", group: "Charts", caption: "One measure over time", root: "AreaChart", components: ["AreaChart"], interactive: false, input: false,
+    build: () => lines(
+      `<AreaChart aria-label="Billable hours logged per month, Apr – Sep 2026"`,
+      `  series={[{ id: "hours", label: "Billable hours" }]}`,
+      `  data={[`,
+      `    { label: "Apr", values: { hours: 1720 } }, { label: "May", values: { hours: 1860 } }, { label: "Jun", values: { hours: 1790 } },`,
+      `    { label: "Jul", values: { hours: 2010 } }, { label: "Aug", values: { hours: 1890 } }, { label: "Sep", values: { hours: 2210 } },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "stacked-area-chart", label: "Stacked area chart", group: "Charts", caption: "Series that add up", root: "AreaChart", components: ["AreaChart"], interactive: false, input: false,
+    build: () => lines(
+      `<AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026"`,
+      `  series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }]}`,
+      `  data={[`,
+      `    { label: "Apr", values: { design: 620, engineering: 820, delivery: 280 } }, { label: "May", values: { design: 660, engineering: 900, delivery: 300 } },`,
+      `    { label: "Jun", values: { design: 640, engineering: 850, delivery: 300 } }, { label: "Jul", values: { design: 720, engineering: 960, delivery: 330 } },`,
+      `    { label: "Aug", values: { design: 680, engineering: 890, delivery: 320 } }, { label: "Sep", values: { design: 790, engineering: 1060, delivery: 360 } },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "grouped-bar-chart", label: "Grouped bar chart", group: "Charts", caption: "Series side by side", root: "GroupedBarChart", components: ["GroupedBarChart"], interactive: false, input: false,
+    build: () => lines(
+      `<GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026"`,
+      `  series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]}`,
+      `  data={[`,
+      `    { label: "Apr", values: { invoiced: 86200, collected: 81400 } }, { label: "May", values: { invoiced: 90500, collected: 84100 } },`,
+      `    { label: "Jun", values: { invoiced: 88900, collected: 86700 } }, { label: "Jul", values: { invoiced: 94100, collected: 91700 } },`,
+      `    { label: "Aug", values: { invoiced: 97000, collected: 95800 } }, { label: "Sep", values: { invoiced: 105700, collected: 88300 } },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "combo-chart", label: "Combo chart", group: "Charts", caption: "Bars and a line", root: "ComboChart", components: ["ComboChart"], interactive: false, input: false,
+    build: () => lines(
+      `<ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin (%)"`,
+      `  data={[`,
+      `    { label: "Apr", bar: 86200, line: 34 }, { label: "May", bar: 90500, line: 36 }, { label: "Jun", bar: 88900, line: 35 },`,
+      `    { label: "Jul", bar: 94100, line: 38 }, { label: "Aug", bar: 97000, line: 39 }, { label: "Sep", bar: 105700, line: 41 },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "gauge-chart", label: "Gauge", group: "Charts", caption: "One reading against a goal", root: "GaugeChart", components: ["GaugeChart"], interactive: false, input: false,
+    build: () => `<GaugeChart aria-label="Billable share of logged hours, September 2026" value={82} target={85} actualLabel="Billable" />`,
+  },
+  {
+    id: "funnel-chart", label: "Funnel", group: "Charts", caption: "Stages of a flow", root: "FunnelChart", components: ["FunnelChart"], interactive: false, input: false,
+    build: () => lines(
+      `<FunnelChart aria-label="Leads to signed projects, Q3 2026"`,
+      `  data={[{ label: "Leads", value: 240 }, { label: "Qualified", value: 168 }, { label: "Proposals sent", value: 96 }, { label: "Signed", value: 62 }]} />`,
+    ),
+  },
+  {
+    id: "bar-list", label: "Bar list", group: "Charts", caption: "Ranked items", root: "BarList", components: ["BarList"], interactive: false, input: false,
+    build: () => lines(
+      `<BarList aria-label="Revenue by client, 2026 so far" headers={{ label: "Client", value: "Revenue" }}`,
+      `  data={[`,
+      `    { label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, { label: "Mekong Freight", value: 53400 },`,
+      `    { label: "Saigon Roast", value: 44200 }, { label: "Other clients", value: 41900 },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "bullet-chart", label: "Bullet chart", group: "Charts", caption: "Goals against targets", root: "BulletChart", components: ["BulletChart"], interactive: false, input: false,
+    build: () => lines(
+      `<BulletChart aria-label="Quarter goals against target, Q3 2026"`,
+      `  data={[`,
+      `    { label: "Revenue", value: 612000, target: 600000 }, { label: "New clients", value: 7, target: 6 },`,
+      `    { label: "Utilisation", value: 82, target: 85, max: 100 },`,
+      `  ]} />`,
     ),
   },
   /* Feedback */
@@ -890,6 +970,8 @@ export const preferredFor = (slot: ContentSlot): readonly string[] => PREFERRED[
 
 const OVERLAY_HOSTS = new Set(["Dialog", "ModalForm", "SidePanel", "BottomSheet"]);
 const CARD_SURFACES = new Set(["Card", "ChartCard", "MetricCard"]);
+/** The surfaces the usage harness looks through for an overlay (check-usage.mjs BOX_TAGS). */
+const SURFACE_TAGS = new Set(["Card", "ListBox", "MetricCard", "ChartCard", "Dialog", "ModalForm", "SidePanel", "BottomSheet"]);
 const FORM_HOSTS = new Set(["ModalForm", "Form"]);
 const MOBILE_HOSTS = new Set(["BottomSheet", "PlatformPhone"]);
 const CHOICE_CONTROLS = new Set(["checkbox", "toggle", "radio-group"]);
@@ -957,7 +1039,9 @@ type RuleItem = Pick<PaletteItem, "id" | "root" | "components" | "interactive" |
 function hostRules(ctx: PaletteHostContext) {
   const chain = [ctx.host, ...ctx.ancestors];
   const inChain = (names: Set<string>) => chain.find((name) => names.has(name));
-  const context: PaletteContext = { host: ctx.host, slot: ctx.slot, headingLevel: ctx.headingLevel, mobile: ctx.mobile || Boolean(inChain(MOBILE_HOSTS)), uid: ctx.uid };
+  // The nearest surface around the slot (usage-guard BOX_TAGS): an overlay's Container fill takes on-container surfaces.
+  const surface = inChain(SURFACE_TAGS);
+  const context: PaletteContext = { host: ctx.host, slot: ctx.slot, headingLevel: ctx.headingLevel, mobile: ctx.mobile || Boolean(inChain(MOBILE_HOSTS)), uid: ctx.uid, ...(surface && OVERLAY_HOSTS.has(surface) ? { overlay: true } : {}) };
   const insideCard = Boolean(inChain(CARD_SURFACES));
   const overlayHost = inChain(OVERLAY_HOSTS);
   const formHost = inChain(FORM_HOSTS);

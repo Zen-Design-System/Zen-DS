@@ -15,6 +15,7 @@
 import { docFromText } from "./doc.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
+import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
@@ -37,9 +38,7 @@ const SETS = {
   dataRow: { id: "4035:10629", name: "Primitives/Table/Data-Row" },
   headerCell: { id: "1604:12968", name: "Table/Cell/Header" },
   defaultCell: { id: "1603:23604", name: "Table/Cell/Default" },
-  // ❖ Chart: each chart is a whole card (header Label, Icon-Main, Segmented, the drawing), no properties.
-  lineChart: { id: "6643:63324", name: "Chart/Line-Chart" },
-  stackBarChart: { id: "6643:73471", name: "Chart/Stack-Bar-Chart" },
+  // ❖ Chart: figma-charts.mjs CHART_SETS (every chart set, its variants and header properties).
   // Data items drawn as their primitive (Term / Value, a tab's Text, a step's title and number).
   descriptionItem: { id: "14859:78890", name: ".Primitives/Description-List/Item" },
   tabItem: { id: "1576:2090", name: "Primitives/Tab-Item" },
@@ -63,8 +62,6 @@ const VARIABLE_OF_CSS = new Map(Object.entries(tokens).filter(([, value]) => typ
 const FIELDS = new Set(["InputField", "SelectField", "DateField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"]);
 /** A data value as the text it shows (a string or number; anything else draws nothing). */
 const textValue = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
-/** A ChartCard's chart (its child) → the Figma chart card that draws that kind. */
-const CHART_SETS = { LineChart: SETS.lineChart, StackBarChart: SETS.stackBarChart };
 /**
  * An icon's size (icon.css: Element-Size/Popular, the icon components' 20px is Base) as its Figma size variable, or a
  * px size; Base writes nothing.
@@ -352,7 +349,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const tabs = tabsOfChildren(element);
       node = instanceNode(tabs, codeProps(tabs), id, parent);
     }
-    else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_SETS[child.name])) node = chartCardNode(element, code, id);
+    else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_COMPONENTS.has(child.name))) node = chartCardNode(element, code, id);
+    else if (CHART_COMPONENTS.has(element.name)) node = chartNode(element, null, id);
     else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
     // Metric is MetricCard's content without its Card: the same Metric-Inline set and parts.
@@ -481,23 +479,65 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], { ...(id ? { id } : {}), ...canvas });
   }
 
+  /* ── charts (figma-charts.mjs: sets, variants, header properties) ── */
+
+  /** A prop's plain data, its mock data when it reads `mock.…`; `true` for a prop that holds no data (a handler, a node). */
+  const chartValue = (value) => {
+    if (value?.kind === "ref" && value.root === "mock") return value.path.reduce((data, step) => data?.[step], doc.mock);
+    const data = plain(value);
+    return data === undefined && value ? true : data;
+  };
+  /** A header text a ChartCard prop shows: a string or number, else the words its layers show. */
+  const headerText = (value) => (value?.kind === "element" ? layerWords(value) : textValue(literalOf(value)));
+  /** An icon prop as an icon name: a name, or an <Icon name> node. */
+  const iconName = (value) => (typeof literalOf(value) === "string" ? literalOf(value) : value?.kind === "element" && value.node.name === "Icon" ? literalOf(value.node.props.name) ?? null : null);
+
   /**
-   * ChartCard as Chart.tsx draws it: a Card (its theme) holding Figma's chart of that kind (❖ Chart: header Label,
-   * Icon-Main, Segmented, the drawing), the title in its Label, `ranges` as the Segmented's items (hidden without), the
-   * open button only with `onOpen`. Figma draws its own sample data.
+   * A chart as Figma's set of its kind (figma-charts.mjs chartFigma: Line, Multi-Line by its Sector, Bar by its
+   * Orientation, Donut, Radial, Area by its Type…), with Show Average / Show Legend from the code. `header`: a ChartCard's
+   * header as the set's properties; null for a chart on its own, whose header is off and Heading hidden (its title has
+   * no toggle). Figma draws its own sample data: a note says so.
+   */
+  function chartNode(element, header, id) {
+    const where = `${element.name}${id ? ` (${id})` : ""}`;
+    const values = Object.fromEntries(Object.entries(element.props).map(([name, value]) => [name, chartValue(value)]));
+    const drawn = chartFigma(element.name, values, notes, where);
+    if (!drawn) return null;
+    notes.push(`${element.name}: Figma's ${drawn.set.name} draws its own sample data`);
+    const { set } = drawn;
+    if (!header) return { type: "INSTANCE", ...(id ? { id } : {}), name: set.name, set, props: { ...BARE_HEADER, ...drawn.props }, hide: [HEADING_LAYER] };
+    return { type: "INSTANCE", ...(id ? { id } : {}), name: set.name, set, props: { ...header.props, ...drawn.props }, ...(header.nested ? { nested: header.nested } : {}), ...(header.slots ? { slots: header.slots } : {}) };
+  }
+
+  /**
+   * ChartCard as Chart.tsx draws it: a Card (its theme) holding its chart's set (chartNode) with the header turned on
+   * by its props (Title, Show Icon + Icon, Show Description + Description, Show Value + Value, Show Ranges with
+   * `ranges` as the Segmented's items, Show Open with `onOpen`). The chart keeps its own key, so a pull gives it back
+   * its element id.
    */
   function chartCardNode(element, code, id) {
-    const chart = element.children.find((child) => child.kind === "element" && CHART_SETS[child.name]);
-    const set = CHART_SETS[chart.name];
-    const title = typeof code.title === "string" ? code.title : "";
+    const charts = element.children.filter((child) => child.kind === "element" && CHART_COMPONENTS.has(child.name));
+    const chart = charts[0];
+    const where = `ChartCard${id ? ` (${id})` : ""}`;
+    const others = element.children.filter((child) => child.kind === "element" && child !== chart).length;
+    if (others) notes.push(`${where}: ${others} layer${others > 1 ? "s" : ""} beside its chart not pushed (Figma's Chart-Card holds one chart)`);
+    const title = headerText(element.props.title);
     const ranges = Array.isArray(plain(element.props.ranges)) ? plain(element.props.ranges) : [];
-    const hide = [...(ranges.length ? [] : ["Segmented"]), ...(element.props.onOpen ? [] : ["Button/Icon-Main"])];
+    const icon = iconName(element.props.icon);
+    if (element.props.icon && !icon) notes.push(`${where}: its icon is not an icon name (Show Icon off)`);
+    if (code.surface) notes.push(`${where}: surface="${code.surface}" not pushed (the Card's Surface keeps its default)`);
     // The range switch (Chart.tsx: a Segmented, secondary md) fills the card and splits it, or hugs its items
     // (rangesFullWidth={false}): then the chart's Segmented and its Item-List hug too.
     const full = code.rangesFullWidth !== false;
     const items = ranges.map((range) => ({ ...itemNode(SETS.segment, range ?? {}, { selected: range?.id !== undefined && range.id === (code.range ?? ranges[0]?.id), look: segmentLook({}) }), ...(full ? { fillW: true } : {}) }));
-    notes.push(`${chart.name}: Figma's ${set.name} draws its own sample data`);
-    const drawing = { type: "INSTANCE", name: set.name, set, props: {}, ...(title ? { texts: { Label: title } } : {}), ...(hide.length ? { hide } : {}), ...(items.length && !full ? { nested: [{ path: "Segmented", hugW: true }] } : {}), ...(items.length ? { slots: [{ name: "Item-List", children: items, ...(full ? {} : { hugW: true }) }] } : {}), fillW: true };
+    const header = {
+      props: chartHeaderFigma({ title, icon, description: headerText(element.props.description), value: headerText(element.props.value), ranges: items.length, open: Boolean(element.props.onOpen) }),
+      ...(items.length && !full ? { nested: [{ path: "Segmented", hugW: true }] } : {}),
+      ...(items.length ? { slots: [{ name: "Item-List", children: items, ...(full ? {} : { hugW: true }) }] } : {}),
+    };
+    const drawing = chartNode(chart, header, null);
+    if (!drawing) return null;
+    if (chart.id) drawing.key = chart.id;
     return cardAround(drawing, code.theme ?? "flat", id, title || "ChartCard");
   }
 

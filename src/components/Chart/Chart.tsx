@@ -99,7 +99,8 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
   const summary = !current ? t.noData : compared
     ? `${current.label}: ${name} ${format(current.value)}, ${compare!.label} ${format(compared[active!])}${position}`
     : `${current.label}: ${format(current.value)}${position}`;
-  const legend = compare && showLegend ? <ChartLegend items={[{ id: "value", label: name, color: LINE_SWATCH }, { id: "compare", label: compare.label, color: COMPARE_SWATCH }]} /> : undefined;
+  // Start-aligned, as Figma Chart/Multi-Line-Chart's Legend (15426:2587 and the other Sector variants: MIN).
+  const legend = compare && showLegend ? <ChartLegend align="start" items={[{ id: "value", label: name, color: LINE_SWATCH }, { id: "compare", label: compare.label, color: COMPARE_SWATCH }]} /> : undefined;
   const mean = showAverage ? meanOf(values) : undefined;
   return (
     <ChartBlock kind="line" legend={legend} position={legendPosition}>

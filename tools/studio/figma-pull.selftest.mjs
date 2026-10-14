@@ -163,6 +163,42 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("table: an Avatar-Cell with a Square Avatar is a photo column; the square is not a row's override", /content: "photo"/.test(photos) && photos.includes('"Row[row-2]/member/Avatar": { theme: "green", children: "BX" }') && !/shape: "square"/.test(photos));
 }
 
+// Charts (chart family phase 2, 2026-10-14; figma-charts.mjs), as figmaReadCode reads them: a ❖ Chart instance is its
+// properties, `headingHidden` and the items its Segmented shows. A Card (or a Chart/Chart-Card, read as its Card)
+// holding a chart whose Heading shows is a ChartCard with the header's props; a chart whose Heading is hidden is the
+// chart alone; the data is the Studio palette sample's.
+{
+  const cardSet = [...mapping.sets.values()].find((set) => set.code === "Card");
+  const chart = (name, id, props, extra = {}) => ({ type: "INSTANCE", id, name, set: { id, name }, props, ...extra });
+  const header = { "Show Icon": true, Icon: "icon-line-chart-up-line", Title: "Billable hours", "Show Description": true, Description: "Logged by team, 2026", "Show Value": true, Value: "11,480 h", "Show Ranges": true, "Show Open": true };
+  const ranges = [{ text: "Month", props: { Select: "No" } }, { text: "Quarter", props: { Select: "Yes" } }];
+  const frame = {
+    type: "FRAME", name: "Charts", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] },
+    children: [
+      { type: "INSTANCE", id: "9:1", name: "Card", set: { id: cardSet.id, name: cardSet.name }, props: { Theme: "Border", Spacing: "Medium", Active: "No", "Sub-Action": false }, slots: [{ id: "9:2", name: "Content", children: [chart("Chart/Area-Chart", "15484:2663", { ...header, "Show Legend": true, Type: "Stacked" }, { ranges })] }] },
+      // Chart/Chart-Card read as its Card (Flat by default), its chart a Bar-Chart Horizontal with only a title.
+      { type: "INSTANCE", id: "9:3", name: "Chart/Chart-Card", set: { id: cardSet.id, name: cardSet.name }, props: { Theme: "Flat", Spacing: "Medium", Active: "No", "Sub-Action": false }, slots: [{ id: "9:4", name: "Content", children: [chart("Chart/Bar-Chart", "15321:84071", { "Show Icon": false, Title: "Capacity", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false, "Show Average": true, Orientation: "Horizontal" })] }] },
+      chart("Chart/Multi-Line-Chart", "15501:3054", { Title: "x", Sector: "6-Sectors", "Show Average": false }, { headingHidden: true }),
+      chart("Chart/Donut-Chart", "15324:80365", { Title: "x", Legend: "Start", Total: "Centre", "Total Label": "Invoiced in Q3 2026", "Total Value": "$296,800" }, { headingHidden: true }),
+      chart("Chart/Gauge-Chart", "15486:2467", { Title: "Utilisation", "Show Legend": false }),
+      chart("Chart/Grouped-Bar-Chart", "15485:2457", { Title: "x", "Show Legend": false }, { headingHidden: true }),
+    ],
+  };
+  const { text: page, notes: chartNotes } = pageFromFigma(frame, { mapping });
+  check("charts: the page is valid dialect", validateDialect(page), []);
+  ok("charts: a Card holding a chart with its Heading is a ChartCard: title, icon, description, value, ranges (the picked one), the open button as a toast, the Card's theme", page.includes('<ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged by team, 2026" value="11,480 h" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })} theme="border">'));
+  ok("charts: Area Type Stacked with its legend (the stacked default) is the stacked sample", /<AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026"/.test(page) && !/showLegend/.test(page.split("\n").find((line) => line.includes("<AreaChart")) ?? ""));
+  ok("charts: Chart/Chart-Card (read as its Flat Card) is a ChartCard with ChartCard's default theme; Bar Horizontal + Show Average", /<ChartCard title="Capacity">\s*<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"[^>]*showAverage \/>/.test(page));
+  ok("charts: a chart whose Heading is hidden is the chart alone; Multi-Line Sector 6 has six months", /<LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026"[^>]*data=\{\[\{ label: "Apr"[^\]]*\{ label: "Sep", value: 105700 \}\]\}/.test(page));
+  ok("charts: Donut Legend Start, its Total Label kept, the sample's total left to the code", /<DonutChart aria-label="Revenue by client, Q3 2026"[^>]*legendPosition="start" label="Invoiced in Q3 2026" \/>/.test(page));
+  ok("charts: a chart with its Heading outside a Card: the chart, and a note that its header is ChartCard's", /<GaugeChart [^>]*showLegend=\{false\}/.test(page) && chartNotes.some((note) => note.startsWith('GaugeChart: its heading (Title "Utilisation") shows in Figma')));
+  ok("charts: one note that the data is the Studio's sample", chartNotes.some((note) => note.startsWith("6 charts: the data is the Studio's sample")));
+  ok("charts: grouped bars with Show Legend off keep their legend (chart/series-need-legend), with a note", !/<GroupedBarChart [^>]*showLegend/.test(page) && chartNotes.some((note) => /Show Legend is off in Figma; its series need their legend/.test(note)));
+  const compiled = compileReact(page, { file: "charts.zen.tsx" }).code;
+  check("charts: the compiled page has no usage-harness errors", checkSource(compiled, "Charts.tsx").filter((finding) => finding.severity === "error").map((finding) => `${finding.rule}: ${finding.message}`), []);
+  ok("charts: figmaReadCode reads a chart's properties, Heading and Segmented items, and Chart/Chart-Card as its Card", /const readChart = async/.test(figmaReadCode("1:2")) && /set\.name === "Chart\/Chart-Card"/.test(figmaReadCode("1:2")));
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);
