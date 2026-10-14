@@ -2007,7 +2007,6 @@ export const tokens = {
   "Segmented/Item-Corner-Radius-Small": "var(--zen-segmented-item-corner-radius-small)",
   "Segmented/Size/Medium": "var(--zen-segmented-size-medium)",
   "Segmented/Size/Small": "var(--zen-segmented-size-small)",
-  "Segmented/Size/XSmall": "var(--zen-segmented-size-xsmall)",
   "Segmented/Spacing/Medium/Gap": "var(--zen-segmented-spacing-medium-gap)",
   "Segmented/Spacing/Medium/Horizontal-Padding": "var(--zen-segmented-spacing-medium-horizontal-padding)",
   "Segmented/Spacing/Medium/Text-Wrapper-Padding": "var(--zen-segmented-spacing-medium-text-wrapper-padding)",
@@ -2280,7 +2279,7 @@ export const tokenCollections = {
       "Comfortable",
       "Studio"
     ],
-    "variableCount": 195
+    "variableCount": 194
   },
   "spacing": {
     "name": "Spacing",

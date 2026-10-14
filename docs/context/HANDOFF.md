@@ -45,6 +45,8 @@ Last updated: 2026-10-13.
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
 - **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode
   "Studio" for the Zen Studio chrome (ChromeScope); not in Figma — keep them on the next sync (or add them in Figma).
+  2026-10-14 (live Figma read): Component Size `Segmented/Size` Medium 36 / 44, Small 28 / 36, XSmall deleted (Studio
+  mode kept at 28 / 24); Segmented track padding 3XSmall, Primary track outlined.
   2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
   Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,

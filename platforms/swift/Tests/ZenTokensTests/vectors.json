@@ -1,5 +1,53 @@
 [
  {
+  "name": "Badge/Size/2XSmall",
+  "context": {},
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Badge/Size/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Badge/Size/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "component-colors-theme": "Brand - S1",
+   "component-size": "Compact",
+   "corner-radius": "Smooth"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Badge/Size/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Dark",
+   "typography-configuration": "Mobile",
+   "corner-radius": "Standard"
+  },
+  "type": "FLOAT",
+  "expected": 12
+ },
+ {
+  "name": "Badge/Size/2XSmall",
+  "context": {
+   "mode-colors-semantic": "Light",
+   "component-colors-theme": "Neutral - S4",
+   "component-size": "Comfortable",
+   "corner-radius": "Luxury",
+   "emphasis-level": "Strong",
+   "breakpoint-grids": "Mobile"
+  },
+  "type": "FLOAT",
+  "expected": 16
+ },
+ {
   "name": "Badge/Spacing/Small/Gap",
   "context": {},
   "type": "FLOAT",
@@ -4416,21 +4464,21 @@
   "expected": 2
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "name": "Navigation-Action/Icon/Spacing/Gap",
   "context": {},
   "type": "FLOAT",
-  "expected": 10
+  "expected": 24
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "name": "Navigation-Action/Icon/Spacing/Gap",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "FLOAT",
-  "expected": 10
+  "expected": 24
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "name": "Navigation-Action/Icon/Spacing/Gap",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -4438,20 +4486,20 @@
    "corner-radius": "Smooth"
   },
   "type": "FLOAT",
-  "expected": 10
+  "expected": 24
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "name": "Navigation-Action/Icon/Spacing/Gap",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "FLOAT",
-  "expected": 10
+  "expected": 24
  },
  {
-  "name": "Navigation-Action/Icon/Spacing/Vertical-Padding",
+  "name": "Navigation-Action/Icon/Spacing/Gap",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -4461,55 +4509,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "FLOAT",
-  "expected": 10
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {},
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Dark"
-  },
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "component-colors-theme": "Brand - S1",
-   "component-size": "Compact",
-   "corner-radius": "Smooth"
-  },
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Dark",
-   "typography-configuration": "Mobile",
-   "corner-radius": "Standard"
-  },
-  "type": "FLOAT",
-  "expected": 20
- },
- {
-  "name": "Navigation-Action/Margin",
-  "context": {
-   "mode-colors-semantic": "Light",
-   "component-colors-theme": "Neutral - S4",
-   "component-size": "Comfortable",
-   "corner-radius": "Luxury",
-   "emphasis-level": "Strong",
-   "breakpoint-grids": "Mobile"
-  },
-  "type": "FLOAT",
-  "expected": 20
+  "expected": 24
  },
  {
   "name": "Overlay/White/10",
@@ -5712,21 +5712,21 @@
   "expected": 8
  },
  {
-  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "name": "Tab-Item/Spacing/Medium/Vertical-Padding",
   "context": {},
   "type": "FLOAT",
-  "expected": 0
+  "expected": 8
  },
  {
-  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "name": "Tab-Item/Spacing/Medium/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Dark"
   },
   "type": "FLOAT",
-  "expected": 0
+  "expected": 8
  },
  {
-  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "name": "Tab-Item/Spacing/Medium/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -5734,20 +5734,20 @@
    "corner-radius": "Smooth"
   },
   "type": "FLOAT",
-  "expected": 0
+  "expected": 8
  },
  {
-  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "name": "Tab-Item/Spacing/Medium/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
    "corner-radius": "Standard"
   },
   "type": "FLOAT",
-  "expected": 0
+  "expected": 8
  },
  {
-  "name": "Tab-Item/Spacing/Medium/Horizontal-Padding",
+  "name": "Tab-Item/Spacing/Medium/Vertical-Padding",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",
@@ -5757,7 +5757,7 @@
    "breakpoint-grids": "Mobile"
   },
   "type": "FLOAT",
-  "expected": 0
+  "expected": 8
  },
  {
   "name": "Tab/Content/Default",
@@ -5856,13 +5856,13 @@
   "expected": 24
  },
  {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "name": "Tag/Spacing/Small/Minimum-Padding",
   "context": {},
   "type": "FLOAT",
   "expected": 4
  },
  {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "name": "Tag/Spacing/Small/Minimum-Padding",
   "context": {
    "mode-colors-semantic": "Dark"
   },
@@ -5870,7 +5870,7 @@
   "expected": 4
  },
  {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "name": "Tag/Spacing/Small/Minimum-Padding",
   "context": {
    "mode-colors-semantic": "Dark",
    "component-colors-theme": "Brand - S1",
@@ -5881,7 +5881,7 @@
   "expected": 4
  },
  {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "name": "Tag/Spacing/Small/Minimum-Padding",
   "context": {
    "mode-colors-semantic": "Dark",
    "typography-configuration": "Mobile",
@@ -5891,7 +5891,7 @@
   "expected": 4
  },
  {
-  "name": "Tag/Spacing/Medium/Minimum-Padding",
+  "name": "Tag/Spacing/Small/Minimum-Padding",
   "context": {
    "mode-colors-semantic": "Light",
    "component-colors-theme": "Neutral - S4",

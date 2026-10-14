@@ -25,7 +25,6 @@ const ALLOWED = {
   Chip: { "Badge-Counter": "inside .Chip/Trailing (333:82245, Select Type=Multiple), whose layers the Chip contract does not capture; suites/chip-trailing.mjs checks it" },
   TextAreaField: { Leading: "Figma's Input/Text-Area has no Leading or Trailing (nested-layers.json); the code's text area takes them as the other fields do", Trailing: "Figma's Input/Text-Area has no Leading or Trailing (nested-layers.json); the code's text area takes them as the other fields do" },
   Search: { Filter: "Figma draws it as Search/Filter-Icon or Search/Filter-Dropdown by Theme: one code layer for both" },
-  Segmented: { "Badge-Counter": "inside Item (Primitives/Segmented/Item-N), whose layers the contract does not capture", Leading: "inside Item, whose layers the contract does not capture" },
   Sidebar: { "Badge-Counter": "inside Item (Primitives/Side-Bar/Menu-Item), whose layers the contract does not capture" },
   // Read 2026-10-12 (nested-layers.json), after the Figma layers were renamed to Zen's names (layer-renames in
   // docs/figma-contracts): what is left is structure Figma draws differently, items it leaves unnamed, or layers it

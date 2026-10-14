@@ -52,7 +52,7 @@
         "Comfortable",
         "Studio"
       ],
-      "variableCount": 195
+      "variableCount": 194
     },
     "spacing": {
       "name": "Spacing",
@@ -29440,8 +29440,8 @@
       "name": "Segmented/Size/Medium",
       "type": "FLOAT",
       "valuesByMode": {
-        "Compact": "{dm-32}",
-        "Comfortable": "{dm-40}",
+        "Compact": "{dm-36}",
+        "Comfortable": "{dm-44}",
         "Studio": "{dm-28}"
       },
       "collectionSlug": "component-size",
@@ -29456,8 +29456,8 @@
       "name": "Segmented/Size/Small",
       "type": "FLOAT",
       "valuesByMode": {
-        "Compact": "{dm-24}",
-        "Comfortable": "{dm-32}",
+        "Compact": "{dm-28}",
+        "Comfortable": "{dm-36}",
         "Studio": "{dm-24}"
       },
       "collectionSlug": "component-size",
@@ -29539,22 +29539,6 @@
         "Compact": "{dm-4}",
         "Comfortable": "{dm-4}",
         "Studio": "{dm-4}"
-      },
-      "collectionSlug": "component-size",
-      "collectionName": "Component Size",
-      "modes": [
-        "Compact",
-        "Comfortable",
-        "Studio"
-      ]
-    },
-    {
-      "name": "Segmented/Size/XSmall",
-      "type": "FLOAT",
-      "valuesByMode": {
-        "Compact": "{dm-16}",
-        "Comfortable": "{dm-24}",
-        "Studio": "{dm-16}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",
