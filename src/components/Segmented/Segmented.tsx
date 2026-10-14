@@ -47,7 +47,7 @@ export interface SegmentedProps {
   onValueChange?: (value: string) => void;
   /** @deprecated Use onValueChange (same arguments). */
   onChange?: (value: string) => void;
-  /** Secondary (default) is the common case; Primary adds emphasis. */
+  /** Secondary (default, filled track) is the common case; Primary (outlined track, solid selected segment) adds emphasis. */
   level?: SegmentedLevel;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: SegmentedSize;
@@ -64,8 +64,9 @@ export interface SegmentedProps {
 }
 
 /**
- * Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a Neutral/Subtle pill track (Spacing/Padding/
- * 2XSmall) of toggle segments, Secondary (default) or Primary, Small or Medium. An icon-only segment (Item Label=false:
+ * Figma Segmented (1238:892) of `Primitives/Segmented/Item` (1204:11690): a pill track (Spacing/Padding/3XSmall) of toggle
+ * segments (Segmented/Size/Small or Medium), Secondary (default, a Neutral/Subtle track) or Primary (an outlined track: no
+ * fill, a 2px Color/Border/Neutral/Subtle/Default ring). An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
  */
 export function Segmented({ ref, options, value, defaultValue, onValueChange, onChange, level = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides }: SegmentedProps) {

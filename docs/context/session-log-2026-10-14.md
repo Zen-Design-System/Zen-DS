@@ -282,3 +282,35 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
 - Guideline: Popover api row Width + one Do line; `guidelines:build`, `part-props-build` rerun.
 - Gate [fit] popover@390: a long SelectField value spilled 16px out of its trigger (no ellipsis) → `input.css`
   `.zen-select__trigger.zen-input__native` ellipsis; the domain row wraps (field min 200, Publish below on phones).
+
+## Segmented tokens + component, Figma → code/Studio (tier M, user: "Update Segmented Tokens từ component theme và Segmented Component từ Figma lên Studio")
+
+- Live read (file 9nZv4uW2LT21yuHabMTCh1): Component Theme `Segmented-Item-*` (13 tokens, 9 modes) equal the repo, no
+  change. Component Size changed: `Segmented/Size/Medium` 36 / 44 (was 32 / 40), `Small` 28 / 36 (was 24 / 32),
+  `Segmented/Size/XSmall` deleted (no consumer). Repo-only Studio mode kept (Medium 28, Small 24, HANDOFF rule).
+  Component Size 194 variables (167 hidden in Figma); repo 2,224; tokens:build, tokens:check 0 failures.
+- Component (1238:892 + 1204:11690, every variant hash changed): track padding Spacing/Padding/3XSmall (2, was 2XSmall 4),
+  so the Compact Medium track stays 40 tall; Level=Primary track has its fill hidden and a 2px INSIDE stroke
+  Color/Border/Neutral/Subtle/Default (new). Item fills, labels, icons, focus ring, badge themes, text styles unchanged.
+  (Level=Secondary's track is now a VERTICAL auto layout around the slot; same geometry, nothing to do in code.)
+- Code: segmented.css padding token + `[data-level="primary"]` track (no background, inset 2px ring, Figma strokes take
+  no room); Segmented.tsx JSDoc; Studio PropField `TRACK_PADDING` 8 → 4 (fit check of the inspector's enum Segmented);
+  guideline Level text; guidelines rebuilt.
+- Contracts: both sets re-captured into segmented-toggle-badge-avatarstack.json (18 variants, ASCII-escaped parts of
+  ≤ 18,000 escaped chars, patched with figma-kit) and checked against the live hashes (770a955f, ad5fdad7: 18/18 ✓);
+  BACKLOG P3 "contracts without a suite" line updated. `lock --check` was already failing (Button Focused
+  variants patched 2026-10-13 and Input/Heading, Dashboard/Header without a lock run) → `lock`, now ✓.
+  nested-paths: the two Segmented ALLOWED entries were stale (Item layers are now captured) → removed, 45/45 ✓.
+- Bug met (Giám sát flagged binding-diff selftest [99,1]): binding-diff proposed a ✓ edit of tag.css (Segmented Item's old
+  fill read Tag/Background/Default) because a set no code component names (Primitives/Segmented/Item) searched every
+  stylesheet → folderIndex falls back to the folder the set name starts with; now 0 proposals. The selftest's
+  "committed contracts" check stays [99,0] until the contract is committed (0/0 against a `git stash create` tree).
+- Studio mode: kept 28 / 24 items, so the chrome's Segmented track is 4px lower (28 / 32 with 2px padding).
+- Gate (`npm run qa -- --isolated --files=…`, after Giám sát moved the checkout to b399312): static, Vitest 58/58, audit
+  1512 + 390, dark, behaviour ✓; sheets segmented/chart 390 + 1512 looked at (Primary track outlined, nothing cut).
+  Studio E2E: B-29 broke because the inspector's enum rows now fit a Segmented (real track chrome 4, was counted 8)
+  where the E2E helper `pickOption` only opened selects → helper picks a segment when the row draws one (B-29, I-31 ✓).
+  MC-08 and binding-diff's repo check need the contract committed (0/0 against a `git stash create` tree; the selftest
+  now asks for no proposal while contracts are uncommitted). O-02 / O-04 fail on clean b399312 too: the new
+  `inertOutside` (_shared/modal-isolation.ts) inerts everything up to `<body>`, the Studio toolbar included, while a
+  canvas Dialog is open → told Giám sát (owner of that refactor's landing), not changed here.

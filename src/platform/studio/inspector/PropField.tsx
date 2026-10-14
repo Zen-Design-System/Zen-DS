@@ -126,7 +126,8 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
 
 /* Small full-width Segmented: equal items, each its label plus 2 × (item padding + label padding), in a padded track. */
 const SEGMENT_CHROME = 16;
-const TRACK_PADDING = 8;
+/** 2 × the track's Spacing/Padding/3XSmall. */
+const TRACK_PADDING = 4;
 
 /** Whether a small full-width Segmented shows every label whole at the wrapper's current width. */
 function useSegmentedFits(labels: string[]) {
