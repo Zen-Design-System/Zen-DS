@@ -7,8 +7,8 @@ Everything it points to ships inside the package: `node_modules/@zen-ds/react/â€
 
 Install: `@zen-ds/react` comes only from the licensed Zen registry. The app's `.npmrc` needs
 `@zen-ds:registry=https://npm.dizai.studio/` (commit it; `npx zen-ds doctor` checks it); without it npm installs an old public 0.1.0.
-Signing in (`npm login` with the company's licence key) is the developer's step: never ask for, write or commit the
-licence key or a registry token. On `E401`/`E403`, stop and point the developer to "Install" in
+Signing in (`npm login`, which opens the Zen sign-in page in the developer's browser) is the developer's step: never
+ask for, write or commit the licence key, a password or a registry token. On `E401`/`E403`, stop and point the developer to "Install" in
 `docs/getting-started.md`.
 
 ```tsx

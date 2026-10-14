@@ -1,17 +1,17 @@
 # Zen DS private registry
 
-A self-hosted [Verdaccio](https://verdaccio.org) 6 that serves the licensed `@zen-ds/*` packages. Access is
-per company license: the `zen-license` auth plugin checks the license key (the license record id) against the
-`zen-license-management` PocketBase backend, and re-checks the license on every request, so a deactivated license
-stops working with a token issued earlier.
+A self-hosted [Verdaccio](https://verdaccio.org) 6 that serves the licensed `@zen-ds/*` packages. Access is per
+seat: developers sign in with their Zen account through `npm login` (browser), CI with the licence key, and the
+`zen-license` plugin checks both against the `zen-license-management` PocketBase backend on every request, so a
+deactivated licence or a removed team member stops working with a token issued earlier.
 
 | Path | What |
 | --- | --- |
 | `config.yaml` | The registry config: only `@zen-ds/*`, no uplinks (never proxies npmjs), no sign-up, web UI off |
-| `plugins/verdaccio-zen-license/` | The auth plugin (`index.js`) and its PocketBase client (`license-store.js`) |
+| `plugins/verdaccio-zen-license/` | The plugin (`index.js`: auth + `npm login` routes), its PocketBase client (`license-store.js`), the sign-in page (`login-page.js`), CI-token and usage files (`state.js`), `usage-report.js` |
 | `test/plugin.test.js` | Unit tests with a fake store and clock |
-| `test/e2e.test.js` | Real PocketBase + Verdaccio + npm: publish, install, revoke, restore |
-| `test/pocketbase/pb_migrations/` | A copy of the live license schema + the registry-access change |
+| `test/e2e.test.js` | Real PocketBase + Verdaccio + npm: publish, install, revoke, restore, browser `npm login`, seats, CI cap, usage |
+| `test/pocketbase/pb_migrations/` | A copy of the live license schema + the registry-access changes (licenses, team_members) |
 | `scripts/fetch-pocketbase.mjs` | Downloads the pinned PocketBase (0.39.11) into `.bin/` for the e2e test |
 | `deploy/` | Dockerfile, docker-compose (Verdaccio + Caddy), server setup, backup/restore to R2, deploy script |
 
@@ -25,12 +25,22 @@ npm run test:stack  # the same e2e against the Docker stack + backup â†’ wipe â†
 
 ## How access works
 
-- **License key** = the id of the customer's record in the `licenses` collection of `zen-license-management`
-  (15 characters), copied from the license server. One license per company, shared by its developers and CI.
-- The customer runs `npm login` once, with any username and the license key as password; npm stores a token.
-  The license must have `active` set (business and pro alike).
-- The token is a JWT valid for 365 days. Whether it still works depends on the license: it is re-checked on every
-  request, cached `cache_seconds` (300), so unticking `active` cuts access within 5 minutes.
+- **Seats**: a licence (`licenses`, `active` set, business or pro) has `max_members` seats, held by its `owner`
+  and then its `team_members`, oldest first. Owners manage the team in the licence-management app.
+- **Developers** run `npm login` (npm's web login): `POST /-/v1/login` gives npm a sign-in link
+  (`/-/zen/login/<id>`, 10 minutes, single use) and a polling link (`/-/zen/done/<id>`). The page signs in to
+  PocketBase with Google (`sign_in_provider`; the registry also requires a linked Google login) and hands the user token to the registry, which finds the licences the
+  person owns or belongs to and issues a token only for a seat they hold. The token carries the licence and user ids.
+- **CI** runs `npm login --auth-type=legacy` with the **licence key** (the `licenses` record id) as password. At
+  most `ci_tokens_per_license` (3) CI tokens stay active per licence; a fourth retires the oldest
+  (`zen-ci-tokens.json` in the storage volume). Basic auth with the key on each request is refused.
+- Tokens are JWTs valid for 365 days. Every request re-checks the licence, the seat or the CI slot, cached
+  `cache_seconds` (300): unticking `active` or removing a team member cuts access within 5 minutes. Tokens from
+  before seats (2026-10-14) are refused with "run npm login again".
+- **Usage**: each customer request is counted per month and licence (developers, CI tokens, client IPs, installs)
+  in `zen-usage.json`; on the server, `podman exec zen-registry node
+  /verdaccio/plugins/verdaccio-zen-license/usage-report.js [YYYY-MM]` prints the table. Many IPs for few
+  developers, or one CI token used from many places, is what a shared key looks like.
 - If PocketBase is unreachable, cached answers keep serving for `stale_grace_seconds` (3600); after that the
   registry answers 503, never 401.
 - Publishing: only the CI publisher, whose key's SHA-256 is `ZEN_PUBLISHER_KEY_HASH`. With no hash set, nobody can
@@ -43,8 +53,8 @@ Customer setup:
 @zen-ds:registry=https://npm.<domain>/
 ```
 ```bash
-npm login --registry=https://npm.<domain>/ --scope=@zen-ds --auth-type=legacy
-#   Username: anything    Password: <license key>    Email: anything
+npm login --registry=https://npm.<domain>/ --scope=@zen-ds                       # developer: browser sign-in
+npm login --registry=https://npm.<domain>/ --scope=@zen-ds --auth-type=legacy    # CI: password = licence key
 ```
 
 ## Environment
@@ -71,6 +81,10 @@ is the same change, run by the e2e test against a copy of the live schema, `1791
 
 Rollback: set `licenses.viewRule` back to
 `owner.id = @request.auth.id || team_members_via_license.user ?= @request.auth.id` and delete `registry_clients`.
+
+Seats (2026-10-14, `1791500002_registry_members.js`): `team_members.listRule` and `viewRule` gain
+`|| @request.auth.collectionName = "registry_clients"`, so the registry can count a licence's members (read-only).
+Rollback: remove that part from both rules (developer sign-ins then fail with 503; CI tokens keep working).
 
 ## Deploy (VPS, `npm.dizai.studio`)
 

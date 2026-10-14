@@ -14,6 +14,13 @@ auth:
     licenses_collection: licenses
     cache_seconds: 300          # revocation takes effect within this window
     stale_grace_seconds: 3600   # cached answers keep serving this long while PocketBase is down
+    ci_tokens_per_license: 3    # CI tokens from the licence key; one more retires the oldest
+    sign_in_provider: google    # developers sign in with Google only (the account must have it linked)
+
+# The same plugin answers `npm login` (browser sign-in for developers, licence key for CI) and counts usage.
+middlewares:
+  zen-license:
+    enabled: true
 
 security:
   api:

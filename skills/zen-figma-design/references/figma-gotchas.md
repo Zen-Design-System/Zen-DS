@@ -11,6 +11,9 @@ skill covers the general API rules (fonts, pages, auto-layout sizing); these are
   with a clipping parent never finds a cut shadow. Compute the shadow's reach from `effects` (offset, radius, spread),
   as the audit does, and compare it with every clipping frame above the layer, including frames inside instances.
 - **The screenshot hides it too.** `node.screenshot()` of a card row crops at the row's edge; look at the whole screen.
+- **An inside stroke moves the clip.** A clipping frame with an INSIDE stroke clips its children 1px inside its edge
+  but keeps the outer radius, so a child that fills it leaves a hairline gap at each corner (a colour swatch at zoom).
+  Put the fill on the stroked layer itself, or draw the border as a top `Border` layer with the same radius.
 
 ## Instances
 

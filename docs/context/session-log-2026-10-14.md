@@ -177,6 +177,27 @@
 - Not fixed (BACKLOG P3): a Grid in a Grid cell does not stretch to its row in Figma; Swap Project Colors' sync
   `getVariableById`. Charts still draw Figma's sample data (BACKLOG P2, awaiting scope).
 
+## Property-panel components in Figma, Accordion spacing + Pale rule (tier S; user: "bổ sung các component thiếu vào Figma", "Spacing giữ Title và list gần nhau quá … set rule luôn", "Accordion tự lo", "Đổi màu border của accordion sang Pale")
+- Figma only (draft sections, ids in memory `property-panel-figma-draft`): Input/Inline-Field, Input/Color-Field,
+  .Primitives/Input/Color-Swatch, Color-Picker, Slider/Field, Chart/Curve-Preview, a Photo Stack example (Light/Dark).
+- Accordion Medium Title → Contents 8 → 12 (Figma primitive 239:18764 Medium ×4 → Spacing/Gap/Small; accordion.css;
+  test accordion-sheet-rating), one step above the rows inside; its Figma description rule via tools/figma-docs (FORCE
+  for this call, backup on 🔒 ARCHIVED). No new Stack/Box API: a paddingTop/Bottom try was reverted the same session.
+- Accordion Divider rule Subtle → Pale in accordion.css; Figma already bound Border/Neutral/Pale/Default on all 24 roots.
+- Rules: groups in their own stacks with gap 0 (a divider has 16 above and below), the Accordion owns title → rows,
+  nested corners concentric (component-usage-rules §13, screen-rules §2, figma-gotchas: an inside stroke clips 1px in
+  with the outer radius). BACKLOG P3: Accordion Box top/bottom Pale stroke in Figma, a designer question.
+- Checks: ai-kit:check ✓, qa (accordion, --isolated) ✓, accordion tests 21/21.
+
+## Registry seats: Google sign-in for developers, capped CI keys, usage (approved by the user)
+
+- `npm login` (web) → `/-/zen/login/<id>` page (Google only; the registry also requires a linked Google login) →
+  seat check: owner + team_members oldest first, up to max_members. CI: `--auth-type=legacy` + licence key → CI
+  token, 3 per licence (4th retires oldest, `zen-ci-tokens.json`). Basic auth with the key refused. Old tokens refused.
+- Usage per month/licence (`zen-usage.json`, `usage-report.js`). Live PocketBase: team_members list/view rules +
+  `registry_clients` (read-only; checked: registry sees members, not licence lists). Deployed; tests 28/28.
+- Not tried live: a real Google sign-in + a real CI key login (needs the user's account / key).
+
 ## Charts phase 2: seven Figma charts in code + Studio (tier L, user: "kiểm tra update lại các Chart mới từ Figma lên lại studio" → "Đủ cả")
 
 - Worktree `../Zen-DS-charts2`, branch `zen/feat/charts-phase2` (from main 1831bc8, fast-forwarded to d587171). Spec

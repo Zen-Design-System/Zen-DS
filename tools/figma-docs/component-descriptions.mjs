@@ -536,7 +536,7 @@ export const componentDescriptions = {
     use: ["FAQs and help content.", "Long grouped settings: one item per group, titled “Group · N items”, the first open."],
     instead: ["Content everyone needs → show it.", "Peer views → Tab-Bar.", "Sequential steps → Stepper."],
     props: [["Theme", "Divider · Box"], ["Size", "Medium · Large · XLarge"], ["Content Width", "Title · Full"]],
-    rules: ["Fill every item's content, also the collapsed ones.", "One level: no accordion inside an accordion."],
+    rules: ["Fill every item's content, also the collapsed ones.", "One level: no accordion inside an accordion.", "Title → Contents is the item's own gap (Medium and Large 12, XLarge 16), one step more than the 8 between rows inside it: never pad the rows to move them off the title."],
     code: "`<Accordion>`",
   }),
 

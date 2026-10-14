@@ -7,11 +7,11 @@ How to install `@zen-ds/react` in a React app and set it up correctly. AI agents
 
 `@zen-ds/react` is a licensed package. It is served only by the Zen registry, `https://npm.dizai.studio/`, to
 companies with an active licence; it is not on the public npm registry. Before the first install, point the `@zen-ds`
-scope at the registry (once per project) and sign in with your licence key (once per developer).
+scope at the registry (once per project) and sign in with your Zen account (once per developer).
 
-**Your licence key** is the ID of your company's licence, as shown with the licence in your Zen account (15 lowercase
-letters and digits). One key covers your company's developers and its CI. Treat it like a password: never commit it
-and never paste it into an issue or a chat.
+**Seats.** A licence has a number of seats: its owner and the team members the owner adds in the Zen account, oldest
+first. Each developer signs in as themselves and needs a seat. CI does not take a seat: it signs in with the licence
+key (see CI below).
 
 ### 1. Point the `@zen-ds` scope at the registry (once per project)
 
@@ -24,20 +24,19 @@ Add this line to the `.npmrc` in your app's root folder and commit it, so teamma
 Only `@zen-ds/*` packages come from the Zen registry; everything else still comes from your usual registry. Without
 this line npm finds an old public `@zen-ds/react` (0.1.0) on npmjs.com and installs that instead.
 
-### 2. Sign in once with your licence key (once per developer)
+### 2. Sign in with your Zen account (once per developer)
 
 ```bash
-npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy
-#   Username: anything (your name)   Password: your licence key   Email: anything
+npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds
 ```
 
-npm keeps a spinner turning while you type the password, which hides what you type: it is waiting for you, not
-stuck. Type or paste the key and press Enter (`--no-progress` hides the spinner). On success npm prints
-`Logged in to scope @zen-ds on https://npm.dizai.studio/`.
+npm prints a sign-in link and opens it in your browser (press Enter if it asks). Sign in with Google, using the Google
+account of the Zen account your licence owner added to the team (Google is the only way in). npm then prints
+`Logged in to scope @zen-ds on https://npm.dizai.studio/`. The link works once, for 10 minutes.
 
-npm stores a token in your user `~/.npmrc` (not the project's), valid for 365 days. The registry re-checks the
-licence on every request, so the token stops working when the subscription ends; run `npm login` again after
-renewing, or once a year.
+npm stores a token in your user `~/.npmrc` (not the project's), valid for 365 days. The registry re-checks it on every
+request: it stops working when the subscription ends or the owner removes you from the team. Run `npm login` again
+after renewing, or once a year.
 
 ### 3. Install
 
@@ -45,13 +44,22 @@ renewing, or once a year.
 npm install @zen-ds/react react@^19 react-dom@^19
 ```
 
-With pnpm, the same `.npmrc` and `npm login` work as they are. Yarn 2 or later ignores `.npmrc`; put the scope in
-`.yarnrc.yml` instead and sign in with `yarn npm login --scope zen-ds` (same licence key):
+With pnpm, the same `.npmrc` and `npm login` work as they are. Yarn 2 or later ignores `.npmrc`: put the scope in
+the project's `.yarnrc.yml`, sign in once with `npm login` as in step 2, and copy the token from your `~/.npmrc`
+(the `//npm.dizai.studio/:_authToken=…` line) into your user `~/.yarnrc.yml`, never the project's:
 
 ```yaml
+# .yarnrc.yml in the project
 npmScopes:
   zen-ds:
     npmRegistryServer: "https://npm.dizai.studio/"
+```
+
+```yaml
+# ~/.yarnrc.yml (yours only)
+npmScopes:
+  zen-ds:
+    npmAuthToken: "<the token>"
 ```
 
 Peer dependencies: `react` and `react-dom` 19. The package is ES modules with TypeScript declarations. Every
@@ -59,9 +67,21 @@ component file starts with `"use client"`, so React Server Component frameworks 
 
 ### CI and Docker builds
 
-Sign in once on your machine as in step 2 and copy the token from the `//npm.dizai.studio/:_authToken=…` line of your
-`~/.npmrc` into a CI secret named `ZEN_DS_NPM_TOKEN`. The CI job writes that line into its own user `~/.npmrc` before
-installing. Do not put the token line in the project's `.npmrc`, not even as `${ZEN_DS_NPM_TOKEN}`: the project file
+CI signs in with the **licence key**: the ID of your company's licence, as shown with the licence in your Zen account
+(15 lowercase letters and digits). Treat it like a password: never commit it, never paste it into an issue or a chat.
+Get a CI token once, on your machine, into a throwaway config so it does not replace your own sign-in:
+
+```bash
+npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy --userconfig=./ci-token.npmrc
+#   Username: a name for this CI (e.g. github-actions)   Password: the licence key   Email: anything
+```
+
+Copy the token from the `//npm.dizai.studio/:_authToken=…` line of `ci-token.npmrc` into a CI secret named
+`ZEN_DS_NPM_TOKEN`, then delete the file. A licence has up to 3 CI tokens: getting a fourth retires the oldest, so
+give each pipeline its own and replace one only when you mean to. (npm keeps a spinner turning at the password
+prompt; it is waiting for you. Paste the key and press Enter.)
+
+The CI job writes the token line into its own user `~/.npmrc` before installing. Do not put the token line in the project's `.npmrc`, not even as `${ZEN_DS_NPM_TOKEN}`: the project file
 wins over each developer's own sign-in, and on a machine without the variable every install fails with `E401`
 (`npx zen-ds doctor` flags it). In GitHub Actions:
 
@@ -90,9 +110,15 @@ after 365 days.
 
 | npm says | Why | What to do |
 | --- | --- | --- |
-| `E409` … `sign-up is closed: use your license key` (on `npm login`) | Wrong key, or the licence is not active | Copy the key again from your Zen account; check that the subscription is active |
+| `every seat of your licence is taken` (in the browser, on `npm login`) | All seats are held by the owner and earlier team members | Ask the licence owner to remove someone or buy more seats |
+| `sign in with Google: this account has no google sign-in linked` (in the browser) | Your Zen account was made with a password or email code | Sign in to your Zen account once with Google (same email), then `npm login` again |
+| `this account has no Zen DS licence` (in the browser) | You signed in with an account that is not on the team | Sign in with the account the owner added, or ask them to add you |
+| `E401` … `invalid or inactive licence key` (on `npm login --auth-type=legacy`) | Wrong key, or the licence is not active | Copy the key again from your Zen account; check that the subscription is active |
 | `E401` `Unable to authenticate, your authentication token seems to be invalid` | Not signed in on this machine, the token is over 365 days old, the CI token is missing, or the project's `.npmrc` has an `_authToken` line | Step 2 again, or set `ZEN_DS_NPM_TOKEN`; remove any token line from the project's `.npmrc` |
 | `E403` … `license is not active` | The subscription ended or was suspended | Renew it; the old token works again within 5 minutes |
+| `E403` … `no longer a member of this licence` | The owner removed you from the team | Ask the owner to add you again, then step 2 |
+| `E403` … `CI token was replaced by a newer one` | A fourth CI token was made for the licence | Get a new CI token (CI above) and update `ZEN_DS_NPM_TOKEN` |
+| `E403` … `token is from an older sign-in` | A token from before personal sign-in (October 2026) | Step 2 again (CI: get a new CI token) |
 | `E404` for `@zen-ds/…` on registry.npmjs.org, or version `0.1.0` installed | The `.npmrc` scope line is missing | Step 1, then `npm install @zen-ds/react@latest` |
 | `E503` … `license service unavailable` | The licence service is briefly unreachable | Try again in a few minutes |
 

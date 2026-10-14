@@ -76,8 +76,8 @@ function init() {
   console.log(changes.length ? changes.map((c) => `✓ ${c}`).join("\n") : "✓ Already set up (nothing changed).");
   console.log(`
 Next steps (not automated — they touch your code):
-  0. Commit .npmrc. Each developer signs in once with the licence key (never commit it or the token):
-       npm login --registry=${REGISTRY} --scope=@zen-ds --auth-type=legacy
+  0. Commit .npmrc. Each developer signs in once with their Zen account (npm opens the browser):
+       npm login --registry=${REGISTRY} --scope=@zen-ds
   1. Entry file:  import "@zen-ds/react/styles.css";
   2. Root:        <ZenProvider theme="system"> <App /> </ZenProvider>   (import { ZenProvider } from "@zen-ds/react")
   3. ESLint (flat config), optional:

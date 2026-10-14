@@ -2,8 +2,9 @@
 
 // End-to-end: a real PocketBase (license store) and a real Verdaccio running the shipped config.yaml with
 // the zen-license plugin, driven by the real npm CLI. The license store runs the live schema (fixture) plus
-// the registry-access migration. The gate for Phase 2: a deactivated license stops installs with a token
-// issued before.
+// the registry migrations. Covered: a deactivated license stops installs with a token issued before; developers
+// sign in through `npm login` (web) and hold seats (owner + members up to max_members); the licence key gives
+// at most three CI tokens; usage is counted per license.
 //
 // ZEN_E2E_STACK=1 (`npm run test:stack`, needs Docker) runs the registry as deployed instead: the image from
 // deploy/Dockerfile behind Caddy via deploy/docker-compose.yml, plus a backup → wipe → restore round trip of
@@ -106,6 +107,7 @@ async function startLocalRegistry(pbBase) {
   config.storage = path.join(TMP, 'storage');
   config.plugins = path.join(ROOT, 'plugins');
   config.auth['zen-license'].cache_seconds = CACHE_SECONDS;
+  config.auth['zen-license'].usage_flush_seconds = 1;
   config.log = { type: 'stdout', format: 'pretty', level: 'warn' };
   const configPath = path.join(TMP, 'config.yaml');
   fs.writeFileSync(configPath, yaml.dump(config));
@@ -188,6 +190,15 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
     purchase_date: '2026-10-01 00:00:00.000Z', active: true,
   });
   const KEY = license.id; // what the customer copies from the license server
+  const MEMBER = { email: 'member@acme.test', password: 'member-password-123' };
+  const STRANGER = { email: 'stranger@test.local', password: 'stranger-password-123' };
+  // The registry accepts developers with Google linked; the test links a fake Google identity as the superuser.
+  const linkGoogle = (user) => pb(pbBase, su, 'POST', '/api/collections/_externalAuths/records', {
+    collectionRef: user.collectionId, recordRef: user.id, provider: 'google', providerId: `g-${user.id}`,
+  });
+  const tokenOf = async (u) => (await pb(pbBase, null, 'POST', '/api/collections/users/auth-with-password', { identity: u.email, password: u.password })).token;
+  await linkGoogle(owner);
+  let member;
 
   await t.test('licenses: the registry reads one by id, cannot list; the owner keeps access; anonymous sees nothing', async () => {
     const lic = `${pbBase}/api/collections/licenses/records`;
@@ -200,17 +211,20 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
     assert.equal((await fetch(`${lic}/${KEY}`, { headers: { authorization: ownerToken } })).status, 200);
     assert.equal((await (await fetch(lic, { headers: { authorization: ownerToken } })).json()).totalItems, 1);
     // A team member reads the license; another signed-in user does not.
-    const MEMBER = { email: 'member@acme.test', password: 'member-password-123' };
-    const STRANGER = { email: 'stranger@test.local', password: 'stranger-password-123' };
-    const member = await pb(pbBase, su, 'POST', '/api/collections/users/records', { ...MEMBER, passwordConfirm: MEMBER.password });
+    member = await pb(pbBase, su, 'POST', '/api/collections/users/records', { ...MEMBER, passwordConfirm: MEMBER.password });
+    await linkGoogle(member);
     await pb(pbBase, su, 'POST', '/api/collections/users/records', { ...STRANGER, passwordConfirm: STRANGER.password });
-    const tokenOf = async (u) => (await pb(pbBase, null, 'POST', '/api/collections/users/auth-with-password', { identity: u.email, password: u.password })).token;
     const stranger = await tokenOf(STRANGER);
     assert.equal((await fetch(`${lic}/${KEY}`, { headers: { authorization: stranger } })).status, 404);
     await pb(pbBase, su, 'POST', '/api/collections/team_members/records', { license: KEY, user: member.id, added_by: owner.id });
     assert.equal((await fetch(`${lic}/${KEY}`, { headers: { authorization: await tokenOf(MEMBER) } })).status, 200);
     assert.equal((await fetch(`${lic}/${KEY}`, { headers: { authorization: stranger } })).status, 404);
     assert.equal((await fetch(`${lic}/${KEY}`)).status, 404);
+    // The registry lists team members (seats); anonymous and strangers do not.
+    const tm = `${pbBase}/api/collections/team_members/records?filter=${encodeURIComponent(`license='${KEY}'`)}`;
+    assert.equal((await (await fetch(tm, { headers: { authorization: client } })).json()).totalItems, 1);
+    assert.equal((await (await fetch(tm, { headers: { authorization: stranger } })).json()).totalItems ?? 0, 0);
+    assert.equal((await (await fetch(tm)).json()).totalItems ?? 0, 0);
   });
 
   // --- registry: the shipped config.yaml, run locally or as the deployed stack -------------------------
@@ -257,7 +271,7 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
     assert.ok(unknown.status >= 400 && unknown.status < 500, `unknown license login → ${unknown.status}`);
   });
 
-  // The customer's one-time `npm login` (any username, the license key as password) does exactly this PUT.
+  // CI's one-time `npm login --auth-type=legacy` (any username, the license key as password) does exactly this PUT.
   const npmLogin = async (username) => {
     const res = await fetch(`${registry}-/user/org.couchdb.user:${username}`, {
       method: 'PUT',
@@ -267,9 +281,9 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
     assert.equal(res.status, 201, await res.clone().text());
     return (await res.json()).token;
   };
-  const token = await npmLogin('alice');
+  let token = await npmLogin('alice');
 
-  await t.test('after npm login with the license key, installs work; any username', async () => {
+  await t.test('after a CI login with the license key, installs work; any username', async () => {
     const withToken = await install(registry, `:_authToken=${token}`, 'install-token');
     assert.equal(withToken.code, 0, withToken.stderr);
     const other = await install(registry, `:_authToken=${await npmLogin('bob-ci')}`, 'install-token-2');
@@ -297,6 +311,115 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
     await new Promise((r) => setTimeout(r, (CACHE_SECONDS + 1) * 1000));
     const withToken = await install(registry, `:_authToken=${token}`, 'install-token-restored');
     assert.equal(withToken.code, 0, withToken.stderr);
+  });
+
+  await t.test('the licence key is not a password on each request (basic auth)', async () => {
+    const withKey = await install(registry, basicAuth('zen', KEY), 'install-basic-key');
+    assert.notEqual(withKey.code, 0, 'basic auth with the licence key must fail');
+  });
+
+  await t.test('CI: at most three tokens per licence; a fourth retires the oldest', async () => {
+    const newer = [await npmLogin('ci-2'), await npmLogin('ci-3')]; // with bob-ci: alice is the oldest of four
+    const res = await fetch(`${registry}${PKG.replace('/', '%2f')}`, { headers: { authorization: `Bearer ${token}` } });
+    assert.equal(res.status, 403);
+    assert.match((await res.json()).error, /replaced by a newer one/);
+    token = newer.at(-1);
+    const withToken = await install(registry, `:_authToken=${token}`, 'install-ci-newest');
+    assert.equal(withToken.code, 0, withToken.stderr);
+  });
+
+  // The browser half of `npm login` (web): the page signs in to PocketBase and posts the user's token.
+  const webLogin = async (person) => {
+    const started = await (await fetch(`${registry}-/v1/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).json();
+    const res = await fetch(started.loginUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: await tokenOf(person) }),
+    });
+    if (!res.ok) return { status: res.status, error: (await res.json()).error };
+    const done = await fetch(started.doneUrl);
+    return { status: done.status, token: (await done.json()).token };
+  };
+  const seatRequest = (bearer) => fetch(`${registry}${PKG.replace('/', '%2f')}`, { headers: { authorization: `Bearer ${bearer}` } });
+
+  await t.test('developers: the real `npm login` opens the sign-in page and finishes once the browser signs in', async () => {
+    const dir = path.join(TMP, 'web-login');
+    fs.mkdirSync(dir, { recursive: true });
+    const userconfig = path.join(dir, '.npmrc');
+    fs.writeFileSync(userconfig, '');
+    const npm = start('npm', ['login', `--registry=${registry}`, '--scope=@zen-ds', '--auth-type=web'], {
+      cwd: dir,
+      env: { ...process.env, npm_config_userconfig: userconfig, BROWSER: 'none' },
+    });
+    const exited = new Promise((resolve) => npm.on('exit', resolve));
+    let loginUrl;
+    for (let i = 0; i < 100 && !loginUrl; i += 1) {
+      loginUrl = (npm.log().match(/https?:\/\/\S+\/-\/zen\/login\/[\w-]+/) || [])[0];
+      if (!loginUrl) await new Promise((r) => setTimeout(r, 200));
+    }
+    assert.ok(loginUrl, `npm printed no login URL:\n${npm.log()}`);
+    const page = await fetch(loginUrl);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /Sign in to the Zen DS registry/);
+    const done = await fetch(loginUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: await tokenOf(OWNER) }),
+    });
+    assert.equal(done.status, 200, await done.clone().text());
+    assert.equal(await exited, 0, npm.log());
+    const saved = fs.readFileSync(userconfig, 'utf8');
+    assert.match(saved, /_authToken=/);
+    const devToken = saved.match(/_authToken=(\S+)/)[1];
+    const withToken = await install(registry, `:_authToken=${devToken}`, 'install-dev-owner');
+    assert.equal(withToken.code, 0, withToken.stderr);
+    assert.equal((await fetch(loginUrl)).status, 404, 'a used sign-in link is dead');
+  });
+
+  await t.test('developers: seats are owner + members up to max_members; removing a member frees a seat', async () => {
+    await pb(pbBase, su, 'PATCH', `/api/collections/licenses/records/${KEY}`, { max_members: 2 });
+    const LATE = { email: 'late@acme.test', password: 'late-password-123' };
+    const late = await pb(pbBase, su, 'POST', '/api/collections/users/records', { ...LATE, passwordConfirm: LATE.password });
+    await linkGoogle(late);
+    await new Promise((r) => setTimeout(r, 50)); // created order decides who holds the seat
+    const lateLink = await pb(pbBase, su, 'POST', '/api/collections/team_members/records', { license: KEY, user: late.id, added_by: owner.id });
+    await new Promise((r) => setTimeout(r, (CACHE_SECONDS + 1) * 1000));
+
+    const memberLogin = await webLogin(MEMBER);
+    assert.equal(memberLogin.status, 200, memberLogin.error);
+    assert.equal((await seatRequest(memberLogin.token)).status, 200);
+    const lateLogin = await webLogin(LATE);
+    assert.equal(lateLogin.status, 403);
+    assert.match(lateLogin.error, /every seat/);
+    const strangerLogin = await webLogin(STRANGER); // no Google linked: refused before any licence lookup
+    assert.equal(strangerLogin.status, 403);
+    assert.match(strangerLogin.error, /sign in with Google/);
+
+    const memberLink = (await pb(pbBase, su, 'GET', `/api/collections/team_members/records?filter=${encodeURIComponent(`user='${member.id}'`)}`)).items[0];
+    const unlinked = await fetch(`${pbBase}/api/collections/team_members/records/${memberLink.id}`, { method: 'DELETE', headers: { authorization: su } });
+    assert.equal(unlinked.status, 204);
+    await new Promise((r) => setTimeout(r, (CACHE_SECONDS + 1) * 1000));
+    const removed = await seatRequest(memberLogin.token);
+    assert.equal(removed.status, 403);
+    assert.match((await removed.json()).error, /no longer a member/);
+    const lateAgain = await webLogin(LATE);
+    assert.equal(lateAgain.status, 200, lateAgain.error);
+    assert.equal((await seatRequest(lateAgain.token)).status, 200);
+    void lateLink;
+  });
+
+  await t.test('usage: installs, developers, CI tokens and IPs are counted per licence', async () => {
+    await new Promise((r) => setTimeout(r, 1500)); // one flush
+    const usage = JSON.parse(fs.readFileSync(path.join(TMP, 'zen-usage.json'), 'utf8'));
+    const month = Object.keys(usage).sort().at(-1);
+    const u = usage[month][KEY];
+    assert.ok(u.installs >= 3, JSON.stringify(u));
+    assert.ok(Object.keys(u.users).length >= 2, JSON.stringify(u.users));
+    assert.ok(Object.keys(u.ci).length >= 1, JSON.stringify(u.ci));
+    assert.ok(Object.keys(u.ips).length >= 1, JSON.stringify(u.ips));
+    const report = await run(process.execPath, [path.join(ROOT, 'plugins/verdaccio-zen-license/usage-report.js'), month, path.join(TMP, 'zen-usage.json')]);
+    assert.equal(report.code, 0, report.stderr);
+    assert.match(report.stdout, new RegExp(KEY));
   });
 
   if (!stack) return;
