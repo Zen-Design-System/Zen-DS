@@ -255,7 +255,9 @@ removed (four unused colour ramps were, see Removed).
   Import from Figma.
 - `MetricCard type` (Figma Metric-Card Type): `kpi` (default, unchanged) · `sparkline` · `spark-bars` ·
   `goal-progress` · `comparison` · `category-bar` · `hero`, with `series`, `goal`, `comparison`, `categories`,
-  `footer`. The sparkline's area fades like the line chart's, its top edge on the line.
+  `footer`. The sparkline's area fades like the line chart's, its top edge on the line. A `comparison` card's title is a heading
+  (`headingLevel`, default 3, as ChartCard's). In Zen Studio a MetricCard keeps the switches of the Metric it holds
+  (Trend, Hint, Label-Icon, Custom…) beside its Type and Card.
 - `Card theme="solid"` and `color` (Figma Card Theme=Solid and Color): Pale in nine colours, Solid in Neutral (the dark
   widget), Brand, Cyan, Yellow and Orange; `surface="flat"` for Border cards on a Canvas/Flat page. A Solid card keeps
   the page's mode and points its content, borders, tracks and chart marks at the Inverse / On-Color tokens, as Figma's

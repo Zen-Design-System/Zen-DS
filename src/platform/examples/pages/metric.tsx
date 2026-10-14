@@ -622,7 +622,7 @@ function PhoneMetricTypes() {
       <Stack gap="md" padding="lg">
         <MetricCard theme="flat" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
           trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
-        <MetricCard theme="flat" type="comparison" label="Cash flow" comparison={[
+        <MetricCard theme="flat" type="comparison" label="Cash flow" headingLevel={2} comparison={[
           { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: "+9% vs. August" } },
           { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: "−8% vs. August" } },
         ]} />
@@ -913,7 +913,7 @@ const dark = look === "dark";
   <Stack gap="md" padding="lg">
     <MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700" series={invoiced} format={formatCompactMoney}
       trend={{ direction: "positive", label: "+9% vs. August" }} />
-    <MetricCard theme="flat" type="comparison" label="Cash flow" comparison={[
+    <MetricCard theme="flat" type="comparison" label="Cash flow" headingLevel={2} comparison={[
       { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
       { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
     ]} />

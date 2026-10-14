@@ -314,3 +314,10 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
 - Merged main b399312 (Tung's React 19 refs refactor): ChartCard and MetricCard keep `ref` and gain `color`.
 - Checks: tsc, usage, style, guidelines, studio:selftest, `npm test` 871 passed; QA gate below.
 - Open (BACKLOG P2): Figma bugs and older chart diffs for the designer; BarList leader 78%.
+- Finished by "Giám sát" (user: "tiếp quản phiên donut"; the Donut session had closed at its 22:15 gate, FAIL): merged
+  main d46001d (ColorField; 9 conflicts: guidelines.source and palette.selftest kept both, component-properties merged by
+  page, generated docs/Studio files rebuilt). Fixed: Studio E2E SP-13/SP-20/SP-21 (MetricCard mapped to Metric-Card only
+  had dropped the Metric switches; the Inspector now adds the Metric it holds, `componentGroups` HOLDS — push/pull keep
+  Metric-Card, figma-widgets 31/31), audit outline (phone section h2 → Heading/4; comparison title a heading,
+  `headingLevel`, 2 under a phone's h1). Gate: static, Vitest 64/64, behaviour ✓; E2E 263/265 (O-02/O-04 = main's
+  modal-isolation regression, PR #57).
