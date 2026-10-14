@@ -2166,33 +2166,33 @@
   "1204:11690": {
    "name": "Primitives/Segmented/Item",
    "file": "segmented-toggle-badge-avatarstack.json",
-   "h": "ad5fdad7",
+   "h": "72118789",
    "v": {
-    "Size=Medium,Level=Secondary,State=Default,Select=No": "69a8c789",
-    "Size=Medium,Level=Secondary,State=Hover,Select=No": "5b25b375",
-    "Size=Small,Level=Secondary,State=Default,Select=No": "d98cf61a",
-    "Size=Small,Level=Secondary,State=Hover,Select=No": "d8835d62",
-    "Size=Small,Level=Primary,State=Default,Select=No": "cc37f0c2",
-    "Size=Small,Level=Primary,State=Hover,Select=No": "27ec6592",
-    "Size=Medium,Level=Primary,State=Default,Select=No": "c2a93409",
-    "Size=Medium,Level=Primary,State=Hover,Select=No": "85e9cba5",
-    "Size=Small,Level=Primary,State=Default,Select=Yes": "555d3afc",
-    "Size=Small,Level=Primary,State=Focused,Select=No": "8ebc1737",
-    "Size=Medium,Level=Primary,State=Default,Select=Yes": "9477d37f",
-    "Size=Medium,Level=Primary,State=Focused,Select=No": "7ffc71f6",
-    "Size=Small,Level=Secondary,State=Default,Select=Yes": "9578259f",
-    "Size=Small,Level=Secondary,State=Focused,Select=No": "9a3b9357",
-    "Size=Medium,Level=Secondary,State=Default,Select=Yes": "0702d820",
-    "Size=Medium,Level=Secondary,State=Focused,Select=No": "0f39803e"
+    "Size=Medium,Level=Secondary,State=Default,Select=No": "8af2b6d3",
+    "Size=Medium,Level=Secondary,State=Hover,Select=No": "4dcdebcb",
+    "Size=Small,Level=Secondary,State=Default,Select=No": "217bd8a9",
+    "Size=Small,Level=Secondary,State=Hover,Select=No": "d0862f49",
+    "Size=Small,Level=Primary,State=Default,Select=No": "01debb55",
+    "Size=Small,Level=Primary,State=Hover,Select=No": "76b62415",
+    "Size=Medium,Level=Primary,State=Default,Select=No": "abd9d9f3",
+    "Size=Medium,Level=Primary,State=Hover,Select=No": "ed0ef03b",
+    "Size=Small,Level=Primary,State=Default,Select=Yes": "de413a9f",
+    "Size=Small,Level=Primary,State=Focused,Select=No": "12a9fca8",
+    "Size=Medium,Level=Primary,State=Default,Select=Yes": "5574d901",
+    "Size=Medium,Level=Primary,State=Focused,Select=No": "1f7e1720",
+    "Size=Small,Level=Secondary,State=Default,Select=Yes": "3ca60380",
+    "Size=Small,Level=Secondary,State=Focused,Select=No": "e6ec2114",
+    "Size=Medium,Level=Secondary,State=Default,Select=Yes": "12e0e896",
+    "Size=Medium,Level=Secondary,State=Focused,Select=No": "13c23bd8"
    }
   },
   "1238:892": {
    "name": "Segmented",
    "file": "segmented-toggle-badge-avatarstack.json",
-   "h": "770a955f",
+   "h": "06610a41",
    "v": {
-    "Level=Secondary": "6760e1ba",
-    "Level=Primary": "f2bee24b"
+    "Level=Secondary": "2f6cf2fb",
+    "Level=Primary": "44c00dee"
    }
   },
   "1241:5616": {
