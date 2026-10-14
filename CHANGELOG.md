@@ -224,7 +224,10 @@ removed (four unused colour ramps were, see Removed).
   longer closes the outer one.
 - Open modals (Dialog, ModalForm, modal SidePanel, BottomSheet) make the rest of the page `inert`, so screen readers and
   pointers can't reach the background; the scroll lock keeps the scrollbar's width (no layout jump) and works with
-  stacked modals; focus returns to the opener only if it is still on the page.
+  stacked modals; focus returns to the opener only if it is still on the page. The isolation stops at a device frame or
+  at an element marked `data-zen-isolation-root`: Zen Studio marks its preview overlay layer, so a Dialog previewed on
+  the canvas no longer makes the canvas and the Studio chrome inert (Move could not be picked and a click on the Dialog
+  did not select it).
 - Zen plugin, Import from Studio: an imported page now takes every property it sets (variants, booleans, icons, sizes:
   Avatars at their size, Dashboard Header rows, button sizes, badge colours), swaps its icons, and importing it again
   updates the same layers. Before, the plugin set none of them in Figma. Import the page again into the same frame to

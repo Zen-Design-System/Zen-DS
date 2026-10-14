@@ -156,4 +156,25 @@ describe("modal isolation", () => {
     expect(screen.getByTestId("overlays").element().closest("[inert]")).toBeNull();
     await screen.unmount();
   });
+
+  it("stays inside a data-zen-isolation-root: other overlays in it go inert, the canvas and chrome outside stay live (Zen Studio)", async () => {
+    function Studio() {
+      const [layer, setLayer] = useState<HTMLDivElement | null>(null);
+      return (
+        <ZenProvider portal={false}>
+          <header><button type="button" data-testid="chrome">Layers</button></header>
+          <main>
+            <button type="button" data-testid="canvas">Canvas</button>
+            <div ref={setLayer} data-zen-isolation-root=""><div data-testid="earlier">Earlier overlay</div></div>
+            <div role="toolbar" aria-label="Tools"><button type="button" data-testid="tool">Move</button></div>
+            {layer ? <ZenPortalProvider container={layer}><Dialog open onOpenChange={() => undefined} title="Delete project?">Body</Dialog></ZenPortalProvider> : null}
+          </main>
+        </ZenProvider>
+      );
+    }
+    const screen = await render(<Studio />);
+    await expect.poll(() => Boolean(screen.getByTestId("earlier").element().closest("[inert]"))).toBe(true);
+    for (const id of ["canvas", "tool", "chrome"]) expect(screen.getByTestId(id).element().closest("[inert]")).toBeNull();
+    await screen.unmount();
+  });
 });
