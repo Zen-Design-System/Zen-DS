@@ -1,0 +1,813 @@
+{
+  "$comment": "Generated with catalog.json: one line per component to choose by purpose, with its prop names (tier 1 of a prompt). Read the component's entry in catalog.json (use / avoid, props with types and defaults, bindings; Do / Don't under guidelines[slug]) once chosen.",
+  "version": "0.3.0",
+  "components": [
+    {
+      "name": "Accordion",
+      "status": "stable",
+      "purpose": "Progressive disclosure of secondary content under short headings.",
+      "props": "title headingLevel? children? size? theme? contentWidth? expanded? defaultExpanded? onExpandedChange?"
+    },
+    {
+      "name": "ActionBar",
+      "status": "stable",
+      "purpose": "The footer bar that holds a screen's main actions: the mobile footer CTA (Large, full width, Primary on top), the phone dual footer (Large Tertiary · Primary side by side) and the sticky action row of desktop detail and edit pages (Tertiary · Primary at the end).",
+      "props": "position? direction? surface? primaryAction? secondaryAction? summary? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "AiChatBlock",
+      "status": "stable",
+      "purpose": "Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.",
+      "props": "greeting? headingLevel? logo? suggestions? children"
+    },
+    {
+      "name": "AiChatBubble",
+      "status": "stable",
+      "purpose": "Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.",
+      "props": "side children? actions? version? streaming? thinking? thinkingLabel?"
+    },
+    {
+      "name": "AiChatField",
+      "status": "stable",
+      "purpose": "Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.",
+      "props": "onSubmit placeholder? fieldStyle? model? onModelClick? onAttach? onVoice? onVoiceMode? listening? onStopListening? busy? onStop? disabled? defaultValue?"
+    },
+    {
+      "name": "AiVoiceConversation",
+      "status": "stable",
+      "purpose": "Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action.",
+      "props": "name? heading? headingLevel? guidance? speaker? transcript? levels? muted? onMutedChange? onStart? onDone? onInterrupt? onEnd? note?"
+    },
+    {
+      "name": "AlertBanner",
+      "status": "stable",
+      "purpose": "A full-width message about a persistent, page- or app-level condition.",
+      "props": "children theme? size? leading? action? onClose? closeLabel?"
+    },
+    {
+      "name": "AppShell",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
+      "props": "sidebar? header? headerCenter? sections? headerActions? banner? aside? floatingAction? footer? canvas? sidebarCollapsed? defaultSidebarCollapsed? onSidebarCollapsedChange? sidebarToggle? navOpen? defaultNavOpen? onNavOpenChange? navLabel? mainId? layout? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "AppShellAccount",
+      "status": "stable",
+      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
+      "props": "name src? theme? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "AppShellAction",
+      "status": "stable",
+      "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
+      "props": "icon aria-label count? dot? tone? appearance? tooltip? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "AreaChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data series type? height? aria-label initialIndex? showLegend? legendPosition? animate?"
+    },
+    {
+      "name": "AutocompleteField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label? helpText? helpTheme? helpIcon? error? options value? defaultValue? onValueChange? invalidValues? readOnly? disabled? addLabel? popoverLabel? searchPlaceholder? createLabel?"
+    },
+    {
+      "name": "Avatar",
+      "status": "verified",
+      "purpose": "Represent a person or workspace with a photo or initials.",
+      "props": "size? theme? background? shape? status? focus? src? alt? children?"
+    },
+    {
+      "name": "AvatarStack",
+      "status": "verified",
+      "purpose": "Represent a person or workspace with a photo or initials.",
+      "props": "items max? showMore? size?"
+    },
+    {
+      "name": "Badge",
+      "status": "verified",
+      "purpose": "Non-interactive status, category or count labels.",
+      "props": "children? size? theme? background? leading? leadingIcon? remove? onRemove? removeLabel? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "BadgeCounter",
+      "status": "verified",
+      "purpose": "Non-interactive status, category or count labels.",
+      "props": "value? size?"
+    },
+    {
+      "name": "BarChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data orientation? height? aria-label initialIndex? color? activeColor? animate? showAverage?"
+    },
+    {
+      "name": "BarList",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data headers? aria-label initialIndex? animate?"
+    },
+    {
+      "name": "BottomNavigation",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "Root-level navigation on mobile: switch between three to five top destinations with one tap.",
+      "props": "items? children? value onValueChange type? theme? selection? showLabels? action? fixed? backdrop? aria-label?"
+    },
+    {
+      "name": "BottomSheet",
+      "status": "stable",
+      "purpose": "A surface that slides up from the bottom for supplementary content, a short task or a list of actions, without leaving the screen.",
+      "props": "open? onOpenChange? onClose? title type? size? search? items? selectedId? onSelect? keepOpen? children? primaryAction? secondaryAction? actionsDirection? footer? onSubmit? dismissible? inline? closeLabel?"
+    },
+    {
+      "name": "Box",
+      "status": "stable",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? padding? paddingX? paddingY? surface? scroll? border? radius? as? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "BreadcrumbItem",
+      "status": "verified",
+      "purpose": "Show where the current page sits in a hierarchy and let users go up.",
+      "props": "item level? emphasis? current? onNavigate?"
+    },
+    {
+      "name": "Breadcrumbs",
+      "status": "verified",
+      "purpose": "Show where the current page sits in a hierarchy and let users go up.",
+      "props": "items? children? emphasis? master? maxItems? onNavigate? aria-label?"
+    },
+    {
+      "name": "BulletChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data actualLabel? targetLabel? showLegend? legendPosition? aria-label initialIndex? animate?"
+    },
+    {
+      "name": "Button",
+      "status": "verified",
+      "purpose": "Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button.",
+      "props": "level? size? appearance? startIcon? endIcon? children type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "Card",
+      "status": "stable",
+      "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
+      "props": "width? minWidth? maxWidth? alignSelf? children? theme? color? spacing? selected? surface? aria-label? subAction? as? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ChartCard",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "title headingLevel? icon? description? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? children"
+    },
+    {
+      "name": "ChatComposer",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "onSend placeholder? label? onEmoji? actions? quickAction? device? disabled? replyTo? onCancelReply?"
+    },
+    {
+      "name": "ChatComposerReply",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "target onCancel?"
+    },
+    {
+      "name": "ChatConversationItem",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "person group? preview? call? callLabel? time unread? online? selected? onClick?"
+    },
+    {
+      "name": "ChatEmojiPicker",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "value? onPick onBack label?"
+    },
+    {
+      "name": "ChatMessage",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "side domain? author? showName? continued? time? status? failed? onRetry? reactions? seenBy? children replyTo? onJumpToReply? holdActions? onHoldAction? reaction? onReact? onMoreReactions?"
+    },
+    {
+      "name": "ChatReactorsPanel",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "reactions mine? onRemoveMine? device side open onOpenChange"
+    },
+    {
+      "name": "ChatReplyQuote",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "target side replier? onJump?"
+    },
+    {
+      "name": "ChatThread",
+      "status": "verified",
+      "purpose": "Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list.",
+      "props": "children device? aria-label?"
+    },
+    {
+      "name": "Checkbox",
+      "status": "verified",
+      "purpose": "Select zero, one or many independent options, or confirm a single statement.",
+      "props": "checked? defaultChecked? indeterminate? onCheckedChange? label? aria-label? caption? bold? checkSide? disabled? name? value?"
+    },
+    {
+      "name": "Chip",
+      "status": "verified",
+      "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
+      "props": "children? variant? size? level? theme? selected? dropdown? selectionMode? selectionCount? counter? value? leading? photoSrc? photoAlt? trailing? popoverItems? popoverOpen? popoverMultiple? onPopoverOpenChange? onPopoverSelect? onClearSelection? popoverLabel? popoverSearch? popoverSearchValue? onPopoverSearchChange? popoverSearchPlaceholder? popoverScrollBar? onPopoverCreate? popoverCreateLabel? popoverPortal? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "ChipGroup",
+      "status": "stable",
+      "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
+      "props": "options value? defaultValue? onValueChange? aria-label? size? level? disabled? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ColorField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "value? defaultValue? onValueChange? colorPicker? pickerFormat? savedColors? size? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? trailing? layout?"
+    },
+    {
+      "name": "ColorPicker",
+      "status": "stable",
+      "purpose": "Pick or type any colour. ColorField is the Input field (a swatch and the hex) that opens ColorPicker under it; ColorPicker is the panel itself (the saturation × brightness area, the hue, a Format select with its channels, saved colours), inline by default; ColorSwatch is the colour chip that shows a value.",
+      "props": "value? defaultValue? onValueChange? format? defaultFormat? onFormatChange? savedColors? open? onOpenChange? onClose? aria-label? aria-labelledby?"
+    },
+    {
+      "name": "ColorSelector",
+      "status": "stable",
+      "purpose": "Pick one colour from a small curated set of swatches.",
+      "props": "colors value? onValueChange? aria-label? name?"
+    },
+    {
+      "name": "ColorSwatch",
+      "status": "stable",
+      "purpose": "Pick or type any colour. ColorField is the Input field (a swatch and the hex) that opens ColorPicker under it; ColorPicker is the panel itself (the saturation × brightness area, the hue, a Format select with its channels, saved colours), inline by default; ColorSwatch is the colour chip that shows a value.",
+      "props": "color size? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ComboChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data barLabel lineLabel lineMax? height? aria-label initialIndex? showLegend? legendPosition? animate?"
+    },
+    {
+      "name": "Container",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "maxWidth? gutter? as? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "CurvePreview",
+      "status": "stable",
+      "purpose": "A picture of a motion curve: how a value moves from its start (bottom left) to its target (the dashed line) over time, left to right — a spring, a bounce or an easing curve.",
+      "props": "type? bounce? aria-label?"
+    },
+    {
+      "name": "DashboardHeader",
+      "status": "verified",
+      "chrome": true,
+      "purpose": "One row of a dashboard page's header: a control bar (Search, filter Chips, a result count and the page's actions), a navigation bar (Breadcrumbs, notifications and the account), the page title row or your own row.",
+      "props": "type? leading? center? trailing? search? controls? subheading? actions? title? childTitle? headingLevel? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "DateField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? onValueChange? datePicker? datePickerActions? onDateChange? minDate? maxDate? today? value? defaultValue?"
+    },
+    {
+      "name": "DatePicker",
+      "status": "verified",
+      "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile.",
+      "props": "open? value? defaultValue? range? defaultRange? month? onValueChange? onRangeChange? onMonthChange? onApply? onCancel? onClose? onOpenChange? showActions? action? selectionMode? calendar? monthCount? device? timePicker? time? defaultTime? onTimeChange? minDate? maxDate? today? aria-label? aria-labelledby?"
+    },
+    {
+      "name": "DatePickerSheet",
+      "status": "verified",
+      "purpose": "Pick a date or a date range. DatePicker is the calendar panel itself and is visible by default (open defaults to true), like an inline calendar; DateField is the input that opens it in a popover (a Bottom Sheet on a phone); DatePickerSheet is the phone picker of Figma Date-Picker/Mobile.",
+      "props": "open? onOpenChange? onClose? title? selectionMode? value? defaultValue? range? defaultRange? onApply? onValueChange? onRangeChange? onCancel? minDate? maxDate? today? monthCount? summary? applyLabel? cancelLabel?"
+    },
+    {
+      "name": "DescriptionItem",
+      "status": "stable",
+      "purpose": "Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata.",
+      "props": "term description action? emphasis?"
+    },
+    {
+      "name": "DescriptionList",
+      "status": "stable",
+      "purpose": "Shows read-only term → value pairs in a semantic dl: order summaries and receipts, contact and profile details, specs and metadata.",
+      "props": "items? layout? divider? stackBelow? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "Dialog",
+      "status": "stable",
+      "purpose": "Interrupt to confirm a decision or deliver critical information.",
+      "props": "open? onOpenChange? onClose? title headingLevel? description? theme? icon? primaryAction? secondaryAction? tertiaryAction? actionsDirection? children? dismissible?"
+    },
+    {
+      "name": "Divider",
+      "status": "stable",
+      "purpose": "A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it.",
+      "props": "color? orientation? dashed? decorative?"
+    },
+    {
+      "name": "DockIcon",
+      "status": "stable",
+      "purpose": "A round, filled icon tile that identifies an app, category, file type or object.",
+      "props": "icon? emoji? size? theme? background? label?"
+    },
+    {
+      "name": "DonutChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data size? aria-label value? label? totalPosition? showPercent? showLegend? legendPosition? animate?"
+    },
+    {
+      "name": "EmptyState",
+      "status": "stable",
+      "purpose": "Explains why a screen or region has nothing to show and what the user can do next.",
+      "props": "title headingLevel? compactTitle? children? illustration? icon? primaryAction? secondaryAction? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "FileIcon",
+      "status": "stable",
+      "purpose": "A coloured document mark that identifies a file's type (PDF, sheet, zip, video …) next to its name.",
+      "props": "format size? title?"
+    },
+    {
+      "name": "FileUpload",
+      "status": "stable",
+      "purpose": "Let users add files by dropping or browsing, then track each file's upload.",
+      "props": "label? helpText? error? type? text? caption? accept? multiple? onFilesAdd? files? thumbnail? onRemove? onReplace? onRetry? buttonLabel? extended?"
+    },
+    {
+      "name": "Flag",
+      "status": "stable",
+      "purpose": "A round country or region flag that helps people spot a country next to its name.",
+      "props": "name size? label?"
+    },
+    {
+      "name": "Form",
+      "status": "stable",
+      "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
+      "props": "onSubmit? gap? noValidate? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "FormActions",
+      "status": "stable",
+      "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
+      "props": "align? sticky? inset? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "FormField",
+      "status": "stable",
+      "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
+      "props": "label? helpText? error? required? optional? labelTooltip? labelAction? children aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "FormFieldset",
+      "status": "stable",
+      "purpose": "Collect a set of values and submit them. Form is a <form noValidate> laid out as a Stack; useFormState holds values and errors and binds every Zen field in one spread; FormField labels custom controls, FormFieldset groups choices and FormActions is the footer row.",
+      "props": "legend hideLegend? kind? direction? gap? helpText? error? required? optional? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "FunnelChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data aria-label initialIndex? animate?"
+    },
+    {
+      "name": "GaugeChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "value max? target? actualLabel? targetLabel? caption? size? showLegend? legendPosition? aria-label animate?"
+    },
+    {
+      "name": "Grid",
+      "status": "stable",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "GroupedBarChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data series height? aria-label initialIndex? showLegend? legendPosition? animate?"
+    },
+    {
+      "name": "Heading",
+      "status": "stable",
+      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? level? textStyle? tone? truncate? align? verticalAlign? wrap? tabularNumbers? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "HeatmapChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "rows columns values max? aria-label showLegend? animate?"
+    },
+    {
+      "name": "Icon",
+      "status": "stable",
+      "purpose": "Render a system icon from the generated set at a token size.",
+      "props": "name size? tone? title? decorative?"
+    },
+    {
+      "name": "IconButton",
+      "status": "verified",
+      "purpose": "Triggers an action on the current surface (save, submit, open, delete). Navigation between pages is a link, not a Button.",
+      "props": "icon level? size? appearance? tooltip? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "Image",
+      "status": "stable",
+      "purpose": "Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.",
+      "props": "radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? src? alt ratio? fit? radius? loading? caption? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "InlineMessage",
+      "status": "stable",
+      "purpose": "A Subtle-surface message placed inside the content it describes — contextual, persistent until resolved or dismissed.",
+      "props": "theme? title? children? icon? action? onClose? closeLabel?"
+    },
+    {
+      "name": "InputField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? onValueChange? aria-label? aria-labelledby? aria-describedby? disabled? readOnly? required? placeholder? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
+    },
+    {
+      "name": "LineChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data label? compare? height? aria-label initialIndex? curve? fill? showLegend? legendPosition? animate? showAverage?"
+    },
+    {
+      "name": "Link",
+      "status": "stable",
+      "purpose": "Navigates to another page, section or site from inside text or next to it. It uses the Content/Hyperlink colours and takes the font of the text around it; actions on the page are Buttons.",
+      "props": "href? external? underline? tone? visited? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "List",
+      "status": "stable",
+      "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
+      "props": "children aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ListBox",
+      "status": "stable",
+      "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
+      "props": "width? minWidth? maxWidth? alignSelf? header? children footer? theme? as? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ListItem",
+      "status": "stable",
+      "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
+      "props": "title titleLines? caption? leading? value? valueCaption? valueTone? trailing? children? selected? onClick? href? as? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "Menu",
+      "status": "stable",
+      "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
+      "props": "trigger items? children? onSelect? align? open? defaultOpen? onOpenChange? aria-label?"
+    },
+    {
+      "name": "MenuGroup",
+      "status": "stable",
+      "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
+      "props": "label children"
+    },
+    {
+      "name": "MenuItem",
+      "status": "stable",
+      "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
+      "props": "label icon? caption? shortcut? danger? disabled? onSelect?"
+    },
+    {
+      "name": "MenuSeparator",
+      "status": "stable",
+      "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
+      "props": ""
+    },
+    {
+      "name": "Metric",
+      "status": "stable",
+      "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
+      "props": "label value trend? icon? iconTheme? iconBackground? iconEmoji? size? variant? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
+    },
+    {
+      "name": "MetricCard",
+      "status": "stable",
+      "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
+      "props": "value? theme? color? subAction? type? series? seriesLabel? goal? comparison? categories? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? variant? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
+    },
+    {
+      "name": "ModalForm",
+      "status": "stable",
+      "purpose": "Interrupt to confirm a decision or deliver critical information.",
+      "props": "open? onOpenChange? onClose? title? headingLevel? description? layout? side? top? header? closeButton? closeLabel? children? primaryAction? secondaryAction? tertiaryAction? actionsDirection? onSubmit? noValidate? dismissible?"
+    },
+    {
+      "name": "NpsScale",
+      "status": "stable",
+      "purpose": "Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.",
+      "props": "scale? value? onValueChange? lowLabel? highLabel? aria-label?"
+    },
+    {
+      "name": "NumberField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "align? value? defaultValue? onValueChange? min? max? step? decrementLabel? incrementLabel? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout?"
+    },
+    {
+      "name": "OpinionScale",
+      "status": "stable",
+      "purpose": "Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.",
+      "props": "scale? value? onValueChange? labels? aria-label?"
+    },
+    {
+      "name": "PageHeader",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "The top of an app page: breadcrumbs or Back, the h1 title with its meta and actions, a description and optional section tabs.",
+      "props": "title childTitle? description? breadcrumbs? eyebrow? actions? meta? trailing? tabs? back? headingLevel? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "Pagination",
+      "status": "stable",
+      "purpose": "Move through a large, ordered result set one page at a time.",
+      "props": "page onValueChange? onPageChange? theme? pageCount? pageSize? total? pageSizeOptions? onPageSizeChange? size? aria-label? value? defaultValue?"
+    },
+    {
+      "name": "Popover",
+      "status": "verified",
+      "purpose": "The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing pickers.",
+      "props": "open? label? aria-label? aria-labelledby? search? searchValue? searchPlaceholder? onSearchChange? scrollBar? items? onSelect? children? emptyState? autoFocus? onOpenChange? searchClearable? align? multiple? width? maxWidth? aria-describedby?"
+    },
+    {
+      "name": "ProgressBar",
+      "status": "stable",
+      "purpose": "Show determinate progress of a task or a step.",
+      "props": "value theme? layout? label? valueLabel? aria-label? scale?"
+    },
+    {
+      "name": "ProgressCircle",
+      "status": "stable",
+      "purpose": "Show determinate progress of a task or a step.",
+      "props": "value theme? label? aria-label?"
+    },
+    {
+      "name": "RadialChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data max? size? aria-label value? label? showLegend? legendPosition? animate?"
+    },
+    {
+      "name": "RadioButton",
+      "status": "verified",
+      "purpose": "Pick exactly one option from a small visible set.",
+      "props": "checked? defaultChecked? onCheckedChange? label? aria-label? caption? bold? radioSide? disabled? name? value?"
+    },
+    {
+      "name": "Rating",
+      "status": "stable",
+      "purpose": "Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.",
+      "props": "value? defaultValue? onValueChange? max? size? theme? aria-label? name? disabled?"
+    },
+    {
+      "name": "RatingDisplay",
+      "status": "stable",
+      "purpose": "Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score.",
+      "props": "value max? size? theme? label?"
+    },
+    {
+      "name": "RichTextField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "size? value? defaultValue? onValueChange? placeholder? readOnly? required? maxLength? editorBar? editorBarTheme? onFocus? onBlur? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error?"
+    },
+    {
+      "name": "Search",
+      "status": "verified",
+      "purpose": "Find or filter content by typing.",
+      "props": "variant? size? label? theme? iconSearch? leading? trailing? clearable? onValueChange? placeholder? filterLabel? filterInteractive? onFilterClick? filterHasPopup? filterExpanded? filterOptions? filterValue? onFilterChange? filterActionLabel? disabled? shortcut? onClear? aria-label? aria-labelledby? aria-describedby? readOnly? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
+    },
+    {
+      "name": "Segmented",
+      "status": "verified",
+      "purpose": "Switch between 2–5 mutually exclusive views or sections of the same content.",
+      "props": "options? value? defaultValue? onValueChange? level? size? children? disabled? fullWidth? aria-label?"
+    },
+    {
+      "name": "SelectField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? options? onValueChange? placeholder? onFocus? onBlur? popoverLabel? popoverSearch? popoverSearchPlaceholder? popoverWidth? popoverOpen? onPopoverOpenChange? readOnly? aria-label? aria-labelledby? aria-describedby? disabled? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
+    },
+    {
+      "name": "Sidebar",
+      "status": "verified",
+      "chrome": true,
+      "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
+      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? subMenu? subMenuLabel? onSubMenuClose?"
+    },
+    {
+      "name": "SidebarMenuItem",
+      "status": "verified",
+      "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
+      "props": "children? label icon? active? selected? disabled? theme? dropdown? counter? notificationDot? trailingAction? href?"
+    },
+    {
+      "name": "SidebarMenuSection",
+      "status": "verified",
+      "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
+      "props": "label? action? children?"
+    },
+    {
+      "name": "SidePanel",
+      "status": "stable",
+      "purpose": "Show details, filters or an edit form next to the page without leaving it.",
+      "props": "open? onOpenChange? onClose? title headingLevel? description? headerContent? top? onBack? backLabel? type? size? children? primaryAction? secondaryAction? dismissible? closeLabel?"
+    },
+    {
+      "name": "SkeletonHeading",
+      "status": "stable",
+      "purpose": "Placeholder that mirrors the layout of content while it loads.",
+      "props": "animated? size?"
+    },
+    {
+      "name": "SkeletonShape",
+      "status": "stable",
+      "purpose": "Placeholder that mirrors the layout of content while it loads.",
+      "props": "animated? shape? size?"
+    },
+    {
+      "name": "SkeletonText",
+      "status": "stable",
+      "purpose": "Placeholder that mirrors the layout of content while it loads.",
+      "props": "animated? lines?"
+    },
+    {
+      "name": "Slider",
+      "status": "stable",
+      "purpose": "Pick a value from a continuous or stepped range by dragging, where the relative position matters more than the exact number.",
+      "props": "value? defaultValue? onValueChange? min? max? step? theme? size? disabled? icon? showLimits? aria-label? aria-labelledby?"
+    },
+    {
+      "name": "SliderField",
+      "status": "stable",
+      "purpose": "A number that is also a slider: the whole field is the track, its fill shows the value inside min–max, the label sits left and the number right. Drag to scrub, click to type an exact number, arrows to step.",
+      "props": "label value? defaultValue? onValueChange? min? max? step? theme? size? disabled? aria-label?"
+    },
+    {
+      "name": "Stack",
+      "status": "stable",
+      "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "StackBarChart",
+      "status": "stable",
+      "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
+      "props": "data series height? aria-label initialIndex? showLegend? legendPosition? animate? showAverage?"
+    },
+    {
+      "name": "Stepper",
+      "status": "stable",
+      "purpose": "Shows progress through a multi-step, sequential process and where the user is in it.",
+      "props": "steps? children? current? orientation? onStepClick? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TabItem",
+      "status": "stable",
+      "purpose": "Switch between related panels of content at the same level.",
+      "props": "value? label? icon? badge? selected? size? variant? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+    },
+    {
+      "name": "Table",
+      "status": "verified",
+      "purpose": "Rows of structured records that users scan, compare, sort and act on.",
+      "props": "columns rows? aria-label? caption? selectable? selectedIds? defaultSelectedIds? onSelectionChange? editable? onCellCommit? bulkActions? sort? onSortChange? empty? onRowClick?"
+    },
+    {
+      "name": "Tabs",
+      "status": "stable",
+      "purpose": "Switch between related panels of content at the same level.",
+      "props": "items? children? value? defaultValue? onValueChange? size? variant? fullWidth? aria-label? idPrefix?"
+    },
+    {
+      "name": "Tag",
+      "status": "stable",
+      "purpose": "A chosen value inside a field (keywords, recipients), usually removable.",
+      "props": "children leading? photoSrc? error? disabled? remove? onRemove? removeLabel? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "Text",
+      "status": "stable",
+      "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy.",
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? textStyle? tone? as? truncate? align? verticalAlign? wrap? tabularNumbers? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TextAreaField",
+      "status": "verified",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "size? onValueChange? rows? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? leading? trailing? aria-label? aria-labelledby? aria-describedby? disabled? readOnly? required? placeholder? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
+    },
+    {
+      "name": "Thumbnail",
+      "status": "stable",
+      "purpose": "Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.",
+      "props": "src? alt size? shape? fit? loading? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "Toast",
+      "status": "stable",
+      "purpose": "Brief, non-blocking feedback about something the user just did or something the system just finished.",
+      "props": "type? title? children? icon? action? onClose? closeLabel?"
+    },
+    {
+      "name": "ToastProvider",
+      "status": "stable",
+      "purpose": "Brief, non-blocking feedback about something the user just did or something the system just finished.",
+      "props": "placement? duration? max? children?"
+    },
+    {
+      "name": "ToastStack",
+      "status": "stable",
+      "purpose": "Brief, non-blocking feedback about something the user just did or something the system just finished.",
+      "props": "toasts onDismiss placement? duration? max? inline? closeLabel?"
+    },
+    {
+      "name": "Toggle",
+      "status": "verified",
+      "purpose": "Turn a setting on or off with immediate effect.",
+      "props": "checked? defaultChecked? onCheckedChange? size? label caption? bold? theme?"
+    },
+    {
+      "name": "ToggleListItem",
+      "status": "stable",
+      "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
+      "props": "title caption? leading? checked? defaultChecked? onCheckedChange? disabled? toggleSize? name? as? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "Tooltip",
+      "status": "stable",
+      "purpose": "Name or briefly describe a control on hover and keyboard focus.",
+      "props": "content children color? size? placement? delay? open? defaultOpen? onOpenChange? closable? disabled?"
+    },
+    {
+      "name": "TopNavigation",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).",
+      "props": "type? margin? subtitle? titleLeading? onTitleClick? titleLabel? title? largeTitle? headingLevel? leading? trailing? largeTitleAction? topBar? controlBar? banner? searchAction? collapsed? sticky? aria-label?"
+    },
+    {
+      "name": "UploaderFileItem",
+      "status": "stable",
+      "purpose": "Let users add files by dropping or browsing, then track each file's upload.",
+      "props": "file thumbnail? theme? onRemove? onReplace? onRetry?"
+    },
+    {
+      "name": "VisuallyHidden",
+      "status": "stable",
+      "purpose": "Adds text that only assistive technology reads: names for icon-only table headers, context for repeated links, status announcements, hidden headings and skip links that appear on focus.",
+      "props": "as? focusable? href? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "VoiceRecorder",
+      "status": "stable",
+      "purpose": "Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action.",
+      "props": "title? elapsed? start? end? levels? guidance? input? format? onRecord? onPause? onResume? onFinish? onDiscard?"
+    },
+    {
+      "name": "ZenPortalProvider",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
+      "props": "children"
+    },
+    {
+      "name": "ZenProvider",
+      "status": "stable",
+      "chrome": true,
+      "purpose": "The root of every Zen UI. It sets the token modes (data-theme, data-density…), paints the page Canvas and text colour, and hosts the portal that overlays render into, so dialogs, toasts and menus follow the same modes.",
+      "props": "theme? componentTheme? density? radius? emphasis? breakpoint? typography? brand? contrast? locale? labels? paint? syncDocument? portal? toastPlacement? children? aria-label? aria-labelledby? aria-describedby?"
+    }
+  ]
+}

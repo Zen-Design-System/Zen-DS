@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "data": {
+    "services": [{ "value": "cut", "label": "Haircut" }, { "value": "colour", "label": "Colour" }],
+    "slots": [{ "value": "09:00", "label": "09:00" }, { "value": "10:30", "label": "10:30" }, { "value": "14:00", "label": "14:00" }]
+  },
+  "state": { "when": { "service": "cut" } },
+  "root": {
+    "type": "Stack", "id": "root", "props": { "gap": "lg" },
+    "children": [
+      { "type": "Heading", "id": "title", "props": { "level": 3 }, "children": ["Book an appointment"] },
+      { "type": "SelectField", "id": "service", "props": { "label": "Service", "options": { "$ref": "services" }, "value": { "$state": "when.service" } } },
+      { "type": "DateField", "id": "date", "props": { "label": "Date", "value": { "$state": "when.date" } } },
+      { "type": "ChipGroup", "id": "slot", "props": { "aria-label": "Time", "options": { "$ref": "slots" }, "value": { "$state": "when.slot" } } },
+      {
+        "type": "Stack", "id": "actions", "props": { "direction": "row", "gap": "sm", "justify": "end" },
+        "children": [
+          { "type": "Button", "id": "cancel", "props": { "level": "tertiary", "onClick": { "$action": "cancel" } }, "children": ["Cancel"] },
+          { "type": "Button", "id": "book", "props": { "level": "primary", "onClick": { "$action": "book", "args": { "when": { "$state": "when" } } } }, "children": ["Book"] }
+        ]
+      }
+    ]
+  }
+}
