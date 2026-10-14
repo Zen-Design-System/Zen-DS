@@ -115,3 +115,23 @@
   Committed 18a4e38 on that branch (not pushed); its older examples/pages/chart.tsx edit is not ours, left out.
 - Centre figure differs on purpose: Figma `Centre > Value` Heading/Subheading, code Heading/4. User: "giữ nguyên"
   (keep both as they are); don't "fix" it.
+
+## Figma plugin: "Import failed … The node (instance sublayer …) does not exist" (session "Studio toggles + click", tier M, plugin repo `~/Documents/zen-ds-figma-plugin-main` f39af77)
+
+- User: "Lỗi import vào figma" (findOne callback crashed: in get_name … `I15598:100696;4182:11567` does not exist). The node
+  was an Avatar the import made (default variant 3XLarge, `4182:11567` = its Focus-Ring) in the Zen file's "Studio exports".
+- Reproduced in the live Zen file with the real importer (test bed: icon page 1340:4450 for componentNamed, package
+  without set names when the id is there, Dashboard = 28 KB + importer 19 KB in one `use_figma`): a second import of
+  the same page failed every time (`I…;12280:21764 does not exist`, the header's Notifications).
+- Cause: Figma re-creates an instance's slot content with new ids (seen between runs: `15606:1414` →
+  `I15606:1197;4122:33338;15606:1431`); a layer taken before then still reads its type but not its name, and
+  findOne / findAll hand such layers to callbacks.
+- Fix (studio-import.js): `findIn` (callbacks skip unreadable layers; walk by hand if Figma's traversal fails),
+  `keyedChild` + `intact` (reuse a layer only while its own layers read; slot content left to the slot), the layer
+  re-read after insertChild, leftovers by position; sizes: only an import-bound size resets, to the variant's own
+  (Avatars came back 112px); a swapped nested layer (Avatar → Dock-Icon, renamed by Figma) found by the new name; a
+  failed import removes the layers it made. Mock tests +5 (each fails on the old code); `npm test` 0 failures; dist
+  rebuilt (backup `backups/dist-before-studio-import-stale-*.tgz`).
+- Live: full Dashboard twice in one run (130 created, then 118 updated / 12 re-made, no duplicates, Avatars 32/40),
+  then again in a new run (130 updated, 0 created, 0 removed); swap re-import 0 notes. QA frames and the stray layers
+  of my failed runs removed; the user's own "Dashboard" frame (15598:100161, empty) untouched.
