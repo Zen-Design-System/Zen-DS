@@ -38,6 +38,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Stepper](stepper.md) | `stepper/needs-label`, `stepper/step-count`, `api/overrides-studio-only`, `icon/unknown-name`, `interaction/no-noop-handler` |
 | [Slider](slider.md) | `slider/needs-name`, `slider/white-no-small`, `slider/solid-icon`, `api/deprecated-prop`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Slider Field](slider-field.md) | `slider-field/value-in-range`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
+| [Curve Preview](curve-preview.md) | `curve-preview/bounce-range`, `interaction/no-noop-handler` |
 | [Card](card.md) | `card/clickable-no-nested-controls`, `card/on-container-in-overlay`, `api/deprecated-prop`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/action-without-handler` |
 | [Dock Icon](dock-icon.md) | `flag/no-emoji-flag`, `dock-icon/emoji-needs-glyph`, `icon/unknown-name`, `interaction/no-noop-handler` |
 | [Voice](voice.md) | `voice/actions-wired`, `api/overrides-studio-only`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |

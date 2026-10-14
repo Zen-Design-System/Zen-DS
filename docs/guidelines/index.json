@@ -2194,6 +2194,47 @@
       ]
     },
     {
+      "slug": "curve-preview",
+      "title": "Curve Preview",
+      "file": "docs/guidelines/curve-preview.md",
+      "apiFile": "docs/api/curve-preview.json",
+      "figma": "Chart/Curve-Preview 15663:110887",
+      "import": "import { CurvePreview } from \"@zen-ds/react\";",
+      "purpose": "A picture of a motion curve: how a value moves from its start (bottom left) to its target (the dashed line) over time, left to right — a spring, a bounce or an easing curve.",
+      "use": [
+        "Above the motion settings it previews in a property panel (Type, Duration, Bounce), so people see the effect of a change at once.",
+        "Comparing easing choices side by side in documentation or a settings page."
+      ],
+      "avoid": [
+        "Data over time → LineChart.",
+        "A progress value → Progress.",
+        "Choosing the curve itself → Segmented or SelectField next to the preview; the preview is not a control."
+      ],
+      "props": {
+        "CurvePreview": [
+          "type?: spring|bounce|ease-out|ease-in-out = spring",
+          "bounce?: number",
+          "aria-label?: string",
+          "className?: string",
+          "style?: CSSProperties",
+          "ref?: Ref<HTMLDivElement>"
+        ]
+      },
+      "do": [
+        "Put it right above the settings it previews and pass the same values (type, bounce), so the curve follows every change.",
+        "Let it take the panel's width: the height stays 176 and the curve stretches with the width.",
+        "Name it after the setting when the type alone is not enough (\"Back photo transition: Spring, bounce 0.3\")."
+      ],
+      "dont": [
+        "Don't use it as a chart of data; it has no axes or values to read.",
+        "Don't pass a bounce outside 0–1 or a bounce to an ease curve (harness: curve-preview/bounce-range)."
+      ],
+      "rules": [
+        "curve-preview/bounce-range",
+        "interaction/no-noop-handler"
+      ]
+    },
+    {
       "slug": "card",
       "title": "Card",
       "file": "docs/guidelines/card.md",

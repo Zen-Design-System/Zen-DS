@@ -8378,6 +8378,62 @@
       ]
     }
   ],
+  "curve-preview": [
+    {
+      "name": "CurvePreview",
+      "extends": null,
+      "props": [
+        {
+          "name": "type",
+          "type": "\"spring\" | \"bounce\" | \"ease-out\" | \"ease-in-out\"",
+          "required": false,
+          "default": "\"spring\"",
+          "description": "The curve (Figma `Type`): `spring` (light damping, about 4% overshoot, default), `bounce` (visible overshoot),\n`ease-out` (Motion/Ease/Emphasized) or `ease-in-out` (.65 0 .35 1).",
+          "deprecated": null
+        },
+        {
+          "name": "bounce",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "How much a spring overshoots, 0–1 (damping ratio = 1 − bounce): follow the Bounce setting the preview sits above.\nDefault: 0.3 for `spring`, 0.7 for `bounce`. Ease curves ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name for assistive technology. Default: \"Motion curve: Spring\" (the type, in the provider's language).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The preview's root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
   "card": [
     {
       "name": "Card",

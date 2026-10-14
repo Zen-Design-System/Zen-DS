@@ -116,7 +116,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   AreaChart: "Chart", GroupedBarChart: "Chart", ComboChart: "Chart", GaugeChart: "Chart", FunnelChart: "Chart", BarList: "Chart", BulletChart: "Chart", AlertBanner: "AlertBanner",
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
-  ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField",
+  ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField", CurvePreview: "CurvePreview",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
   BottomNavigation: "BottomNavigation", Sidebar: "Sidebar", SidebarMenuItem: "Sidebar", SidebarMenuSection: "Sidebar", AppShell: "AppShell", ActionBar: "ActionBar",
@@ -672,6 +672,10 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "color-swatch", label: "Colour swatch", group: "Data display", caption: "Shows a colour value", root: "ColorSwatch", components: ["ColorSwatch"], interactive: false, input: false,
     build: () => `<ColorSwatch color="#1F6FEB" aria-label="Brand colour, #1F6FEB" />`,
+  },
+  {
+    id: "curve-preview", label: "Curve preview", group: "Charts", caption: "A motion curve, above its settings", root: "CurvePreview", components: ["CurvePreview"], interactive: false, input: false,
+    build: () => `<CurvePreview type="spring" bounce={0.3} />`,
   },
   {
     id: "inline-field", label: "Inline field", group: "Inputs", caption: "Label inside, for property panels", root: "InputField", components: ["InputField"], interactive: true, input: true,
