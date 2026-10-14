@@ -171,6 +171,26 @@ export type ZenLabels = {
   total: string;
   noData: string;
   colour: string;
+  /** ColorPicker's dialog name and ColorField's popup: "Choose a colour". */
+  chooseColour: string;
+  /** ColorPicker's saturation × brightness area (a 2D slider). */
+  saturationBrightness: string;
+  /** Its value, read on every move: "Saturation 87%, brightness 92%". */
+  saturationBrightnessValue: (saturation: number, brightness: number) => string;
+  /** ColorPicker's hue slider. */
+  hue: string;
+  /** ColorPicker's Format select (Hex · RGB · HSL · HSB). */
+  colourFormat: string;
+  /** The heading of ColorPicker's saved colours. */
+  savedColours: string;
+  /** Channel names of ColorPicker's value fields (the fields show one letter). */
+  hexValue: string;
+  red: string;
+  green: string;
+  blue: string;
+  saturation: string;
+  lightness: string;
+  brightness: string;
   segmentedControl: string;
   // Files
   chooseFile: string;
@@ -436,6 +456,19 @@ const en: ZenLabels = {
   total: "Total",
   noData: "No data",
   colour: "Colour",
+  chooseColour: "Choose a colour",
+  saturationBrightness: "Saturation and brightness",
+  saturationBrightnessValue: (saturation, brightness) => `Saturation ${saturation}%, brightness ${brightness}%`,
+  hue: "Hue",
+  colourFormat: "Format",
+  savedColours: "Saved",
+  hexValue: "Hex value",
+  red: "Red",
+  green: "Green",
+  blue: "Blue",
+  saturation: "Saturation",
+  lightness: "Lightness",
+  brightness: "Brightness",
   segmentedControl: "Segmented control",
   chooseFile: "Choose File",
   files: "Files",
@@ -676,6 +709,19 @@ const vi: ZenLabels = {
   total: "Tổng",
   noData: "Không có dữ liệu",
   colour: "Màu",
+  chooseColour: "Chọn màu",
+  saturationBrightness: "Độ bão hoà và độ sáng",
+  saturationBrightnessValue: (saturation, brightness) => `Độ bão hoà ${saturation}%, độ sáng ${brightness}%`,
+  hue: "Tông màu",
+  colourFormat: "Định dạng",
+  savedColours: "Đã lưu",
+  hexValue: "Mã hex",
+  red: "Đỏ",
+  green: "Xanh lá",
+  blue: "Xanh dương",
+  saturation: "Độ bão hoà",
+  lightness: "Độ sáng",
+  brightness: "Độ chói",
   segmentedControl: "Bộ chọn phân đoạn",
   chooseFile: "Chọn tệp",
   files: "Tệp",

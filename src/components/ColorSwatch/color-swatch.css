@@ -1,0 +1,22 @@
+/* Figma .Primitives/Input/Color-Swatch (15659:110090): one shape, the value as its fill and an inside 1px
+   Border/Neutral/Subtle drawn over it (an inset shadow paints above the background, so the corners never gap). */
+.zen-swatch {
+  --zen-swatch-size: var(--zen-element-size-popular-base, 20px);
+  display: inline-block;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--zen-swatch-size);
+  height: var(--zen-swatch-size);
+  /* Concentric with a Medium/Large field: 12 − 10 (Corner-Radius/2XSmall). */
+  border-radius: var(--zen-corner-radius-2-xsmall, 2px);
+  background: var(--zen-swatch-color, transparent);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%));
+  vertical-align: middle;
+}
+/* Small fields: 16px, Corner-Radius/XSmall (12 − 8). */
+.zen-swatch[data-size="small"] {
+  --zen-swatch-size: var(--zen-element-size-popular-small, 16px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+}
+/* XLarge fields: 24px (Element-Size/Popular/Medium). */
+.zen-swatch[data-size="large"] { --zen-swatch-size: var(--zen-element-size-popular-medium, 24px); }

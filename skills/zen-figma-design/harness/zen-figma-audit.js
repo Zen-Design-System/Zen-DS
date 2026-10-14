@@ -25,6 +25,8 @@
 //   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
 //                                     button bleeding out of a non-clipping icon-size wrapper is Zen's design)
 //   bounds/clipped           error    a layer cut off by a clipping parent
+//   bounds/stroke-clip-gap   warning  a clipping frame with an inside stroke and a radius over a filled child that reaches
+//                                     a corner: Figma clips the child 1px in with the outer radius, a gap shows at the corner
 //   bounds/shadow-clipped    error    a drop shadow (also one inside an instance, like a Shadow card's) cut by a
 //                                     clipping frame of the screen: frames made with createFrame/createAutoLayout clip
 //   bounds/shadow-clipped-in-component  warning  the same, cut by a frame of the component itself
@@ -206,6 +208,31 @@ function checkBounds(node) {
     if (isBleed(node, own, frame)) return;
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
+  }
+}
+
+/**
+ * A clipping frame with an INSIDE stroke clips its children inside the stroke but keeps the outer corner radius, so a
+ * filled child that reaches a corner leaves a hairline gap between the stroke and the fill there (a colour swatch, a
+ * slider fill). Fix: the fill on the stroked frame itself, or the border as a top layer with the same radius.
+ */
+function checkStrokeClip(node) {
+  if (!("clipsContent" in node) || !node.clipsContent || !("children" in node) || node.strokeAlign !== "INSIDE") return;
+  if (!visiblePaints(node.strokes).length) return;
+  const weight = isMixed(node.strokeWeight) ? Math.max(node.strokeTopWeight ?? 0, node.strokeRightWeight ?? 0, node.strokeBottomWeight ?? 0, node.strokeLeftWeight ?? 0) : node.strokeWeight;
+  const radius = isMixed(node.cornerRadius) ? Math.max(node.topLeftRadius ?? 0, node.topRightRadius ?? 0, node.bottomRightRadius ?? 0, node.bottomLeftRadius ?? 0) : node.cornerRadius;
+  const frame = box(node);
+  if (!weight || !radius || !frame) return;
+  for (const child of node.children) {
+    if (!child.visible || !("fills" in child) || isMixed(child.fills) || !visiblePaints(child.fills).length) continue;
+    const own = box(child);
+    if (!own) continue;
+    const left = own.x <= frame.x + TOLERANCE, right = own.x + own.width >= frame.x + frame.width - TOLERANCE;
+    const top = own.y <= frame.y + TOLERANCE, bottom = own.y + own.height >= frame.y + frame.height - TOLERANCE;
+    if ((left || right) && (top || bottom)) {
+      report("bounds/stroke-clip-gap", WARNING, node, `${child.name} reaches a corner under a ${weight}px inside stroke with radius ${radius}: put the fill on this frame or draw the border as a top layer`);
+      return;
+    }
   }
 }
 
@@ -512,6 +539,7 @@ async function walk(node, instanceRoot, isRoot) {
     checkSpacing(node);
     checkRadius(node);
     checkEffects(node);
+    checkStrokeClip(node);
     if (!isRoot) checkAuthoredShape(node);
   }
   if (!("children" in node)) return;
