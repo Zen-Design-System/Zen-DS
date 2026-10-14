@@ -2015,10 +2015,6 @@ export const tokens = {
   "Segmented/Spacing/Small/Horizontal-Padding": "var(--zen-segmented-spacing-small-horizontal-padding)",
   "Segmented/Spacing/Small/Text-Wrapper-Padding": "var(--zen-segmented-spacing-small-text-wrapper-padding)",
   "Segmented/Spacing/Small/Vertical-Padding": "var(--zen-segmented-spacing-small-vertical-padding)",
-  "Segmented/Spacing/XSmall/Gap": "var(--zen-segmented-spacing-xsmall-gap)",
-  "Segmented/Spacing/XSmall/Horizontal-Padding": "var(--zen-segmented-spacing-xsmall-horizontal-padding)",
-  "Segmented/Spacing/XSmall/Text-Wrapper-Padding": "var(--zen-segmented-spacing-xsmall-text-wrapper-padding)",
-  "Segmented/Spacing/XSmall/Vertical-Padding": "var(--zen-segmented-spacing-xsmall-vertical-padding)",
   "Select-Item/Size/Medium": "var(--zen-select-item-size-medium)",
   "Select-Item/Size/Small": "var(--zen-select-item-size-small)",
   "Sidebar/Default-Width": "var(--zen-sidebar-default-width)",
@@ -2279,7 +2275,7 @@ export const tokenCollections = {
       "Comfortable",
       "Studio"
     ],
-    "variableCount": 194
+    "variableCount": 190
   },
   "spacing": {
     "name": "Spacing",

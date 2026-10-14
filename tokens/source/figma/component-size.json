@@ -1099,18 +1099,18 @@
         "name": "Segmented/Spacing/Medium/Gap",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{dm-4}",
-          "Comfortable": "{dm-4}",
-          "Studio": "{dm-4}"
+          "Compact": 0,
+          "Comfortable": 0,
+          "Studio": 0
         }
       },
       {
         "name": "Segmented/Spacing/Medium/Text-Wrapper-Padding",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{dm-4}",
-          "Comfortable": "{dm-4}",
-          "Studio": "{dm-4}"
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}",
+          "Studio": "{dm-8}"
         }
       },
       {
@@ -1135,9 +1135,9 @@
         "name": "Segmented/Spacing/Small/Gap",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{dm-2}",
-          "Comfortable": "{dm-2}",
-          "Studio": "{dm-2}"
+          "Compact": 0,
+          "Comfortable": 0,
+          "Studio": 0
         }
       },
       {
@@ -1162,45 +1162,9 @@
         "name": "Segmented/Spacing/Small/Text-Wrapper-Padding",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{dm-4}",
-          "Comfortable": "{dm-4}",
-          "Studio": "{dm-4}"
-        }
-      },
-      {
-        "name": "Segmented/Spacing/XSmall/Horizontal-Padding",
-        "type": "FLOAT",
-        "valuesByMode": {
-          "Compact": "{dm-4}",
-          "Comfortable": "{dm-4}",
-          "Studio": "{dm-4}"
-        }
-      },
-      {
-        "name": "Segmented/Spacing/XSmall/Vertical-Padding",
-        "type": "FLOAT",
-        "valuesByMode": {
-          "Compact": "{dm-2}",
-          "Comfortable": "{dm-4}",
-          "Studio": "{dm-2}"
-        }
-      },
-      {
-        "name": "Segmented/Spacing/XSmall/Gap",
-        "type": "FLOAT",
-        "valuesByMode": {
-          "Compact": 0,
-          "Comfortable": 0,
-          "Studio": 0
-        }
-      },
-      {
-        "name": "Segmented/Spacing/XSmall/Text-Wrapper-Padding",
-        "type": "FLOAT",
-        "valuesByMode": {
-          "Compact": "{dm-4}",
-          "Comfortable": "{dm-4}",
-          "Studio": "{dm-4}"
+          "Compact": "{dm-8}",
+          "Comfortable": "{dm-8}",
+          "Studio": "{dm-8}"
         }
       },
       {

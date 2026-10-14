@@ -2019,10 +2019,6 @@ abstract final class ZenToken {
   static const String segmentedSizeMedium = 'Segmented/Size/Medium';
   static const String segmentedSizeSmall = 'Segmented/Size/Small';
   static const String segmentedSpacingSmallTextWrapperPadding = 'Segmented/Spacing/Small/Text-Wrapper-Padding';
-  static const String segmentedSpacingXSmallHorizontalPadding = 'Segmented/Spacing/XSmall/Horizontal-Padding';
-  static const String segmentedSpacingXSmallVerticalPadding = 'Segmented/Spacing/XSmall/Vertical-Padding';
-  static const String segmentedSpacingXSmallGap = 'Segmented/Spacing/XSmall/Gap';
-  static const String segmentedSpacingXSmallTextWrapperPadding = 'Segmented/Spacing/XSmall/Text-Wrapper-Padding';
   static const String segmentedItemCornerRadiusMedium = 'Segmented/Item-Corner-Radius-Medium';
   static const String segmentedItemCornerRadiusSmall = 'Segmented/Item-Corner-Radius-Small';
   static const String segmentedContainerCornerRadiusMedium = 'Segmented/Container-Corner-Radius-Medium';

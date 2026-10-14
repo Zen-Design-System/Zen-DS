@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Segmented spacing follows the live Figma (2026-10-15, user): the label pads 8px on each side (was 4) and the icon
+  sits next to it with no gap (was 4, Small 2), so a segment with text is 4–6px wider; `Segmented/Spacing/XSmall/*` is
+  removed (Figma deleted it, nothing read it). Contract re-captured.
 - Zen Figma library: the six property-panel sets (Input/Inline-Field, Input/Color-Field, Color-Picker,
   .Primitives/Input/Color-Swatch, Slider/Field, Chart/Curve-Preview) carry Zen descriptions with their code component
   (`tools/figma-docs`), no longer "Draft, not yet in code".
