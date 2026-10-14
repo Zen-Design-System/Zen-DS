@@ -29,9 +29,9 @@ import {
   type Person, type PersonId, type Team,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewAppFrame, PreviewPage, ShellPage, StudioLogo } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./breadcrumbs.css";
 
 export const page: PlatformPage = "breadcrumbs";
 
@@ -116,7 +116,7 @@ function FileBrowserExample() {
   const columns = narrow ? allColumns.filter((column) => column.id === "name") : allColumns;
 
   return (
-    <div className="px-breadcrumbs-page" ref={measure}>
+    <PreviewPage ref={measure} margin="block">
       <Container maxWidth="full">
         <Stack gap="xl">
           <PageHeader
@@ -137,7 +137,7 @@ function FileBrowserExample() {
       </Container>
       <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New folder" field={{ kind: "name", label: "Folder name", placeholder: "Round 2" }}
         submitLabel="Create folder" confirm={() => "Folder created"} onSubmit={addFolder} />
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -272,31 +272,29 @@ function TopBarTrailExample() {
   }
 
   return (
-    <div className="px-breadcrumbs-frame" ref={measure}>
-      <div className="px-breadcrumbs-frame__scroll">
-        <AppShell
-          sidebar={(
-            <Sidebar
-              // The logo slot is sized to the header (24px, 20px dense): the mark fills its height, so density never outgrows it.
-              logo={<span className="px-breadcrumbs-brand"><img src={studio.logo} alt="" /><Text as="span" textStyle="Body/Base/Bold">{studio.name}</Text></span>}
-              logoCollapsed={<Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
-              sections={[{ items: [
-                { id: "home", label: "Home", icon: "icon-home-03-line" },
-                { id: "projects", label: "Projects", icon: "icon-folder-line" },
-                { id: "people", label: "People", icon: "icon-users-line" },
-              ] }]}
-              selectedId={route.section}
-              onItemClick={(item) => go(item.id)}
-            />
-          )}
-          // The house pattern (HR-Platform): the trail sits in the top bar, starts at Home and has no master icon. Home itself
-          // is the top level, so it shows no trail.
-          header={crumbs.length > 1 ? <Breadcrumbs key={crumbs.length} master={false} items={crumbs} maxItems={width && width < 640 ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); go(item.id); }} /> : undefined}
-        >
-          <Container><Stack gap="xl" className="px-breadcrumbs-shell-page">{content}</Stack></Container>
-        </AppShell>
-      </div>
-    </div>
+    <PreviewAppFrame frameRef={measure} height={{ min: 520, max: 720 }}>
+      <AppShell
+        sidebar={(
+          <Sidebar
+            // The logo slot is sized to the header (24px, 20px dense): the mark fills its height, so density never outgrows it.
+            logo={<StudioLogo src={studio.logo} name={studio.name} />}
+            logoCollapsed={<Avatar size="xsmall" shape="square" theme="photo" src={studio.logo} alt={studio.name} />}
+            sections={[{ items: [
+              { id: "home", label: "Home", icon: "icon-home-03-line" },
+              { id: "projects", label: "Projects", icon: "icon-folder-line" },
+              { id: "people", label: "People", icon: "icon-users-line" },
+            ] }]}
+            selectedId={route.section}
+            onItemClick={(item) => go(item.id)}
+          />
+        )}
+        // The house pattern (HR-Platform): the trail sits in the top bar, starts at Home and has no master icon. Home itself
+        // is the top level, so it shows no trail.
+        header={crumbs.length > 1 ? <Breadcrumbs key={crumbs.length} master={false} items={crumbs} maxItems={width && width < 640 ? 3 : undefined} onNavigate={(item, event) => { event.preventDefault(); go(item.id); }} /> : undefined}
+      >
+        <ShellPage>{content}</ShellPage>
+      </AppShell>
+    </PreviewAppFrame>
   );
 }
 
@@ -329,7 +327,7 @@ function LongPathExample() {
   const children = handbook.filter((d) => d.parent === docId);
 
   return (
-    <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
+    <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
       <Stack gap="md">
         {/* Six levels: the first and the last two stay, "…" opens the rest (narrow: the first and the current page). */}
         {/* The trail as BreadcrumbItem children (Figma's Item-List slot); an items array works the same. */}
@@ -351,7 +349,7 @@ function LongPathExample() {
           <Text>{q3Findings}</Text>
         )}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -365,7 +363,7 @@ function NextLevelExample() {
   const path = pathTo(fileTree, folderId);
   const folders = childrenOf(fileTree, folderId).filter(isFolder);
   return (
-    <Card theme="flat" spacing="md" className="px-breadcrumbs-doc" ref={measure}>
+    <Stack><Card theme="flat" spacing="md" width="fill" maxWidth={480} alignSelf="center" ref={measure}>
       {/* One row: the chevron after the open folder stays beside the menu it points to (narrow: the trail collapses). */}
       <Stack direction="row" gap="xs" align="center">
         <Breadcrumbs
@@ -383,7 +381,7 @@ function NextLevelExample() {
           />
         ) : null}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -408,7 +406,7 @@ function MoveToFolderExample() {
   };
 
   return (
-    <Card theme="flat" className="px-breadcrumbs-move">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <FileIcon format={fileIconFormatOf(file.name)} size="xl" />
@@ -435,7 +433,7 @@ function MoveToFolderExample() {
           )}
         </Stack>
       </Dialog>
-    </Card>
+    </Card></Stack>
   );
 }
 

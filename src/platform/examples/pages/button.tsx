@@ -31,6 +31,7 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import { keepOnHotUpdate } from "../../hotData";
 import "./button.css";
 
@@ -76,7 +77,7 @@ function PageActionsExample() {
     toast({ title: "Project put on hold", action: { label: "Undo", onClick: () => setStatus("Active") } });
   };
   return (
-    <Box className="px-button-page">
+    <PreviewPage margin="all">
       <Stack gap="xl">
         <PageHeader
           eyebrow="Phin & Co"
@@ -104,7 +105,7 @@ function PageActionsExample() {
       <DemoFieldDialog open={dialog === "task"} onOpenChange={(open) => setDialog(open ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Design the rewards screen" }} submitLabel="Create task"
         confirm={() => "Task created"} onSubmit={addTask} />
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -137,14 +138,14 @@ function SendInvoiceExample() {
   });
   const downloadPdf = () => toast({ title: "PDF downloaded" });
   return (
-    <Card theme="flat" className="px-button-card" spacing="md">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center" spacing="md">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
             <Heading level={4} textStyle="Heading/Subheading">{saolaInvoice.number}</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
           </Stack>
-          <Badge className="px-button-status" theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
+          <Badge theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
         </Stack>
         <DescriptionList items={[
           { term: "Issued", description: formatDate(saolaInvoice.issued) },
@@ -164,7 +165,7 @@ function SendInvoiceExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -246,7 +247,7 @@ function HandOffExample() {
   useEffect(() => { (handedOff ? messageRef.current : buttonRef.current)?.focus(); }, [handedOff]);
   const handOff = () => { setHandedOff(true); toast({ type: "positive", title: "Designs handed off" }); };
   return (
-    <Card theme="flat" className="px-button-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md" alignSelf="stretch">
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Sprint 14 hand-off</Heading>
@@ -274,7 +275,7 @@ function HandOffExample() {
           </>
         )}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 

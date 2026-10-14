@@ -387,7 +387,7 @@ function FeedPost({ post }: { post: Post }) {
         <Avatar size="md" {...avatarOf(author)} />
         {/* Start-aligned, so the name's focus ring hugs the name. */}
         <Stack gap="2xs" align="start">
-          <Text ref={nameRef} as="span" id={nameId} tabIndex={-1} className="px-image-focus-target" textStyle="Body/Base/Bold">{author.name}</Text>
+          <Text ref={nameRef} as="span" id={nameId} tabIndex={-1} textStyle="Body/Base/Bold">{author.name}</Text>
           <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${projectById(post.project).name} · ${formatRelative(post.at)}`}</Text>
         </Stack>
       </Stack>
@@ -400,7 +400,7 @@ function FeedPost({ post }: { post: Post }) {
       ) : (
         <Image src={photoSrc(post.photos[0])} alt={post.photos[0].alt} ratio="4:3" radius="lg" onError={() => setFailed(true)} />
       )}
-      {failed ? <Button level="tertiary" startIcon="icon-refresh-cw-01-line" className="px-image-start" onClick={reload}>Reload photo</Button> : null}
+      {failed ? <Stack align="start"><Button level="tertiary" startIcon="icon-refresh-cw-01-line" onClick={reload}>Reload photo</Button></Stack> : null}
       <Stack direction="row" gap="2xs" align="center">
         {/* The whole 40px target stays inside the post (nothing overhangs the screen margin), so the heart sits its own inset in. */}
         <IconButton appearance="flat" level="primary" size="md" icon={liked ? "icon-heart-solid" : "icon-heart-line"}

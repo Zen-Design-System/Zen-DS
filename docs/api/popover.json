@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "popover",
-  "import": "import { Popover, PopoverItem, PopoverSearch, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider, PopoverManualAddNew } from \"@zen/design-system\";",
+  "import": "import { Popover, PopoverItem, PopoverSearch, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider, PopoverManualAddNew } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Popover",

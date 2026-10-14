@@ -2,7 +2,7 @@
 # Chip / Pill
 
 **Figma:** Chip/Advanced, Chip/Normal, Chip/Number-Only (page 320:79626)  
-**Import:** `import { Chip, ChipGroup } from "@zen/design-system";`
+**Import:** `import { Chip, ChipGroup } from "@zen-ds/react";`
 
 Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.
 

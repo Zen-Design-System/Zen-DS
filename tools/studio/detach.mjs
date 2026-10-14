@@ -21,7 +21,7 @@
 //   slots) overrides the recipe defaults; what a primitive cannot express goes to `approximations`.
 // - The output is marked `{/* zen-detached: <Component> · Zen Studio */}` (JSX child position) or
 //   `/* zen-detached: … */` (expression position). Imports: the primitives used join the file's imports (a template's
-//   "@zen/design-system" import, else ../components/<Folder> relative paths); the original component's specifier goes
+//   "@zen-ds/react" import, else ../components/<Folder> relative paths); the original component's specifier goes
 //   when nothing uses it any more.
 // - Inside a `.map` callback only the selected row detaches: the element becomes `(index as number) === K ?
 //   (<detached/>) : (<original/>)` (the cast keeps TypeScript from narrowing the index inside the row), with the
@@ -496,6 +496,7 @@ function cardBox(r, { theme, spacing, surface }, rootProps) {
   if (theme === "shadow") r.approx("Card theme shadow: Shadow/Bottom/Level-1 is dropped (Box has no shadow).");
   if (theme === "pale") r.approx("Card theme pale: Support/Neutral/Pale with the overlay blur becomes Box surface pale (Neutral/Pale).");
   if (theme === "semi-pale") r.approx("Card theme semi-pale: the Pale→Subtle gradient with the overlay blur becomes Box surface pale.");
+  if (theme === "on-container") r.approx("Card theme on-container: Surface/Flat becomes Box surface (Surface/Default): the same white in light mode, one step lighter in dark.");
   const padding = boxPadding(r, small ? "md" : "xl");
   if (!small) r.approx(`Card padding is fixed at ${padding.map((prop) => prop.value).join(" × ")} (Card-padding-medium follows the breakpoint: 24 desktop, 20 tablet and phone).`);
   return [
@@ -553,7 +554,7 @@ function withSubAction(r, content, sub) {
   return [el(r.use("Stack"), [str("direction", "row"), str("align", "start"), str("gap", "xs")], [body, sub])];
 }
 
-const CARD_THEMES = ["shadow", "flat", "pale", "border", "semi-pale"];
+const CARD_THEMES = ["shadow", "flat", "pale", "border", "semi-pale", "on-container"];
 const spacingKey = (value) => (value === "sm" || value === "small" ? "sm" : "md");
 
 const RECIPES = {
@@ -857,9 +858,10 @@ const RECIPES = {
       const textStyle = r.m("textStyle", "textStyle", size === "xs" ? "Caption/Medium" : size === "sm" ? "Body/Small/Medium" : "Body/Base/Medium");
       const leadingAttr = r.attr("leading");
       let leading = null;
-      if (size !== "xs") {
+      // Badge.tsx: leadingIcon={false} hides the leading layer, a custom `leading` icon included (Figma's Leading-Icon).
+      if (size !== "xs" && leadingIcon) {
         if (leadingAttr) leading = r.icon(leadingAttr, size === "md" ? "sm" : "xs");
-        else if (leadingIcon) leading = el(r.use("Icon"), [str("name", "icon-circle-small-solid"), str("size", size === "md" ? "sm" : "xs"), flag("decorative")]);
+        else leading = el(r.use("Icon"), [str("name", "icon-circle-small-solid"), str("size", size === "md" ? "sm" : "xs"), flag("decorative")]);
       }
       if (leading) r.approx("The leading dot or icon takes the label colour (Badge paints it separately).");
       const region = r.region();

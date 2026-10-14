@@ -150,6 +150,20 @@ export type ZenLabels = {
   chartPoint: (index: number, count: number) => string;
   /** A stack bar chart's screen-reader summary: "total 1.2K". */
   chartTotal: (value: string) => string;
+  /** A bar against its goal: "$320 of $400". */
+  chartOfTarget: (value: string, target: string) => string;
+  /** A forecast bar's Tooltip suffix. */
+  chartProjected: string;
+  /** A heatmap's summary before a cell is picked: "Highest: Thu, 3 pm: 42". */
+  chartHighest: string;
+  /** A heatmap scale's ends. */
+  chartLess: string;
+  chartMore: string;
+  /** The average line's tag ("Avg $95.4K") and its screen-reader form ("average $95.4K"). */
+  chartAverage: (value: string) => string;
+  chartAverageLong: (value: string) => string;
+  /** The caption under a donut's total. */
+  total: string;
   noData: string;
   colour: string;
   segmentedControl: string;
@@ -281,6 +295,9 @@ export type ZenLabels = {
   voiceEnd: string;
   voiceMicOffNote: string;
   voiceConnectedNote: string;
+  /** Listening with the microphone muted: the guidance line and the note. */
+  voiceMutedGuidance: string;
+  voiceMutedNote: string;
   playVoiceMessage: string;
   pauseVoiceMessage: string;
   voiceReadyToPlay: string;
@@ -401,6 +418,14 @@ const en: ZenLabels = {
   openReport: "Open report",
   chartPoint: (index, count) => `${index} of ${count}`,
   chartTotal: (value) => `total ${value}`,
+  chartOfTarget: (value, target) => `${value} of ${target}`,
+  chartProjected: "projected",
+  chartHighest: "Highest",
+  chartLess: "Less",
+  chartMore: "More",
+  chartAverage: (value) => `Avg ${value}`,
+  chartAverageLong: (value) => `average ${value}`,
+  total: "Total",
   noData: "No data",
   colour: "Colour",
   segmentedControl: "Segmented control",
@@ -512,6 +537,8 @@ const en: ZenLabels = {
   voiceEnd: "End",
   voiceMicOffNote: "Your microphone stays off until you start.",
   voiceConnectedNote: "Voice conversation · Microphone connected",
+  voiceMutedGuidance: "Your microphone is muted. Unmute to keep talking.",
+  voiceMutedNote: "Voice conversation · Microphone muted",
   playVoiceMessage: "Play voice message",
   pauseVoiceMessage: "Pause voice message",
   voiceReadyToPlay: "Ready to play",
@@ -628,6 +655,14 @@ const vi: ZenLabels = {
   openReport: "Mở báo cáo",
   chartPoint: (index, count) => `${index} trên ${count}`,
   chartTotal: (value) => `tổng ${value}`,
+  chartOfTarget: (value, target) => `${value} trên ${target}`,
+  chartProjected: "dự kiến",
+  chartHighest: "Cao nhất",
+  chartLess: "Ít",
+  chartMore: "Nhiều",
+  chartAverage: (value) => `TB ${value}`,
+  chartAverageLong: (value) => `trung bình ${value}`,
+  total: "Tổng",
   noData: "Không có dữ liệu",
   colour: "Màu",
   segmentedControl: "Bộ chọn phân đoạn",
@@ -739,6 +774,8 @@ const vi: ZenLabels = {
   voiceEnd: "Kết thúc",
   voiceMicOffNote: "Micro của bạn vẫn tắt cho đến khi bạn bắt đầu.",
   voiceConnectedNote: "Trò chuyện bằng giọng nói · Đã kết nối micro",
+  voiceMutedGuidance: "Micro đang tắt tiếng. Bật lại để nói tiếp.",
+  voiceMutedNote: "Trò chuyện bằng giọng nói · Micro đang tắt tiếng",
   playVoiceMessage: "Phát tin nhắn thoại",
   pauseVoiceMessage: "Tạm dừng tin nhắn thoại",
   voiceReadyToPlay: "Sẵn sàng phát",

@@ -2,7 +2,7 @@
 # Search
 
 **Figma:** Search (page 846:37480)  
-**Import:** `import { Search } from "@zen/design-system";`
+**Import:** `import { Search } from "@zen-ds/react";`
 
 Find or filter content by typing.
 

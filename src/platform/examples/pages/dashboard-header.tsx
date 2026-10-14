@@ -13,7 +13,7 @@ import { Chip } from "../../../components/Chip";
 import { DashboardHeader } from "../../../components/DashboardHeader";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
-import { Container, Stack } from "../../../components/Layout";
+import { Box, Container, Stack } from "../../../components/Layout";
 import { Menu, type MenuItemData } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { Segmented } from "../../../components/Segmented";
@@ -69,7 +69,7 @@ function LeaveRequests() {
     toast({ type: "positive", title: "Leave submitted", children: `${next.kind} · ${formatRange(next.from, next.to)}`, action: { label: "Undo", onClick: () => setRequests((list) => list.filter((row) => row.id !== next.id)) } });
   };
   return (
-    <Stack gap="md" className="pe-dashboard-page">
+    <Stack gap="md" width="fill">
       <DashboardHeader
         search={<Search size="md" placeholder="Search leave requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
         controls={<><FilterChip label="Status" options={statuses} value={status} onChange={setStatus} /><FilterChip label="Type" options={kinds} value={kind} onChange={setKind} /></>}
@@ -112,7 +112,7 @@ function NavigationBar() {
   // On a phone Help moves into the account menu, so the bar keeps room for Back.
   const help: MenuItemData = { id: "help", label: "Help", icon: "icon-help-circle-line", onSelect: () => setNote("Help opened") };
   return (
-    <Stack gap="xs" className="pe-dashboard-page" ref={measure}>
+    <Stack gap="xs" width="fill" ref={measure}>
       <DashboardHeader
         type="navigation"
         leading={narrow && parent
@@ -177,13 +177,13 @@ function NarrowColumn() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<LeaveStatus | null>(null);
   return (
-    <div className="pe-dashboard-narrow">
+    <Box width="fill" maxWidth={480}>
       <DashboardHeader
         search={<Search size="md" placeholder="Search requests" value={query} onValueChange={setQuery} onClear={() => setQuery("")} />}
         controls={<FilterChip label="Status" options={statuses} value={status} onChange={setStatus} />}
         actions={<Button level="primary" onClick={() => toast({ type: "positive", title: "Leave submitted" })}>Submit leave</Button>}
       />
-    </div>
+    </Box>
   );
 }
 

@@ -194,6 +194,37 @@ const insideCard = (src, start) => {
   const before = src.slice(0, start);
   return (before.match(/<Card[\s>]/g) ?? []).length > (before.match(/<\/Card>/g) ?? []).length;
 };
+/** Overlays whose Container fill takes On-Container boxes (usage rules §16), and the boxes that stand between them. */
+const OVERLAYS = ["Dialog", "ModalForm", "SidePanel", "BottomSheet"];
+const BOX_TAGS = ["Card", "ListBox", "MetricCard", "ChartCard", ...OVERLAYS];
+/** The nearest enclosing box or overlay of the element at `start` (children or a prop={…} of it), or null. Tags in
+ *  another template string (a code sample) and self-closing tags that end before `start` don't count. */
+const nearestBox = (src, start) => {
+  const sameString = (i) => ((src.slice(i, start).match(/(?<!\\)`/g) ?? []).length) % 2 === 0;
+  const stack = [];
+  for (const m of src.slice(0, start).matchAll(new RegExp(`<(/?)(${BOX_TAGS.join("|")})\\b`, "g"))) {
+    if (!sameString(m.index) || /[\w$)\]]/.test(src[m.index - 1] ?? "")) continue;
+    if (m[1]) { const at = stack.lastIndexOf(m[2]); if (at >= 0) stack.length = at; continue; }
+    let i = m.index + m[0].length, depth = 0, quote = null;
+    for (; i < src.length; i++) {
+      const c = src[i];
+      if (quote) { if (c === quote) quote = null; continue; }
+      if (c === '"' || c === "'") { if (depth === 0) quote = c; continue; }
+      if (c === "{") depth += 1; else if (c === "}") depth -= 1; else if (c === ">" && depth === 0) break;
+    }
+    if (src[i - 1] === "/" && i < start) continue; // self-closing, ended before the element
+    stack.push(m[2]);
+  }
+  return stack.at(-1) ?? null;
+};
+/** A Card or ListBox right inside an overlay takes theme="on-container": message, or false. */
+const onContainerFinding = (attrs, src, start, end, fallback) => {
+  if (inCodeSample(src, end) || opaque(attrs)) return false;
+  const theme = literal(attrs, "theme");
+  if (theme === "on-container" || (theme === undefined && has(attrs, "theme"))) return false;
+  const host = nearestBox(src, start);
+  return OVERLAYS.includes(host) && `sits in a ${host} with theme "${theme ?? fallback}" — use theme="on-container" (Surface/Flat on the ${host}'s Container fill, usage rules §16).`;
+};
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
 /* Layout position, Box effects and per-corner radius (Studio Phase 2 spec 2026-10-03 §3.6; position.ts, effects.ts,
@@ -436,6 +467,24 @@ const restingOf = (sel) => {
   const s = sel.replace(/:focus(-visible|-within)?\b(?!-)((:not\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\))*)/g, "");
   const is = s.match(/:is\(((?:[^()]|\([^()]*\))*)\)/);
   return is ? selectorParts(is[1]).map((alt) => normSelector(s.replace(is[0], alt))) : [normSelector(s)];
+};
+/** A rule that styles a focus state (real focus or a Figma Focused/Typing preview); a focus pseudo inside :not(…) is not one. */
+const stylesFocus = (selector) => selectorParts(selector).some((part) => {
+  const s = part.replace(/:not\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)/g, "");
+  return FOCUS_PSEUDO.test(s) || FOCUS_PREVIEW.test(s);
+});
+/** The colour token of each focus-ring layer in a rule: every outline, and box-shadow rings of 2px or more (a 1px ring
+ *  is a border, e.g. a skip link's pill outline). The first var() of a layer is its colour. */
+const focusRingTokens = (body) => {
+  const out = [];
+  for (const [, prop, value] of body.matchAll(/(?:^|[;{\s])(outline(?:-color)?|box-shadow)\s*:([^;}]*)/g)) {
+    for (const layer of prop === "box-shadow" ? selectorParts(value) : [value]) {
+      if (prop === "box-shadow" && !/^\s*(?:inset\s+)?0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+(?:[2-9]|\d{2,})(?:\.\d+)?px\b/.test(layer)) continue;
+      const token = layer.match(/var\((--zen-[a-z0-9-]+)/);
+      if (token) out.push(token[1]);
+    }
+  }
+  return out;
 };
 const hasFill = (body) => /(^|[;{\s])background(-color)?\s*:/.test(body);
 /** Draws a focus indicator other than a fill: an outline with a width, a box-shadow ring, a border. */
@@ -916,6 +965,12 @@ export const rules = [
   { id: "card/clickable-no-nested-controls", components: ["Card"], severity: "error", allow: "card-nested-control", guideline: "docs/guidelines/card.md",
     summary: "A clickable Card (onClick) is one button: it must not contain buttons, links, inputs or a subAction.",
     check: ({ attrs, children }) => has(topLevel(attrs), "onClick") && !opaque(attrs) && (/<(Button|IconButton|a|Link|Checkbox|RadioButton|Toggle|Chip|InputField|Search)\b/.test(children) || has(attrs, "subAction")) && "is clickable but contains another control — make the card static, or move the control out." },
+  { id: "card/on-container-in-overlay", components: ["Card"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/card.md",
+    summary: "A Card right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
+    check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "shadow") },
+  { id: "listbox/on-container-in-overlay", components: ["ListBox"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/list-item.md",
+    summary: "A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
+    check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "flat") },
   { id: "list-item/clickable-row-toggle", components: ["ListItem"], severity: "warn", allow: "row-toggle", guideline: "docs/guidelines/list-item.md",
     summary: "A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions).",
     check: ({ attrs }) => (has(topLevel(attrs), "onClick") || has(topLevel(attrs), "href")) && !opaque(attrs) && /<(Toggle|ToggleButton|Checkbox|RadioButton)\b/.test(`${value(attrs, "trailing") ?? ""} ${value(attrs, "leading") ?? ""}`) && "is clickable and also holds a Toggle/Checkbox/Radio (leading or trailing) — an input inside the row button is invalid; keep the row static and let the control own the click." },
@@ -1095,6 +1150,15 @@ export const rules = [
   { id: "chart/stack-needs-legend", components: ["StackBarChart"], severity: "error", allow: "chart-legend", guideline: "docs/guidelines/chart.md",
     summary: "Stack-bar charts keep their legend so colour is never the only key.",
     check: ({ attrs }) => /showLegend=\{\s*false\s*\}/.test(attrs) && "hides the legend — colour alone can't identify a series; keep showLegend." },
+  { id: "chart/needs-name", components: ["LineChart", "BarChart", "StackBarChart", "DonutChart", "RadialChart", "HeatmapChart"], severity: "error", allow: "chart-name", guideline: "docs/guidelines/chart.md",
+    summary: "Every chart is named by an aria-label that says what it shows and over which range.",
+    check: ({ attrs }) => !named(attrs) && "has no aria-label — name what the chart shows and over which range (\"Revenue per month, Apr – Sep 2026\")." },
+  { id: "chart/shares-need-legend", components: ["DonutChart", "RadialChart", "LineChart"], severity: "error", allow: "chart-legend", guideline: "docs/guidelines/chart.md",
+    summary: "Donut slices, radial rings and a line chart's comparison keep their legend so colour is never the only key.",
+    check: ({ tag, attrs }) => /showLegend=\{\s*false\s*\}/.test(attrs) && (tag !== "LineChart" || has(attrs, "compare")) && "hides the legend — colour alone can't tell the slices, rings or the line from its comparison apart; keep showLegend." },
+  { id: "chart/heatmap-needs-scale", components: ["HeatmapChart"], severity: "warn", allow: "heatmap-scale", guideline: "docs/guidelines/chart.md",
+    summary: "A heatmap keeps its Less → More scale so the five steps can be read.",
+    check: ({ attrs }) => /showLegend=\{\s*false\s*\}/.test(attrs) && "hides the Less → More scale — without it the colour steps have no meaning; keep showLegend." },
   { id: "uploader/no-noop-replace", components: ["FileUpload", "UploaderFileItem"], severity: "warn", allow: "noop-replace", guideline: "docs/guidelines/uploader.md",
     summary: "Never pass a no-op onReplace; omit it so Replace re-opens the file picker.",
     check: ({ attrs }) => /^\s*\(\s*[\w,\s]*\)\s*=>\s*(\{\s*\}|undefined|null|void 0)\s*$/.test(expr(attrs, "onReplace") ?? "x") && "passes a no-op onReplace — the Replace action would do nothing; omit it (Replace re-opens the picker) or replace the file." },
@@ -1142,8 +1206,15 @@ export const rules = [
     summary: "Component CSS uses --zen-* colour tokens (raw values only as var() fallbacks); raw colours break theme and mode switching.",
     check: (css) => { if (/src\/(platform|styles)\//.test(css.file)) return null; const d = rawColour(css.body); return d && `uses a raw colour in \`${d.slice(0, 70)}\` — use a --zen-color-* token (raw values only as var() fallbacks).`; } },
   { id: "focus/visible-ring", css: true, components: [], severity: "error", allow: "focus-ring", guideline: "docs/guidelines/button.md",
-    summary: "Removing the outline on focus requires a replacement ring (Focus/Accent) on the same element.",
+    summary: "Removing the outline on focus requires a replacement ring (Color/Focus/*: Accent, or Negative/Positive on a danger or positive action) on the same element.",
     check: (css) => dropsFocus(css) && "removes the focus outline and nothing in this file draws a replacement ring — keyboard users lose their place." },
+  { id: "focus/ring-token", css: true, components: [], severity: "error", allow: "focus-ring-token", guideline: "docs/guidelines/button.md",
+    summary: "A focus ring (an outline, or a box-shadow ring of 2px or more, on a focus state) takes its colour from Color/Focus/* (Accent, Neutral, Negative or Positive; Solid or Subtle), as every Focus-Ring in Figma does — not from a Border, Background or Content token.",
+    check: ({ selector, body }) => {
+      if (!stylesFocus(selector)) return null;
+      const bad = focusRingTokens(body).find((token) => /^--zen-color-(border|background|content)-/.test(token));
+      return bad && `draws its focus ring with \`${bad}\` — focus rings use a --zen-color-focus-* token (Accent, Neutral, Negative or Positive).`;
+    } },
   { id: "motion/reduced-motion", css: true, components: [], severity: "warn", allow: "motion", guideline: "docs/guidelines/skeleton.md",
     summary: "Every animation, and every transition that moves (transform, translate, scale, rotate), has a reduced-motion fallback in the same file: a prefers-reduced-motion block, or distances multiplied by --zen-motion-movement (0 under reduced motion). Fades and colour changes need none.",
     check: (css) => {
@@ -1405,6 +1476,6 @@ export const rules = [
 // CLI only when executed directly (build-guidelines.mjs, cli.mjs, eslint.mjs and the MCP server import the registry).
 // No top-level await: cli.mjs imports this module, which must finish evaluating first.
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {
-  // exitCode, not exit(): a piped stdout over 64 KB (the --list registry) is written out before the process ends.
+  // exitCode, not process.exit(): exiting at once drops piped stdout that is not flushed yet (the --list JSON is ~60 KB).
   import("./cli.mjs").then(({ main }) => { process.exitCode = main(); });
 }

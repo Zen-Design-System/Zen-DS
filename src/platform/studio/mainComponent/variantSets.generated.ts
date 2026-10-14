@@ -975,14 +975,16 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Flat",
             "Pale",
             "Border",
-            "Semi-Pale"
+            "Semi-Pale",
+            "On-Container"
           ],
           "values": [
             "shadow",
             "flat",
             "pale",
             "border",
-            "semi-pale"
+            "semi-pale",
+            "on-container"
           ],
           "default": "shadow"
         },
@@ -1283,14 +1285,7 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "left"
         }
       ],
-      "toggles": [
-        {
-          "prop": "caption",
-          "label": "Caption",
-          "on": "Caption",
-          "default": false
-        }
-      ]
+      "toggles": []
     }
   ],
   "Divider": [
@@ -1734,6 +1729,35 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       ]
     }
   ],
+  "ListBox": [
+    {
+      "name": "Component/List-Box",
+      "figma": "14922:75297",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Flat",
+            "Shadow",
+            "Pale",
+            "Border",
+            "On-Container"
+          ],
+          "values": [
+            "flat",
+            "shadow",
+            "pale",
+            "border",
+            "on-container"
+          ],
+          "default": "flat"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "Dialog": [
     {
       "name": "Modal/Dialog",
@@ -1826,6 +1850,19 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "status"
           ],
           "default": "neutral"
+        },
+        {
+          "prop": "layout",
+          "label": "Layout",
+          "names": [
+            "Inline",
+            "Stacked"
+          ],
+          "values": [
+            "inline",
+            "stacked"
+          ],
+          "default": "inline"
         }
       ],
       "toggles": [
@@ -2646,6 +2683,44 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "negative"
           ],
           "default": "neutral"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "UploaderFileItem": [
+    {
+      "name": "Primitives/Uploader/File-Item",
+      "figma": "1581:22739",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Default",
+            "Overlay"
+          ],
+          "values": [
+            "default",
+            "overlay"
+          ],
+          "default": "default"
+        },
+        {
+          "prop": "thumbnail",
+          "label": "Thumbnail",
+          "names": [
+            "None",
+            "File",
+            "Photo"
+          ],
+          "values": [
+            "none",
+            "file",
+            "photo"
+          ],
+          "default": "none"
         }
       ],
       "toggles": []

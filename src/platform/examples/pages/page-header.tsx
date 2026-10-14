@@ -26,6 +26,7 @@ import { Heading, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import {
   TODAY, daysFromToday, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveRequests,
   leaveStatusTheme, people, plans, projectStatusTheme, projects, studio, workspacePlan,
@@ -33,7 +34,6 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./page-header.css";
 
 export const page: PlatformPage = "page-header";
 
@@ -57,16 +57,18 @@ function useWidth() {
 
 /** A row caption of whole values: it wraps between values, never inside a date or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
 const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
-  <Fragment key={`${index}:${value}`}>{index ? " " : null}<span className="px-page-header-value">{index ? "· " : null}{value}</span></Fragment>
+  <Fragment key={`${index}:${value}`}>{index ? " " : null}{whole(`${index ? "· " : ""}${value}`)}</Fragment>
 ));
+/** A run of words that never breaks: its spaces are no-break spaces. */
+const whole = (text: string) => text.replace(/ /g, "\u00a0");
 
 /** Each example is one desktop page: the Canvas, the page margin, then PageHeader → content xl apart. */
 // maxWidth "full": list pages whose content is a non-widget Table span the page (user rule 2026-10-03); detail pages keep lg.
 function Page({ children, pageRef, maxWidth }: { children: ReactNode; pageRef?: (element: HTMLElement | null) => void; maxWidth?: "lg" | "full" }) {
   return (
-    <Box className="px-page-header-page" ref={pageRef}>
+    <PreviewPage ref={pageRef} margin="block">
       <Container maxWidth={maxWidth}><Stack gap="xl">{children}</Stack></Container>
-    </Box>
+    </PreviewPage>
   );
 }
 
@@ -199,7 +201,7 @@ function TimeOffPages() {
             items={[{ id: "details", label: "Details" }, { id: "history", label: "History", badge: request.history.length }]} />} />
         <TabPanel idPrefix={tabsId} id="details" hidden={tab !== "details"}>
           {/* A readable width keeps each term near its value. */}
-          <Card theme="flat" className="px-page-header-details">
+          <Card theme="flat" width="fill" maxWidth={440}>
             <DescriptionList items={[
               { term: "Type", description: request.kind },
               { term: "Dates", description: formatRange(request.from, request.to) },
@@ -210,7 +212,7 @@ function TimeOffPages() {
           </Card>
         </TabPanel>
         <TabPanel idPrefix={tabsId} id="history" hidden={tab !== "history"}>
-          <ListBox className="px-page-header-details">
+          <ListBox width="fill" maxWidth={440}>
             <List aria-label="History">
               {request.history.map((event) => (
                 <ListItem key={event.id} title={event.text} caption={formatRelative(event.at)}
@@ -295,7 +297,7 @@ function ClientPages() {
       <Page pageRef={setPage}>
         <PageHeader breadcrumbs={breadcrumbs} back={back} title={project.name} meta={projectBadge(project.status)}
           description={`${formatRange(project.start, project.due)} · Led by ${people[project.lead].name}`} />
-        <Card theme="flat" className="px-page-header-details">
+        <Card theme="flat" width="fill" maxWidth={440}>
           <DescriptionList items={[
             { term: "Client", description: client.name },
             { term: "Progress", description: `${project.progress}%` },
@@ -377,7 +379,7 @@ function LongTitlePage() {
           ]} />
           <Button level="primary" onClick={() => setDialog("task")}>New task</Button>
         </>} />
-      <Card theme="flat" className="px-page-header-details">
+      <Card theme="flat" width="fill" maxWidth={440}>
         <DescriptionList items={[
           { term: "Client", description: "Lumen Bank" },
           { term: "Lead", description: phaseTwo.lead.name },
@@ -424,7 +426,7 @@ function SettingsTabs() {
       <TabPanel idPrefix={tabsId} id="general" hidden={tab !== "general"}>
         <Stack gap="lg">
           <PageHeader headingLevel={2} title="General" description="The name, domain and working week everyone in the workspace sees." />
-          <Card theme="flat" className="px-page-header-details">
+          <Card theme="flat" width="fill" maxWidth={440}>
             <DescriptionList items={[
               { term: "Workspace", description: studio.name },
               { term: "Domain", description: studio.domain },
@@ -445,7 +447,7 @@ function SettingsTabs() {
       <TabPanel idPrefix={tabsId} id="billing" hidden={tab !== "billing"}>
         <Stack gap="lg">
           <PageHeader headingLevel={2} title="Billing" description="Billed monthly to the card on file." />
-          <Card theme="flat" className="px-page-header-details">
+          <Card theme="flat" width="fill" maxWidth={440}>
             <DescriptionList items={[
               { term: "Plan", description: `${studioPlan.name} · ${plural(workspacePlan.seats, "seat")}` },
               { term: "Next invoice", description: `${formatMoney(studioPlan.seatMonthly * workspacePlan.seats)} on ${formatDate(daysFromToday(1))}` },

@@ -2,7 +2,7 @@
 # Image & Thumbnail
 
 **Figma:** No Figma component: Image-Size scale (Thumbnail, the Avatar steps), Corner-Radius, Skeleton/Shapes while loading, Neutral/Pale frame + icon-image-line on error  
-**Import:** `import { Image, Thumbnail } from "@zen/design-system";`
+**Import:** `import { Image, Thumbnail } from "@zen-ds/react";`
 
 Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.
 

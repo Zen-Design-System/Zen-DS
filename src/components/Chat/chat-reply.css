@@ -1,4 +1,6 @@
-/* Reply to a message (Zen tokens; no Figma set yet). Quote above a reply bubble + "Replying to" bar in the composer. */
+/* Reply to a message (Zen tokens). Quote above a reply bubble + "Replying to" bar in the composer.
+   Figma (built from this code, 2026-10-13): Chat/Reply/Quote 15467:1661, Chat/Conversation/Reply 15468:1658,
+   Chat/Composer-Reply 15469:1669. */
 
 /* Quote: caption "Ava replied to you" + a muted, clipped preview of the original that tucks under the reply bubble.
    Neutral/Pale keeps it one step quieter than a real bubble in both modes; it caps at the bubble's text width. */
@@ -13,6 +15,8 @@
   border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 6%));
   color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); cursor: pointer; font: inherit; text-align: start;
 }
+/* Figma Chat/Reply/Quote: a quote that leads with a photo, a file or an icon starts 8 in; a text-only quote keeps 12. */
+.zen-chat-reply__quote:not([data-kind="text"]) { padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-chat-reply__quote:not([data-static="true"]):hover { background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%)); }
 /* The quote of a deleted message is plain text (ChatReply.tsx): nothing to jump to, so no pointer and no hover. */
 .zen-chat-reply__quote[data-static="true"] { cursor: default; }
@@ -41,7 +45,9 @@
 .zen-chat-composer-reply__title { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chat-composer-reply__preview { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-chat-composer-reply__preview .zen-chat-reply__glyph { color: inherit; }
-.zen-chat-composer-reply__preview .zen-dock-icon { transform: scale(.67); margin: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+/* Figma Chat/Composer-Reply › File: a Small Dock Icon drawn at 2/3 (32 → 21.3px); the negative margin (1/6 of its size
+   on each side) shrinks its layout box to match. */
+.zen-chat-composer-reply__preview .zen-dock-icon { transform: scale(calc(2 / 3)); margin: calc(var(--zen-dock-icon-size, 32px) / -6); }
 
 /* Jump-to-original: the target message flashes once. */
 /* zen-allow-motion-token: a one-shot 1.6s highlight, a component constant like the Skeleton pulse (motion review 2026-10-01). */

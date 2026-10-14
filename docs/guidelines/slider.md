@@ -2,7 +2,7 @@
 # Slider
 
 **Figma:** Slider/Horizontal, .Primitives/Slider/Slide-Dot (page 1556:17601)  
-**Import:** `import { Slider } from "@zen/design-system";`
+**Import:** `import { Slider } from "@zen-ds/react";`
 
 Pick a value from a continuous or stepped range by dragging, where the relative position matters more than the exact number.
 

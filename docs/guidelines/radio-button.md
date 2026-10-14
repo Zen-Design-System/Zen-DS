@@ -2,7 +2,7 @@
 # Radio Button
 
 **Figma:** Radio-Button/Radio-Button, Radio-Mark (page 373:96221)  
-**Import:** `import { RadioButton } from "@zen/design-system";`
+**Import:** `import { RadioButton } from "@zen-ds/react";`
 
 Pick exactly one option from a small visible set.
 

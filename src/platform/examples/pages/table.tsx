@@ -306,7 +306,7 @@ function NoMatchesExample() {
     <Stack as="section" gap="md" aria-labelledby={headingId}>
       <Heading level={4} id={headingId} textStyle="Heading/4">Files</Heading>
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box className="px-table-search"><Search ref={searchRef} placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={320}><Search ref={searchRef} placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
         <Chip variant="advanced" selected={Boolean(type)} popoverLabel="Type"
           popoverItems={fileTypes.map((item) => ({ id: item.id, label: item.label, selected: item.id === typeId }))}
           onPopoverSelect={(item) => setTypeId(item.id)} onClearSelection={() => setTypeId(null)}>
@@ -463,7 +463,7 @@ const timesheets: Timesheet[] = [
 ].sort((a, b) => a.person.name.localeCompare(b.person.name));
 const weekTotal = (sheet: Timesheet) => sheet.hours.reduce((sum, hours) => sum + hours, 0);
 const timesheetColumns: TableColumn<Timesheet>[] = [
-  { id: "person", header: "Person", width: "150px", cell: (sheet) => <TableMedia bold={false} media={<PersonAvatar person={sheet.person} size="xs" />}>{sheet.person.name}</TableMedia> },
+  { id: "person", header: "Person", width: "176px", cell: (sheet) => <TableMedia bold={false} media={<PersonAvatar person={sheet.person} size="xs" />}>{sheet.person.name}</TableMedia> },
   ...weekDays.map((day, index): TableColumn<Timesheet> => ({ id: day, header: day, align: "right", width: "64px", cell: (sheet) => <TableText>{sheet.hours[index].toFixed(1)}</TableText> })),
   { id: "total", header: "Total", align: "right", width: "80px", cell: (sheet) => <TableText bold>{weekTotal(sheet).toFixed(1)}</TableText> },
 ];
@@ -661,7 +661,7 @@ const hours = timesheets.reduce((sum, s) => sum + s.total, 0);
   <Stack gap="xs" padding="lg">
     <Text tone="base">Design team · Sep 21 – Sep 25, 2026</Text>
     <Table aria-label="Design team hours, week of Sep 21, 2026" rows={timesheets} getRowId={(s) => s.person.id} columns={[
-      { id: "person", header: "Person", width: "150px", cell: (s) => <TableMedia bold={false} media={<Avatar size="xs" … />}>{s.person.name}</TableMedia> },
+      { id: "person", header: "Person", width: "176px", cell: (s) => <TableMedia bold={false} media={<Avatar size="xs" … />}>{s.person.name}</TableMedia> },
       ...["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, i) => ({
         id: day, header: day, align: "right", width: "64px", cell: (s) => <TableText>{s.hours[i].toFixed(1)}</TableText>,
       })),

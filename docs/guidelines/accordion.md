@@ -2,7 +2,7 @@
 # Accordion
 
 **Figma:** Accordion/Text + .Primitives/Accordion/Content (page 234:33035)  
-**Import:** `import { Accordion } from "@zen/design-system";`
+**Import:** `import { Accordion } from "@zen-ds/react";`
 
 Progressive disclosure of secondary content under short headings.
 

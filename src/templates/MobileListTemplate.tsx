@@ -1,7 +1,7 @@
 /**
  * Template: phone order list with filters (a customer's orders in an art-print shop's app). Copy it into your app and
  * replace the sample data and handlers. Render it inside <ZenProvider typography="mobile" density="comfortable">.
- * Uses only @zen/design-system components, no custom CSS.
+ * Uses only @zen-ds/react components, no custom CSS.
  *
  * - TopNavigation: the large title "Orders" is the screen's h1, with a Search control bar. Both fold into the bar as
  *   the list scrolls, and the folded Search comes back as a Search action at the top right.
@@ -36,7 +36,7 @@ import {
   plural,
   useToast,
   type BadgeTheme,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
 /** "Now" for the sample timestamps: Wednesday, Sep 30, 2026 at 10:45 am. */

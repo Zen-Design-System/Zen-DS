@@ -2,7 +2,7 @@
 # Uploader
 
 **Figma:** Uploader/File-Upload, Primitives/Uploader/DragDrop-Field, Primitives/Uploader/File-Item (page 1581:17515)  
-**Import:** `import { FileUpload, UploaderFileItem } from "@zen/design-system";`
+**Import:** `import { FileUpload, UploaderFileItem } from "@zen-ds/react";`
 
 Let users add files by dropping or browsing, then track each file's upload.
 

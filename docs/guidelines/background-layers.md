@@ -22,7 +22,7 @@ Every background sits on one of five layers, bottom to top: 1 Canvas (the page) 
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | 1 Canvas | `--zen-color-background-canvas-default · -alt · -flat` | page background (:root / app shell) |
-| 2 Surface | `--zen-color-background-surface-default · -alt · -flat` | cards, panels, sidebars on the page; -flat = top/bottom navigation on a canvas-flat page |
+| 2 Surface | `--zen-color-background-surface-default · -alt · -flat` | cards, panels, sidebars on the page; -flat = top/bottom navigation on a canvas-flat page, and the Card / ListBox theme=on-container inside a Modal, Side Panel or Bottom Sheet (on their Container fill) |
 | 3 Other colours | `--zen-color-background-<family>-<subtle|solid|pale>…` | component fills and states |
 | 4 Container | `--zen-color-background-container` | Modal, Dialog, Modal/Forms, Bottom-Sheet |
 | 5 Popover | `--zen-color-background-popover-default` | Popover, menus, tooltips, pickers, flyouts, toasts |

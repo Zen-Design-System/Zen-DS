@@ -21,8 +21,8 @@ export type PageDevice = "phone" | "tablet" | "desktop";
 const UNIT = "  ";
 /** The longest line a tag, an object or an array stays on before it breaks into one item per line. */
 const WIDTH = 110;
-const BUILDER_PACKAGE = "@zen/design-system/builder";
-const PACKAGE = "@zen/design-system";
+const BUILDER_PACKAGE = "@zen-ds/react/builder";
+const PACKAGE = "@zen-ds/react";
 
 const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 /** A JSX attribute string written as is: no quote, backslash, entity or line break (Babel would read those differently). */

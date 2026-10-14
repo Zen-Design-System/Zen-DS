@@ -1,6 +1,6 @@
 /**
  * HR shell: the app frame every HR template page shares. Copy the folder (with ./data and ./assets) into your app and
- * keep one shell for all pages. Render it inside your app's <ZenProvider>. Uses only @zen/design-system components,
+ * keep one shell for all pages. Render it inside your app's <ZenProvider>. Uses only @zen-ds/react components,
  * no custom CSS.
  *
  * - Home: the Sidebar as an icon rail, one icon per module; the top bar's toggle opens it with the same workspace header.
@@ -45,7 +45,7 @@ import {
   type MenuEntry,
   type SidebarItem,
   type SidebarSection,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import {
   assistantAnswer,
   avatarOf,

@@ -39,10 +39,12 @@ const ALLOWED = {
   MetricCard: { Counter: "a second Badge (the count) Figma's Metric-Inline sets do not draw" },
   Pagination: { Page: "Figma names each page by its number (1, 2, 3, …)" },
   Popover: { Avatar: "a Popover item can lead with an Avatar in code; Figma's Popover/Default sample has none", Badge: "a Popover item can end with a Badge in code; Figma's Popover/Default sample has none" },
+  SidePanel: { Icon: "the deprecated `icon` prop: Figma removed the heading icon (Icon-Wrapper) on 2026-10-12", Back: "unnamed in Figma: Back-Container › Wrapper › Button/Icon-Flat" },
   Stepper: { Step: "Figma's steps are unnamed instances of .Primitives/Stepper/Step-Horizontal or Step-Vertical" },
   Tag: { Avatar: "Figma's Tag shows its photo through Leading (Image, Status inside), no Avatar layer" },
   Toast: { Leading: "Figma draws the icon in Icon-Wrapper › Icon; the code's Leading (icon prop) takes any node" },
   FileUpload: { Retry: "Figma's File-Item shows Replace and Remove; Retry is the code's, for a failed upload" },
+  DatePickerSheet: { Apply: "unnamed in Figma: Date-Picker/Mobile's Footer › Buttons (.Primitives/Bottom-Sheet/Actions) › Button/Main (read 2026-10-13)" },
 };
 
 /** Every layer name in a contract set, by name → the layer types it has there. */

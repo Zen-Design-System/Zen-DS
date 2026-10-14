@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "badge",
-  "import": "import { Badge, BadgeCounter } from \"@zen/design-system\";",
+  "import": "import { Badge, BadgeCounter } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Badge",
@@ -71,7 +71,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "",
+          "description": "Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included.",
           "deprecated": null
         },
         {

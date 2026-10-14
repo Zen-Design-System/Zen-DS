@@ -1,7 +1,7 @@
 /**
  * Template: phone order detail (an order in an art-print shop's app; MobileListTemplate lists the same orders). Copy it
  * into your app, then replace the sample data and handlers. Render it inside
- * <ZenProvider typography="mobile" density="comfortable">. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider typography="mobile" density="comfortable">. Uses only @zen-ds/react components, no custom CSS.
  *
  * - A sticky compact TopNavigation: Back (a left chevron), the order number as the screen's h1, and Share. It follows
  *   the scroll (scrollRef), so a Pale rule separates it from the content running under it.
@@ -33,7 +33,7 @@ import {
   type BottomSheetItem,
   type IconName,
   type StepperStep,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 
 /* ── Sample data: replace with your own ─────────────────────────────── */
 const money = (value: number) => value.toLocaleString("en-US", { style: "currency", currency: "USD" });

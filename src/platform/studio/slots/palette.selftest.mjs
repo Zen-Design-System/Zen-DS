@@ -60,6 +60,9 @@ const SOURCES = {
   SidebarMenuSection: { tsx: ["Sidebar/Sidebar.tsx"], css: ["Sidebar/sidebar.css"] },
   PageHeader: { tsx: ["PageHeader/PageHeader.tsx"], css: ["PageHeader/page-header.css"] },
   Metric: { tsx: ["MetricWidget/MetricWidget.tsx"], css: ["MetricWidget/metric-widget.css"] },
+  MetricCard: { tsx: ["MetricWidget/MetricWidget.tsx", "Card/Card.tsx"], css: ["MetricWidget/metric-widget.css"] },
+  // Type=Main renders PageHeader: its actions row holds Action-Slots and Trailing-Slots.
+  DashboardHeader: { tsx: ["DashboardHeader/DashboardHeader.tsx", "PageHeader/PageHeader.tsx"], css: ["DashboardHeader/dashboard-header.css", "PageHeader/page-header.css"] },
   EmptyState: { tsx: ["EmptyState/EmptyState.tsx"], css: ["EmptyState/empty-state.css"] },
   Stack: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
   Grid: { tsx: ["Layout/Layout.tsx"], css: ["Layout/layout.css"] },
@@ -108,7 +111,9 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
       const tail = `<\\w+(?: [\\w-]+=(?:\\{[^{}<>]*\\}|"[^"]*"))* className=\\{?["\`]${cls}[\\s"\`$]`;
       const conditional = new RegExp(`\\?\\s*${tail}`).test(tsx)
         || new RegExp(`\\?\\s*<>\\s*(?:<\\w+[^<>{}]*>\\s*)*${tail}`).test(tsx)
-        || new RegExp(`\\{[^{}?]*\\b${slot.prop}\\b[^{}?]*\\?\\s*\\(\\s*${tail}`).test(tsx);
+        || new RegExp(`\\{[^{}?]*\\b${slot.prop}\\b[^{}?]*\\?\\s*\\(\\s*${tail}`).test(tsx)
+        // A fragment whose first element wraps something else (Metric: `{custom ? <><div …__body">{body}</div><div …__custom">`).
+        || new RegExp(`\\{${slot.prop} \\? <>[^\\n]*?${tail}`).test(tsx);
       check(`${id}: mountsWhenEmpty matches the source`, !conditional, slot.mountsWhenEmpty);
     }
     if (slot.gap === "md") check(`${id}: .${cls} has gap Medium`, /(^|;)\s*gap:\s*var\(--zen-spacing-gap-medium\b/.test(decls), true);
@@ -272,7 +277,7 @@ for (const item of PALETTE) {
   }
 }
 const packageIndex = fs.readFileSync(path.join(root, "src/index.ts"), "utf8");
-for (const folder of new Set(Object.values(COMPONENT_FOLDERS))) check(`@zen/design-system re-exports ${folder} (templates import from it)`, packageIndex.includes(`export * from "./components/${folder}";`), true);
+for (const folder of new Set(Object.values(COMPONENT_FOLDERS))) check(`@zen-ds/react re-exports ${folder} (templates import from it)`, packageIndex.includes(`export * from "./components/${folder}";`), true);
 check("useToast is exported by Toast", /\buseToast\b/.test(read(`${COMPONENT_FOLDERS.useToast}/index.ts`)), true);
 check("radio group name takes the uid", (paletteItem("radio-group").build({ ...anyCtx, uid: "AB-1" }).match(/billing-cycle-ab1/g) ?? []).length, 2);
 check("heading level comes from the host", [paletteItem("heading").build(ctxFor("Dialog")), paletteItem("heading").build(ctxFor("Accordion"))].map((code) => /level=\{(\d)\}/.exec(code)?.[1]), ["3", "4"]);
@@ -343,8 +348,8 @@ check("ListItem leading: warning reasons name the slot", [...new Set(Object.valu
 check("Divider next to a Divider", [fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), nextSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Text" })).includes("divider")], [false, false, true]);
 const outside = paletteFor({ ...ctxFor("Card"), canUseToast: false });
 check("outside a component: toast and state items cannot be written (hidden)", outside.items.filter((item) => item.requires?.includes("toast") || item.state?.length).length, 0);
-check("a template: Image cannot be written (hidden)", paletteFor({ ...ctxFor("Card"), canUseMedia: false }).hidden.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`), ["Data display: Images read platformMedia, which only the example pages import (Image)"]);
-check("outside a component: said once per group", [...new Set(outside.hidden.map((row) => row.reason))], ["Actions and stateful items need a component to hold their hooks; this code sits outside one"]);
+check("a template: Image cannot be written (hidden)", paletteFor({ ...ctxFor("Card"), canUseMedia: false }).hidden.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`), ["Data display: Library pictures work on example pages only (Image)"]);
+check("outside a component: said once per group", [...new Set(outside.hidden.map((row) => row.reason))], ["It runs an action, and this spot cannot run one"]);
 check("ChartCard is a card surface", ["metric", "card"].map((id) => fitting(paletteFor(ctxFor("ChartCard"))).includes(id)), [true, false]);
 check("preferredFor", [preferredFor(slotOf("Card", "children")), preferredFor(slotOf("Dialog", "children")), preferredFor(slotOf("ListItem", "trailing")), preferredFor(slotOf("Stack", "children"))], [
   ["heading", "paragraph", "list", "metric", "stack"], ["paragraph", "input-field", "checkbox"], ["badge", "icon-button", "button"], [],
@@ -504,7 +509,7 @@ if (process.argv.includes("--deep")) {
     compilerOptions: {
       typeRoots: [types], types: ["react", "react-dom"],
       paths: {
-        "@zen/design-system": [path.join(root, "src/index.ts")], react: [path.join(types, "react")], "react/*": [path.join(types, "react/*")],
+        "@zen-ds/react": [path.join(root, "src/index.ts")], react: [path.join(types, "react")], "react/*": [path.join(types, "react/*")],
         "react-dom": [path.join(types, "react-dom")], "react-dom/*": [path.join(types, "react-dom/*")],
       },
     },

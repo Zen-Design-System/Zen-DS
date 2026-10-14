@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode, startTransition } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Link } from "../../../components/Link";
@@ -17,7 +17,7 @@ import { childHits, findBySrc, isTransparentName, onSourceUpdate, rectOf, select
 import { noteEditTarget, sameSelectedElement } from "../select/remap";
 import { navigate } from "../shell/navigation";
 import { RemoveAction, SlotsSection } from "../slots";
-import { slotOf } from "../slots/registry";
+import { hostPropsOf, isSlotActive, slotOf } from "../slots/registry";
 import { detachShown, rowOf, useDetachPlan } from "./detach";
 import { cellDataTarget } from "../table/tableCells";
 import { pictureCode, pictureExpression, resolveMedia } from "../builder/library/media";
@@ -31,6 +31,7 @@ import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
 import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
 import { componentGroupsOf } from "./componentGroups";
+import { hasIdleNotes, idleNotes } from "./computedDefaults";
 import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection } from "../appearance/AppearanceSection";
 import { NestedProperties } from "./NestedProperties";
 import { useNestedInstances } from "./nestedInstances";
@@ -55,6 +56,7 @@ import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "./status"
 import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from "./textInfo";
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, type WritePlan } from "./writePlan";
 import { remountFrameAfterUpdate } from "../board/remount";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * Design tab for a selected JSX element (spec §6): playground properties (the playground's own controls, portalled
@@ -80,7 +82,7 @@ function selectedHit(selection: NodeSelection): FiberHit | null {
 /** The selection's rendered element that carries its data-zen-src (else its first host element), for measured px. */
 function sourceHost(selection: NodeSelection): HTMLElement | null {
   const hosts = (selectedHit(selection)?.hosts ?? []).filter((node): node is HTMLElement => node instanceof HTMLElement);
-  return hosts.find((node) => node.getAttribute("data-zen-src") === selection.src) ?? hosts[0] ?? null;
+  return hosts.find((node) => srcAttr(node) === selection.src) ?? hosts[0] ?? null;
 }
 
 /** Selects a child element of the selection by its source location (searches a few annotated levels down). */
@@ -393,7 +395,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   // Figma groups (propGroups.ts) show and hide by what the element renders with now.
   // Figma's instance-panel order and names: hand-written groups, else generated from the Figma read (WP-E).
   const groups = componentGroupsOf(element?.name ?? selection.name);
-  const renderedProps = useLiveProps(selection, Boolean(groups));
+  const renderedProps = useLiveProps(selection, Boolean(groups) || hasIdleNotes(element?.name ?? selection.name));
   const rendered = useRenderedText(() => selectedHit(selection), selection.src, selection.instance);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -447,7 +449,9 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
     if (!shown || !editable) return Promise.resolve(false);
     // Queued behind another write, or planned from attributes a landed write made stale: read again before sending.
     const behind = stale();
-    setOverrides((current) => ({ ...current, ...optimistic }));
+    // The optimistic value redraws the whole panel: as a transition, after the edit has left for the canvas (in the click's
+    // own flush it held every edit back ~20 ms, 2026-10-13).
+    startTransition(() => setOverrides((current) => ({ ...current, ...optimistic })));
     editCount.current += 1;
     inFlight.current += 1;
     let written = false;
@@ -916,10 +920,14 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
                 // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
                 // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
                 if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
+                  // A slot this state never draws has no switch (it would write content nothing shows).
+                  if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
                   const value = api.valueFor(spec.name);
                   return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
                 }
-                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} />;
+                // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
+                const idle = idleNotes(name, spec.name, renderedProps ?? {});
+                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
               })}
             </InspectorSection>
           ))}

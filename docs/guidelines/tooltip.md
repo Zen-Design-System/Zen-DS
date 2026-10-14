@@ -2,7 +2,7 @@
 # Tooltip
 
 **Figma:** Tooltip (page 1595:2169)  
-**Import:** `import { Tooltip } from "@zen/design-system";`
+**Import:** `import { Tooltip } from "@zen-ds/react";`
 
 Name or briefly describe a control on hover and keyboard focus.
 

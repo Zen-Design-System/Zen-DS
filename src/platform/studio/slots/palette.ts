@@ -109,7 +109,7 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   Tabs: "Tabs", TabPanel: "Tabs", Segmented: "Segmented", Breadcrumbs: "Breadcrumbs", Pagination: "Pagination",
   Stepper: "Stepper", Menu: "Menu", Tooltip: "Tooltip", Icon: "Icon", FileIcon: "FileIcon", Flag: "Flag",
   AvatarStack: "Avatar", RatingDisplay: "Rating", Rating: "Rating", NpsScale: "Rating", Table: "Table", TableText: "Table",
-  Image: "Image", LineChart: "Chart", StackBarChart: "Chart", ChartCard: "Chart", AlertBanner: "AlertBanner",
+  Image: "Image", LineChart: "Chart", StackBarChart: "Chart", ChartCard: "Chart", BarChart: "Chart", DonutChart: "Chart", RadialChart: "Chart", HeatmapChart: "Chart", AlertBanner: "AlertBanner",
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
@@ -405,6 +405,59 @@ export const PALETTE: readonly PaletteItem[] = [
       `    { label: "Aug", values: { design: 140, engineering: 170 } },`,
       `    { label: "Sep", values: { design: 110, engineering: 200 } },`,
       `  ]} />`,
+    ),
+  },
+  {
+    id: "column-chart", label: "Bar chart", group: "Charts", caption: "Forecast hatched", root: "BarChart", components: ["BarChart"], interactive: false, input: false,
+    build: () => lines(
+      `<BarChart aria-label="Revenue invoiced per month, Jul – Dec 2026, Oct – Dec forecast" height={220}`,
+      `  data={[`,
+      `    { label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 },`,
+      `    { label: "Oct", value: 108000, projected: true }, { label: "Nov", value: 112500, projected: true }, { label: "Dec", value: 104000, projected: true },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "horizontal-bar-chart", label: "Horizontal bar chart", group: "Charts", caption: "Against a target", root: "BarChart", components: ["BarChart"], interactive: false, input: false,
+    build: () => lines(
+      `<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"`,
+      `  data={[`,
+      `    { label: "Design", value: 2650, target: 2800 }, { label: "Engineering", value: 1990, target: 2240 },`,
+      `    { label: "Delivery", value: 750, target: 960 }, { label: "Client Services", value: 510, target: 640 },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "multi-line-chart", label: "Line chart with comparison", group: "Charts", caption: "Dashed compare line", root: "LineChart", components: ["LineChart"], interactive: false, input: false,
+    build: () => lines(
+      `<LineChart aria-label="Invoiced and collected per month, Jul – Sep 2026" height={220} legendPosition="top" label="Invoiced"`,
+      `  data={[{ label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 }]}`,
+      `  compare={{ label: "Collected", values: [91700, 95800, 88300] }} />`,
+    ),
+  },
+  {
+    id: "donut-chart", label: "Donut chart", group: "Charts", caption: "Shares of a total", root: "DonutChart", components: ["DonutChart"], interactive: false, input: false,
+    build: () => lines(
+      `<DonutChart aria-label="Revenue by client, Q3 2026"`,
+      `  data={[`,
+      `    { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },`,
+      `    { id: "mekong", label: "Mekong Freight", value: 53400 }, { id: "other", label: "Other clients", value: 86100 },`,
+      `  ]} />`,
+    ),
+  },
+  {
+    id: "radial-chart", label: "Radial chart", group: "Charts", caption: "Ring gauges", root: "RadialChart", components: ["RadialChart"], interactive: false, input: false,
+    build: () => lines(
+      `<RadialChart aria-label="Budget used on client projects, September 30, 2026"`,
+      `  data={[{ id: "lumen", label: "Online banking redesign", value: 36 }, { id: "phin", label: "Loyalty app", value: 61 }, { id: "mekong", label: "Shipment tracking", value: 23 }]} />`,
+    ),
+  },
+  {
+    id: "heatmap-chart", label: "Heatmap", group: "Charts", caption: "Day × hour", root: "HeatmapChart", components: ["HeatmapChart"], interactive: false, input: false,
+    build: () => lines(
+      `<HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026"`,
+      `  columns={["Mon", "Tue", "Wed", "Thu", "Fri"]} rows={["9 am", "11 am", "1 pm", "3 pm", "5 pm"]}`,
+      `  values={[[38, 41, 40, 39, 35], [71, 74, 72, 70, 61], [52, 55, 53, 51, 44], [70, 75, 73, 71, 48], [42, 44, 43, 41, 22]]} />`,
     ),
   },
   /* Feedback */
@@ -818,7 +871,7 @@ const PREFERRED: Readonly<Record<string, readonly string[]>> = {
   "BottomSheet.children": ["input-field", "select-field", "paragraph", "list"],
   "Accordion.children": ["paragraph", "list"],
   "TabPanel.children": ["paragraph", "list", "card", "stack"],
-  "ChartCard.children": ["empty-state", "metric"],
+  "ChartCard.children": ["line-chart", "column-chart", "donut-chart", "empty-state", "metric"],
   "ListItem.leading": ["avatar", "dock-icon"],
   "ListItem.trailing": ["badge", "icon-button", "button"],
   "ListItem.children": ["paragraph"],
@@ -891,9 +944,9 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   };
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
-    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "A builder page keeps no state or code: this item comes with prototypes";
-    if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "Actions and stateful items need a component to hold their hooks; this code sits outside one";
-    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Images read platformMedia, which only the example pages import";
+    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs live state; pages you make get interactions from the Prototype tab";
+    if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "It runs an action, and this spot cannot run one";
+    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Library pictures work on example pages only";
     return null;
   };
 

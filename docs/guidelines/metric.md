@@ -2,7 +2,7 @@
 # Metric Widget
 
 **Figma:** Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)  
-**Import:** `import { Metric, MetricCard, MetricTrend } from "@zen/design-system";`
+**Import:** `import { Metric, MetricCard, MetricTrend } from "@zen-ds/react";`
 
 Show one key number with its label, an identifying icon and how it changed.
 
@@ -78,7 +78,7 @@ Also accepts `MetricProps`.
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
-| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
+| `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "semi-pale"` | `"shadow"` | Card theme (Figma Metric-Card uses Shadow). |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |
 
 ### Types

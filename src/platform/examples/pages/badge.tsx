@@ -29,7 +29,6 @@ import {
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./badge.css";
 
 export const page: PlatformPage = "badge";
 
@@ -114,7 +113,7 @@ function InvoiceStatus() {
       <Stack gap="md" align="stretch">
         <Stack direction="row" gap="md" align="start" justify="start">
           <DockIcon icon="icon-receipt-line" theme={project.theme} background="subtle" />
-          <Stack gap="xs" align="stretch" className="px-badge-grow">
+          <Stack gap="xs" align="stretch" width="fill">
             {/* The status sits right after the number and wraps under it on a narrow card; it never truncates. */}
             <Stack direction="row" gap="sm" align="center" wrap>
               <Heading level={4} id={titleId} textStyle="Heading/Subheading">{overdue.number}</Heading>
@@ -238,7 +237,7 @@ function RemovableLabels() {
           <Stack direction="row" gap="xs" align="center" wrap>
             {/* The applied labels are a list; each Remove button is named after its label ("Remove iOS"). */}
             {applied.length ? (
-              <Stack as="ul" direction="row" gap="2xs" align="center" wrap className="px-badge-list" aria-labelledby={labelsId}>
+              <Stack as="ul" direction="row" gap="2xs" align="center" wrap aria-labelledby={labelsId}>
                 <Chip variant="advanced" dropdown leading="icon-plus-line" popoverLabel="Add a label or create one"
                   popoverItems={available.map((label) => ({ id: label.id, label: label.name }))}
                   popoverSearchValue={query} onPopoverSearchChange={setQuery} popoverSearchPlaceholder="Label name"
@@ -296,7 +295,7 @@ function MobileTasks() {
     <PlatformPhone label="Tasks" headerOverlay screenRef={screenRef}
       header={<TopNavigation type="alt" title="Tasks" largeTitle="Tasks" scrollRef={screenRef} />}>
       <Stack gap="md" align="stretch">
-        <Stack direction="row" gap="xs" className="px-badge-chip-row" role="group" aria-label="Filter by status">
+        <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Filter by status">
           {(["All", ...taskStatuses] as const).map((option) => (
             <Chip key={option} variant="normal" level="primary" selected={filter === option} onClick={() => setFilter(option)}>{option}</Chip>
           ))}

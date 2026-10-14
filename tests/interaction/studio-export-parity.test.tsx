@@ -16,8 +16,8 @@ import { compileReact } from "../../tools/studio/browser-compile.mjs";
 import { parsePage } from "../../tools/studio/browser-engine.mjs";
 
 const PAGE = `// @zen-page {"format":1,"title":"Crew parity"}
-import { Board, Screen, proto } from "@zen/design-system/builder";
-import { Badge, Button, Card, Stack, Text } from "@zen/design-system";
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Badge, Button, Card, Stack, Text } from "@zen-ds/react";
 
 export const mock = {
   people: [
@@ -67,8 +67,8 @@ describe("Zen Studio export: the exported page draws what the canvas draws", () 
   it("same Zen layers, order and variants, with overrides and a row's own value", async () => {
     const exported = compileReact(PAGE, { file: "crew-parity.zen.tsx" });
     if ("error" in exported) throw new Error(exported.error);
-    // The app's `@zen/design-system` is the library's source here (the repo's tests have no alias for it).
-    await commands.writeFile(GENERATED, exported.code.replace(/from "@zen\/design-system";/g, 'from "../../src/index";'));
+    // The app's `@zen-ds/react` is the library's source here (the repo's tests have no alias for it).
+    await commands.writeFile(GENERATED, exported.code.replace(/from "@zen-ds\/react";/g, 'from "../../src/index";'));
     const module = (await import(/* @vite-ignore */ IMPORTED)) as Record<string, ComponentType>;
     const Exported = module[exported.component];
 

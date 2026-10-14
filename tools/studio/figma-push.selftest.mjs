@@ -8,6 +8,7 @@ import { docFromText, printPage } from "./doc.mjs";
 import fs from "node:fs";
 import { figmaFromPage, figmaIdOf, figmaPackage } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
+import { figmaChanges, mergeFigma } from "./figma-diff.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
 let passed = 0;
@@ -59,8 +60,8 @@ const TEAM = {
 // 2. A page made in the Studio: a row that spreads and wraps, a Grid, a centred title, an icon Button, a named
 //    IconButton, a Card holding layers, an Icon.
 const PAGE = `// @zen-page {"format":1,"title":"Projects"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Button, Card, Grid, Icon, IconButton, Stack, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Button, Card, Grid, Icon, IconButton, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -179,8 +180,8 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
 //    AppShell as the Zen components it renders, the Screen's app frame, PageHeader as the Dashboard header Type=Main,
 //    wrappers as frames of their layers, Heading as text, a Menu as its trigger.
 const SHELL = `// @zen-page {"format":1,"title":"Team"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, AppShellAction, Breadcrumbs, Button, Container, Heading, List, ListItem, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -220,7 +221,7 @@ export default function Page() {
   const shell = frame.children[0];
   check("AppShell: a row of the Sidebar (fill height) and its column (fill width), filling the frame", { name: shell?.name, mode: shell?.layout.mode, fillW: shell?.fillW, parts: shell?.children.map((child) => [child.set?.name ?? child.name, Boolean(child.fillH), Boolean(child.fillW)]) }, { name: "AppShell", mode: "HORIZONTAL", fillW: true, parts: [["Side-Bar/Master/Basic", true, false], ["Column", false, true]] });
   const sidebar = shell.children[0];
-  check("AppShell: Sidebar rows in Body-Content, the selected one Select Yes; no footer: Footer-Content emptied, its container hidden", [sidebar.slots?.map((slot) => [slot.name, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), sidebar.hide], [[["Body-Content", ["Home:No", "People:Yes"]], ["Footer-Content", []]], ["Divider", "Footer-Container"]]);
+  check("AppShell: Sidebar rows in Body-Content, the selected one Select Yes; no logo: Header-Content emptied (Figma's sample LOGO and Collapse go); no footer: Footer-Content emptied, its container hidden", [sidebar.slots?.map((slot) => [slot.name, slot.children.map((row) => `${row.text}:${row.props.Select}`)]), sidebar.hide], [[["Header-Content", []], ["Body-Content", ["Home:No", "People:Yes"]], ["Footer-Content", []]], ["Divider", "Footer-Container"]]);
   const column = shell.children[1];
   check("AppShell: its column is the top bar (Header) then the page (Main)", column.children.map((child) => child.name), ["Header", "Main"]);
   const bar = column.children[0].children[0];
@@ -277,8 +278,8 @@ export default function Page() {
 //    overlapping): columns that fit as a wrapping row, MetricCard and ChartCard as a Card around Figma's metric and
 //    chart, ListItem and ListBox parts, Text in its default style and tone, icon names as Figma's cuts.
 const DASH = `// @zen-page {"format":1,"title":"Dash"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { AppShell, Avatar, ChartCard, Chip, DockIcon, Grid, IconButton, LineChart, List, ListBox, ListItem, MetricCard, Search, Segmented, Sidebar, SidebarMenuItem, Stack, StackBarChart, Text, Button, Heading } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, Avatar, ChartCard, Chip, DockIcon, Grid, IconButton, LineChart, List, ListBox, ListItem, MetricCard, Search, Segmented, Sidebar, SidebarMenuItem, Stack, StackBarChart, Text, Button, Heading } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -323,7 +324,7 @@ export default function Page() {
   const [metricCard, lineCard, barCard] = fit.children;
   const metric = metricCard.slots[0].children[0];
   check("MetricCard: a Card (Shadow, no ⋮) around Metric-Inline, its Label and Metric-Number, Trend, Dock-Icon and Action on", { card: [metricCard.set.name, metricCard.props.Theme, metricCard.props["Sub-Action"]], metric: [metric.set.name, metric.texts, metric.props.Trend, metric.props["Dock-Icon"], metric.props.Action] }, { card: ["Card", "Shadow", false], metric: ["Primitives/Metric/Metric-Inline/Title-Highlight", { Label: "Revenue", "Metric-Number": "$541.4K" }, true, true, true] });
-  check("MetricCard: its trend badge, Dock Icon and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
+  check("MetricCard: its trend badge, Dock Icon (its background written too: Metric's Subtle) and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", Background: "Subtle", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
   const line = lineCard.slots[0].children[0];
   check("ChartCard: a Card around Figma's chart of its kind, the title its Label, ranges as Segmented items, no open button without onOpen", { set: line.set.name, texts: line.texts, items: line.slots?.[0]?.children.map((item) => `${item.text}:${item.props.Select}`), hide: line.hide }, { set: "Chart/Line-Chart", texts: { Label: "Revenue" }, items: ["Revenue:Yes", "Profit:No"], hide: ["Button/Icon-Main"] });
   check("ChartCard without ranges: its Segmented hidden", barCard.slots[0].children[0].hide, ["Segmented", "Button/Icon-Main"]);
@@ -336,6 +337,9 @@ export default function Page() {
   check("Segmented: as wide as its items (not fullWidth), its items its Level and Size, the selected one Select Yes", [seg.hugW, seg.slots[0].hugW, seg.slots[0].children.map((item) => [item.text, item.props.Level, item.props.Size, item.props.Select])], [true, true, [["Day", "Primary", "Small", "No"], ["Week", "Primary", "Small", "Yes"]]]);
   const listBox = fixed.children[0];
   check("ListBox: Header on, its header row one frame filling Header-Slot, the List filling Body-Slot", { header: listBox.props.Header, slots: listBox.slots.map((slot) => [slot.name, slot.children.map((child) => [child.type, child.layout?.mode, child.fillW])]) }, { header: true, slots: [["Header-Slot", [["FRAME", "HORIZONTAL", true]]], ["Body-Slot", [["FRAME", "VERTICAL", true]]]] });
+  const bordered = find(push(DASH.replace("<ListBox header=", '<ListBox theme="border" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  const onContainer = find(push(DASH.replace("<ListBox header=", '<ListBox theme="on-container" header=')).frame, (node) => node.set?.name === "Component/List-Box");
+  check("ListBox theme: Figma's Theme (Flat by default, Border and On-Container by theme)", [listBox.props.Theme, bordered.props.Theme, onContainer.props.Theme], ["Flat", "Border", "On-Container"]);
   const [withAvatar, withDock] = listBox.slots[1].children[0].children;
   check("ListItem: Title and Subtitle, its leading Avatar (theme, initials) in Figma's Avatar", [withAvatar.texts, withAvatar.nested[0].set.name, withAvatar.nested[0].props.Theme, withAvatar.nested[0].text], [{ Title: "Checkout shared", Subtitle: "Bao Nguyen" }, "Avatar/Single", "Green", "BN"]);
   check("ListItem: a Dock Icon swaps in for the Avatar; no caption hides Subtitle", [withDock.nested[0].set.name, withDock.nested[0].props["Icon-Src"], withDock.hide], ["Dock-Icon", "icon-file-check-line", ["Subtitle"]]);
@@ -352,8 +356,8 @@ export default function Page() {
 //     sample words; hidden text and an inactive tab's panel were drawn; long text ran past its column; links in a text
 //     were lost.
 const FORMS = `// @zen-page {"format":1,"title":"Forms"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Avatar, Badge, Box, DescriptionList, Divider, InlineMessage, InputField, Link, List, ListBox, ListItem, SelectField, Stack, Stepper, TabPanel, Tabs, Text, Toggle, VisuallyHidden } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Avatar, Badge, Box, DescriptionList, Divider, InlineMessage, InputField, Link, List, ListBox, ListItem, SelectField, Stack, Stepper, TabPanel, Tabs, Text, Toggle, VisuallyHidden } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -398,7 +402,7 @@ export default function Page() {
   check("InputField with neither value nor placeholder: its Text empty (not Figma's sample)", bySet("Input/Text-Field")[1].texts, { Label: "Password", Text: "" });
   const select = bySet("Input/Select-Field")[0];
   check("SelectField: its value as the option's label (State Inputted), its help in Message", [select.texts, select.props.State], [{ Label: "Role", Text: "Team lead", Message: "Leads approve leave." }, "Inputted"]);
-  check("Toggle: its label, Subtext hidden without a caption", [bySet("Toggle")[0].texts, bySet("Toggle")[0].hide], [{ Label: "Weekly summary" }, ["Subtext"]]);
+  check("Toggle: its label in its Content, whose Subtext stays off without a caption", [bySet("Toggle")[0].texts, bySet("Toggle")[0].nested], [{ Label: "Weekly summary" }, [{ path: "Content", props: { Subtext: false } }]]);
   const row = all.find((node) => node.layout?.mode === "HORIZONTAL" && node.children?.some((child) => child.set?.name === "Divider"));
   check("Divider in a row takes the room left", row.children.filter((child) => child.set?.name === "Divider").map((divider) => Boolean(divider.fillW)), [true, true]);
   check("Text with an inline Link: all its words", all.some((node) => node.characters === "New here? Create an account"), true);
@@ -424,8 +428,8 @@ export default function Page() {
 //     gutter and maxWidth, grid tracks), an even Figma grid where it is known, a wrapping row where it is not.
 //     Breadcrumbs draw their chevrons (Dash) and Level; InlineMessage's close button follows onClose.
 const WIDTHS = `// @zen-page {"format":1,"title":"Widths"}
-import { Board, Screen, proto } from "@zen/design-system/builder";
-import { AppShell, Breadcrumbs, Card, Container, Grid, IconButton, InlineMessage, Segmented, Sidebar, SidebarMenuItem, Stack, Text } from "@zen/design-system";
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { AppShell, Breadcrumbs, Card, Container, Grid, IconButton, InlineMessage, Segmented, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -501,8 +505,8 @@ export default function Page() {
 //     does (user rule, 2026-10-12): `strokeBottom: 0` on that row's cells, which the importer applies to the weight only.
 //     A Table on the page canvas, or in a plain Box, keeps it.
 const SURFACE_TABLES = `// @zen-page {"format":1,"title":"Surfaces"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { Box, Card, Container, Stack, Table } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Card, Container, Stack, Table } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -538,8 +542,8 @@ export default function Page() {
 // 14. Templates compared with the Studio sheets (2026-10-12): tracks with a px maximum, a selectable and sorted Table,
 //     a table Avatar cell's own Avatar, Form's gap, the account's Subtle Avatar.
 const MEMBERS = `// @zen-page {"format":1,"title":"Team"}
-import { Board, Screen } from "@zen/design-system/builder";
-import { AppShell, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen/design-system";
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, Form, Grid, InputField, Search, Stack, Table, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -587,6 +591,551 @@ export default function Page() {
   ok("AiChatBlock: no note of a frame drawn for it", !notes.some((note) => /AiChatBlock: no Figma component/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("round trip: AiChatBlock comes back with its greeting, suggestions and field (no wrapper Stack)", /<AiChatBlock[^>]*greeting="Good morning, Alex\. How can I help\?"/.test(back) && back.includes('{ label: "Request time off", icon: "icon-calendar-plus-line" }') && /<AiChatField[^>]*fieldStyle="surface"/.test(back) && !/<Stack[^>]*align="center"[^>]*>\s*<AiChatBlock/.test(back));
+}
+
+// 15. TopNavigation as Figma's Top-Navigation/Mobile (figma-top-nav.mjs, 2026-10-13): the Type and the parts the page
+//     shows, the titles in their Heading-Text layers, the leading Action, the actions in each row's Trailing-Slot (by
+//     `within`) in the Button the Type draws, the control bar padded in Control-Slot; the Screen's mobile chrome round trip.
+{
+  const nav = `// @zen-page {"format":1,"title":"Inbox"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Segmented, Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox" device="phone" topNavigation={<TopNavigation type="liquid-glass" largeTitle="Inbox" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-search-medium-line", label: "Search" }, { icon: "icon-bell-01-line", label: "Alerts", dot: true }]} largeTitleAction={{ icon: "icon-plus-line", label: "New" }} controlBar={<Segmented options={[{ id: "all", label: "All" }, { id: "unread", label: "Unread" }]} fullWidth defaultValue="all" />} />}>
+        <Stack>
+          <TopNavigation type="compact" largeTitle="Home" trailing={[{ icon: "icon-search-medium-line", label: "Search" }, { icon: "icon-bell-01-line", label: "Alerts" }]} />
+          <TopNavigation type="default-overlay" margin="compact" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call", group: "call" }, { icon: "icon-video-line", label: "Video", group: "call" }]} />
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(nav);
+  const [inbox] = frame.children;
+  const [home, ava] = frame.children[1].children[0].children;
+  check("TopNavigation: Top-Navigation/Mobile, its Type, no Status-bar, the parts the page shows", [inbox.set.id, inbox.props.Type, inbox.props["Status-Bar"], inbox.props["Top-bar"], inbox.props["Top-Heading-Text"], inbox.props["Expand-Heading"], inbox.props["Expand-Trailing"], inbox.props["Control-Bar"]], ["12014:45167", "Liquid Glass", false, true, false, true, true, true]);
+  check("TopNavigation: the large title and the leading Action (named by its label, its glyph)", [inbox.nested[0], inbox.nested[1]], [{ path: "Main-Heading-Text", props: { Type: "H1" }, texts: { "Header-Text": "Inbox" } }, { path: "Top-Leading/Action", name: "Back", props: { "Noti-Dot": false }, swapIcon: "icon-chevron-left-line-medium" }]);
+  check("TopNavigation: each row's actions in its own Trailing-Slot, as Nav-Slot/Action in the Type's Button", inbox.slots.slice(0, 2).map((slot) => [slot.within, slot.children.map((item) => [item.name, item.set.id, item.props.Style, item.props["Noti-Dot"], item.nested[0].set.name, item.nested[0].props.Level, item.nested[0].swapIcon])]), [["Navigator-bar", [["Search", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-search-medium-line"], ["Alerts", "6340:42675", "Default", true, "Nav-Action/Liquid-Glass", "Secondary", "icon-bell-01-line"]]], ["Expand-Heading", [["New", "6340:42675", "Default", false, "Nav-Action/Liquid-Glass", "Secondary", "icon-plus-line"]]]]);
+  check("TopNavigation: the control bar in Control-Slot, padded as the code pads it (Padding/2XSmall, Large, XSmall)", [inbox.slots[2].name, inbox.slots[2].children[0].name, inbox.slots[2].children[0].layout.padding, inbox.slots[2].children[0].children[0].set.name], ["Control-Slot", "Control", [4, 20, 8, 20], "Segmented"]);
+  check("TopNavigation: a compact root folds its bar into the large-title row (Top-bar off, the actions beside the title, Flat › Icon-Flat)", [home.props["Top-bar"], home.props["Top-Leading"], home.props["Expand-Trailing"], home.slots.map((slot) => [slot.within, slot.children.map((item) => [item.props.Style, item.nested[0].set.name, item.nested[0].props.Level])])], [false, false, true, [["Expand-Heading", [["Flat", "Nav-Action/Icon-Flat", "Primary"], ["Flat", "Nav-Action/Icon-Flat", "Primary"]]]]]);
+  check("TopNavigation: an identity's title and subtitle in Top-Heading-Text, Margin Compact, an overlay's Icon-Overlay", [ava.props.Margin, ava.props["Expand-Heading"], ava.nested[0].props, ava.nested[0].texts, ava.slots[0].children[0].nested[0].props.Level], ["Compact", false, { Type: "Sub", Header: true, Subheading: true, Leading: false }, { "Header-Text": "Ava Chen", Subheading: "Active now" }, "Black Overlay"]);
+  ok("TopNavigation: a note for actions that share a pill (Figma has none)", notes.some((note) => /share a pill/.test(note)));
+  const back = shape(pageFromFigma(frame, { mapping }).text);
+  check("round trip: the Screen's topNavigation and the page's TopNavigations come back the same", back, shape(nav.replace(/, group: "call"/g, "")));
+}
+
+// 16. A Top-Navigation/Mobile as the pull reads it in Figma (readTopNav; the instance an import placed, 2026-10-13).
+{
+  const read = { type: "FRAME", name: "Chat", width: 390, layout: { mode: "VERTICAL" }, children: [{ type: "INSTANCE", name: "Ava Chen", set: { id: "12014:45167", name: "Top-Navigation/Mobile" },
+    props: { "Top-Leading": true, "Top-Heading-Text": true, "Control-Bar": false, "Top-Trailing": true, "Expand-Trailing": false, "Status-Bar": false, "Top-bar": true, "Expand-Heading": false, Device: "Mobile", Margin: "Comfortable", Type: "Default-Overlay" },
+    topNav: { bar: { props: { Leading: false, Header: true, Subheading: true, Type: "Sub" }, texts: { Label: "A", "Header-Text": "Ava Chen", Subheading: "Active now" } }, large: { props: { Type: "H1" }, texts: { "Header-Text": "Heading" } },
+      leading: { props: { Style: "Liquid Glass", Type: "Action" }, action: { name: "Back", icon: "icon-chevron-left-line-medium" } },
+      barActions: [{ name: "Call", icon: "icon-phone-line" }, { name: "Video", icon: "icon-video-line", dot: true }], titleActions: [{ name: "Action", icon: "icon-plus-line" }], control: [] } }] };
+  const text = pageFromFigma(read, { mapping }).text;
+  ok("pull: Top-Navigation/Mobile → TopNavigation with its type, identity, leading and trailing (hidden rows left out)", text.includes('<TopNavigation type="default-overlay" title="Ava Chen" subtitle="Active now" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} trailing={[{ icon: "icon-phone-line", label: "Call" }, { icon: "icon-video-line", label: "Video", dot: true }]} />') && !text.includes("Heading\""));
+}
+
+// 17. ColorSelector as a row of Color-Selector swatches (2026-10-13): each its colour's variable as its own fill, the
+//     chosen one Select=Yes, a colour that is no token noted; the pull gives the ColorSelector back.
+{
+  const page = `// @zen-page {"format":1,"title":"Labels"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ColorSelector, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Labels" device="desktop">
+        <Stack gap="md">
+          <ColorSelector aria-label="Label colour" colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" />
+          <ColorSelector colors={[{ value: "#123456", label: "Custom" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [row] = frame.children;
+  check("ColorSelector: a wrapping row (Gap/Small) of Color-Selector swatches, named, their fill the colour's variable, the chosen one Select=Yes", [row.name, row.layout.gapVar, row.layout.wrap, row.children.map((swatch) => [swatch.set.id, swatch.name, swatch.fill, swatch.props.Select])], ["Label colour", "Spacing/Gap/Small", true, [["373:97252", "Red", "Background/Support/Red/Solid", "No"], ["373:97252", "Blue", "Background/Support/Blue/Solid", "Yes"]]]);
+  ok("ColorSelector: a colour that is no Zen token keeps the sample colour, with a note", !frame.children[1].children[0].fill && notes.some((note) => /#123456 is no Zen token/.test(note)));
+  const back = pageFromFigma({ ...frame, children: [row] }, { mapping }).text;
+  ok("round trip: the swatches come back as the ColorSelector (colours, value, aria-label)", back.includes('<ColorSelector colors={[{ value: "var(--zen-color-background-support-red-solid)", label: "Red" }, { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" }]} value="var(--zen-color-background-support-blue-solid)" aria-label="Label colour" />'));
+}
+
+// 18. Tabs written with TabItem children (2026-10-13): the same Tab-Items as `items` (the chosen one Select=Yes), a
+//     badge's count in its Badge-Counter; the pull reads the labels (not the Label variant's True), badges and Size.
+{
+  const page = `// @zen-page {"format":1,"title":"Inbox"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, TabItem, Tabs } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox" device="desktop">
+        <Stack gap="md">
+          <Tabs aria-label="Inbox" value="reviews">
+            <TabItem value="assigned" label="Assigned" badge={3} />
+            <TabItem value="reviews" label="Reviews" icon="icon-home-03-line" />
+          </Tabs>
+          <Tabs aria-label="Views" variant="subtle" size="sm" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [inbox, views] = frame.children;
+  check("Tabs with TabItem children: Tab-Items in Item-List (label, Select, icon, Badge with its count)", inbox.slots[0].children.map((item) => [item.text, item.props.Select, item.props["Icon-Src"] ?? null, item.props.Badge, item.nested?.[0] ?? null]), [["Assigned", "No", null, true, { path: "Badge-Counter", text: "3" }], ["Reviews", "Yes", "icon-home-03-line", false, null]]);
+  ok("Tabs: no TabItem left out", !notes.some((note) => /TabItem/.test(note)));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: the tabs come back as items with their labels and badges, the chosen one the default", back.includes('<Tabs items={[{ id: "assigned", label: "Assigned", badge: 3 }, { id: "reviews", label: "Reviews", icon: "icon-home-03-line" }]} defaultValue="reviews" />'));
+  ok("round trip: a small subtle Tabs keeps its size (read from its items)", back.includes('<Tabs variant="subtle" items={[{ id: "list", label: "List" }, { id: "board", label: "Board" }]} defaultValue="list" size="sm" />') && views.slots[0].children[0].props.Size === "Small");
+}
+
+// 19. InputConditions as Figma's Input-Conditions (2026-10-13): its Condition-Items in the Item-List slot, each one's
+//     label its text (the set has no text property); the pull gives the labels back.
+{
+  const page = `// @zen-page {"format":1,"title":"Password"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { InputConditionItem, InputConditions, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Password" device="desktop">
+        <Stack>
+          <InputConditions>
+            <InputConditionItem label="At least 8 characters" state="success" />
+            <InputConditionItem label="One symbol" />
+          </InputConditions>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [list] = frame.children;
+  check("InputConditions: Input-Conditions, its Condition-Items in Item-List with their state and label", [list.set.id, list.slots[0].name, list.slots[0].children.map((item) => [item.set.id, item.props.State, item.text])], ["373:97663", "Item-List", [["373:97437", "Success", "At least 8 characters"], ["373:97437", "Default", "One symbol"]]]);
+  check("round trip: InputConditions comes back with its items' labels", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
+// 20. UploaderFileItem as Figma's Primitives/Uploader/File-Item (2026-10-13): its file's State, Name, Size and caption,
+//     an alert's error in Help-Text, an upload's progress as the Progress-Bar step, the buttons it has no handler for
+//     hidden; the pull gives the file back.
+{
+  const page = `// @zen-page {"format":1,"title":"Files"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, UploaderFileItem } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Files" device="desktop">
+        <Stack>
+          <UploaderFileItem thumbnail="file" file={{ id: "brief-pdf", name: "Brief.pdf", size: "1.2 MB", state: "uploading", caption: "7 seconds left", progress: 50 }} />
+          <UploaderFileItem theme="overlay" file={{ id: "notes-docx", name: "Notes.docx", size: "320 KB", state: "alert", error: "Upload failed" }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const [upload, alert] = frame.children;
+  check("UploaderFileItem: File-Item with its file's State, Name, Size, caption and Thumbnail", [upload.set.id, upload.name, upload.props.State, upload.props["✏️ Name"], upload.props["✏️ Size"], upload.props["✏️ Additional Caption"], upload.props.Thumbnail, upload.nested], ["1581:22739", "Brief.pdf", "Uploading", "Brief.pdf", "1.2 MB", "7 seconds left", "File", [{ path: "Progress-Bar", props: { Progress: "Medium" } }]]);
+  check("UploaderFileItem: an alert's error in its Help-Text; Remove and Retry hidden without their handlers", [alert.props.State, alert.props.Theme, alert.nested, alert.hide], ["Alert", "Overlay", [{ path: "Help-Text", props: {}, text: "Upload failed" }], ["Remove", "Retry"]]);
+  ok("UploaderFileItem: no note of its file as unwritten data", !notes.some((note) => /file is data/.test(note)));
+  check("round trip: the file items come back with their files", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
+// 21. DatePickerSheet as Figma's Date-Picker/Mobile (2026-10-13): Variant Single / Multiple-Default / Multiple-Selected,
+//     its title in the heading; a closed sheet is not pushed; the pull opens it again.
+{
+  const page = `// @zen-page {"format":1,"title":"Stay"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { DatePickerSheet, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Stay" device="phone">
+        <Stack>
+          <DatePickerSheet open selectionMode="range" title="Your stay" />
+          <DatePickerSheet open />
+          <DatePickerSheet title="Closed" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  check("DatePickerSheet: Date-Picker/Mobile, its Variant and its title in Main-Heading-Text (the locale's by default)", frame.children.map((sheet) => [sheet.set.id, sheet.props.Variant, sheet.nested[0].texts["Header-Text"]]), [["9923:3576", "Multiple-Default", "Your stay"], ["9923:3576", "Single", "Choose date"]]);
+  ok("DatePickerSheet: a closed sheet is not pushed, with a note", notes.some((note) => /DatePickerSheet.*closed/.test(note)));
+  check("round trip: the open sheets come back (range, title)", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('\n          <DatePickerSheet title="Closed" />', "")));
+}
+
+// 22. Chat (2026-10-13): ChatThread as Chat/Section/Conversation runs, a ChatMessage's author (a one-letter Avatar: small
+//     avatars show one; user, 2026-10-13), its text in the bubble's Message, its reactions pill and its read list; the
+//     pull gives the same page back, from the push and from the real Figma read of the import (fixtures/figma-chat.json).
+{
+  const page = `// @zen-page {"format":1,"title":"Chat"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ChatMessage, ChatThread } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Chat" device="phone">
+        <ChatThread>
+          <ChatMessage author={{ name: "Ava Chen" }} reactions={[{ kind: "heart", count: 2 }, { kind: "lol" }]}>See you at 6?</ChatMessage>
+          <ChatMessage side="you" reactions={[{ kind: "🎉" }]} seenBy={[{ name: "Ava Chen" }, { name: "Bao Tran", theme: "blue" }]}>Yes, on my way</ChatMessage>
+        </ChatThread>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const thread = frame.children[0];
+  const [others, you] = thread.children;
+  const ava = others.slots[0].children[0];
+  check("ChatThread: a column (Gap/Medium, Padding/Medium) of Chat/Section/Conversation runs by side", [thread.layout.gapVar, thread.layout.paddingVar, thread.children.map((run) => [run.set.id, run.props.Side, run.slots[0].name])], ["Spacing/Gap/Medium", "Spacing/Padding/Medium", [["6182:57707", "Others", "Conversations"], ["6182:57707", "You", "Conversations"]]]);
+  check("ChatMessage: its text in Message, its author's Avatar named and one letter, the reactions pill (Count, Emoji-Items)", [ava.texts, ava.props.Reaction, ava.nested, ava.slots[0].within, ava.slots[0].children.map((emoji) => emoji.props.Emoji)], [{ Message: "See you at 6?" }, "Yes", [{ path: "Avatar", name: "Ava Chen", props: { Theme: "Neutral", Background: "Subtle" }, text: "A" }, { path: "Bubble/Chat", props: { Counter: "Yes" }, texts: { Count: "3" } }], "Chat/Reaction/Status/No", ["Heart", "LOL"]]);
+  const [message, readList] = you.slots[0].children[0].children;
+  check("ChatMessage: a picked emoji in Message; the read list under it (Seen by, each reader named, one letter)", [message.slots[0].children[0].texts, readList.set.id, readList.props["Seen by"], readList.nested.map((avatar) => [avatar.path, avatar.name, avatar.text, avatar.props.Theme])], [{ Message: "🎉" }, "6101:61545", "2", [["Avatar[0]", "Ava Chen", "A", "Neutral"], ["Avatar[1]", "Bao Tran", "B", "Blue"]]]);
+  ok("Chat: nothing unwritten", !notes.some((note) => /ChatMessage|ChatThread/.test(note)));
+  // (The pulled Screen holds its ChatThread in a Stack: a Screen's content is a Stack.)
+  check("round trip: the chat comes back the same from the push", shape(pageFromFigma(frame, { mapping }).text).children[0].children[0].children[0], shape(page).children[0].children[0]);
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-chat.json", import.meta.url), "utf8")).frame;
+  const fromFigma = pageFromFigma(read, { mapping });
+  check("round trip: the same chat from Figma's own read of the import (names from the avatars' layers, reactions from the nested slot)", shape(fromFigma.text).children[0].children[0].children[0], shape(page).children[0].children[0]);
+  check("round trip from Figma: no notes", fromFigma.notes, []);
+}
+
+// 23. Small avatars show one letter (Avatar.tsx: XSmall and 2XSmall; user, 2026-10-13): an Avatar element and a Table's
+//     avatar cell without a caption.
+{
+  const page = `// @zen-page {"format":1,"title":"People"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Avatar, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="People" device="desktop">
+        <Stack>
+          <Avatar size="xs" alt="Ava Chen">AC</Avatar>
+          <Avatar size="md" alt="Ava Chen">AC</Avatar>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  check("Avatar: one letter at XSmall, two at Medium", push(page).frame.children.map((avatar) => avatar.text), ["A", "AC"]);
+}
+
+// 24. Metric and MetricCard (2026-10-13): the Dock Icon shows by default (MetricWidget.tsx: icon-home-02-solid, Neutral,
+//     Subtle) as the code draws it; the pull gives a lone Metric-Inline back as a Metric and a Card holding one as the
+//     MetricCard (label, value, trend, icon), from the push and from Figma's read of the import (fixtures/figma-metric.json,
+//     the trend's override on its Badge).
+{
+  const page = `// @zen-page {"format":1,"title":"KPIs"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Metric, MetricCard, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="KPIs" device="desktop">
+        <Stack>
+          <MetricCard label="Revenue" value="$12,400" icon="icon-wallet-02-line" iconTheme="green" theme="border" trend={{ direction: "negative", label: "-3%" }} />
+          <Metric label="Orders" value="320" />
+          <Metric label="Refunds" value="4" icon={false} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const [, orders, refunds] = frame.children;
+  check("Metric: its default Dock Icon shows (home, Neutral, Subtle); icon={false} hides it", [orders.props["Dock-Icon"], orders.nested?.find((nested) => nested.path === "Metric-Icon")?.props, refunds.props["Dock-Icon"]], [true, { Theme: "Neutral", Background: "Subtle", "Icon-Src": "icon-home-02-solid" }, false]);
+  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-metric.json", import.meta.url), "utf8")).frame;
+  const fromFigma = pageFromFigma(read, { mapping });
+  check("round trip: the same MetricCard and Metric from Figma's read of the import", shape(fromFigma.text).children[0].children[0].children.slice(0, 2), shape(page).children[0].children[0].children.slice(0, 2));
+  check("round trip from Figma: no notes", fromFigma.notes, []);
+}
+
+// 25. Icon sizes, FileIcon and Flag (2026-10-13): an Icon's size as its Element-Size/Popular variable (Base, the
+//     components' 20px, writes nothing), FileIcon as icon-media-file (Format), Flag as Flag (Name, Image-Size); the pull
+//     reads them back.
+{
+  const page = `// @zen-page {"format":1,"title":"Icons"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { FileIcon, Flag, Icon, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Icons" device="desktop">
+        <Stack direction="row">
+          <Icon name="icon-plus-line" />
+          <Icon name="icon-plus-line" size="lg" />
+          <FileIcon format="pdf" />
+          <FileIcon format="sheet" size="xl" />
+          <Flag name="Vietnam" />
+          <Flag name="Japan" size="large" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  check("Icons: the size variable, icon-media-file by Format, Flag by Name and Image-Size", frame.children.map((icon) => [icon.set.name, icon.props.Format ?? icon.props.Name ?? null, icon.sizeVar ?? null]), [["icon-plus-line", null, null], ["icon-plus-line", null, "Element-Size/Popular/Large"], ["icon-media-file", "PDF", null], ["icon-media-file", "Sheet", "Element-Size/Popular/XLarge"], ["Flag", "Vietnam", null], ["Flag", "Japan", "Image-Size/Small"]]);
+  ok("Icons: no FileIcon or Flag drawn as a frame", !notes.some((note) => /FileIcon|Flag/.test(note)));
+  check("round trip: icons, file icons and flags come back with their sizes", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+}
+
+// 26. Layout and Text props for the examples' last classNames (2026-10-13): a Box's surface as its Color/Background
+//     variable (canvas too) and no gap, Stack / Box scroll as Overflow scrolling (it clips), Grid stackBelow as one
+//     column on a Screen narrower than it, Text wrap={false} as Auto width (it does not fill its column), and one note
+//     for tabularNumbers (a plugin cannot set Numbers: Tabular). The pull reads the surface, the scroll and a layout
+//     frame's max height back.
+{
+  const layers = (device) => `// @zen-page {"format":1,"title":"Layers"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Grid, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Layers" device="${device}">
+        <Stack>
+          <Box surface="canvas" padding="xl">
+            <Stack scroll="y" maxHeight={120}>
+              <Text>One</Text>
+              <Text>Two</Text>
+            </Stack>
+            <Box surface="subtle" padding="md">
+              <Text>Well</Text>
+            </Box>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const page = layers("desktop");
+  const { frame } = push(page);
+  const canvas = frame.children[0];
+  const [list, well] = canvas.children;
+  check("Box: its surface's variable, no gap; a scrolling Stack clips at its max height", [canvas.fill, canvas.layout.gap, well.fill, list.scroll, list.clip, list.maxH], ["Background/Canvas/Default", 0, "Background/Neutral/Subtle/Default", "VERTICAL", true, 120]);
+  check("round trip: Box surfaces and a scrolling Stack come back", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  // A Box framing a Stack's gap pulls back as a Box around the Stack.
+  const framed = pageFromFigma({ ...frame, children: [{ ...well, layout: { ...well.layout, gap: 12, gapVar: "Spacing/Gap/Small" }, children: [well.children[0], well.children[0]] }] }, { mapping }).text;
+  ok("pull: a surface frame with a gap is a Box around a Stack", /<Box surface="subtle" padding="md">\s*<Stack gap="sm">/.test(framed));
+  const texts = (device) => `// @zen-page {"format":1,"title":"Texts"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Grid, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Texts" device="${device}">
+        <Stack gap="lg">
+          <Text wrap={false} tabularNumbers>10:45 am</Text>
+          <Text tabularNumbers>12</Text>
+          <Grid columns="minmax(0, 1fr) minmax(0, 2fr)" stackBelow={640}>
+            <Text>Side</Text>
+            <Text>Main</Text>
+          </Grid>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  // (The Screen's one Stack is its frame's layout.)
+  const desktop = push(texts("desktop"));
+  const [time, count, grid] = desktop.frame.children;
+  check("Text wrap={false}: Auto width, not filling its column; a wrapping one fills", [time.autoWidth, time.fillW, count.autoWidth, count.fillW], [true, undefined, undefined, true]);
+  ok("tabularNumbers: one note for the page", desktop.notes.filter((note) => /Numbers: Tabular/.test(note)).length === 1 && desktop.notes.some((note) => note.startsWith("2 texts")));
+  check("Grid stackBelow: its columns on desktop, one column on a phone", [grid.layout.grid.columns, push(texts("phone")).frame.children[2].layout.grid.columns], [2, 1]);
+}
+
+// 27. Round trip found by testing every example frame through the real Zen file (2026-10-13, P6): the pull reads a
+//     List-Item's title, caption, leading and trailing, a List-Box's header, a field's label, value and help, a
+//     Checkbox's label and caption (its Content), an emoji Dock-Icon and a text's tone from Figma's read
+//     (fixtures/figma-parts.json); the push writes the Checkbox's label and caption through its Content and the emoji.
+{
+  const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-parts.json", import.meta.url), "utf8")).frame;
+  const text = pageFromFigma(read, { mapping }).text;
+  ok("pull: Checkbox label and caption from its Content", /<Checkbox label="I confirm these hours are accurate" caption="They are billed to Phin & Co and Lumen Bank in October\." \/>/.test(text));
+  ok("pull: a field's label and value (Inputted)", /<InputField[^>]*label="Phone"[^>]*defaultValue="9123 4567"|<InputField[^>]*defaultValue="9123 4567"[^>]*label="Phone"/.test(text));
+  ok("pull: a field's help is its Message, not Figma's \"Help text\"", text.includes('helpText="Billed on the 1st of each month."') && !text.includes('"Help text"'));
+  ok("pull: List-Box header and List", /<ListBox header=\{<Text textStyle="Heading\/Subheading">Leave balance<\/Text>\}>\s*<List>/.test(text));
+  ok("pull: List-Item title, caption and emoji leading", text.includes('<ListItem title="Annual leave" caption="7 of 18 days left · resets Jan 1, 2027" leading={<DockIcon theme="emoji" emoji="🏝️" />} />'));
+  ok("pull: List-Item Avatar leading and Badge trailing", /<ListItem\s+title="Audit the account overview for WCAG 2\.2"\s+caption="LUM-091 · Due today"\s+leading=\{<Avatar[^}]*\/>\}\s+trailing=\{<Badge[^}]*>To do<\/Badge>\}/.test(text.replace(/\n\s*/g, " ")));
+  ok("pull: a text's tone from its Content variable", text.includes('<Text textStyle="Body/Small/Regular" tone="base">Sep 21 – Sep 27, 2026</Text>'));
+  ok("pull: a List-Item's leading swapped for a file icon (read from its main component) and its IconButton trailing", text.includes('<ListItem title="Usability plan – transfers.pdf" caption="1.2 MB · Ava Chen · Yesterday at 4:05 pm" leading={<FileIcon format="pdf" />} trailing={<IconButton icon="icon-trash-line" appearance="flat" aria-label="Delete Usability plan – transfers.pdf" />} />'));
+  const page = `// @zen-page {"format":1,"title":"Controls"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Checkbox, DockIcon, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Controls" device="desktop">
+        <Stack>
+          <Checkbox label="I confirm" caption="Billed in October." />
+          <DockIcon theme="emoji" emoji="🏝️" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const [box, dock] = push(page).frame.children;
+  check("push: Checkbox label, caption through its Content (shown, then written)", [box.texts, box.nested, box.props.Caption], [{ Label: "I confirm" }, [{ path: "Content", props: { Subtext: true }, texts: { Subtext: "Billed in October." } }], undefined]);
+  check("push: an emoji Dock-Icon's emoji as its text", dock.text, "🏝️");
+  // A Heading's level rides on its layer's name, so it comes back a Heading (its level's text style unsaid).
+  const headings = `// @zen-page {"format":1,"title":"Headings"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Heading, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Headings" device="desktop">
+        <Stack>
+          <Heading level={2}>Projects</Heading>
+          <Heading level={3} textStyle="Heading/4">Due this week</Heading>
+          <Text tone="base">Six projects</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const pushed = push(headings).frame;
+  check("push: a Heading's layer named for its level", pushed.children.map((child) => child.name ?? null), ["Heading 2", "Heading 3", null]);
+  check("round trip: Headings (level, text style) and a Text's tone come back", shape(pageFromFigma(pushed, { mapping }).text), shape(headings));
+
+  // A pushed app page read back (fixtures/figma-shell.json): Figma's sample LOGO and Collapse are the Sidebar's own,
+  // the crumbs' Sub level is `master` off, a Description List's rows their Term and Value, Type=Main a PageHeader.
+  const shell = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-shell.json", import.meta.url), "utf8")).frame, { mapping });
+  ok("pull: a Sidebar header of Figma's sample LOGO and Collapse is no brand (both noted)", !shell.text.includes("brand=") && !shell.text.includes("Collapse") && shell.notes.filter((note) => /sample LOGO|Collapse button/.test(note)).length === 2);
+  ok("pull: crumbs at the Item's Sub level: Breadcrumbs master off", shell.text.includes('{ id: "chi-tran", label: "Chi Tran" }]} master={false} />'));
+  ok("pull: Description List rows are their Term and Value", shell.text.includes('<DescriptionList items={[{ term: "Team", description: "Design" }, { term: "Email", description: "chi@dizai.studio" }, { term: "Location", description: "Hanoi" }]} />'));
+  ok("pull: Dashboard/Header Type=Main is a PageHeader, its Subheading the description", shell.text.includes('<PageHeader title="Chi Tran" description="Product Designer · Hanoi" />'));
+  const sidebarPage = (sidebar) => `// @zen-page {"format":1,"title":"Shell"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Sidebar, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Shell" device="desktop">
+        ${sidebar}
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const headerOf = (sidebar) => push(sidebarPage(sidebar)).frame.children[0].slots.find((slot) => slot.name === "Header-Content");
+  const logoHeader = headerOf(`<Sidebar logo={<Stack direction="row" gap="xs"><Text as="span" textStyle="Body/Base/Bold">Dizai Studio</Text></Stack>} sections={[{ items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }] }]} />`);
+  const fileRow = push(sidebarPage(`<ListItem title="Q3 report.pdf" leading={<FileIcon format="pdf" size="xl" />} />`).replace("import { Sidebar, Stack, Text }", "import { FileIcon, ListItem, Sidebar, Stack, Text }"));
+  const fileLead = fileRow.frame.children[0].nested?.[0];
+  check("push: a List-Item's FileIcon lead swaps its Avatar, without a size Figma cannot set inside an instance (noted)", [fileLead?.set?.name, "sizeVar" in (fileLead ?? {}), fileRow.notes.some((note) => note.includes("shows at its own size in Figma"))], ["icon-media-file", false, true]);
+  check("push: a Sidebar's logo is its Header-Content (Figma's sample LOGO and Collapse go)", logoHeader.children.map((layer) => [layer.type, layer.fillW, layer.children.map((child) => child.characters)]), [["FRAME", true, ["Dizai Studio"]]]);
+}
+
+// 28. Round trip by key (P6b, 2026-10-13; fixtures/figma-pushed.json): a page exported with its ids, placed in the Zen
+//     file and read back pulls with the page's own ids (the layers' Studio keys), and names its page and export. Against
+//     the pull of the export (the base) and the page as exported (synced): the frame as placed is no change; a designer's
+//     edits are exactly the changes, and merging them keeps what Figma cannot hold.
+{
+  const fixture = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-pushed.json", import.meta.url), "utf8"));
+  const counter = () => { let n = 0; return () => `k${++n}`; };
+  const { pkg } = figmaPackage(fixture.page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "p6b-breadcrumbs-top-bar-trail", title: "P6b" }, newId: counter() });
+  const current = docFromText(fixture.page, { newId: counter() }).doc;
+  // The base is the pull of the frame as it was exported then (the Studio keeps it at export: a later push may differ).
+  const base = pageFromFigma({ ...fixture.exported, page: "p6b-breadcrumbs-top-bar-trail", version: "v1" }, { mapping }).doc;
+  check("pushed: the export's keys are the page's ids (the frame read back carries them)", [pkg.frame.key, fixture.untouched.key, current.board.children[0].id], ["k2", "k2", "k2"]);
+  const untouched = pageFromFigma(fixture.untouched, { mapping }).doc;
+  check("pushed: a pull names the Studio page and the export", untouched.header.figma, { file: "9nZv4uW2LT21yuHabMTCh1", node: "15459:3", page: "p6b-breadcrumbs-top-bar-trail", version: "v1" });
+  check("pushed: the frame as placed is no change against its export", figmaChanges({ base, current, incoming: untouched, synced: current }).changes.map((change) => change.label), []);
+  const edited = pageFromFigma(fixture.edited, { mapping }).doc;
+  const { changes } = figmaChanges({ base, current, incoming: edited, synced: current });
+  check("pushed: the designer's edits are the changes, none a conflict", changes.map((change) => `${change.kind}${change.conflict ? "!" : ""}: ${change.label}`), [
+    "prop: DescriptionList · items: changed",
+    "text: Heading: “Projects” → “Your projects”",
+    "add: Text “Updated weekly” added",
+    "prop: ListItem “Loyalty app v2” · title: “Loyalty app” → “Loyalty app v2”",
+    "prop: Badge “Shipped” · theme: “blue” → “green”",
+    "text: Badge: “Active” → “Shipped”",
+    "remove: ListItem “Zen design system” removed",
+  ]);
+  const merged = printPage(mergeFigma(current, edited, changes).doc);
+  ok("pushed: merged, the page keeps what Figma cannot hold (Container, titleLines, ListBox theme, aria, ids, the logo's Image)",
+    ["<Container>", "titleLines={2}", '<ListBox theme="shadow">', 'aria-labelledby="chi-projects"', 'id="chi-projects"', '{ id: "team:design", label: "Design" }', '<Image src="zen-media:tpl.hr.workspace-logo.png" alt="" />'].every((part) => merged.includes(part)));
+  ok("pushed: merged, the designer's edits are in", ['description: "Da Nang"', ">Your projects</Heading>", '<Text textStyle="Body/Small/Regular">Updated weekly</Text>', 'title="Loyalty app v2"', '<Badge theme="green" background="subtle">Shipped</Badge>'].every((part) => merged.includes(part)) && !merged.includes("Zen design system"));
+  // The Studio changed the heading since the export too: that change is a conflict; an edit elsewhere stays.
+  const studioEdited = JSON.parse(JSON.stringify(current));
+  const heading = (doc) => { const find = (node) => (node.name === "Heading" ? node : node.children.filter((child) => child.kind === "element").map(find).find(Boolean) ?? Object.values(node.props).filter((value) => value.kind === "element").map((value) => find(value.node)).find(Boolean) ?? null); return find(doc.board); };
+  heading(studioEdited).children = [{ kind: "text", value: "Projects 2026" }];
+  const conflicts = figmaChanges({ base, current: studioEdited, incoming: edited, synced: current }).changes.filter((change) => change.conflict).map((change) => change.label);
+  check("pushed: a spot the Studio changed since the export too is a conflict", conflicts, ["Heading: “Projects” → “Your projects”"]);
+  // A layer the designer duplicated carries the same key: the first keeps the id, the copy comes in as added.
+  const duplicated = JSON.parse(JSON.stringify(fixture.edited));
+  const stack = (function find(node) { return node.id === "15459:848" ? node : (node.children ?? []).map(find).find(Boolean) ?? null; })(duplicated);
+  stack.children.push({ ...stack.children[0], id: "15460:999", characters: "Projects copy" });
+  const copies = figmaChanges({ base, current, incoming: pageFromFigma(duplicated, { mapping }).doc, synced: current }).changes.filter((change) => change.kind === "add").map((change) => change.label);
+  check("pushed: a duplicated layer (same key) comes in as added, the original keeps its id", copies, ["Text “Updated weekly” added", "Heading “Projects copy” added"]);
 }
 
 if (failures.length) {

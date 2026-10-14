@@ -14,7 +14,7 @@ import { BottomNavigation, type BottomNavigationSelection, type BottomNavigation
 import { BottomSheet, type BottomSheetItem, type BottomSheetSize, type BottomSheetType } from "../components/BottomSheet";
 import { ChatComposer, ChatFile, ChatMessage, ChatThread, ChatDateDivider, type ChatDomain, type ChatReplyTarget } from "../components/Chat";
 import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatFieldStyle } from "../components/AiChat";
-import { ChartCard, LineChart, StackBarChart } from "../components/Chart";
+import { BarChart, ChartCard, DonutChart, HeatmapChart, LineChart, RadialChart, StackBarChart } from "../components/Chart";
 import { typographyStyles } from "../tokens/typography.generated";
 import { PlatformCode } from "./PlatformCode";
 import { PlatformPhone } from "./PlatformPhone";
@@ -142,7 +142,7 @@ export function TopNavigationPlayground() {
         <PlaygroundToggle label="Banner" selected={banner} onChange={setBanner} />
         {flat ? null : <PlaygroundToggle label="Grouped trailing" selected={grouped} onChange={setGrouped} />}
       </>}
-      code={`import { TopNavigation } from "@zen/design-system";
+      code={`import { TopNavigation } from "@zen-ds/react";
 
 <TopNavigation${t !== "default" ? `\n  type="${t}"` : ""}${margin === "compact" ? `\n  margin="compact"` : ""}
   title="Projects"
@@ -192,7 +192,7 @@ export function BottomNavigationPlayground() {
         <PlaygroundToggle label="Labels" selected={labels} onChange={setLabels} />
         <PlaygroundToggle label="Action" selected={action} onChange={setAction} />
       </>}
-      code={`import { BottomNavigation } from "@zen/design-system";
+      code={`import { BottomNavigation } from "@zen-ds/react";
 
 <BottomNavigation${t !== "default" ? `\n  type="${t}"` : ""}${theme === "accent" ? `\n  theme="accent"` : ""}${t !== "default" && selection !== (t === "floating-glass" ? "subtle" : "surface") ? `\n  selection="${selection}"` : ""}${labels ? "\n  showLabels" : ""}
   items={[
@@ -235,7 +235,7 @@ export function BottomSheetPlayground() {
         <PlaygroundToggle label="Search" selected={search} onChange={setSearch} />
         {t === "modal" ? <PlaygroundToggle label="Vertical actions" selected={vertical} onChange={setVertical} /> : null}
       </>}
-      code={`import { BottomSheet } from "@zen/design-system";
+      code={`import { BottomSheet } from "@zen-ds/react";
 
 <BottomSheet
   open={open}
@@ -315,7 +315,7 @@ export function ChatPlayground() {
         <PlaygroundFilterChip label="Device" value={device} onChange={(v) => setDevice(String(v) || undefined)} options={[option("mobile", "Mobile"), option("desktop", "Desktop")]} />
         <PlaygroundToggle label="Names" selected={names} onChange={setNames} />
       </>}
-      code={`import { ChatComposer, ChatMessage, ChatThread } from "@zen/design-system";
+      code={`import { ChatComposer, ChatMessage, ChatThread } from "@zen-ds/react";
 
 <ChatThread${device === "desktop" ? ` device="desktop"` : ""}>
   <ChatMessage side="others" author={{ name: "Ava Chen", src: ava }}${d === "business" ? ` domain="business" time="20:30"` : ""}${names ? " showName" : ""}>
@@ -382,7 +382,7 @@ export function AiChatPlayground() {
         <PlaygroundFilterChip label="Field style" value={style} onChange={(v) => setStyle(String(v) || undefined)} options={[option("default", "Default"), option("surface", "Surface"), option("liquid-glass", "Liquid Glass")]} />
         <PlaygroundToggle label="Empty (block)" selected={empty} onChange={setEmpty} />
       </>}
-      code={`import { AiChatBubble, AiChatField, AiChatThread } from "@zen/design-system";
+      code={`import { AiChatBubble, AiChatField, AiChatThread } from "@zen-ds/react";
 
 <AiChatThread>
   <AiChatBubble side="you" actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copyPrompt }, { icon: "icon-edit-02-line", label: "Edit", onClick: editPrompt }]}>
@@ -429,51 +429,85 @@ const budget = [
   { label: "Q4", values: { dev: 10, research: 3, marketing: 3, finance: 3, hr: 2 } },
 ];
 
+type ChartKind = "line" | "bar" | "horizontal" | "stack" | "donut" | "radial" | "heatmap";
+const chartKinds: Array<[ChartKind, string]> = [["line", "Line"], ["bar", "Bar"], ["horizontal", "Horizontal bar"], ["stack", "Stack bar"], ["donut", "Donut"], ["radial", "Radial"], ["heatmap", "Heatmap"]];
+/** Last year, for the line's dashed comparison: the same periods, a little lower. */
+const lastYear = (points: ReadonlyArray<readonly [string, number]>) => points.map(([, value]) => Math.round(value * 0.82));
+/** This year's budget per department ($K) and the share each has spent. */
+const departmentTotals = budgetSeries.map((s) => ({ id: s.id, label: s.label, value: budget.reduce((sum, b) => sum + b.values[s.id as keyof typeof b.values], 0) * 1000 }));
+const departmentSpent = [72, 58, 81, 44, 35];
+const heatRows = ["9 am", "11 am", "1 pm", "3 pm", "5 pm"];
+const heatColumns = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const heatValues = [[38, 41, 40, 39, 35], [71, 74, 72, 70, 61], [52, 55, 53, 51, 44], [70, 75, 73, 71, 48], [42, 44, 43, 41, 22]];
+const chartTitles: Record<ChartKind, string> = { line: "Expense Trends", bar: "Expenses", horizontal: "Budget by department", stack: "Budget Allocation", donut: "Budget by department", radial: "Budget spent", heatmap: "Activity by hour" };
+
 export function ChartPlayground() {
-  const [kind, setKind] = useState<string | undefined>("line");
+  const [kind, setKind] = useState<ChartKind>("line");
   const [inCard, setInCard] = useState(true);
+  const [compare, setCompare] = useState(false);
+  const [average, setAverage] = useState(false);
   const [range, setRange] = useState<keyof typeof quarters>("Quarterly");
   const [report, setReport] = useState(false);
   const money = (v: number) => (v === 0 ? "0" : `$${Math.round(v / 100) / 10}K`);
   const usd = (v: number) => `$${v.toLocaleString("en-US")}`;
-  // The chevron opens the numbers behind the chart: yearly totals per department (stack) or the points of the range (line).
-  const reportRows: Array<[string, string]> = kind === "stack"
-    ? budgetSeries.map((s) => [s.label, usd(budget.reduce((sum, b) => sum + b.values[s.id as keyof typeof b.values], 0) * 1000)])
-    : quarters[range].map(([label, value]) => [label, usd(value)]);
-  const reportTotal = kind === "stack"
-    ? budget.reduce((sum, b) => sum + Object.values(b.values).reduce((all, v) => all + v, 0), 0) * 1000
-    : quarters[range].reduce((sum, [, value]) => sum + value, 0);
-  // Only the line chart follows a range; the budget stack is always by quarter, so it shows no range switch.
-  const ranges = kind === "line" ? Object.keys(quarters).map((id) => ({ id, label: id })) : undefined;
-  const chart = kind === "stack"
-    ? <StackBarChart aria-label="Budget allocation by quarter" data={budget.map((b) => ({ ...b, values: Object.fromEntries(Object.entries(b.values).map(([k, v]) => [k, v * 1000])) }))} series={budgetSeries} format={money} />
-    : <LineChart aria-label={`Expense trends, ${range.toLowerCase()}`} data={quarters[range].map(([label, value]) => ({ label, value }))} format={money} />;
+  const points = quarters[range].map(([label, value]) => ({ label, value }));
+  const hasRange = kind === "line" || kind === "bar";
+  const hasAverage = kind === "line" || kind === "bar" || kind === "horizontal" || kind === "stack";
+  // The chevron opens the numbers behind the chart: the points of the range, or this year's budget per department.
+  const byDepartment = kind === "stack" || kind === "horizontal" || kind === "donut" || kind === "radial";
+  const reportRows: Array<[string, string]> = byDepartment ? departmentTotals.map((d) => [d.label, usd(d.value)]) : points.map((p) => [p.label, usd(p.value)]);
+  const reportTotal = byDepartment ? departmentTotals.reduce((sum, d) => sum + d.value, 0) : points.reduce((sum, p) => sum + p.value, 0);
+  const ranges = hasRange ? Object.keys(quarters).map((id) => ({ id, label: id })) : undefined;
+  const showAverage = hasAverage && average;
+  const chart = {
+    line: <LineChart aria-label={`Expense trends, ${range.toLowerCase()}`} data={points} format={money} label="This year" showAverage={showAverage}
+      compare={compare ? { label: "Last year", values: lastYear(quarters[range]) } : undefined} />,
+    bar: <BarChart aria-label={`Expenses, ${range.toLowerCase()}`} data={points.map((p, i, all) => ({ ...p, projected: i === all.length - 1 }))} format={money} showAverage={showAverage} />,
+    horizontal: <BarChart orientation="horizontal" aria-label="Budget spent by department this year" data={departmentTotals.map((d, i) => ({ label: d.label, value: Math.round(d.value * departmentSpent[i] / 100), target: d.value }))} format={money} showAverage={showAverage} />,
+    stack: <StackBarChart aria-label="Budget allocation by quarter" data={budget.map((b) => ({ ...b, values: Object.fromEntries(Object.entries(b.values).map(([k, v]) => [k, v * 1000])) }))} series={budgetSeries} format={money} showAverage={showAverage} />,
+    donut: <DonutChart aria-label="This year's budget by department" data={departmentTotals} format={money} legendPosition="end" />,
+    radial: <RadialChart aria-label="Budget spent by department" data={departmentTotals.slice(0, 3).map((d, i) => ({ id: d.id, label: d.label, value: departmentSpent[i] }))} legendPosition="end" />,
+    heatmap: <HeatmapChart aria-label="Studio activity by weekday and hour" rows={heatRows} columns={heatColumns} values={heatValues} format={(v) => `${v} h`} />,
+  }[kind];
+  const name = { line: "LineChart", bar: "BarChart", horizontal: "BarChart", stack: "StackBarChart", donut: "DonutChart", radial: "RadialChart", heatmap: "HeatmapChart" }[kind];
+  const avg = showAverage ? " showAverage" : "";
+  const element = {
+    line: `<LineChart aria-label="Expense trends" data={points} format={money}${compare ? ` label="This year"\n    compare={{ label: "Last year", values: lastYear }}` : ""}${avg} />`,
+    bar: `<BarChart aria-label="Expenses" data={points} format={money}${avg} /> {/* a forecast point: { label, value, projected: true } */}`,
+    horizontal: `<BarChart orientation="horizontal" aria-label="Budget spent by department" data={departments} format={money}${avg} />`,
+    stack: `<StackBarChart aria-label="Budget allocation by quarter" data={quarters} series={departments} format={money}${avg} />`,
+    donut: `<DonutChart aria-label="This year's budget by department" data={departments} format={money} legendPosition="end" />`,
+    radial: `<RadialChart aria-label="Budget spent by department" data={spent} legendPosition="end" />`,
+    heatmap: `<HeatmapChart aria-label="Studio activity by weekday and hour" rows={hours} columns={days} values={values} />`,
+  }[kind];
   return (
     <Panel title="Chart"
       controls={<>
-        <PlaygroundFilterChip label="Chart" value={kind} onChange={(v) => setKind(String(v) || undefined)} options={[option("line", "Line"), option("stack", "Stack bar")]} />
+        <PlaygroundFilterChip label="Chart" value={kind} onChange={(v) => setKind((String(v) || "line") as ChartKind)} options={chartKinds.map(([id, label]) => option(id, label))} />
         <PlaygroundToggle label="In Chart Card" selected={inCard} onChange={setInCard} />
+        {kind === "line" ? <PlaygroundToggle label="Compare" selected={compare} onChange={setCompare} /> : null}
+        {hasAverage ? <PlaygroundToggle label="Average" selected={average} onChange={setAverage} /> : null}
       </>}
-      code={`import { ChartCard, ${kind === "stack" ? "StackBarChart" : "LineChart"} } from "@zen/design-system";
+      code={`import { ${inCard ? "ChartCard, " : ""}${name} } from "@zen-ds/react";
 
 ${inCard ? `<ChartCard
-  title="${kind === "stack" ? "Budget Allocation" : "Expense Trends"}"
-  onOpen={openReport}${kind === "stack" ? "" : `
+  title="${chartTitles[kind]}"
+  onOpen={openReport}${hasRange ? `
   ranges={[{ id: "Quarterly", label: "Quarterly" }, { id: "Monthly", label: "Monthly" }, { id: "Weekly", label: "Weekly" }]}
   range={range}
-  onRangeChange={setRange}`}
+  onRangeChange={setRange}` : ""}
 >
-  ` : ""}${kind === "stack" ? `<StackBarChart aria-label="Budget allocation by quarter" data={quarters} series={departments} format={money} />` : `<LineChart aria-label="Expense trends" data={points} format={money} />`}${inCard ? "\n</ChartCard>" : ""}`}>
+  ` : ""}${element}${inCard ? "\n</ChartCard>" : ""}`}>
       <div className="platform-chart-preview">
         {inCard ? (
-          <ChartCard title={kind === "stack" ? "Budget Allocation" : "Expense Trends"} onOpen={() => setReport(true)} ranges={ranges} range={range} onRangeChange={(id) => setRange(id as keyof typeof quarters)}>
+          <ChartCard title={chartTitles[kind]} onOpen={() => setReport(true)} ranges={ranges} range={range} onRangeChange={(id) => setRange(id as keyof typeof quarters)}>
             {chart}
           </ChartCard>
         ) : (
-          <div className="platform-chart-preview__bare"><span className={typographyStyles["Heading/Subheading"]}>{kind === "stack" ? "Budget Allocation" : "Expense Trends"}</span>{ranges ? <Segmented options={ranges} value={range} onChange={(id) => setRange(id as keyof typeof quarters)} aria-label="Range" /> : null}{chart}</div>
+          <div className="platform-chart-preview__bare"><span className={typographyStyles["Heading/Subheading"]}>{chartTitles[kind]}</span>{ranges ? <Segmented options={ranges} value={range} onChange={(id) => setRange(id as keyof typeof quarters)} aria-label="Range" /> : null}{chart}</div>
         )}
-        <ChartReportPanel open={report} onOpenChange={setReport} title={kind === "stack" ? "Budget allocation report" : "Expense trends report"}
-          description={kind === "stack" ? "This year's budget by department." : `${range} expenses.`} head={kind === "stack" ? ["Department", "Year total"] : ["Period", "Expenses"]} rows={reportRows} total={["Total", usd(reportTotal)]} />
+        <ChartReportPanel open={report} onOpenChange={setReport} title={`${chartTitles[kind]} report`}
+          description={byDepartment ? "This year's budget by department." : `${range} expenses.`} head={byDepartment ? ["Department", "Year total"] : ["Period", "Expenses"]} rows={reportRows} total={["Total", usd(reportTotal)]} />
       </div>
     </Panel>
   );

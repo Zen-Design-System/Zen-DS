@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "visually-hidden",
-  "import": "import { VisuallyHidden } from \"@zen/design-system\";",
+  "import": "import { VisuallyHidden } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "VisuallyHidden",

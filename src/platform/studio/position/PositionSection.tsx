@@ -23,6 +23,7 @@ import {
   type AxisMeasure, type Ladder, type Measured, type Pin, type PositionAxis,
 } from "./positionModel";
 import "./position.css";
+import { srcAttr } from "../select/srcIds";
 
 /*
  * The Design tab's Position section (Figma UI3 "Position": Align, X / Y, Ignore auto layout, Constraints; spec
@@ -89,7 +90,7 @@ export function readGeometry(selection: NodeSelection): Geometry {
   if (!world) return noGeometry;
   const hits = findBySrc(world, selection.src);
   const hit = hits[selection.instance] ?? hits[0];
-  const host = hit?.hosts.find((node): node is HTMLElement => node instanceof HTMLElement && node.getAttribute("data-zen-src") === selection.src)
+  const host = hit?.hosts.find((node): node is HTMLElement => node instanceof HTMLElement && srcAttr(node) === selection.src)
     ?? hit?.hosts.find((node): node is HTMLElement => node instanceof HTMLElement);
   if (!hit || !host?.isConnected) return noGeometry;
   const jsxParent = parentHit(hit, frameElement(selection.frameId, world));
@@ -98,7 +99,7 @@ export function readGeometry(selection: NodeSelection): Geometry {
   const floating = host.dataset.position === "absolute";
   const display = getComputedStyle(domParent).display;
   const parent = /flex|grid/.test(display) ? "auto" : "flow";
-  const floatBox = !floating && domParent.matches('.zen-box[data-position="absolute"]') && domParent.children.length === 1 ? domParent.getAttribute("data-zen-src") : null;
+  const floatBox = !floating && domParent.matches('.zen-box[data-position="absolute"]') && domParent.children.length === 1 ? srcAttr(domParent) : null;
   const block = containingBlock(host, floating);
   let measured: Measured | null = null;
   if (block) {

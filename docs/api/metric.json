@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "metric",
-  "import": "import { Metric, MetricCard } from \"@zen/design-system\";",
+  "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Metric",
@@ -309,7 +309,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",

@@ -1,42 +1,120 @@
 # Getting started with Zen DS
 
-How to install `@zen/design-system` in a React app and set it up correctly. AI agents: read
+How to install `@zen-ds/react` in a React app and set it up correctly. AI agents: read
 [`AGENTS.consumer.md`](../AGENTS.consumer.md) first; this page is the detail behind it.
 
 ## Install
 
-The package is built locally for now (no registry yet). From the Zen DS repo:
+`@zen-ds/react` is a licensed package. It is served only by the Zen registry, `https://npm.dizai.studio/`, to
+companies with an active licence; it is not on the public npm registry. Before the first install, point the `@zen-ds`
+scope at the registry (once per project) and sign in with your licence key (once per developer).
 
-```bash
-npm run pack:local
+**Your licence key** is the ID of your company's licence, as shown with the licence in your Zen account (15 lowercase
+letters and digits). One key covers your company's developers and its CI. Treat it like a password: never commit it
+and never paste it into an issue or a chat.
+
+### 1. Point the `@zen-ds` scope at the registry (once per project)
+
+Add this line to the `.npmrc` in your app's root folder and commit it, so teammates and CI use it too:
+
+```ini
+@zen-ds:registry=https://npm.dizai.studio/
 ```
 
-That writes `dist-pack/zen-design-system-<version>.tgz`. In your app:
+Only `@zen-ds/*` packages come from the Zen registry; everything else still comes from your usual registry. Without
+this line npm finds an old public `@zen-ds/react` (0.1.0) on npmjs.com and installs that instead.
+
+### 2. Sign in once with your licence key (once per developer)
 
 ```bash
-npm install /path/to/Zen-DS/dist-pack/zen-design-system-0.3.0.tgz
+npm login --registry=https://npm.dizai.studio/ --scope=@zen-ds --auth-type=legacy
+#   Username: anything (your name)   Password: your licence key   Email: anything
+```
+
+npm keeps a spinner turning while you type the password, which hides what you type: it is waiting for you, not
+stuck. Type or paste the key and press Enter (`--no-progress` hides the spinner). On success npm prints
+`Logged in to scope @zen-ds on https://npm.dizai.studio/`.
+
+npm stores a token in your user `~/.npmrc` (not the project's), valid for 365 days. The registry re-checks the
+licence on every request, so the token stops working when the subscription ends; run `npm login` again after
+renewing, or once a year.
+
+### 3. Install
+
+```bash
+npm install @zen-ds/react react@^19 react-dom@^19
+```
+
+With pnpm, the same `.npmrc` and `npm login` work as they are. Yarn 2 or later ignores `.npmrc`; put the scope in
+`.yarnrc.yml` instead and sign in with `yarn npm login --scope zen-ds` (same licence key):
+
+```yaml
+npmScopes:
+  zen-ds:
+    npmRegistryServer: "https://npm.dizai.studio/"
 ```
 
 Peer dependencies: `react` and `react-dom` 19. The package is ES modules with TypeScript declarations. Every
 component file starts with `"use client"`, so React Server Component frameworks import it from client components.
 
+### CI and Docker builds
+
+Sign in once on your machine as in step 2 and copy the token from the `//npm.dizai.studio/:_authToken=…` line of your
+`~/.npmrc` into a CI secret named `ZEN_DS_NPM_TOKEN`. The CI job writes that line into its own user `~/.npmrc` before
+installing. Do not put the token line in the project's `.npmrc`, not even as `${ZEN_DS_NPM_TOKEN}`: the project file
+wins over each developer's own sign-in, and on a machine without the variable every install fails with `E401`
+(`npx zen-ds doctor` flags it). In GitHub Actions:
+
+```yaml
+- run: echo "//npm.dizai.studio/:_authToken=${ZEN_DS_NPM_TOKEN}" >> ~/.npmrc
+  env:
+    ZEN_DS_NPM_TOKEN: ${{ secrets.ZEN_DS_NPM_TOKEN }}
+- run: npm ci
+```
+
+In a Dockerfile, mount the token as a build secret rather than a build argument, so it does not end up in an image
+layer:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+COPY package.json package-lock.json .npmrc ./
+RUN --mount=type=secret,id=zen_npm_token \
+    echo "//npm.dizai.studio/:_authToken=$(cat /run/secrets/zen_npm_token)" > /root/.npmrc \
+    && npm ci && rm /root/.npmrc
+```
+
+Build it with `docker build --secret id=zen_npm_token,env=ZEN_DS_NPM_TOKEN .`. Replace the token before it expires
+after 365 days.
+
+### When the install fails
+
+| npm says | Why | What to do |
+| --- | --- | --- |
+| `E409` … `sign-up is closed: use your license key` (on `npm login`) | Wrong key, or the licence is not active | Copy the key again from your Zen account; check that the subscription is active |
+| `E401` `Unable to authenticate, your authentication token seems to be invalid` | Not signed in on this machine, the token is over 365 days old, the CI token is missing, or the project's `.npmrc` has an `_authToken` line | Step 2 again, or set `ZEN_DS_NPM_TOKEN`; remove any token line from the project's `.npmrc` |
+| `E403` … `license is not active` | The subscription ended or was suspended | Renew it; the old token works again within 5 minutes |
+| `E404` for `@zen-ds/…` on registry.npmjs.org, or version `0.1.0` installed | The `.npmrc` scope line is missing | Step 1, then `npm install @zen-ds/react@latest` |
+| `E503` … `license service unavailable` | The licence service is briefly unreachable | Try again in a few minutes |
+
+Your licence terms are in `LICENSE.md`, which ships with the package. Questions: zen.tool@dizai.studio.
+
 ## Entry points
 
 | Import | What it is |
 | --- | --- |
-| `@zen/design-system` | Components, hooks, `typographyStyles`, `IconName`, `preloadIcons` |
-| `@zen/design-system/styles.css` | Required, import once: Inter font, tokens, text styles, effects, all component CSS |
-| `@zen/design-system/reset.css` | Optional page reset (margins, box-sizing, Canvas background, Figma-matching text rendering) |
-| `@zen/design-system/tokens` | Typed map of every Figma variable: `tokens["Color/Background/Surface/Default"]` |
-| `@zen/design-system/icons/names` | `iconNames` (all 1,598) and the `IconName` type, without SVG data |
-| `@zen/design-system/icons/all` | Registers every icon up front (docs, icon pickers). Apps usually skip it |
+| `@zen-ds/react` | Components, hooks, `typographyStyles`, `IconName`, `preloadIcons` |
+| `@zen-ds/react/styles.css` | Required, import once: Inter font, tokens, text styles, effects, all component CSS |
+| `@zen-ds/react/reset.css` | Optional page reset (margins, box-sizing, Canvas background, Figma-matching text rendering) |
+| `@zen-ds/react/tokens` | Typed map of every Figma variable: `tokens["Color/Background/Surface/Default"]` |
+| `@zen-ds/react/icons/names` | `iconNames` (all 1,598) and the `IconName` type, without SVG data |
+| `@zen-ds/react/icons/all` | Registers every icon up front (docs, icon pickers). Apps usually skip it |
 
 ## The app root: `ZenProvider`
 
 ```tsx
-import "@zen/design-system/styles.css";
-import "@zen/design-system/reset.css";
-import { ZenProvider } from "@zen/design-system";
+import "@zen-ds/react/styles.css";
+import "@zen-ds/react/reset.css";
+import { ZenProvider } from "@zen-ds/react";
 
 <ZenProvider theme="system">
   <App />
@@ -116,7 +194,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 - `<Icon name="…" />` accepts any of the 1,598 names (the `IconName` type autocompletes).
 - Icons that Zen components use draw synchronously. Every other icon is fetched from a small lazy bucket the first time
   it renders, and its box keeps the icon size meanwhile.
-- `preloadIcons([...])` at start-up removes that first empty frame; `import "@zen/design-system/icons/all"` bundles
+- `preloadIcons([...])` at start-up removes that first empty frame; `import "@zen-ds/react/icons/all"` bundles
   them all.
 - `registerIcons({ "my-logo": { viewBox, content, colorMode: "monochrome" } })` adds your own SVGs.
 
@@ -126,7 +204,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
   every Zen component: close and dismiss buttons, pagination ("Trang sau", "3 kết quả"), search and pickers, the
   rich-text toolbar, chat and upload controls, screen-reader names. Built in: `en` (default) and `vi`; `vi-VN` uses `vi`.
 - `labels={{ close: "Tắt" }}` overrides single strings; nested providers inherit the locale and stack overrides.
-  Another language: pass every label (`import { zenLabels } from "@zen/design-system"` shows the shape).
+  Another language: pass every label (`import { zenLabels } from "@zen-ds/react"` shows the shape).
 - A component's own prop (`closeLabel`, `placeholder`, `aria-label`, `searchPlaceholder`…) still wins for one-off
   wording. Your own copy (titles, button labels) is yours to translate.
 
@@ -134,10 +212,10 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 
 | Tool | What it does |
 | --- | --- |
-| `npx zen-ds init` | Adds the Zen section to AGENTS.md (and `@AGENTS.md` to CLAUDE.md) and registers the `zen-ds` MCP server in `.mcp.json`. Idempotent. |
+| `npx zen-ds init` | Adds the `@zen-ds` registry line to `.npmrc`, the Zen section to AGENTS.md (and `@AGENTS.md` to CLAUDE.md) and registers the `zen-ds` MCP server in `.mcp.json`. Idempotent. |
 | `npx zen-ds doctor` | Checks the setup: dependency, React 19, `styles.css` import, `ZenProvider`, no deep imports, optional AI/ESLint wiring. |
 | `npx zen-usage [paths]` | The usage harness: every Zen component your files import, against the Do/Don't rules (unknown icon names, missing labels, vague button text, wrong levels…). `--json` for tools; `--css` also checks your stylesheets (`npx zen-ds check` runs it with `--css`). |
-| `@zen/design-system/eslint` | The same rules in the editor: `export default [...config, zen.configs.recommended]` (`zen.configs.standalone` without a JSX parser). |
+| `@zen-ds/react/eslint` | The same rules in the editor: `export default [...config, zen.configs.recommended]` (`zen.configs.standalone` without a JSX parser). |
 | `zen-ds-mcp` | MCP server: `get_setup`, `list_components`, `get_component`, `search_icons`, `get_tokens`, `list_templates`, `get_template`, `check_usage`, and `map_figma_component` (Figma component name + variant properties → Zen JSX, checked by the harness; a local stand-in for Figma Code Connect, which needs a Figma Organization plan). |
 
 ## Fonts
@@ -150,7 +228,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 
 | Symptom | Fix |
 | --- | --- |
-| No styles at all | `import "@zen/design-system/styles.css"` once, in the app entry |
+| No styles at all | `import "@zen-ds/react/styles.css"` once, in the app entry |
 | Dialog/Toast/Tooltip light inside a dark region | Render them inside the region's `ZenProvider` (its portal keeps the modes) |
 | Page background stays light in dark mode | Use `reset.css`, or keep the outermost `ZenProvider` painting (`paint` default on) |
 | An icon is blank | Check the name (TypeScript lists the valid ones); `npx zen-usage` and the dev-mode warning suggest the closest names |

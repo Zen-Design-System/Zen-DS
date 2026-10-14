@@ -2,7 +2,7 @@
 # Color Selector
 
 **Figma:** Color-Selector (page 373:97188)  
-**Import:** `import { ColorSelector } from "@zen/design-system";`
+**Import:** `import { ColorSelector } from "@zen-ds/react";`
 
 Pick one colour from a small curated set of swatches.
 

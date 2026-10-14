@@ -1,8 +1,8 @@
-// App-mode fixture (zen-usage outside the repo, and the ESLint plugin): only tags imported from @zen/design-system
+// App-mode fixture (zen-usage outside the repo, and the ESLint plugin): only tags imported from @zen-ds/react
 // are checked — named imports, aliases and namespace imports — never the app's own components with the same names.
 // Every `expect:` marker must be reported exactly once by both the CLI (--consumer) and ESLint.
-import { Button as ZenButton, IconButton } from "@zen/design-system";
-import * as Zen from "@zen/design-system";
+import { Button as ZenButton, IconButton } from "@zen-ds/react";
+import * as Zen from "@zen-ds/react";
 import { Button } from "./local-button";
 
 export function App() {

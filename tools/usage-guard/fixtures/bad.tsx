@@ -154,6 +154,10 @@ export const Bad = () => <>
   <RichTextField label="Announcement" onChange={handle} />
   {/* expect: card/clickable-no-nested-controls */}
   <Card onClick={open}><Button level="tertiary" onClick={edit}>Edit</Button></Card>
+  {/* expect: card/on-container-in-overlay */}
+  <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="border">Brief</Card></SidePanel>
+  {/* expect: listbox/on-container-in-overlay */}
+  <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
   {/* expect: list-item/switch-row */}
   <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
   {/* expect: chip/radio-is-chip-group */}
@@ -234,6 +238,14 @@ export const Bad = () => <>
   <AiChatBubble side="ai" streaming actions={[{ icon: "icon-copy-line", label: "Copy", onClick: copy }]}>Working</AiChatBubble>
   {/* expect: chart/stack-needs-legend */}
   <StackBarChart aria-label="Budget" data={data} series={series} showLegend={false} />
+  {/* expect: chart/needs-name */}
+  <BarChart data={data} />
+  {/* expect: chart/shares-need-legend */}
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} showLegend={false} />
+  {/* expect: chart/shares-need-legend */}
+  <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} compare={compare} showLegend={false} />
+  {/* expect: chart/heatmap-needs-scale */}
+  <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} showLegend={false} />
   {/* expect: table/media-size-by-subtext */}
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   {/* expect: uploader/no-noop-replace */}

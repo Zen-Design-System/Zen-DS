@@ -2,7 +2,7 @@
 # Inline Message
 
 **Figma:** Inline-Message (page 595:54502)  
-**Import:** `import { InlineMessage } from "@zen/design-system";`
+**Import:** `import { InlineMessage } from "@zen-ds/react";`
 
 A Subtle-surface message placed inside the content it describes — contextual, persistent until resolved or dismissed.
 

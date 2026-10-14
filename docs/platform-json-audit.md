@@ -456,3 +456,22 @@ Action-Slots and Trailing-Slots Gap/Small. Custom: Custome-Elements Gap/Medium 1
 **Decision**: Main's SubHeading is Content/Neutral/Light in Figma; PageHeader keeps its description at Neutral/Base
 (Light on Canvas is ≈3.8:1, under AA's 4.5:1 for 14px text). Child-Heading follows Figma (Light): Heading/1 is large
 text (3:1).
+
+## Chart family — Figma `❖ Chart` (2026-10-12, tier L, code first)
+
+Built in the live file `9nZv4uW2LT21yuHabMTCh1` from the code at the user's request (the reverse of the usual
+direction). Page manifest, set manifest and deviations: `docs/research/chart-family-spec-2026-10-12.md` §5.1.
+
+| Figma set | Node | Variants | Code owner |
+| --- | --- | --- | --- |
+| Chart/Bar-Chart | 15321:84071 | 2 (Orientation) | `BarChart` (new) |
+| Chart/Multi-Line-Chart | 15426:2521 (rebuilt 2026-10-13, spec §5.4) | 1 | `LineChart` `compare` |
+| Chart/Donut-Chart | 15324:80365 | 2 (Legend) | `DonutChart` (new) |
+| Chart/Radial-Chart | 15325:1135 | 2 (Legend) | `RadialChart` (new) |
+| Chart/Heatmap-Chart | 15326:1043 | 1 | `HeatmapChart` (new) |
+| .Chart/Hatch · .Chart/Legend-Item | 15321:475 · 15321:79362 | 1 · 7 | chart.css hatch · `ChartLegend` |
+| Chart/Line-Chart · Stack-Bar-Chart · Chart-Card | 6643:63324 · 6643:73471 · 6643:63528 | 1 each | `LineChart` · `StackBarChart` · `ChartCard` (header properties added) |
+
+**Nested-owner manifest**: Segmented 1238:891 (items fill) → `ChartCard ranges`; Button/Icon-Main XSmall Tertiary with
+icon-chevron-right-line-small 1474:918 → `ChartCard onOpen`; Tooltip surface → `TooltipSurface` default medium; Legend
+item → `ChartLegend`. No contract capture yet: the family has no `docs/figma-contracts` suite (BACKLOG).

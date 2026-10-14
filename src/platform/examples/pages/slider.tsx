@@ -36,7 +36,7 @@ function PhotoZoomExample() {
   // Reset zoom disables itself: focus moves to the slider instead of falling to the page.
   const reset = () => { formRef.current?.querySelector<HTMLElement>('input[type="range"]')?.focus(); setZoom(100); };
   return (
-    <Card theme="flat" className="px-slider-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form ref={formRef} onSubmit={() => toast({ type: "positive", title: "Profile photo updated" })} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Profile photo</Heading>
         {/* The crop follows the thumb while it moves: the slider tunes by eye, the preview shows the result. */}
@@ -54,7 +54,7 @@ function PhotoZoomExample() {
           <Button level="primary" type="submit">Save photo</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -74,7 +74,7 @@ function BudgetAlertExample() {
   const save = () => { toSlider(); setSaved(threshold); toast({ type: "positive", title: "Budget alert saved" }); };
   const cancel = () => { toSlider(); setThreshold(saved); };
   return (
-    <Card theme="flat" className="px-slider-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       <Form ref={formRef} onSubmit={save} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Budget alert</Heading>
@@ -87,7 +87,7 @@ function BudgetAlertExample() {
             <Slider aria-labelledby={labelId} min={50} max={100} value={threshold} onValueChange={setThreshold}
               icon="icon-bell-01-solid" valueText={(value) => `${value}% of the budget`} />
             <Stack direction="row" fillChildren width="fill">
-              <NumberField aria-label="Share of the budget, percent" className="px-slider-number" min={50} max={100}
+              <NumberField aria-label="Share of the budget, percent" min={50} max={100}
                 value={threshold} onValueChange={(value) => { if (value !== null) setThreshold(value); }} trailing="%" align="center" />
             </Stack>
           </Stack>
@@ -104,7 +104,7 @@ function BudgetAlertExample() {
           <Button level="primary" type="submit" disabled={!changed}>Save alert</Button>
         </FormActions>
       </Form>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -151,7 +151,7 @@ function TeamAllocationExample() {
         <Slider aria-label={`${people[row.person].name}, share of the week`} size="sm" step={10}
           value={row.share} onValueChange={(share) => setShare(row.person, share)}
           valueText={(share) => `${share}%, ${(share * WEEK_HOURS) / 100} hours a week`} />
-        <Text as="span" textStyle="Body/Base/Regular" className="px-slider-value">{row.share}%</Text>
+        <Text as="span" textStyle="Body/Base/Regular" width="hug" align="end" tabularNumbers className="px-slider-value">{row.share}%</Text>
       </Stack>
     ) },
     { id: "hours", header: "Hours per week", align: "right", width: "132px", cell: (row) => <TableText>{(row.share * WEEK_HOURS) / 100}</TableText> },
@@ -226,7 +226,7 @@ function SoundsExample() {
   const [sounds, setSounds] = useState(false);
   const [volume, setVolume] = useState(60);
   return (
-    <Card theme="flat" className="px-slider-card">
+    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
       {/* The card header and two settings of one group: md apart; each label sits xs from its control. */}
       <Stack gap="md">
         <Stack gap="xs">
@@ -246,7 +246,7 @@ function SoundsExample() {
           {sounds ? null : <Text textStyle="Caption/Regular" tone="light">Turn on notification sounds to set their volume.</Text>}
         </Stack>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 

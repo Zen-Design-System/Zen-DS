@@ -25,7 +25,10 @@
 .zen-card[data-surface="default"] { --zen-card-surface: var(--zen-color-background-surface-default, #fff); }
 .zen-card[data-surface="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); }
 .zen-card[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
-.zen-card[data-tone="semi-pale"] { background: linear-gradient(135deg, var(--zen-color-background-support-neutral-pale), var(--zen-color-background-support-neutral-subtle)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* On-Container: Surface/Flat, a card inside a Modal, Side Panel or Bottom Sheet (their Container fill); selected keeps
+   it (Figma Card Theme=On-Container).
+   zen-allow-surface-flat: Figma's On-Container theme is Surface/Flat (user, 2026-10-12), not a navigation bar. */
+.zen-card[data-tone="on-container"], .zen-card[data-tone="on-container"][data-active="true"] { background: var(--zen-color-background-surface-flat, #fff); }
 /* Active=Yes: Surface fill + 2px INSIDE Card/Border/Active, on every theme (Shadow keeps its shadow). */
 .zen-card[data-active="true"] { background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff)); box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 .zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-style-shadow-bottom-level-1-shadow); }

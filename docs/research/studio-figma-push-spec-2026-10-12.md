@@ -284,3 +284,120 @@ Tên frame theo Zen (List, Form, AppShell…), không đổi tên layer Zen theo
 - Stack và Grid có `clip` như Box; Studio hiện Clip content (dưới Padding) cho Stack, Grid, Box; pull đọc clipsContent
   thành `clip` (trừ frame trang). E2E L-12.
 
+
+### P3 — các khoảng trống map (2026-10-13, nhánh `zen/feat/figma-map-p3`; plugin 5121b91 … b7a328d)
+
+Mỗi mục: push (Studio → Figma), pull (Figma → Studio), selftest (`figma-push.selftest.mjs` §15–25) và import thật vào
+file Zen (trang "Studio exports", frame thử của phiên này: 15342:11, 15351:17949, 15354:3, 15356:3, 15357:3, 15361:3,
+15366:3, 15380:492, 15385:3).
+
+| Code | Figma | Ghi chú |
+| --- | --- | --- |
+| TopNavigation | Top-Navigation/Mobile (12014:45167) + Nav-Slot/Action, Nav-Action/* | `figma-top-nav.mjs`: Type → Type, Status-bar tắt (Screen của Studio không có), Top-bar tắt khi large title gập bar, tiêu đề vào Heading-Text, action vào Trailing-Slot của từng hàng (`within`), Button theo Type; Control-Bar có lề như CSS. Pull: `readTopNav` trong bộ đọc. |
+| ColorSelector | Color-Selector (373:97252) | Hàng swatch, fill = biến màu của token (plugin: `fill` trên instance). |
+| Tabs › TabItem | Primitives/Tab-Item | TabItem con thành item; số badge vào Badge-Counter. Pull: nhãn không còn đọc nhầm "True". |
+| InputConditions | Input-Conditions (373:97663) | Map trong figma-props.map; nhãn Condition-Item là text của instance. |
+| UploaderFileItem | Primitives/Uploader/File-Item | State, Name, Size, caption; lỗi vào Help-Text; tiến độ = bậc Progress-Bar; ẩn Remove/Retry khi không có handler. |
+| DatePickerSheet | Date-Picker/Mobile (9923:3576) | Single / Multiple-Default / Multiple-Selected, tiêu đề; sheet đóng thì không đẩy. Nút OK giữ tên Zen "Apply" (Figma: Button/Main không tên). |
+| Metric, MetricCard | Metric-Inline (trong Card) | Pull trước đây ra MetricCard rỗng / Card bọc MetricCard: nay ra Metric và MetricCard đủ nhãn, số, trend (đọc ở Badge), icon. Push hiện icon mặc định như code (trước bị ẩn). Fixture `figma-metric.json`. |
+| Icon (size), FileIcon, Flag | icon-*, icon-media-file (5727:22537), Flag (7063:63834) | Cỡ icon = biến Element-Size/Popular (trước luôn 20px); FileIcon theo Format; Flag theo Name, cỡ Image-Size. Plugin: `size` / `sizeVar`. |
+| ChatThread, ChatMessage | Chat/Section/Conversation, Chat/Reaction/Status + Emoji/Static, Chat/Section/Read-List | Thread = các run theo phía; tác giả (Avatar mang tên người), reactions, danh sách đã xem. Pull đọc lại đủ từ bản đọc thật (fixture `figma-chat.json`). |
+
+- Plugin: slot theo `within` (hai Trailing-Slot), `nested.name` (đặt tên lớp lồng) và tìm lại lớp đã đổi tên theo
+  component, `fill` trên instance.
+- User (2026-10-13): "các ava nhỏ chỉ nên dùng viết tắt 1 chữ" → avatar XSmall/2XSmall 1 chữ ở cả code (ChatMessage hết
+  lách quy tắc của Avatar) lẫn push.
+- Bộ đọc của pull: `firstText` bỏ text trong lớp ẩn; slot của instance lồng (`innerSlots`); Avatar đổi tên được đọc.
+- Còn lại (không làm trong P3): primitive con mà component cha tự vẽ (Popover/Item, Sheet-Actions/Item trong overlay chưa
+  đẩy; Checkbox/Radio Mark; Empty-State Illustration; Progress-Circle/Icon); Metric-Card (6643:64008) — push vẽ MetricCard
+  bằng Card + Metric-Inline như trước.
+
+### P4 — className trong ví dụ (2026-10-13, cùng nhánh)
+
+- Đo 350 className theo CSS của chúng: ~110 chỉ để chỉnh độ rộng Card/ListBox. User chọn thêm prop: Card và ListBox nhận
+  width / minWidth / maxWidth / alignSelf như Stack (Figma Fill container, Min/Max width). Push ghi min/max width của
+  instance; các con cùng alignSelf đặt căn của frame cha; pull đọc lại (`Stack align="center"` + `width="fill"`).
+- 90 className thành prop, CSS của chúng bị xoá; 40 gốc ví dụ căn giữa nằm trong `<Stack>`. Visual diff 430 panel: giống
+  hệt (một panel khác vì ảnh lazy). Còn 260 className: container query (cần API Grid, chờ user), chi tiết chỉ cho docs,
+  màu / display.
+
+
+### P5 — className còn lại (2026-10-13, nhánh `zen/feat/examples-classnames`; plugin 6b823d2)
+
+User ("Xử lý hết") chọn cả bốn: Text `wrap` / `tabularNumbers`, Stack / Box `scroll`, Box `surface="canvas"`, và "không
+thêm, dùng cách khác" cho phần còn lại (khung docs thành component của platform). Thêm `Grid stackBelow` cho 27 chỗ
+container query.
+
+| Code | Figma (push) | Pull |
+| --- | --- | --- |
+| Box `surface` (cả 5, gồm canvas) | fill frame gắn biến Color/Background/… (`BOX_SURFACE`, figma-steps.mjs); Box không còn gap md | fill gắn một trong 5 biến → `Box surface`; frame có gap/căn → Box bọc Stack |
+| Stack / Box `scroll` | Overflow scrolling (VERTICAL / HORIZONTAL) + Clip content | overflowDirection → `scroll` (BOTH → "y" + ghi chú); Grid cuộn → Box bọc |
+| `maxHeight` (px) của Stack / Grid / Box | Max height | maxHeight → `maxHeight` (maxWidth của frame cũng được đọc lại — trước đây bị rơi) |
+| Text / Heading `wrap={false}` | Auto width (`textAutoResize` WIDTH_AND_HEIGHT, không Fill) | không đọc (giữ nhờ so 3 chiều) |
+| Text `tabularNumbers` | plugin API không đặt được Numbers: Tabular → một ghi chú cho cả trang | `openTypeFeatures.TNUM` → `tabularNumbers` |
+| Grid `stackBelow` | 1 cột khi push biết bề rộng Grid nhỏ hơn ngưỡng | không đọc (giữ nhờ so 3 chiều) |
+
+- Lỗi gặp và sửa: Grid kéo từ Figma thật ra `gap="none"` (reader chỉ đọc itemSpacing; Grid lưu ở gridColumnGap).
+- Thử thật trong file Zen, trang "Studio exports": frame 15417:3 (phone, Box canvas, Grid stackBelow → 1 cột, hàng chip cuộn
+  ngang, danh sách cuộn dọc dừng ở 120px, tiêu đề một dòng). Đẩy rồi kéo về ra đúng Box surface / scroll / maxHeight.
+- Ví dụ: 219 class → 112. Khung docs thành `src/platform/PlatformFrames.tsx` (PreviewAppFrame, PreviewWindow,
+  PreviewPage, PreviewShell / ShellMain, ShellPage, StudioLogo / StudioMark, PhoneToastHost) và ChatWindow… trong
+  PlatformChatDesktopShowcases.tsx. Thư viện: Badge không co trong hàng (4 ví dụ phải vá bằng class), Text tabIndex -1 có
+  vòng focus riêng (14 class focus-target).
+- Còn lại (không có prop, chờ user): lề theo token Margin/Comfortable và padding từng cạnh, phần bên trong component
+  (Table min-width, nhãn ProgressBar, độ rộng Toggle, nội dung Card cao hết thẻ, chiều cao SidePanel khi docked), độ rộng
+  Skeleton, độ rộng theo `ch` / rem và min-height theo token đổi theo chế độ, ảnh / video / nút ảnh, bố cục đáp ứng riêng (ẩn nhóm zoom, đổi viền khi xếp chồng).
+
+### P6 — thử khứ hồi trên mọi frame ví dụ (2026-10-13, nhánh `zen/feat/figma-roundtrip`; plugin sau 6b823d2)
+
+Cách thử: chụp Studio của 353 frame ví dụ → push → pull (so theo `key` của push), rồi đặt thật trong file Zen bằng
+importer của plugin và đọc lại bằng bộ đọc của pull. Chỉ tin kết quả đọc thật: harness chỉ để khoanh vùng.
+
+| Phần | Lỗi gặp | Sửa |
+| --- | --- | --- |
+| Checkbox / Toggle / Radio | Figma bỏ thuộc tính Caption của Checkbox/Text; nhãn và chú thích nằm trong `.Primitives/Checkbox/Content` (Label, Subtext) | push ghi Label + Subtext (bật Subtext trước khi ghi) vào Content; pull đọc lại; map bỏ Caption |
+| DockIcon emoji | emoji không được ghi | push ghi emoji vào lớp chữ của Theme=Emoji; pull ra `emoji` |
+| InputField / Select… | pull mất nhãn, giá trị, help | pull đọc Label lồng, Text (Inputted → defaultValue, không thì placeholder), Message → helpText / errorMessage |
+| ListItem / ListBox / List | pull mất title, caption, leading, trailing | pull đọc Info-Content (Title / Subtitle), leading lồng (Avatar, Dock-Icon, FileIcon, Thumbnail, Flag), Actions → trailing; cột ListItem → `<List>`; Header-Slot / Footer-Slot của List-Box |
+| Text tone, Heading | màu chữ và cấp heading mất | bộ đọc lấy biến Color/Content của fill → `tone`; push đặt tên lớp `Heading N`, pull ra `<Heading level>` (bỏ textStyle mặc định của cấp) |
+| PageHeader, DashboardHeader | Type=Main ra DashboardHeader; ô Search mất placeholder; lỗi `texts.find` | Type=Main → PageHeader (Subheading → description); placeholder đọc từ text lồng |
+| Sidebar | logo không được đẩy (Figma giữ logo mẫu "Kaiz"); pull biến nút Collapse thành `brand` | push: `logo` vào Header-Content (thay LOGO mẫu và Collapse; nút Collapse chỉ khi có `onCollapsedChange`); pull bỏ LOGO mẫu và Collapse (có ghi chú) |
+| Breadcrumbs | `master={false}` mất | pull: crumb đầu không phải Master → `master={false}`; mọi crumb Medium → `emphasis` |
+| DescriptionList | pull ra `{ label }` thay cho term / description | pull đọc Term / Value / Emphasis của từng Item |
+| Swap lồng (leading FileIcon) | Figma không liệt kê override cho swap trong nội dung slot → bộ đọc bỏ sót | bộ đọc so lớp với lớp gốc trong main component (`swappedIn`, chỉ cho icon / Dock-Icon / Avatar / Thumbnail / Flag, bỏ qua swap theo thuộc tính) |
+
+- Giới hạn của Figma (đã kiểm): instance lồng trong instance không đổi được cỡ ("This property cannot be overridden in an
+  instance: size") → FileIcon `size="xl"` làm leading của ListItem hiện ở cỡ 20 của component; push ghi chú, plugin bỏ
+  phần đặt cỡ lồng.
+- Contract `component-properties.json` (đọc 2026-10-05) lệch file live ở 14 set (Avatar / Badge / Dock-Icon thêm theme,
+  Card Semi-Pale / On-Container, List-Box Theme, Progress-Bar Layout, Side-Panel, Inline-Message, Tooltip…): đã báo
+  session đang sửa map đó; List-Box Theme sẽ đi theo map của họ.
+- Còn lại: Container / Box / Form về thành Stack; ListItem `titleLines`; dữ liệu chỉ có trong code (Chip popoverItems,
+  tooltip, aria); Image trong logo Sidebar chưa có set Figma. Đề xuất P6b (chờ user): khứ hồi theo `key` — bộ đọc lấy
+  key của push, pull dùng key làm id phần tử, Studio giữ bản gốc lúc export, nên "Update from Figma" chỉ đổi đúng chỗ
+  designer sửa và giữ mọi chi tiết chỉ có trong code.
+- Frame thử (trang "Studio exports"): 15448:3 (breadcrumbs), 15440:3323 (toast), 15440:3809 (dashboard-header), cùng các
+  frame P6 trước: 15438:3, 15440:3, 15440:2284, 15440:2468.
+
+### P6b — khứ hồi theo key (2026-10-13, nhánh `zen/feat/figma-keys`; user duyệt "OK")
+
+Trang Studio đã export sang Figma, designer sửa frame, kéo về → Update from Figma chỉ liệt kê đúng chỗ designer sửa, áp
+vào vẫn giữ mọi thứ Figma không giữ được.
+
+| Bước | Ở đâu | Làm gì |
+| --- | --- | --- |
+| Export | `figmaExport.ts` | `page.version` = 12 ký tự sha1 của frame; giữ bản gốc = pull của chính frame đó (`pageFromFigma`, chạy trong trình duyệt) và trang lúc export (`synced`) vào `figmaExports` của trang (5 bản mới nhất) |
+| Plugin | `studio-import.js` | ngoài `key` từng layer và `page`, frame giữ `version` (shared plugin data "zenstudio") |
+| Đọc | `figmaReadCode` | mỗi node có `key`; frame có `key`, `page`, `version` |
+| Pull | `pageFromFigma` | id phần tử = key (id trong trang Studio); phần pull tự sinh = `key.part`; slot / hàng theo key của instance chủ; key trùng (designer nhân bản layer) → bản sau dùng id Figma ("added"); header `figma: { file, node, page, version }`. Không còn import `node:` ở đầu file (Studio tải được) |
+| So | `figma-diff.mjs` | theo dõi cả id có trong base (không chỉ `f…`); xung đột tính so với `synced` (trang lúc khớp frame), không so với base |
+| Import | `findPulledPage`, `figmaBaseOf` | frame có `page` + `version` của một export trong trình duyệt này → Update from Figma trên trang đó, base = export đó (hoặc lần cập nhật gần nhất từ cùng export); sau khi áp: base = pull, synced = trang đã merge |
+
+- Thử thật trong file Zen: trang breadcrumbs export với id k1… (frame 15459:3, version v1). Frame chưa sửa → 0 thay đổi.
+  Designer sửa 6 chỗ (title ListItem, Badge Green / Shipped, giá trị Location, tiêu đề, thêm một dòng chữ, xoá một dòng
+  danh sách) → đúng 7 thay đổi, không cái nào bị gắn xung đột; merge giữ `Container`, `titleLines`, ListBox
+  `theme="shadow"`, `aria-labelledby`, id, ảnh logo. Fixture `figma-pushed.json` (hai bản đọc thật, bản sau đã so hash
+  với bản Figma đọc).
+- E2E HO-11 (Studio thật): Export › Figma giữ export; frame kéo về sau 2 chỗ sửa → hộp thoại trên đúng trang, 2 thay đổi,
+  áp vào giữ chi tiết code. Lỗi gặp và sửa: Vite chèn import trước shebang của `figma-pull.mjs` (bỏ shebang).
+- Còn lại: frame designer tự dựng (không từ export) vẫn kéo về như trước; trình duyệt khác không có export → so hai chiều.

@@ -122,11 +122,11 @@ function StudioSettingsExample() {
   };
   const discard = () => { setDraft(saved); setNameError(undefined); backToTop(); };
   return (
-    <Container maxWidth="md" className="px-divider-settings">
+    <Container maxWidth="md">
       <Stack paddingY="xl" gap="xl">
         <PageHeader title="Studio settings" description={`These apply to everyone in the ${studio.workspace}.`} />
         <Form onSubmit={save} gap="xl" aria-label="Studio settings">
-          <Grid className="px-divider-section" columns={sectionColumns} gap="lg" align="start">
+          <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
             <SectionIntro title="Studio profile">How the studio appears on invoices and in the client portal.</SectionIntro>
             <Stack gap="md">
               <InputField ref={firstFieldRef} label="Studio name" value={draft.name} onValueChange={(value) => set("name", value)} error={nameError} />
@@ -135,7 +135,7 @@ function StudioSettingsExample() {
             </Stack>
           </Grid>
           <Divider />
-          <Grid className="px-divider-section" columns={sectionColumns} gap="lg" align="start">
+          <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
             <SectionIntro title="Time tracking">Timesheets feed the weekly client reports.</SectionIntro>
             <Stack gap="md">
               <FormFieldset legend="Timesheets">
@@ -146,7 +146,7 @@ function StudioSettingsExample() {
             </Stack>
           </Grid>
           <Divider />
-          <Grid className="px-divider-section" columns={sectionColumns} gap="lg" align="start">
+          <Grid columns={sectionColumns} gap="lg" align="start" stackBelow={640}>
             <SectionIntro title="Invoices">Defaults for every new invoice. You can change them per invoice.</SectionIntro>
             <Stack gap="md">
               <SelectField label="Payment terms" options={paymentTerms} value={draft.terms} onValueChange={(value) => set("terms", value)} />
@@ -225,20 +225,20 @@ function FileToolbarExample() {
       <Stack gap="md" className="px-divider-file">
         {/* On a narrow screen the zoom group and its divider step aside (people pinch to zoom there), so a divider never
             wraps onto the end of a line. */}
-        <Stack direction="row" gap="xs" role="toolbar" aria-label={plan.name} onKeyDown={arrows} paddingY="2xs" className="px-divider-toolbar">
-          <Stack direction="row" gap="2xs" role="group" aria-label="Zoom" className="px-divider-zoom">
+        <Stack direction="row" gap="xs" role="toolbar" aria-label={plan.name} onKeyDown={arrows} paddingY="2xs" scroll="x">
+          <Stack direction="row" gap="2xs" width="hug" role="group" aria-label="Zoom" className="px-divider-zoom">
             <IconButton size="sm" icon="icon-zoom-out-line" aria-label="Zoom out" disabled={zoom === zoomLevels[0]} onClick={() => step(-1)} />
-            <Text as="span" textStyle="Body/Small/Medium" className="px-divider-readout" aria-live="polite">{`${zoom}%`}</Text>
+            <Text as="span" textStyle="Body/Small/Medium" align="center" tabularNumbers className="px-divider-readout" aria-live="polite">{`${zoom}%`}</Text>
             <IconButton size="sm" icon="icon-zoom-in-line" aria-label="Zoom in" disabled={zoom === zoomLevels[zoomLevels.length - 1]} onClick={() => step(1)} />
           </Stack>
           <Divider orientation="vertical" decorative className="px-divider-zoom" />
-          <Stack direction="row" gap="2xs" role="group" aria-label="Pages">
+          <Stack direction="row" gap="2xs" width="hug" role="group" aria-label="Pages">
             <IconButton size="sm" icon="icon-chevron-left-line" aria-label="Previous page" disabled={pageNo === 1} onClick={() => setPageNo(pageNo - 1)} />
-            <Text as="span" textStyle="Body/Small/Medium" className="px-divider-readout" aria-live="polite">{`${pageNo} of ${planPages.length}`}</Text>
+            <Text as="span" textStyle="Body/Small/Medium" align="center" tabularNumbers className="px-divider-readout" aria-live="polite">{`${pageNo} of ${planPages.length}`}</Text>
             <IconButton size="sm" icon="icon-chevron-right-line" aria-label="Next page" disabled={pageNo === planPages.length} onClick={() => setPageNo(pageNo + 1)} />
           </Stack>
           <Divider orientation="vertical" decorative />
-          <Stack direction="row" gap="2xs" role="group" aria-label="File">
+          <Stack direction="row" gap="2xs" width="hug" role="group" aria-label="File">
             <IconButton size="sm" icon="icon-download-01-line" aria-label="Download" onClick={() => toast({ title: "Download started", children: `${plan.name} · ${formatBytes(plan.bytes)}` })} />
             <IconButton size="sm" icon="icon-share-01-line" aria-label="Share" onClick={() => setSharing(true)} />
           </Stack>

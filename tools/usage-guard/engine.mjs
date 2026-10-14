@@ -6,7 +6,7 @@
 //   checker.checkFile(sourceText, "src/App.tsx") → [{ rule, message, line, column, index, tag, file }]
 //
 // Repo mode (default) checks every tag named in a rule. Consumer mode (apps using the package) checks only the tags
-// imported from "@zen/design-system" — named imports (aliases resolved) and namespace imports (<Zen.Button>) — so an
+// imported from "@zen-ds/react" — named imports (aliases resolved) and namespace imports (<Zen.Button>) — so an
 // app's own <Button> is never judged by Zen's rules.
 
 /** Selectors that style an interaction state; their classes count as actionable containers (border rule §6). */
@@ -90,8 +90,8 @@ const position = (src, index) => { const before = src.slice(0, index); const lin
 const allowed = (src, index, token) => src.slice(Math.max(0, src.lastIndexOf("\n", index - 1) - 500), index).split("\n").slice(-5).some((line) => line.includes(`zen-allow-${token}`));
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** Local JSX names bound to Zen components by `import … from "@zen/design-system"`: Map(localName → componentName). */
-export function zenImports(src, packageName = "@zen/design-system") {
+/** Local JSX names bound to Zen components by `import … from "@zen-ds/react"`: Map(localName → componentName). */
+export function zenImports(src, packageName = "@zen-ds/react") {
   const names = new Map();
   const from = escape(packageName);
   for (const [, list] of src.matchAll(new RegExp(`import\\s+(?:type\\s+)?\\{([^}]*)\\}\\s*from\\s*["']${from}["']`, "g"))) {
@@ -108,7 +108,7 @@ export function zenImports(src, packageName = "@zen/design-system") {
  * @param {Array} rules   the registry from check-usage.mjs
  * @param {{ consumer?: boolean, css?: boolean, packageName?: string }} options
  */
-export function createChecker(allRules, { consumer = false, css = true, packageName = "@zen/design-system" } = {}) {
+export function createChecker(allRules, { consumer = false, css = true, packageName = "@zen-ds/react" } = {}) {
   // `consumerOnly` rules (e.g. api/deprecated-prop) judge apps only; the repo migrates at its own pace.
   // `repoOnly` rules (e.g. interaction/action-without-handler) judge the repo's own examples, never apps.
   const rules = allRules.filter((rule) => (consumer ? !rule.repoOnly : !rule.consumerOnly));

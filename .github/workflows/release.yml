@@ -1,0 +1,65 @@
+name: Release
+
+# Publishes @zen-ds/react to the licensed registry (npm.dizai.studio) when a version tag is pushed:
+#   bump "version" in package.json, commit, then `git tag v0.4.0 && git push origin v0.4.0`.
+# The tag must match package.json. The tarball that passed verify:package is the one published.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  REGISTRY: https://npm.dizai.studio/
+
+jobs:
+  publish:
+    name: Verify and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Tag matches package.json
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+
+      - run: npm ci
+      - name: Types
+        run: npx tsc --noEmit -p .
+      - name: Usage harness and guidelines
+        run: npm run usage:check && npm run guidelines:check
+      - name: Package (pack, install in a temp app, budgets, zen-usage, MCP, zen-ds)
+        run: npm run verify:package
+
+      - name: Version not published yet
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' -u "zen-publisher:$ZEN_REGISTRY_PUBLISH_KEY" \
+            "${REGISTRY}@zen-ds%2freact/${GITHUB_REF_NAME#v}")
+          if [ "$status" = 200 ]; then echo "::error::@zen-ds/react ${GITHUB_REF_NAME#v} is already published"; exit 1; fi
+        env:
+          ZEN_REGISTRY_PUBLISH_KEY: ${{ secrets.ZEN_REGISTRY_PUBLISH_KEY }}
+
+      - name: Publish to npm.dizai.studio
+        run: |
+          tarball=$(ls -t ./dist-pack/*.tgz | head -n 1)  # ./ : a bare dir/file.tgz reads as a GitHub repo
+          auth=$(printf 'zen-publisher:%s' "$ZEN_REGISTRY_PUBLISH_KEY" | base64 -w0)
+          echo "::add-mask::$auth"
+          printf '//npm.dizai.studio/:_auth=%s\n' "$auth" > "$RUNNER_TEMP/.npmrc"
+          npm publish "$tarball" --registry "$REGISTRY" --userconfig "$RUNNER_TEMP/.npmrc"
+          rm -f "$RUNNER_TEMP/.npmrc"
+        env:
+          ZEN_REGISTRY_PUBLISH_KEY: ${{ secrets.ZEN_REGISTRY_PUBLISH_KEY }}

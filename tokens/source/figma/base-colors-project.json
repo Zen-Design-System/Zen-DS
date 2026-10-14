@@ -2192,14 +2192,14 @@
         "name": "Light/On-Brand-Default",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFF"
+          "Zen": "#000000DB"
         }
       },
       {
         "name": "Dark/On-Brand-Default",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFF"
+          "Zen": "#000000DB"
         }
       },
       {
@@ -2234,7 +2234,7 @@
         "name": "Light/On-Brand-Hover",
         "type": "COLOR",
         "valuesByMode": {
-          "Zen": "#FFFFFF"
+          "Zen": "#000000DB"
         }
       },
       {

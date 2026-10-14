@@ -25,6 +25,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
+import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
@@ -220,7 +221,7 @@ function PhoneApprovalsExample() {
       <Stack padding="lg" gap="lg">
         <Stack direction="column" gap="md" align="center">
           <Avatar size="3xl" {...avatarOf(person)} />
-          <Stack gap="2xs" className="px-action-bar-grow" width="fill">
+          <Stack gap="2xs" height="fill" width="fill">
             <Heading level={2} textStyle="Heading/2" align="center" width="fill">{person.name}</Heading>
             <Text textStyle="Body/Small/Regular" tone="light" align="center">{person.role}</Text>
           </Stack>
@@ -293,9 +294,9 @@ function UnsavedChangesExample() {
   });
   const undo = () => { form.reset(); toast({ title: "Changes undone" }); refocus(); };
   return (
-    <div className="px-action-bar-frame">
+    <PreviewWindow height={{ min: 520, max: 640, offset: 200 }}>
       {/* The page scrolls; the bar is the form's last child, so it sticks to the bottom and its Save submits the form. */}
-      <Form ref={formRef} form={form} gap="none" className="px-action-bar-frame__scroll" aria-label="Project settings">
+      <Box scroll="y" height="fill"><Form ref={formRef} form={form} gap="none" aria-label="Project settings">
         {/* The form keeps a readable width (as the create form on the Form page); the bar spans the window. The Box is
             the flex child that stretches, so the Container's auto margins centre it at up to 960px instead of shrinking
             it to its fields. */}
@@ -332,8 +333,8 @@ function UnsavedChangesExample() {
           secondaryAction={{ label: "Undo changes", onClick: undo, disabled: !changes || form.isSubmitting }}
           primaryAction={{ label: form.isSubmitting ? "Saving…" : "Save changes", type: "submit", disabled: !changes || form.isSubmitting }}
           position="fixed" />
-      </Form>
-    </div>
+      </Form></Box>
+    </PreviewWindow>
   );
 }
 
@@ -409,7 +410,7 @@ function PhoneOrderExample() {
                     trailing={(
                       <Stack direction="row" gap="2xs" align="center" role="group" aria-label={`${line.name} quantity`}>
                         <IconButton level="tertiary" size="md" icon="icon-minus-line" aria-label={`Remove one ${line.name}`} onClick={() => change(line, -1)} />
-                        <Text as="span" textStyle="Body/Base/Medium" className="px-action-bar-qty" width="hug">{line.qty}</Text>
+                        <Text as="span" textStyle="Body/Base/Medium" width="hug" align="center" tabularNumbers className="px-action-bar-qty">{line.qty}</Text>
                         <IconButton level="tertiary" size="md" icon="icon-plus-line" aria-label={`Add one ${line.name}`} onClick={() => change(line, 1)} />
                       </Stack>
                     )} />

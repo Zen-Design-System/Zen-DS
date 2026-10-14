@@ -1,6 +1,6 @@
 # Zen Design System
 
-> React 19 components, design tokens and icons generated from the Zen Figma library. Import "@zen/design-system/styles.css" once, wrap the app in <ZenProvider>, and pick components from docs/guidelines/index.json by purpose / use / avoid.
+> React 19 components, design tokens and icons generated from the Zen Figma library. Import "@zen-ds/react/styles.css" once, wrap the app in <ZenProvider>, and pick components from docs/guidelines/index.json by purpose / use / avoid.
 
 ## Start here
 
@@ -60,7 +60,7 @@
 - [Bottom Sheet](docs/guidelines/bottom-sheet.md): A surface that slides up from the bottom for supplementary content, a short task or a list of actions, without leaving the screen. Props: docs/api/bottom-sheet.json
 - [Chat](docs/guidelines/chat.md): Person-to-person messaging: a thread of bubbles (text, files, calls, photos) with reactions and read receipts, a composer and a conversation list. Props: docs/api/chat.json
 - [AI Chat](docs/guidelines/ai-chat.md): Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start. Props: docs/api/ai-chat.json
-- [Chart](docs/guidelines/chart.md): Show how a value changes over time (Line) or how parts make up a total (Stack bar), framed by a Chart Card with a title and range switch. Props: docs/api/chart.json
+- [Chart](docs/guidelines/chart.md): One chart family in one style: how a value changes over time (Line), compares across periods or categories (Bar), splits a total (Stack bar, Donut), measures against a maximum (Radial) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes. Props: docs/api/chart.json
 - [Layout (Stack, Grid, Box, Container)](docs/guidelines/layout.md): Token-based layout primitives: Stack (one direction), Grid (columns), Box (padding, background layer, border, radius) and Container (page width and margin). They replace hand-written flex/grid CSS so spacing always comes from the Figma scale. Props: docs/api/layout.json
 - [Text & Heading](docs/guidelines/text.md): Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy. Props: docs/api/text.json
 - [App Shell](docs/guidelines/app-shell.md): The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button. Props: docs/api/app-shell.json

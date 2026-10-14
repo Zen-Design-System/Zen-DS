@@ -37,6 +37,14 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "disabled": "disabled"
     }
   },
+  "BarChart": {
+    "PlotFrame": {
+      "animate": "animate",
+      "ariaLabel": "aria-label",
+      "format": "format",
+      "height": "height"
+    }
+  },
   "ChartCard": {
     "Card": {
       "surface": "surface",
@@ -144,6 +152,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "ChatReactorsPopover": {
       "anchorRef": "anchorRef",
       "side": "side"
+    }
+  },
+  "ChatReplyBody": {
+    "DockIcon": {
+      "size": "dock"
     }
   },
   "ChatReplyQuote": {
@@ -270,6 +283,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "name": "icon"
     }
   },
+  "DonutChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    }
+  },
   "EmptyState": {
     "EmptyStateIllustration": {
       "icon": "icon"
@@ -352,7 +370,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     }
   },
   "LineChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    },
     "PlotFrame": {
+      "animate": "animate",
       "ariaLabel": "aria-label",
       "format": "format",
       "height": "height"
@@ -414,6 +436,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   "Popover": {
     "Search": {
       "clearable": "searchClearable"
+    }
+  },
+  "RadialChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
     }
   },
   "RichTextEditorBar": {
@@ -542,7 +569,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     }
   },
   "StackBarChart": {
+    "ChartBlock": {
+      "position": "legendPosition"
+    },
     "PlotFrame": {
+      "animate": "animate",
       "ariaLabel": "aria-label",
       "format": "format",
       "height": "height"

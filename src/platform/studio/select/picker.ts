@@ -1,4 +1,5 @@
 import { studioStore } from "../store";
+import { resolveSrc } from "./srcIds";
 
 /*
  * Picking on the canvas through React fibers (spec §5). Every JSX element of the platform source carries
@@ -74,7 +75,8 @@ export function srcOf(fiber: Fiber | null | undefined): string | null {
   if (!fiber || fiber.tag === CONTEXT_PROVIDER || fiber.tag === CONTEXT_CONSUMER) return null;
   const value = fiber.memoizedProps?.[SRC];
   if (typeof value !== "string" || !value) return null;
-  return typeof fiber.type === "function" && transparentNames.has(nameOf(fiber)) ? null : value;
+  // A page made in the Studio marks elements by id (srcIds.ts): their place in the text the canvas shows now.
+  return typeof fiber.type === "function" && transparentNames.has(nameOf(fiber)) ? null : resolveSrc(value);
 }
 
 const isHost = (fiber: Fiber) => fiber.tag === HOST_COMPONENT || fiber.tag === HOST_SINGLETON;
@@ -152,6 +154,9 @@ function typeName(type: unknown, depth = 0): string | null {
   }
   return null;
 }
+
+/** The component's own name (forwardRef, memo and lazy unwrapped) or the host tag, never a builder page's label. */
+export const typeNameOf = (fiber: Fiber): string => typeName(fiber.type) ?? typeName(fiber.elementType) ?? "Anonymous";
 
 /** Layer name: the component's display name (forwardRef, memo and lazy unwrapped) or the host tag. */
 export function nameOf(fiber: Fiber): string {

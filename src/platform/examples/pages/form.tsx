@@ -26,10 +26,10 @@ import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import { TODAY, daysFromToday, formatDay, formatMoney, formatTime, people, projectById, type PersonId } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./form.css";
 
 export const page: PlatformPage = "form";
 
@@ -133,7 +133,7 @@ function NewClientExample() {
   return (
     // The screen card stretches its direct child: the Box paints the app's Canvas (the page layer) and holds the
     // Container that keeps the form at a readable width.
-    <Box ref={rootRef} className="px-form-page"><Container maxWidth={screen === "new" ? "md" : "full"}>
+    <PreviewPage ref={rootRef} fill><Container maxWidth={screen === "new" ? "md" : "full"}>
       {screen === "list" ? (
         <Stack paddingY="xl" gap="xl">
           <PageHeader title="Clients" description={`${plural(clients.length, "company", "companies")} the studio invoices.`}
@@ -177,7 +177,7 @@ function NewClientExample() {
         description="The details you entered are lost."
         primaryAction={{ label: "Discard client", level: "danger", onClick: discard }}
         secondaryAction={{ label: "Keep editing", autoFocus: true }} />
-    </Container></Box>
+    </Container></PreviewPage>
   );
 }
 
@@ -219,7 +219,7 @@ function WorkspaceAddressExample() {
   };
   const preview = form.values.slug.trim().toLowerCase() || address;
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId} className="px-form-card">
+    <Stack><Card as="section" theme="flat" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center">
       <Stack gap="md">
         <CardHeader id={titleId} title="Workspace address">Everyone at Đìzai Studio signs in here. Old links keep working for 30 days.</CardHeader>
         <Form ref={formRef} form={form} gap="md">
@@ -232,7 +232,7 @@ function WorkspaceAddressExample() {
           </FormActions>
         </Form>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -342,15 +342,15 @@ function DraftInvoiceExample() {
 
   if (status === "Deleted") {
     return (
-      <Card ref={cardRef} as="section" theme="flat" aria-label="Draft invoices" className="px-form-card">
+      <Stack><Card ref={cardRef} as="section" theme="flat" aria-label="Draft invoices" width="fill" maxWidth={720} alignSelf="center">
         <EmptyState illustration={false} headingLevel={4} title="No draft invoices" primaryAction={{ label: "New draft", onClick: restart }}>
           Start a draft from a project milestone.
         </EmptyState>
-      </Card>
+      </Card></Stack>
     );
   }
   return (
-    <Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId} className="px-form-card" surface="default">
+    <Stack><Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center" surface="default">
       <Stack gap="md">
         <CardHeader id={titleId} title="INV-2026-0144" badge={{ label: status, theme: sent ? "blue" : "neutral" }}>
           {sent ? `Sent to ${billTo} at ${formatTime(TODAY)}` : "Phin & Co · Loyalty app · Milestone 3"}
@@ -389,7 +389,7 @@ function DraftInvoiceExample() {
         description={`INV-2026-0144 for Phin & Co (${formatMoney(amount, true)}) is deleted for everyone. This can't be undone.`}
         primaryAction={{ label: "Delete draft", level: "danger", onClick: remove }}
         secondaryAction={{ label: "Cancel" }} />
-    </Card>
+    </Card></Stack>
   );
 }
 

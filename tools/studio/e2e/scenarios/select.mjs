@@ -229,7 +229,7 @@ export const rows = [
     },
   },
   {
-    id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it, a double-click goes one level in, a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
+    id: "SE-30", feature: "Figma's click: a click selects the outermost layer in context and keeps it (a List passes it on to its rows), a click beside selects the sibling, ⌘-click the deepest", wp: "click 2026-10-09",
     async run(ctx) {
       const seed = await ctx.reseed();
       const { page } = await ctx.studio();
@@ -252,33 +252,37 @@ export const rows = [
         await sleep(150);
       };
       const steps = [];
-      // 1. A click on a crew row selects the List (the root Stack's child under the pointer), not the row.
+      // 1. A click on a crew row selects that row: a List's <ul> passes clicks through, as Figma's List-Box holds its
+      //    List-Items (2026-10-13); the root Stack is the frame.
       await click(centre(rows[0]));
-      await expectSelected(page, ctx.file, crew, "a click on a row selects its List (the outermost layer)");
-      steps.push("click → List");
-      // 2. Again inside the List: it stays selected.
+      await expectSelected(page, ctx.file, row, "a click on a row selects the row (the List passes it through)");
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 0, { message: "the first row selected" });
+      steps.push("click → row 1");
+      // 2. A click inside the selected row keeps it; no text edit starts.
+      await click(centre(rows[0]));
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 0, { message: "a second click inside the row keeps it" });
+      if (await page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']")))) throw new Error("a click on the selected row started a text edit");
+      // Its Contents slot shows the title and caption: its "+" sits past the row's text, not where the click lands.
+      if (await page.locator(".studio-slots__picker-scope").count()) throw new Error("a click on the selected row opened the insert picker");
+      steps.push("click inside → row 1 kept");
+      // 3–4. A click on another row: the sibling of the selected row (their parent is the context).
       await click(centre(rows[1]));
-      await expectSelected(page, ctx.file, crew, "a second click inside the List keeps it");
-      steps.push("click inside → List kept");
-      // 3. A double-click on the second row goes one level in: that row.
-      await page.mouse.dblclick(centre(rows[1]).x, centre(rows[1]).y);
-      await expectSelected(page, ctx.file, row, "a double-click selects the row under the pointer");
-      await until(async () => (await selectedRendering(page, ctx.file, row)) === 1, { message: "the second row selected" });
-      if (await page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']")))) throw new Error("the double-click into a ListItem started a text edit");
-      steps.push("double-click → row 2");
-      // 4. A click on the third row: a sibling of the selected row (the List is the context).
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 1, { message: "a click beside selects the second row" });
       await click(centre(rows[2]));
-      await until(async () => (await selectedRendering(page, ctx.file, row)) === 2, { message: "a click beside selects the sibling row" });
-      steps.push("click → row 3");
+      await until(async () => (await selectedRendering(page, ctx.file, row)) === 2, { message: "a click beside selects the third row" });
+      steps.push("click → row 2 → row 3");
       // 5. A click on the Loud button, outside the List: the top level again, the buttons' Stack.
       const loudRect = (await rectsOf(page, ctx.file, loud))[0];
       await click(centre(loudRect));
       await expectSelected(page, ctx.file, rowStack, "a click outside the context selects the top-level layer (the buttons' Stack)");
       steps.push("click elsewhere → Stack");
-      // 6. ⌘-click on Loud: the deepest element there.
+      // 6. ⌘-click on Loud: the deepest layer there, its label (Figma's deep select, 2026-10-13); ⇧Enter: the Button.
       await click(centre(loudRect), { keys: ["ControlOrMeta"] });
-      await expectSelected(page, ctx.file, loud, "⌘-click selects the deepest layer (the Button)");
-      steps.push("⌘-click → Loud");
+      await until(async () => /^Text\b/.test((await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim()), { message: "⌘-click selects the deepest layer (Loud's label)" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Enter");
+      await expectSelected(page, ctx.file, loud, "⇧Enter goes up to the Button");
+      steps.push("⌘-click → Loud's label → ⇧Enter → Loud");
       // 7. A click on Featured: Loud's sibling.
       await click(centre((await rectsOf(page, ctx.file, featured))[0]));
       await expectSelected(page, ctx.file, featured, "a click beside a Button selects its sibling");

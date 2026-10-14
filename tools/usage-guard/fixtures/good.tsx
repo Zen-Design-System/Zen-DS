@@ -65,6 +65,10 @@ export const Good = () => <>
   <Segmented aria-label="View" options={[{ id: "grid", label: "Grid" }, { id: "list", label: "List" }]} />
   <Chip variant="advanced" selectionMode="multiple" selectionCount={owners.length} popoverItems={items} popoverMultiple>Owner</Chip>
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><InputField label="Workspace name" /></Dialog>
+  <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
+  <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>
+  <BottomSheet open={open} onOpenChange={setOpen} title="Members"><ListBox theme="on-container"><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></BottomSheet>
+  <ListBox><List aria-label="Recent"><ListItem title="Brief.pdf" /></List></ListBox>
   <Accordion title="Billing">Invoices are emailed monthly.</Accordion>
   <Pagination page={1} onPageChange={setPage} pageCount={10} />
   <ProgressBar value={100} label />
@@ -126,6 +130,11 @@ export const Good = () => <>
   <ChatMessage side="others" author={{ name: "Ava Chen" }} {...demo.act("m1", "others")}>Hi there</ChatMessage>
   <AiChatBubble side="ai" streaming={busy} actions={busy ? [] : answerActions}>Working</AiChatBubble>
   <StackBarChart aria-label="Budget" data={data} series={series} />
+  <BarChart aria-label="Revenue per month, Jan – Dec 2026" data={data} />
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} />
+  <RadialChart aria-label="Budget used by project" data={slices} legendPosition="end" />
+  <LineChart aria-label="Weekly visits" data={data} showLegend={false} />
+  <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
   <TableMedia media={<Avatar size="xsmall" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="xsmall" />}>Spec.pdf</TableMedia>

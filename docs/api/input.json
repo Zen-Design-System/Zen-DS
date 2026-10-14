@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "input",
-  "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen/design-system\";",
+  "import": "import { InputField, SelectField, DateField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "InputField",

@@ -1,16 +1,22 @@
 # Zen Design System — guide for AI agents building apps
 
-You are writing UI with `@zen/design-system` (React 19, TypeScript). Read this file first; it is short on purpose.
-Everything it points to ships inside the package: `node_modules/@zen/design-system/…`.
+You are writing UI with `@zen-ds/react` (React 19, TypeScript). Read this file first; it is short on purpose.
+Everything it points to ships inside the package: `node_modules/@zen-ds/react/…`.
 
 ## 1. Set up once
+
+Install: `@zen-ds/react` comes only from the licensed Zen registry. The app's `.npmrc` needs
+`@zen-ds:registry=https://npm.dizai.studio/` (commit it; `npx zen-ds doctor` checks it); without it npm installs an old public 0.1.0.
+Signing in (`npm login` with the company's licence key) is the developer's step: never ask for, write or commit the
+licence key or a registry token. On `E401`/`E403`, stop and point the developer to "Install" in
+`docs/getting-started.md`.
 
 ```tsx
 // src/main.tsx
 import { createRoot } from "react-dom/client";
-import "@zen/design-system/styles.css"; // tokens, text styles, Inter font and every component
-import "@zen/design-system/reset.css"; // optional page reset for a new app
-import { ZenProvider } from "@zen/design-system";
+import "@zen-ds/react/styles.css"; // tokens, text styles, Inter font and every component
+import "@zen-ds/react/reset.css"; // optional page reset for a new app
+import { ZenProvider } from "@zen-ds/react";
 import { App } from "./App";
 
 createRoot(document.getElementById("root")!).render(
@@ -44,7 +50,7 @@ createRoot(document.getElementById("root")!).render(
 with its purpose, 13 KB) first.
 
 ```bash
-node -e 'const { components } = require("./node_modules/@zen/design-system/docs/guidelines/index.json"); console.log(JSON.stringify(components.find((c) => c.slug === process.argv[1]), null, 1))' table
+node -e 'const { components } = require("./node_modules/@zen-ds/react/docs/guidelines/index.json"); console.log(JSON.stringify(components.find((c) => c.slug === process.argv[1]), null, 1))' table
 ```
 
 Props are strict literal unions: let TypeScript autocomplete values instead of guessing names from other libraries.
@@ -131,7 +137,7 @@ Start a new screen by copying the closest one, then replace its sample data. The
 
 ## 6. Icons
 
-- `import { Icon } from "@zen/design-system"`, then `<Icon name="icon-home-03-line" />`. Names follow the Figma layers,
+- `import { Icon } from "@zen-ds/react"`, then `<Icon name="icon-home-03-line" />`. Names follow the Figma layers,
   so they are not fully regular: `icon-home-03-line`, `icon-search-medium-line` (size before style),
   `icon-chevron-left-line-medium` (size after). The four that only come in sizes also take their plain name
   (`icon-search-line`, `icon-x-line` for close, `icon-chevron-left-line`, `icon-chevron-right-line`: the Medium cut).
@@ -139,9 +145,9 @@ Start a new screen by copying the closest one, then replace its sample data. The
   and suggests the closest real ones.
 - Icon props (IconButton `icon`, Button `startIcon`/`endIcon`, Tabs/Breadcrumbs/Sidebar item `icon`, EmptyState,
   Stepper, SidePanel…) take the name directly: `icon="icon-trash-line"`.
-- List or search names without loading SVGs: `import { iconNames } from "@zen/design-system/icons/names"`.
+- List or search names without loading SVGs: `import { iconNames } from "@zen-ds/react/icons/names"`.
 - Icons used by Zen components draw immediately; others load on first use (an empty box for one frame).
-  `preloadIcons(["icon-rocket-line"])` avoids that, and `import "@zen/design-system/icons/all"` registers all 1,598.
+  `preloadIcons(["icon-rocket-line"])` avoids that, and `import "@zen-ds/react/icons/all"` registers all 1,598.
 
 ## 7. Layout, text and styling
 
@@ -159,7 +165,7 @@ Start a new screen by copying the closest one, then replace its sample data. The
   - colour: `var(--zen-color-background-surface-default)`, `var(--zen-color-content-neutral-base)`.
 - Raw text styles exist as classes (`typographyStyles["Heading/2"]`), but prefer `Heading`/`Text`: raw `h1`/`p`
   elements keep the browser's default margins.
-- Typed token names for CSS-in-JS: `import { tokens } from "@zen/design-system/tokens"`, e.g.
+- Typed token names for CSS-in-JS: `import { tokens } from "@zen-ds/react/tokens"`, e.g.
   `tokens["Spacing/Padding/Large"]` is `"var(--zen-spacing-padding-large)"`.
 
 ## 8. Check your work
@@ -168,7 +174,7 @@ Start a new screen by copying the closest one, then replace its sample data. The
 - `npx zen-usage --css` (the usage harness; `--json` for tools; `npx zen-ds check` is the same) checks every Zen
   component your files import, and your stylesheets (tokens only, focus rings, reduced motion), against the rules
   above; fix every ✗, and read each ⚠. Without `--css` the stylesheets are skipped. The MCP `check_usage` tool does the same for one file's source.
-  In the editor: `import zen from "@zen/design-system/eslint"` → `export default [...config, zen.configs.recommended]`.
+  In the editor: `import zen from "@zen-ds/react/eslint"` → `export default [...config, zen.configs.recommended]`.
   A deliberate exception gets a comment `zen-allow-<allow>: <reason>` right above the element.
 - `npx zen-ds doctor` checks the setup once.
 - `npx zen-ds audit http://localhost:5173/ --routes=/,/settings --dark` loads each page in Chromium (needs

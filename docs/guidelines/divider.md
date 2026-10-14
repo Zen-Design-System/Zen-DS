@@ -2,7 +2,7 @@
 # Divider
 
 **Figma:** Divider (page 460:38357)  
-**Import:** `import { Divider } from "@zen/design-system";`
+**Import:** `import { Divider } from "@zen-ds/react";`
 
 A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it.
 

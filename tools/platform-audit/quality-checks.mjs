@@ -93,7 +93,9 @@ export function qualityChecks({ scopeSel, regionSel }) {
   const styleOf = (el, t) => {
     const s = getComputedStyle(el); const fs = px(s.fontSize); const lh = s.lineHeight === "normal" ? null : px(s.lineHeight); const ls = s.letterSpacing === "normal" ? 0 : px(s.letterSpacing); const fw = Number(s.fontWeight);
     const ff = s.fontFamily.split(",")[0].replace(/["']/g, "").trim();
-    const hits = t.styles.filter((x) => near(x.fs, fs) && lh !== null && x.lh !== null && near(x.lh, lh, 0.6) && near(x.ls, ls, 0.06));
+    // A style is named by its metrics and family: Body/Code shares Body/Small's size, so text in the sans family that only
+    // misses Body/Small's tracking must not pass as Body/Code (it falls to the scale check, which names the whole style).
+    const hits = t.styles.filter((x) => near(x.fs, fs) && lh !== null && x.lh !== null && near(x.lh, lh, 0.6) && near(x.ls, ls, 0.06) && x.ff === ff);
     const exact = hits.find((x) => x.fw === fw) ?? hits[0];
     return { fs, lh, ls, fw, ff, name: exact?.name ?? null, weightOk: t.weights.has(fw) || hits.some((x) => x.fw === fw), familyOk: t.families.has(ff) };
   };
@@ -155,7 +157,8 @@ export function qualityChecks({ scopeSel, regionSel }) {
       if (/^[\p{Extended_Pictographic}\p{Emoji_Component}️‍\s]+$/u.test(text) && !/^[\d#*\s]+$/.test(text)) continue;
       const t = tokensFor(el); const st = styleOf(el, t);
       const where = `${label(el)}: "${text.slice(0, 24)}" (${describe(el)})`;
-      const twin = !st.name && t.styles.find((x) => near(x.fs, st.fs) && st.lh !== null && x.lh !== null && near(x.lh, st.lh, 0.6));
+      const twins = st.name ? [] : t.styles.filter((x) => near(x.fs, st.fs) && st.lh !== null && x.lh !== null && near(x.lh, st.lh, 0.6));
+      const twin = twins.find((x) => x.ff === st.ff && x.fw === st.fw) ?? twins.find((x) => x.ff === st.ff) ?? twins[0];
       if (twin && !el.closest("code, kbd, samp")) push("scale", `${where} is ${st.fs}/${st.lh} like ${twin.name} but tracks ${st.ls}px instead of ${twin.ls}px — apply the whole text style (.zen-type-${twin.name}), not just its size`);
       else if (!st.name && !el.closest("code, kbd, samp")) push("scale", `${where} is ${st.fs}/${st.lh ?? "normal"} — no Zen text style; nearest ${nearestStyles(st.fs, t)}`);
       else if (!st.weightOk) push("scale", `${where} uses weight ${st.fw} — weights come from --zen-emphasis-font-weight-* (${[...t.weights].join("/")})`);

@@ -12,7 +12,7 @@
  *   calendar and year.
  *
  * Copy it with ./HrShell, ./data and ./assets into your app and replace the sample data. Render it inside your app's
- * <ZenProvider>. Uses only @zen/design-system components, no custom CSS.
+ * <ZenProvider>. Uses only @zen-ds/react components, no custom CSS.
  */
 import { useState } from "react";
 import {
@@ -53,7 +53,7 @@ import {
   type DockIconTheme,
   type IconName,
   type MenuEntry,
-} from "@zen/design-system";
+} from "@zen-ds/react";
 import { HrShell, hrModules, type HrNavigate } from "./HrShell";
 import {
   daysFromToday,

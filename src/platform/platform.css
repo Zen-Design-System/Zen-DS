@@ -843,8 +843,6 @@
 .pe-card__stage .zen-list { width: 100%; }
 .pe-choice-card .zen-radio-button { width: 100%; }
 .pe-choice-card .zen-radio-button.pe-radio-card__main { width: auto; min-width: 0; flex: 1 1 auto; }
-.pe-theme-scope { width: 100%; }
-.pe-metric-card { width: 100%; }
 
 /* Modal/Forms playground side content. */
 .platform-modal-side { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); color: var(--zen-color-content-neutral-strongest, #111); }
@@ -859,7 +857,7 @@
 .platform-slot--tall { min-height: calc(2 * var(--zen-image-size-3-xlarge, 112px)); }
 .platform-slot--fill { align-self: stretch; height: 100%; }
 .pe-card-grid { display: grid; width: 100%; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-/* 120px: "Theme=semi-pale" in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
+/* 120px: the longest Theme label in Caption (11px since the 2026-09-28 variables) plus Spacing=Small padding, unbroken. */
 .pe-card-grid--surfaces { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 .pe-app-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: var(--zen-spacing-gap-medium, 16px); }
 .pe-app-tile { display: grid; justify-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px) 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; }
@@ -950,12 +948,16 @@
 /* Narrow screens scroll the table sideways (.zen-table overflow-x) instead of squeezing four columns into 342px. */
 .platform-ref__component .zen-table__table { min-width: 680px; }
 .platform-ref__component .platform-ref__code { overflow-wrap: break-word; white-space: normal; }
-
+/* Docs-only exception (user, 2026-10-13): the Props, API and Keyboard references hold long types and descriptions, so
+   their rows grow with the text. A Zen Table row is FIXED at Table/Cell/Size and cuts long text with an ellipsis;
+   these references move to the sheet-like component for long content once it exists (BACKLOG). */
+.platform-ref .zen-table__content { height: auto; min-height: var(--zen-table-slot, 28px); white-space: normal; }
+.platform-ref .zen-table-text { grid-template-columns: auto; }
+.platform-ref .zen-table-text > * { overflow: visible; white-space: normal; }
 
 /* ───────────── Mobile / conversation / chart batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) ───────────── */
 .platform-mobile-preview { justify-content: center; }
 /* PlatformPhone: a 390px device frame; the page Canvas follows `canvas`, overlays (inline BottomSheet) anchor to it. */
-
 
 .platform-ai-stage { display: flex; width: 100%; min-height: 420px; box-sizing: border-box; align-items: flex-end; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-xlarge, 20px); }
 /* The stage is the page the chat sits on, so its Canvas follows the Chat-Field Style (background layers):
@@ -971,7 +973,8 @@
 .platform-ai-stage[data-style="liquid-glass"] { background: linear-gradient(160deg, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 0%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 55%, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 100%), var(--zen-color-background-canvas-default, #f7f7f7); }
 .platform-ai-stage .zen-ai-block { align-self: center; }
 
-.platform-chart-preview { width: min(345px, 100%); }
+/* The chart card at a dashboard tile's width (the Figma chart cards are 400–560 wide), never wider than the stage. */
+.platform-chart-preview { width: min(520px, 100%); }
 .platform-chart-preview__bare { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-chart-preview__bare .zen-segmented { width: 100%; }
 .pe-phone-scroll { height: 100%; overflow: auto; }
@@ -1034,7 +1037,6 @@
 .pe-filter-panel__facets { display: flex; flex-direction: column; }
 .pe-filter-panel__facet-title { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .pe-filter-panel__options { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding-bottom: var(--zen-spacing-padding-2-xsmall, 4px); }
-.pe-filter-panel__submit { width: 100%; }
 
 /* ───────────── PlatformPhone: device simulator (iPhone 15 390×844 · Pro Max 430×932 · iPad Air 820×1180) ─────────────
    The "OS" (status bar, Dynamic Island, home indicator) is drawn above the app; the app runs underneath and pads by
@@ -1045,8 +1047,13 @@
 .platform-phone-fit { position: relative; flex: 0 0 auto; margin: var(--zen-spacing-gap-medium, 16px) auto; }
 /* overflow-anchor: none keeps the whole phone out of the docs page's scroll-anchor choice: a demo that re-pins its chat
    thread (a call card flipping) made the page jump ~38px at 390 with no input (2026-10-02). The screen inside keeps its own
-   scroll anchoring. */
-.platform-phone { position: absolute; top: 0; left: 0; display: flex; box-sizing: border-box; flex-direction: column; overflow: hidden; overflow-anchor: none; background: var(--zen-color-background-surface-default, #fff); box-shadow: 0 0 0 12px var(--platform-phone-bezel), 0 0 0 13.5px var(--platform-phone-frame), 0 0 0 14.5px var(--platform-phone-frame-edge); transform-origin: top left; isolation: isolate; }
+   scroll anchoring.
+   The screen rounds its corners with clip-path, not border-radius, which makes it the backdrop root of the blurs inside
+   it: a bar's progressive blur and Liquid Glass sample only the screen (its square background fills the corners), as on
+   a device. With the bezel painted by the screen itself (a box-shadow), they also sampled the black in the corners
+   outside the curve and smeared it into the screen's bottom corners (Bottom Navigation Floating, 2026-10-13). */
+.platform-phone { position: absolute; top: 0; left: 0; display: flex; box-sizing: border-box; flex-direction: column; overflow: hidden; overflow-anchor: none; background: var(--zen-color-background-surface-default, #fff); clip-path: inset(0 round var(--platform-phone-radius)); transform-origin: top left; isolation: isolate; }
+.platform-phone-fit__bezel { position: absolute; top: 0; left: 0; border-radius: var(--platform-phone-radius); box-shadow: 0 0 0 12px var(--platform-phone-bezel), 0 0 0 13.5px var(--platform-phone-frame), 0 0 0 14.5px var(--platform-phone-frame-edge); pointer-events: none; transform-origin: top left; }
 /* Device hardware (not a theme surface): a black glass bezel and a thin titanium frame, identical in every
    token mode, like the real phone. zen-allow-raw-colour: physical device colours are not part of the colour system. */
 .platform-phone-fit { --platform-phone-bezel: #050505; --platform-phone-frame: #2c2c2e; --platform-phone-frame-edge: #8e8e93; }
@@ -1147,6 +1154,36 @@
 /* Room under the last row so the floating bar (56px) never covers it: the bar overlaps the area's bottom padding. */
 .pe-bulk-list__area { min-width: 0; padding-bottom: var(--zen-spacing-padding-3-xlarge, 40px); }
 
+/* ── Example frames (PlatformFrames.tsx): what the docs draw around an example. A window of a set height fills the
+   card in Full screen. ── */
+.pf-app-frame, .pf-window[data-height="set"] { height: clamp(var(--pf-height-min), calc(100dvh - var(--pf-height-offset)), var(--pf-height-max)); }
+.pf-app-frame { overflow: hidden; contain: layout; container-type: size; }
+.pf-app-frame__scroll { height: 100%; overflow: auto; overscroll-behavior: contain; }
+.pf-app-frame__scroll > .zen-app-shell { --zen-app-shell-height: 100cqh; }
+.pf-browser-window { width: min(100%, var(--pf-window-width)); margin-inline: auto; overflow: clip; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-xlarge, 20px); }
+/* zen-allow-canvas-layer: the example window stands in for the app page */
+.pf-window { overflow: hidden; background: var(--zen-color-background-canvas-default); }
+.pf-window[data-clip="false"] { overflow: visible; }
+/* Its parts may shrink below their content: the one that fills (height="fill" scroll="y") scrolls instead. */
+.pf-window > * { min-width: 0; min-height: 0; }
+.pe-card[data-fullscreen="true"] .pe-card__preview > :is(.pf-app-frame, .pf-window[data-height="set"]) { flex: 1 1 0; height: auto; min-height: 0; }
+.pf-page { box-sizing: border-box; background: var(--zen-color-background-canvas-default); }
+.pf-page[data-canvas="false"] { background: none; }
+.pf-page[data-margin="all"] { padding: var(--zen-margin-comfortable, 24px); }
+.pf-page[data-margin="block"] { padding-block: var(--zen-margin-comfortable, 24px); }
+.pf-page[data-fill="true"] { min-height: 100%; }
+.pf-shell-main { min-width: 0; min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 620px) { .pe-shell[data-keep-row="true"] { flex-direction: row; } }
+.pf-shell-page { padding-block: var(--zen-margin-comfortable, 24px); }
+.zen-app-shell__header ~ .zen-app-shell__main .pf-shell-page { padding-top: var(--zen-spacing-padding-small, 12px); }
+.pf-studio-logo { display: inline-flex; height: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+.pf-studio-logo > img { display: block; height: 100%; aspect-ratio: 1; border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+/* In a phone the scrollbars are overlay ones: a row that scrolls sideways (Stack / Box scroll="x") shows none. */
+.platform-phone :is(.zen-stack, .zen-box)[data-scroll="x"] { scrollbar-width: none; }
+.platform-phone :is(.zen-stack, .zen-box)[data-scroll="x"]::-webkit-scrollbar { display: none; }
+.pf-phone-toasts { position: absolute; right: 0; bottom: 100%; left: 0; padding: 0 var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-xsmall, 8px); pointer-events: none; }
+.pf-studio-mark { display: block; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); border-radius: var(--zen-corner-radius-xsmall, 4px); object-fit: cover; }
+
 /* ── Desktop chat examples (Figma Chat Device=Desktop): list pane + thread pane in one Surface window. ── */
 .pe-chat-desktop { display: grid; width: 100%; max-width: 960px; height: 600px; grid-template-columns: 320px auto minmax(0, 1fr); overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); }
 /* Lines only where they separate something: no frame on the two-pane messenger (its Surface already reads on the
@@ -1160,6 +1197,8 @@
 /* Business sits on Canvas/Default so its Surface bubbles read (Figma 6349:59878). */
 /* zen-allow-canvas-layer: the example window stands in for the app page */
 .pe-chat-desktop[data-domain="business"] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* ChatWindow layout="thread": the thread pane alone at the window's width. */
+.pe-chat-desktop[data-layout="thread"] { grid-template-columns: minmax(0, 1fr); }
 .pe-chat-desktop__list { display: flex; min-height: 0; flex-direction: column; overflow: auto; overscroll-behavior: contain; }
 .pe-chat-desktop__list-head { position: sticky; z-index: 1; top: 0; display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); padding: var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); background: var(--zen-color-background-surface-default, #fff); }
 .pe-chat-desktop__title { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
@@ -1185,6 +1224,10 @@
   .platform-mobile-preview:has(.pe-chat-desktop) { overflow-x: auto; overscroll-behavior-x: contain; justify-content: flex-start; }
   .pe-chat-desktop { min-width: 560px; }
   .pe-chat-demo:has(> .pe-chat-desktop) { width: auto; justify-items: start; }
+  /* ChatWindow fit: the window fits the card instead (the desktop thread wraps its bubbles and keeps its hover toolbar,
+     the composer keeps its controls on one row), and the chat's name, the window's title, wraps. */
+  .pe-chat-desktop[data-fit="true"] { min-width: 0; }
+  .pe-chat-desktop[data-fit="true"] .pe-chat-desktop__name { white-space: normal; }
 }
 
 /* Desktop chat examples: the last hover-toolbar action, read out politely. */
@@ -1245,13 +1288,12 @@
 @media (max-width: 480px) { .pe-photo-page { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Device corners clip the bars' blur. With GPU compositing, masked backdrop-filter layers (the Bottom/Top Navigation
-   progressive blur) ignore the phone's rounded overflow clip and paint as rectangles over the bezel corners, so the blur
-   layers round themselves (backdrop-filter respects its own radius). Never clip-path / mask / filter / opacity the
-   header or footer: any of them makes it a backdrop root, and every backdrop-filter inside (Liquid Glass pills and
-   buttons, the progressive blur) then sees only the bar itself, not the screen behind it — the glass stops blurring. */
-/* zen-allow-raw-radius: device corner radii (iPhone 55, iPad 18) — hardware, not the Corner Radius scale. */
-.platform-phone { --platform-phone-radius: 55px; }
-.platform-phone[data-device="ipad"] { --platform-phone-radius: 18px; }
+   progressive blur) could ignore the phone's rounded clip and paint as rectangles over the bezel corners, so the blur
+   layers round themselves too (backdrop-filter respects its own radius). --platform-phone-radius is the device's corner
+   radius (PlatformPhone sets it from platformDevices: hardware, not the Corner Radius scale). Never clip-path / mask /
+   filter / opacity the header or footer: any of them makes it a backdrop root, and every backdrop-filter inside (Liquid
+   Glass pills and buttons, the progressive blur) then sees only the bar itself, not the screen behind it — the glass
+   stops blurring. The screen (.platform-phone) is the backdrop root on purpose. */
 .platform-phone .zen-bottom-nav__progressive > i { border-radius: 0 0 var(--platform-phone-radius) var(--platform-phone-radius); }
 .platform-phone > .platform-phone__header .zen-top-nav__progressive > i { border-radius: var(--platform-phone-radius) var(--platform-phone-radius) 0 0; }
 

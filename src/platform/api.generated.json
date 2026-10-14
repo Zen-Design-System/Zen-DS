@@ -3257,7 +3257,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "",
+          "description": "Figma Leading-Icon: shows the leading layer (the default dot, or `leading`); false hides it, `leading` included.",
           "deprecated": null
         },
         {
@@ -5806,11 +5806,27 @@
           "deprecated": null
         },
         {
+          "name": "layout",
+          "type": "\"inline\" | \"stacked\"",
+          "required": false,
+          "default": "\"inline\"",
+          "description": "Figma Layout: `inline` (default: the label trails the bar) · `stacked` (a Label · Value row above a full-width bar).",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode | true",
           "required": false,
           "default": null,
-          "description": "Trailing label (Figma Label=Yes). `true` shows the rounded percentage.",
+          "description": "The label (Figma Text, shown with Label=Yes). Inline: trails the bar, and `true` shows the rounded percentage.\n Stacked: leads the row above the bar and names it; `true` leaves only the value.",
+          "deprecated": null
+        },
+        {
+          "name": "valueLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Stacked only: the text at the end of the row (Figma Value), such as \"3 of 5 steps\". Default: the rounded percentage.",
           "deprecated": null
         },
         {
@@ -7495,8 +7511,40 @@
   "card": [
     {
       "name": "Card",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\">, LayoutWidthProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
         {
           "name": "ref",
           "type": "Ref<HTMLElement>",
@@ -7515,10 +7563,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border · Semi-Pale (Pale→Subtle gradient).",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/Neutral/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
           "deprecated": null
         },
         {
@@ -7550,7 +7598,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / Semi-Pale keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Surface/Default or Surface/Alt, chosen to suit the page's Canvas. Unset follows an inherited --zen-card-surface\n (a page scope can set it once), else Surface/Default. Pale / On-Container keep their own fill. With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018)\n on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -7654,7 +7702,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take; Ready: a flat line.",
+          "description": "The recent sound levels, 0–1 each, oldest first (Figma draws 56). Unset: Figma's sample take, which scrolls while\n recording and holds still when paused (still under reduced motion); Ready: a flat line. Yours are drawn as given:\n push one level every 1/7 s and drop the oldest for the same 8-second window.",
           "deprecated": null
         },
         {
@@ -7804,7 +7852,7 @@
           "type": "unknown",
           "required": false,
           "default": null,
-          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7).",
+          "description": "The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio.\n Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding\n (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing.",
           "deprecated": null
         },
         {
@@ -7812,7 +7860,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Mute (the left action, a toggle; off until the conversation starts).",
+          "description": "Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal\n rests while listening, and the guidance and note say the microphone is muted.",
           "deprecated": null
         },
         {
@@ -8038,11 +8086,35 @@
           "deprecated": null
         },
         {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "A value at the row's end, read with the title: an amount, a total, a count (\"+94,860,000 VND\", \"92 h\"). Body/Base/Bold\n like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second\n Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's\n button or link, so a clickable row reads it out.",
+          "deprecated": null
+        },
+        {
+          "name": "valueCaption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another\n currency, a date, a unit (\"3,600.00 USD\").",
+          "deprecated": null
+        },
+        {
+          "name": "valueTone",
+          "type": "ContentTone",
+          "required": false,
+          "default": "\"strongest\"",
+          "description": "Colour of `value`, a Color/Content tone as Text's `tone`: \"strongest\" (default, like the title); \"positive-light\" /\n \"negative-light\" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too:\n the colour never carries the meaning alone.",
+          "deprecated": null
+        },
+        {
           "name": "trailing",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge, a value or a chevron.",
+          "description": "Figma Trailing slot (Slot-Actions): Medium (md) buttons / icon buttons, a Badge or a chevron. It follows `value`.",
           "deprecated": null
         },
         {
@@ -8105,8 +8177,40 @@
     },
     {
       "name": "ListBox",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps",
       "props": [
+        {
+          "name": "width",
+          "type": "\"hug\" | \"fill\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing, as in Figma auto layout. Unset keeps the element's usual width.\n`\"hug\"` (Hug contents): as wide as its content, never grows or stretches.\n`\"fill\"` (Fill container): in a row Stack it takes an equal share of the space left after each child's padding\nand may shrink to 0; in a column Stack it stretches across; in a Grid cell or a plain block it takes the full\nwidth. Fill children in a wrapping row need a `minWidth` to wrap.\nA number: Fixed width in px, which never shrinks in a flex row. Sizes include padding and border (border-box).\n(Container's `maxWidth` is a different prop: a token width, sm…full.)\nPrefer hug or fill; use Fixed only for widths that really are fixed (a side column, a preview frame).",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Minimum width in px (Figma min width). Wins over fill's shrink-to-0.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text.",
+          "deprecated": null
+        },
+        {
+          "name": "alignSelf",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "required": false,
+          "default": null,
+          "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
         {
           "name": "ref",
           "type": "Ref<HTMLElement>",
@@ -8141,10 +8245,10 @@
         },
         {
           "name": "theme",
-          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\"",
+          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\" | \"on-container\"",
           "required": false,
           "default": "\"flat\"",
-          "description": "Elevation, as Card's Figma Theme. Flat (default): Surface/Default alone — on Canvas/Default it needs no frame\n (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).",
+          "description": "Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
           "deprecated": null
         },
         {
@@ -9231,7 +9335,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
           "description": "Card theme (Figma Metric-Card uses Shadow).",
@@ -9516,6 +9620,38 @@
           "deprecated": null
         },
         {
+          "name": "headerContent",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Header-Contents slot: more header content under the caption (a status row, tabs, a search field), gap XSmall.",
+          "deprecated": null
+        },
+        {
+          "name": "top",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Top-Customize slot, rendered above the header (e.g. a Stepper, a banner or a cover).",
+          "deprecated": null
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Figma Back-Container: a back button (Button/Icon-Flat Small, icon-arrow-narrow-left-line) before the title, for a\n panel that drilled into a detail. Called on click; without it there is no back button.",
+          "deprecated": null
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Accessible name of the back button. Default: the locale's “Back”.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"standard\" | \"modal\"",
           "required": false,
@@ -9536,8 +9672,8 @@
           "type": "IconName | ReactElement",
           "required": false,
           "default": null,
-          "description": "Modal only: the 44px heading icon, an icon name (Figma shows icon-info-circle-solid) or an element.",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Figma's Side-Panel no longer draws a heading icon (removed on 2026-10-12). Modal only: a 44px icon above\n the title, still drawn for now; put an icon in `top` or `headerContent` instead."
         },
         {
           "name": "children",
@@ -9592,7 +9728,7 @@
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
-          "description": "Figma instance overrides: props of the icon, close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "description": "Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets onBack / the actions.",
           "deprecated": null
         }
       ]
@@ -11474,19 +11610,35 @@
       "extends": null,
       "props": [
         {
+          "name": "data",
+          "type": "ChartPoint[]",
+          "required": true,
+          "default": null,
+          "description": "One point per period (`{ label, value }`). Keep 4–12 periods.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "What the line measures (\"Invoiced\"), named in the legend and the summary once there is a `compare`. Default: the\n aria-label.",
+          "deprecated": null
+        },
+        {
+          "name": "compare",
+          "type": "ChartCompare",
+          "required": false,
+          "default": null,
+          "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid\n line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order.",
+          "deprecated": null
+        },
+        {
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
           "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "aria-label",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
+          "description": "Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K.",
           "deprecated": null
         },
         {
@@ -11494,7 +11646,15 @@
           "type": "number",
           "required": false,
           "default": "280",
-          "description": "",
+          "description": "Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below).",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Revenue invoiced per month, Apr – Sep 2026\").",
           "deprecated": null
         },
         {
@@ -11506,9 +11666,111 @@
           "deprecated": null
         },
         {
+          "name": "initialIndex",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The point active at first (its Tooltip shows). Default: the last one.",
+          "deprecated": null
+        },
+        {
+          "name": "curve",
+          "type": "\"smooth\" | \"linear\"",
+          "required": false,
+          "default": "\"smooth\"",
+          "description": "`smooth` (default, Figma's curve) or `linear` segments.",
+          "deprecated": null
+        },
+        {
+          "name": "fill",
+          "type": "\"gradient\" | \"none\"",
+          "required": false,
+          "default": "\"gradient\"",
+          "description": "The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The legend of the line and its comparison (default on with `compare`; colour is never the only key).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Draw the line in from the left on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "showAverage",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A dotted line at the mean of the line (not the comparison), tagged \"Avg $95.4K\" (Figma Show Average).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "BarChart",
+      "extends": null,
+      "props": [
+        {
           "name": "data",
           "type": "ChartPoint[]",
           "required": true,
+          "default": null,
+          "description": "One bar per category or period (`{ label, value }`); mark a forecast `projected` (hatched) and give a bar a `target`\n to draw its goal as a hatched track behind it. Keep 3–12 bars.",
+          "deprecated": null
+        },
+        {
+          "name": "orientation",
+          "type": "\"vertical\" | \"horizontal\"",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "`vertical` columns over periods (default) or `horizontal` bars for categories with longer names (Q1–Q4, teams).",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "Formats axis labels, the Tooltip and the summary.",
+          "deprecated": null
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Height of a vertical plot in px, lanes included. Horizontal charts take the height of their rows.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range (\"Revenue per month, Jan – Dec 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
           "default": null,
           "description": "",
           "deprecated": null
@@ -11518,7 +11780,39 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected.",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Colour of the bars. Default Chart/Sector/Primary.",
+          "deprecated": null
+        },
+        {
+          "name": "activeColor",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Colour of the active bar. Default Chart/Sector/Secondary.",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "showAverage",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A dotted line at the mean of the bars that aren't projected, tagged \"Avg $87.8K\" (Figma Show Average).",
           "deprecated": null
         }
       ]
@@ -11528,19 +11822,27 @@
       "extends": null,
       "props": [
         {
+          "name": "data",
+          "type": "ChartDatum[]",
+          "required": true,
+          "default": null,
+          "description": "One column per period, a value per series id (`{ label: \"Sep\", values: { design: 2650, … } }`).",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "ChartSeries[]",
+          "required": true,
+          "default": null,
+          "description": "The stacked series, bottom first, in palette order unless a series sets `color`.",
+          "deprecated": null
+        },
+        {
           "name": "format",
           "type": "(value: number) => string",
           "required": false,
           "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "aria-label",
-          "type": "string",
-          "required": true,
-          "default": null,
-          "description": "",
+          "description": "Formats axis labels, the Tooltip total and the summary.",
           "deprecated": null
         },
         {
@@ -11548,7 +11850,15 @@
           "type": "number",
           "required": false,
           "default": "236",
-          "description": "",
+          "description": "Height of the plot in px, lanes included.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows and over which range.",
           "deprecated": null
         },
         {
@@ -11560,27 +11870,11 @@
           "deprecated": null
         },
         {
-          "name": "data",
-          "type": "ChartStack[]",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
-          "name": "series",
-          "type": "ChartSeries[]",
-          "required": true,
-          "default": null,
-          "description": "",
-          "deprecated": null
-        },
-        {
           "name": "initialIndex",
           "type": "number",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "The column active at first. Default: the last one.",
           "deprecated": null
         },
         {
@@ -11588,7 +11882,305 @@
           "type": "boolean",
           "required": false,
           "default": "true",
+          "description": "The legend names every colour; keep it (harness: chart/stack-needs-legend).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend above or below the plot (default bottom).",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow the columns from the baseline on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "showAverage",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A dotted line at the mean of the column totals, tagged \"Avg 5.9K h\" (Figma Show Average).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "DonutChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartSlice[]",
+          "required": true,
+          "default": null,
+          "description": "The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "Formats the centre figure and the summary.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "200",
+          "description": "Diameter in px (default 200). The ring is 22% of it; it never grows past its box.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows (\"Spending by category, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The caption of the total (\"Invoiced in Q3\"). Default: the locale's “Total”.",
+          "deprecated": null
+        },
+        {
+          "name": "totalPosition",
+          "type": "\"centre\" | \"start\"",
+          "required": false,
+          "default": "\"centre\"",
+          "description": "Where the total sits: in the hole (`centre`, default), or above the legend in a start column beside the ring\n (`start`: the hole stays empty, the legend lists down that column; Figma Total=Start).",
+          "deprecated": null
+        },
+        {
+          "name": "showPercent",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "A % pill on every slice of 6% or more (default true).",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The legend names every slice (default true; colour is never the only key).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend below (default), above, or beside the ring (start / end). With `totalPosition=\"start\"` it is always in the\n start column, under the total.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "RadialChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "ChartSlice[]",
+          "required": true,
+          "default": null,
+          "description": "One ring per measure, outermost first (`{ id, label, value }`), each measured against `max`. Keep 1–4 rings.",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": "The value a full ring stands for (default 100: the values are percentages).",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": null,
+          "description": "Formats the centre figure and the summary. Default: the share of `max` in whole percent (\"43%\").",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "200",
+          "description": "Diameter in px (default 200). Rings are 10px with 8px between them; the chart never grows past its box.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows (\"Budget used by area, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The centre figure. Default: the outer ring's value, formatted. The active ring's value replaces it while one is picked.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The caption under the centre figure. Default: the outer ring's label.",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The legend names every ring (default true; colour is never the only key).",
+          "deprecated": null
+        },
+        {
+          "name": "legendPosition",
+          "type": "\"top\" | \"bottom\" | \"start\" | \"end\"",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "Legend below (default), above, or beside the rings (start / end).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "HeatmapChart",
+      "extends": null,
+      "props": [
+        {
+          "name": "rows",
+          "type": "string[]",
+          "required": true,
+          "default": null,
+          "description": "Row labels, top to bottom (\"1 pm\", \"2 pm\"…).",
+          "deprecated": null
+        },
+        {
+          "name": "columns",
+          "type": "string[]",
+          "required": true,
+          "default": null,
+          "description": "Column labels, left to right (\"Mon\", \"Tue\"…).",
+          "deprecated": null
+        },
+        {
+          "name": "values",
+          "type": "number[][]",
+          "required": true,
+          "default": null,
+          "description": "One value per row per column: `values[row][column]`.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${value}`)",
+          "description": "Formats the Tooltip and the summary (\"14 sessions\").",
+          "deprecated": null
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The value of the deepest step. Default: the largest value.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "What the chart shows (\"Studio sessions by weekday and hour, September 2026\").",
+          "deprecated": null
+        },
+        {
+          "name": "showLegend",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "The Less → More scale under the grid (default true).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Fade the cells in, row by row, on mount and when the values change (default true; reduced motion only fades).",
           "deprecated": null
         }
       ]
@@ -11611,6 +12203,30 @@
           "required": false,
           "default": "3",
           "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "One line under the title that says what the figure is (\"Available revenue in your wallet\"), Body/Small/Regular.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
           "deprecated": null
         },
         {
@@ -11663,7 +12279,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
           "required": false,
           "default": "\"flat\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
@@ -12124,6 +12740,14 @@
           "deprecated": null
         },
         {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls the content vertically, `\"x\"` sideways, inside the stack's own box (it\nneeds a height or a maxHeight for `\"y\"`, a width for `\"x\"`); the scroll stays inside (overscroll-behavior: contain).",
+          "deprecated": null
+        },
+        {
           "name": "fillChildren",
           "type": "boolean",
           "required": false,
@@ -12335,6 +12959,14 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment of cells. Default stretch (equal-height cards).",
+          "deprecated": null
+        },
+        {
+          "name": "stackBelow",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint:\na two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it.",
           "deprecated": null
         },
         {
@@ -12561,10 +13193,18 @@
         },
         {
           "name": "surface",
-          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\"",
+          "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
           "default": "\"none\"",
-          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. Never Canvas (the page), Flat (navigation) or\nContainer (modals and sheets use Dialog / BottomSheet).",
+          "description": "Background layer (docs/guidelines/background-layers.md): `surface` for cards and panels on the Canvas page,\n`surface-alt` on a white (Alt) canvas, `subtle` / `pale` for wells. `canvas` (Background/Canvas/Default) is the\npage itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never\nfor a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet).",
+          "deprecated": null
+        },
+        {
+          "name": "scroll",
+          "type": "\"x\" | \"y\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Overflow scrolling\": `\"y\"` scrolls vertically, `\"x\"` sideways, inside the box (the scroll stays inside).",
           "deprecated": null
         },
         {
@@ -12750,6 +13390,22 @@
           "deprecated": null
         },
         {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), e.g. a time or an amount that must stay whole; the row\naround it gives it room. Unlike `truncate`, nothing is cut. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): every digit takes the same width, so a count, a time or a price that changes\n does not move the text around it.",
+          "deprecated": null
+        },
+        {
           "name": "htmlFor",
           "type": "string",
           "required": false,
@@ -12873,6 +13529,22 @@
           "required": false,
           "default": null,
           "description": "Vertical alignment inside the box (Figma Align top / middle / bottom), as on Text: shows with a Fixed or Fill height.",
+          "deprecated": null
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`false`: one line that never wraps (Figma text Auto width), as on Text. Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "tabularNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Figma Number: Tabular (OpenType tnum): digits of one width, as on Text.",
           "deprecated": null
         },
         {

@@ -10,7 +10,7 @@ export default defineConfig({
   // loopbackBothFamilies(): the dev server answers on 127.0.0.1 and [::1] alike (Node binds "localhost" to one only).
   plugins: [zenStudio(), react(), loopbackBothFamilies()],
   // Page templates (src/templates) import the public package name so they can be copied into apps unchanged.
-  resolve: { alias: { "@zen/design-system": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
+  resolve: { alias: { "@zen-ds/react": fileURLToPath(new URL("./src/index.ts", import.meta.url)) } },
   // The docs platform app. The installable library is built by vite.lib.config.ts into dist/.
   build: { outDir: "dist-platform" },
 });

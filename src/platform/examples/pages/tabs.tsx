@@ -29,9 +29,9 @@ import {
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type Task,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
+import { PreviewPage } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
-import "./tabs.css";
 
 export const page: PlatformPage = "tabs";
 
@@ -82,7 +82,7 @@ function ProjectSectionsExample() {
   };
 
   return (
-    <div className="px-tabs-page">
+    <PreviewPage margin="block">
       <Container maxWidth="full">
         <Stack gap="xl">
           <PageHeader
@@ -153,7 +153,7 @@ function ProjectSectionsExample() {
                 <List aria-busy="true" aria-label="Loading activity">
                   {[0, 1, 2].map((row) => (
                     <ListItem key={row} aria-hidden="true" title="" leading={<SkeletonShape shape="round" size="md" />}>
-                      <SkeletonText lines={2} className="px-tabs-skeleton-text" />
+                      <SkeletonText lines={2} />
                     </ListItem>
                   ))}
                 </List>
@@ -167,7 +167,7 @@ function ProjectSectionsExample() {
         field={{ kind: "email", label: "Email address", placeholder: "thu@lumenbank.com" }} submitLabel="Send invite" confirm={(email) => `Invite sent to ${email}`} />
       <DemoFieldDialog open={dialog === "task"} onOpenChange={(next) => setDialog(next ? "task" : null)} title="New task"
         field={{ kind: "name", label: "Task name", placeholder: "Review the transfer limits copy" }} submitLabel="Add task" confirm={() => "Task added"} onSubmit={addTask} />
-    </div>
+    </PreviewPage>
   );
 }
 
@@ -198,14 +198,14 @@ function DraftInvoiceExample() {
   };
 
   return (
-    <Card theme="flat" className="px-tabs-invoice">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
             <Heading level={4} textStyle="Heading/Subheading">{draftInvoice.number}</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">{`${draftInvoice.client} · ${draftInvoice.project}`}</Text>
           </Stack>
-          <Badge className="px-tabs-status" theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
+          <Badge theme={invoiceStatusTheme[status]} background="subtle">{status}</Badge>
         </Stack>
         <Stack gap="xs">
           {/* ←/→ skip the disabled tab; the line under the bar says why it is off. */}
@@ -248,7 +248,7 @@ function DraftInvoiceExample() {
           </Stack>
         ) : null}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -294,7 +294,7 @@ function YourWorkExample() {
   );
 
   return (
-    <Card theme="flat" className="px-tabs-work">
+    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
         {/* The tabs as TabItem children (Figma's Item-List slot); an items array works the same. */}
@@ -314,7 +314,7 @@ function YourWorkExample() {
         </TabPanel>
         <TabPanel idPrefix={prefix} id="mentions" hidden={tab !== "mentions"}>{rows(mentions, "Mentions")}</TabPanel>
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
@@ -484,7 +484,7 @@ function ClientSectionsExample() {
   const icon = (name: IconName) => <DockIcon icon={name} theme="neutral" background="subtle" size="medium" />;
 
   return (
-    <Card theme="flat" className="px-tabs-client">
+    <Stack><Card theme="flat" width="fill" maxWidth={340} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <Avatar size="medium" shape="square" theme="blue" alt="">LB</Avatar>
@@ -513,7 +513,7 @@ function ClientSectionsExample() {
         {panel("files", <List aria-label="Files">{lumenFiles.slice(0, 2).map((f) => <ListItem key={f.id} title={f.name} caption={formatBytes(f.bytes)} leading={<FileIcon format={fileIconFormatOf(f.name)} size="xl" />} />)}</List>)}
         {panel("notes", <List aria-label="Notes">{lumenNotes.map((n) => <ListItem key={n.id} title={n.title} caption={n.caption} leading={icon("icon-file-doc-line")} />)}</List>)}
       </Stack>
-    </Card>
+    </Card></Stack>
   );
 }
 
