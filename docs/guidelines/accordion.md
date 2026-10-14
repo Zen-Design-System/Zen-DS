@@ -18,26 +18,26 @@ Progressive disclosure of secondary content under short headings.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Size | `size` | medium (Subheading) · large (Heading/4) · xlarge (Heading/3) |
+| Size | `size` | small (Body/Base/Bold, content Body/Small; dense panels and cards) · medium (Subheading) · large (Heading/4) · xlarge (Heading/3) |
 | Theme | `theme` | divider · box — Box: the whole box header (padding included) is the toggle; its focus ring sits inside it, concentric with the box corner (box radius = trigger radius + inset) |
 | Expanded | `expanded / defaultExpanded / onExpandedChange` | chevron rotates 180° |
-| Contents | `children` | Body/Base/Regular, Neutral/Base |
+| Contents | `children` | Body/Base/Regular (Small: Body/Small/Regular), Neutral/Base |
 | Content Width | `contentWidth` | title (default: the content stops before the chevron column) · full (under the chevron too, for rows with end-aligned values) |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/accordion.json`.
 
 ### Accordion
-Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded. The whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section; the chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion). Theme=Divider: the root keeps Figma's block padding and a hit layer on the trigger covers it (open: down to the content only), so a press anywhere on the header row toggles, as in Box; the layout and focus ring are unchanged. Theme=Box: the trigger covers the whole box header, not just the title line. The box padding (Padding/Medium, XLarge Padding/XLarge) splits into a box inset of padding − header gap and a trigger padding of the header gap, so the layout matches Figma; the trigger radius is box radius − inset (concentric corners), and the focus ring sits inside it.
+Figma Accordion/Text (239:16847): Size XLarge/Large/Medium/Small × Theme Divider/Box × Expanded. The whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section; the chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion). Theme=Divider: the root keeps Figma's block padding and a hit layer on the trigger covers it (open: down to the content only), so a press anywhere on the header row toggles, as in Box; the layout and focus ring are unchanged. Theme=Box: the trigger covers the whole box header, not just the title line. The box padding (Padding/Medium, XLarge Padding/XLarge) splits into a box inset of padding − header gap and a trigger padding of the header gap, so the layout matches Figma; the trigger radius is box radius − inset (concentric corners), and the focus ring sits inside it.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `.zen-accordion` element. |
 | `title` (required) | `ReactNode` | — |  |
-| `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | `3` | Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}>`<button>``), default 3. Take it from where the accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2 section, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never larger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section; XLarge (Heading/3) only directly under the page h1. |
-| `children` | `ReactNode` | — | Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base). |
-| `size` | `"md" \| "lg" \| "xl" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
-| `theme` | `"divider" \| "box"` | `"divider"` | Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box: Support/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle, and its focus ring is concentric with the box corner. |
+| `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | `3` | Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}>`<button>``), default 3. Take it from where the accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2 section, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never larger than the heading it sits under: Small (Body/Base/Bold) fits anywhere, a panel or a card included; Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section; XLarge (Heading/3) only directly under the page h1. |
+| `children` | `ReactNode` | — | Content slot (Figma .Primitives/Accordion/Content/Text: Body/Base/Regular, Small Body/Small/Regular; Neutral/Base). |
+| `size` | `"sm" \| "md" \| "lg" \| "xl" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. Small (Figma 2026-10-15) is for dense panels and cards: title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, Box Corner-Radius/Base. |
+| `theme` | `"divider" \| "box"` | `"divider"` | Divider: bottom Border/Neutral/Pale rule; the whole header row, its block padding included, is the toggle. Box: Support/Neutral/Pale surface, no border, with radius (Corner-Radius/Large, XLarge 2XLarge, Small Base); the whole box header is the toggle, and its focus ring is concentric with the box corner. |
 | `contentWidth` | `"title" \| "full"` | `"title"` | Where the content column ends. title (default, Figma): at the end of the title, before the chevron column, which keeps text lines short. full: under the chevron too, to the box padding (Box) or the row's end (Divider), for rows with end-aligned values (a receipt, specs, a DescriptionList or a List with trailing values), so the values line up with the edge instead of stopping before an empty column. Figma Content Width=Title\|Full (added 2026-10-03). |
 | `expanded` | `boolean` | — | Controlled open state (Figma Expanded). |
 | `defaultExpanded` | `boolean` | `false` |  |

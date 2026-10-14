@@ -17,3 +17,19 @@
   Spacing/XSmall/* gone from Figma → removed (no consumer). Studio mode = Compact.
 - `component-size.json`, tokens:build (web + native), segmented.css fallbacks; contract of Primitives/Segmented/Item and
   Segmented re-captured (mcp-capture, 1 call): only padding 4 → 8, gap → 0 and widths; contracts.lock rebuilt.
+
+## Accordion Size=Small (tier M, user: "làm Accordion size Small"; spec "Bậc giữa, thoáng hơn")
+
+- Figma (9nZv4uW2LT21yuHabMTCh1): .Primitives/Accordion/Content +4 Small variants (cloned from Medium; SLOT and Title
+  refs restored, Body/Base/Bold title, Body/Small/Regular content, Contents Gap/Small; Full: title hugs its lines,
+  Chevron-Space 20 with no inset, row gap Gap/Small). Accordion/Text +8 Small variants in grid rows 12–15 (nested
+  primitive Size=Small, padding Padding/Small, Container gap Gap/Small, Wrapper inset 0, Box Corner-Radius/Base).
+  Collapsed 44, open 104. Descriptions: Accordion/Text via tools/figma-docs (FORCE), primitive by hand; backups in
+  "Description backup 2026-10-15".
+- Code: `size` small/sm (titleStyle, contentStyle per size; CSS Small block), guideline Size and Contents rows,
+  component-properties Size options, Studio maps regenerated, example Layer settings (Small in a panel).
+- Fixed (user: "sửa luôn"): the primitive's 8 Content Width=Full variants had no Title text-property reference → linked
+  to Title#239:80 (16 nested instances, none customised, all read the property).
+- Box border (user removed it in Figma, 2026-10-15): all 16 Box roots of Accordion/Text, Small included, have no stroke;
+  Divider keeps its bottom Pale rule. Code draws none on Box, so nothing changes; BACKLOG P3 designer question closed,
+  Accordion JSDoc: Divider rule Pale (was Subtle), Box no border.

@@ -2915,7 +2915,7 @@
       [
         "Size",
         "size",
-        "medium (Subheading) · large (Heading/4) · xlarge (Heading/3)"
+        "small (Body/Base/Bold, content Body/Small; dense panels and cards) · medium (Subheading) · large (Heading/4) · xlarge (Heading/3)"
       ],
       [
         "Theme",
@@ -2930,7 +2930,7 @@
       [
         "Contents",
         "children",
-        "Body/Base/Regular, Neutral/Base"
+        "Body/Base/Regular (Small: Body/Small/Regular), Neutral/Base"
       ],
       [
         "Content Width",

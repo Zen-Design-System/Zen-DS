@@ -262,6 +262,9 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
+  for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
+  chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.
 - Widget patterns, batch 1 (2026-10-14, user): a **Widgets** page on the platform and a **Widgets** group in Zen
   Studio's palette with 20 dashboard widgets — seven metric cards (KPI, sparkline, spark bars, goal progress, period
   comparison, category split, hero) and thirteen chart cards — one source for both, carried by Export › Figma and

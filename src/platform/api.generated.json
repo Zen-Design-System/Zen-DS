@@ -7334,7 +7334,7 @@
           "type": "2 | 3 | 4 | 5 | 6",
           "required": false,
           "default": "3",
-          "description": "Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}><button>`), default 3. Take it from where\nthe accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2\nsection, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never\nlarger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section;\nXLarge (Heading/3) only directly under the page h1.",
+          "description": "Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}><button>`), default 3. Take it from where\nthe accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2\nsection, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never\nlarger than the heading it sits under: Small (Body/Base/Bold) fits anywhere, a panel or a card included; Medium\n(Heading/Subheading) and Large (Heading/4) fit under an h2 section; XLarge (Heading/3) only directly under the page h1.",
           "deprecated": null
         },
         {
@@ -7342,15 +7342,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base).",
+          "description": "Content slot (Figma .Primitives/Accordion/Content/Text: Body/Base/Regular, Small Body/Small/Regular; Neutral/Base).",
           "deprecated": null
         },
         {
           "name": "size",
-          "type": "\"md\" | \"lg\" | \"xl\" | \"medium\" | \"large\" | \"xlarge\"",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md…) or Figma (small, medium…) spelling. Small (Figma 2026-10-15) is for dense panels and cards: title\nBody/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, Box Corner-Radius/Base.",
           "deprecated": null
         },
         {
@@ -7358,7 +7358,7 @@
           "type": "\"divider\" | \"box\"",
           "required": false,
           "default": "\"divider\"",
-          "description": "Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface with radius (Corner-Radius/Large, XLarge 2XLarge); the whole box header is the toggle,\nand its focus ring is concentric with the box corner.",
+          "description": "Divider: bottom Border/Neutral/Pale rule; the whole header row, its block padding included, is the toggle. Box:\nSupport/Neutral/Pale surface, no border, with radius (Corner-Radius/Large, XLarge 2XLarge, Small Base); the whole box\nheader is the toggle, and its focus ring is concentric with the box corner.",
           "deprecated": null
         },
         {
