@@ -11646,7 +11646,7 @@
           "type": "number",
           "required": false,
           "default": "280",
-          "description": "Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below).",
+          "description": "Height of the plot in px, lanes included (a seventh of it for the Tooltip lane on top and one for the X labels below,\n as Figma's 14-row Trend grid).",
           "deprecated": null
         },
         {
@@ -11683,10 +11683,10 @@
         },
         {
           "name": "fill",
-          "type": "\"gradient\" | \"none\"",
+          "type": "\"area\" | \"none\" | \"gradient\"",
           "required": false,
-          "default": "\"gradient\"",
-          "description": "The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`.",
+          "default": "\"area\"",
+          "description": "The area under the line: `area` (default, Accent/Solid at 16%) or `none`; `gradient` is deprecated and draws the same area.",
           "deprecated": null
         },
         {

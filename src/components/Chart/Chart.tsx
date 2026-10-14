@@ -1,4 +1,4 @@
-import { useId, useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Card, type CardSurface, type CardTheme } from "../Card";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
@@ -45,7 +45,8 @@ export interface LineChartProps {
   compare?: ChartCompare;
   /** Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. */
   format?: (value: number) => string;
-  /** Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below). */
+  /** Height of the plot in px, lanes included (a seventh of it for the Tooltip lane on top and one for the X labels below,
+   *  as Figma's 14-row Trend grid). */
   height?: number;
   /** What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). */
   "aria-label": string;
@@ -54,7 +55,7 @@ export interface LineChartProps {
   initialIndex?: number;
   /** `smooth` (default, Figma's curve) or `linear` segments. */
   curve?: "smooth" | "linear";
-  /** The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`. */
+  /** The area under the line: `area` (default, Accent/Solid at 16%) or `none`; `gradient` is deprecated and draws the same area. */
   fill?: ChartFill;
   /** The legend of the line and its comparison (default on with `compare`; colour is never the only key). */
   showLegend?: boolean;
@@ -69,23 +70,25 @@ export interface LineChartProps {
 /**
  * Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a
  * dashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)
- * and the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same
- * chart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move
- * between points.
+ * and the active sector shows a Tooltip with its value. Like Figma's Chart-Visual it starts at the plot's left edge (level
+ * with the first value) and ends on the last sector's centre. With `compare` it is Figma Chart/Multi-Line-Chart (set
+ * 15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the
+ * Tooltip and a legend. ←/→, Home/End move between points.
  */
-export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "gradient", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false }: LineChartProps) {
+export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "area", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false }: LineChartProps) {
   const t = useZenLabels();
   const values = data.map((d) => d.value);
   const compared = compare ? data.map((_, i) => compare.values[i] ?? 0) : undefined;
   const signature = signatureOf([values, compared ?? null]);
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...values, ...(compared ?? []))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
-  const gradientId = useId().replace(/:/g, "");
   const n = Math.max(1, data.length);
   const pointsOf = (list: number[]) => list.map((v, i) => [((i + 0.5) / n) * 100, 100 - (v / top) * 100] as const);
   const pts = pointsOf(values);
-  const path = linePath(pts, curve);
-  const area = pts.length ? `${path} L ${pts[pts.length - 1][0]} 100 L ${pts[0][0]} 100 Z` : "";
+  // Figma's Chart-Visual spans from the plot's left edge: each line runs in level from x 0 to its first point.
+  const leadIn = (list: readonly (readonly [number, number])[]) => (list.length ? [[0, list[0][1]] as const, ...list] : list);
+  const path = linePath(leadIn(pts), curve);
+  const area = pts.length ? `${path} L ${pts[pts.length - 1][0]} 100 L 0 100 Z` : "";
   const comparePts = compared ? pointsOf(compared) : undefined;
   const name = label ?? ariaLabel;
   const current = active === null ? undefined : data[active];
@@ -104,18 +107,8 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
         tooltip={tooltip} summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
         <div className="zen-chart__marks" key={signature}>
           <svg className="zen-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {fill === "gradient" ? (
-              <>
-                <defs>
-                  <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="var(--zen-color-background-accent-solid-default, #ff66d4)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="var(--zen-color-background-accent-subtle-default, #ff029817)" stopOpacity={0.4} />
-                  </linearGradient>
-                </defs>
-                <path className="zen-chart__area" d={area} fill={`url(#${gradientId})`} />
-              </>
-            ) : null}
-            {comparePts ? <path d={linePath(comparePts, curve)} className="zen-chart__line" data-compare="true" vectorEffect="non-scaling-stroke" /> : null}
+            {fill === "none" ? null : <path className="zen-chart__area" d={area} />}
+            {comparePts ? <path d={linePath(leadIn(comparePts), curve)} className="zen-chart__line" data-compare="true" vectorEffect="non-scaling-stroke" /> : null}
             <path d={path} className="zen-chart__line" vectorEffect="non-scaling-stroke" />
           </svg>
           {/* The active dots sit in the wiped layer, so each appears as the line reaches it. */}

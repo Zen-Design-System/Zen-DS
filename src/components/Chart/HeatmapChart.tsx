@@ -26,7 +26,7 @@ export interface HeatmapChartProps {
 }
 
 const LEVELS = [0, 1, 2, 3, 4] as const;
-/** 5 steps of the Support/Brand ramp: Pale · Subtle · Soft · Solid · Deep. */
+/** 5 steps of the Support/Brand ramp: Pale · Soft · Solid · Rich · Deep. */
 const levelOf = (value: number, max: number) => (value <= 0 || max <= 0 ? 0 : Math.min(4, Math.floor((value / max) * 5)));
 
 /**

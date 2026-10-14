@@ -28,12 +28,12 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Active X label | 20px pill, Corner-Radius/Rounded, Background/Active/Neutral/Subtle · Content/Neutral/Strongest |
 | Gridlines | 1px dashed Border/Neutral/Pale, baseline solid (`zen-allow-dashed-color`, a data guide) |
 | Sector rule | 1px Border/Active/Accent/Subtle at 35% (line), Solid when active; Neutral/Subtle for bars |
-| Tooltip | `TooltipSurface` default medium, in the plot's 36px top lane |
+| Tooltip | `TooltipSurface` default medium, in the plot's top lane (a seventh of the height for line and stack, 36px for bars) |
 | Legend | 12px dot (Element-Size/Popular/2XSmall), Spacing/Gap/2XSmall to its label, Caption/Regular · Content/Neutral/Strongest; items gap 4/8; `legendPosition` bottom (default) or top |
 | Categorical colours (series, slices, rings) | `chartPalette` = the Figma colour styles Color Chart Sector/Primary · Secondary · Tertiary (Support Cyan) · Quaternary (Violet) · Quinary (Yellow) · Senary (Orange Solid) · Septenary (Red Soft). In Figma, chart marks take these **styles**, never the variables directly (the user, 2026-10-13) |
 | Single measure | Line: Border/Accent/Solid + Accent area (unchanged). Bars: Chart/Sector/Primary, the active bar Chart/Sector/Secondary |
 | Projected bar, target track | Hatch (the user's Figma edit, 2026-10-13): Support/Neutral/Pale under 1.5px Border/Neutral/Pale stripes at 45°, 6px apart along the axis, no outline |
-| Heatmap ramp (5 levels, low → high) | Support/Brand Pale · Subtle · Soft · Solid · Deep |
+| Heatmap ramp (5 levels, low → high) | Support/Brand Pale · Soft · Solid · Rich · Deep (Rich replaced Subtle 2026-10-14: even lightness steps) |
 | Bars, heatmap cells | Corner-Radius/Small on every corner (stack: the column, outer corners) |
 | Ring and donut tracks | Dotted ring: Border/Neutral/Subtle, dash 0 × 6 round caps |
 | Donut % pill | Surface/Default, Label/Small/Medium · Content/Neutral/Strongest, Corner-Radius/Rounded; shown when the slice ≥ 6% |
@@ -41,7 +41,7 @@ Tier L (new components). Code is the source of this family; Figma is built from 
 | Average line (`showAverage`: Line, Bar, Stack bar) | 2px Border/Neutral/Solid dots every 6px, no ring (the user, 2026-10-13: the Surface ring went); tag Label/Small/Medium · Content/Inverse/Strongest on Background/Neutral/Solid, Corner-Radius/XSmall, 6px tip pointing along the rule; at the plot's start (vertical), on top (horizontal bars). Mean of the first series · closed bars · column totals |
 | Card header | [Icon 20 Content/Neutral/Strongest] Heading/Subheading title … chevron IconButton (main tertiary 2xs); description Body/Small/Regular · Content/Neutral/Base; value Heading/2 (Figma Heading > Value, 2026-10-14) |
 
-Geometry: plot lanes 36px top (Tooltip) / 28px bottom (X labels); bar column = 2px side padding, bar width ≤ 40px
+Geometry: plot lanes a seventh of the height top (Tooltip) and bottom (X labels) for line and stack, as Figma's 14-row Trend grid (2026-10-13), with the Y labels in a 32px left-aligned column and the line from the plot's left edge; bars keep 36px top / 28px bottom; bar column = 2px side padding, bar width ≤ 40px
 (vertical); horizontal bars 24px thick, gap Spacing/Gap/Medium (16); heatmap cells gap Spacing/Gap/2XSmall (4), 24px
 tall; donut ring = 22% of the diameter, slices parted by straight 4px gaps of the same width from the hole to the rim (2026-10-13, the user: angular gaps read uneven); radial rings 10px thick, Spacing/Gap/XSmall (8)
 apart.

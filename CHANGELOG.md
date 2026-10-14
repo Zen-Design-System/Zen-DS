@@ -115,6 +115,18 @@ removed (four unused colour ramps were, see Removed).
   `icon` is deprecated: Figma no longer draws the Modal heading icon (it still renders for now).
 - Progress-Circle: the ring has its Neutral/Subtle fill again, and Done is a plain solid disc (no ring over it), as in
   Figma's Progress-Circle/Icon.
+- HeatmapChart's five levels are Support/Brand Pale · Soft · Solid · Rich · Deep, as Figma's Heatmap-Chart now draws
+  them: the new Rich step replaces Subtle, so the steps are evenly spaced (Subtle was barely apart from Pale, and Solid
+  jumped straight to Deep).
+- LineChart's area is a flat Accent fill at 16% (`fill="area"`, the default), as Figma's charts now draw it (no
+  gradients, 2026-10-14). `fill="gradient"` is deprecated and draws the same area.
+- LineChart and StackBarChart follow Figma's new chart grid (the 14-row Trend grid). The Tooltip lane and the X-label lane
+  are each a seventh of the chart's height (they were fixed at 36px and 28px). The Y labels sit in a 32px column,
+  left-aligned. The line and its area start at the plot's left edge. BarChart keeps its 36px and 28px lanes.
+- LineChart `compare` is a neutral reference line, as in Figma Chart/Multi-Line-Chart: Border/Neutral/Solid at 40%,
+  dashed 4 / 5, with a Neutral legend dot and active dot. It no longer uses chart-palette colour 1. In Figma,
+  Multi-Line-Chart is now a set with a `Sector` property (4, 6, 7 or 12), so its comparison line lines up with every
+  period count.
 - Zen Studio ↔ Figma keeps more of a page through a push and a pull. This was tested by placing the examples in the
   real Zen file and reading them back. Fixes:
   - A Checkbox, Toggle or Radio keeps its label and caption (Figma moved them into the Content primitive).

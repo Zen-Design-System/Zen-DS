@@ -13,8 +13,9 @@ export interface ChartPoint {
   /** BarChart: the goal for this bar, drawn as a hatched track behind it; the Tooltip reads "value of target". */
   target?: number;
 }
-/** How a LineChart fills the area under its line. */
-export type ChartFill = "gradient" | "none";
+/** How a LineChart fills the area under its line: `area` (Accent/Solid at 16%, Figma's flat area) or `none`. `gradient`
+ *  is deprecated (Figma has no chart gradients since 2026-10-14) and draws the same flat area. */
+export type ChartFill = "area" | "none" | "gradient";
 export interface ChartSeries {
   id: string;
   label: string;
@@ -123,7 +124,8 @@ export const staggerStyle = (index: number, extra?: CSSProperties) => ({ "--zen-
 /**
  * Cartesian frame shared by LineChart, BarChart (vertical) and StackBarChart: Y labels (Label/Small/Medium,
  * Neutral/Light), dashed Border/Neutral/Pale grid (solid baseline), one sector column per X value with its X label (a
- * pill when active) and the active item's Tooltip in the 36px top lane.
+ * pill when active) and the active item's Tooltip in the top lane (chart.css: a seventh of the plot for line and stack, as
+ * Figma's 14-row Trend grid; 36px / 28px for bars).
  */
 export function PlotFrame({ labels, ticks, top, format, active, setActive, onKeyDown, height, ariaLabel, tooltip, activeLine, children, className, summary, kind, animate, average }: {
   labels: string[]; ticks: number[]; top: number; format: (v: number) => string; active: number | null; setActive: (i: number) => void; onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
@@ -135,7 +137,7 @@ export function PlotFrame({ labels, ticks, top, format, active, setActive, onKey
   return (
     <div className={["zen-chart", className].filter(Boolean).join(" ")} data-kind={kind} data-animate={animate ? undefined : "false"} data-dense={labels.length > 8 ? "true" : undefined} style={{ "--zen-chart-height": `${height}px`, "--zen-chart-count": labels.length } as CSSProperties}>
       <div className="zen-chart__y" aria-hidden="true">
-        {ticks.map((tick) => <span key={tick} className={typographyStyles["Label/Small/Medium"]} style={{ bottom: `calc(28px + (100% - 64px) * ${tick / top})` }}>{format(tick)}</span>)}
+        {ticks.map((tick) => <span key={tick} className={typographyStyles["Label/Small/Medium"]} style={{ bottom: `calc(var(--zen-chart-lane-bottom) + (100% - var(--zen-chart-lane-top) - var(--zen-chart-lane-bottom)) * ${tick / top})` }}>{format(tick)}</span>)}
       </div>
       <div
         className="zen-chart__plot"
