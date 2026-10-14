@@ -502,7 +502,7 @@ const [range, setRange] = useState("3m");
   },
   {
     title: "A line and its comparison",
-    description: "The line chart with one dashed comparison: what was invoiced keeps its Accent line and area, what was collected runs dashed in Border/Neutral/Solid, and the legend above names both. The Tooltip reads both values for the active month.",
+    description: "The line chart with one dashed comparison: what was invoiced keeps its Accent line and area, what was collected runs as a dashed neutral reference line, and the legend above names both. The Tooltip reads both values for the active month.",
     render: () => <CashFlowCard />,
     code: `const invoiced = [{ label: "Apr", value: 82300 }, /* … */ { label: "Sep", value: 105700 }];
 const collected = { label: "Collected", values: [79500, /* … */ 88300] };

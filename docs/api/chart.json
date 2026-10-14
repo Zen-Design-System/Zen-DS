@@ -6,7 +6,7 @@
     {
       "name": "LineChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. With `compare` it is Figma Chart/Multi-Line-Chart (15426:2521): the same\nchart plus one dashed Border/Neutral/Solid line at 40%, both values in the Tooltip and a legend. ←/→, Home/End move\nbetween points.",
+      "description": "Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle, on a\ndashed Border/Neutral/Pale grid with 6 Y labels; each X value is a sector (Active/Accent/Subtle rule, Solid when active)\nand the active sector shows a Tooltip with its value. Like Figma's Chart-Visual it starts at the plot's left edge (level\nwith the first value) and ends on the last sector's centre. With `compare` it is Figma Chart/Multi-Line-Chart (set\n15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the\nTooltip and a legend. ←/→, Home/End move between points.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -47,7 +47,7 @@
           "type": "number",
           "required": false,
           "default": "280",
-          "description": "Height of the plot in px, lanes included (36px Tooltip lane on top, 28px X labels below).",
+          "description": "Height of the plot in px, lanes included (a seventh of it for the Tooltip lane on top and one for the X labels below,\n as Figma's 14-row Trend grid).",
           "deprecated": null
         },
         {
@@ -84,10 +84,10 @@
         },
         {
           "name": "fill",
-          "type": "\"gradient\" | \"none\"",
+          "type": "\"area\" | \"none\" | \"gradient\"",
           "required": false,
-          "default": "\"gradient\"",
-          "description": "The area under the line: `gradient` (default, Accent/Solid → Accent/Subtle) or `none`.",
+          "default": "\"area\"",
+          "description": "The area under the line: `area` (default, Accent/Solid at 16%) or `none`; `gradient` is deprecated and draws the same area.",
           "deprecated": null
         },
         {

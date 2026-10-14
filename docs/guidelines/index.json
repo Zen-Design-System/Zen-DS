@@ -3491,7 +3491,7 @@
       "title": "Chart",
       "file": "docs/guidelines/chart.md",
       "apiFile": "docs/api/chart.json",
-      "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528, Chart/Bar-Chart 15321:84071, Chart/Multi-Line-Chart 15426:2521, Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart 15326:1043 (spec docs/research/chart-family-spec-2026-10-12.md)",
+      "figma": "❖ Chart (7032:8969): Chart/Line-Chart 6643:63324, Chart/Stack-Bar-Chart 6643:73471, Chart/Chart-Card 6643:63528, Chart/Bar-Chart 15321:84071, Chart/Multi-Line-Chart 15501:3054 (Sector 4 · 6 · 7 · 12), Chart/Donut-Chart 15324:80365, Chart/Radial-Chart 15325:1135, Chart/Heatmap-Chart 15326:1043 (spec docs/research/chart-family-spec-2026-10-12.md)",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line), compares across periods or categories (Bar), splits a total (Stack bar, Donut), measures against a maximum (Radial) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -3522,7 +3522,7 @@
           "className?: string",
           "initialIndex?: number",
           "curve?: smooth|linear = smooth",
-          "fill?: gradient|none = gradient",
+          "fill?: area|none|gradient = area",
           "showLegend?: boolean = true",
           "legendPosition?: top|bottom = bottom",
           "animate?: boolean = true",

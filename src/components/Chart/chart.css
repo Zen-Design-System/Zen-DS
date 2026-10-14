@@ -1,25 +1,37 @@
 /* Figma ❖ Chart (7032:8969). One language for the whole family: docs/research/chart-family-spec-2026-10-12.md. */
 .zen-chart { --zen-chart-reveal: calc(var(--zen-motion-duration-slow, 280ms) * 2.5); --zen-chart-stagger: calc(var(--zen-motion-duration-xfast, 80ms) * 0.5); display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 
+/* Lanes: the Tooltip lane above the grid and the X-label lane below it. Line and stack charts follow Figma's Trend grid
+   (.Chart/Line-Chart/Trend and the Stack-Chart grid, 14 equal rows with the gridlines on rows 2 … 12, the user's
+   2026-10-13 edit), so each lane is a seventh of the plot and the Y labels sit in a 32px column, left-aligned, with no
+   gap; the bar chart keeps Figma Bar-Chart's 36px / 28px lanes and its right-aligned labels.
+   zen-allow-raw-spacing: plot lanes and Figma's fixed 32px axis track, not spacing between elements. */
+.zen-chart { --zen-chart-lane-top: 36px; --zen-chart-lane-bottom: 28px; }
+/* zen-allow-raw-spacing: Figma's FIXED 32 axis column of the Trend grid. */
+.zen-chart:is([data-kind="line"], [data-kind="stack"]) { --zen-chart-lane-top: calc(var(--zen-chart-height, 280px) / 7); --zen-chart-lane-bottom: calc(var(--zen-chart-height, 280px) / 7); grid-template-columns: 32px minmax(0, 1fr); column-gap: 0; }
+.zen-chart:is([data-kind="line"], [data-kind="stack"]) .zen-chart__y { min-width: 0; text-align: left; }
+.zen-chart:is([data-kind="line"], [data-kind="stack"]) .zen-chart__y > span { right: auto; left: 0; }
+
 /* A chart and its legend: legend below (default) or above, gap 16. */
 .zen-chart-block { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-chart-block[data-legend="top"] > .zen-chart__legend { order: -1; }
 
-/* Y labels sit on their gridlines: same 36px top / 28px bottom insets as the plot, centred on each line. */
+/* Y labels sit on their gridlines: the same lanes as the plot, centred on each line. */
 .zen-chart__y { position: relative; min-width: 28px; height: var(--zen-chart-height, 280px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: right; }
 .zen-chart__y > span { position: absolute; right: 0; line-height: var(--zen-typography-line-height-label-small, 12px); white-space: nowrap; transform: translateY(50%); }
-/* zen-allow-raw-spacing: the plot's lanes, not spacing — 36px above the grid for the Tooltip and 28px below it for the
-   X labels (Figma Line-Chart 6643:63324); the grid, bars, sector rules and Y labels share them. */
-.zen-chart__plot { position: relative; height: var(--zen-chart-height, 280px); box-sizing: border-box; padding: 36px 0 28px; border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+/* The plot's lanes (above): the grid, bars, sector rules and Y labels share them. */
+.zen-chart__plot { position: relative; height: var(--zen-chart-height, 280px); box-sizing: border-box; padding: var(--zen-chart-lane-top) 0 var(--zen-chart-lane-bottom); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
 .zen-chart__plot:focus-visible, .zen-chart__hplot:focus-visible, .zen-chart__heat:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
-/* Top 36px holds the active Tooltip so it never covers the header / range switch. */
-.zen-chart__grid, .zen-chart__visual, .zen-chart__bars { position: absolute; inset: 36px 0 28px; }
+/* The top lane holds the active Tooltip so it never covers the header / range switch. */
+.zen-chart__grid, .zen-chart__visual, .zen-chart__bars { position: absolute; inset: var(--zen-chart-lane-top) 0 var(--zen-chart-lane-bottom); }
 /* zen-allow-dashed-color: Figma chart gridlines (Line-2…6) are dashed Border/Neutral/Pale — a data guide, not a container edge. */
 .zen-chart__grid > span { position: absolute; right: 0; left: 0; height: 0; border-top: 1px dashed var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .zen-chart__grid > span[data-base="true"] { border-top-style: solid; }
 .zen-chart__marks { position: absolute; inset: 0; }
 .zen-chart__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .zen-chart__line { fill: none; stroke: var(--zen-color-border-accent-solid-default, #ff66d4); stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round; }
+/* The area under the line: a flat Accent/Solid at 16% (Figma Chart Sector/Primary at layer opacity .16, no gradient). */
+.zen-chart__area { fill: var(--zen-color-background-accent-solid-default, #ff66d4); fill-opacity: .16; }
 /* The comparison (LineChart compare, Figma Chart/Multi-Line-Chart Compare, the user's 2026-10-13 edits): a 2px
    Border/Neutral/Solid line at 40%, dashed 4 / 5, round caps — a neutral reference, not a chart-palette series; its
    active dot (Surface fill, 2px Border/Neutral/Solid ring) stays full colour.
@@ -31,7 +43,7 @@
 /* Sectors: one column per X value; a 1px rule (Active/Accent/Subtle, Solid when active) and the X label (a pill when active). */
 .zen-chart__sectors { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--zen-chart-count, 4), minmax(0, 1fr)); }
 .zen-chart__sector { position: relative; display: flex; min-width: 0; align-items: flex-end; justify-content: center; padding: 0; border: 0; background: transparent; cursor: pointer; font: inherit; }
-.zen-chart__sector::before { position: absolute; top: 36px; bottom: 28px; left: 50%; width: 0; border-left: 1px solid transparent; content: ""; }
+.zen-chart__sector::before { position: absolute; top: var(--zen-chart-lane-top); bottom: var(--zen-chart-lane-bottom); left: 50%; width: 0; border-left: 1px solid transparent; content: ""; }
 /* Figma: idle sector rules are Active/Accent/Subtle at 35% opacity. */
 .zen-chart[data-kind="line"] .zen-chart__sector::before, .zen-chart__sector:hover::before { border-left-color: var(--zen-color-border-active-accent-subtle, rgb(255 2 152 / 35%)); opacity: .35; }
 .zen-chart__sector[data-active]::before { opacity: 1; }
@@ -155,9 +167,11 @@
 .zen-chart__cell[data-active="true"] { z-index: 1; box-shadow: 0 0 0 2px var(--zen-color-border-neutral-solid-default, #111); }
 .zen-chart__cell-tip { position: absolute; bottom: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 50%; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
 .zen-chart__cell[data-level="0"], .zen-chart__scale-step[data-level="0"] { background: var(--zen-color-background-support-brand-pale, rgb(255 2 152 / 4%)); }
-.zen-chart__cell[data-level="1"], .zen-chart__scale-step[data-level="1"] { background: var(--zen-color-background-support-brand-subtle, rgb(255 2 152 / 9%)); }
-.zen-chart__cell[data-level="2"], .zen-chart__scale-step[data-level="2"] { background: var(--zen-color-background-support-brand-soft, #ffb0e4); }
-.zen-chart__cell[data-level="3"], .zen-chart__scale-step[data-level="3"] { background: var(--zen-color-background-support-brand-solid, #ff66d4); }
+/* Levels 1–3: Soft · Solid · Rich (Figma Chart/Heatmap-Chart, 2026-10-14) — the most even lightness steps the Support
+   ramp gives in both modes (Subtle sat 4 L* from Pale; Solid → Deep jumped 47 L* in light). */
+.zen-chart__cell[data-level="1"], .zen-chart__scale-step[data-level="1"] { background: var(--zen-color-background-support-brand-soft, #ffb0e4); }
+.zen-chart__cell[data-level="2"], .zen-chart__scale-step[data-level="2"] { background: var(--zen-color-background-support-brand-solid, #ff66d4); }
+.zen-chart__cell[data-level="3"], .zen-chart__scale-step[data-level="3"] { background: var(--zen-color-background-support-brand-rich, #941f7b); }
 .zen-chart__cell[data-level="4"], .zen-chart__scale-step[data-level="4"] { background: var(--zen-color-background-support-brand-deep, #5c0f45); }
 /* Less → More under the grid, at its end: Caption/Regular, 12px steps (Element-Size/Popular/2XSmall). */
 .zen-chart__scale { display: flex; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }

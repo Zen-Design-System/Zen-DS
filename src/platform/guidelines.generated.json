@@ -6461,13 +6461,13 @@
     "api": [
       [
         "Line",
-        "LineChart data[] {label, value} · label · compare {label, values} · curve · fill (gradient · none) · showLegend · legendPosition",
-        "Accent/Solid 2px line + Accent area; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart)"
+        "LineChart data[] {label, value} · label · compare {label, values} · curve · fill (area · none) · showLegend · legendPosition",
+        "Accent/Solid 2px line + a flat Accent area at 16% from the plot's left edge to the last period's centre; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart: pick its Sector 4 · 6 · 7 · 12 to match the periods); lanes a seventh of the height above and below the grid, Y labels in a 32px column"
       ],
       [
         "Bar",
         "BarChart data[] {label, value, projected, target} · orientation · color · activeColor",
-        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched (Support/Neutral/Pale under Border/Neutral/Pale stripes); Corner-Radius/Small; horizontal bars end each row with its value instead of a Tooltip"
+        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected and target hatched in Border/Neutral/Subtle; Corner-Radius/Small"
       ],
       [
         "Stack bar",
@@ -6477,7 +6477,7 @@
       [
         "Donut",
         "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)",
-        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/2 figure)"
+        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/3 figure)"
       ],
       [
         "Radial",
@@ -6487,7 +6487,7 @@
       [
         "Heatmap",
         "HeatmapChart rows · columns · values[row][column] · max · showLegend",
-        "24px cells on Support/Brand Pale · Subtle · Soft · Solid · Deep, Less → More scale"
+        "24px cells on Support/Brand Pale · Soft · Solid · Rich · Deep, Less → More scale"
       ],
       [
         "Every chart",
@@ -6502,7 +6502,7 @@
       [
         "Card",
         "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/3 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card)"
       ]
     ],
     "keyboard": [

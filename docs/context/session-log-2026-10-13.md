@@ -489,6 +489,26 @@ Tier M (Studio, several modules; one library line in Badge). Private Studio serv
   style source entry (+ styles:build: `--zen-style-semi-pale-fill`, `.zen-fill-semi-pale` gone), guideline source,
   figma-docs sources, example copy, CHANGELOG. Chart worktree (zen/feat/chart-grid-lanes): LineChart `fill="area"`
   (flat Accent at 16%, default), `gradient` deprecated alias; guideline + docs + CHANGELOG.
+- Chart grid sync (user: "Update lại chart trong design. Nó đang k tự update sau khi tôi update grid" + "Update ngược lại
+  cho studio luôn"; choices: Multi-Line Sector variants, code chart follows the new grid). The user had rebuilt
+  `.Chart/Line-Chart/Trend` (now on ◆ HR-Platform) as GRID: a 32px axis column + 2 flex columns per sector, 14 rows
+  (gridlines on rows 2 … 12); Multi-Line-Chart's Compare overlay had its own 4-sector grid (16 sub-columns), so the
+  7-week chart's dashed line and dot sat 27px short of the last sector. Grid count and span can't be overridden in an
+  instance → Chart/Multi-Line-Chart is now a set 15501:3054, Sector 4/6/7/12 (property refs restored after clone; Compare
+  1+2N columns, Compare-Grid 4N, Line span 4N−2, Active at 4N−3; Trend 244 high in every variant); the Performance
+  frames use Sector=7 (dot 967.1 vs sector 966.6). Audit 0 errors.
+- Code (worktree ../Zen-DS-chart-grid, branch zen/feat/chart-grid-lanes from origin/main, uncommitted): line and stack
+  lanes = height / 7, Y labels in a 32px left-aligned column with no gap, the line and area start at the plot's left
+  edge, `compare` in Border/Neutral/Solid 40% dash 4/5 with a Surface + Neutral ring dot (main still used chart-sector
+  primary); bars keep 36/28. Guideline source, chart spec, example copy, CHANGELOG. Measured with Playwright (h 280 →
+  lanes 40, top line 39, labels left 0). Gate `--isolated --pages=chart,color-selector`: PASS.
+- Heatmap ramp with Rich (user, 2026-10-14: "Sau khi bổ sung Rich cho background support … tính lại màu cho heatmap"):
+  CIELAB L* on Surface/Default, light / dark — Pale 97/14, Subtle 94/19, Soft 83/25, Solid 67/67, Rich 35/87, Deep 20/96.
+  Best 5 of 6 by step size: Pale · Soft · Solid · Rich · Deep (light steps 15/16/32/15, dark 11/42/20/10; was 4/11/16/47
+  and 4/6/42/29 — Pale≈Subtle, Solid→Deep jumped). Figma Chart/Heatmap-Chart: 27 cells + scale steps remapped by level
+  (Subtle→Soft, Soft→Solid, Solid→Rich), description; its one instance has no overrides. Code (chart worktree):
+  chart.css levels 1–3, HeatmapChart comment, guideline source, chart spec, CHANGELOG. The Rich token is on #42's branch
+  (f68a765), not yet on the chart branch: there it falls back to #941f7b until #42 is merged in.
 
 ## Widget themes phase 1: metric + chart widgets on neutral, colour and gradient surfaces (Figma, tier L)
 
