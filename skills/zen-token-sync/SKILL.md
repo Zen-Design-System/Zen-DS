@@ -24,6 +24,15 @@ wrong is the pipeline (bad alias, wrong type), a value that does not match Figma
 6. **Report** one short table: collection, tokens before → after, added / removed / changed, consumer pages, and any
    value that differs from the live file. One CHANGELOG line if users see a change; session log ≤ 10 lines.
 
+**A pull request from the Zen Figma plugin** (Export › Push to GitHub, branch `zen/tokens/figma-sync-<date>-<time>`,
+opened as a draft) has done steps 1–3 in the plugin: the designer reviewed the diff per collection and variable, the
+merge kept the file format, the repo-only modes (`Studio`) and the values kept last time, the plugin ran the
+tokens:check rules over the folder, and `figma.collections.json` got the date, a note sentence and the counts. Unlike
+step 2, a variable only in Figma is added only when the designer picked it (the VT, Chat and Ananas ramps stay out),
+and one only in the repository is removed only when picked. `.github/workflows/figma-token-sync.yml` then commits the
+generated sources (step 4) and starts CI on the branch. Check out the branch for steps 5–6: `npm run qa`, the report,
+CHANGELOG and session log, then mark the pull request ready.
+
 Known gotchas (moved here from a private memory note, 2026-10-07; add new ones here, not to memory):
 - A typography token change (size, line height, tracking) moves every text box: the Figma contract suites compare
   rendered heights (`node tools/figma-contract/run-all.mjs`; re-capture per `tools/figma-contract/README.md` when Figma

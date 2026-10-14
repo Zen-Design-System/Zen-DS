@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # figma-token-sync.yml starts a run on a zen/tokens/figma-sync-* branch once it has committed the generated sources.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
