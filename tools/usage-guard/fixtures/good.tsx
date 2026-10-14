@@ -165,6 +165,10 @@ export const Good = () => <>
   <ProgressBar value={92} theme="status" scale="quota" label="Storage · 92% used" />
   <ProgressBar value={40} theme="status" label="40% set up" />
   <Segmented level="secondary" aria-label="View" value={view} onChange={setView} options={[{ id: "grid", label: null, "aria-label": "Grid view", leading: <Icon name="icon-grid-01-line" decorative /> }, { id: "list", label: null, "aria-label": "List view", leading: <Icon name="icon-list-line" decorative /> }]} />
+  <SliderField label="Overlay Opacity" defaultValue={0.6} min={0} max={1} step={0.01} />
+  <SliderField label="Offset X" defaultValue={239} min={0} max={400} />
+  <CurvePreview type="spring" bounce={0.3} />
+  <CurvePreview type="ease-in-out" />
   <ColorField label="Brand colour" defaultValue="#1F6FEB" savedColors={["#1F6FEB", "#FFFFFF"]} />
   <ColorPicker aria-label="Shadow tint" defaultValue="#16e" />
   <InputField layout="inline" label="Title" defaultValue="Japan" />

@@ -27,6 +27,8 @@ const cards: Array<{ title: string; description: string; icon: IconName; page?: 
 export const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
   { id: "color-selector", label: "Color Selector" },
   { id: "color-picker", label: "Color Picker" },
+  { id: "slider-field", label: "Slider Field" },
+  { id: "curve-preview", label: "Curve Preview" },
   { id: "metric", label: "Metric Widget" },
   { id: "rating", label: "Rating" },
   { id: "side-panel", label: "Side Panel" },
@@ -209,6 +211,8 @@ export const pageLabels: Record<PlatformPage, string> = {
   table: "Table",
   "color-selector": "Color Selector",
   "color-picker": "Color Picker",
+  "slider-field": "Slider Field",
+  "curve-preview": "Curve Preview",
   metric: "Metric Widget",
   rating: "Rating",
   "side-panel": "Side Panel",

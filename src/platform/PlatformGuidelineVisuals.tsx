@@ -13,6 +13,8 @@ import { DashboardHeader } from "../components/DashboardHeader";
 import { ChipGroup } from "../components/ChipGroup";
 import { Icon } from "../components/Icon";
 import { ColorField, InputField } from "../components/Input";
+import { SliderField } from "../components/SliderField";
+import { CurvePreview } from "../components/CurvePreview";
 import { Stack as LayoutStack } from "../components/Layout";
 import { Popover, PopoverItem, PopoverManualAddNew } from "../components/Popover";
 import { Link } from "../components/Link";
@@ -299,6 +301,14 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   rating: [
     { do: { preview: <Stack><Row><RatingDisplay value={4.6} /><span className="pgv-note">4.6 · 1,284 reviews</span></Row></Stack>, caption: "Averages use RatingDisplay with the count beside them." },
       dont: { preview: <Row><Rating aria-label="Average rating" value={5} /></Row>, caption: "An input showing a rounded average invites clicks and hides the sample size." } },
+  ],
+  "slider-field": [
+    { do: { preview: <LayoutStack gap="xs" width={240}><SliderField label="Offset X" defaultValue={239} min={0} max={400} formatValue={(value) => `${value} px`} /><SliderField label="Overlay Opacity" defaultValue={0.6} min={0} max={1} step={0.01} formatValue={(value) => `${Math.round(value * 100)}%`} /></LayoutStack>, caption: "Numbers people tune and read, each with its unit, in a range where the fill means something." },
+      dont: { preview: <LayoutStack gap="xs" width={240}><SliderField label="Volume" defaultValue={40} /><SliderField label="Brightness" defaultValue={70} /></LayoutStack>, caption: "Values tuned by feel with no number to read: a Slider is calmer and shows the position alone." } },
+  ],
+  "curve-preview": [
+    { do: { preview: <LayoutStack gap="xs" width={240}><CurvePreview type="spring" bounce={0.3} /><SliderField label="Bounce" defaultValue={0.3} min={0} max={0.9} step={0.01} /></LayoutStack>, caption: "Right above the setting it shows, with the same value: the curve follows every change." },
+      dont: { preview: <LayoutStack gap="xs" width={240}><Text as="span" textStyle="Body/Small/Medium" tone="base">Weekly visits</Text><CurvePreview type="ease-out" aria-label="Weekly visits" /></LayoutStack>, caption: "Data drawn as a motion curve: it has no axes or values to read. Use LineChart." } },
   ],
   "color-picker": [
     { do: { preview: <ColorField label="Brand colour" defaultValue="#1F6FEB" colorPicker={false} />, caption: "Name what the colour is for and keep it a hex value the app stores." },

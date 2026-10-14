@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Segmented follows the live Figma (2026-10-14): items are 4px taller (`Segmented/Size` Medium 36 / 44, Small 28 / 36)
+  in a track padded by Spacing/Padding/3XSmall (2px), so the control keeps its outer height; `level="primary"` has an
+  outlined track (no fill, 2px Border/Neutral/Subtle ring). `Segmented/Size/XSmall` is removed (Figma deleted it, nothing
+  read it). Component Theme `Segmented-Item-*` tokens are unchanged.
 - Every component takes `ref` as a plain React 19 prop and puts it on its root (overlays: the panel; fields: the native
   control, as before). `forwardRef` is gone; component names are unchanged. Tooltip and Menu wrap their trigger, which
   keeps its own ref.
@@ -224,7 +228,10 @@ removed (four unused colour ramps were, see Removed).
   longer closes the outer one.
 - Open modals (Dialog, ModalForm, modal SidePanel, BottomSheet) make the rest of the page `inert`, so screen readers and
   pointers can't reach the background; the scroll lock keeps the scrollbar's width (no layout jump) and works with
-  stacked modals; focus returns to the opener only if it is still on the page.
+  stacked modals; focus returns to the opener only if it is still on the page. The isolation stops at a device frame or
+  at an element marked `data-zen-isolation-root`: Zen Studio marks its preview overlay layer, so a Dialog previewed on
+  the canvas no longer makes the canvas and the Studio chrome inert (Move could not be picked and a click on the Dialog
+  did not select it).
 - Zen plugin, Import from Studio: an imported page now takes every property it sets (variants, booleans, icons, sizes:
   Avatars at their size, Dashboard Header rows, button sizes, badge colours), swaps its icons, and importing it again
   updates the same layers. Before, the plugin set none of them in Figma. Import the page again into the same frame to
@@ -278,6 +285,15 @@ removed (four unused colour ramps were, see Removed).
   `layout="inline"` on InputField, SelectField and ColorField (Figma Input/Inline-Field): the label inside the field
   for dense property panels. Harness `color-picker/hex-value`; Studio palette (Colour field, Colour picker, Colour
   swatch, Inline field) and Figma property rows; platform page Color Picker.
+- `SliderField` (2026-10-14, user, Figma Slider/Field 15662:108207): a number that is also a slider for property
+  panels. The whole field is the track (Input tokens, the value as a Background/Subtle fill); drag scrubs, a click or
+  Enter types an exact number, arrows step. Harness `slider-field/value-in-range`; Studio palette (Slider field) and
+  Figma property rows; platform page Slider Field.
+- `CurvePreview` (2026-10-14, user, Figma Chart/Curve-Preview 15663:110887): a picture of a motion curve (spring,
+  bounce, ease-out, ease-in-out) for the motion settings it sits above; `bounce` (0–1) follows the panel's Bounce
+  row. Input surface, Pale grid, dashed target; the curves match Figma's to 0.05px. Harness
+  `curve-preview/bounce-range`; Studio palette (Curve preview, Charts) and the Figma Type row; platform page Curve
+  Preview.
 - Customize without forking or detaching: `skills/zen-component-usage/references/customize-in-code.md` and
   `skills/zen-figma-design/references/customize-without-detach.md`; Figma audit rule `bounds/stroke-clip-gap`.
 - Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,

@@ -2096,6 +2096,7 @@
       ],
       "avoid": [
         "Exact numbers users type → NumberField.",
+        "A number in a dense property panel, scrubbed or typed → SliderField.",
         "A handful of discrete options → Segmented or RadioButton.",
         "On/off → Toggle."
       ],
@@ -2140,6 +2141,97 @@
         "icon/unknown-name",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
+      ]
+    },
+    {
+      "slug": "slider-field",
+      "title": "Slider Field",
+      "file": "docs/guidelines/slider-field.md",
+      "apiFile": "docs/api/slider-field.json",
+      "figma": "Slider/Field (page 1556:17601)",
+      "import": "import { SliderField } from \"@zen-ds/react\";",
+      "purpose": "A number that is also a slider: the whole field is the track, its fill shows the value inside min–max, the label sits left and the number right. Drag to scrub, click to type an exact number, arrows to step.",
+      "use": [
+        "Tuning values in dense property panels and inspectors: offsets, scales, opacity, duration, bounce.",
+        "Rows that sit with inline fields (InputField layout=\"inline\"): the same height, radius and label position."
+      ],
+      "avoid": [
+        "A value tuned by feel, with no number to read → Slider.",
+        "An exact quantity with steppers in a form → NumberField.",
+        "2–5 named options → Segmented."
+      ],
+      "props": {
+        "SliderField": [
+          "label: ReactNode",
+          "value?: number",
+          "defaultValue?: number",
+          "onValueChange?: (value: number) => void",
+          "min?: number = 0",
+          "max?: number = 100",
+          "step?: number = 1",
+          "formatValue?: (value: number) => string",
+          "theme?: neutral|accent = neutral",
+          "size?: sm|md|small|medium = md",
+          "disabled?: boolean = false",
+          "aria-label?: string",
+          "className?: string",
+          "ref?: Ref<HTMLDivElement>"
+        ]
+      },
+      "do": [
+        "Label the number with what it changes (\"Offset X\", \"Overlay Opacity\") and show its unit through formatValue.",
+        "Pick min, max and step so the fill means something: the whole field is the range.",
+        "Stack rows of one group Spacing/Gap/XSmall apart, as inline fields."
+      ],
+      "dont": [
+        "Don't use it where the number does not matter; a Slider is calmer (harness: slider-field/value-in-range keeps the start value inside the range).",
+        "Don't make the range so wide that one pixel jumps many steps; people then type instead of scrubbing."
+      ],
+      "rules": [
+        "slider-field/value-in-range",
+        "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler"
+      ]
+    },
+    {
+      "slug": "curve-preview",
+      "title": "Curve Preview",
+      "file": "docs/guidelines/curve-preview.md",
+      "apiFile": "docs/api/curve-preview.json",
+      "figma": "Chart/Curve-Preview 15663:110887",
+      "import": "import { CurvePreview } from \"@zen-ds/react\";",
+      "purpose": "A picture of a motion curve: how a value moves from its start (bottom left) to its target (the dashed line) over time, left to right — a spring, a bounce or an easing curve.",
+      "use": [
+        "Above the motion settings it previews in a property panel (Type, Duration, Bounce), so people see the effect of a change at once.",
+        "Comparing easing choices side by side in documentation or a settings page."
+      ],
+      "avoid": [
+        "Data over time → LineChart.",
+        "A progress value → Progress.",
+        "Choosing the curve itself → Segmented or SelectField next to the preview; the preview is not a control."
+      ],
+      "props": {
+        "CurvePreview": [
+          "type?: spring|bounce|ease-out|ease-in-out = spring",
+          "bounce?: number",
+          "aria-label?: string",
+          "className?: string",
+          "style?: CSSProperties",
+          "ref?: Ref<HTMLDivElement>"
+        ]
+      },
+      "do": [
+        "Put it right above the settings it previews and pass the same values (type, bounce), so the curve follows every change.",
+        "Let it take the panel's width: the height stays 176 and the curve stretches with the width.",
+        "Name it after the setting when the type alone is not enough (\"Back photo transition: Spring, bounce 0.3\")."
+      ],
+      "dont": [
+        "Don't use it as a chart of data; it has no axes or values to read.",
+        "Don't pass a bounce outside 0–1 or a bounce to an ease curve (harness: curve-preview/bounce-range)."
+      ],
+      "rules": [
+        "curve-preview/bounce-range",
+        "interaction/no-noop-handler"
       ]
     },
     {

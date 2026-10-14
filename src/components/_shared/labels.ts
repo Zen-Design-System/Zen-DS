@@ -195,6 +195,13 @@ export type ZenLabels = {
   saturation: string;
   lightness: string;
   brightness: string;
+  /** CurvePreview's name for assistive technology: "Motion curve: Spring". */
+  motionCurve: (curve: string) => string;
+  /** CurvePreview's curve types. */
+  curveSpring: string;
+  curveBounce: string;
+  curveEaseOut: string;
+  curveEaseInOut: string;
   segmentedControl: string;
   // Files
   chooseFile: string;
@@ -475,6 +482,11 @@ const en: ZenLabels = {
   saturation: "Saturation",
   lightness: "Lightness",
   brightness: "Brightness",
+  motionCurve: (curve) => `Motion curve: ${curve}`,
+  curveSpring: "Spring",
+  curveBounce: "Bounce",
+  curveEaseOut: "Ease out",
+  curveEaseInOut: "Ease in and out",
   segmentedControl: "Segmented control",
   chooseFile: "Choose File",
   files: "Files",
@@ -730,6 +742,11 @@ const vi: ZenLabels = {
   saturation: "Độ bão hoà",
   lightness: "Độ sáng",
   brightness: "Độ chói",
+  motionCurve: (curve) => `Đường cong chuyển động: ${curve}`,
+  curveSpring: "Lò xo",
+  curveBounce: "Nảy",
+  curveEaseOut: "Chậm dần",
+  curveEaseInOut: "Nhanh dần rồi chậm dần",
   segmentedControl: "Bộ chọn phân đoạn",
   chooseFile: "Chọn tệp",
   files: "Tệp",

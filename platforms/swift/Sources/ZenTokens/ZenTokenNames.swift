@@ -2023,7 +2023,6 @@ public enum ZenToken {
     public static let segmentedSpacingXSmallVerticalPadding = "Segmented/Spacing/XSmall/Vertical-Padding"
     public static let segmentedSpacingXSmallGap = "Segmented/Spacing/XSmall/Gap"
     public static let segmentedSpacingXSmallTextWrapperPadding = "Segmented/Spacing/XSmall/Text-Wrapper-Padding"
-    public static let segmentedSizeXSmall = "Segmented/Size/XSmall"
     public static let segmentedItemCornerRadiusMedium = "Segmented/Item-Corner-Radius-Medium"
     public static let segmentedItemCornerRadiusSmall = "Segmented/Item-Corner-Radius-Small"
     public static let segmentedContainerCornerRadiusMedium = "Segmented/Container-Corner-Radius-Medium"

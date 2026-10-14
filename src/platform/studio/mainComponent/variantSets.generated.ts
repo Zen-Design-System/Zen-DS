@@ -2390,6 +2390,69 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "CurvePreview": [
+    {
+      "name": "Chart/Curve-Preview",
+      "figma": "15663:110887",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "type",
+          "label": "Type",
+          "names": [
+            "Spring",
+            "Bounce",
+            "Ease-Out",
+            "Ease-In-Out"
+          ],
+          "values": [
+            "spring",
+            "bounce",
+            "ease-out",
+            "ease-in-out"
+          ],
+          "default": "spring"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "SliderField": [
+    {
+      "name": "Slider/Field",
+      "figma": "15662:108207",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "theme",
+          "label": "Theme",
+          "names": [
+            "Neutral",
+            "Accent"
+          ],
+          "values": [
+            "neutral",
+            "accent"
+          ],
+          "default": "neutral"
+        },
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "Sidebar": [
     {
       "name": "Side-Bar/Master/Basic",

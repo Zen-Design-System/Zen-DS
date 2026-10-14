@@ -309,6 +309,22 @@ export const FIGMA_PROPS = {
       State: skip("preview state: disabled is its own prop"),
     },
   },
+  CurvePreview: {
+    sets: { "Chart/Curve-Preview": null },
+    props: {
+      Type: "type",
+    },
+  },
+  SliderField: {
+    sets: { "Slider/Field": null },
+    props: {
+      Label: "label",
+      Value: skip("the number is the value prop (formatValue writes its text)"),
+      Theme: "theme",
+      Size: "size",
+      State: skip("preview state: hover and drag come from the pointer, typing from a click; disabled is its own prop"),
+    },
+  },
   Sidebar: {
     sets: { "Side-Bar/Master/Basic": "basic", "Side-Bar/Master/Workspace": "workspace", "Side-Bar/Master/Small-Density": "small-density" },
     setProp: "variant",

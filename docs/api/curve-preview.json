@@ -1,0 +1,65 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "curve-preview",
+  "import": "import { CurvePreview } from \"@zen-ds/react\";",
+  "components": [
+    {
+      "name": "CurvePreview",
+      "file": "src/components/CurvePreview/CurvePreview.tsx",
+      "description": "Figma Chart/Curve-Preview (15663:110887): how a motion curve moves a value from its start (bottom left) to its target\n(the dashed line) over time, left to right. Place it above the motion settings it previews (Type, Duration, Bounce)\nso a change shows at once; it is a picture of the setting, not a control. The surface is the Input field's\n(Input/Background/Default, Input/Border/Default, Effect/Input, Corner-Radius/Input/Medium) so it sits with fields;\ngrid lines Border/Neutral/Pale (as the charts), target dashed 4 · 4 Border/Neutral/Subtle, the curve 2px\nContent/Neutral/Strongest with round caps. For data over time use LineChart; for a progress value, Progress.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "type",
+          "type": "\"spring\" | \"bounce\" | \"ease-out\" | \"ease-in-out\"",
+          "required": false,
+          "default": "\"spring\"",
+          "description": "The curve (Figma `Type`): `spring` (light damping, about 4% overshoot, default), `bounce` (visible overshoot),\n`ease-out` (Motion/Ease/Emphasized) or `ease-in-out` (.65 0 .35 1).",
+          "deprecated": null
+        },
+        {
+          "name": "bounce",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "How much a spring overshoots, 0–1 (damping ratio = 1 − bounce): follow the Bounce setting the preview sits above.\nDefault: 0.3 for `spring`, 0.7 for `bounce`. Ease curves ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Name for assistive technology. Default: \"Motion curve: Spring\" (the type, in the provider's language).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "style",
+          "type": "CSSProperties",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The preview's root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {}
+}

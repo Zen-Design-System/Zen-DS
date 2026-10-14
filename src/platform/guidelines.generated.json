@@ -795,7 +795,7 @@
       [
         "Level",
         "level",
-        "secondary (default, the common case) · primary (stronger emphasis, e.g. a pricing toggle)"
+        "secondary (default, the common case: a filled Neutral/Subtle track) · primary (stronger emphasis, e.g. a pricing toggle: an outlined track with a solid selected segment)"
       ],
       [
         "Size",
@@ -3642,6 +3642,7 @@
     ],
     "avoid": [
       "Exact numbers users type → NumberField.",
+      "A number in a dense property panel, scrubbed or typed → SliderField.",
       "A handful of discrete options → Segmented or RadioButton.",
       "On/off → Toggle."
     ],
@@ -3762,6 +3763,179 @@
         "severity": "warn",
         "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
         "allow": "controlled-handler"
+      }
+    ]
+  },
+  "slider-field": {
+    "title": "Slider Field",
+    "purpose": "A number that is also a slider: the whole field is the track, its fill shows the value inside min–max, the label sits left and the number right. Drag to scrub, click to type an exact number, arrows to step.",
+    "use": [
+      "Tuning values in dense property panels and inspectors: offsets, scales, opacity, duration, bounce.",
+      "Rows that sit with inline fields (InputField layout=\"inline\"): the same height, radius and label position."
+    ],
+    "avoid": [
+      "A value tuned by feel, with no number to read → Slider.",
+      "An exact quantity with steppers in a form → NumberField.",
+      "2–5 named options → Segmented."
+    ],
+    "api": [
+      [
+        "Value",
+        "value / defaultValue / onValueChange · min · max · step",
+        "the number; typed numbers clamp to min–max and round to the step"
+      ],
+      [
+        "Text",
+        "label · formatValue",
+        "label left (Figma Label); formatValue writes the number's text, e.g. (v) => `${v} px` (Figma Value)"
+      ],
+      [
+        "Theme",
+        "theme",
+        "neutral (Background/Neutral/Subtle fill) · accent (Background/Accent/Subtle)"
+      ],
+      [
+        "Size",
+        "size",
+        "md 40 (default) · sm 32, the Input sizes"
+      ],
+      [
+        "State",
+        "disabled",
+        "Hover, Dragging and Typing come from the pointer and the keyboard"
+      ]
+    ],
+    "keyboard": [
+      [
+        "← / → / ↑ / ↓",
+        "Step the number (Shift: ten steps)"
+      ],
+      [
+        "Home / End",
+        "The limits"
+      ],
+      [
+        "Enter / F2",
+        "Type an exact number; Enter applies, Escape drops it"
+      ]
+    ],
+    "do": [
+      "Label the number with what it changes (\"Offset X\", \"Overlay Opacity\") and show its unit through formatValue.",
+      "Pick min, max and step so the fill means something: the whole field is the range.",
+      "Stack rows of one group Spacing/Gap/XSmall apart, as inline fields."
+    ],
+    "dont": [
+      "Don't use it where the number does not matter; a Slider is calmer (harness: slider-field/value-in-range keeps the start value inside the range).",
+      "Don't make the range so wide that one pixel jumps many steps; people then type instead of scrubbing."
+    ],
+    "a11y": [
+      "A slider named by its label, with aria-valuetext as the field shows it; ← → ↑ ↓ step (Shift: ten steps), Home / End go to the limits.",
+      "Enter or F2 (or a click without a drag) types an exact number in a text field named like the slider; Enter applies, Escape drops it, focus returns to the slider."
+    ],
+    "content": [
+      "Units after the number with a space (\"2 px\", \"0.50 s\"); percentages without one (\"60%\")."
+    ],
+    "refs": [
+      [
+        "WAI-ARIA APG — Slider",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/slider/"
+      ],
+      [
+        "Figma — Number inputs and scrubbing",
+        "https://help.figma.com/hc/en-us/articles/360040451373"
+      ]
+    ],
+    "file": "docs/guidelines/slider-field.md",
+    "rules": [
+      {
+        "id": "slider-field/value-in-range",
+        "severity": "error",
+        "summary": "A SliderField's start value sits inside min–max (default 0–100): outside it the fill and the number disagree.",
+        "allow": "slider-range"
+      },
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/controlled-needs-handler",
+        "severity": "warn",
+        "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
+        "allow": "controlled-handler"
+      }
+    ]
+  },
+  "curve-preview": {
+    "title": "Curve Preview",
+    "purpose": "A picture of a motion curve: how a value moves from its start (bottom left) to its target (the dashed line) over time, left to right — a spring, a bounce or an easing curve.",
+    "use": [
+      "Above the motion settings it previews in a property panel (Type, Duration, Bounce), so people see the effect of a change at once.",
+      "Comparing easing choices side by side in documentation or a settings page."
+    ],
+    "avoid": [
+      "Data over time → LineChart.",
+      "A progress value → Progress.",
+      "Choosing the curve itself → Segmented or SelectField next to the preview; the preview is not a control."
+    ],
+    "api": [
+      [
+        "Type",
+        "type",
+        "spring (default, about 4% overshoot) · bounce (visible overshoot) · ease-out (Motion/Ease/Emphasized) · ease-in-out (.65 0 .35 1)"
+      ],
+      [
+        "Bounce",
+        "bounce",
+        "0–1, how far a spring overshoots (damping ratio = 1 − bounce); default 0.3 for spring, 0.7 for bounce; ease curves ignore it"
+      ],
+      [
+        "Name",
+        "aria-label",
+        "default \"Motion curve: <type>\" in the provider's language"
+      ]
+    ],
+    "keyboard": [],
+    "do": [
+      "Put it right above the settings it previews and pass the same values (type, bounce), so the curve follows every change.",
+      "Let it take the panel's width: the height stays 176 and the curve stretches with the width.",
+      "Name it after the setting when the type alone is not enough (\"Back photo transition: Spring, bounce 0.3\")."
+    ],
+    "dont": [
+      "Don't use it as a chart of data; it has no axes or values to read.",
+      "Don't pass a bounce outside 0–1 or a bounce to an ease curve (harness: curve-preview/bounce-range)."
+    ],
+    "a11y": [
+      "One image (role=img) named by the curve type; it is not focusable and has no keyboard of its own.",
+      "The settings next to it carry the values; the preview only repeats them as a picture."
+    ],
+    "content": [
+      "Type names as the settings show them: Spring, Bounce, Ease out, Ease in and out."
+    ],
+    "refs": [
+      [
+        "Framer Motion — Spring (bounce)",
+        "https://motion.dev/docs/spring"
+      ],
+      [
+        "Material 3 — Easing and duration",
+        "https://m3.material.io/styles/motion/easing-and-duration"
+      ]
+    ],
+    "file": "docs/guidelines/curve-preview.md",
+    "rules": [
+      {
+        "id": "curve-preview/bounce-range",
+        "severity": "error",
+        "summary": "A CurvePreview's bounce is 0–1 and only shapes the spring curves (spring, bounce): ease curves ignore it, so the preview would not follow the setting.",
+        "allow": "curve-bounce"
+      },
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
       }
     ]
   },
