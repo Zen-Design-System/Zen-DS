@@ -11,11 +11,12 @@ import { Divider } from "../../../components/Divider";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { Form, FormActions } from "../../../components/Form";
-import { InputField, SelectField } from "../../../components/Input";
+import { ColorField, InputField, SelectField } from "../../../components/Input";
 import { Box, Container, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
+import { SliderField } from "../../../components/SliderField";
 import { SidePanel } from "../../../components/SidePanel";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
@@ -409,6 +410,51 @@ function AdvancedOptionsExample() {
 
 // ——— Page ————————————————————————————————————————————————————————————————————————————————————
 
+/* ───────────── Layer settings: Small sections in a panel ───────────── */
+
+const px = (value: number) => `${value} px`;
+const percent = (value: number) => `${Math.round(value * 100)}%`;
+
+function LayerSettingsExample() {
+  const titleId = useId();
+  const [width, setWidth] = useState("1200 px");
+  const [height, setHeight] = useState("630 px");
+  const [fill, setFill] = useState("#1F6FEB");
+  const [opacity, setOpacity] = useState(0.9);
+  const [radius, setRadius] = useState(16);
+  const [blur, setBlur] = useState(0);
+  return (
+    <Card theme="flat" spacing="sm" maxWidth={320} as="section" aria-labelledby={titleId}>
+      <Stack gap="none">
+        <Stack gap="xs" paddingY="md">
+          <Heading level={4} id={titleId} textStyle="Heading/Subheading">Social banner</Heading>
+          <Text tone="base" textStyle="Body/Small/Regular">Loyalty app launch · 1200 × 630</Text>
+        </Stack>
+        <Divider />
+        {/* Small: Body/Base/Bold titles under the panel heading; Title → rows stays 12, one step above the rows' 8. */}
+        <Accordion size="sm" headingLevel={5} title="Size" defaultExpanded contentWidth="full">
+          <Stack gap="xs">
+            <InputField layout="inline" size="sm" label="Width" value={width} onValueChange={setWidth} />
+            <InputField layout="inline" size="sm" label="Height" value={height} onValueChange={setHeight} />
+          </Stack>
+        </Accordion>
+        <Accordion size="sm" headingLevel={5} title="Fill" defaultExpanded contentWidth="full">
+          <Stack gap="xs">
+            <ColorField layout="inline" size="sm" label="Colour" value={fill} onValueChange={setFill} savedColors={["#1F6FEB", "#111111", "#FFFFFF"]} />
+            <SliderField size="sm" label="Opacity" value={opacity} onValueChange={setOpacity} min={0} max={1} step={0.01} formatValue={percent} />
+          </Stack>
+        </Accordion>
+        <Accordion size="sm" headingLevel={5} title="Corners and blur" contentWidth="full">
+          <Stack gap="xs">
+            <SliderField size="sm" label="Corner Radius" value={radius} onValueChange={setRadius} min={0} max={48} formatValue={px} />
+            <SliderField size="sm" label="Background Blur" value={blur} onValueChange={setBlur} min={0} max={40} formatValue={px} />
+          </Stack>
+        </Accordion>
+      </Stack>
+    </Card>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Client FAQ",
@@ -515,6 +561,38 @@ const submit = () => {
   ))}
 </SidePanel>
 /* .facet-title { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall); } */`,
+  },
+  {
+    title: "Layer settings",
+    description: "Small (size=\"sm\") is for dense panels and cards: its Body/Base/Bold titles sit under the panel heading and group short rows of inline fields and sliders. Size and Fill start open; Corners and blur, used less, waits closed.",
+    render: () => <LayerSettingsExample />,
+    code: `<Card theme="flat" spacing="sm" maxWidth={320} as="section" aria-labelledby={titleId}>
+  <Stack gap="none">
+    <Stack gap="xs" paddingY="md">
+      <Heading level={4} id={titleId} textStyle="Heading/Subheading">Social banner</Heading>
+      <Text tone="base" textStyle="Body/Small/Regular">Loyalty app launch · 1200 × 630</Text>
+    </Stack>
+    <Divider />
+    <Accordion size="sm" headingLevel={5} title="Size" defaultExpanded contentWidth="full">
+      <Stack gap="xs">
+        <InputField layout="inline" size="sm" label="Width" value={width} onValueChange={setWidth} />
+        <InputField layout="inline" size="sm" label="Height" value={height} onValueChange={setHeight} />
+      </Stack>
+    </Accordion>
+    <Accordion size="sm" headingLevel={5} title="Fill" defaultExpanded contentWidth="full">
+      <Stack gap="xs">
+        <ColorField layout="inline" size="sm" label="Colour" value={fill} onValueChange={setFill} />
+        <SliderField size="sm" label="Opacity" value={opacity} onValueChange={setOpacity} min={0} max={1} step={0.01} formatValue={percent} />
+      </Stack>
+    </Accordion>
+    <Accordion size="sm" headingLevel={5} title="Corners and blur" contentWidth="full">
+      <Stack gap="xs">
+        <SliderField size="sm" label="Corner Radius" value={radius} onValueChange={setRadius} min={0} max={48} formatValue={px} />
+        <SliderField size="sm" label="Background Blur" value={blur} onValueChange={setBlur} min={0} max={40} formatValue={px} />
+      </Stack>
+    </Accordion>
+  </Stack>
+</Card>`,
   },
   {
     title: "Mobile order summary",

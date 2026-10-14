@@ -547,8 +547,8 @@ export const componentDescriptions = {
     what: "Progressive disclosure of secondary content under short headings.",
     use: ["FAQs and help content.", "Long grouped settings: one item per group, titled “Group · N items”, the first open."],
     instead: ["Content everyone needs → show it.", "Peer views → Tab-Bar.", "Sequential steps → Stepper."],
-    props: [["Theme", "Divider · Box"], ["Size", "Medium · Large · XLarge"], ["Content Width", "Title · Full"]],
-    rules: ["Fill every item's content, also the collapsed ones.", "One level: no accordion inside an accordion.", "Title → Contents is the item's own gap (Medium and Large 12, XLarge 16), one step more than the 8 between rows inside it: never pad the rows to move them off the title."],
+    props: [["Theme", "Divider · Box"], ["Size", "Small (dense panels and cards: Body/Base/Bold title, Body/Small content) · Medium · Large · XLarge"], ["Content Width", "Title · Full"]],
+    rules: ["Fill every item's content, also the collapsed ones.", "One level: no accordion inside an accordion.", "Title → Contents is the item's own gap (Small, Medium and Large 12, XLarge 16), one step more than the 8 between rows inside it: never pad the rows to move them off the title."],
     code: "`<Accordion>`",
   }),
 
@@ -814,5 +814,5 @@ export const componentDescriptions = {
  */
 export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualization elements/, /^Purpose-specific voice component/, /^\s*$/];
 // Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
-// 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55.
-export const FORCE = new Set(["Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview"]);
+// 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15).
+export const FORCE = new Set(["Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text"]);

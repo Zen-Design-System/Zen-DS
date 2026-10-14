@@ -278,7 +278,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "options": {
           "XLarge": "xlarge",
           "Large": "large",
-          "Medium": "medium"
+          "Medium": "medium",
+          "Small": "small"
         }
       },
       {

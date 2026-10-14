@@ -1734,7 +1734,7 @@
           "title: ReactNode",
           "headingLevel?: 2|3|4|5|6 = 3",
           "children?: ReactNode",
-          "size?: md|lg|xl|medium|large|xlarge = md",
+          "size?: sm|md|lg|xl|small|medium|large|xlarge = md",
           "theme?: divider|box = divider",
           "contentWidth?: title|full = title",
           "expanded?: boolean",

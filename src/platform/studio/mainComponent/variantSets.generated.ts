@@ -618,12 +618,14 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "names": [
             "XLarge",
             "Large",
-            "Medium"
+            "Medium",
+            "Small"
           ],
           "values": [
             "xlarge",
             "large",
-            "medium"
+            "medium",
+            "small"
           ],
           "default": "xlarge"
         },

@@ -6,21 +6,29 @@ import "./accordion.css";
 import "../Icon/core";
 import { useControllableState } from "../_shared/use-controllable-state";
 
-export const accordionSizes = ["medium", "large", "xlarge"] as const;
+export const accordionSizes = ["small", "medium", "large", "xlarge"] as const;
 export const accordionThemes = ["divider", "box"] as const;
 export const accordionContentWidths = ["title", "full"] as const;
 /** CSS / Figma key (the `data-size` value). */
 type AccordionSizeKey = (typeof accordionSizes)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
-export type AccordionSize = "md" | "lg" | "xl" | "medium" | "large" | "xlarge";
+export type AccordionSize = "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large" | "xlarge";
 export type AccordionTheme = (typeof accordionThemes)[number];
 export type AccordionContentWidth = (typeof accordionContentWidths)[number];
 
 /** Figma .Primitives/Accordion/Content Title text style per size. */
 const titleStyle: Record<AccordionSizeKey, TypographyStyleName> = {
+  small: "Body/Base/Bold",
   medium: "Heading/Subheading",
   large: "Heading/4",
   xlarge: "Heading/3",
+};
+/** Figma .Primitives/Accordion/Content/Text per size: Body/Base/Regular, Small Body/Small/Regular. */
+const contentStyle: Record<AccordionSizeKey, TypographyStyleName> = {
+  small: "Body/Small/Regular",
+  medium: "Body/Base/Regular",
+  large: "Body/Base/Regular",
+  xlarge: "Body/Base/Regular",
 };
 
 export interface AccordionProps {
@@ -31,13 +39,16 @@ export interface AccordionProps {
    * Heading level around the header button (WAI-ARIA APG Accordion: `<h{n}><button>`), default 3. Take it from where
    * the accordion sits: one level below the nearest heading above (2 directly under the page h1, 3 under an h2
    * section, 4 inside an h3 card). Only the tag changes; the look follows `size`. Pick the size so the title is never
-   * larger than the heading it sits under: Medium (Heading/Subheading) and Large (Heading/4) fit under an h2 section;
-   * XLarge (Heading/3) only directly under the page h1.
+   * larger than the heading it sits under: Small (Body/Base/Bold) fits anywhere, a panel or a card included; Medium
+   * (Heading/Subheading) and Large (Heading/4) fit under an h2 section; XLarge (Heading/3) only directly under the page h1.
    */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
-  /** Content slot (Figma .Primitives/Accordion/Content/Text is Body/Base/Regular, Neutral/Base). */
+  /** Content slot (Figma .Primitives/Accordion/Content/Text: Body/Base/Regular, Small Body/Small/Regular; Neutral/Base). */
   children?: ReactNode;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /**
+   * Short (sm, md…) or Figma (small, medium…) spelling. Small (Figma 2026-10-15) is for dense panels and cards: title
+   * Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, Box Corner-Radius/Base.
+   */
   size?: AccordionSize;
   /**
    * Divider: bottom Border/Neutral/Subtle rule; the whole header row, its block padding included, is the toggle. Box:
@@ -60,7 +71,7 @@ export interface AccordionProps {
 }
 
 /**
- * Figma Accordion/Text (239:16847): Size XLarge/Large/Medium × Theme Divider/Box × Expanded.
+ * Figma Accordion/Text (239:16847): Size XLarge/Large/Medium/Small × Theme Divider/Box × Expanded.
  * The whole header row is the toggle button, wrapped in an `h{headingLevel}` so the outline lists every section;
  * the chevron turns 180° when expanded and the panel height animates open (disabled for reduced motion).
  * Theme=Divider: the root keeps Figma's block padding and a hit layer on the trigger covers it (open: down to the
@@ -87,7 +98,7 @@ export function Accordion({ ref, title, headingLevel = 3, children, size: sizePr
       </Heading>
       <div id={panelId} className="zen-accordion__panel" role="region" aria-labelledby={triggerId} inert={!isExpanded || undefined}>
         <div className="zen-accordion__panel-inner">
-          <div className={`zen-accordion__content ${typographyStyles["Body/Base/Regular"]}`}>{children}</div>
+          <div className={`zen-accordion__content ${typographyStyles[contentStyle[size]]}`}>{children}</div>
         </div>
       </div>
     </div>
