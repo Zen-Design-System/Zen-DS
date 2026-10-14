@@ -294,3 +294,16 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
 - Skill (user: "tổng hợp lại cách bạn hiểu Zen … thành skill hoặc harness"): customize-in-code.md,
   customize-without-detach.md, Figma audit `bounds/stroke-clip-gap` (dry run: Input page 0, old swatch shape caught).
 - Batch 2 (SliderField) and 3 (CurvePreview) wait for the user.
+
+## Studio canvas and chrome inert under a canvas Dialog (tier S, user: "Tôi sửa ngay")
+
+- Found by session "Segmented Tokens…": Studio E2E O-02/O-04 fail on clean b399312 (pass on f05a8a0). `inertOutside`
+  (`_shared/modal-isolation.ts`, Tung's refactor) climbs from the modal's root to `<body>` unless it meets a device frame;
+  a Dialog previewed on the Studio canvas portals into the canvas area's preview layer, so the canvas tools (Move), the
+  canvas itself (Studio's Select clicks land there) and the panels went `inert`.
+- Tried first: a root on `main.studio-canvas-area` + a keep mark on ChromeScope: Move clickable, but the inert canvas
+  still dropped Select's click (O-02 kept the opener selected). Disabling isolation made both pass, so the canvas must stay live.
+- Fix: isolation also stops at `[data-zen-isolation-root]`; StudioApp marks the preview overlay layer
+  (`.studio-portal-root`), so a canvas modal only isolates other overlays in that layer. An app has no mark: unchanged.
+- Checks: shared-hooks "stays inside a data-zen-isolation-root" fails without the fix, passes with it; E2E overlays
+  O-01–O-04 4/4; tsc.
