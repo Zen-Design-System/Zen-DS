@@ -13,9 +13,15 @@ const KEEP = ".zen-toast-layer, .zen-toast-stack, script, style, template, link,
 const PORTAL_CONTAINER = "[data-zen-overlay-root], .zen-provider__portal, body";
 
 /**
- * "Hide others": from the modal's own root (the element it portalled, backdrop included) up to the device frame or
- * `<body>`, every sibling on the way gets `inert`: the app, other providers, other layers. Popups the modal opens later
- * are added after this runs, so they stay live. Returns the cleanup.
+ * Where isolation stops below `<body>`: a device frame, or an element marked `data-zen-isolation-root` whose outside must
+ * stay live (Zen Studio's preview overlay layer: a Dialog previewed on the canvas leaves the canvas and the chrome alone).
+ */
+const ISOLATION_ROOT = "[data-zen-overlay-root], [data-zen-isolation-root]";
+
+/**
+ * "Hide others": from the modal's own root (the element it portalled, backdrop included) up to the device frame, an
+ * isolation root or `<body>`, every sibling on the way gets `inert`: the app, other providers, other layers. Popups the
+ * modal opens later are added after this runs, so they stay live. Returns the cleanup.
  */
 export function inertOutside(panel: Element, container?: Element | null): () => void {
   // The modal's root is the panel's ancestor directly inside the container it was portalled to. Given that container
@@ -23,7 +29,7 @@ export function inertOutside(panel: Element, container?: Element | null): () => 
   const isContainer = (element: Element) => (container && container.contains(panel) ? element === container : element.matches(PORTAL_CONTAINER));
   let root: Element = panel;
   while (root.parentElement && !isContainer(root.parentElement)) root = root.parentElement;
-  const frame = panel.closest("[data-zen-overlay-root]");
+  const frame = panel.closest(ISOLATION_ROOT);
   const marked: Element[] = [];
   for (let node: Element = root; node.parentElement && node !== frame && node !== node.ownerDocument.body; node = node.parentElement) {
     for (const sibling of Array.from(node.parentElement.children)) {

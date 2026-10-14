@@ -326,3 +326,16 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   now asks for no proposal while contracts are uncommitted). O-02 / O-04 fail on clean b399312 too: the new
   `inertOutside` (_shared/modal-isolation.ts) inerts everything up to `<body>`, the Studio toolbar included, while a
   canvas Dialog is open → told Giám sát (owner of that refactor's landing), not changed here.
+
+## Studio canvas and chrome inert under a canvas Dialog (tier S, user: "Tôi sửa ngay")
+
+- Found by session "Segmented Tokens…": Studio E2E O-02/O-04 fail on clean b399312 (pass on f05a8a0). `inertOutside`
+  (`_shared/modal-isolation.ts`, Tung's refactor) climbs from the modal's root to `<body>` unless it meets a device frame;
+  a Dialog previewed on the Studio canvas portals into the canvas area's preview layer, so the canvas tools (Move), the
+  canvas itself (Studio's Select clicks land there) and the panels went `inert`.
+- Tried first: a root on `main.studio-canvas-area` + a keep mark on ChromeScope: Move clickable, but the inert canvas
+  still dropped Select's click (O-02 kept the opener selected). Disabling isolation made both pass, so the canvas must stay live.
+- Fix: isolation also stops at `[data-zen-isolation-root]`; StudioApp marks the preview overlay layer
+  (`.studio-portal-root`), so a canvas modal only isolates other overlays in that layer. An app has no mark: unchanged.
+- Checks: shared-hooks "stays inside a data-zen-isolation-root" fails without the fix, passes with it; E2E overlays
+  O-01–O-04 4/4; tsc.
