@@ -47,6 +47,8 @@ export * from "./components/Portal";
 export * from "./components/Table";
 export * from "./components/Rating";
 export * from "./components/ColorSelector";
+export * from "./components/ColorPicker";
+export * from "./components/ColorSwatch";
 export * from "./components/MetricWidget";
 export * from "./components/Uploader";
 export * from "./components/Voice";

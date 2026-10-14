@@ -84,6 +84,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |

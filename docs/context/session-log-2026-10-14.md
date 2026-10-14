@@ -220,3 +220,15 @@
   QA gate (isolated, pages chart, input, app-shell).
 - Open (BACKLOG): BarList leader at 78% in Figma vs full track in code (designer); chart sets missing from the
   component-properties contract (inspector rows); Figma descriptions of the seven sets are stale (widget themes P1).
+
+## Batch 1 of the property-panel components in code: ColorField · ColorPicker · ColorSwatch · layout="inline" (tier L, worktree ../Zen-DS-color, user: "update lại lên Studio các component này" → API "prop trên field có sẵn", "theo đợt")
+- Library: ColorSwatch (.zen-swatch, not ColorSelector's .zen-color-swatch), ColorPicker (DatePicker's popover pattern;
+  hue = Slider white with a spectrum track held half a thumb at each end; channels = inline fields), ColorField in
+  Input.tsx (APG combobox → dialog; six digits apply, short hex on Enter/blur), `layout="inline"` in FieldShell; 15 labels
+  en/vi; colour maths in ColorPicker/color.ts (grey keeps its hue).
+- Docs/harness: guideline `color-picker`, input/color-selector updated; rule color-picker/hex-value (+ fixtures);
+  platform page color-picker (5 examples, 2 Do/Don't pairs); Studio palette/synonyms/detach/figma-props map + the three
+  Figma sets in component-properties.json; tests/interaction/color-field.test.tsx 8/8, smoke + scale ✓.
+- Skill (user: "tổng hợp lại cách bạn hiểu Zen … thành skill hoặc harness"): customize-in-code.md,
+  customize-without-detach.md, Figma audit `bounds/stroke-clip-gap` (dry run: Input page 0, old swatch shape caught).
+- Batch 2 (SliderField) and 3 (CurvePreview) wait for the user.

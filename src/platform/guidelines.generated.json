@@ -434,6 +434,8 @@
       "Long text → TextAreaField.",
       "One option from a list → SelectField (≤ 10 options), otherwise AutocompleteField. On mobile (breakpoint mobile, or inside a phone frame) SelectField opens its options in a Bottom Sheet — a List with the picked row selected and checked; a pick closes it — instead of the Popover.",
       "Dates → DateField.",
+      "Any colour → ColorField (it opens ColorPicker).",
+      "Dense property panels and inspectors → layout=\"inline\" on InputField, SelectField or ColorField (Figma Input/Inline-Field): the label inside the field, the value at the end, rows Spacing/Gap/XSmall apart.",
       "Quantities → NumberField (steppers).",
       "Inline editable titles → HeadingField: one line for short names (a board, a file), multiline when titles run long (documents, announcements, tasks).",
       "Formatted long text (announcements, descriptions) → RichTextField."
@@ -614,6 +616,12 @@
         "severity": "error",
         "summary": "RichTextField reports content through onValueChange(html, text); it has no onChange(event).",
         "allow": "richtext-onchange"
+      },
+      {
+        "id": "color-picker/hex-value",
+        "severity": "error",
+        "summary": "ColorField and ColorPicker hold a hex colour (\"#1F6FEB\"): a colour name, rgb(), hsl() or a token is not a value they can show or return.",
+        "allow": "colour-value"
       },
       {
         "id": "api/deprecated-prop",
@@ -4634,7 +4642,7 @@
       "Brand or theme accent choices in settings."
     ],
     "avoid": [
-      "Free colour input (any hex) → a colour field with a picker.",
+      "Free colour input (any hex) → ColorField (it opens ColorPicker).",
       "Status that must mean something → a semantic Badge theme, chosen by the system."
     ],
     "api": [
@@ -4710,6 +4718,152 @@
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
         "allow": "deprecated"
+      },
+      {
+        "id": "interaction/no-noop-handler",
+        "severity": "warn",
+        "summary": "Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction.",
+        "allow": "noop-handler"
+      },
+      {
+        "id": "interaction/controlled-needs-handler",
+        "severity": "warn",
+        "summary": "A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass.",
+        "allow": "controlled-handler"
+      }
+    ]
+  },
+  "color-picker": {
+    "title": "Color Picker",
+    "purpose": "Pick or type any colour. ColorField is the Input field (a swatch and the hex) that opens ColorPicker under it; ColorPicker is the panel itself (the saturation × brightness area, the hue, a Format select with its channels, saved colours), inline by default; ColorSwatch is the colour chip that shows a value.",
+    "use": [
+      "Brand, theme, chart or shadow colours where any value is allowed (ColorField in a form or settings).",
+      "A property panel or inspector: ColorField layout=\"inline\" (the label inside the field, the swatch after the hex).",
+      "An always-open picker in a panel: an inline ColorPicker; under your own trigger pass open, onOpenChange and anchorRef.",
+      "Showing a colour value next to its name (a legend, a table cell): ColorSwatch with an aria-label."
+    ],
+    "avoid": [
+      "A small curated set (labels, tags, series) → ColorSelector.",
+      "A colour that must mean something (status) → a semantic Badge theme chosen by the system.",
+      "Picking a Zen token for a component → its theme or color prop, not a free colour."
+    ],
+    "api": [
+      [
+        "Value",
+        "value · defaultValue · onValueChange",
+        "a hex string \"#RRGGBB\" (3-digit and lowercase are read; onValueChange always gets 6 upper-case digits)"
+      ],
+      [
+        "Format",
+        "ColorPicker format / defaultFormat / onFormatChange · ColorField pickerFormat",
+        "hex (default) · rgb · hsl · hsb: the channels the value fields show"
+      ],
+      [
+        "Saved",
+        "savedColors",
+        "hex values; picking one sets the value (a ColorSelector row)"
+      ],
+      [
+        "Popover",
+        "ColorPicker open · onOpenChange / onClose · anchorRef",
+        "as DatePicker: without them it is inline (no popover surface)"
+      ],
+      [
+        "Field",
+        "ColorField colorPicker · size · layout",
+        "colorPicker={false}: a hex field with its swatch; layout=\"inline\" puts the label inside and the swatch at the end"
+      ],
+      [
+        "Swatch",
+        "ColorSwatch color · size · aria-label",
+        "sm 16 · md 20 · lg 24, following the field's leading icon; decorative unless named"
+      ]
+    ],
+    "keyboard": [
+      [
+        "↓ (in ColorField)",
+        "Open the picker and move to its area"
+      ],
+      [
+        "← / →",
+        "Area: saturation (Shift: 10 steps); Hue slider: hue"
+      ],
+      [
+        "↑ / ↓",
+        "Area: brightness (Shift: 10 steps)"
+      ],
+      [
+        "Enter",
+        "Channel field: apply the typed value"
+      ],
+      [
+        "Escape",
+        "Drop a channel edit; else close the popover, focus returns to the field (a Dialog around it stays open)"
+      ]
+    ],
+    "do": [
+      "Give ColorField a label that names what the colour is for (\"Brand colour\"), not \"Colour\".",
+      "Keep the picker's saved colours to the palette people reuse (the brand, the last picks), 6 at most so they fit one row.",
+      "Pass hex values (\"#1F6FEB\") to value and savedColors; store the hex the field returns."
+    ],
+    "dont": [
+      "Don't use ColorField to pick a status or a Zen token: those come from the system (harness: color-picker/hex-value).",
+      "Don't pass a CSS colour name, rgb() or a token as ColorField or ColorPicker value: the field shows and returns a hex (harness: color-picker/hex-value).",
+      "Don't place a ColorSwatch as the only cue of meaning; name it or show the value beside it."
+    ],
+    "a11y": [
+      "ColorField is an APG combobox that opens a dialog: role=\"combobox\", aria-haspopup=\"dialog\", aria-expanded; ArrowDown opens the picker and focuses its area; Escape closes it and focus returns to the field.",
+      "The saturation × brightness area is a slider named \"Saturation and brightness\" whose value text reads both (\"Saturation 87%, brightness 92%\"); the hue is a Slider; each channel field is named in full (\"Red\", \"Lightness\") while it shows one letter.",
+      "An inline ColorPicker is role=\"group\", a popover role=\"dialog\", named \"Choose a colour\" unless aria-label or aria-labelledby names it."
+    ],
+    "content": [
+      "Hex values are upper-case with a # (\"#1F6FEB\")."
+    ],
+    "refs": [
+      [
+        "Figma — Color picker",
+        "https://help.figma.com/hc/en-us/articles/360041003114"
+      ],
+      [
+        "WAI-ARIA APG — Combobox",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/combobox/"
+      ],
+      [
+        "WAI-ARIA APG — Slider",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/slider/"
+      ]
+    ],
+    "file": "docs/guidelines/color-picker.md",
+    "rules": [
+      {
+        "id": "input/needs-label",
+        "severity": "error",
+        "summary": "Every field has a visible label (or an aria-label when the context labels it).",
+        "allow": "unlabelled-input"
+      },
+      {
+        "id": "input/placeholder-not-label",
+        "severity": "warn",
+        "summary": "Placeholder shows an example or format, never repeats the label.",
+        "allow": "placeholder-label"
+      },
+      {
+        "id": "color-picker/hex-value",
+        "severity": "error",
+        "summary": "ColorField and ColorPicker hold a hex colour (\"#1F6FEB\"): a colour name, rgb(), hsl() or a token is not a value they can show or return.",
+        "allow": "colour-value"
+      },
+      {
+        "id": "api/deprecated-prop",
+        "severity": "warn",
+        "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
+        "allow": "deprecated"
+      },
+      {
+        "id": "api/overrides-studio-only",
+        "severity": "error",
+        "summary": "`overrides` (Figma instance overrides of the layers a component draws itself: `{ \"Sub-Action\": { level: \"danger\" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10).",
+        "allow": "overrides"
       },
       {
         "id": "interaction/no-noop-handler",

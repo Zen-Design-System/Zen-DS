@@ -388,6 +388,14 @@
           "deprecated": null
         },
         {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,

@@ -15,6 +15,9 @@ styling. Then, for each component you use:
 2. `docs/guidelines/<slug>.md` — Do/Don't, Props, object Types, keyboard, a11y (generated; edit the source instead).
 3. `docs/api/<slug>.json` — the props as JSON.
 
+To customize a component without forking (code) or detaching (Figma), follow
+`skills/zen-component-usage/references/customize-in-code.md` and `skills/zen-figma-design/references/customize-without-detach.md`.
+
 Inside the repo, import from the component folders (`../components/Button`), as the platform does. Platform
 examples also follow `docs/guides/example-patterns.md` (coverage matrix, mobile patterns, copy) and are verified
 with the QA loop below.

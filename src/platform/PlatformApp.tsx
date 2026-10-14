@@ -26,6 +26,7 @@ const cards: Array<{ title: string; description: string; icon: IconName; page?: 
 /** Component pages shown in the sidebar (sorted A–Z at render time). */
 export const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
   { id: "color-selector", label: "Color Selector" },
+  { id: "color-picker", label: "Color Picker" },
   { id: "metric", label: "Metric Widget" },
   { id: "rating", label: "Rating" },
   { id: "side-panel", label: "Side Panel" },
@@ -207,6 +208,7 @@ export const pageLabels: Record<PlatformPage, string> = {
   "list-item": "List Item",
   table: "Table",
   "color-selector": "Color Selector",
+  "color-picker": "Color Picker",
   metric: "Metric Widget",
   rating: "Rating",
   "side-panel": "Side Panel",

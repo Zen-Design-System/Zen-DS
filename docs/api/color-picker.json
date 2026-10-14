@@ -1,0 +1,349 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "color-picker",
+  "import": "import { ColorPicker, ColorField, ColorSwatch } from \"@zen-ds/react\";",
+  "components": [
+    {
+      "name": "ColorPicker",
+      "file": "src/components/ColorPicker/ColorPicker.tsx",
+      "description": "Figma Color-Picker (15708:5927): pick any colour. The Saturation area (saturation → right, brightness → up), the hue on\na Slider (Theme=White, its track painted with the spectrum, red held half a thumb at each end so 0° and 360° sit\nwhere the thumb stops), a Format select (Hex · RGB · HSL · HSB) with that format's channels as inline Input fields, and\nthe saved colours as a ColorSelector. Panel: Popover/Background, Popover/Border, Effect/Popover, Corner-Radius/Large,\npadding Spacing/Padding/Small, gap Spacing/Gap/Small; the area is Corner-Radius/XSmall (16 − 12, concentric).\nKeyboard: the area is a 2D slider (← → saturation, ↑ ↓ brightness, Shift for 10 steps); Escape closes the popover.\nIt opens under ColorField; inline, it is a panel in its container (no popover surface).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The colour as a hex value (`\"#1F6FEB\"`; 3-digit and lowercase are read too). Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": "\"#000000\"",
+          "description": "The first colour when uncontrolled. Default `#000000`.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new value as `\"#RRGGBB\"` on every change: dragging the area or the hue, typing a channel, picking a saved colour.",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "\"hex\" | \"rgb\" | \"hsl\" | \"hsb\"",
+          "required": false,
+          "default": null,
+          "description": "Which channels the value fields show (Figma `Format`): `hex` (default), `rgb`, `hsl` or `hsb`. Controlled with onFormatChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultFormat",
+          "type": "\"hex\" | \"rgb\" | \"hsl\" | \"hsb\"",
+          "required": false,
+          "default": "\"hex\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onFormatChange",
+          "type": "(format: ColorFormat) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "savedColors",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "Saved colours under the fields (Figma `Saved`), as hex values; picking one sets the value. Empty or left out: no row.",
+          "deprecated": null
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Popover use, as DatePicker: `open` (default true), `onOpenChange` / `onClose` for light dismiss and Escape, `anchorRef`\nto sit under a field. Without onClose, onOpenChange and anchorRef it is an inline panel in its container.",
+          "deprecated": null
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "anchorRef",
+          "type": "RefObject<HTMLElement | null>",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ColorField",
+      "file": "src/components/Input/Input.tsx",
+      "description": "Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field anatomy (Label → Field → Help-Text) with\na ColorSwatch before the hex (after it with `layout=\"inline\"`, Figma Input/Inline-Field Type=Color); the swatch size\nfollows the field's leading icon (sm 16 in Small, md 20 in Medium and Large, lg 24 in XLarge). A click in the field or\nArrowDown opens ColorPicker under it (State=Focused while open); Escape closes it and leaves focus in the field.\nTyping edits the hex: six digits apply at once, a shorter one on Enter or blur, anything else goes back to the colour.\nThe picker is the same popover on every device (Figma has no mobile pattern for it yet).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The colour as a hex value (`\"#1F6FEB\"`; 3-digit and lowercase are read too). Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with `\"#RRGGBB\"` when the field holds a new complete colour: a pick in the picker, six typed digits, or a\nshorter hex completed on Enter or blur.",
+          "deprecated": null
+        },
+        {
+          "name": "colorPicker",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Open ColorPicker under the field (default true) on a click in the field or ArrowDown; false: a hex field with its swatch.",
+          "deprecated": null
+        },
+        {
+          "name": "pickerFormat",
+          "type": "\"hex\" | \"rgb\" | \"hsl\" | \"hsb\"",
+          "required": false,
+          "default": null,
+          "description": "The Format the picker opens on: `hex` (default), `rgb`, `hsl` or `hsb`; the person can switch it there.",
+          "deprecated": null
+        },
+        {
+          "name": "savedColors",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "Saved colours in the picker, as hex values (Figma Color-Picker `Saved`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": false,
+          "default": "\"md\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpText",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelOptional",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Label `Optional` / `Tooltip-Icon` / `Action` for the field label (see InputLabel).",
+          "deprecated": null
+        },
+        {
+          "name": "labelTooltip",
+          "type": "boolean | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "labelAction",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "helpTheme",
+          "type": "\"neutral\" | \"negative\" | \"warning\" | \"positive\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text Theme for `helpText`: Neutral (default) · Warning · Positive · Negative. `error` always renders Negative.",
+          "deprecated": null
+        },
+        {
+          "name": "helpIcon",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Icon` axis (default on).",
+          "deprecated": null
+        },
+        {
+          "name": "characterLimit",
+          "type": "ReactNode | true",
+          "required": false,
+          "default": null,
+          "description": "Figma Help-Text `Character-Limitation`: custom text (e.g. \"12/100\"), or `true` to count the value against `maxLength`.",
+          "deprecated": null
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "errorMessage",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": "Use error (same meaning)."
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"hover\" | \"focused\" | \"typing\" | \"inputted\" | \"read-only\" | \"disabled\" | \"inputted-error\" | \"blank-error\" | \"error\"",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "trailing",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "After the value: an icon name (sized to the field) or any node (a unit, a picker, an action).",
+          "deprecated": null
+        },
+        {
+          "name": "layout",
+          "type": "\"stacked\" | \"inline\"",
+          "required": false,
+          "default": null,
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "ColorSwatch",
+      "file": "src/components/ColorSwatch/ColorSwatch.tsx",
+      "description": "Figma `.Primitives/Input/Color-Swatch` (15659:110090): the colour chip of a colour value, inside ColorField, an inline\ncolour field and ColorPicker. One shape: the value is the fill and an inside 1px Border/Neutral/Subtle keeps white or\ncanvas-coloured values visible. Size: Element-Size/Popular Small 16 · Base 20 · Medium 24. Radius is concentric with\nthe field around it: Corner-Radius/XSmall at sm (12 − 8), 2XSmall at md and lg (12 − 10, 16 − 14).\nFor picking one colour from a set use ColorSelector; this chip only shows a value.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLSpanElement>, \"color\" | \"children\">",
+      "props": [
+        {
+          "name": "color",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The colour it shows: any CSS colour, usually the value of a colour field (`\"#1F6FEB\"`) or a token (`var(--zen-…)`).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Follows the leading icon of the field it sits in: sm 16 (Small fields), md 20 (Medium and Large fields, default),\nlg 24 (XLarge fields). Short or Figma spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the swatch for assistive technology (e.g. \"Brand colour, #1F6FEB\"). Without it the swatch is decorative.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "ColorFormat": "type ColorFormat = \"hex\" | \"rgb\" | \"hsl\" | \"hsb\""
+  }
+}

@@ -7,6 +7,9 @@ import { BottomSheet } from "../BottomSheet";
 import { List, ListItem } from "../ListItem";
 import { Search } from "../Search";
 import { DatePicker, DatePickerSheet } from "../DatePicker";
+import { ColorPicker } from "../ColorPicker";
+import { normalizeHex, type ColorFormat } from "../ColorPicker/color";
+import { ColorSwatch } from "../ColorSwatch";
 import { Button, IconButton } from "../Button";
 import { Tag } from "../Tag";
 import { Tooltip, useIconTooltip } from "../Tooltip";
@@ -66,6 +69,12 @@ type CommonFieldProps = {
   leading?: IconName | ReactNode;
   /** After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). */
   trailing?: IconName | ReactNode;
+  /**
+   * `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property
+   * panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the
+   * value on the right. labelOptional, labelTooltip and labelAction are not drawn inline.
+   */
+  layout?: InputLayout;
   className?: string;
   /** Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio;
    *  app code sets label / helpText / leading / trailing. */
@@ -73,6 +82,8 @@ type CommonFieldProps = {
 };
 
 export type InputHelpTheme = "neutral" | "negative" | "warning" | "positive";
+export const inputLayouts = ["stacked", "inline"] as const;
+export type InputLayout = (typeof inputLayouts)[number];
 export interface InputLabelProps {
   id?: string;
   /** id of the <label> element itself, for controls that are named with aria-labelledby (e.g. a rich text editor). */
@@ -286,7 +297,7 @@ export type InputFieldProps = CommonFieldProps & Omit<InputHTMLAttributes<HTMLIn
   /** Called with the new text on every change (next to the native `onChange(event)`, which still runs). */
   onValueChange?: (value: string) => void;
 };
-export type TextAreaFieldProps = Omit<CommonFieldProps, "size"> & { /** Short (sm, md…) or Figma (small, medium…) spelling. */ size?: TextAreaSize } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size"> & {
+export type TextAreaFieldProps = Omit<CommonFieldProps, "size" | "layout"> & { /** Short (sm, md…) or Figma (small, medium…) spelling. */ size?: TextAreaSize } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size"> & {
   /** Called with the new text on every change (next to the native `onChange(event)`, which still runs). */
   onValueChange?: (value: string) => void;
 };
@@ -361,18 +372,21 @@ function openFieldFromControl(event: MouseEvent<HTMLDivElement>) {
   if (trigger && !trigger.disabled) trigger.click(); // a Select opens from anywhere in its field
 }
 
-function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAction, required, messageId, error, helpText, helpTheme, helpIcon, characterLimit, size, state, leading, trailing, className, overrides }: Omit<CommonFieldProps, "characterLimit" | "size"> & { size?: InputSizeKey; characterLimit?: ReactNode; children: ReactNode; id: string; required?: boolean; messageId: string }) {
+function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAction, required, messageId, error, helpText, helpTheme, helpIcon, characterLimit, size, state, leading, trailing, layout = "stacked", className, overrides }: Omit<CommonFieldProps, "characterLimit" | "size"> & { size?: InputSizeKey; characterLimit?: ReactNode; children: ReactNode; id: string; required?: boolean; messageId: string }) {
   const nest = useNested(overrides);
   const resolvedState = normalizeInputState(state, error);
   const disabled = resolvedState === "disabled";
+  const inline = layout === "inline";
   // Icon names draw at the affordance size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28.
   const iconSize = size === "small" ? "sm" : size === "large" ? "md" : size === "xlarge" ? "lg" : "base";
   return (
-    <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState}>
-      <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} nest={nest} />
+    <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState} data-layout={inline ? "inline" : undefined}>
+      {inline ? null : <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} nest={nest} />}
       <FieldDisabledContext.Provider value={disabled}>
       <div className="zen-input__control" onMouseDown={focusFieldFromControl} onClick={openFieldFromControl}>
-        {leading ? <span className="zen-input__affordance zen-input__affordance--leading">{nest("Leading", renderIcon(leading, { size: iconSize }))}</span> : null}
+        {/* Inline: the label is the field's first slot (Figma Leading slot text); same id, so a Select's trigger is still named by it. */}
+        {inline && label ? <label className={`zen-input__inline-label ${typographyStyles["Body/Base/Medium"]}`} htmlFor={id} id={`${id}-label`}>{label}{required ? <span aria-hidden="true"> *</span> : null}</label> : null}
+        {leading ?<span className="zen-input__affordance zen-input__affordance--leading">{nest("Leading", renderIcon(leading, { size: iconSize }))}</span> : null}
         {children}
         {trailing ? <span className="zen-input__affordance zen-input__affordance--trailing">{nest("Trailing", renderIcon(trailing, { size: iconSize }))}</span> : null}
         {/* Figma State=Read-Only: 1px INSIDE stroke with dashPattern [2,2]. CSS dashed borders use browser-defined dash
@@ -386,7 +400,7 @@ function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAct
 }
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, overrides, ...inputProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, layout, className, required, disabled, onValueChange, overrides, ...inputProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -397,7 +411,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const count = useCharacterCount(characterLimit, inputProps.value, inputProps.defaultValue, inputProps.maxLength);
   const message = error ?? helpText ?? count.text;
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, inputProps.readOnly)} leading={leading} trailing={trailing} className={className} overrides={overrides}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={count.text} size={size} state={fieldStateFrom(state, disabled, inputProps.readOnly)} leading={leading} trailing={trailing} layout={layout} className={className} overrides={overrides}>
       <input
         {...inputProps}
         onChange={(event) => { count.track(event.target.value); inputProps.onChange?.(event); onValueChange?.(event.target.value); }}
@@ -516,7 +530,7 @@ function selectFocusEvent(event: FocusEvent<HTMLElement>, select: HTMLSelectElem
 }
 
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(function SelectField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, ...selectProps },
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, layout, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, ...selectProps },
   ref,
 ) {
   const error = errorProp ?? errorMessage;
@@ -607,7 +621,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
     onBlur?.(selectFocusEvent(event, nativeRef.current));
   };
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} layout={layout} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
       <button
         id={`${id}-trigger`}
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
@@ -876,6 +890,121 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
       {datePicker && phone ? (
         <DatePickerSheet open={open} onOpenChange={(next) => { if (!next) close(); }} title={typeof props.label === "string" ? props.label : undefined} value={parsedValue} onApply={(date) => handleDateChange(date)} minDate={minDate} maxDate={maxDate} today={today} />
       ) : datePicker ? <DatePicker open={open} value={parsedValue} onValueChange={datePickerActions ? undefined : handleDateChange} onApply={datePickerActions ? (date) => handleDateChange(date) : undefined} onClose={close} anchorRef={fieldRef} showActions={datePickerActions} minDate={minDate} maxDate={maxDate} today={today} /> : null}
+    </div>
+  );
+}
+
+export type ColorFieldProps = Omit<InputFieldProps, "value" | "defaultValue" | "onValueChange" | "leading" | "type"> & {
+  /** The colour as a hex value (`"#1F6FEB"`; 3-digit and lowercase are read too). Controlled with onValueChange. */
+  value?: string;
+  defaultValue?: string;
+  /** Called with `"#RRGGBB"` when the field holds a new complete colour: a pick in the picker, six typed digits, or a
+   * shorter hex completed on Enter or blur. */
+  onValueChange?: (value: string) => void;
+  /** Open ColorPicker under the field (default true) on a click in the field or ArrowDown; false: a hex field with its swatch. */
+  colorPicker?: boolean;
+  /** The Format the picker opens on: `hex` (default), `rgb`, `hsl` or `hsb`; the person can switch it there. */
+  pickerFormat?: ColorFormat;
+  /** Saved colours in the picker, as hex values (Figma Color-Picker `Saved`). */
+  savedColors?: string[];
+};
+
+/**
+ * Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field anatomy (Label → Field → Help-Text) with
+ * a ColorSwatch before the hex (after it with `layout="inline"`, Figma Input/Inline-Field Type=Color); the swatch size
+ * follows the field's leading icon (sm 16 in Small, md 20 in Medium and Large, lg 24 in XLarge). A click in the field or
+ * ArrowDown opens ColorPicker under it (State=Focused while open); Escape closes it and leaves focus in the field.
+ * Typing edits the hex: six digits apply at once, a shorter one on Enter or blur, anything else goes back to the colour.
+ * The picker is the same popover on every device (Figma has no mobile pattern for it yet).
+ */
+export function ColorField({ value, defaultValue, onValueChange, colorPicker = true, pickerFormat, savedColors, trailing, layout, size = "md", state, onKeyDown, onBlur, ...props }: ColorFieldProps) {
+  const [open, setOpen] = useState(false);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  // Closing returns focus to the input; that click or focus must not re-open the picker.
+  const closing = useRef(false);
+  const close = () => { closing.current = true; setOpen(false); requestAnimationFrame(() => { closing.current = false; }); };
+  const canOpen = colorPicker && !props.readOnly && state !== "read-only" && !props.disabled && state !== "disabled";
+  const controlled = value !== undefined;
+  const [internalHex, setInternalHex] = useState(() => normalizeHex(defaultValue ?? "") ?? "");
+  const hex = controlled ? normalizeHex(value) ?? "" : internalHex;
+  // What the person is typing, until it is a colour (then it applies) or they leave the field.
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = (next: string) => {
+    if (!controlled) setInternalHex(next);
+    if (next !== hex) onValueChange?.(next);
+  };
+  const finishDraft = () => {
+    if (draft === null) return;
+    const next = normalizeHex(draft);
+    if (next) commit(next);
+    setDraft(null);
+  };
+  const sizeKey = scaleKey(size, inputSizes);
+  const swatch = <ColorSwatch color={normalizeHex(draft ?? "") ?? (hex || "transparent")} size={sizeKey === "small" ? "sm" : sizeKey === "xlarge" ? "lg" : "md"} />;
+  const inline = layout === "inline";
+  return (
+    <div
+      className="zen-color-field"
+      ref={fieldRef}
+      // Like DateField, a click anywhere in the box (text, padding, swatch) opens the picker; own buttons keep their action.
+      onClick={(event) => {
+        const target = event.target as Element;
+        if (!canOpen || closing.current || !target.closest(".zen-input__control") || target.closest("button, a[href]")) return;
+        setOpen(true);
+      }}
+    >
+      <InputField
+        {...props}
+        size={size}
+        layout={layout}
+        state={open && canOpen ? "focused" : state}
+        type="text"
+        value={draft ?? hex}
+        placeholder={props.placeholder ?? "#000000"}
+        spellCheck={false}
+        autoComplete="off"
+        // APG combobox that opens a dialog (as DateField); a caller's own values win.
+        role={props.role ?? (colorPicker ? "combobox" : undefined)}
+        aria-haspopup={props["aria-haspopup"] ?? (colorPicker ? "dialog" : undefined)}
+        aria-expanded={props["aria-expanded"] ?? (colorPicker ? open : undefined)}
+        leading={inline ? undefined : swatch}
+        trailing={inline ? swatch : trailing}
+        onValueChange={(text) => {
+          setDraft(text);
+          // Six digits are a whole colour: apply at once, so the swatch and the open picker follow the typing.
+          if (/^#?[0-9a-f]{6}$/i.test(text.trim())) commit(normalizeHex(text)!);
+        }}
+        onBlur={(event) => { finishDraft(); onBlur?.(event); }}
+        onKeyDown={(event) => {
+          onKeyDown?.(event);
+          if (event.defaultPrevented) return;
+          if (event.key === "Enter" && draft !== null) { event.preventDefault(); finishDraft(); return; }
+          if (open && closePopupOnEscape(event, close)) return;
+          // ArrowDown opens the picker and moves focus to its Saturation area.
+          if (canOpen && event.key === "ArrowDown") {
+            event.preventDefault();
+            setOpen(true);
+            const focusArea = (tries: number) => requestAnimationFrame(() => {
+              const area = fieldRef.current?.querySelector<HTMLElement>(".zen-color-picker__area");
+              if (area) area.focus({ preventScroll: true });
+              else if (tries > 0) focusArea(tries - 1);
+            });
+            focusArea(3);
+          }
+        }}
+      />
+      {colorPicker ? (
+        <ColorPicker
+          open={open}
+          value={hex || "#000000"}
+          onValueChange={(next) => { setDraft(null); commit(next); }}
+          onClose={close}
+          anchorRef={fieldRef}
+          defaultFormat={pickerFormat}
+          savedColors={savedColors}
+          aria-label={typeof props.label === "string" ? props.label : undefined}
+        />
+      ) : null}
     </div>
   );
 }
@@ -1360,7 +1489,7 @@ const sameRichTextHtml = (a: string, b: string) => a === b || (/^(<p><br><\/p>)?
 const RICH_TEXT_TYPING_STEP_MS = 1000;
 const richTextTypingKind = (inputType: string | undefined) => (inputType === "insertText" ? "insert" : /^delete(Content|Word|SoftLine|HardLine)/.test(inputType ?? "") ? "delete" : null);
 
-export type RichTextFieldProps = Omit<CommonFieldProps, "size" | "leading" | "trailing"> & {
+export type RichTextFieldProps = Omit<CommonFieldProps, "size" | "leading" | "trailing" | "layout"> & {
   id?: string;
   /** Short (sm, md…) or Figma (small, medium…) spelling. */
   size?: TextAreaSize;

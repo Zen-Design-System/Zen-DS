@@ -48,7 +48,7 @@ export const DETACHABLE = ["Card", "ListItem", "MetricCard", "Metric", "EmptySta
 const INTERACTIVE = new Set([
   "Button", "IconButton", "Link", "Chip", "Tabs", "Segmented", "Toggle", "Checkbox", "RadioButton", "RadioGroup", "Slider", "Rating",
   "Input", "InputField", "TextField", "NumberField", "SelectField", "Select", "TextAreaField", "DateField", "DatePicker", "Search",
-  "Autocomplete", "RichText", "Uploader", "ColorSelector", "Table", "Dialog", "ModalForm", "SidePanel", "BottomSheet", "Popover",
+  "Autocomplete", "RichText", "Uploader", "ColorSelector", "ColorField", "ColorPicker", "Table", "Dialog", "ModalForm", "SidePanel", "BottomSheet", "Popover",
   "Menu", "Tooltip", "Accordion", "Pagination", "Stepper", "Sidebar", "TopNavigation", "BottomNavigation", "AppShell", "Toast",
   "ActionBar", "Breadcrumbs", "Form", "AiChat", "Chat", "ChartCard",
 ]);

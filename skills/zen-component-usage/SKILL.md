@@ -22,7 +22,8 @@ Zen components have written usage rules. Follow them when you **use** components
    - **Icon-only actions** show their name as a tooltip after 1s of hover (at once on keyboard focus, never on touch). IconButton does it by default (`tooltip` defaults to `aria-label`); never hand-build `<button><Icon/></button>`, and use `useIconTooltip(label).bind()` for custom controls. See `docs/component-usage-rules.md` §12.
    - **Structure:** no Dialog inside a Dialog, no Accordion inside an Accordion, no tooltip on a disabled control or with interactive content.
    - **Component CSS:** colours only through `--zen-*` tokens (raw values only as `var()` fallbacks); removing a focus outline needs a replacement ring; every animation has a `prefers-reduced-motion` fallback.
-3. Run `npm run usage:check` and fix every ✗. Suppress a finding only when the rule truly does not apply, with a comment `zen-allow-<allow>: <reason>` directly above the element.
+3. To make a component look or behave differently, climb the ladder in `references/customize-in-code.md` (props → layout props → slots → composition → a prop on the owner → a new component from Zen parts); never fork or restyle one.
+4. Run `npm run usage:check` and fix every ✗. Suppress a finding only when the rule truly does not apply, with a comment `zen-allow-<allow>: <reason>` directly above the element.
 
 ## When writing Platform examples or playgrounds
 

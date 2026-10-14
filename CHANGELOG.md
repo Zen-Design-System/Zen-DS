@@ -231,6 +231,14 @@ removed (four unused colour ramps were, see Removed).
   App Shell and Chart lost their second advice); each advice is its own line now, and the page keeps the full text.
 
 ### Added
+- `ColorField`, `ColorPicker` and `ColorSwatch` (2026-10-14, user, from the Zen Figma file): pick or type any colour.
+  ColorField is the Input field (a swatch and the hex) that opens ColorPicker (saturation × brightness area, the hue on
+  Slider, a Format select Hex · RGB · HSL · HSB with its channels, saved colours on ColorSelector); values are hex.
+  `layout="inline"` on InputField, SelectField and ColorField (Figma Input/Inline-Field): the label inside the field
+  for dense property panels. Harness `color-picker/hex-value`; Studio palette (Colour field, Colour picker, Colour
+  swatch, Inline field) and Figma property rows; platform page Color Picker.
+- Customize without forking or detaching: `skills/zen-component-usage/references/customize-in-code.md` and
+  `skills/zen-figma-design/references/customize-without-detach.md`; Figma audit rule `bounds/stroke-clip-gap`.
 - Seven charts from the Zen Figma file (2026-10-14, user), in the chart family's language (dashed grid, Tooltip lane,
   legend, `chartPalette`, draw-in with a reduced-motion fade, keyboard and a live summary): `AreaChart` (one area, or
   `type="stacked"` bands), `GroupedBarChart` (2–3 series side by side), `ComboChart` (bars and a line on two axes),

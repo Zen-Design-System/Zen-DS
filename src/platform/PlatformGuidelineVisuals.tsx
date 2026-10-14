@@ -12,7 +12,8 @@ import { Chip } from "../components/Chip";
 import { DashboardHeader } from "../components/DashboardHeader";
 import { ChipGroup } from "../components/ChipGroup";
 import { Icon } from "../components/Icon";
-import { InputField } from "../components/Input";
+import { ColorField, InputField } from "../components/Input";
+import { Stack as LayoutStack } from "../components/Layout";
 import { Popover, PopoverItem, PopoverManualAddNew } from "../components/Popover";
 import { Link } from "../components/Link";
 import { Text } from "../components/Text";
@@ -296,6 +297,12 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   rating: [
     { do: { preview: <Stack><Row><RatingDisplay value={4.6} /><span className="pgv-note">4.6 · 1,284 reviews</span></Row></Stack>, caption: "Averages use RatingDisplay with the count beside them." },
       dont: { preview: <Row><Rating aria-label="Average rating" value={5} /></Row>, caption: "An input showing a rounded average invites clicks and hides the sample size." } },
+  ],
+  "color-picker": [
+    { do: { preview: <ColorField label="Brand colour" defaultValue="#1F6FEB" colorPicker={false} />, caption: "Name what the colour is for and keep it a hex value the app stores." },
+      dont: { preview: <ColorField label="Status" defaultValue="#E5533D" colorPicker={false} />, caption: "A status colour typed by hand: a status takes the semantic Badge theme the system chooses, not a free colour." } },
+    { do: { preview: <LayoutStack gap="xs" width={240}><InputField layout="inline" size="sm" label="Title" defaultValue="Japan" /><ColorField layout="inline" size="sm" label="Shadow Tint" defaultValue="#000000" colorPicker={false} /></LayoutStack>, caption: "In a dense panel, inline fields: the label inside, the value at the end, rows 8 apart." },
+      dont: { preview: <LayoutStack gap="xs" width={240}><InputField size="sm" label="Title" defaultValue="Japan" /><ColorField size="sm" label="Shadow Tint" defaultValue="#000000" colorPicker={false} /></LayoutStack>, caption: "Stacked labels in a property panel double every row's height and push the settings off screen." } },
   ],
   "color-selector": [
     { do: { preview: <ColorSelector aria-label="Label colour" value="blue" colors={[["blue", "Blue"], ["green", "Green"], ["orange", "Orange"], ["purple", "Purple"]].map(([value, label]) => ({ value: `var(--zen-color-background-support-${value}-solid)`, label }))} />, caption: "A few named token colours, ordered by hue." },

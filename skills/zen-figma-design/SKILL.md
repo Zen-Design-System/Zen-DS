@@ -16,6 +16,7 @@ Files in this skill:
 | `references/figma-components.md` | to find a component set and its exact property names and values |
 | `references/figma-tokens.md` | to pick a colour, spacing, radius variable or a text/effect style |
 | `references/figma-gotchas.md` | before writing `use_figma` code that touches instances |
+| `references/customize-without-detach.md` | before you change how a Zen component looks or build a new one from Zen parts: the ladder (props → nested props → slots → allowed overrides → wrap → ask), value layers, composition rules |
 | `references/guidelines/<component>.md` | for each component you place: "Use it for", "Use something else for", Do/Don't (the Props part is the React API) |
 | `references/component-usage-rules.md` | the full Zen rules the screen rules summarise |
 | `harness/zen-figma-audit.js` | after every screen: run it with `use_figma` (§4) |
