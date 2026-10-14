@@ -34,6 +34,20 @@
   backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
 }
 
+/* Width (PopoverProps.width). Figma Popover/Default is Fixed 240 with a 240 min width: a designer may widen it, never
+   narrow it. Every mode keeps 240 as its floor and the viewport less 16px a side (or maxWidth) as its ceiling.
+   --zen-anchor-width is the anchor box's layout width (useAnchoredPosition); a static surface has none and fills its
+   container instead. */
+.zen-popover[data-width] {
+  --zen-popover-cap: min(var(--zen-popover-max-width, 100vw), calc(100vw - 32px));
+  min-width: min(240px, var(--zen-popover-cap));
+  max-width: var(--zen-popover-cap);
+}
+.zen-popover[data-width="fixed"] { width: max(240px, var(--zen-popover-width)); }
+.zen-popover[data-width="fill"] { width: max(240px, var(--zen-anchor-width, 100%)); }
+/* Hug: the longest row sets the width, the anchor box its floor (a list never narrower than the field it opens from). */
+.zen-popover[data-width="hug"] { width: max-content; min-width: min(max(240px, var(--zen-anchor-width, 0px)), var(--zen-popover-cap)); }
+
 .zen-popover__label {
   display: flex;
   min-height: 32px;

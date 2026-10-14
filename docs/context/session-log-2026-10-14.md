@@ -233,6 +233,22 @@
 - Open (BACKLOG): BarList leader at 78% in Figma vs full track in code (designer); chart sets missing from the
   component-properties contract (inspector rows); Figma descriptions of the seven sets are stale (widget themes P1).
 
+## Popover width variant (tier S, user request)
+
+- User: Popover is a fixed width; wants a variant that scales for long search bars with suggestions and domain pickers
+  with long names. Figma Popover/Default: Fixed 240, min width 240 (contract `checkbox-radio-chip-popover.json`), so the
+  new modes keep 240 as their floor.
+- `Popover width?: "fill" | "hug" | number` + `maxWidth` (`data-width`, rules in `popover.css`); `useAnchoredPosition`
+  option `trackAnchorWidth` writes `--zen-anchor-width` (anchor `offsetWidth`, right in scaled frames). A new anchor
+  width lands a frame later (anchor's own ResizeObserver → rAF); the surface's observer only moves it: reading the new
+  anchor width there resized the surface inside its own callback → "ResizeObserver loop completed with undelivered
+  notifications" (flaky 3/4 in the new fill test, traced by wrapping ResizeObserver). SelectField `popoverWidth`.
+- Examples: Search results now `width="fill"`; new "Pick a domain" (SelectField + Publish, `popoverWidth="hug"`):
+  1512 field 344 → list 377, 0 labels cut. Story `Widths`; 6 tests in `tests/interaction/anchored-position.test.tsx`.
+- Guideline: Popover api row Width + one Do line; `guidelines:build`, `part-props-build` rerun.
+- Gate [fit] popover@390: a long SelectField value spilled 16px out of its trigger (no ellipsis) → `input.css`
+  `.zen-select__trigger.zen-input__native` ellipsis; the domain row wraps (field min 200, Publish below on phones).
+
 ## Batch 1 of the property-panel components in code: ColorField · ColorPicker · ColorSwatch · layout="inline" (tier L, worktree ../Zen-DS-color, user: "update lại lên Studio các component này" → API "prop trên field có sẵn", "theo đợt")
 - Library: ColorSwatch (.zen-swatch, not ColorSelector's .zen-color-swatch), ColorPicker (DatePicker's popover pattern;
   hue = Slider white with a spectrum track held half a thumb at each end; channels = inline fields), ColorField in

@@ -8,7 +8,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup, type PopoverItemData } from "../../../components/Popover";
 import { Chip } from "../../../components/Chip";
-import { IconButton } from "../../../components/Button";
+import { Button, IconButton } from "../../../components/Button";
 import { AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { Card } from "../../../components/Card";
@@ -18,6 +18,7 @@ import { Icon, type IconName } from "../../../components/Icon";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Box, Stack } from "../../../components/Layout";
 import { Search } from "../../../components/Search";
+import { SelectField } from "../../../components/Input";
 import { Tag } from "../../../components/Tag";
 import { Table, TableMedia, TableText } from "../../../components/Table";
 import { EmptyState } from "../../../components/EmptyState";
@@ -269,7 +270,8 @@ function JumpToProject() {
           <Search placeholder="Search projects" aria-label="Search projects" aria-expanded={open} value={query}
             onValueChange={(value) => { setQuery(value); if (value) setOpen(true); }} onClick={() => setOpen(true)} />
         </Box>
-        <Popover ref={listRef} open={open} onOpenChange={setOpen} anchorRef={fieldRef} aria-label="Projects"
+        {/* width="fill": the results are as wide as the search bar above them. */}
+        <Popover ref={listRef} open={open} onOpenChange={setOpen} anchorRef={fieldRef} width="fill" aria-label="Projects"
           emptyState="No projects match" items={items} onSelect={(item) => pick(item.id)} />
         {/* The project that is open: its name wraps and the status follows it, so nothing is cut on a narrow card. */}
         <Stack direction="row" align="center" gap="md">
@@ -313,7 +315,38 @@ function ReviewTimeZone() {
   );
 }
 
-// ——— 7. Act on a selection: Popover/Bulk-Action over a table ————————————————————————————————————————————
+// ——— 7. Pick a domain: long values, so the option list hugs the longest one —————————————————————————————————
+/** Where the Book Fair site can be published: the client's event domains run long. */
+const bookfairDomains = [
+  { value: "bookfair-2026.dizai.studio", label: "bookfair-2026.dizai.studio", caption: "Studio preview" },
+  { value: "hanoibookfair.vn", label: "hanoibookfair.vn", caption: "Main site" },
+  { value: "www.hanoi-international-book-fair-2026.org.vn", label: "www.hanoi-international-book-fair-2026.org.vn", caption: "Event site" },
+  { value: "exhibitors.hanoi-international-book-fair-2026.org.vn", label: "exhibitors.hanoi-international-book-fair-2026.org.vn", caption: "Exhibitor portal" },
+  { value: "tickets.hanoi-international-book-fair-2026.org.vn", label: "tickets.hanoi-international-book-fair-2026.org.vn", caption: "Ticket sales" },
+];
+
+function PublishDomain() {
+  const project = projectById("bookfair-site");
+  const [domain, setDomain] = useState("hanoibookfair.vn");
+  const { toast } = useToast();
+  return (
+    <Card theme="flat" width="fill">
+      <Stack gap="md">
+        <CardTitle title={project.name}>{`${project.client} · led by ${personName(project.lead)}`}</CardTitle>
+        {/* On a narrow card Publish wraps under the field, which keeps 200px for the domain. */}
+        <Stack direction="row" align="end" gap="xs" wrap>
+          {/* popoverWidth="hug": the list grows past the field to the longest domain, so none ends in "…". */}
+          <Box width="fill" minWidth={200}>
+            <SelectField label="Publish to" options={bookfairDomains} value={domain} onValueChange={setDomain} popoverWidth="hug" />
+          </Box>
+          <Button onClick={() => toast({ title: `Publishing to ${domain}` })}>Publish</Button>
+        </Stack>
+      </Stack>
+    </Card>
+  );
+}
+
+// ——— 8. Act on a selection: Popover/Bulk-Action over a table ————————————————————————————————————————————
 function BulkFileActions() {
   const [rows, setRows] = useState(() => sortFiles(studioFiles, "updated"));
   const [picked, setPicked] = useState<string[]>(["f1", "f3"]);
@@ -476,7 +509,7 @@ const unpick = (label) => { setPicked(toggleIn(picked, label)); focusNextTagOrCh
   },
   {
     title: "Search results",
-    description: "The Popover on its own, anchored under a Search field: Dock Icon items with the client as a caption. ↓ moves into the results, Escape or a click outside closes them, and a pick opens the project.",
+    description: "The Popover on its own, anchored under a Search field and as wide as it (width=\"fill\"): Dock Icon items with the client as a caption. ↓ moves into the results, Escape or a click outside closes them, and a pick opens the project.",
     code: `const [open, setOpen] = useState(false);
 const fieldRef = useRef<HTMLElement>(null);
 
@@ -485,7 +518,7 @@ const fieldRef = useRef<HTMLElement>(null);
   <Search placeholder="Search projects" aria-label="Search projects" aria-expanded={open} value={query}
     onValueChange={(value) => { setQuery(value); if (value) setOpen(true); }} onClick={() => setOpen(true)} />
 </Box>
-<Popover open={open} onOpenChange={setOpen} anchorRef={fieldRef} aria-label="Projects" emptyState="No projects match"
+<Popover open={open} onOpenChange={setOpen} anchorRef={fieldRef} width="fill" aria-label="Projects" emptyState="No projects match"
   items={matches.map((p) => ({ id: p.id, label: p.name, caption: p.client, theme: "dock-icon", leading: p.icon, selected: p.id === projectId }))}
   onSelect={(item) => { setProjectId(item.id); setQuery(""); setOpen(false); }} />
 
@@ -514,6 +547,24 @@ const fieldRef = useRef<HTMLElement>(null);
   {zone.city}
 </Chip>`,
     render: () => <ReviewTimeZone />,
+  },
+  {
+    title: "Pick a domain",
+    description: "Domains run long, so the list hugs the longest one (popoverWidth=\"hug\"): never narrower than the field, it grows past it, up to the window, instead of cutting each name with \"…\". Publish confirms with a toast.",
+    code: `const [domain, setDomain] = useState("hanoibookfair.vn");
+
+<Stack direction="row" align="end" gap="xs" wrap>
+  <Box width="fill" minWidth={200}>
+    <SelectField label="Publish to" value={domain} onValueChange={setDomain} popoverWidth="hug" options={[
+      { value: "bookfair-2026.dizai.studio", label: "bookfair-2026.dizai.studio", caption: "Studio preview" },
+      { value: "hanoibookfair.vn", label: "hanoibookfair.vn", caption: "Main site" },
+      { value: "www.hanoi-international-book-fair-2026.org.vn", label: "www.hanoi-international-book-fair-2026.org.vn", caption: "Event site" },
+      // …
+    ]} />
+  </Box>
+  <Button onClick={() => publish(domain)}>Publish</Button>
+</Stack>`,
+    render: () => <PublishDomain />,
   },
   {
     title: "Act on a selection",

@@ -911,6 +911,14 @@
           "deprecated": null
         },
         {
+          "name": "popoverWidth",
+          "type": "\"fill\" | \"hug\" | number",
+          "required": false,
+          "default": null,
+          "description": "Width of the option Popover (Popover `width`): unset is Figma's 240px; `\"fill\"` matches the field's box, `\"hug\"` grows\n to the longest option (never narrower than the field) so long values such as domains stay whole.",
+          "deprecated": null
+        },
+        {
           "name": "popoverOpen",
           "type": "boolean",
           "required": false,
@@ -3916,6 +3924,22 @@
           "required": false,
           "default": "false",
           "description": "Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover).",
+          "deprecated": null
+        },
+        {
+          "name": "width",
+          "type": "\"fill\" | \"hug\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every\nvalue below stays at least 240px wide, and at most the viewport less 16px on each side.\n`\"fill\"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar.\n`\"hug\"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole.\nA number: a Fixed width in px.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px when `width` is set (never below 240): a longer row ends in \"…\".",
           "deprecated": null
         },
         {
