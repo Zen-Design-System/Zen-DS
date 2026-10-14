@@ -53,7 +53,7 @@
 .zen-metric-card:has(> .zen-card__sub-action) :is(.zen-metric-card__body > .zen-metric .zen-metric__header, .zen-metric-card__title) { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-xsmall, 8px)); }
 /* Comparison (15481:1848): a Heading/Subheading title over columns of Small Title-Highlight Metrics, Spacing/Gap/Medium
    apart, each after the first with Spacing/Padding/Medium and a 1px Border/Neutral/Subtle rule before it. */
-.zen-metric-card__title { min-width: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-metric-card__title { min-width: 0; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-metric-card__columns { display: flex; min-width: 0; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-metric-card__column { display: flex; min-width: 0; flex: 1 1 0; }
 .zen-metric-card__column + .zen-metric-card__column { padding-inline-start: var(--zen-spacing-padding-medium, 16px); border-inline-start: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(0 0 0 / 13%)); }

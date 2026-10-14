@@ -86,6 +86,7 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `categories` | _HTML attribute_ | — | category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours). |
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount). Default "1.2K". |
 | `footer` | `ReactNode` | — | Content under the type's own (Figma Hero: a Small Button — level="primary" on a hue card, appearance="overlay" level="inverse" on Solid Neutral, as Figma's Button/Overlay Inverse). |
+| `headingLevel` | `2 \| 3 \| 4` | `3` | comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1), as ChartCard's. The look stays Heading/Subheading: the level follows the outline, not the size. |
 | `animate` | `boolean` | `true` | Draw the marks in on mount and when their data changes (default true; reduced motion fades). |
 | `label` (required) | `ReactNode` | — | Figma Metric-Title. |
 | `trend` | `{ direction: MetricTrendDirection; label: ReactNode }` | — | Figma Trend: { direction, label } → Metric-Trend badge. |

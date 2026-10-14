@@ -331,12 +331,12 @@ function PhoneWidgetsExample() {
   const screenRef = useRef<HTMLDivElement>(null);
   const headingId = useId();
   return (
-    // Phone screens are Canvas/Default: the widgets stay flat, the bar takes the canvas (alt). The kicker (h2) sits between
-    // the large title (h1) and the widgets' card titles (h3).
+    // Phone screens are Canvas/Default: the widgets stay flat, the bar takes the canvas (alt). The section heading (h2,
+    // Heading/4) sits between the large title (h1) and the widgets' card titles (h3, Heading/Subheading), never smaller.
     <PlatformPhone label="Studio" headerOverlay screenRef={screenRef}
       header={<TopNavigation type="alt" title="Studio" largeTitle="Studio" scrollRef={screenRef} />}>
       <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
-        <Heading level={2} id={headingId} textStyle="Body/Small/Bold" tone="light">This quarter</Heading>
+        <Heading level={2} id={headingId} textStyle="Heading/4">This quarter</Heading>
         <UtilisationWidget />
         <TopClientsWidget />
       </Stack>
@@ -415,14 +415,14 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   { title: "Revenue by client", ...widgetExample("widget-revenue-by-client") },
   {
     title: "Widgets on a phone",
-    description: "A phone screen is Canvas/Default too, so the widgets stay flat and stack one a row under a kicker heading (h2 between the large title and the card titles). Pick widgets whose chart keeps its width in a card: a gauge, a ranking.",
+    description: "A phone screen is Canvas/Default too, so the widgets stay flat and stack one a row under a section heading (h2, between the large title and the card titles in size too). Pick widgets whose chart keeps its width in a card: a gauge, a ranking.",
     render: () => <PhoneWidgetsExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone label="Studio" headerOverlay screenRef={screenRef}
   header={<TopNavigation type="alt" title="Studio" largeTitle="Studio" scrollRef={screenRef} />}>
   <Stack as="section" gap="md" padding="lg" aria-labelledby={headingId}>
-    <Heading level={2} id={headingId} textStyle="Body/Small/Bold" tone="light">This quarter</Heading>
+    <Heading level={2} id={headingId} textStyle="Heading/4">This quarter</Heading>
 ${indent(jsxOf("widget-utilisation"), 4)}
 ${indent(jsxOf("widget-top-clients"), 4)}
   </Stack>

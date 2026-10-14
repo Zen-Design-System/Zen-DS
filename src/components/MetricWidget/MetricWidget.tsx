@@ -237,6 +237,9 @@ export type MetricCardProps = Omit<MetricProps, "value"> & {
   /** Content under the type's own (Figma Hero: a Small Button — level="primary" on a hue card, appearance="overlay"
    *  level="inverse" on Solid Neutral, as Figma's Button/Overlay Inverse). */
   footer?: ReactNode;
+  /** comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under
+   *  the page h1), as ChartCard's. The look stays Heading/Subheading: the level follows the outline, not the size. */
+  headingLevel?: 2 | 3 | 4;
   /** Draw the marks in on mount and when their data changes (default true; reduced motion fades). */
   animate?: boolean;
 };
@@ -248,7 +251,7 @@ const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison">, MetricSize
  * Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an
  * XLarge Icon-Highlight Metric; the other types (see `type`) put their marks, bar or columns under a Title-Highlight one.
  */
-export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, animate = true, ref, ...metric }: MetricCardProps) {
+export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
   const t = useZenLabels();
   // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a trend badge
   // Theme=On-Color, Background=Solid (a white pill) on that fill; Solid Neutral (15487:89034) is the dark Hero. Written
@@ -269,9 +272,11 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, clas
   const foot = footer ? <div className="zen-metric-card__footer">{nest.slot(footer)}</div> : null;
   if (type === "kpi") return card(foot ? <div className="zen-metric-card__body">{nest("Metric", <Metric {...metric} value={metric.value} />)}{foot}</div> : nest("Metric", <Metric {...metric} value={metric.value} />));
   if (type === "comparison") {
+    // The title heads the columns under it, as a ChartCard's title: a heading (the outline), Heading/Subheading (the look).
+    const Title = `h${headingLevel}` as const;
     return card(
       <div className="zen-metric-card__body">
-        <span className={`zen-metric-card__title ${typographyStyles["Heading/Subheading"]}`}>{metric.label}</span>
+        <Title className={`zen-metric-card__title ${typographyStyles["Heading/Subheading"]}`}>{metric.label}</Title>
         <div className="zen-metric-card__columns">
           {(comparison ?? []).map((item) => (
             <div key={item.id} className="zen-metric-card__column">

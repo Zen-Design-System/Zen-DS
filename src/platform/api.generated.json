@@ -10528,6 +10528,14 @@
           "deprecated": null
         },
         {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4",
+          "required": false,
+          "default": "3",
+          "description": "comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under\n the page h1), as ChartCard's. The look stays Heading/Subheading: the level follows the outline, not the size.",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,

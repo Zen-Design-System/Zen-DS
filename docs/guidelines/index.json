@@ -2836,6 +2836,7 @@
           "goal?: MetricGoal",
           "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
           "footer?: ReactNode",
+          "headingLevel?: 2|3|4 = 3",
           "animate?: boolean = true",
           "label: ReactNode",
           "trend?: { direction: MetricTrendDirection; label: ReactNode }",
