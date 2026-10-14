@@ -565,7 +565,8 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "Popover": {
       "label": "popoverLabel",
       "search": "popoverSearch",
-      "searchPlaceholder": "popoverSearchPlaceholder"
+      "searchPlaceholder": "popoverSearchPlaceholder",
+      "width": "popoverWidth"
     },
     "Search": {
       "placeholder": "popoverSearchPlaceholder"
@@ -595,6 +596,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "collapsed": "collapsed",
       "openItems": "openItems",
       "setOpenItems": "setOpenItems"
+    }
+  },
+  "SidebarMenuItem": {
+    "SidebarItemView": {
+      "rootRef": "ref"
     }
   },
   "SidebarMenuSection": {

@@ -1,10 +1,11 @@
-import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
+import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useInsertionEffect, useLayoutEffect, useRef, useState, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
 import { Icon } from "../Icon";
 import "../Icon/core";
 import { ZenPortal } from "../Portal";
 import { useZenLabels } from "../_shared/zen-context";
 import { usePresence } from "../Motion";
 import { scaleKey } from "../_shared/scale";
+import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tooltip.css";
 
@@ -91,18 +92,23 @@ const InsideTooltipContext = createContext(false);
 export function Tooltip({ content, children, color = "default", size: sizeProp = "md", placement = "top", delay = TOOLTIP_HOVER_DELAY, open: controlledOpen, defaultOpen = false, onOpenChange, closable = false, disabled = false, className }: TooltipProps) {
   const size = scaleKey(sizeProp, tooltipSizes);
   const id = `zen-tooltip-${useId().replace(/:/g, "")}`;
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  // onOpenChange is called below rather than through the hook: it fires against the open state as rendered (disabled
+  // included), and once per change even when a controlled parent has not re-rendered yet.
+  const [stateOpen, setStateOpen] = useControllableState({ value: controlledOpen, defaultValue: defaultOpen, name: "Tooltip open" });
   const timer = useRef<number | undefined>(undefined);
-  const open = !disabled && (controlledOpen ?? internalOpen);
+  const open = !disabled && stateOpen;
   const clear = () => window.clearTimeout(timer.current);
-  // The open state as rendered (controlled or not), read by timers and handlers without a stale closure.
+  // The open state as rendered (controlled or not), read by timers and handlers without a stale closure. Synced after
+  // render (never during it), and moved ahead by setOpen so two calls in one event see each other.
   const openRef = useRef(open);
-  openRef.current = open;
+  useInsertionEffect(() => {
+    openRef.current = open;
+  });
   const setOpen = (next: boolean) => {
     if (next === openRef.current) return;
     openRef.current = next;
     if (!next) lastTooltipClosedAt = Date.now();
-    if (controlledOpen === undefined) setInternalOpen(next);
+    setStateOpen(next);
     onOpenChange?.(next);
   };
   const show = (wait: number) => { clear(); if (wait <= 0) setOpen(true); else timer.current = window.setTimeout(() => setOpen(true), wait); };
@@ -172,8 +178,9 @@ export function useIconTooltip(label: ReactNode | false | undefined, { placement
   const close = () => { clear(); setAnchor((was) => { if (was) lastTooltipClosedAt = Date.now(); return null; }); };
   // Hiding fades out at XFast from the last anchor (tooltip.css); Escape dismisses at once.
   const presence = usePresence(Boolean(anchor), 80);
-  const lastAnchor = useRef<HTMLElement | null>(null);
-  if (anchor) lastAnchor.current = anchor;
+  // The last anchor shown, kept while the tooltip fades out (state adjusted during render, not a ref written in it).
+  const [lastAnchor, setLastAnchor] = useState<HTMLElement | null>(null);
+  if (anchor && anchor !== lastAnchor) setLastAnchor(anchor);
   const [escaped, setEscaped] = useState(false);
   if (anchor && escaped) setEscaped(false);
   useEffect(() => clear, []);
@@ -201,7 +208,7 @@ export function useIconTooltip(label: ReactNode | false | undefined, { placement
     });
     return merged;
   };
-  const shown = anchor ?? lastAnchor.current;
+  const shown = anchor ?? lastAnchor;
   const tooltip = enabled && presence.mounted && shown && !(escaped && !anchor) ? <IconTooltipLayer anchor={shown} placement={placement} closing={!anchor}>{label}</IconTooltipLayer> : null;
   return { bind, tooltip };
 }

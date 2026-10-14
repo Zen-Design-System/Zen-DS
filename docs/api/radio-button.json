@@ -121,6 +121,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native radio input (the element that takes focus), e.g. to focus it or read `validity`.",
+          "deprecated": null
         }
       ]
     }

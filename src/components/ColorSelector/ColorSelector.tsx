@@ -1,4 +1,4 @@
-import { useId, type CSSProperties } from "react";
+import { useId, type CSSProperties, type Ref } from "react";
 import { Icon } from "../Icon";
 import { useZenLabels } from "../_shared/zen-context";
 import "./color-selector.css";
@@ -24,6 +24,8 @@ export interface ColorSelectorProps {
   "aria-label"?: string;
   name?: string;
   className?: string;
+  /** The root element (role="radiogroup"). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -31,12 +33,12 @@ export interface ColorSelectorProps {
  * Border/Neutral/Subtle/Hover so light colours stay visible). Select=Yes shows a 16px check; Hover draws a 2px
  * Focus/Neutral/Solid ring (40px); keyboard focus shows the 48px Neutral/Flat/Hover halo. One radio per swatch.
  */
-export function ColorSelector({ colors, value, onValueChange, onChange, "aria-label": ariaLabelProp, name, className }: ColorSelectorProps) {
+export function ColorSelector({ colors, value, onValueChange, onChange, "aria-label": ariaLabelProp, name, className, ref }: ColorSelectorProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.colour;
   const autoName = useId();
   return (
-    <div className={["zen-color-selector", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={ariaLabel}>
+    <div ref={ref} className={["zen-color-selector", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={ariaLabel}>
       {colors.map((color) => {
         const selected = value === color.value;
         return (

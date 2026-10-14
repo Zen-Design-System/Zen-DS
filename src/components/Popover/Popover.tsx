@@ -1,5 +1,5 @@
 import { useExclusivePopover } from "./useExclusivePopover";
-import { forwardRef, useEffect, useId, useRef, useState, type ComponentProps, type HTMLAttributes, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Search } from "../Search";
 import { Badge, type BadgeTheme } from "../Badge";
@@ -13,6 +13,9 @@ import { usePresence } from "../Motion";
 import "./popover.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useDismissableLayer } from "../_shared/layers";
+import { useMergedRefs } from "../_shared/merge-refs";
+import { useControllableState } from "../_shared/use-controllable-state";
 
 /** Data shape exported by the Popover/Default and Popover/Item component sets. */
 export type PopoverItemData = {
@@ -59,13 +62,12 @@ export interface PopoverItemProps extends Omit<HTMLAttributes<HTMLButtonElement>
    * aria-selected); `menuitemcheckbox` / `menuitemradio` for a checkable menu row, with aria-checked from `selected`. */
   itemRole?: "option" | "menuitem" | "menuitemcheckbox" | "menuitemradio";
   onSelect?: () => void;
+  /** Ref to the row's `<button>` element. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /** The 240px Popover/Item primitive. */
-export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(function PopoverItem(
-  { item, label, caption, leading, trailing, selected, disabled, theme, function: itemFunction, state, control = "check", itemRole = "option", onSelect, className, ...buttonProps },
-  ref,
-) {
+export function PopoverItem({ item, label, caption, leading, trailing, selected, disabled, theme, function: itemFunction, state, control = "check", itemRole = "option", onSelect, className, ref, ...buttonProps }: PopoverItemProps) {
   const nest = useNested();
   const resolvedLabel = item?.label ?? label;
   const photoSrc = item?.photoSrc;
@@ -123,7 +125,10 @@ export const PopoverItem = forwardRef<HTMLButtonElement, PopoverItemProps>(funct
       {control === "checkbox" ? <CheckboxMarkIndicator checked={Boolean(isSelected)} disabled={Boolean(isDisabled)} /> : null}
     </button>
   );
-});
+}
+
+/** Popover horizontal resizing: `"fill"` (the anchor's width), `"hug"` (the longest row) or a Fixed width in px. */
+export type PopoverWidth = "fill" | "hug" | number;
 
 export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect"> {
   /** Whether the surface is shown. Default false: pass `open` (controlled, with `onOpenChange`) to show it. */
@@ -158,16 +163,28 @@ export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   align?: "start" | "end";
   /** Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). */
   multiple?: boolean;
+  /**
+   * Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every
+   * value below stays at least 240px wide, and at most the viewport less 16px on each side.
+   * `"fill"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar.
+   * `"hug"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole.
+   * A number: a Fixed width in px.
+   */
+  width?: PopoverWidth;
+  /** Maximum width in px when `width` is set (never below 240): a longer row ends in "…". */
+  maxWidth?: number;
   /** Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[alex]/Avatar": { shape: "square" }, "Item[draft]/Badge": { theme: "accent" } }`). Written by Zen Studio;
    *  app code sets the items. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<div>` element (the surface). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
  * Popover/Default composition. It mirrors the exported Figma structure while
  * keeping the item list composable for Select, Autocomplete, and menu fields.
  */
-export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover(
+export function Popover(
   {
     open = false,
     label,
@@ -188,12 +205,14 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     searchClearable = true,
     align = "start",
     multiple = false,
+    width,
+    maxWidth,
     className,
     onKeyDown,
     overrides,
+    ref,
     ...divProps
-  },
-  ref,
+  }: PopoverProps,
 ) {
   const t = useZenLabels();
   const nest = useNested(overrides);
@@ -203,17 +222,22 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
   const generatedId = useId();
   const [internalSearchValue, setInternalSearchValue] = useState(searchValue);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const mergedRef = useMergedRefs(rootRef, ref);
   // Attach 4px below the trigger / input box, flipping above it near the bottom of the viewport.
   // Inside an Input the box is the enclosing control (SelectField, field pickers); otherwise the trigger.
   const presence = usePresence(open, 120);
+  const widthMode = width === "fill" || width === "hug" ? width : typeof width === "number" && Number.isFinite(width) ? "fixed" : undefined;
   const placement = useAnchoredPosition(rootRef, open, {
     align,
     anchor: () => rootRef.current?.parentElement?.closest<HTMLElement>(".zen-input__control") ?? anchorRef?.current,
+    trackAnchorWidth: widthMode === "fill" || widthMode === "hug",
   });
   // One popover at a time: opening this one closes another object's open popover (nested ones keep their parent).
   useExclusivePopover(open, onOpenChange ? () => onOpenChange(false) : undefined, rootRef, anchorRef);
   // Re-sync on open/close too: the component stays mounted while closed, so an
   // uncontrolled query would otherwise survive into the next opening.
+  // Not useControllableState: control here is keyed on onSearchChange, not on searchValue (which defaults to ""), and
+  // the uncontrolled query is reset to searchValue on every opening.
   useEffect(() => setInternalSearchValue(searchValue), [searchValue, open]);
   // Keyboard-opened popovers move focus inside: search field first, else the selected or first option.
   useEffect(() => {
@@ -227,12 +251,12 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
     // (Sidebar › Switch workspace jumped 3250 → 602 and opened the list off-screen).
     target?.focus({ preventScroll: true });
   }, [open, autoFocus]);
-  // Light dismiss: a pointer-down outside the surface (and its trigger) closes it.
+  // Light dismiss: a pointer-down outside the surface, its trigger and any layer opened from it closes it.
+  const isOutside = useDismissableLayer(open, () => [rootRef.current, anchorRef?.current]);
   useEffect(() => {
     if (!open || !onOpenChange) return;
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target || rootRef.current?.contains(target) || anchorRef?.current?.contains(target)) return;
+      if (!isOutside(event.target as Node | null)) return;
       onOpenChange(false);
     };
     // Escape while focus is still on the trigger (the usual case after a mouse click) also closes it;
@@ -252,7 +276,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onOpenChange, anchorRef]);
+  }, [open, onOpenChange, anchorRef, isOutside]);
   // Closing keeps the surface for its Fast exit fade (popover.css), inert so it takes no clicks or focus meanwhile.
   if (!presence.mounted) return null;
   const closing = presence.phase === "closing";
@@ -299,14 +323,16 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
   return (
     <div
       {...divProps}
-      ref={(node) => {
-        rootRef.current = node;
-        if (typeof ref === "function") ref(node);
-        else if (ref) ref.current = node;
-      }}
+      ref={mergedRef}
       className={["zen-popover", className].filter(Boolean).join(" ")}
-      style={{ ...placement.style, ...divProps.style }}
+      style={{
+        ...placement.style,
+        ...(widthMode === "fixed" ? { "--zen-popover-width": `${width}px` } : null),
+        ...(widthMode && typeof maxWidth === "number" ? { "--zen-popover-max-width": `${maxWidth}px` } : null),
+        ...divProps.style,
+      } as CSSProperties}
       data-side={placement.side}
+      data-width={widthMode}
       data-state={closing ? "closing" : undefined}
       inert={closing || undefined}
       data-search={search ? "true" : "false"}
@@ -342,7 +368,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
       </div>
     </div>
   );
-});
+}
 
 export function PopoverSearch(props: Omit<ComponentProps<typeof Popover>, "items" | "children">) {
   return <Popover {...props} search />;
@@ -394,9 +420,8 @@ export function PopoverManualAddNew({ createLabel: createLabelProp, onCreate, la
   const t = useZenLabels();
   const createLabel = createLabelProp === undefined ? t.create : createLabelProp;
   const label = labelProp === undefined ? t.selectOrCreate : labelProp;
-  const [internalQuery, setInternalQuery] = useState(searchValue ?? "");
-  useEffect(() => { if (searchValue !== undefined) setInternalQuery(searchValue); }, [searchValue]);
-  const query = searchValue ?? internalQuery;
+  // onSearchChange is called in the handler below, on every keystroke as before, rather than only on a changed value.
+  const [query, setQuery] = useControllableState({ value: searchValue, defaultValue: "", name: "PopoverManualAddNew searchValue" });
   const normalized = query.trim().toLowerCase();
   const textOf = (node: ReactNode) => (typeof node === "string" || typeof node === "number" ? String(node) : "");
   const visible = normalized ? items.filter((item) => textOf(item.label).toLowerCase().includes(normalized)) : items;
@@ -407,7 +432,7 @@ export function PopoverManualAddNew({ createLabel: createLabelProp, onCreate, la
       label={label}
       search
       searchValue={query}
-      onSearchChange={(value) => { setInternalQuery(value); onSearchChange?.(value); }}
+      onSearchChange={(value) => { setQuery(value); onSearchChange?.(value); }}
       emptyState={null}
       onKeyDown={(event) => {
         props.onKeyDown?.(event);

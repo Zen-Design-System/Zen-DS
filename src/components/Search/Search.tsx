@@ -1,10 +1,12 @@
-import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { useIconTooltip } from "../Tooltip";
 import { InputField, InputLeadingTrailing, type InputLeadingTrailingOption } from "../Input";
 import { renderIcon } from "../_shared/icon";
 import { scaleKey } from "../_shared/scale";
 import { useZenLabels } from "../_shared/zen-context";
+import { useControllableState } from "../_shared/use-controllable-state";
+import { useMergedRefs } from "../_shared/merge-refs";
 import "./search.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
@@ -75,9 +77,11 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   /** Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: "accent-base" }, Filter: { label: "Status" } }`). Written by Zen Studio;
    *  app code sets leading / trailing / theme. */
   overrides?: NestedOverrides;
+  /** The native `<input type="search">`. */
+  ref?: Ref<HTMLInputElement>;
 }
 
-export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
+export function Search(
   {
     variant = "default",
     size: requestedSize = "md",
@@ -107,9 +111,9 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     value,
     defaultValue,
     onChange,
+    ref,
     ...inputProps
-  },
-  ref,
+  }: SearchProps,
 ) {
   const t = useZenLabels();
   const nest = useNested(overrides);
@@ -118,11 +122,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   const filterActionLabel = filterActionLabelProp ?? t.filter;
   const size: SearchSizeKey = variant === "popover" ? "small" : scaleKey(requestedSize, searchSizes);
   const innerRef = useRef<HTMLInputElement | null>(null);
-  const setRef = (node: HTMLInputElement | null) => {
-    innerRef.current = node;
-    if (typeof ref === "function") ref(node);
-    else if (ref) ref.current = node;
-  };
+  const setRef = useMergedRefs(innerRef, ref);
   useEffect(() => {
     if (!shortcut || disabled) return undefined;
     const onKey = (event: KeyboardEvent) => {
@@ -135,13 +135,13 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     return () => document.removeEventListener("keydown", onKey);
   }, [shortcut, disabled]);
   const controlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
+  // The text shown: the prop when controlled, else kept here. Both callbacks fire on every edit, so they stay outside the hook.
+  const [currentValue, setCurrentValue] = useControllableState<string>({ value: controlled ? String(value ?? "") : undefined, defaultValue: () => String(defaultValue ?? ""), name: "Search value" });
   const resolvedState = state;
   const leadingContent = nest("Leading", renderIcon(leading, { size: "sm" }) ?? (iconSearch ? <Icon name="icon-search-medium-line" size="sm" /> : null));
-  const currentValue = controlled ? String(value ?? "") : internalValue;
   const hasValue = currentValue.length > 0 || resolvedState === "inputted";
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (!controlled) setInternalValue(event.target.value);
+    setCurrentValue(event.target.value);
     onChange?.(event);
     onValueChange?.(event.target.value);
   };
@@ -149,7 +149,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
     // The clear button unmounts once the field is empty: keep focus in the field instead of letting it fall to <body>.
     // Focus moves first, so an onClear that sends focus elsewhere still wins.
     innerRef.current?.focus();
-    if (!controlled) setInternalValue("");
+    setCurrentValue("");
     onClear?.();
     if (controlled && onChange) {
       onChange({ target: { value: "" }, currentTarget: { value: "" } } as ChangeEvent<HTMLInputElement>);
@@ -182,7 +182,7 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
   return (
     <InputField
       {...inputProps}
-      value={controlled ? value : internalValue}
+      value={controlled ? value : currentValue}
       onChange={handleChange}
       ref={setRef}
       type="search"
@@ -199,4 +199,4 @@ export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
       data-tone={theme}
     />
   );
-});
+}

@@ -36,6 +36,7 @@ Figma Color-Selector (373:97252): 32px round swatches (Corner-Radius/Rounded, pa
 | `aria-label` | `string` | — | Names the group (default "Colour", from the locale's labels). |
 | `name` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | The root element (role="radiogroup"). |
 
 ### Types
 Object shapes the props above refer to.

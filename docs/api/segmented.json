@@ -11,6 +11,14 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `role=\"group\"` element.",
+          "deprecated": null
+        },
+        {
           "name": "options",
           "type": "SegmentedOption[]",
           "required": false,

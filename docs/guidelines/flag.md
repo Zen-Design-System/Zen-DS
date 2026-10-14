@@ -35,6 +35,7 @@ Figma Flag (7063:63834, 🍑 Iconography): 260 round country and region flags, 2
 | `name` (required) | `FlagName` | — | Figma Flag `Name`: the country or region, spelled as in Figma (e.g. "Vietnam", "United Kingdom"). |
 | `size` | `"sm" \| "md" \| "lg" \| "small" \| "medium" \| "large"` | `"md"` | Figma Size: Small 16 · Medium 24 (default) · Large 32, on the Image-Size scale (Avatar XSmall = Medium). |
 | `label` | `string` | — | Accessible name for a flag that stands alone. Omit it when the country name sits next to the flag (decorative). |
+| `ref` | `Ref<SVGSVGElement>` | — | Forwarded to the root `<svg>`. |
 
 ### Types
 Object shapes the props above refer to.

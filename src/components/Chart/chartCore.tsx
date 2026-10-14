@@ -1,6 +1,6 @@
 /* The chart family's shared language (docs/research/chart-family-spec-2026-10-12.md §2–4): palette, scale, legend,
    the cartesian plot frame, keyboard selection and the draw-in motion. Every chart in this folder is built from it. */
-import { useId, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref } from "react";
 import { TooltipSurface } from "../Tooltip";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -138,9 +138,9 @@ export function ChartLegend({ items, className, gap = "xsmall", align = "center"
 }
 
 /** A chart with its legend before or after it (top / bottom; start / end beside it for round charts). */
-export function ChartBlock({ legend, position = "bottom", kind, children, className, layout }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string }) {
+export function ChartBlock({ legend, position = "bottom", kind, children, className, layout, ref }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string; ref?: Ref<HTMLDivElement> }) {
   return (
-    <div className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout}>
+    <div ref={ref} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout}>
       {children}
       {legend}
     </div>

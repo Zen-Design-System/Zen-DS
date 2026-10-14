@@ -145,6 +145,14 @@
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -348,6 +356,14 @@
           "deprecated": null
         },
         {
+          "name": "popoverWidth",
+          "type": "\"fill\" | \"hug\" | number",
+          "required": false,
+          "default": null,
+          "description": "Width of the option Popover (Popover `width`): unset is Figma's 240px; `\"fill\"` matches the field's box, `\"hug\"` grows\n to the longest option (never narrower than the field) so long values such as domains stay whole.",
+          "deprecated": null
+        },
+        {
           "name": "popoverOpen",
           "type": "boolean",
           "required": false,
@@ -369,6 +385,14 @@
           "required": false,
           "default": "false",
           "description": "Figma State=Read-Only: shows the value, keeps the chevron, never opens.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSelectElement>",
+          "required": false,
+          "default": null,
+          "description": "The hidden native `<select>` that holds the value (name, form data, autofill).",
           "deprecated": null
         }
       ]
@@ -514,6 +538,14 @@
           "required": false,
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
           "deprecated": null
         },
         {
@@ -772,6 +804,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -796,6 +836,14 @@
           "required": false,
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLTextAreaElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<textarea>` element.",
           "deprecated": null
         },
         {
@@ -1110,6 +1158,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<div>` of the field (it has no native text control: tags and the Add button live inside it).",
+          "deprecated": null
         }
       ]
     },
@@ -1222,6 +1278,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The content-editable editor element.",
           "deprecated": null
         },
         {
@@ -1392,6 +1456,14 @@
           "default": "false",
           "description": "Figma `State=Disabled`: every part (label, optional, icon, action) turns Content/Disabled.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -1440,6 +1512,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLParagraphElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<p>` element.",
           "deprecated": null
         }
       ]
@@ -1610,6 +1690,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element: a `<span>` for a decorative slot or picker wrapper, a `<button>` for an action slot.",
+          "deprecated": null
         }
       ]
     },
@@ -1650,6 +1738,14 @@
           "required": false,
           "default": "true",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
           "deprecated": null
         }
       ]
@@ -1765,6 +1861,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root toolbar `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -1806,6 +1910,14 @@
           "default": null,
           "description": "Deterministic Figma Status for matrices; native hover/focus still apply.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement | HTMLTextAreaElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` (or `<textarea>` with `multiline`).",
+          "deprecated": null
         }
       ]
     },
@@ -1831,6 +1943,14 @@
           "default": "\"default\"",
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLLIElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<li>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -1855,6 +1975,14 @@
           "required": false,
           "default": "\"default\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLUListElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<ul>` element.",
           "deprecated": null
         }
       ]

@@ -65,6 +65,7 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | `labelIcon` | `IconName \| ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Label-Icon — a 24px icon (Element-Size/Popular/Medium) before the title. |
 | `hint` | `ReactNode` | — | Title-Highlight, XLarge–Medium: Figma Hint — an info icon after the title (20px, Content/Neutral/Light) that shows this text in a Tooltip on hover and focus; say how the number is worked out. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 
 ### MetricCard
@@ -76,6 +77,7 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `theme` | `"shadow" \| "flat" \| "pale" \| "border" \| "on-container" \| "solid" \| "semi-pale"` | — | Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme="pale" color="brand" by default). |
 | `color` | `"neutral" \| "brand" \| "cyan" \| "violet" \| "green" \| "yellow" \| "orange" \| "blue" \| "purple"` | — | Card Color (Figma Card Color, for theme="pale" or "solid"): the Card's hue. Solid Neutral is the dark widget; see Card. |
 | `subAction` | `CardSubAction \| ReactNode` | — | Card Sub-Action (Figma: ⋮ Button/Icon-Flat). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the Card's root `<div>` (not to the Metric inside it). |
 | `type` | `"kpi" \| "sparkline" \| "spark-bars" \| "goal-progress" \| "comparison" \| "category-bar" \| "hero"` | `"kpi"` | Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): an Icon-Highlight Metric, as before. Every other type draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart (Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large) bars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`; `comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar` (15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral trend line from `series` on a Brand Pale card (theme="solid" for the dark widget), with `footer` for its button. |
 | `series` | _HTML attribute_ | — | sparkline · spark-bars · hero: the values in order, oldest first; the last is the current period (the Secondary bar). The line spans the lowest to the highest value. The card's `value` and `trend` say the numbers; the marks get an accessible summary. |
 | `seriesLabel` | `string` | — | sparkline · spark-bars · hero: the marks' accessible name, instead of "Trend over 12 periods: from … to …, low …, high …". |

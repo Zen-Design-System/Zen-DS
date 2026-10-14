@@ -42,6 +42,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | `remove` | `boolean` | `false` | Figma Remove=Yes: trailing icon-x-circle-solid button. |
 | `onRemove` | `() => void` | — |  |
 | `removeLabel` | `string` | — | Name of the remove button (default "Remove" and the tag text, from the locale's labels). |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the photo and icon it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio; app code sets photoSrc / leading. |
 
 ## Keyboard

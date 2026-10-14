@@ -57,6 +57,14 @@
           "default": null,
           "description": "The groups of the form, top to bottom: Stacks or Grids of fields, FormFieldsets, and FormActions last.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFormElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<form>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -145,6 +153,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]
@@ -243,6 +259,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the help text it draws, by layer (`{ \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets helpText.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFieldSetElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<fieldset>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -283,6 +307,14 @@
           "required": false,
           "default": null,
           "description": "The buttons: Tertiary (cancel) first, Primary (`type=\"submit\"`, named for the outcome) last.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]

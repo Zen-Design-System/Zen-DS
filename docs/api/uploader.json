@@ -153,6 +153,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File-Item[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<div>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -209,6 +217,14 @@
           "required": false,
           "default": null,
           "description": "Alert: try again.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLLIElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<li>` element.",
           "deprecated": null
         }
       ]

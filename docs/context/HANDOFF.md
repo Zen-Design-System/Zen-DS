@@ -18,6 +18,10 @@ Last updated: 2026-10-13.
 
 ## State in short
 
+- **Component best-practice refactor (2026-10-14):** branch `zen/refactor/component-best-practices` in worktree
+  `../Zen-DS-refactor`, not merged. Shared helpers in `_shared` (controllable state, stable callback, merged refs,
+  layers, modal isolation, HTML sanitiser), every component takes `ref` as a prop, conformance test. Details: session log
+  2026-10-14, review list `docs/qa/component-review-checklist.md`.
 - **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
   pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.

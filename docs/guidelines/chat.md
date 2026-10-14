@@ -68,6 +68,7 @@ Figma Chat/Conversation/Bubble (6349:64085): avatar (others) + bubble + reaction
 | `onMoreReactions` | `() => void` | — | Reaction-Bar "+": open a full emoji picker. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio; app code sets author. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatComposer
 Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat Neutral/Strongest icons — Mobile Nav-Action/Icon-Flat 44px (icon 24), Desktop Button/Icon-Flat Medium 40px (icon 20). The pill field is Input/Background/Default + Effect/Input with Body/Base/Medium text ("Aa" in Placeholder); State=Focused only adds the Accent caret, the field itself does not change. The trailing quick action becomes Send while typing (same flat style).
@@ -86,6 +87,7 @@ Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat
 | `onCancelReply` | `() => void` | — |  |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: "accent" }, "Action[Record voice]": { level: "secondary" } }`). Written by Zen Studio; app code sets actions / quickAction. |
+| `ref` | `Ref<HTMLFormElement>` | — | Ref to the root `<form>`. |
 
 ### ChatThread
 Opens at the latest message and stays pinned to the bottom when new messages arrive — unless the reader has scrolled up (more than 48px from the bottom), in which case their position is kept. It pins again whenever the messages change size after the first layout (a ResizeObserver on the thread and its messages: web fonts settling, photos decoding, a reaction row appearing) and once `document.fonts.ready` resolves, so a thread never opens a few pixels above its last message.
@@ -96,6 +98,7 @@ Opens at the latest message and stays pinned to the bottom when new messages arr
 | `device` | `"mobile" \| "desktop"` | `"mobile"` | Figma Device: text caps at 220 (Mobile) / 516 (Desktop), photo grids at 260 / 400. |
 | `aria-label` | `string` | — | Accessible name of the thread; defaults to the locale's "Messages". |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` (role="log"). |
 
 ### ChatConversationItem
 Figma Chat/Conversation-List/List-Item (7522:371057 · content 6331:34480), composed from ListItem: 40px avatar, Title (Body/Base/Bold when unread, Medium when read) · "•" · time (Body/Small/Regular, Neutral/Light), then the Subtitle — unread text Body/Small/Bold Strongest + a 12px Positive "Active" status dot; read text Regular Light; a missed call is Negative/Light (Medium) with its 16px icon while unread, Neutral/Light once read; an ongoing call is Positive/Light.
@@ -113,6 +116,7 @@ Figma Chat/Conversation-List/List-Item (7522:371057 · content 6331:34480), comp
 | `selected` | `boolean` | — |  |
 | `onClick` | `() => void` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: "accent" } }`). Written by Zen Studio; app code sets person / group. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root element (the ListItem's row). |
 
 ### ChatComposerReply
 In the composer: the "Replying to …" bar above the field, with × to cancel.
@@ -121,6 +125,7 @@ In the composer: the "Replying to …" bar above the field, with × to cancel.
 | --- | --- | --- | --- |
 | `target` (required) | `ChatReplyTarget` | — |  |
 | `onCancel` | `() => void` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatReplyQuote
 In the thread: the quote above a reply bubble. `side` is the reply's side (it aligns with the reply); `replier` names who replied ("You" for your own replies) for the caption. Pressing the quote jumps to the original (`onJump`, or scroll + flash in the same thread); the quote of a deleted message ("Message unavailable") is plain text with no hover, since there is nothing to jump to.
@@ -131,6 +136,7 @@ In the thread: the quote above a reply bubble. `side` is the reply's side (it al
 | `side` (required) | `"you" \| "others"` | — |  |
 | `replier` | `string` | — |  |
 | `onJump` | `(id: string) => void` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatEmojiPicker
 The Reaction-Bar "+" panel (no Figma frame exists, so it is built from the bar's own tokens): the same Popover surface as Chat/Reaction-Bar (90% Popover fill + Effect/Popover, radius Large), a back chevron, a search field and an 8-column grid of 36px emoji buttons (the Reaction/Emoji/Interactive size). Arrow keys move through the grid, Home/End jump, Enter/Space picks, Escape (handled by the popover) closes.
@@ -141,6 +147,7 @@ The Reaction-Bar "+" panel (no Figma frame exists, so it is built from the bar's
 | `onPick` (required) | `(emoji: string) => void` | — |  |
 | `onBack` (required) | `() => void` | — |  |
 | `label` | `string` | — | Accessible name of the panel (the locale's "Choose a reaction" by default). |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` (role="dialog"). |
 
 ### ChatReactorsPanel
 | Prop | Type | Default | Description |
@@ -154,6 +161,7 @@ The Reaction-Bar "+" panel (no Figma frame exists, so it is built from the bar's
 | `open` (required) | `boolean` | — |  |
 | `onOpenChange` (required) | `(open: boolean) => void` | — |  |
 | `anchorRef` (required) | `RefObject<HTMLElement \| null>` | — | The pill: anchors the desktop Popover and finds the device frame's overlay root on mobile. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the visible panel's root `<div>`: the desktop popover, or the mobile Bottom Sheet. |
 
 ### ChatBubble
 Figma Chat/Bubble/Text-You · Text-Others: padding 12 (+4 text inset), Body/Base/Regular; the tail corner is 4px.
@@ -164,6 +172,7 @@ Figma Chat/Bubble/Text-You · Text-Others: padding 12 (+4 text inset), Body/Base
 | `domain` | `"social" \| "business"` | `"social"` |  |
 | `time` | `ReactNode` | — |  |
 | `children` (required) | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatFile
 Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by type (Doc blue · PDF red · Sheet green Solid, Others Neutral Subtle) + a 32px text column: name (Body/Base/Bold) and size (Body/Small/Regular). In a Business message the card is Bubble-Chat-Others-Business (radius 16) and the time sits beside the size. In the mobile (and Popular) type scale the text column hugs its 24 + 20 lines (min Image-Size/Small) instead of Figma's fixed 32px box, so they keep the 12px inset.
@@ -177,6 +186,7 @@ Figma Chat/Bubble/File (6182:57708): 220 wide, padding 12; a Small Dock-Icon by 
 | `href` | `string` | — |  |
 | `onOpen` | `() => void` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of its Dock Icon (`{ Icon: { theme: "blue" } }`), written by Zen Studio. |
+| `ref` | `Ref<HTMLAnchorElement \| HTMLButtonElement>` | — | Ref to the root element: the `<a>` with `href`, else the `<button>`. |
 
 ### ChatCall
 Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4, gap 8) of a Small Dock-Icon with the solid call glyph (Red Solid only for an incoming missed call, else Neutral Subtle) + title/duration, then a full-width Small action: Social = Button/Overlay Inverse; Business = Button/Flat Primary, on missed calls only (the card is Bubble-Chat-Others-Business, radius 16, and the time sits beside the duration). Never a Secondary button. Without an action (a ringing call, an answered Business call) the text column hugs its lines (min Image-Size/Small 32) instead of Figma's fixed 32px box, so the text keeps the 12px a text bubble keeps below its last line (Padding/XSmall 8 + the row's Padding/2XSmall 4) in every typography mode. With an action the 32px box stays in Figma's 20/16 scale and hugs in the mobile (and Popular) type scale, so the lines never spill toward the action.
@@ -190,6 +200,7 @@ Figma Chat/Bubble/Call (6349:59813): 220 wide, padding 8; a 40px row (padding 4,
 | `actionLabel` | `string` | — | The action's text (the locale's Call back / Call again / Send voice message by default). |
 | `onAction` | `() => void` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of its Dock Icon and action (`{ Action: { level: "primary" } }`), written by Zen Studio. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatVoice
 Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small, Spacing/Gap/XSmall, Corner-Radius/Large) — Others on Background/Neutral/Subtle (Business: Bubble-Chat-Others-Business), You on Bubble-Chat-You — with a 32px playback row: the Small play / pause control (Others: Button/Icon-Main Surface, Business Tertiary; You: Button/Icon-Overlay Inverse), the waveform (3px bars, Spacing/Gap/3XSmall; the played share full strength, the rest 30%) and the speed in Label/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing and the time. Hover and the reaction pill come from ChatMessage, as on every bubble.
@@ -206,6 +217,7 @@ Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small,
 | `onSpeedChange` | `(speed: number) => void` | — |  |
 | `levels` | _HTML attribute_ | — | The message's sound levels, 0–1 each (Figma draws 34). |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: "accent" } }`). Written by Zen Studio; app code sets playing. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatPhotos
 Figma Chat/Photo/Grid-Slot (6347:52935): 1 · 2 · 3 · 4+ photos as radius-16 tiles in a 260 (Mobile) / 400 (Desktop) square; the 4th tile shows "+N" (Heading/2 on Background/Overlay). Business wraps the grid in a Surface card (padding 12, radius 24) with the time under it (Figma Chat/Bubble/Photo-*, Domain=Business).
@@ -215,6 +227,7 @@ Figma Chat/Photo/Grid-Slot (6347:52935): 1 · 2 · 3 · 4+ photos as radius-16 t
 | `side` | `"you" \| "others"` | `"others"` |  |
 | `photos` (required) | `{ src: string; alt: string }[]` | — |  |
 | `onOpen` | `(index: number) => void` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` (the grid, or the Business card around it). |
 
 ### ChatReactions
 Figma Chat/Reaction/Status: the pill on a bubble (total + up to 3 emojis). When it knows who reacted (`by`, or your own `mine`), it is a button that opens the "Reactions" panel (ChatReactorsPanel): tabs by emoji and the people. It stops pointer/key events so pressing it never starts the message's hold-to-react.
@@ -226,6 +239,7 @@ Figma Chat/Reaction/Status: the pill on a bubble (total + up to 3 emojis). When 
 | `onRemoveMine` | `() => void` | — |  |
 | `side` | `"you" \| "others"` | `"others"` |  |
 | `device` | `"mobile" \| "desktop"` | `"mobile"` |  |
+| `ref` | `Ref<HTMLButtonElement \| HTMLSpanElement>` | — | Ref to the pill: a `<button>` when it opens the reactors panel, else a `<span>`. |
 
 ### ChatReactionPicker
 | Prop | Type | Default | Description |
@@ -234,6 +248,7 @@ Figma Chat/Reaction/Status: the pill on a bubble (total + up to 3 emojis). When 
 | `onValueChange` (required) | `(kind: ChatReactionKind \| undefined) => void` | — |  |
 | `label` | `string` | — | Accessible name of the bar; defaults to the locale's "React". |
 | `onMore` | `() => void` | — | Figma Reaction-Bar "+": replace the built-in emoji panel with your own full picker. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` (the bar, or the emoji panel while it is open). |
 
 ### ChatReadList
 Figma Chat/Section/Read-List (6101:61545): 20px avatars (gap 4); more than 5 shows "+N".
@@ -241,6 +256,7 @@ Figma Chat/Section/Read-List (6101:61545): 20px avatars (gap 4); more than 5 sho
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `people` (required) | `ChatPerson[]` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Ref to the root `<span>`. |
 
 ### ChatDateDivider
 Figma Chat/Section Time (7042:24411): a centred Caption/Regular Neutral/Light time stamp between runs ("Sat 17:55") — no rules.
@@ -248,6 +264,7 @@ Figma Chat/Section Time (7042:24411): a centred Caption/Regular Neutral/Light ti
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `children` (required) | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### ChatAvatarGroup
 Figma Chat/Avatar-Group (6340:46191): two overlapping photo avatars on the diagonal — Medium 40px frame with 28px avatars (conversation list), Small 32px with 20px avatars (compact rows, thread headers). Decorative: name the conversation in the surrounding text.
@@ -259,6 +276,7 @@ Figma Chat/Avatar-Group (6340:46191): two overlapping photo avatars on the diago
 | `online` | `boolean` | `false` |  |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of its avatars (`{ "Avatar[0]": { theme: "accent" } }`), written by Zen Studio. |
+| `ref` | `Ref<HTMLSpanElement>` | — | Ref to the root `<span>`. |
 
 ### Types
 Object shapes the props above refer to.

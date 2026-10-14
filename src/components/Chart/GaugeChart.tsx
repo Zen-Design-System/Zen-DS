@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -29,6 +29,8 @@ export interface GaugeChartProps {
   "aria-label": string;
   /** Extra class on the chart (not the legend). */
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades). */
   animate?: boolean;
 }
@@ -47,7 +49,7 @@ const TICK_PX = 3;
  * apart. It is a `meter` (aria-valuenow, min 0, max `max`, value text "Billable 82%, Target 85%"): nothing in it can be
  * picked, so it takes no tab stop. Figma Chart/Gauge-Chart 15486:2467.
  */
-export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true }: GaugeChartProps) {
+export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, ref }: GaugeChartProps) {
   const t = useZenLabels();
   // A reading that isn't a number reads 0 (aria-valuenow must be one); a target that isn't a number is no target.
   const value = Number.isFinite(valueProp) ? valueProp : 0;
@@ -70,7 +72,7 @@ export function GaugeChart({ value: valueProp, max = 100, target: targetProp, ac
     ? <ChartLegend gap="small" items={[{ id: "value", label: valueName, color: chartPalette[0] }, ...(target === undefined ? [] : [{ id: "target", label: targetName, color: chartPalette[1] }])]} />
     : undefined;
   return (
-    <ChartBlock kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round">
+    <ChartBlock ref={ref} kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round">
       <div className={["zen-chart", "zen-chart--round", "zen-chart--gauge", className].filter(Boolean).join(" ")} data-kind="gauge" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `${size}px` } as CSSProperties}>
         <div className="zen-chart__gauge" role="meter" aria-label={ariaLabel} aria-valuemin={0} aria-valuemax={max} aria-valuenow={Math.max(0, Math.min(max, value))} aria-valuetext={valueText}>
           <div className="zen-chart__gauge-dial" aria-hidden="true">

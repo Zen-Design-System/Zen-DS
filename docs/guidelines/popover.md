@@ -24,6 +24,7 @@ The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing
 | Items | `items[] {id,label,caption,leading,photoSrc,theme,badgeTheme,selected}` | Content themes: icon, text-only, avatar-small/big, photo-small/big, dock-icon, badge |
 | Open | `open / onOpenChange / anchorRef / autoFocus` | outside click + Escape close |
 | Placement | `align` | 4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame |
+| Width | `width · maxWidth (SelectField popoverWidth)` | unset = Figma's Fixed 240 · fill (the anchor's width) · hug (the longest row, never narrower than the anchor) · a number (Fixed px); never below Figma's 240 min width, never wider than the window |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/popover.json`.
@@ -54,7 +55,10 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect">`.
 | `searchClearable` | `boolean` | `true` | Show the Search clear button while it has a value (Figma Search/Popover Typing/Inputted). |
 | `align` | `"start" \| "end"` | `"start"` | Preferred horizontal edge against the anchor box; flips when it would overflow the viewport. |
 | `multiple` | `boolean` | `false` | Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). |
+| `width` | `"fill" \| "hug" \| number` | — | Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every value below stays at least 240px wide, and at most the viewport less 16px on each side. `"fill"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar. `"hug"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole. A number: a Fixed width in px. |
+| `maxWidth` | `number` | — | Maximum width in px when `width` is set (never below 240): a longer row ends in "…". |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the items (by item id) it draws, by layer (`{ "Item[alex]/Avatar": { shape: "square" }, "Item[draft]/Badge": { theme: "accent" } }`). Written by Zen Studio; app code sets the items. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element (the surface). |
 
 ### PopoverItem
 The 240px Popover/Item primitive.
@@ -76,6 +80,7 @@ Also accepts `Omit<HTMLAttributes<HTMLButtonElement>, "onSelect">`.
 | `control` | `"check" \| "checkbox"` | `"check"` | `checkbox`: multi-select row — a trailing Checkbox/Mark shows the selection instead of the Single-Selected fill + check icon. |
 | `itemRole` | `"option" \| "menuitem" \| "menuitemcheckbox" \| "menuitemradio"` | `"option"` | ARIA role of the row. `option` (default) in a listbox, with aria-selected from `selected`; `menuitem` in a Menu (no aria-selected); `menuitemcheckbox` / `menuitemradio` for a checkable menu row, with aria-checked from `selected`. |
 | `onSelect` | `() => void` | — |  |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the row's `<button>` element. |
 
 ### PopoverSearch
 | Prop | Type | Default | Description |
@@ -129,6 +134,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 - Give it anchorRef + onOpenChange so outside-click and Escape close it and focus returns.
 - Keep one popover open at a time: opening a popover for another object closes the open one. Popover (with onOpenChange), Chip, Select and DatePicker do this for you; a custom popup joins with useExclusivePopover(open, close, rootRef). A popover opened from inside another popover is nested and keeps its parent open.
 - Keep single-select popovers closing on select; keep multi-select open.
+- Size the list from what it opens under: suggestions under a long search bar take `width="fill"` (as wide as the bar); long values such as domains or file paths take `width="hug"` (SelectField `popoverWidth="hug"`), so each stays whole instead of ending in "…". Keep the default 240 for short options under a chip or a button.
 - Offer Manual-Add-New (onPopoverCreate / onCreate) when users may need a value that isn't listed, e.g. labels, tags or keywords. The Create row appears only for a new value, and Enter creates it.
 - Use Popover/Bulk-Action (PopoverBulkAction) for quick actions on a selection — text, a canvas element or selected rows: name it with aria-label, group actions with PopoverBulkActionGroup and 40px dividers, Button/Icon-Flat Medium only, 6 actions at most (harness: popover/bulk-action-limit). For list selections, say how many items each action affects.
 

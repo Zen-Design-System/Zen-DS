@@ -57,6 +57,7 @@ Generated from the TypeScript source; full JSON in `docs/api/top-navigation.json
 | `sticky` | `boolean` | `false` | Stick to the top of the scroll container. |
 | `aria-label` | `string` | — |  |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root `<header>`. |
 
 ### TopNavigationActionButton
 Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle with a 24px icon.
@@ -67,6 +68,7 @@ Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle wit
 | `variant` (required) | `string` | — |  |
 | `className` | `string` | — |  |
 | `state` | `"open" \| "closing"` | — |  |
+| `ref` | `Ref<HTMLButtonElement>` | — | Ref to the action's `<button>`. |
 
 ### Types
 Object shapes the props above refer to.

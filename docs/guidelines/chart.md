@@ -80,6 +80,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | `height` | `number` | `280` | Height of the plot in px, lanes included (a seventh of it for the Tooltip lane on top and one for the X labels below, as Figma's 14-row Trend grid). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The point active at first (its Tooltip shows). Default: the last one. |
 | `curve` | `"smooth" \| "linear"` | `"smooth"` | `smooth` (default, Figma's curve) or `linear` segments. |
 | `fill` | `"area" \| "none" \| "gradient"` | `"area"` | The area under the line: `area` (default: Figma's fade, Accent/Solid at the top to Accent/Subtle at the baseline, at 30%) or `none`; `gradient` is deprecated and draws the same area. |
@@ -99,6 +100,7 @@ Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-
 | `height` | `number` | `280` | Height of a vertical plot in px, lanes included. Horizontal charts take the height of their rows. |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue per month, Jan – Dec 2026"). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected. |
 | `color` | `string` | — | Colour of the bars. Default Chart/Sector/Primary. |
 | `activeColor` | `string` | — | Colour of the active bar. Default Chart/Sector/Secondary. |
@@ -116,6 +118,7 @@ Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side paddin
 | `height` | `number` | `236` | Height of the plot in px, lanes included. |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The column active at first. Default: the last one. |
 | `showLegend` | `boolean` | `true` | The legend names every colour; keep it (harness: chart/stack-needs-legend). |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
@@ -138,6 +141,7 @@ Donut chart in the shared chart language (docs/research/chart-family-spec-2026-1
 | `showLegend` | `boolean` | `true` | The legend names every slice (default true; colour is never the only key). |
 | `legendPosition` | `"top" \| "bottom" \| "start" \| "end"` | `"bottom"` | Legend below (default), above, or beside the ring (start / end). With `totalPosition="start"` it is always in the start column, under the total. |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `animate` | `boolean` | `true` | Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades). |
 
 ### RadialChart
@@ -155,6 +159,7 @@ Radial chart (ring gauges) in the shared chart language (docs/research/chart-fam
 | `showLegend` | `boolean` | `true` | The legend names every ring (default true; colour is never the only key). |
 | `legendPosition` | `"top" \| "bottom" \| "start" \| "end"` | `"bottom"` | Legend below (default), above, or beside the rings (start / end). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `animate` | `boolean` | `true` | Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades). |
 
 ### HeatmapChart
@@ -170,6 +175,7 @@ Heatmap in the shared chart language (docs/research/chart-family-spec-2026-10-12
 | `aria-label` (required) | `string` | — | What the chart shows ("Studio sessions by weekday and hour, September 2026"). |
 | `showLegend` | `boolean` | `true` | The Less → More scale under the grid (default true). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `animate` | `boolean` | `true` | Fade the cells in, row by row, on mount and when the values change (default true; reduced motion only fades). |
 
 ### BarList
@@ -182,6 +188,7 @@ Bar list: a ranking of 3–8 items, each a 32px row whose bar is as long as its 
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats each row's value and the summary ("$96,400"). |
 | `aria-label` (required) | `string` | — | What the list ranks and over which range ("Revenue by client, 2026 so far"). |
 | `className` | `string` | — | Extra class on the chart. |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | `0` | The row active at first, its bar at 48% (the others 24%). Default 0: the leader. ↑/↓, Home/End and hover move it. |
 | `animate` | `boolean` | `true` | Grow the bars from the start on mount and when the data changes (default true; reduced motion fades). |
 
@@ -198,6 +205,7 @@ Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content
 | `format` | `(value: number, row: ChartBullet) => string` | — | Formats the value and the target of a row ("$798K of $900K") and the summary. It gets the row too, so each goal can take its own unit: `(v, row) => (row.label === "Utilisation" ? v + "%" : String(v))`. |
 | `aria-label` (required) | `string` | — | What the goals are and for which period ("Quarter goals, Q3 2026"). |
 | `className` | `string` | — | Extra class on the chart (not the legend). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | A row active at first (the others' marks dim). Default none: every row reads alike until one is picked. |
 | `animate` | `boolean` | `true` | Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced motion fades). |
 
@@ -218,6 +226,7 @@ Gauge in the shared chart language (docs/research/chart-family-spec-2026-10-12.m
 | `legendPosition` | `"top" \| "bottom" \| "start" \| "end"` | `"bottom"` | Legend below (default), above, or beside the gauge (start / end). |
 | `aria-label` (required) | `string` | — | What the gauge measures, and when ("Billable share of logged hours, September 2026"). |
 | `className` | `string` | — | Extra class on the chart (not the legend). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `animate` | `boolean` | `true` | Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades). |
 
 ### FunnelChart
@@ -229,6 +238,7 @@ Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the counts under the stage names and in the summary (the shares are whole percent of the first stage). |
 | `aria-label` (required) | `string` | — | What the funnel shows and over which range ("Leads to signed projects, Q3 2026"). |
 | `className` | `string` | — | Extra class on the chart (not the legend). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The stage picked at first (the others dim). Default none: every stage at full strength until one is hovered or reached with ↑/↓. |
 | `animate` | `boolean` | `true` | Open every bar from its centre on mount and when the data changes (default true; reduced motion fades). |
 
@@ -244,6 +254,7 @@ Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 154
 | `height` | `number` | `280` | Height of the plot in px, lanes included (6px above the grid for the top Y label, 28px below it for the X labels). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Billable hours per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (the axes and the plot; the legend sits outside it). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The period active at first (its dots, rule and Tooltip show). Default: the last one. |
 | `showLegend` | `boolean` | — | Figma Show Legend: the legend names every series. Default: on for `stacked`, off for a single `area` (the card title names its one measure). Keep it on a stacked chart (harness: chart/series-need-legend). |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
@@ -260,6 +271,7 @@ Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one
 | `height` | `number` | `280` | Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Invoiced and collected per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (the axes and the plot; the legend sits outside it). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The group active at first (its Tooltip shows every series' value). Default: the last one. |
 | `showLegend` | `boolean` | `true` | Figma Show Legend: the legend names every series; keep it (harness: chart/series-need-legend). Default on. |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
@@ -279,6 +291,7 @@ Figma Chart/Combo-Chart (15485:2519): two measures over the same periods on two 
 | `height` | `number` | `280` | Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue and margin per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (both axes and the plot; the legend sits outside it). |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
 | `initialIndex` | `number` | — | The period active at first (its Tooltip reads both values). Default: the last one. |
 | `showLegend` | `boolean` | `true` | Figma Show Legend: the legend names the bars and the line; keep it (harness: chart/series-need-legend). Default on. |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
@@ -305,6 +318,7 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 | `surface` | `"default" \| "alt" \| "flat"` | — | Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card. |
 | `children` (required) | `ReactNode` | — | The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). |
 | `className` | `string` | — |  |
+| `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the Card's root `<div>`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the open button and range control it draws, by layer (`{ Open: { level: "secondary" }, "Ranges/Item[week]": { level: "primary" } }`). Written by Zen Studio; app code sets onOpen / ranges. |
 
 ### Types

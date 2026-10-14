@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode, type Ref } from "react";
+import { useId, useRef, type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode, type Ref } from "react";
 import { BadgeCounter } from "../Badge";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
@@ -7,6 +7,8 @@ import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tabs.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useControllableState } from "../_shared/use-controllable-state";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export const tabSizes = ["medium", "small"] as const;
 export const tabVariants = ["indicator", "subtle"] as const;
@@ -77,6 +79,8 @@ export type TabOption = {
 };
 
 export interface TabsProps {
+  /** Ref to the root `role="tablist"` element. */
+  ref?: Ref<HTMLDivElement>;
   /** The tabs as data. Or give TabItem children (Figma Item-List): `<TabItem value="general" label="General" />`. */
   items?: TabOption[];
   /** The tabs as TabItem elements, in order, when `items` is not given (Figma's Item-List slot). Tabs still owns the
@@ -104,7 +108,7 @@ export interface TabsProps {
 }
 
 /** Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End jump, disabled tabs are skipped. */
-export function Tabs({ items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className, overrides }: TabsProps) {
+export function Tabs({ ref, items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className, overrides }: TabsProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, tabSizes);
   const items: TabOption[] = itemsProp ?? slotItems(children, TabItem).map((tab, index) => ({
@@ -112,10 +116,14 @@ export function Tabs({ items: itemsProp, children, value, defaultValue, onValueC
   }));
   const generated = useId().replace(/:/g, "");
   const prefix = idPrefix ?? `zen-tabs-${generated}`;
-  const [internal, setInternal] = useState(defaultValue ?? items.find((item) => !item.disabled)?.id);
-  const current = value ?? internal;
-  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const select = (id: string) => { if (value === undefined) setInternal(id); onValueChange?.(id); onChange?.(id); };
+  const [current, select] = useControllableState<string | undefined>({
+    value,
+    defaultValue: () => defaultValue ?? items.find((item) => !item.disabled)?.id,
+    onChange: (id) => { if (id === undefined) return; onValueChange?.(id); onChange?.(id); },
+    name: "Tabs value",
+  });
+  const listRef = useRef<HTMLDivElement>(null);
+  const rootRef = useMergedRefs(ref, listRef);
   const enabled = items.filter((item) => !item.disabled);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const index = enabled.findIndex((item) => item.id === current);
@@ -126,14 +134,15 @@ export function Tabs({ items: itemsProp, children, value, defaultValue, onValueC
     if (!next) return;
     event.preventDefault();
     select(next.id);
-    refs.current[next.id]?.focus();
+    // By id, not by position (a tab wrapped by Studio's nest() is not a direct child), and within this tablist (two
+    // copies of the same tabs may share an idPrefix).
+    listRef.current?.querySelector<HTMLElement>(`[id="${CSS.escape(`${prefix}-tab-${next.id}`)}"]`)?.focus();
   };
   return (
-    <div role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className={["zen-tabs", className].filter(Boolean).join(" ")} data-variant={variant} data-size={size} data-full-width={fullWidth ? "true" : undefined} onKeyDown={onKeyDown}>
+    <div ref={rootRef} role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className={["zen-tabs", className].filter(Boolean).join(" ")} data-variant={variant} data-size={size} data-full-width={fullWidth ? "true" : undefined} onKeyDown={onKeyDown}>
       {items.map((item) => nest("Tab-Item", (
         <TabItem
           key={item.id}
-          ref={(node) => { refs.current[item.id] = node; }}
           id={`${prefix}-tab-${item.id}`}
           aria-controls={`${prefix}-panel-${item.id}`}
           aria-label={item["aria-label"] ?? (!item.label && typeof item.id === "string" ? item.id : undefined)}
@@ -153,6 +162,14 @@ export function Tabs({ items: itemsProp, children, value, defaultValue, onValueC
 }
 
 /** Panel paired with a tab: `<TabPanel idPrefix="settings" id="general" hidden={tab !== "general"}>`. */
-export function TabPanel({ idPrefix, id, children, hidden, className }: { idPrefix: string; id: string; children: ReactNode; hidden?: boolean; className?: string }) {
-  return <div role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} hidden={hidden} tabIndex={0} className={["zen-tab-panel", className].filter(Boolean).join(" ")}>{children}</div>;
+export function TabPanel({ idPrefix, id, children, hidden, className, ref }: {
+  idPrefix: string;
+  id: string;
+  children: ReactNode;
+  hidden?: boolean;
+  className?: string;
+  /** Ref to the panel's root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
+}) {
+  return <div ref={ref} role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} hidden={hidden} tabIndex={0} className={["zen-tab-panel", className].filter(Boolean).join(" ")}>{children}</div>;
 }

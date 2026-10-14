@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Badge } from "../Badge";
 import { Card, type CardColor, type CardSubAction, type CardTheme } from "../Card";
 import { DockIcon, type DockIconBackground, type DockIconTheme } from "../DockIcon";
@@ -25,11 +25,16 @@ export type MetricSize = "xs" | "sm" | "md" | "lg" | "xl" | "xsmall" | "small" |
 export type MetricTrendDirection = "positive" | "negative" | "normal";
 
 /** Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Subtle Badge — Positive green (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral. */
-export function MetricTrend({ trend = "normal", children }: { trend?: MetricTrendDirection; children: ReactNode }) {
+export function MetricTrend({ trend = "normal", children, ref }: {
+  trend?: MetricTrendDirection;
+  children: ReactNode;
+  /** Forwarded to the Badge's root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
+}) {
   const nest = useNested();
   const theme = trend === "positive" ? "green" : trend === "negative" ? "red" : "neutral";
   const icon: IconName | null = trend === "positive" ? "icon-arrow-circle-up-solid" : trend === "negative" ? "icon-arrow-circle-down-solid" : null;
-  return nest("Badge", <Badge size="small" theme={theme} background="subtle" leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>);
+  return nest("Badge", <Badge ref={ref} size="small" theme={theme} background="subtle" leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>);
 }
 
 /** Figma Metric-Inline label and number text styles per Size. */
@@ -82,6 +87,8 @@ export interface MetricProps {
    *  this text in a Tooltip on hover and focus; say how the number is worked out. */
   hint?: ReactNode;
   className?: string;
+  /** Forwarded to the root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio;
    *  app code sets icon / trend / counter. */
   overrides?: NestedOverrides;
@@ -96,7 +103,7 @@ function MetricColorDot({ color }: { color: boolean | string }) {
  * Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of
  * Label (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.
  */
-export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className, overrides }: MetricProps) {
+export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className, overrides, ref }: MetricProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const size = scaleKey(sizeProp, metricSizes);
@@ -134,14 +141,14 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
       </>
     );
     return (
-      <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined} data-custom={custom ? "true" : undefined}>
+      <div ref={ref} className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined} data-custom={custom ? "true" : undefined}>
         {/* Figma: the Dock-Icon is absolute inside Contents, so with a Custom-Slot it stays above the slot. */}
         {custom ? <><div className="zen-metric__body">{body}</div><div className="zen-metric__custom">{custom}</div></> : body}
       </div>
     );
   }
   return (
-    <div className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-layout={stacked ? "stacked" : "inline"}>
+    <div ref={ref} className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-layout={stacked ? "stacked" : "inline"}>
       {nest("Icon", iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background={iconBackground} size={stacked ? "large" : "medium"} />
         : icon ? <DockIcon icon={icon} theme={iconTheme} background={iconBackground} size={stacked ? "large" : "medium"} /> : null)}
       <div className="zen-metric__contents">
@@ -199,6 +206,8 @@ export type MetricCardProps = Omit<MetricProps, "value"> & {
   color?: CardColor;
   /** Card Sub-Action (Figma: ⋮ Button/Icon-Flat). */
   subAction?: CardSubAction | ReactNode;
+  /** Forwarded to the Card's root `<div>` (not to the Metric inside it). */
+  ref?: Ref<HTMLDivElement>;
   /**
    * Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): an Icon-Highlight Metric, as before. Every other
    * type draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart
@@ -239,7 +248,7 @@ const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison">, MetricSize
  * Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an
  * XLarge Icon-Highlight Metric; the other types (see `type`) put their marks, bar or columns under a Title-Highlight one.
  */
-export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, animate = true, ...metric }: MetricCardProps) {
+export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, animate = true, ref, ...metric }: MetricCardProps) {
   const t = useZenLabels();
   // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a trend badge
   // Theme=On-Color, Background=Solid (a white pill) on that fill; Solid Neutral (15487:89034) is the dark Hero. Written
@@ -253,7 +262,7 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, clas
   const card = (content: ReactNode) => (
     // zen-allow-overrides: MetricCard passes its own overrides on, so the Card's Sub-Action and the Metric's layers
     // (`Metric/Icon`) read the same table.
-    <Card theme={theme} color={color} subAction={subAction} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
+    <Card ref={ref} theme={theme} color={color} subAction={subAction} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
       {content}
     </Card>
   );

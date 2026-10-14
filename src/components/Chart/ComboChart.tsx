@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from "react";
+import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -27,6 +27,8 @@ export interface ComboChartProps {
   "aria-label": string;
   /** Extra class on the chart frame (both axes and the plot; the legend sits outside it). */
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The period active at first (its Tooltip reads both values). Default: the last one. */
   initialIndex?: number;
   /** Figma Show Legend: the legend names the bars and the line; keep it (harness: chart/series-need-legend). Default on. */
@@ -61,12 +63,12 @@ const round = (value: number) => Math.round(value * 1e6) / 1e6;
  * Legend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End
  * move between periods; hover picks one.
  */
-export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, lineFormat = defaultFormat, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true }: ComboChartProps) {
+export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, lineFormat = defaultFormat, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, ref }: ComboChartProps) {
   const t = useZenLabels();
   const bars = data.map((d) => Math.max(0, d.bar));
   const line = data.map((d) => Math.max(0, d.line));
   const signature = signatureOf([bars, line, lineMax ?? null]);
-  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...bars)), [signature]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...bars)), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   // The end axis shares the start axis' gridlines: as many steps, each a round step that reaches the line's top.
   const count = Math.max(1, ticks.length - 1);
   const lineTop = lineMax && lineMax > 0 ? lineMax : stepFor(Math.max(0, ...line), count) * count;
@@ -78,7 +80,7 @@ export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, 
   const summary = current ? `${current.label}: ${barLabel} ${format(current.bar)}, ${lineLabel} ${lineFormat(current.line)} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
   const legend = showLegend ? <ChartLegend gap="small" items={[{ id: "bar", label: barLabel, color: BAR }, { id: "line", label: lineLabel, color: LINE }]} /> : undefined;
   return (
-    <ChartBlock kind="combo" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="combo" legend={legend} position={legendPosition}>
       <div className={["zen-chart-combo", className].filter(Boolean).join(" ")} style={{ "--zen-chart-height": `${height}px` } as CSSProperties}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
           activeLine="neutral" className="zen-chart--combo" kind="bar" animate={animate} summary={summary}

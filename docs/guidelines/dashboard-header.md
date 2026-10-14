@@ -50,6 +50,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `headingLevel` | `1 \| 2` | `1` | Main · heading level of the title (PageHeader `headingLevel`). Default 1. |
 | `children` | `ReactNode` | — | Custom · Figma Custome-Elements: the row's content, Spacing/Gap/Medium apart and centred. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides of the components in its slots, by layer. Written by Zen Studio; app code sets the slots. |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the root DOM element. |
 
 ## ✅ Do
 - Inside an AppShell, put the rows in sections (Figma Header/Dashboard): the shell pads each row and keeps the top bar its own.

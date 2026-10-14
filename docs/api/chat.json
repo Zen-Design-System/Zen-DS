@@ -185,6 +185,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets author.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -290,6 +298,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFormElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<form>`.",
+          "deprecated": null
         }
       ]
     },
@@ -330,6 +346,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (role=\"log\").",
           "deprecated": null
         }
       ]
@@ -428,6 +452,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets person / group.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element (the ListItem's row).",
+          "deprecated": null
         }
       ]
     },
@@ -452,6 +484,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -494,6 +534,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -534,6 +582,14 @@
           "required": false,
           "default": null,
           "description": "Accessible name of the panel (the locale's \"Choose a reaction\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (role=\"dialog\").",
           "deprecated": null
         }
       ]
@@ -616,6 +672,14 @@
           "default": null,
           "description": "The pill: anchors the desktop Popover and finds the device frame's overlay root on mobile.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the visible panel's root `<div>`: the desktop popover, or the mobile Bottom Sheet.",
+          "deprecated": null
         }
       ]
     },
@@ -656,6 +720,14 @@
           "required": true,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -722,6 +794,14 @@
           "default": null,
           "description": "Figma instance overrides of its Dock Icon (`{ Icon: { theme: \"blue\" } }`), written by Zen Studio.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLAnchorElement | HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element: the `<a>` with `href`, else the `<button>`.",
+          "deprecated": null
         }
       ]
     },
@@ -786,6 +866,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides of its Dock Icon and action (`{ Action: { level: \"primary\" } }`), written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -876,6 +964,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets playing.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -908,6 +1004,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (the grid, or the Business card around it).",
           "deprecated": null
         }
       ]
@@ -958,6 +1062,14 @@
           "default": "\"mobile\"",
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement | HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the pill: a `<button>` when it opens the reactors panel, else a `<span>`.",
+          "deprecated": null
         }
       ]
     },
@@ -999,6 +1111,14 @@
           "default": null,
           "description": "Figma Reaction-Bar \"+\": replace the built-in emoji panel with your own full picker.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (the bar, or the emoji panel while it is open).",
+          "deprecated": null
         }
       ]
     },
@@ -1016,6 +1136,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
+          "deprecated": null
         }
       ]
     },
@@ -1032,6 +1160,14 @@
           "required": true,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -1081,6 +1217,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides of its avatars (`{ \"Avatar[0]\": { theme: \"accent\" } }`), written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
           "deprecated": null
         }
       ]

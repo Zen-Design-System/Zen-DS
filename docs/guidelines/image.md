@@ -52,6 +52,7 @@ Also accepts `Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading
 | `caption` | `ReactNode` | — | A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption. |
 | `className` | `string` | — | On the root (figure or div). |
 | `style` | `CSSProperties` | — | On the root (figure or div). |
+| `ref` | `Ref<HTMLImageElement>` | — | Ref to the inner `<img>` element (not the root). |
 
 ### Thumbnail
 A fixed square picture for list rows, tables and pickers, sized on the Figma Image-Size scale (the same steps as Avatar). Same loading (Skeleton) and error (image icon placeholder) behaviour as Image. <ListItem title="Pour-over kettle" caption="$64.00" leading={<Thumbnail src={kettle} alt="" />} />
@@ -68,6 +69,7 @@ Also accepts `Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading
 | `loading` | `"lazy" \| "eager"` | `"lazy"` | Native loading: lazy (default) or eager. |
 | `className` | `string` | — | On the root span. |
 | `style` | `CSSProperties` | — | On the root span. |
+| `ref` | `Ref<HTMLImageElement>` | — | Ref to the inner `<img>` element (not the root). |
 
 ### Types
 Object shapes the props above refer to.

@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode, type Ref } from "react";
 import { Card, type CardColor, type CardSurface, type CardTheme } from "../Card";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
@@ -51,6 +51,8 @@ export interface LineChartProps {
   /** What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). */
   "aria-label": string;
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The point active at first (its Tooltip shows). Default: the last one. */
   initialIndex?: number;
   /** `smooth` (default, Figma's curve) or `linear` segments. */
@@ -76,12 +78,12 @@ export interface LineChartProps {
  * 15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the
  * Tooltip and a legend. ←/→, Home/End move between points.
  */
-export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "area", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false }: LineChartProps) {
+export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "area", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, ref }: LineChartProps) {
   const t = useZenLabels();
   const values = data.map((d) => d.value);
   const compared = compare ? data.map((_, i) => compare.values[i] ?? 0) : undefined;
   const signature = signatureOf([values, compared ?? null]);
-  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...values, ...(compared ?? []))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...values, ...(compared ?? []))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
   const n = Math.max(1, data.length);
   const pointsOf = (list: number[]) => list.map((v, i) => [((i + 0.5) / n) * 100, 100 - (v / top) * 100] as const);
@@ -105,7 +107,7 @@ export function LineChart({ data, label, compare, format = defaultFormat, height
   const legend = compare && showLegend ? <ChartLegend align="start" items={[{ id: "value", label: name, color: LINE_SWATCH }, { id: "compare", label: compare.label, color: COMPARE_SWATCH }]} /> : undefined;
   const mean = showAverage ? meanOf(values) : undefined;
   return (
-    <ChartBlock kind="line" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="line" legend={legend} position={legendPosition}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="accent" className={className} kind="line" animate={animate}
         tooltip={tooltip} summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
         <div className="zen-chart__marks" key={signature}>
@@ -141,6 +143,8 @@ export interface StackBarChartProps {
   /** What the chart shows and over which range. */
   "aria-label": string;
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The column active at first. Default: the last one. */
   initialIndex?: number;
   /** The legend names every colour; keep it (harness: chart/stack-needs-legend). */
@@ -157,17 +161,17 @@ export interface StackBarChartProps {
  * Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side padding, Corner-Radius/Small on the column),
  * segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
  */
-export function StackBarChart({ data, series, format = defaultFormat, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false }: StackBarChartProps) {
+export function StackBarChart({ data, series, format = defaultFormat, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, ref }: StackBarChartProps) {
   const t = useZenLabels();
   const totals = data.map((d) => series.reduce((sum, s) => sum + (d.values[s.id] ?? 0), 0));
-  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [totals.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [totals.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
   const current = active === null ? undefined : data[active];
   const legend = showLegend ? <ChartLegend items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si) }))} /> : undefined;
   const mean = showAverage ? meanOf(totals) : undefined;
   const summary = current ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${series.map((s) => `${s.label} ${format(current.values[s.id] ?? 0)}`).join(", ")}` : t.noData;
   return (
-    <ChartBlock kind="stack" legend={legend} position={legendPosition} className="zen-chart-stack">
+    <ChartBlock ref={ref} kind="stack" legend={legend} position={legendPosition} className="zen-chart-stack">
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="stack" animate={animate}
         tooltip={current ? format(totals[active!]) : null}
         summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
@@ -222,6 +226,8 @@ export interface ChartCardProps {
   /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
   className?: string;
+  /** Forwarded to the Card's root `<div>`. */
+  ref?: Ref<HTMLDivElement>;
   /** Figma instance overrides: props of the open button and range control it draws, by layer (`{ Open: { level: "secondary" }, "Ranges/Item[week]": { level: "primary" } }`). Written by Zen Studio;
    *  app code sets onOpen / ranges. */
   overrides?: NestedOverrides;
@@ -233,13 +239,13 @@ export interface ChartCardProps {
  * (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·
  * Show Open properties).
  */
-export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", color, surface, children, className, overrides }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", color, surface, children, className, overrides, ref }: ChartCardProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
   const Title = `h${headingLevel}` as const;
   return (
-    <Card theme={theme} color={color} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
+    <Card ref={ref} theme={theme} color={color} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <div className="zen-chart-card__titlebar">

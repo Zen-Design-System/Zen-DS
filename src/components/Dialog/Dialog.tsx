@@ -1,7 +1,7 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { usePresence } from "../Motion";
-import { ZenPortal } from "../Portal";
+import { ZenPortal, usePortalContainer } from "../Portal";
 import { Button, IconButton, type ButtonLevel } from "../Button";
 import { Icon, type IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
@@ -13,6 +13,8 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./dialog.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { inertOutside, lockScroll } from "../_shared/modal-isolation";
+import { useMergedRefs } from "../_shared/merge-refs";
 
 export const dialogThemes = ["default", "info", "positive", "warning", "negative"] as const;
 export type DialogTheme = (typeof dialogThemes)[number];
@@ -88,7 +90,12 @@ export const modalIsOpen = () => modalStack.length > 0;
  * role=combobox, read before any handler runs), and when another modal is open on top of it. The key listeners sit on
  * `window`, after every document-level popup listener, so those have had their turn first.
  */
-export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>, dismissible: boolean, onOpenChange: (open: boolean) => void, initialSelector: string) {
+export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>, dismissible: boolean, onOpenChange: (open: boolean) => void, initialSelector: string, { isolate = false, container = null }: {
+  /** Portalled modals: make everything outside the panel inert while it is open. Inline previews (docs, Studio) leave it off. */
+  isolate?: boolean;
+  /** The element the modal is portalled into (useOverlayHost's `container`), so isolation starts at the right level. */
+  container?: Element | null;
+} = {}) {
   const openerRef = useRef<Element | null>(null);
   useEffect(() => {
     if (!open) return undefined;
@@ -105,8 +112,8 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
     const field = pick(initialSelector) ?? (hasPreferred ? pick(focusableSelector) : undefined);
     const initial = pick("[data-autofocus]") ?? (field && panel ? tabStopOf(field, panel) : field) ?? panel;
     initial?.focus();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockScroll();
+    const restoreOutside = isolate && panel ? inertOutside(panel, container) : null;
     // Captured before React or any popup handles the key: a Select trigger closes its list on Escape (aria-expanded turns
     // false) before the bubbling listener below runs, so the open state is read here.
     let popupEscape: Event | null = null;
@@ -140,10 +147,13 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
       window.removeEventListener("keydown", onKey);
       const index = modalStack.lastIndexOf(entry);
       if (index >= 0) modalStack.splice(index, 1);
-      document.body.style.overflow = previousOverflow;
-      (openerRef.current as HTMLElement | null)?.focus?.();
+      restoreOutside?.();
+      unlockScroll();
+      // The opener may be gone (a row deleted from the dialog it opened): focus then stays where the browser puts it.
+      const opener = openerRef.current as HTMLElement | null;
+      if (opener?.isConnected) opener.focus?.({ preventScroll: true });
     };
-  }, [open, dismissible, onOpenChange, panelRef, initialSelector]);
+  }, [open, dismissible, onOpenChange, panelRef, initialSelector, isolate, container]);
 }
 
 /**
@@ -160,8 +170,11 @@ export function useOverlayHost(mounted: boolean) {
     setHost(mounted ? anchorRef.current?.closest<HTMLElement>("[data-zen-overlay-root]") ?? null : undefined);
   }, [mounted]);
   const anchor = mounted ? <template ref={anchorRef} data-zen-overlay-anchor="" /> : null;
+  const portalContainer = usePortalContainer();
   const place = (overlay: ReactNode) => (host ? createPortal(overlay, host) : <ZenPortal>{overlay}</ZenPortal>);
-  return { contained: Boolean(host), ready: mounted && host !== undefined, anchor, place };
+  /** Where `place` renders: the device frame, else the ZenPortal container. */
+  const container = host ?? portalContainer;
+  return { contained: Boolean(host), ready: mounted && host !== undefined, anchor, place, container };
 }
 
 export interface ModalActionsProps {
@@ -178,10 +191,12 @@ export interface ModalActionsProps {
   /** Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: "danger" } }`). Written by Zen Studio;
    *  app code sets the actions. */
   overrides?: NestedOverrides;
+  /** Ref to the root `<div>` element (the actions row). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual · Triple), Button/Main Medium, gap Small. */
-export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, direction = "horizontal", onDefault, submitPrimary = false, className, overrides }: ModalActionsProps) {
+export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, direction = "horizontal", onDefault, submitPrimary = false, className, overrides, ref }: ModalActionsProps) {
   const nest = useNested(overrides);
   const count = [primaryAction, secondaryAction, tertiaryAction].filter(Boolean).length;
   if (!count) return null;
@@ -196,7 +211,7 @@ export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, d
     ));
   };
   return (
-    <div className={["zen-modal-actions", className].filter(Boolean).join(" ")} data-direction={direction} data-count={count}>
+    <div ref={ref} className={["zen-modal-actions", className].filter(Boolean).join(" ")} data-direction={direction} data-count={count}>
       {render(tertiaryAction, "tertiary", "tertiary")}
       <div className="zen-modal-actions__main">
         {render(secondaryAction, "tertiary", "secondary")}
@@ -231,6 +246,8 @@ export interface DialogProps extends OverlayOpenProps {
   /** Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "danger" }, Icon: { name: "icon-trash-line" } }`). Written by Zen Studio;
    *  app code sets icon / the actions. */
   overrides?: NestedOverrides;
+  /** Ref to the dialog panel `<div>` (role=dialog); set while the dialog is open. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Figma Modal/Dialog (841:17177): Theme × Device. Desktop 440px, Heading/3; ≤ 480px viewport switches to the Mobile
@@ -238,22 +255,23 @@ export interface DialogProps extends OverlayOpenProps {
  * bottom clear of the safe area). Focus is trapped while open and restored to the opener on close.
  * Inside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) it opens in that frame, and the frame's width
  * picks the Device (an unsaved-changes guard on a phone screen). */
-export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, theme = "default", icon = true, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", children, dismissible = true, className, overrides }: DialogProps) {
+export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, theme = "default", icon = true, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", children, dismissible = true, className, overrides, ref }: DialogProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLDivElement>(null);
+  const mergedPanelRef = useMergedRefs(panelRef, ref);
   // Stay mounted for the exit animation; useModal already restored focus/scroll when `open` went false.
   const { mounted, phase } = usePresence(open, 200);
   const host = useOverlayHost(mounted);
-  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`);
+  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`, { isolate: true, container: host.container });
   if (!mounted || typeof document === "undefined") return null;
   const closing = phase === "closing";
   const iconNode = nest("Icon", icon === false ? null : icon === true ? <Icon name={themeIcon[theme]} decorative /> : renderIcon(icon));
   const Title = `h${headingLevel}` as const;
   const overlay = (
     <div className="zen-dialog-overlay" data-state={phase} data-modal="dialog" data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>
-      <div ref={panelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role={theme === "negative" || theme === "warning" ? "alertdialog" : "dialog"} aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1} className={["zen-dialog", className].filter(Boolean).join(" ")} data-tone={theme}>
+      <div ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role={theme === "negative" || theme === "warning" ? "alertdialog" : "dialog"} aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1} className={["zen-dialog", className].filter(Boolean).join(" ")} data-tone={theme}>
         <div className="zen-dialog__content">
           <div className="zen-dialog__heading">
             {iconNode ? <span className="zen-dialog__icon" aria-hidden="true">{iconNode}</span> : null}
@@ -312,6 +330,8 @@ export interface ModalFormProps extends OverlayOpenProps {
   /** Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ "Actions/Primary": { level: "accent" }, Close: { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets the actions. */
   overrides?: NestedOverrides;
+  /** Ref to the modal panel `<div>` (role=dialog); set while the modal is open. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border,
@@ -319,7 +339,7 @@ export interface ModalFormProps extends OverlayOpenProps {
  * Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form.
  * Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a
  * `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count. */
-export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides }: ModalFormProps) {
+export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides, ref }: ModalFormProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -327,9 +347,10 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const invalidMessage = invalidMessageProp ?? t.fieldsNeedAttention;
   const id = useId().replace(/:/g, "");
   const panelRef = useRef<HTMLDivElement>(null);
+  const mergedPanelRef = useMergedRefs(panelRef, ref);
   const { mounted, phase } = usePresence(open, 200);
   const host = useOverlayHost(mounted);
-  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`);
+  useModal(open && host.ready, panelRef, dismissible, onOpenChange, `${modalFieldSelector}, .zen-modal-actions [data-action='primary']`, { isolate: true, container: host.container });
   // The blocked-submit announcement (Form's live region): cleared on close, so a reopened modal starts silent.
   const [announcement, setAnnouncement] = useState("");
   const frame = useRef(0);
@@ -381,7 +402,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   };
   const overlay = (
     <div className="zen-dialog-overlay" data-state={phase} data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>
-      <div ref={panelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role="dialog" aria-modal="true" aria-labelledby={title ? `${id}-title` : undefined} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1}
+      <div ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role="dialog" aria-modal="true" aria-labelledby={title ? `${id}-title` : undefined} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1}
         className={["zen-modal-form", className].filter(Boolean).join(" ")} data-layout={layout} data-side={hasSide ? "true" : "false"}>
         {onSubmit
           ? <form className="zen-modal-form__content" noValidate={noValidate} onSubmit={submit}>{inner}</form>

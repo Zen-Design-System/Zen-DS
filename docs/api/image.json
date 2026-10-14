@@ -113,6 +113,14 @@
           "default": null,
           "description": "On the root (figure or div).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLImageElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the inner `<img>` element (not the root).",
+          "deprecated": null
         }
       ]
     },
@@ -185,6 +193,14 @@
           "required": false,
           "default": null,
           "description": "On the root span.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLImageElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the inner `<img>` element (not the root).",
           "deprecated": null
         }
       ]

@@ -1,9 +1,9 @@
-import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
+import { useRef, useState, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Button, type ButtonLevel } from "../Button";
 import "./action-bar.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
-
-const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+import { useMergedRefs } from "../_shared/merge-refs";
+import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 
 export const actionBarPositions = ["sticky", "fixed", "static"] as const;
 export type ActionBarPosition = (typeof actionBarPositions)[number];
@@ -64,6 +64,8 @@ export interface ActionBarProps extends HTMLAttributes<HTMLDivElement> {
   /** Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: "danger" } }`). Written by Zen Studio;
    *  app code sets primaryAction / secondaryAction. */
   overrides?: NestedOverrides;
+  /** Ref to the bar's root element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 function actionButton(action: ActionBarAction, fallbackLevel: ButtonLevel, size: "md" | "lg") {
@@ -83,19 +85,12 @@ function actionButton(action: ActionBarAction, fallbackLevel: ButtonLevel, size:
  *
  *   <ActionBar primaryAction={{ label: "Add to cart", onClick: add }} secondaryAction={{ label: "Save for later", onClick: save }} />
  */
-export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function ActionBar(
-  { position = "sticky", direction = "vertical", surface = "default", primaryAction, secondaryAction, summary, children, className, overrides, ...rest },
-  ref,
-) {
+export function ActionBar({ position = "sticky", direction = "vertical", surface = "default", primaryAction, secondaryAction, summary, children, className, overrides, ref, ...rest }: ActionBarProps) {
   const nest = useNested(overrides);
   const barRef = useRef<HTMLDivElement | null>(null);
   const [spacer, setSpacer] = useState(0);
   const [narrow, setNarrow] = useState(false);
-  const setRef = useCallback((node: HTMLDivElement | null) => {
-    barRef.current = node;
-    if (typeof ref === "function") ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
+  const setRef = useMergedRefs(barRef, ref);
   // A fixed bar leaves the flow: an in-flow spacer of its height keeps the last content from hiding underneath it.
   useIsomorphicLayoutEffect(() => {
     const element = barRef.current;
@@ -143,4 +138,4 @@ export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(function Act
       </div>
     </>
   );
-});
+}

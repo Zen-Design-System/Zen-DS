@@ -75,6 +75,14 @@
           "deprecated": "Use onCheckedChange (or read event.target.checked)."
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The element with role=\"switch\" (the one that takes focus); the native checkbox inside only carries the form value.",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode",
           "required": true,
@@ -178,6 +186,14 @@
           "default": null,
           "description": "",
           "deprecated": "Use onCheckedChange (or read event.target.checked)."
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The element with role=\"switch\" (the one that takes focus); the native checkbox inside only carries the form value.",
+          "deprecated": null
         }
       ]
     }

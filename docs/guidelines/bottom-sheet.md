@@ -60,6 +60,7 @@ Also accepts `OverlayOpenProps`.
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: "danger" }, "Item[delete]/Icon": { tone: "negative-base" } }`). Written by Zen Studio; app code sets the actions / items. |
+| `ref` | `Ref<HTMLDivElement>` | — | Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open. |
 
 ### Types
 Object shapes the props above refer to.

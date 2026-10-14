@@ -93,6 +93,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<button>` element.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -171,6 +179,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<button>` element.",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "unknown",
           "required": false,
@@ -186,6 +202,14 @@
       "name": "Chip",
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the chip's `<button>`; a static Number-only count (see the component docs) renders a `<span>`, which it\n then points at.",
+          "deprecated": null
+        },
         {
           "name": "children",
           "type": "ReactNode",
@@ -695,6 +719,14 @@
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -895,6 +927,14 @@
           "deprecated": null
         },
         {
+          "name": "popoverWidth",
+          "type": "\"fill\" | \"hug\" | number",
+          "required": false,
+          "default": null,
+          "description": "Width of the option Popover (Popover `width`): unset is Figma's 240px; `\"fill\"` matches the field's box, `\"hug\"` grows\n to the longest option (never narrower than the field) so long values such as domains stay whole.",
+          "deprecated": null
+        },
+        {
           "name": "popoverOpen",
           "type": "boolean",
           "required": false,
@@ -916,6 +956,14 @@
           "required": false,
           "default": "false",
           "description": "Figma State=Read-Only: shows the value, keeps the chevron, never opens.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSelectElement>",
+          "required": false,
+          "default": null,
+          "description": "The hidden native `<select>` that holds the value (name, form data, autofill).",
           "deprecated": null
         }
       ]
@@ -1058,6 +1106,14 @@
           "required": false,
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
           "deprecated": null
         },
         {
@@ -1313,6 +1369,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" }, Leading: { name: \"icon-mail-01-line\" } }`). Written by Zen Studio;\n app code sets label / helpText / leading / trailing.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -1334,6 +1398,14 @@
           "required": false,
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLTextAreaElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<textarea>` element.",
           "deprecated": null
         },
         {
@@ -1645,6 +1717,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<div>` of the field (it has no native text control: tags and the Add button live inside it).",
+          "deprecated": null
         }
       ]
     },
@@ -1754,6 +1834,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The content-editable editor element.",
           "deprecated": null
         },
         {
@@ -1921,6 +2009,14 @@
           "default": "false",
           "description": "Figma `State=Disabled`: every part (label, optional, icon, action) turns Content/Disabled.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -1966,6 +2062,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLParagraphElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<p>` element.",
           "deprecated": null
         }
       ]
@@ -2133,6 +2237,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element: a `<span>` for a decorative slot or picker wrapper, a `<button>` for an action slot.",
+          "deprecated": null
         }
       ]
     },
@@ -2170,6 +2282,14 @@
           "required": false,
           "default": "true",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
           "deprecated": null
         }
       ]
@@ -2279,6 +2399,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root toolbar `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -2317,6 +2445,14 @@
           "default": null,
           "description": "Deterministic Figma Status for matrices; native hover/focus still apply.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement | HTMLTextAreaElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` (or `<textarea>` with `multiline`).",
+          "deprecated": null
         }
       ]
     },
@@ -2339,6 +2475,14 @@
           "default": "\"default\"",
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLLIElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<li>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -2360,6 +2504,14 @@
           "required": false,
           "default": "\"default\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLUListElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<ul>` element.",
           "deprecated": null
         }
       ]
@@ -2561,6 +2713,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the icons and filter it draws, by layer (`{ Leading: { tone: \"accent-base\" }, Filter: { label: \"Status\" } }`). Written by Zen Studio;\n app code sets leading / trailing / theme.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input type=\"search\">`.",
+          "deprecated": null
         }
       ]
     }
@@ -2570,6 +2730,14 @@
       "name": "Segmented",
       "extends": null,
       "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `role=\"group\"` element.",
+          "deprecated": null
+        },
         {
           "name": "options",
           "type": "SegmentedOption[]",
@@ -2801,6 +2969,14 @@
           "deprecated": "Use onCheckedChange (or read event.target.checked)."
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The element with role=\"switch\" (the one that takes focus); the native checkbox inside only carries the form value.",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode",
           "required": true,
@@ -2901,6 +3077,14 @@
           "default": null,
           "description": "",
           "deprecated": "Use onCheckedChange (or read event.target.checked)."
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The element with role=\"switch\" (the one that takes focus); the native checkbox inside only carries the form value.",
+          "deprecated": null
         }
       ]
     }
@@ -3029,6 +3213,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native checkbox input (the element that takes focus), e.g. to focus it or read `validity`.",
+          "deprecated": null
         }
       ]
     },
@@ -3066,6 +3258,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
           "deprecated": null
         }
       ]
@@ -3186,6 +3386,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native radio input (the element that takes focus), e.g. to focus it or read `validity`.",
           "deprecated": null
         }
       ]
@@ -3403,6 +3611,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -3496,6 +3712,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         }
       ]
@@ -3705,11 +3929,35 @@
           "deprecated": null
         },
         {
+          "name": "width",
+          "type": "\"fill\" | \"hug\" | number",
+          "required": false,
+          "default": null,
+          "description": "Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every\nvalue below stays at least 240px wide, and at most the viewport less 16px on each side.\n`\"fill\"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar.\n`\"hug\"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole.\nA number: a Fixed width in px.",
+          "deprecated": null
+        },
+        {
+          "name": "maxWidth",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Maximum width in px when `width` is set (never below 240): a longer row ends in \"…\".",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the items (by item id) it draws, by layer (`{ \"Item[alex]/Avatar\": { shape: \"square\" }, \"Item[draft]/Badge\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element (the surface).",
           "deprecated": null
         }
       ]
@@ -3820,6 +4068,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the row's `<button>` element.",
           "deprecated": null
         }
       ]
@@ -4136,6 +4392,14 @@
           "default": null,
           "description": "Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the sidebar's root `<nav>`.",
+          "deprecated": null
         }
       ]
     },
@@ -4157,6 +4421,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the row it draws, by layer (`{ \"Badge-Counter\": { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets counter / icon.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the row's root `<div>` (the item group holding the row and its nested rows).",
           "deprecated": null
         },
         {
@@ -4300,6 +4572,14 @@
           "default": null,
           "description": "The section's `<SidebarMenuItem>` rows.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the section's root `<section>`.",
+          "deprecated": null
         }
       ]
     },
@@ -4353,6 +4633,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the flyout content's root `<div>`.",
           "deprecated": null
         }
       ]
@@ -4618,6 +4906,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ \"Actions/Submit\": { level: \"accent\" }, \"Header[0]/Previous\": { appearance: \"flat\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the calendar surface (the root `<div>`, a popover or the inline group).",
+          "deprecated": null
         }
       ]
     },
@@ -4759,6 +5055,14 @@
           "required": false,
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
           "deprecated": null
         },
         {
@@ -4998,6 +5302,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets applyLabel.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open.",
+          "deprecated": null
         }
       ]
     },
@@ -5122,6 +5434,14 @@
           "default": "\"desktop\"",
           "description": "`mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together\nat the end; a hidden button leaves no slot.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -5184,6 +5504,14 @@
           "default": null,
           "description": "Submit in its Button/Main Disabled state, e.g. until a range has its end date.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<footer>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -5213,6 +5541,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the month/year wheels `<div>` (the Cancel / Submit row follows it as a sibling).",
           "deprecated": null
         }
       ]
@@ -5251,6 +5587,14 @@
           "required": false,
           "default": "\"desktop\"",
           "description": "`mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]
@@ -5411,6 +5755,14 @@
       "name": "Tabs",
       "extends": null,
       "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `role=\"tablist\"` element.",
+          "deprecated": null
+        },
         {
           "name": "items",
           "type": "TabOption[]",
@@ -5646,6 +5998,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the panel's root `<div>`.",
+          "deprecated": null
         }
       ]
     }
@@ -5725,6 +6085,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the crumbs it draws, by layer (`{ \"Crumb[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Separator[home]\": { name: \"icon-minus-line\" } }`). Written by Zen Studio;\n app code sets the items.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<nav>`.",
           "deprecated": null
         }
       ]
@@ -5852,6 +6220,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -5897,6 +6273,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -6041,6 +6425,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the icon and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"danger\" }, Icon: { name: \"icon-trash-line\" } }`). Written by Zen Studio;\n app code sets icon / the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the dialog panel `<div>` (role=dialog); set while the dialog is open.",
           "deprecated": null
         }
       ]
@@ -6240,6 +6632,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the close button and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the modal panel `<div>` (role=dialog); set while the modal is open.",
+          "deprecated": null
         }
       ]
     },
@@ -6309,6 +6709,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element (the actions row).",
           "deprecated": null
         }
       ]
@@ -6440,6 +6848,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -6515,6 +6931,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the stack's root `<div>` (portalled into the toast layer unless `inline`).",
           "deprecated": null
         }
       ]
@@ -6636,6 +7060,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -6651,6 +7083,14 @@
       "name": "Accordion",
       "extends": null,
       "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `.zen-accordion` element.",
+          "deprecated": null
+        },
         {
           "name": "title",
           "type": "ReactNode",
@@ -6836,6 +7276,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<nav>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -6888,6 +7336,14 @@
           "default": "false",
           "description": "Narrow screens hide optional pages (everything but first, last and current), keeping `1 … 5 … 12`.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the page `<button>` (the non-interactive ellipsis item takes none).",
+          "deprecated": null
         }
       ]
     }
@@ -6919,6 +7375,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         },
         {
@@ -6960,6 +7424,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
+          "deprecated": null
+        },
+        {
           "name": "size",
           "type": "\"sm\" | \"md\" | \"lg\" | \"small\" | \"medium\" | \"large\"",
           "required": false,
@@ -6995,6 +7467,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         },
         {
@@ -7059,6 +7539,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root element (`<hr>`, or a `<div>` when vertical or decorative).",
           "deprecated": null
         }
       ]
@@ -7139,6 +7627,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
           "deprecated": null
         },
         {
@@ -7258,6 +7754,14 @@
           "default": "\"icon-user-circle-line\"",
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element.",
+          "deprecated": null
         }
       ]
     }
@@ -7367,6 +7871,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the marker's root `<span>`.",
           "deprecated": null
         }
       ]
@@ -7503,6 +8015,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (the wrapper around the range input and the limits).",
           "deprecated": null
         }
       ]
@@ -7786,6 +8306,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -7928,6 +8456,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -7997,6 +8533,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         }
       ]
@@ -8560,11 +9104,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The cell's label.",
           "deprecated": null
         },
         {
@@ -8572,7 +9124,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Optional Subtext under the label.",
           "deprecated": null
         },
         {
@@ -8580,7 +9132,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Render the label in Body/Base/Bold.",
           "deprecated": null
         }
       ]
@@ -8590,11 +9142,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "media",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The visual: Avatar, photo, Icon or DockIcon.",
           "deprecated": null
         },
         {
@@ -8602,7 +9162,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The cell's label.",
           "deprecated": null
         },
         {
@@ -8610,7 +9170,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Optional Subtext under the label.",
           "deprecated": null
         },
         {
@@ -8618,7 +9178,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Render the label in Body/Base/Bold.",
           "deprecated": null
         }
       ]
@@ -8628,11 +9188,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element (the Badge).",
+          "deprecated": null
+        },
+        {
           "name": "trend",
           "type": "\"up\" | \"down\" | \"neutral\"",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "Direction: up (green), down (red) or neutral (grey).",
           "deprecated": null
         },
         {
@@ -8640,7 +9208,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The Badge text.",
           "deprecated": null
         }
       ]
@@ -8650,11 +9218,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The Badges.",
           "deprecated": null
         }
       ]
@@ -8664,11 +9240,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The Tags.",
           "deprecated": null
         }
       ]
@@ -8678,11 +9262,19 @@
       "extends": null,
       "props": [
         {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "",
+          "description": "The icon buttons.",
           "deprecated": null
         }
       ]
@@ -8780,6 +9372,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (role=\"radiogroup\").",
+          "deprecated": null
         }
       ]
     },
@@ -8833,6 +9433,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<span>` element (role=\"img\").",
           "deprecated": null
         }
       ]
@@ -8895,6 +9503,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (role=\"radiogroup\").",
           "deprecated": null
         }
       ]
@@ -8974,6 +9590,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the score chips it draws, by layer (`{ \"Chip[10]\": { level: \"primary\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (the chips and the end labels).",
+          "deprecated": null
         }
       ]
     }
@@ -9037,6 +9661,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (role=\"radiogroup\").",
           "deprecated": null
         }
       ]
@@ -9184,6 +9816,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -9227,6 +9867,14 @@
           "required": false,
           "default": null,
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the Card's root `<div>` (not to the Metric inside it).",
           "deprecated": null
         },
         {
@@ -9588,6 +10236,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: \"secondary\" }, \"File-Item[f1]/Remove\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets files / buttonLabel.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<div>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -9641,6 +10297,14 @@
           "required": false,
           "default": null,
           "description": "Alert: try again.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLLIElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<li>` element.",
           "deprecated": null
         }
       ]
@@ -9817,6 +10481,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets onBack / the actions.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the panel `<aside>` element; set while the panel is open.",
           "deprecated": null
         }
       ]
@@ -10002,6 +10674,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<header>`.",
+          "deprecated": null
         }
       ]
     },
@@ -10039,6 +10719,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the action's `<button>`.",
           "deprecated": null
         }
       ]
@@ -10159,6 +10847,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the icons it draws, by layer (`{ \"Item[home]/Icon\": { name: \"icon-home-02-solid\" }, \"Action/Icon\": { name: \"icon-plus-line\" } }`). Written by Zen Studio;\n app code sets the items and action.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<nav>`.",
           "deprecated": null
         }
       ]
@@ -10352,6 +11048,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the action Buttons and item icons it draws, by layer (`{ Primary: { level: \"danger\" }, \"Item[delete]/Icon\": { tone: \"negative-base\" } }`). Written by Zen Studio;\n app code sets the actions / items.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open.",
+          "deprecated": null
         }
       ]
     }
@@ -10536,6 +11240,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the author avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets author.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -10638,6 +11350,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the desktop action and Send buttons it draws, by layer (`{ Send: { level: \"accent\" }, \"Action[Record voice]\": { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets actions / quickAction.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFormElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<form>`.",
+          "deprecated": null
         }
       ]
     },
@@ -10675,6 +11395,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (role=\"log\").",
           "deprecated": null
         }
       ]
@@ -10770,6 +11498,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { theme: \"accent\" } }`). Written by Zen Studio;\n app code sets person / group.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element (the ListItem's row).",
+          "deprecated": null
         }
       ]
     },
@@ -10791,6 +11527,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -10830,6 +11574,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -10867,6 +11619,14 @@
           "required": false,
           "default": null,
           "description": "Accessible name of the panel (the locale's \"Choose a reaction\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (role=\"dialog\").",
           "deprecated": null
         }
       ]
@@ -10946,6 +11706,14 @@
           "default": null,
           "description": "The pill: anchors the desktop Popover and finds the device frame's overlay root on mobile.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the visible panel's root `<div>`: the desktop popover, or the mobile Bottom Sheet.",
+          "deprecated": null
         }
       ]
     },
@@ -10983,6 +11751,14 @@
           "required": true,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -11046,6 +11822,14 @@
           "default": null,
           "description": "Figma instance overrides of its Dock Icon (`{ Icon: { theme: \"blue\" } }`), written by Zen Studio.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLAnchorElement | HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element: the `<a>` with `href`, else the `<button>`.",
+          "deprecated": null
         }
       ]
     },
@@ -11107,6 +11891,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides of its Dock Icon and action (`{ Action: { level: \"primary\" } }`), written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -11194,6 +11986,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets playing.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -11223,6 +12023,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (the grid, or the Business card around it).",
           "deprecated": null
         }
       ]
@@ -11270,6 +12078,14 @@
           "default": "\"mobile\"",
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement | HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the pill: a `<button>` when it opens the reactors panel, else a `<span>`.",
+          "deprecated": null
         }
       ]
     },
@@ -11308,6 +12124,14 @@
           "default": null,
           "description": "Figma Reaction-Bar \"+\": replace the built-in emoji panel with your own full picker.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` (the bar, or the emoji panel while it is open).",
+          "deprecated": null
         }
       ]
     },
@@ -11322,6 +12146,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
+          "deprecated": null
         }
       ]
     },
@@ -11335,6 +12167,14 @@
           "required": true,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
           "deprecated": null
         }
       ]
@@ -11381,6 +12221,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides of its avatars (`{ \"Avatar[0]\": { theme: \"accent\" } }`), written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
           "deprecated": null
         }
       ]
@@ -11461,6 +12309,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the action buttons the bubble draws, by layer (`Button`, `Button[1]` when there\n are several). Written by Zen Studio; app code sets `actions`.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]
@@ -11596,6 +12452,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: \"accent\" }, Attach: { appearance: \"main\" } }`). Written by Zen Studio;\n app code sets onAttach / onVoice / onVoiceMode.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFormElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<form>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -11658,6 +12522,14 @@
           "default": null,
           "description": "Figma instance overrides of the suggestion chips, by label (`{ \"Suggestion[Plan a trip]\": { level: \"primary\" } }`), written by Zen Studio.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<section>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -11687,6 +12559,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div role=\"log\">` element.",
           "deprecated": null
         }
       ]
@@ -11751,6 +12631,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -11864,6 +12752,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "initialIndex",
           "type": "number",
           "required": false,
@@ -11955,6 +12851,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -12092,6 +12996,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -12186,6 +13098,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -12264,6 +13184,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -12315,6 +13243,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -12401,6 +13337,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -12522,6 +13466,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -12565,6 +13517,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -12643,6 +13603,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart frame (the axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -12729,6 +13697,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart frame (the axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -12839,6 +13815,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart frame (both axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -13008,6 +13992,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the Card's root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -13046,6 +14038,14 @@
           "default": null,
           "description": "Accessible name; without it the icon is decorative (the file name usually sits next to it).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<SVGSVGElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<svg>`.",
+          "deprecated": null
         }
       ]
     }
@@ -13077,6 +14077,14 @@
           "required": false,
           "default": null,
           "description": "Accessible name for a flag that stands alone. Omit it when the country name sits next to the flag (decorative).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<SVGSVGElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<svg>`.",
           "deprecated": null
         }
       ]
@@ -13492,6 +14500,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
+          "deprecated": null
         }
       ]
     },
@@ -13697,6 +14713,14 @@
           "required": false,
           "default": "false",
           "description": "Figma \"Clip content\" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame.\nOff by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll\ncontainer).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
           "deprecated": null
         }
       ]
@@ -13936,6 +14960,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
+          "deprecated": null
         }
       ]
     },
@@ -13973,6 +15005,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
           "deprecated": null
         }
       ]
@@ -14118,6 +15158,14 @@
           "default": null,
           "description": "",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
+          "deprecated": null
         }
       ]
     },
@@ -14251,6 +15299,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLHeadingElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered heading element (`<h1>`–`<h6>`).",
           "deprecated": null
         }
       ]
@@ -14436,6 +15492,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: \"secondary\" }, Collapse: { appearance: \"main\" } }`). Written by Zen Studio;\n app code keeps the defaults.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the shell's root `<div>`.",
+          "deprecated": null
         }
       ]
     },
@@ -14506,6 +15570,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the icon button it draws, by layer (`{ Button: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets icon / appearance.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the icon button element, so the action can be a `<Menu trigger>`.",
+          "deprecated": null
         }
       ]
     },
@@ -14543,6 +15615,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the avatar it draws, by layer (`{ Avatar: { shape: \"square\" } }`). Written by Zen Studio;\n app code sets src / theme.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the account button element, so it can be a `<Menu trigger>`.",
           "deprecated": null
         },
         {
@@ -14656,6 +15736,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the Back button it draws, by layer (`{ Back: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets back.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root DOM element.",
+          "deprecated": null
         }
       ]
     }
@@ -14768,6 +15856,14 @@
           "default": null,
           "description": "Figma instance overrides of the components in its slots, by layer. Written by Zen Studio; app code sets the slots.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root DOM element.",
+          "deprecated": null
         }
       ]
     }
@@ -14831,6 +15927,14 @@
           "required": false,
           "default": null,
           "description": "The link text. Name the destination (“Billing settings”), never “click here”. The font comes from the surrounding Text.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLAnchorElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<a>` element (or to the `as` component's element).",
           "deprecated": null
         }
       ]
@@ -15106,6 +16210,14 @@
           "default": null,
           "description": "The groups of the form, top to bottom: Stacks or Grids of fields, FormFieldsets, and FormActions last.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFormElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<form>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -15191,6 +16303,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets label / helpText.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]
@@ -15286,6 +16406,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the help text it draws, by layer (`{ \"Help-Text\": { theme: \"warning\" } }`). Written by Zen Studio;\n app code sets helpText.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLFieldSetElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<fieldset>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -15323,6 +16451,14 @@
           "required": false,
           "default": null,
           "description": "The buttons: Tertiary (cancel) first, Primary (`type=\"submit\"`, named for the outcome) last.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]
@@ -15372,6 +16508,14 @@
           "default": null,
           "description": "DescriptionItem rows.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDListElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered `<dl>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -15417,6 +16561,14 @@
           "required": false,
           "default": null,
           "description": "On the row's div (the dt/dd group).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The row's root `<div>` (the dt/dd group).",
           "deprecated": null
         }
       ]
@@ -15489,6 +16641,14 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the Buttons it draws, by layer (`{ Primary: { level: \"danger\" } }`). Written by Zen Studio;\n app code sets primaryAction / secondaryAction.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the bar's root element.",
           "deprecated": null
         }
       ]
@@ -15602,6 +16762,14 @@
           "default": null,
           "description": "On the root (figure or div).",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLImageElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the inner `<img>` element (not the root).",
+          "deprecated": null
         }
       ]
     },
@@ -15672,6 +16840,14 @@
           "default": null,
           "description": "On the root span.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLImageElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the inner `<img>` element (not the root).",
+          "deprecated": null
         }
       ]
     }
@@ -15719,6 +16895,14 @@
           "required": false,
           "default": null,
           "description": "The text for assistive technology (and for the visible pill while a focusable one has focus).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the rendered DOM element (the `as` element when set).",
           "deprecated": null
         }
       ]

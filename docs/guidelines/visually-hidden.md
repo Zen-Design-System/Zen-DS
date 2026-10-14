@@ -41,6 +41,7 @@ Also accepts `HTMLAttributes<HTMLElement>`.
 | `href` | `string` | — | With `as="a"`: the link target, e.g. "#main". |
 | `htmlFor` | `string` | — | With `as="label"`: the id of the control it labels. |
 | `children` | `ReactNode` | — | The text for assistive technology (and for the visible pill while a focusable one has focus). |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ## Keyboard
 | Keys | Action |

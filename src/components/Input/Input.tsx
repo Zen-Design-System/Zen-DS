@@ -1,6 +1,8 @@
-import { createContext, forwardRef, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type FocusEvent, type FocusEventHandler, type KeyboardEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type FocusEvent, type FocusEventHandler, type KeyboardEvent, type MouseEvent, type InputHTMLAttributes, type ReactNode, type Ref, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { useControllableState } from "../_shared/use-controllable-state";
+import { useMergedRefs } from "../_shared/merge-refs";
 import { Icon, type IconName } from "../Icon";
-import { Popover, PopoverManualAddNew, useExclusivePopover } from "../Popover";
+import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverWidth } from "../Popover";
 import { Avatar } from "../Avatar";
 import type { BadgeTheme } from "../Badge";
 import { BottomSheet } from "../BottomSheet";
@@ -18,6 +20,8 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
+import { sanitizeHtml } from "../_shared/sanitize-html";
+import { useDismissableLayer } from "../_shared/layers";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
 export const headingInputSizes = ["h1", "h2", "h3"] as const;
@@ -86,17 +90,19 @@ export interface InputLabelProps {
   action?: ReactNode;
   /** Figma `State=Disabled`: every part (label, optional, icon, action) turns Content/Disabled. */
   disabled?: boolean;
+  /** The root `<span>` element. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
 /** Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon,
  * gap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the <label> so hovering or
  * focusing it never activates the field. */
-export function InputLabel({ id, labelId, children, optional = false, tooltip = false, action, disabled = false }: InputLabelProps) {
+export function InputLabel({ id, labelId, children, optional = false, tooltip = false, action, disabled = false, ref }: InputLabelProps) {
   const t = useZenLabels();
   const tooltipContent = tooltip === true || tooltip === false || tooltip === undefined || tooltip === null ? null : tooltip;
   const icon = <Icon name="icon-info-circle-line" size="2xs" decorative />;
   return (
-    <span className={`zen-input-label ${typographyStyles["Body/Small/Regular"]}`} data-state={disabled ? "disabled" : "default"}>
+    <span ref={ref} className={`zen-input-label ${typographyStyles["Body/Small/Regular"]}`} data-state={disabled ? "disabled" : "default"}>
       <span className="zen-input-label__content">
         <label className="zen-input-label__text" htmlFor={id} id={labelId}>{children}{optional ? <span className="zen-input-label__optional">{t.optional}</span> : null}</label>
         {tooltipContent && !disabled
@@ -114,14 +120,16 @@ export interface InputHelpTextProps {
   theme?: InputHelpTheme;
   icon?: boolean;
   characterLimit?: ReactNode;
+  /** The root `<p>` element. */
+  ref?: Ref<HTMLParagraphElement>;
 }
 
 /** Public implementation of Figma's `.Primitives/Input/Help-Text` owner. */
-export function InputHelpText({ id, children, theme = "neutral", icon = true, characterLimit }: InputHelpTextProps) {
+export function InputHelpText({ id, children, theme = "neutral", icon = true, characterLimit, ref }: InputHelpTextProps) {
   // Figma .Primitives/Input/Help-Text: Neutral = Caption/Regular; Negative/Warning/Positive = Caption/Medium. Icons at Element-Size/Popular/XSmall.
   const iconName = theme === "negative" ? "icon-alert-octagon-line" : theme === "positive" ? "icon-check-line" : theme === "warning" ? "icon-alert-triangle-line" : "icon-info-circle-line";
   return (
-    <p id={id} className={`zen-input-help ${typographyStyles[theme === "neutral" ? "Caption/Regular" : "Caption/Medium"]}`} data-tone={theme} role={theme === "negative" ? "alert" : undefined}>
+    <p ref={ref} id={id} className={`zen-input-help ${typographyStyles[theme === "neutral" ? "Caption/Regular" : "Caption/Medium"]}`} data-tone={theme} role={theme === "negative" ? "alert" : undefined}>
       <span className="zen-input-help__content">{icon ? <span className="zen-input-help__icon" aria-hidden="true"><Icon name={iconName} size="xs" decorative /></span> : null}<span>{children}</span></span>
       {/* Character-Limitation stays Caption/Regular in Content/Neutral/Light for every theme. */}
       {characterLimit !== undefined && characterLimit !== null ? <span className={`zen-input-help__limit ${typographyStyles["Caption/Regular"]}`}>{characterLimit}</span> : null}
@@ -162,6 +170,8 @@ export interface InputLeadingTrailingProps {
   /** Marks an action slot that opens a menu/popover owned by the caller. */
   "aria-haspopup"?: ButtonHTMLAttributes<HTMLButtonElement>["aria-haspopup"];
   "aria-expanded"?: boolean;
+  /** The root element: a `<span>` for a decorative slot or picker wrapper, a `<button>` for an action slot. */
+  ref?: Ref<HTMLElement>;
 }
 
 export type InputLeadingTrailingOption = {
@@ -177,7 +187,7 @@ export type InputLeadingTrailingOption = {
  * - picker: `options` → a button (label + chevron) that opens the shared Popover;
  * - action: `onClick` → a button that runs the caller's action (filter, show password…);
  * - decorative: neither, or `interactive={false}` → a plain slot; a click on it focuses the field. */
-export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp = true, icon, flag, label, showLabel = true, dropdown = false, showDropdown, children, options, value, onValueChange, popoverLabel, align = "end", disabled: disabledProp = false, interactive: requestedInteractive, onClick, "aria-label": ariaLabel, "aria-haspopup": ariaHasPopup, "aria-expanded": ariaExpanded }: InputLeadingTrailingProps) {
+export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp = true, icon, flag, label, showLabel = true, dropdown = false, showDropdown, children, options, value, onValueChange, popoverLabel, align = "end", disabled: disabledProp = false, interactive: requestedInteractive, onClick, "aria-label": ariaLabel, "aria-haspopup": ariaHasPopup, "aria-expanded": ariaExpanded, ref }: InputLeadingTrailingProps) {
   const size = scaleKey(sizeProp, inputSizes);
   // Figma Field-Only State=Disabled swaps its slots to Active=No: inside a disabled field the slot is inactive and locked.
   const fieldDisabled = useContext(FieldDisabledContext);
@@ -208,17 +218,17 @@ export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp
   const pickerName = ariaLabel ?? (popoverLabel ? `${popoverLabel}: ${typeof (current?.label ?? label) === "string" ? current?.label ?? label : value ?? ""}` : undefined);
   // Icon-only slots show their name as a tooltip (Zen rule); labelled slots already read.
   const tip = useIconTooltip(interactive && !hasLabel && !open ? (isPicker ? pickerName : ariaLabel) : false);
-  if (!interactive) return <span className="zen-input-leading-trailing" {...common}>{content}</span>;
+  if (!interactive) return <span ref={ref} className="zen-input-leading-trailing" {...common}>{content}</span>;
   if (!isPicker) {
     return (
-      <button type="button" className="zen-input-leading-trailing zen-input-leading-trailing--interactive" {...common} disabled={disabled} aria-label={ariaLabel} aria-haspopup={ariaHasPopup} aria-expanded={ariaExpanded} {...tip.bind({ onClick })}>
+      <button ref={ref as Ref<HTMLButtonElement>} type="button" className="zen-input-leading-trailing zen-input-leading-trailing--interactive" {...common} disabled={disabled} aria-label={ariaLabel} aria-haspopup={ariaHasPopup} aria-expanded={ariaExpanded} {...tip.bind({ onClick })}>
         {content}
         {tip.tooltip}
       </button>
     );
   }
   return (
-    <span className="zen-input-leading-trailing__picker" data-open={open ? "true" : "false"} data-align={align}>
+    <span ref={ref} className="zen-input-leading-trailing__picker" data-open={open ? "true" : "false"} data-align={align}>
       <button
         ref={anchorRef}
         type="button"
@@ -269,14 +279,16 @@ export interface InputContentProps {
   state?: InputContentState;
   text?: ReactNode;
   cursor?: boolean;
+  /** The root `<span>` element. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
 /** Public implementation of Figma's `.Primitives/Input/Input-Content/Default`. */
-export function InputContent({ size: sizeProp = "md", state = "default", text = "Content", cursor = true }: InputContentProps) {
+export function InputContent({ size: sizeProp = "md", state = "default", text = "Content", cursor = true, ref }: InputContentProps) {
   const size = scaleKey(sizeProp, inputSizes);
   const caret = <span className="zen-input-content__cursor" aria-hidden="true" />;
   // Figma: Focused shows the caret before the placeholder, Typing after the typed text.
-  return <span className={`zen-input-content ${typographyStyles[size === "small" ? "Body/Small/Medium" : size === "large" ? "Heading/4" : "Body/Base/Medium"]}`} data-size={size} data-state={state}>{cursor && state === "focused" ? caret : null}{text}{cursor && state === "typing" ? caret : null}</span>;
+  return <span ref={ref} className={`zen-input-content ${typographyStyles[size === "small" ? "Body/Small/Medium" : size === "large" ? "Heading/4" : "Body/Base/Medium"]}`} data-size={size} data-state={state}>{cursor && state === "focused" ? caret : null}{text}{cursor && state === "typing" ? caret : null}</span>;
 }
 
 /** Field text style: XLarge fields use Heading/4 (Figma Input-Content Large), every other size Body/Base/Medium. */
@@ -285,10 +297,14 @@ const fieldTextStyle = (size: InputSizeKey | undefined) => typographyStyles[size
 export type InputFieldProps = CommonFieldProps & Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   /** Called with the new text on every change (next to the native `onChange(event)`, which still runs). */
   onValueChange?: (value: string) => void;
+  /** The native `<input>` element. */
+  ref?: Ref<HTMLInputElement>;
 };
 export type TextAreaFieldProps = Omit<CommonFieldProps, "size"> & { /** Short (sm, md…) or Figma (small, medium…) spelling. */ size?: TextAreaSize } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "size"> & {
   /** Called with the new text on every change (next to the native `onChange(event)`, which still runs). */
   onValueChange?: (value: string) => void;
+  /** The native `<textarea>` element. */
+  ref?: Ref<HTMLTextAreaElement>;
 };
 
 function FieldLabel({ id, label, required, optional, tooltip, action, disabled, nest }: { id: string; label?: ReactNode; required?: boolean; optional?: boolean; tooltip?: boolean | ReactNode; action?: ReactNode; disabled?: boolean; nest?: Nest }) {
@@ -385,9 +401,8 @@ function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAct
   );
 }
 
-export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, overrides, ...inputProps },
-  ref,
+export function InputField(
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, onValueChange, overrides, ref, ...inputProps }: InputFieldProps,
 ) {
   const error = errorProp ?? errorMessage;
   const size = scaleKey(sizeProp, inputSizes);
@@ -413,11 +428,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       />
     </FieldShell>
   );
-});
+}
 
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextAreaField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, rows = 4, onValueChange, overrides, ...textareaProps },
-  ref,
+export function TextAreaField(
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, rows = 4, onValueChange, overrides, ref, ...textareaProps }: TextAreaFieldProps,
 ) {
   const error = errorProp ?? errorMessage;
   const size = scaleKey(sizeProp, inputSizes);
@@ -443,7 +457,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
       />
     </FieldShell>
   );
-});
+}
 
 export type SelectFieldOption = {
   label: string;
@@ -497,6 +511,9 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
   /** Adds the Popover Search row; options are filtered by the query. */
   popoverSearch?: boolean;
   popoverSearchPlaceholder?: string;
+  /** Width of the option Popover (Popover `width`): unset is Figma's 240px; `"fill"` matches the field's box, `"hug"` grows
+   *  to the longest option (never narrower than the field) so long values such as domains stay whole. */
+  popoverWidth?: PopoverWidth;
   /**
    * Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself.
    * On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom
@@ -507,6 +524,8 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
   onPopoverOpenChange?: (open: boolean) => void;
   /** Figma State=Read-Only: shows the value, keeps the chevron, never opens. */
   readOnly?: boolean;
+  /** The hidden native `<select>` that holds the value (name, form data, autofill). */
+  ref?: Ref<HTMLSelectElement>;
 };
 
 /** SelectField's focus handlers are typed for its native <select>: hand them the event re-targeted at it (name, value). */
@@ -515,9 +534,8 @@ function selectFocusEvent(event: FocusEvent<HTMLElement>, select: HTMLSelectElem
   return Object.create(event, { target: { value: select }, currentTarget: { value: select } }) as FocusEvent<HTMLSelectElement>;
 }
 
-export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(function SelectField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, ...selectProps },
-  ref,
+export function SelectField(
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, popoverWidth, ref, ...selectProps }: SelectFieldProps,
 ) {
   const error = errorProp ?? errorMessage;
   const size = scaleKey(sizeProp, inputSizes);
@@ -527,12 +545,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   const message = error ?? helpText;
   const nativeRef = useRef<HTMLSelectElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const open = popoverOpen ?? uncontrolledOpen;
-  const setOpen = (next: boolean) => {
-    setUncontrolledOpen(next);
-    if (next !== open) onPopoverOpenChange?.(next);
-  };
+  const [open, setOpen] = useControllableState({ value: popoverOpen, defaultValue: false, onChange: onPopoverOpenChange, name: "SelectField popoverOpen" });
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   // Focus moves into the list only when the person opened it from the trigger; a list opened from outside
   // (popoverOpen) leaves focus where it is.
@@ -550,13 +563,14 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
   useEffect(() => { if (!open) setSheetQuery(""); }, [open]);
   useExclusivePopover(open, () => setOpen(false), triggerRef);
   useEffect(() => { if (!open) setOpenedFromTrigger(false); }, [open]);
+  const isOutside = useDismissableLayer(open && !asSheet, () => [triggerRef.current?.closest(".zen-input-field")]);
   useEffect(() => {
     // The Bottom Sheet dismisses itself (scrim, drag, Escape); its taps are outside the field.
     if (!open || asSheet) return undefined;
-    // Pointer down outside the field closes the option list.
+    // Pointer down outside the field (and any layer opened from it) closes the option list.
     const handlePointerDown = (event: PointerEvent) => {
       const field = triggerRef.current?.closest(".zen-input-field");
-      if (!field || field.contains(event.target as Node)) return;
+      if (!field || !isOutside(event.target as Node)) return;
       // Focus inside the list would vanish with it (no blur event): hand it to the trigger first, so leaving the field
       // is reported by the trigger's blur when the click moves focus.
       const active = document.activeElement;
@@ -699,6 +713,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
         aria-label={popoverLabel || label ? undefined : selectProps["aria-label"]}
         search={popoverSearch}
         searchPlaceholder={popoverSearchPlaceholder}
+        width={popoverWidth}
         // The search field takes focus on open, so a mouse-opened list is still typeable.
         autoFocus={openedFromTrigger && (openedFromKeyboard || popoverSearch)}
         onBlur={reportBlur}
@@ -717,7 +732,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(funct
       )}
     </FieldShell>
   );
-});
+}
 
 /** Figma Input page compositions that reuse the Text Field primitive. DateField's calendar opens when a person tabs to or
  * clicks the field, never on a script's focus (a blocked submit's focusFirstInvalidField, a Dialog's first focus). */
@@ -796,9 +811,8 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const zenBreakpoint = useZen()?.breakpoint;
   const [phone, setPhone] = useState(false);
   useLayoutEffect(() => { setPhone((fieldRef.current?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? zenBreakpoint) === "mobile"); }, [zenBreakpoint]);
-  const controlledValue = value !== undefined;
-  const [internalValue, setInternalValue] = useState(() => String(defaultValue ?? ""));
-  const currentValue = controlledValue ? value : internalValue;
+  // Controlled: setInternalValue leaves the prop alone. onValueChange is reported by InputField (typing) and handleDateChange (a pick).
+  const [currentValue, setInternalValue] = useControllableState<DateFieldProps["value"]>({ value, defaultValue: () => String(defaultValue ?? ""), name: "DateField value" });
   const parsedValue = parseDateFieldValue(currentValue);
   // Error-ready: a typed date outside the range is kept and reported (onValueChange) like any text, and marked invalid for
   // assistive tech and Form's blocked-submit focus. The app's `error` gives the reason; an explicit aria-invalid wins.
@@ -808,7 +822,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const typedDate = useRef<number | null>(parsedValue ? calendarDay(parsedValue) : null);
   const handleDateChange = (date: Date | null) => {
     const text = date ? `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}` : null;
-    if (!controlledValue && text) setInternalValue(text);
+    if (text) setInternalValue(text);
     typedDate.current = date ? calendarDay(date) : null;
     onDateChange?.(date);
     // A picked day is a new value too (the text the field shows, MM/DD/YYYY), like typing it.
@@ -816,7 +830,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
     close();
   };
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (!controlledValue) setInternalValue(event.target.value);
+    setInternalValue(event.target.value);
     onChange?.(event);
     const date = parseTypedDate(event.target.value);
     const day = date ? calendarDay(date) : null;
@@ -836,7 +850,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
     >
       <InputField
         {...props}
-        value={controlledValue ? value : internalValue}
+        value={currentValue}
         type="text"
         // English on purpose: the placeholder shows the only typed format parseDateFieldValue reads (US MM/DD/YYYY).
         placeholder={props.placeholder ?? "MM/DD/YYYY"}
@@ -918,6 +932,8 @@ export interface AutocompleteFieldProps {
   /** Figma instance overrides: props of the label and help text it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" } }`). Written by Zen Studio;
    *  app code sets label / helpText. */
   overrides?: NestedOverrides;
+  /** The root `<div>` of the field (it has no native text control: tags and the Add button live inside it). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -926,7 +942,7 @@ export interface AutocompleteFieldProps {
  * over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag
  * moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
  */
-export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className, overrides }: AutocompleteFieldProps) {
+export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className, overrides, ref }: AutocompleteFieldProps) {
   const nest = useNested(overrides);
   const error = errorProp ?? errorMessage;
   const t = useZenLabels();
@@ -935,13 +951,11 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
   const searchPlaceholder = searchPlaceholderProp ?? t.search;
   const generatedId = useId();
   const id = providedId ?? `zen-autocomplete-${generatedId.replace(/:/g, "")}`;
-  const [internal, setInternal] = useState<string[]>(defaultValue);
+  const [selected, commit] = useControllableState<string[]>({ value, defaultValue, onChange: (next) => { onValueChange?.(next); onChange?.(next); }, name: "AutocompleteField value" });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const addRef = useRef<HTMLDivElement>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
-  const selected = value ?? internal;
-  const commit = (next: string[]) => { if (value === undefined) setInternal(next); onValueChange?.(next); onChange?.(next); };
   const byId = new Map(options.map((option) => [option.id, option]));
   const normalizedQuery = query.trim().toLowerCase();
   const available = options.filter((option) => !selected.includes(option.id) && option.label.toLowerCase().includes(normalizedQuery));
@@ -955,6 +969,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
   // else Add Item, so it never falls back to the page. It moves once the new value has rendered (a controlled parent that
   // keeps the tag moves nothing), and only when focus was lost with the button or is still in the field.
   const rootRef = useRef<HTMLDivElement>(null);
+  const mergedRootRef = useMergedRefs(rootRef, ref);
   const pendingFocus = useRef<{ key: string; index: number } | null>(null);
   const selectedKey = selected.join("\u0000");
   useLayoutEffect(() => {
@@ -974,7 +989,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
   };
   const messageId = `${id}-message`;
   return (
-    <div ref={rootRef} className={["zen-autocomplete", className].filter(Boolean).join(" ")} data-state={disabled ? "disabled" : readOnly ? "view-only" : error ? "error" : open ? "focused" : "default"} aria-describedby={error || helpText ? messageId : undefined}>
+    <div ref={mergedRootRef} className={["zen-autocomplete", className].filter(Boolean).join(" ")} data-state={disabled ? "disabled" : readOnly ? "view-only" : error ? "error" : open ? "focused" : "default"} aria-describedby={error || helpText ? messageId : undefined}>
       {label ? nest("Label", <InputLabel id={id} disabled={disabled}>{label}</InputLabel>) : null}
       {selected.length ? (
         <div className="zen-autocomplete__tags" role="list" aria-label={typeof label === "string" ? label : undefined}>
@@ -1059,17 +1074,15 @@ const decimalPlaces = (n: number) => (String(n).split(".")[1] ?? "").length;
 /** Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Button/Icon-Main 2XSmall Tertiary
  * steppers (24px) after or around the value. Read-Only hides the steppers; Disabled keeps them, disabled (Figma still
  * draws State=Default steppers in the Disabled variant). Keyboard: ↑/↓ step; Enter/blur clamps. */
-export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
-  { align = "left", value, defaultValue = null, onValueChange, onChange, onKeyDown, onBlur, min, max, step = 1, readOnly, state, disabled, className, decrementLabel: decrementLabelProp, incrementLabel: incrementLabelProp, leading, trailing, ...props },
-  ref,
+export function NumberField(
+  { align = "left", value, defaultValue = null, onValueChange, onChange, onKeyDown, onBlur, min, max, step = 1, readOnly, state, disabled, className, decrementLabel: decrementLabelProp, incrementLabel: incrementLabelProp, leading, trailing, ref, ...props }: NumberFieldProps,
 ) {
   const t = useZenLabels();
   const decrementLabel = decrementLabelProp ?? t.decrease;
   const incrementLabel = incrementLabelProp ?? t.increase;
-  const controlled = value !== undefined;
-  const [internal, setInternal] = useState<number | null>(defaultValue);
+  // `null` is a controlled empty field; onValueChange fires only when the number changes.
+  const [current, setCurrent] = useControllableState<number | null>({ value, defaultValue, onChange: onValueChange, name: "NumberField value" });
   const [draft, setDraft] = useState<string | null>(null);
-  const current = controlled ? value : internal;
   const isReadOnly = Boolean(readOnly) || state === "read-only";
   const isDisabled = Boolean(disabled) || state === "disabled";
   const precision = Math.max(decimalPlaces(step), decimalPlaces(min ?? 0));
@@ -1077,9 +1090,8 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
   const parse = (text: string) => (text.trim() === "" || text.trim() === "-" ? null : Number(text.replace(",", ".")));
   const commit = (next: number | null) => {
     const resolved = next === null || Number.isNaN(next) ? null : clamp(next);
-    if (!controlled) setInternal(resolved);
     setDraft(null);
-    if (resolved !== current) onValueChange?.(resolved);
+    setCurrent(resolved);
   };
   const bump = (direction: 1 | -1) => {
     const base = current ?? (min !== undefined && direction > 0 ? min - step : 0);
@@ -1120,8 +1132,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
         setDraft(event.target.value);
         const parsed = parse(event.target.value);
         if (parsed !== null && !Number.isNaN(parsed)) {
-          if (!controlled) setInternal(parsed);
-          if (parsed !== current) onValueChange?.(parsed);
+          setCurrent(parsed === 0 ? 0 : parsed); // "-0" is 0: no change reported, as before
         }
         onChange?.(event);
       }}
@@ -1134,7 +1145,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
       onBlur={(event) => { if (draft !== null) commit(parse(draft)); onBlur?.(event); }}
     />
   );
-});
+}
 
 export type ControlBarSelectItemTheme = "subtle" | "solid" | "inverse";
 export type ControlBarSelectItemState = "default" | "hover" | "selected";
@@ -1221,6 +1232,8 @@ export interface RichTextEditorBarProps {
   /** Accessible name of the toolbar. Default: the locale's "Formatting". */
   "aria-label"?: string;
   className?: string;
+  /** The root toolbar `<div>`. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -1229,7 +1242,7 @@ export interface RichTextEditorBarProps {
  * 3XSmall inside a block. Items keep the editor's selection (mouse-down does not steal focus); arrow keys move
  * between items (ARIA toolbar pattern).
  */
-export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blockType = "p", onBlockTypeChange, onCommand, controls, "aria-label": ariaLabelProp, className }: RichTextEditorBarProps) {
+export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blockType = "p", onBlockTypeChange, onCommand, controls, "aria-label": ariaLabelProp, className, ref }: RichTextEditorBarProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.formatting;
   // The block types of `richTextBlockTypes`, named in the locale.
@@ -1240,6 +1253,7 @@ export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blo
     { label: t.richText.heading3, value: "h3" },
   ];
   const barRef = useRef<HTMLDivElement>(null);
+  const mergedBarRef = useMergedRefs(barRef, ref);
   const [focusIndex, setFocusIndex] = useState(0);
   const allDisabled = disabled === true;
   const isDisabled = (command: RichTextCommand) => allDisabled || (typeof disabled === "object" && Boolean(disabled[command]));
@@ -1263,7 +1277,7 @@ export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blo
     items[next].focus();
   };
   return (
-    <div ref={barRef} className={["zen-rich-text-editor-bar", className].filter(Boolean).join(" ")} role="toolbar" aria-label={ariaLabel} aria-controls={controls} onKeyDown={onKeyDown}
+    <div ref={mergedBarRef} className={["zen-rich-text-editor-bar", className].filter(Boolean).join(" ")} role="toolbar" aria-label={ariaLabel} aria-controls={controls} onKeyDown={onKeyDown}
       onFocus={(event) => { const index = focusables().indexOf(event.target as unknown as HTMLButtonElement); if (index >= 0) setFocusIndex(index); }}>
       {editorBarLayout.map((block, index) => {
         if (block === "divider") return <span key={`divider-${index}`} className="zen-rich-text-editor-bar__divider" aria-hidden="true" />;
@@ -1380,6 +1394,8 @@ export type RichTextFieldProps = Omit<CommonFieldProps, "size" | "leading" | "tr
   editorBarTheme?: ControlBarSelectItemTheme;
   onFocus?: (event: FocusEvent<HTMLDivElement>) => void;
   onBlur?: (event: FocusEvent<HTMLDivElement>) => void;
+  /** The content-editable editor element. */
+  ref?: Ref<HTMLDivElement>;
 };
 
 type RichTextInsert = "link" | "image" | "video";
@@ -1397,9 +1413,8 @@ const insertCopy: Record<RichTextInsert, { label: "insertLink" | "insertImage" |
  * through this field's own history and are disabled while there is nothing to undo or redo; a new `value` from
  * outside (clearing the field after it was posted) starts a new history.
  */
-export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(function RichTextField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur, overrides },
-  ref,
+export function RichTextField(
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur, overrides, ref }: RichTextFieldProps,
 ) {
   // The label sits above the Editor-Bar, outside the shell: its own nest for the Label layer.
   const labelNest = useNested(overrides);
@@ -1513,7 +1528,9 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
     if (!el) return;
     const next = value ?? (el.dataset.initialised ? undefined : defaultValue ?? "");
     el.dataset.initialised = "true";
-    if (next !== undefined && next !== el.innerHTML) { el.innerHTML = next; setText(el.textContent ?? ""); resetHistory(); }
+    // The value comes from outside (often stored HTML another user wrote): sanitised before it reaches the DOM. HTML the
+    // field emitted itself equals innerHTML and is skipped, so typing never resets the caret.
+    if (next !== undefined && next !== el.innerHTML) { el.innerHTML = sanitizeHtml(next); setText(el.textContent ?? ""); resetHistory(); }
     else if (history.current.index < 0) resetHistory();
   }, [value, defaultValue]);
   // The browser's Edit menu, context menu and shake-to-undo arrive as historyUndo / historyRedo: use this field's history.
@@ -1740,7 +1757,7 @@ export const RichTextField = forwardRef<HTMLDivElement, RichTextFieldProps>(func
       </FieldShell>
     </div>
   );
-});
+}
 
 type HeadingFieldBaseProps = {
   /** Heading/1–3 text style. */
@@ -1756,6 +1773,8 @@ type HeadingFieldBaseProps = {
   onValueChange?: (value: string) => void;
   /** Deterministic Figma Status for matrices; native hover/focus still apply. */
   status?: "default" | "hover" | "focus" | "typing" | "inputted-single-line" | "inputted-multi-line" | "inputted-hover";
+  /** The native `<input>` (or `<textarea>` with `multiline`). */
+  ref?: Ref<HTMLInputElement | HTMLTextAreaElement>;
 };
 type HeadingFieldInputAttributes = Omit<InputHTMLAttributes<HTMLInputElement>, "size">;
 type HeadingFieldTextareaAttributes = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "rows" | "cols" | "wrap">;
@@ -1769,16 +1788,12 @@ export type HeadingFieldProps = HeadingFieldBaseProps & (
  * sits outside the text box (−8px), radius 12, and a Neutral/Subtle surface on hover/focus/typing. One line by
  * default; `multiline` wraps long headings and grows with them (Status=Inputted-Multi-Line).
  */
-export const HeadingField = forwardRef<HTMLInputElement | HTMLTextAreaElement, HeadingFieldProps>(function HeadingField({ headingSize = "h3", multiline = false, onValueChange, status, className, placeholder: placeholderProp, ...attributes }, ref) {
+export function HeadingField({ headingSize = "h3", multiline = false, onValueChange, status, className, placeholder: placeholderProp, ref, ...attributes }: HeadingFieldProps) {
   const t = useZenLabels();
   const placeholder = placeholderProp ?? t.heading;
   const style = headingSize === "h1" ? "Heading/1" : headingSize === "h2" ? "Heading/2" : "Heading/3";
   const nodeRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
-  const setNode = useCallback((node: HTMLInputElement | HTMLTextAreaElement | null) => {
-    nodeRef.current = node;
-    if (typeof ref === "function") ref(node);
-    else if (ref) ref.current = node;
-  }, [ref]);
+  const setNode = useMergedRefs(nodeRef, ref);
   // multiline: the one-row textarea grows to its wrapped text on every value, size and width change, and once the
   // web font has loaded (the line breaks move with the glyph widths).
   const fit = useCallback(() => {
@@ -1841,15 +1856,15 @@ export const HeadingField = forwardRef<HTMLInputElement | HTMLTextAreaElement, H
       {field}
     </div>
   );
-});
+}
 
 export type InputConditionState = "default" | "success" | "wrong";
 /** Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular,
  * gap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small). */
-export function InputConditionItem({ label, state = "default" }: { label: ReactNode; state?: InputConditionState }) {
-  return <li className="zen-input-condition" data-state={state}><Icon name={state === "success" ? "icon-check-line" : state === "wrong" ? "icon-x-small-line" : "icon-minus-line"} size="sm" decorative /><span className={`zen-input-condition__text ${typographyStyles["Body/Small/Regular"]}`}>{label}</span></li>;
+export function InputConditionItem({ label, state = "default", ref }: { label: ReactNode; state?: InputConditionState; /** The root `<li>` element. */ ref?: Ref<HTMLLIElement> }) {
+  return <li ref={ref} className="zen-input-condition" data-state={state}><Icon name={state === "success" ? "icon-check-line" : state === "wrong" ? "icon-x-small-line" : "icon-minus-line"} size="sm" decorative /><span className={`zen-input-condition__text ${typographyStyles["Body/Small/Regular"]}`}>{label}</span></li>;
 }
 /** Figma Input-Conditions: an Item-List slot stacking Condition-Items with gap XSmall. */
-export function InputConditions({ children, state = "default" }: { children?: ReactNode; state?: "default" }) {
-  return <ul className="zen-input-conditions" data-state={state}>{children}</ul>;
+export function InputConditions({ children, state = "default", ref }: { children?: ReactNode; state?: "default"; /** The root `<ul>` element. */ ref?: Ref<HTMLUListElement> }) {
+  return <ul ref={ref} className="zen-input-conditions" data-state={state}>{children}</ul>;
 }

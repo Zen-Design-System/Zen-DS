@@ -42,6 +42,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDListElement>, "children">`.
 | `divider` | `boolean` | `false` | Pale rules (Border/Neutral/Pale) between rows, with Padding/Small above and below each rule. Default false. |
 | `stackBelow` | `number` | `280` | Inline layout only: below this width (px) of the list itself the rows stack (term above value). Default 280, so lists in phone cards and sheets (about 300–350px) stay inline while narrow columns stack; 0 keeps them inline. |
 | `children` | `ReactNode` | — | DescriptionItem rows. |
+| `ref` | `Ref<HTMLDListElement>` | — | Ref to the rendered `<dl>` element. |
 
 ### DescriptionItem
 One row of a DescriptionList: a dt + dd group (plus a dd for the action). Use it only as a child of DescriptionList. <DescriptionItem term="Total" description="$321.90" emphasis />
@@ -53,6 +54,7 @@ One row of a DescriptionList: a dt + dd group (plus a dd for the action). Use it
 | `action` | `ReactNode` | — | An action for this row only (rendered in its own dd at the end of the row). |
 | `emphasis` | `boolean` | `false` | The total row: Body/Base/Bold with a High rule above it. One per list. |
 | `className` | `string` | — | On the row's div (the dt/dd group). |
+| `ref` | `Ref<HTMLDivElement>` | — | The row's root `<div>` (the dt/dd group). |
 
 ### Types
 Object shapes the props above refer to.

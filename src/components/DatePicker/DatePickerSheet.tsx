@@ -1,8 +1,9 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useState, type ReactNode, type Ref } from "react";
 import { BottomSheet } from "../BottomSheet";
 import { Button } from "../Button";
 import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels } from "../_shared/zen-context";
+import { useControllableState } from "../_shared/use-controllable-state";
 import { DatePicker, type DatePickerRange } from "./DatePicker";
 import "./date-picker.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
@@ -46,6 +47,8 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
   /** Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: "accent" } }`). Written by Zen Studio;
    *  app code sets applyLabel. */
   overrides?: NestedOverrides;
+  /** Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -55,27 +58,28 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
  * ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small
  * apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.
  */
-export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides }: DatePickerSheetProps) {
+export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref }: DatePickerSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
   const rangeMode = selectionMode === "range";
-  const [innerValue, setInnerValue] = useState<Date | null>(defaultValue);
-  const [innerRange, setInnerRange] = useState<DatePickerRange | null>(defaultRange);
-  const appliedValue = value === undefined ? innerValue : value;
-  const appliedRange = range === undefined ? innerRange : range;
+  // The applied selection (OK reports it through onApply; draft picks have their own callbacks).
+  const [appliedValue, setAppliedValue] = useControllableState<Date | null>({ value, defaultValue, name: "DatePickerSheet value" });
+  const [appliedRange, setAppliedRange] = useControllableState<DatePickerRange | null>({ value: range, defaultValue: defaultRange, name: "DatePickerSheet range" });
   // Every opening starts from the applied selection.
   const [draftValue, setDraftValue] = useState<Date | null>(appliedValue);
   const [draftRange, setDraftRange] = useState<DatePickerRange | null>(appliedRange);
-  useEffect(() => {
-    if (!open) return;
+  const resetDraft = useEffectEvent(() => {
     setDraftValue(appliedValue);
     setDraftRange(appliedRange);
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => {
+    if (open) resetDraft();
+  }, [open]);
   const complete = rangeMode ? Boolean(draftRange?.start && draftRange.end) : Boolean(draftValue);
   const apply = () => {
-    if (rangeMode) { if (range === undefined) setInnerRange(draftRange); }
-    else if (value === undefined) setInnerValue(draftValue);
+    if (rangeMode) setAppliedRange(draftRange);
+    else setAppliedValue(draftValue);
     onApply?.(rangeMode ? null : draftValue, rangeMode ? draftRange : null);
     onOpenChange(false);
   };
@@ -83,6 +87,7 @@ export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenCh
   const ok = applyLabel ?? t.ok;
   return (
     <BottomSheet
+      ref={ref}
       className={["zen-date-picker-sheet", className].filter(Boolean).join(" ")}
       open={open}
       onOpenChange={onOpenChange}

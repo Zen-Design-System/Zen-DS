@@ -1,4 +1,5 @@
-import { useId, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode, type Ref } from "react";
+import { useMergedRefs } from "../_shared/merge-refs";
 import { Button, IconButton } from "../Button";
 import { FileIcon, fileIconFormatOf } from "../FileIcon";
 import { Icon } from "../Icon";
@@ -39,6 +40,8 @@ export interface UploaderFileItemProps {
   onReplace?: (file: UploaderFile) => void;
   /** Alert: try again. */
   onRetry?: (file: UploaderFile) => void;
+  /** The root `<li>` element. */
+  ref?: Ref<HTMLLIElement>;
 }
 
 /** The control that takes focus in a file item: its Remove (or Cancel upload) button, else its last action. */
@@ -86,14 +89,15 @@ function useFocusAfterRemoval() {
  * When the item is removed while focus is in it (or right after its Remove button), focus moves to the next item's
  * Remove button, else the previous item's, else the field's upload button, so keyboard users stay in the list.
  */
-export function UploaderFileItem({ file, thumbnail, theme = "default", onRemove, onReplace, onRetry }: UploaderFileItemProps) {
+export function UploaderFileItem({ file, thumbnail, theme = "default", onRemove, onReplace, onRetry, ref }: UploaderFileItemProps) {
   const t = useZenLabels();
   const nest = useNested();
   const state = file.state ?? "uploaded";
   const kind = thumbnail ?? (file.previewUrl ? "photo" : "none");
   const { itemRef, requestRemove } = useFocusAfterRemoval();
+  const mergedItemRef = useMergedRefs(itemRef, ref);
   return (
-    <li ref={itemRef} className="zen-upload-file" data-state={state} data-tone={theme}>
+    <li ref={mergedItemRef} className="zen-upload-file" data-state={state} data-tone={theme}>
       <div className="zen-upload-file__row">
         {kind === "file" ? <FileIcon className="zen-upload-file__type" format={fileIconFormatOf(file.name)} size="xl" /> : null}
         {kind === "photo" && file.previewUrl ? <img className="zen-upload-file__photo" src={file.previewUrl} alt="" /> : null}
@@ -149,6 +153,8 @@ export interface FileUploadProps {
   /** Figma instance overrides: props of the file rows and Choose File button it draws, by layer (`{ Button: { level: "secondary" }, "File-Item[f1]/Remove": { level: "secondary" } }`). Written by Zen Studio;
    *  app code sets files / buttonLabel. */
   overrides?: NestedOverrides;
+  /** The root `<div>` element. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /**
@@ -158,7 +164,7 @@ export interface FileUploadProps {
  * Removing a file keeps focus in the field: the next file's Remove button, else the previous one's, else the upload
  * button (also when a single-file field shows its drop zone or Choose File button again). Apps need no refocus code.
  */
-export function FileUpload({ label, helpText, error, type = "dropzone", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className, overrides }: FileUploadProps) {
+export function FileUpload({ label, helpText, error, type = "dropzone", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className, overrides, ref }: FileUploadProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const text = textProp === undefined ? t.dropzoneText : textProp;
@@ -178,7 +184,7 @@ export function FileUpload({ label, helpText, error, type = "dropzone", text: te
     ? [nest("File-Item", <UploaderFileItem key={files[0].id} file={files[0].state === "uploaded" || !files[0].state ? { ...files[0], state: "replaceable" } : files[0]} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace ?? (() => open())} onRetry={onRetry} />, files[0].id)]
     : files.map((file) => nest("File-Item", <UploaderFileItem key={file.id} file={file} thumbnail={thumbnail} onRemove={onRemove} onReplace={onReplace} onRetry={onRetry} />, file.id));
   return (
-    <div className={["zen-file-upload", className].filter(Boolean).join(" ")} data-invalid={error ? "true" : undefined} data-files={files.length && !single ? "true" : undefined}>
+    <div ref={ref} className={["zen-file-upload", className].filter(Boolean).join(" ")} data-invalid={error ? "true" : undefined} data-files={files.length && !single ? "true" : undefined}>
       <div className="zen-file-upload__field">
       {label ? <label className={`zen-file-upload__label ${typographyStyles["Body/Small/Regular"]}`} htmlFor={single ? undefined : `${id}-trigger`} id={`${id}-label`}>{label}</label> : null}
       <input ref={inputRef} className="zen-file-upload__input" type="file" accept={accept} multiple={multiple} tabIndex={-1} aria-hidden="true" onChange={(event) => { add(event.target.files); event.target.value = ""; }} />

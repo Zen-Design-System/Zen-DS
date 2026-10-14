@@ -265,6 +265,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the month arrows, time and action buttons it draws, by layer (`{ \"Actions/Submit\": { level: \"accent\" }, \"Header[0]/Previous\": { appearance: \"flat\" } }`). Written by Zen Studio;\n app code sets the actions.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the calendar surface (the root `<div>`, a popover or the inline group).",
+          "deprecated": null
         }
       ]
     },
@@ -409,6 +417,14 @@
           "required": false,
           "default": null,
           "description": "Called with the new text on every change (next to the native `onChange(event)`, which still runs).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLInputElement>",
+          "required": false,
+          "default": null,
+          "description": "The native `<input>` element.",
           "deprecated": null
         },
         {
@@ -651,6 +667,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the OK button it draws, by layer (`{ Apply: { level: \"accent\" } }`). Written by Zen Studio;\n app code sets applyLabel.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the sheet panel `<div>` (role=dialog); set while the sheet is open.",
+          "deprecated": null
         }
       ]
     },
@@ -781,6 +805,14 @@
           "default": "\"desktop\"",
           "description": "`mobile` (Date-Picker/Mobile 9923:3576): month and year in Heading/Subheading at the start, Back and Next together\nat the end; a hidden button leaves no slot.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -846,6 +878,14 @@
           "default": null,
           "description": "Submit in its Button/Main Disabled state, e.g. until a range has its end date.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<footer>` element.",
+          "deprecated": null
         }
       ]
     },
@@ -878,6 +918,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the month/year wheels `<div>` (the Cancel / Submit row follows it as a sibling).",
           "deprecated": null
         }
       ]
@@ -919,6 +967,14 @@
           "required": false,
           "default": "\"desktop\"",
           "description": "`mobile`: the time fields are Medium (phones keep full-size inputs); DatePicker passes its own `device`.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>` element.",
           "deprecated": null
         }
       ]

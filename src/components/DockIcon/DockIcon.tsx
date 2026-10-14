@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { scaleKey } from "../_shared/scale";
 import "./dock-icon.css";
@@ -27,6 +27,8 @@ export interface DockIconProps {
   /** Accessible name when the icon carries meaning on its own; omit when a text label sits next to it. */
   label?: string;
   className?: string;
+  /** Forwarded to the root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
 }
 
 /**
@@ -34,12 +36,12 @@ export interface DockIconProps {
  * marks in lists, tables and cards. Solid → Content/On-Colors (Neutral: Inverse/Strongest); Subtle → Content/<colour>/Light
  * (Neutral: Neutral/Base). Re-synced from the live file 2026-10-09.
  */
-export function DockIcon({ icon = "icon-star-93-solid", emoji, size: sizeProp = "md", theme = "neutral", background = "solid", label, className }: DockIconProps) {
+export function DockIcon({ icon = "icon-star-93-solid", emoji, size: sizeProp = "md", theme = "neutral", background = "solid", label, className, ref }: DockIconProps) {
   const size = scaleKey(sizeProp, dockIconSizes);
   const resolvedBackground = theme === "pale" ? "subtle" : ["inverse", "on-color", "surface", "emoji"].includes(theme) ? "solid" : background;
   const glyph = theme === "emoji" ? <span className="zen-dock-icon__emoji">{emoji ?? "😊"}</span> : <Icon name={icon} decorative />;
   return (
-    <span className={["zen-dock-icon", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={resolvedBackground} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+    <span ref={ref} className={["zen-dock-icon", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={resolvedBackground} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       {glyph}
     </span>
   );

@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
 import { contentTones, resolveContentTone, type ContentTone } from "../_shared/contentTone";
@@ -55,6 +55,8 @@ export interface TextProps extends Omit<HTMLAttributes<HTMLElement>, "color">, L
   /** For `as="label"`. */
   htmlFor?: string;
   children?: ReactNode;
+  /** Ref to the rendered DOM element (the `as` element when set). */
+  ref?: Ref<HTMLElement>;
 }
 
 function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | undefined): CSSProperties | undefined {
@@ -69,10 +71,7 @@ function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | u
  *   <Text>Invite people to collaborate on this project.</Text>
  *   <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago</Text>
  */
-export const Text = forwardRef<HTMLElement, TextProps>(function Text(
-  { textStyle = "Body/Base/Regular", tone = "strongest", as: Element = "p", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ...rest },
-  ref,
-) {
+export function Text({ textStyle = "Body/Base/Regular", tone = "strongest", as: Element = "p", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ref, ...rest }: TextProps) {
   const lines = truncate === true ? 1 : typeof truncate === "number" ? Math.max(1, Math.floor(truncate)) : undefined;
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   return (
@@ -92,7 +91,7 @@ export const Text = forwardRef<HTMLElement, TextProps>(function Text(
       {children}
     </Element>
   );
-});
+}
 
 export const headingLevels = [1, 2, 3, 4, 5, 6] as const;
 export type HeadingLevel = (typeof headingLevels)[number];
@@ -133,6 +132,8 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
   /** Figma Number: Tabular (OpenType tnum): digits of one width, as on Text. */
   tabularNumbers?: boolean;
   children?: ReactNode;
+  /** Ref to the rendered heading element (`<h1>`–`<h6>`). */
+  ref?: Ref<HTMLHeadingElement>;
 }
 
 /**
@@ -144,10 +145,7 @@ export interface HeadingProps extends Omit<HTMLAttributes<HTMLHeadingElement>, "
  *   <Heading level={2}>Invoices</Heading>
  *   <Heading level={2} textStyle="Heading/Subheading">Current plan</Heading>
  */
-export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Heading(
-  { level = 2, textStyle, tone = "strongest", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ...rest },
-  ref,
-) {
+export function Heading({ level = 2, textStyle, tone = "strongest", truncate, align, verticalAlign, wrap = true, tabularNumbers = false, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, className, style, children, ref, ...rest }: HeadingProps) {
   const Element = `h${level}` as const;
   const lines = truncate === true ? 1 : typeof truncate === "number" ? Math.max(1, Math.floor(truncate)) : undefined;
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
@@ -168,7 +166,7 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(function Hea
       {children}
     </Element>
   );
-});
+}
 
 /**
  * "1 file", "3 files". Counts in UI copy are pluralised (harness copy/plural-count). `locale` (default "en-US"; pass

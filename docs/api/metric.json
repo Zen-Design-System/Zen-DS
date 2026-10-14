@@ -147,6 +147,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
@@ -193,6 +201,14 @@
           "required": false,
           "default": null,
           "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the Card's root `<div>` (not to the Metric inside it).",
           "deprecated": null
         },
         {

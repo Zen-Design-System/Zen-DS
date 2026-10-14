@@ -76,6 +76,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `paddingY` | `"none" \| ZenScaleInput \| "4xl"` | — | Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ### Grid
 Two-dimensional layout for cards, tiles and form columns. <Grid minColumnWidth={280}>…cards…`</Grid>` <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…`</Grid>` <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…`</Grid>`
@@ -109,6 +110,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ### Box
 A plain container with token padding, background layer, border and radius. For clickable or selectable tiles use Card; for page width use Container.
@@ -146,6 +148,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Corner radius on the Corner-Radius tokens (Figma cornerRadius, follows the radius mode); `radiusTopLeft` … `radiusBottomLeft` override single corners. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ### Container
 Centres page content at a readable width with the breakpoint's page margin.
@@ -158,6 +161,7 @@ Also accepts `HTMLAttributes<HTMLElement>`.
 | `gutter` | `boolean` | `true` | Page margin on both sides from the breakpoint tokens (24 desktop/tablet, 20 mobile). Default true. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
+| `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
 
 ### Types
 Object shapes the props above refer to.

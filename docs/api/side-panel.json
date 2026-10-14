@@ -177,6 +177,14 @@
           "default": null,
           "description": "Figma instance overrides: props of the back and close buttons and action Buttons it draws, by layer (`{ \"Actions/Primary\": { level: \"accent\" }, Close: { level: \"secondary\" } }`). Written by Zen Studio;\n app code sets onBack / the actions.",
           "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the panel `<aside>` element; set while the panel is open.",
+          "deprecated": null
         }
       ]
     }

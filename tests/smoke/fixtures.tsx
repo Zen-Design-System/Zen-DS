@@ -31,6 +31,9 @@ export const fixtures: Record<string, Fixture> = {
   BottomSheet: { props: { open: true, title: "Share", children: "Sheet body" } },
   DatePickerSheet: { props: { open: true, title: "Your stay", selectionMode: "range", monthCount: 2, today: new Date(2026, 0, 4) } },
   Popover: { props: { open: true, "aria-label": "Sort by", items: [{ id: "new", label: "Newest" }, { id: "old", label: "Oldest" }] } },
+  PopoverSearch: { props: { open: true, "aria-label": "Assign to", items: [{ id: "ava", label: "Ava Nguyen" }, { id: "minh", label: "Minh Tran" }] } },
+  PopoverManualAddNew: { props: { open: true, "aria-label": "Add a tag", items: [{ id: "design", label: "Design" }], onCreate: noop } },
+  ModalActions: { props: { primaryAction: { label: "Save" }, secondaryAction: { label: "Cancel" } } },
   Menu: { props: { trigger: <button type="button">Actions</button>, children: null } },
   ChatReactorsPanel: {
     props: { reactions: [{ kind: "love", count: 2, by: people }], glyph: () => "❤️", device: "desktop", side: "others", open: true, anchorRef: createRef<HTMLElement>() },

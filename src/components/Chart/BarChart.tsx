@@ -1,4 +1,4 @@
-import { Fragment, useMemo, type CSSProperties } from "react";
+import { Fragment, useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
@@ -17,6 +17,8 @@ export interface BarChartProps {
   /** What the chart shows and over which range ("Revenue per month, Jan – Dec 2026"). */
   "aria-label": string;
   className?: string;
+  /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
+  ref?: Ref<HTMLDivElement>;
   /** The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected. */
   initialIndex?: number;
   /** Colour of the bars. Default Chart/Sector/Primary. */
@@ -37,11 +39,11 @@ export interface BarChartProps {
  * the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart
  * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
  */
-export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, animate = true, showAverage = false }: BarChartProps) {
+export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, animate = true, showAverage = false, ref }: BarChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const signature = signatureOf(data.map((d) => [d.value, d.target ?? null, d.projected ?? false]));
-  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...data.map((d) => Math.max(d.value, d.target ?? 0)))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...data.map((d) => Math.max(d.value, d.target ?? 0)))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   const lastClosed = data.reduce((found, d, i) => (d.projected ? found : i), data.length - 1);
   const horizontal = orientation === "horizontal";
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? lastClosed, horizontal ? "vertical" : "horizontal");
@@ -55,7 +57,7 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
 
   if (!horizontal) {
     return (
-      <ChartBlock kind="bar">
+      <ChartBlock ref={ref} kind="bar">
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="bar" animate={animate}
           tooltip={current ? valueText(current) : null} summary={summary} average={average}>
           <div className="zen-chart__bars" key={signature} style={colours}>
@@ -72,7 +74,7 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
   }
 
   return (
-    <ChartBlock kind="bar">
+    <ChartBlock ref={ref} kind="bar">
       <div className={["zen-chart", "zen-chart--horizontal", className].filter(Boolean).join(" ")} data-kind="bar" data-orientation="horizontal" data-animate={animate ? undefined : "false"} style={colours}>
         <div className="zen-chart__hplot" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown} data-average={average ? "true" : undefined}
           style={{ "--zen-chart-count": data.length } as CSSProperties}>

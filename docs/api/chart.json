@@ -67,6 +67,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "initialIndex",
           "type": "number",
           "required": false,
@@ -180,6 +188,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "initialIndex",
           "type": "number",
           "required": false,
@@ -274,6 +290,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -414,6 +438,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -511,6 +543,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -592,6 +632,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -646,6 +694,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -735,6 +791,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -859,6 +923,14 @@
           "deprecated": null
         },
         {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
+          "deprecated": null
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "required": false,
@@ -905,6 +977,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart (not the legend).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -986,6 +1066,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart frame (the axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -1075,6 +1163,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart frame (the axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -1188,6 +1284,14 @@
           "required": false,
           "default": null,
           "description": "Extra class on the chart frame (both axes and the plot; the legend sits outside it).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<div>` (the chart block that holds the plot and its legend).",
           "deprecated": null
         },
         {
@@ -1357,6 +1461,14 @@
           "required": false,
           "default": null,
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the Card's root `<div>`.",
           "deprecated": null
         },
         {
