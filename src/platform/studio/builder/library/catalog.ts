@@ -23,6 +23,7 @@ export const GROUP_ICON: Record<PaletteGroup, IconName> = {
   Navigation: "icon-navigation-pointer-01-line",
   "Data display": "icon-table-line",
   Charts: "icon-bar-chart-01-line",
+  Widgets: "icon-chart-breakout-square-line",
   Feedback: "icon-alert-circle-line",
   Inputs: "icon-text-input-line",
   Overlays: "icon-layers-three-01-line",

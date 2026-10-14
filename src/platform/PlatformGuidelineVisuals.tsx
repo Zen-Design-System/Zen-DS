@@ -45,7 +45,7 @@ import { List, ListItem, ToggleListItem } from "../components/ListItem";
 import { Table, TableText } from "../components/Table";
 import { Rating, RatingDisplay } from "../components/Rating";
 import { ColorSelector } from "../components/ColorSelector";
-import { Metric } from "../components/MetricWidget";
+import { Metric, MetricCard } from "../components/MetricWidget";
 import { FileUpload } from "../components/Uploader";
 import { TopNavigation } from "../components/TopNavigation";
 import { BottomNavigation } from "../components/BottomNavigation";
@@ -273,6 +273,8 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   card: [
     { do: { preview: <Row><Card theme="border" spacing="small" active onClick={noop} aria-label="Pro plan"><span className="pgv-note">Pro · $12</span></Card><Card theme="border" spacing="small" onClick={noop} aria-label="Team plan"><span className="pgv-note">Team · $24</span></Card></Row>, caption: "The whole card is one choice; Active marks the selected one." },
       dont: { preview: <Row><Card theme="border" spacing="small"><Stack><span className="pgv-note">Pro · $12</span><Button level="primary" size="xs">Choose</Button><Button level="tertiary" size="xs">Details</Button></Stack></Card></Row>, caption: "Several buttons inside a card compete; pick one action." } },
+    { do: { preview: <Row><Card theme="solid" color="neutral" spacing="small"><span className="pgv-note">Invoiced</span><Text as="span" textStyle="Body/Base/Bold">$296.8K</Text></Card><Card theme="flat" spacing="small"><span className="pgv-note">Collected</span><Text as="span" textStyle="Body/Base/Bold">$275.8K</Text></Card><Card theme="flat" spacing="small"><span className="pgv-note">Outstanding</span><Text as="span" textStyle="Body/Base/Bold">$21K</Text></Card></Row>, caption: "One widget per row stands out with Solid; the rest share the row's theme." },
+      dont: { preview: <Row><Card theme="solid" color="neutral" spacing="small"><span className="pgv-note">Invoiced</span><Text as="span" textStyle="Body/Base/Bold">$296.8K</Text></Card><Card theme="solid" color="brand" spacing="small"><span className="pgv-note">Collected</span><Text as="span" textStyle="Body/Base/Bold">$275.8K</Text></Card><Card theme="solid" color="cyan" spacing="small"><span className="pgv-note">Outstanding</span><Text as="span" textStyle="Body/Base/Bold">$21K</Text></Card></Row>, caption: "A row of Solid widgets: nothing stands out and the page gets loud." } },
   ],
   "dock-icon": [
     { do: { preview: <Row><DockIcon icon="icon-folder-line" theme="yellow" background="subtle" /><DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" /><DockIcon icon="icon-colors-line" theme="purple" background="subtle" /></Row>, caption: "One size and one background per list; colour maps to a category." },
@@ -321,6 +323,8 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   metric: [
     { do: { preview: <Metric size="medium" label="Revenue" value="$48,210" trend={{ direction: "positive", label: "+12% vs. last month" }} />, caption: "Formatted value; the trend says what it compares to." },
       dont: { preview: <Metric size="medium" label="Revenue" value="48210.4567" trend={{ direction: "positive", label: "+12%" }} />, caption: "Raw numbers and a trend with no baseline." } },
+    { do: { preview: <MetricCard theme="flat" type="category-bar" label="Invoices by status" value="$184,200" format={(v) => `$${v.toLocaleString("en-US")}`} categories={[{ id: "paid", label: "Paid", value: 106800 }, { id: "pending", label: "Pending", value: 44200 }, { id: "overdue", label: "Overdue", value: 22100 }, { id: "draft", label: "Draft", value: 11100 }]} />, caption: "A total and a few parts, largest first: the bar shows the split, each row says its amount and share." },
+      dont: { preview: <MetricCard theme="flat" type="category-bar" label="Invoices by status" value="$184,200" format={(v) => `$${v.toLocaleString("en-US")}`} categories={[{ id: "draft", label: "Draft", value: 5100 }, { id: "paid", label: "Paid", value: 96800 }, { id: "void", label: "Void", value: 2300 }, { id: "pending", label: "Pending", value: 44200 }, { id: "refunded", label: "Refunded", value: 4000 }, { id: "overdue", label: "Overdue", value: 22100 }, { id: "disputed", label: "Disputed", value: 9700 }]} />, caption: "Seven parts in no order: the slivers can't be compared. Sort them largest first and fold the small ones into \"Other\"." } },
   ],
   uploader: [
     { do: { preview: <div className="pgv-field"><FileUpload label="Contract" caption="PDF only. Max size of 2 MB" /></div>, caption: "Types and size limit are stated before upload." },

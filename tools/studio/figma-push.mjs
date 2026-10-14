@@ -16,6 +16,7 @@ import { docFromText } from "./doc.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
+import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
@@ -105,15 +106,16 @@ const SLOT_OF_PROP = {
   ListBox: { header: "Header-Slot", footer: "Footer-Slot" },
   // Metric-Inline's Custom-Slot (Custom shows it): MetricCard's own content under the number (MetricWidget.tsx custom).
   MetricCard: { custom: "Custom-Slot" },
+  Metric: { custom: "Custom-Slot" },
 };
 /**
  * Node props whose layers go in their slot as one frame: a ListBox header row keeps its row (title left, action right),
  * a Sidebar brand its logo beside its name (Figma's Header-Content spreads its layers apart), a MetricCard's custom
  * content its own Stack and gap.
  */
-const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]), MetricCard: new Set(["custom"]) };
+const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new Set(["brand"]), MetricCard: new Set(["custom"]), Metric: new Set(["custom"]) };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
+const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -121,6 +123,39 @@ const NOT_DRAWN = new Set(["VisuallyHidden"]);
  * 2026-10-12), pushed as `strokeBottom: 0`. A Box counts when it paints a surface or a border.
  */
 const SURFACES = new Set(["Card", "ChartCard", "MetricCard", "Accordion", "SidePanel", "Dialog", "ModalForm", "BottomSheet", "Popover", "ListBox"]);
+/** Figma Card's Solid colours (15480:87472–87496); Pale has all nine. */
+const CARD_SOLID_COLORS = new Set(["Neutral", "Brand", "Cyan", "Yellow", "Orange"]);
+/** Figma Card's Surface per Theme (Card 6643:51021: Alt on Flat and Border, Flat on Border); the others draw Default. */
+const CARD_SURFACES = { Flat: new Set(["Default", "Alt"]), Border: new Set(["Default", "Alt", "Flat"]) };
+/**
+ * A Card's Theme × Color × Surface × Active as a variant Figma has (Card 6643:51021), drawn as the code draws it: Color
+ * only on Pale and Solid (Card.tsx ignores it elsewhere), a Solid hue Figma lacks as Solid Neutral, Shadow on Surface/Alt
+ * as Flat on Surface/Alt (Card.tsx drops the shadow there), a Surface the theme does not take as Default (Card.tsx
+ * ignores Flat off Border; Pale, On-Container and Solid keep their own fill), and Active=Yes only on a Neutral card (the
+ * code's selected look is the Surface fill with no hue; Solid has no Active=Yes).
+ */
+function cardVariant(props, notes, where) {
+  if (props.Theme === "Shadow" && props.Surface === "Alt") {
+    notes.push(`${where}: Shadow on Surface/Alt draws as Flat on Surface/Alt (no shadow on Surface-Alt): Theme Flat`);
+    props.Theme = "Flat";
+  }
+  if ("Surface" in props && props.Surface !== "Default" && !CARD_SURFACES[props.Theme]?.has(props.Surface)) {
+    notes.push(`${where}: Figma has no ${props.Theme} card on Surface ${props.Surface} (the code ignores it): Surface Default`);
+    props.Surface = "Default";
+  }
+  if ("Color" in props) {
+    if (props.Theme !== "Pale" && props.Theme !== "Solid") props.Color = "Neutral";
+    else if (props.Theme === "Solid" && !CARD_SOLID_COLORS.has(props.Color)) {
+      notes.push(`${where}: Figma has no Solid ${props.Color} (the code draws Solid Neutral): Color Neutral`);
+      props.Color = "Neutral";
+    }
+  }
+  if (props.Active === "Yes" && props.Theme === "Solid") {
+    notes.push(`${where}: Figma has no selected Solid card: Active No`);
+    props.Active = "No";
+  } else if (props.Active === "Yes" && "Color" in props) props.Color = "Neutral";
+  return props;
+}
 /** The slot a component's children go in, where it is not the set's first. */
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
@@ -351,10 +386,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     }
     else if (element.name === "ChartCard" && element.children.some((child) => child.kind === "element" && CHART_COMPONENTS.has(child.name))) node = chartCardNode(element, code, id);
     else if (CHART_COMPONENTS.has(element.name)) node = chartNode(element, null, id);
-    else if (element.name === "MetricCard") node = cardAround(instanceNode(element, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard");
+    // A typed MetricCard is Figma's Metric-Card of that Type (figma-metric.mjs); a KPI one a Card around Metric-Inline.
+    else if (element.name === "MetricCard" && metricCardTyped({ type: literalOf(element.props.type) })) node = metricCardNode(element, code, id);
+    // A KPI MetricCard is a Card around Metric-Inline (Metric's set; Figma Metric-Card is the typed ones').
+    else if (element.name === "MetricCard") node = cardAround(instanceNode({ ...element, name: "Metric" }, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard", code.color);
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
     // Metric is MetricCard's content without its Card: the same Metric-Inline set and parts.
-    else if (element.name === "Metric") node = instanceNode({ ...element, name: "MetricCard" }, code, id);
+    else if (element.name === "Metric") node = instanceNode(element, code, id);
     // A Menu draws its trigger on the page; its items open in a popover.
     else if (element.name === "Menu" && element.props.trigger?.kind === "element") node = convertElement(element.props.trigger.node, parent);
     else node = instanceNode(element, code, id, parent);
@@ -525,7 +563,6 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const ranges = Array.isArray(plain(element.props.ranges)) ? plain(element.props.ranges) : [];
     const icon = iconName(element.props.icon);
     if (element.props.icon && !icon) notes.push(`${where}: its icon is not an icon name (Show Icon off)`);
-    if (code.surface) notes.push(`${where}: surface="${code.surface}" not pushed (the Card's Surface keeps its default)`);
     // The range switch (Chart.tsx: a Segmented, secondary md) fills the card and splits it, or hugs its items
     // (rangesFullWidth={false}): then the chart's Segmented and its Item-List hug too.
     const full = code.rangesFullWidth !== false;
@@ -538,7 +575,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const drawing = chartNode(chart, header, null);
     if (!drawing) return null;
     if (chart.id) drawing.key = chart.id;
-    return cardAround(drawing, code.theme ?? "flat", id, title || "ChartCard");
+    return cardAround(drawing, code.theme ?? "flat", id, title || "ChartCard", code.color, code.surface);
   }
 
   /**
@@ -570,13 +607,30 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return { type: "FRAME", ...(id ? { id } : {}), name: "AiChatBlock", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "CENTER", primary: "MIN" }, children: [block] };
   }
 
-  /** A layer in a Card of `theme` (MetricCard and ChartCard are a Card around their content: Figma Metric-Card, Chart-Card). */
-  function cardAround(content, theme, id, name) {
+  /**
+   * A typed MetricCard as Figma's Metric-Card of its Type (figma-metric.mjs metricCardFigma): Type, title and number,
+   * trend, the Card's Theme / Color / Sub-Action, Comparison's columns and the Hero's button words. Figma draws its own
+   * marks: a note says so.
+   */
+  function metricCardNode(element, code, id) {
+    const where = `MetricCard${id ? ` (${id})` : ""}`;
+    const values = Object.fromEntries(Object.entries(element.props).map(([name, value]) => [name, plain(value) ?? (value ? true : undefined)]));
+    const footer = element.props.footer?.kind === "element" ? element.props.footer.node : null;
+    const footerText = footer?.name === "Button" ? deepText(footer).trim() : "";
+    const drawn = metricCardFigma(values, { notes, where, footerText: footerText || null });
+    return { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.label === "string" ? code.label : "MetricCard", ...drawn };
+  }
+
+  /** A layer in a Card of `theme`, `color` and `surface` (MetricCard and ChartCard are a Card around their content:
+   *  Figma Metric-Card, Chart-Card). */
+  function cardAround(content, theme, id, name, color, surface) {
     if (!content) return null;
     const card = entryFor("Card", { theme }, byCode, mapping);
     if (!card) return { ...content, ...(id ? { id } : {}) };
     const set = { id: card.id, name: card.name };
-    return { type: "INSTANCE", ...(id ? { id } : {}), name, set, props: { ...figmaProps(card, { theme }, mapping, notes, name, new Set(["theme"])), ...onlyOwn(set, { "Sub-Action": false }) }, slots: [{ name: "Content", children: [{ ...content, fillW: true }] }] };
+    const own = { theme, ...(color !== undefined ? { color } : {}), ...(surface !== undefined ? { surface } : {}) };
+    const props = cardVariant({ ...figmaProps(card, own, mapping, notes, name, new Set(Object.keys(own))), ...onlyOwn(set, { "Sub-Action": false }) }, notes, name);
+    return { type: "INSTANCE", ...(id ? { id } : {}), name, set, props, slots: [{ name: "Content", children: [{ ...content, fillW: true }] }] };
   }
 
   /** AppShellAccount: the Avatar it draws (Avatar/Single Circle Medium), its photo or the name's initials. */
@@ -1341,7 +1395,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       if (value.kind === "element") notes.push(`${where}: ${name} holds layers with no Figma slot: not written`);
     }
     if (element.name === "DashboardHeader") dashboardHeaderParts(element, code, node);
-    if (element.name === "MetricCard") metricParts(element, code, node, where);
+    if (element.name === "MetricCard" || element.name === "Metric") metricParts(element, code, node, where);
     // ListBox is as tall as its rows (Figma's List-Box starts at its sample's fixed height, in its Container-Slot frame
     // and its Body-Slot too).
     if (element.name === "ListBox") {
@@ -1351,7 +1405,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // Segmented is as wide as its items (inline, max-content) unless fullWidth: it never stretches with its column.
     if (element.name === "Segmented") node[code.fullWidth === true ? "fillW" : "hugW"] = true;
     // Card's ⋮ Sub-Action shows by default in Figma; the page shows it only with `subAction`.
-    if (element.name === "Card") Object.assign(node.props, onlyOwn(node.set, { "Sub-Action": Boolean(element.props.subAction) }));
+    if (element.name === "Card") cardVariant(Object.assign(node.props, onlyOwn(node.set, { "Sub-Action": Boolean(element.props.subAction) })), notes, where);
     if (element.name === "ListItem") listItemParts(element, code, node, where, slots);
     if (FIELDS.has(element.name)) fieldParts(element, code, node);
     // Progress: its label (a string, else the percentage) in Text; the bar's fill step by its value (Progress-Bar).

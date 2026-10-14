@@ -1,0 +1,9 @@
+/* Widgets page (examples/pages/widgets.tsx). */
+
+/* The playground's dashboard row fills the canvas well (a flex row that centres its child otherwise). */
+.pe-widgets-row { align-items: stretch; }
+.pe-widgets-row > .zen-grid { flex: 1 1 100%; min-width: 0; }
+
+/* Before there is data: the Skeleton takes the chart's own height (height={200} plus its axis lane and legend), so
+   nothing jumps when the months arrive; the doubled class outranks the shape's size. */
+.pe-widgets-skeleton.pe-widgets-skeleton { display: block; inline-size: 100%; block-size: 236px; }

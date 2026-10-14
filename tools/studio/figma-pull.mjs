@@ -20,6 +20,7 @@ import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./fig
 import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
+import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 
@@ -143,11 +144,14 @@ const readChart = async (instance, set) => {
   }
   return out;
 };
+// A Metric-Card (figma-metric.mjs): its Type, texts, trends, Card and Hero button, in the shape figma-push writes.
+${READ_METRIC_CARD}
 const readInstance = async (instance) => {
   const set = await setOf(instance);
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name };
   if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
   if (set && CHART_SET.test(set.name)) return readChart(instance, set);
+  if (set && set.name === "Metric-Card") return readMetricCard(instance, set);
   // Chart/Chart-Card is a Card holding a chart: read as that Card.
   if (set && set.name === "Chart/Chart-Card") {
     const card = instance.findOne((n) => n.type === "INSTANCE" && n.name === "Card");
@@ -554,6 +558,7 @@ const SLOT_PROPS = {
   // Metric-Inline's Custom-Slot: the Metric's (and so the MetricCard's) custom content (figma-push SLOT_OF_PROP).
   Metric: { "Custom-Slot": "custom" },
   MetricCard: { "Custom-Slot": "custom" },
+  Metric: { "Custom-Slot": "custom" },
 };
 /**
  * A Sidebar header's own layers: Figma's sample LOGO and its Collapse button are the component's (Sidebar.tsx draws the
@@ -1154,10 +1159,13 @@ function chartCardElement(chart, header, cardProps, where, ctx) {
   if (header.ranges) props.ranges = { kind: "array", items: header.ranges.map((range) => ({ kind: "object", fields: { id: literal(range.id), label: literal(range.label) } })) };
   if (header.range) props.range = literal(header.range);
   if (header.open) props.onOpen = OPEN_REPORT;
-  const { theme, ...rest } = cardProps;
+  const { theme, color, surface, ...rest } = cardProps;
   // ChartCard's own default is Flat (the Card's is Shadow).
   if (theme && !(theme.kind === "literal" && theme.value === "flat")) props.theme = theme;
   else if (!theme) props.theme = literal("shadow");
+  // Its Card's Color (Pale and Solid widgets): ChartCard passes it to its Card.
+  if (color) props.color = color;
+  if (surface) props.surface = surface;
   if (Object.keys(rest).length) ctx.notes.push(`${where}: ${Object.keys(rest).join(", ")} of its Card left out (ChartCard draws Card Medium)`);
   return { kind: "element", name: "ChartCard", props, children: [chart] };
 }
@@ -1204,6 +1212,8 @@ function convertNode(node, ctx) {
     if (setName === CHAT_SECTION) return chatThreadElement({ ...node, children: [node] }, ctx);
     // A chart (❖ Chart): its code chart with the Studio sample's data (figma-charts.mjs).
     if (chartSetKey(node.set)) return chartElement(node, ctx);
+    // A Metric-Card: the MetricCard of its Type (figma-metric.mjs), its marks' data the Studio sample's.
+    if (isMetricCard(node)) return { kind: "element", ...metricCardFromFigma(node, { notes, where: `"${node.name}" (Metric-Card)` }), children: [] };
     const set = node.set ? mapping.sets.get(node.set.id) ?? mapping.sets.get(setName) : null;
     if (!set) {
       // An icon of the set (icon-zen): an Icon.
@@ -1349,7 +1359,7 @@ function convertNode(node, ctx) {
     }
     // Metric-Inline alone is a Metric; a Card holding only one is the MetricCard (figma-push draws it so).
     const lone = children.length === 1 && children[0].kind === "element" && children[0].name === "Metric" ? children[0] : null;
-    if (set.code === "Card" && lone && Object.keys(props).every((name) => name === "theme")) return { kind: "element", name: "MetricCard", props: { ...lone.props, ...props }, children: [] };
+    if (set.code === "Card" && lone && Object.keys(props).every((name) => name === "theme" || name === "color")) return { kind: "element", name: "MetricCard", props: { ...lone.props, ...props }, children: [] };
     // A Card holding one chart whose Heading shows is the ChartCard (figma-push draws it so).
     const charted = set.code === "Card" && children.length === 1 ? CHART_HEADS.get(children[0]) : undefined;
     if (charted) return chartCardElement(children[0], charted, props, where, ctx);

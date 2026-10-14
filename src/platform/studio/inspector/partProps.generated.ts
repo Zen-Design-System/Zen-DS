@@ -63,6 +63,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "ChartCard": {
     "Card": {
+      "color": "color",
       "surface": "surface",
       "theme": "theme"
     },
@@ -461,8 +462,18 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   "MetricCard": {
     "Card": {
       "overrides": "overrides",
-      "subAction": "subAction",
-      "theme": "theme"
+      "subAction": "subAction"
+    },
+    "CategoryBar": {
+      "animate": "animate",
+      "categories": "categories",
+      "format": "format"
+    },
+    "SparkBars": {
+      "animate": "animate"
+    },
+    "Sparkline": {
+      "animate": "animate"
     }
   },
   "ModalForm": {

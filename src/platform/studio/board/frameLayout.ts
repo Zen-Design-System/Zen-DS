@@ -4,7 +4,7 @@ import type { StudioFrameWidth } from "../types";
 /* Frame widths on the board (spec §4). Frames take their real width, so desktop playgrounds are never squeezed. */
 
 /** Playgrounds of whole screens or wide components get a desktop-wide frame. */
-const desktopPlaygrounds = new Set<PlatformPage | string>(["app-shell", "sidebar", "table", "page-header", "side-panel", "chart", "top-navigation", "templates"]);
+const desktopPlaygrounds = new Set<PlatformPage | string>(["app-shell", "sidebar", "table", "page-header", "side-panel", "chart", "top-navigation", "templates", "widgets"]);
 /** Playgrounds whose specimen needs room for an open surface or a wide field. */
 const widePlaygrounds = new Set<PlatformPage | string>(["dialog", "date-picker", "popover", "input", "metric", "card"]);
 

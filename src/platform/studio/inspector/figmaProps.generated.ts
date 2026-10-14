@@ -633,8 +633,34 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Flat": "flat",
           "Pale": "pale",
           "Border": "border",
-          "Semi-Pale": "semi-pale",
-          "On-Container": "on-container"
+          "On-Container": "on-container",
+          "Solid": "solid"
+        }
+      },
+      {
+        "prop": "color",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Neutral": "neutral",
+          "Brand": "brand",
+          "Cyan": "cyan",
+          "Violet": "violet",
+          "Green": "green",
+          "Yellow": "yellow",
+          "Orange": "orange",
+          "Blue": "blue",
+          "Purple": "purple"
+        }
+      },
+      {
+        "prop": "surface",
+        "label": "Surface",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Alt": "alt",
+          "Flat": "flat"
         }
       },
       {
@@ -647,7 +673,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         }
       },
       {
-        "prop": "active",
+        "prop": "selected",
         "label": "Active",
         "type": "VARIANT",
         "options": {
@@ -2633,119 +2659,39 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ]
   },
   "MetricCard": {
-    "figma": "595:55188",
+    "figma": "6643:64008",
     "own": [
       {
-        "prop": "variant",
-        "type": "SET",
-        "options": {
-          "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight",
-          "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight"
-        }
-      },
-      {
-        "prop": "metricColor",
-        "label": "Metric-Color",
-        "type": "BOOLEAN"
-      },
-      {
-        "prop": "size",
-        "label": "Size",
+        "prop": "type",
+        "label": "Type",
         "type": "VARIANT",
         "options": {
-          "XLarge": "xlarge",
-          "Large": "large",
-          "Medium": "medium",
-          "Small": "small",
-          "XSmall": "xsmall"
+          "KPI": "kpi",
+          "Sparkline": "sparkline",
+          "Spark-Bars": "spark-bars",
+          "Goal-Progress": "goal-progress",
+          "Comparison": "comparison",
+          "Category-Bar": "category-bar",
+          "Hero": "hero"
         }
       }
     ],
-    "toggles": [
+    "toggles": [],
+    "nested": [
       {
-        "label": "Trend",
-        "prop": "trend",
-        "on": {
-          "code": "{ direction: \"positive\", label: \"+12%\" }"
-        }
-      },
-      {
-        "label": "Counter",
-        "prop": "counter",
-        "on": "3",
-        "when": [
+        "name": "Card",
+        "figma": "6643:51021",
+        "when": "label",
+        "own": [
           {
-            "prop": "variant",
-            "oneOf": [
-              "icon-highlight"
-            ],
-            "default": "icon-highlight"
-          }
-        ]
-      },
-      {
-        "label": "Hint",
-        "prop": "hint",
-        "on": "How this number is worked out",
-        "when": [
-          {
-            "prop": "variant",
-            "oneOf": [
-              "title-highlight"
-            ],
-            "default": "icon-highlight"
+            "prop": "theme",
+            "label": "Theme",
+            "type": "VARIANT"
           },
           {
-            "prop": "size",
-            "oneOf": [
-              "xl",
-              "xlarge",
-              "lg",
-              "large",
-              "md",
-              "medium"
-            ],
-            "default": "xl"
-          }
-        ]
-      },
-      {
-        "label": "Label-Icon",
-        "prop": "labelIcon",
-        "on": "icon-wallet-02-line",
-        "when": [
-          {
-            "prop": "variant",
-            "oneOf": [
-              "title-highlight"
-            ],
-            "default": "icon-highlight"
-          },
-          {
-            "prop": "size",
-            "oneOf": [
-              "xl",
-              "xlarge",
-              "lg",
-              "large",
-              "md",
-              "medium"
-            ],
-            "default": "xl"
-          }
-        ]
-      },
-      {
-        "label": "Custom",
-        "prop": "custom",
-        "on": "slot",
-        "when": [
-          {
-            "prop": "variant",
-            "oneOf": [
-              "title-highlight"
-            ],
-            "default": "icon-highlight"
+            "prop": "color",
+            "label": "Color",
+            "type": "VARIANT"
           }
         ]
       }

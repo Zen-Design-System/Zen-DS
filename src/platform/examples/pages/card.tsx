@@ -7,7 +7,8 @@ import { ActionBar } from "../../../components/ActionBar";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
-import { Card } from "../../../components/Card";
+import { Card, type CardColor } from "../../../components/Card";
+import { ChartCard, LineChart } from "../../../components/Chart";
 import { Chip } from "../../../components/Chip";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { Dialog, ModalForm } from "../../../components/Dialog";
@@ -33,8 +34,8 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  daysFromToday, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, people, plans, projectById, projects,
-  projectStatusTheme, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
+  daysFromToday, formatCompactMoney, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, people, plans, projectById, projects,
+  projectStatusTheme, studioMonths, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -402,7 +403,8 @@ function NotificationSettings() {
   };
   const baseId = useId();
   return (
-    <Stack gap="xl">
+    // A flat settings page (Canvas/Flat: page and bars one plane in both modes): its cards are Border on Surface/Flat.
+    <Stack gap="xl" className="pe-shell px-card-flat-page" data-canvas="flat">
       {settingGroups.map((group, index) => {
         const titleId = `${baseId}-${group.id}`;
         return (
@@ -413,7 +415,7 @@ function NotificationSettings() {
                 <Heading level={4} id={titleId} textStyle="Heading/4">{group.title}</Heading>
                 <Text textStyle="Body/Small/Regular" tone="base">{group.summary}</Text>
               </Stack>
-              <Card theme="flat">
+              <Card theme="border" surface="flat">
                 {/* A toggle group: each switch lines up on the card's right edge. */}
                 <FormFieldset kind="toggle" legend={group.title} hideLegend>
                   {group.settings.map((setting) => (
@@ -541,6 +543,168 @@ function PhoneOrderType() {
   );
 }
 
+// ——— Colour: Pale in any hue, one Solid widget per row ——————————————————————————————————————————————
+/** Apr–Jun and Jul–Sep 2026 of the studio's months (Q2 $262,500 · Q3 $296,800 invoiced). */
+const q2 = studioMonths.slice(6, 9);
+const q3 = studioMonths.slice(9, 12);
+const total = (months: typeof q3, key: "invoiced" | "collected") => months.reduce((sum, month) => sum + month[key], 0);
+const percentChange = (now: number, before: number) => `${now >= before ? "+" : "−"}${Math.round(Math.abs(now / before - 1) * 100)}%`;
+const q3Invoiced = total(q3, "invoiced");
+const q3Collected = total(q3, "collected");
+/** Q3's widget figures. */
+const amounts = { invoiced: q3Invoiced, collected: q3Collected, outstanding: q3Invoiced - q3Collected };
+const unpaidInvoices = 3;
+
+function QuarterWidgets() {
+  const { toast } = useToast();
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reminded, setReminded] = useState(false);
+  const invoicedId = useId();
+  const collectedId = useId();
+  const outstandingId = useId();
+  const remind = () => {
+    setReminded(true);
+    toast({ title: `${plural(unpaidInvoices, "reminder")} sent`, action: { label: "Undo", onClick: () => setReminded(false) } });
+  };
+  return (
+    <>
+      {/* The row's widgets share a theme (Flat on Canvas/Default); the one that matters most stands out as Solid Neutral.
+          Three share the row: each column at least 30% wide, one per row once 220px no longer fits. */}
+      <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
+        <Card as="section" theme="solid" color="neutral" aria-labelledby={invoicedId}>
+          <Stack gap="md">
+            <Stack gap="xs" align="start">
+              <Heading level={4} id={invoicedId} textStyle="Heading/Subheading">Invoiced in Q3</Heading>
+              <Text as="span" textStyle="Heading/2">{formatMoney(amounts.invoiced)}</Text>
+              <Badge theme="on-color" background="solid" size="sm" leading="icon-arrow-circle-up-solid">{`${percentChange(q3Invoiced, total(q2, "invoiced"))} vs. Q2`}</Badge>
+            </Stack>
+            <LineChart aria-label="Invoiced per month, July to September 2026" data={q3.map((month) => ({ label: month.label, value: month.invoiced }))}
+              format={formatCompactMoney} height={120} />
+            <Stack align="start">
+              <Button appearance="overlay" level="inverse" size="sm" onClick={() => setReportOpen(true)}>View report</Button>
+            </Stack>
+          </Stack>
+        </Card>
+        <Card as="section" theme="flat" aria-labelledby={collectedId}>
+          <Stack gap="md">
+            <Stack gap="xs" align="start">
+              <Heading level={4} id={collectedId} textStyle="Heading/Subheading">Collected in Q3</Heading>
+              <Text as="span" textStyle="Heading/2">{formatMoney(amounts.collected)}</Text>
+              <Badge theme="green" background="subtle" size="sm">{`${percentChange(q3Collected, total(q2, "collected"))} vs. Q2`}</Badge>
+            </Stack>
+            <ProgressBar value={Math.round((q3Collected / q3Invoiced) * 100)} label layout="stacked" valueLabel={`${Math.round((q3Collected / q3Invoiced) * 100)}% of invoiced`} aria-label="Collected of invoiced" />
+          </Stack>
+        </Card>
+        <Card as="section" theme="flat" aria-labelledby={outstandingId}>
+          <Stack gap="md">
+            <Stack gap="xs" align="start">
+              <Heading level={4} id={outstandingId} textStyle="Heading/Subheading">Outstanding</Heading>
+              <Text as="span" textStyle="Heading/2">{formatMoney(amounts.outstanding)}</Text>
+              <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{reminded ? "Reminders sent today" : `${plural(unpaidInvoices, "invoice")} past due`}</Text>
+            </Stack>
+            <Stack align="start">
+              <Button level="tertiary" size="sm" startIcon="icon-mail-01-line" disabled={reminded} onClick={remind}>Send reminders</Button>
+            </Stack>
+          </Stack>
+        </Card>
+      </Grid>
+      <Dialog open={reportOpen} onOpenChange={setReportOpen} title="Invoiced in Q3" description="July to September 2026">
+        <DescriptionList items={[...q3.map((month) => ({ id: month.id, term: month.month, description: formatMoney(month.invoiced) })), { id: "total", term: "Total", description: formatMoney(q3Invoiced), emphasis: true }]} />
+      </Dialog>
+    </>
+  );
+}
+
+/** Each project keeps its own hue (Support/<Color>/Pale): the Card colour closest to its Dock Icon theme. */
+const projectColor: Record<string, CardColor> = { orange: "orange", blue: "blue", teal: "cyan", purple: "purple", indigo: "violet", green: "green" };
+
+function PhoneProjectColours() {
+  const screenRef = useRef<HTMLDivElement>(null);
+  const open = projects.filter((project) => project.status !== "Completed");
+  return (
+    // A white Canvas/Alt screen: the boxes on it are Pale, each in its project's colour.
+    <PlatformPhone label="Projects" canvas="alt" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+      <Stack gap="sm" padding="lg">
+        {open.map((project) => (
+          <Card key={project.id} as="section" theme="pale" color={projectColor[project.theme] ?? "neutral"} spacing="small" aria-labelledby={`project-${project.id}`}>
+            <Stack gap="xs">
+              <Heading level={2} id={`project-${project.id}`} textStyle="Heading/Subheading" truncate={2}>{project.name}</Heading>
+              <Text as="span" textStyle="Body/Small/Regular" tone="base" truncate>{`${project.client} · ${formatDue(project.due)}`}</Text>
+              <ProgressBar value={project.progress} label aria-label={`${project.name} progress`} />
+            </Stack>
+          </Card>
+        ))}
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+const payroll = { amount: 48200, people: 18, day: daysFromToday(2) };
+const hours = { total: "1,284 h", capacity: 86 };
+
+function PayrollStandOut() {
+  const { toast } = useToast();
+  const [approved, setApproved] = useState(false);
+  const payrollId = useId();
+  const hoursId = useId();
+  const approve = () => {
+    setApproved(true);
+    toast({ type: "positive", title: "Payroll approved", children: `${formatMoney(payroll.amount)} to ${plural(payroll.people, "person", "people")}`, action: { label: "Undo", onClick: () => setApproved(false) } });
+  };
+  return (
+    <Grid minColumnWidth={220} gap="md">
+      {/* The time-sensitive widget stands out in a hue: Solid Yellow keeps neutral content and a neutral Primary button. */}
+      <Card as="section" theme="solid" color="yellow" aria-labelledby={payrollId}>
+        <Stack gap="md">
+          <Stack gap="xs" align="start">
+            <Heading level={4} id={payrollId} textStyle="Heading/Subheading">Next payout</Heading>
+            <Text as="span" textStyle="Heading/2">{formatMoney(payroll.amount)}</Text>
+            <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">
+              {approved ? `Approved · pays ${formatDate(payroll.day)}` : `${formatDate(payroll.day)} · ${plural(payroll.people, "person", "people")}`}
+            </Text>
+          </Stack>
+          <Stack align="start">
+            <Button level="primary" size="sm" disabled={approved} onClick={approve}>Approve payroll</Button>
+          </Stack>
+        </Stack>
+      </Card>
+      <Card as="section" theme="flat" aria-labelledby={hoursId}>
+        <Stack gap="md">
+          <Stack gap="xs" align="start">
+            <Heading level={4} id={hoursId} textStyle="Heading/Subheading">Hours this week</Heading>
+            <Text as="span" textStyle="Heading/2">{hours.total}</Text>
+            <Text as="span" textStyle="Body/Small/Regular" tone="base">Across 6 projects</Text>
+          </Stack>
+          <ProgressBar value={86} label layout="stacked" valueLabel="86% of capacity" aria-label="Hours of capacity" />
+        </Stack>
+      </Card>
+    </Grid>
+  );
+}
+
+const revenueRanges = [{ id: "q3", label: "Q3", months: q3 }, { id: "ytd", label: "This year", months: studioMonths.slice(3) }];
+
+function DarkRevenueCard() {
+  const [rangeId, setRangeId] = useState("q3");
+  const [reportOpen, setReportOpen] = useState(false);
+  const range = revenueRanges.find((option) => option.id === rangeId)!;
+  return (
+    <>
+      <ChartCard title="Revenue" headingLevel={4} theme="solid" color="neutral" value={formatMoney(total(range.months, "invoiced"))}
+        description={`Invoiced, ${range.months[0].month} to ${range.months[range.months.length - 1].month}`}
+        ranges={revenueRanges.map(({ id, label }) => ({ id, label }))} range={rangeId} onRangeChange={setRangeId}
+        onOpen={() => setReportOpen(true)} openLabel="Open revenue report">
+        <LineChart key={rangeId} aria-label={`Revenue invoiced per month, ${range.label}`} data={range.months.map((month) => ({ label: month.label, value: month.invoiced }))}
+          format={formatCompactMoney} height={200} />
+      </ChartCard>
+      <Dialog open={reportOpen} onOpenChange={setReportOpen} title="Revenue" description={range.label}>
+        <DescriptionList items={range.months.map((month) => ({ id: month.id, term: month.month, description: formatMoney(month.invoiced) }))} />
+      </Dialog>
+    </>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Browse projects",
@@ -657,14 +821,15 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Settings section",
     wide: true,
-    description: "A settings page puts the section title and one line about it on the left and a flat card of related toggles on the right; on a phone they stack. Toggles apply at once, and the toast can undo the change.",
+    description: "A settings page puts the section title and one line about it on the left and a card of related toggles on the right; on a phone they stack. On a Canvas/Flat page the card is Border on Surface/Flat (surface=\"flat\"). Toggles apply at once, and the toast can undo the change.",
     render: () => <NotificationSettings />,
-    code: `<Grid as="section" aria-labelledby="email" columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start">
+    code: `{/* The page is Canvas/Flat (background: var(--zen-color-background-canvas-flat)) */}
+<Grid as="section" aria-labelledby="email" columns={{ mobile: 1, desktop: "minmax(0, 1fr) minmax(0, 2fr)" }} gap="lg" align="start">
   <Stack gap="xs">
     <Heading level={4} id="email" textStyle="Heading/4">Email</Heading>
     <Text textStyle="Body/Small/Regular" tone="base">Sent to alex@dizai.studio.</Text>
   </Stack>
-  <Card theme="flat">
+  <Card theme="border" surface="flat">
     <FormFieldset kind="toggle" legend="Email" hideLegend>
       {settings.map((setting) => (
         <Toggle key={setting.id} size="md" label={setting.label} caption={setting.caption}
@@ -698,5 +863,112 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
         ))}
       </List>}
 </Card>`,
+  },
+  {
+    title: "One widget stands out",
+    wide: true,
+    description: "Widgets in a row share one theme (Flat on Canvas/Default) and at most one stands out with theme=\"solid\". Solid Neutral is the dark widget: its text, chart and ⋮ read Content/Inverse by themselves, and its button takes the Inverse level.",
+    render: () => <QuarterWidgets />,
+    code: `{/* The row shares one theme; the widget that matters most stands out (one Solid per row). */}
+<Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
+  <Card as="section" theme="solid" color="neutral" aria-labelledby={invoicedId}>
+    <Stack gap="md">
+      <Stack gap="xs" align="start">
+        <Heading level={4} id={invoicedId} textStyle="Heading/Subheading">Invoiced in Q3</Heading>
+        <Text as="span" textStyle="Heading/2">{formatMoney(amounts.invoiced)}</Text>
+        <Badge theme="on-color" background="solid" size="sm" leading="icon-arrow-circle-up-solid">+13% vs. Q2</Badge>
+      </Stack>
+      <LineChart aria-label="Invoiced per month, July to September 2026" data={q3Points} format={formatCompactMoney} height={120} />
+      <Stack align="start">
+        <Button appearance="overlay" level="inverse" size="sm" onClick={() => setReportOpen(true)}>View report</Button>
+      </Stack>
+    </Stack>
+  </Card>
+  <Card as="section" theme="flat" aria-labelledby={collectedId}>
+    <Stack gap="md">
+      <Stack gap="xs" align="start">
+        <Heading level={4} id={collectedId} textStyle="Heading/Subheading">Collected in Q3</Heading>
+        <Text as="span" textStyle="Heading/2">{formatMoney(amounts.collected)}</Text>
+        <Badge theme="green" background="subtle" size="sm">+8% vs. Q2</Badge>
+      </Stack>
+      <ProgressBar value={93} label layout="stacked" valueLabel="93% of invoiced" aria-label="Collected of invoiced" />
+    </Stack>
+  </Card>
+  <Card as="section" theme="flat" aria-labelledby={outstandingId}>
+    <Stack gap="md">
+      <Stack gap="xs" align="start">
+        <Heading level={4} id={outstandingId} textStyle="Heading/Subheading">Outstanding</Heading>
+        <Text as="span" textStyle="Heading/2">{formatMoney(amounts.outstanding)}</Text>
+        <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{reminded ? "Reminders sent today" : "3 invoices past due"}</Text>
+      </Stack>
+      <Stack align="start">
+        <Button level="tertiary" size="sm" startIcon="icon-mail-01-line" disabled={reminded} onClick={remind}>Send reminders</Button>
+      </Stack>
+    </Stack>
+  </Card>
+</Grid>`,
+  },
+  {
+    title: "Colour by project",
+    description: "On a white Canvas/Alt screen, colour on a box is Pale: each project card takes its project's hue with theme=\"pale\" and color, and keeps neutral text, so any of the nine hues reads the same.",
+    render: () => <PhoneProjectColours />,
+    code: `const projectColor: Record<string, CardColor> = { orange: "orange", blue: "blue", teal: "cyan", purple: "purple", indigo: "violet", green: "green" };
+
+<PlatformPhone canvas="alt" header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+  <Stack gap="sm" padding="lg">
+    {open.map((project) => (
+      <Card key={project.id} as="section" theme="pale" color={projectColor[project.theme] ?? "neutral"} spacing="small"
+        aria-labelledby={\`project-\${project.id}\`}>
+        <Stack gap="xs">
+          <Heading level={2} id={\`project-\${project.id}\`} textStyle="Heading/Subheading" truncate={2}>{project.name}</Heading>
+          <Text as="span" textStyle="Body/Small/Regular" tone="base" truncate>{\`\${project.client} · \${formatDue(project.due)}\`}</Text>
+          <ProgressBar value={project.progress} label aria-label={\`\${project.name} progress\`} />
+        </Stack>
+      </Card>
+    ))}
+  </Stack>
+</PlatformPhone>`,
+  },
+  {
+    title: "Stand out in a hue",
+    description: "A time-sensitive widget can stand out in a hue instead: Solid Yellow keeps neutral text and a neutral Primary button. Approving updates the status line and offers Undo.",
+    render: () => <PayrollStandOut />,
+    code: `<Grid minColumnWidth={220} gap="md">
+  <Card as="section" theme="solid" color="yellow" aria-labelledby={payrollId}>
+    <Stack gap="md">
+      <Stack gap="xs" align="start">
+        <Heading level={4} id={payrollId} textStyle="Heading/Subheading">Next payout</Heading>
+        <Text as="span" textStyle="Heading/2">{formatMoney(payroll.amount)}</Text>
+        <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">
+          {approved ? \`Approved · pays \${formatDate(payday)}\` : \`\${formatDate(payday)} · 18 people\`}
+        </Text>
+      </Stack>
+      <Stack align="start">
+        <Button level="primary" size="sm" disabled={approved} onClick={approve}>Approve payroll</Button>
+      </Stack>
+    </Stack>
+  </Card>
+  <Card as="section" theme="flat" aria-labelledby={hoursId}>
+    <Stack gap="md">
+      <Stack gap="xs" align="start">
+        <Heading level={4} id={hoursId} textStyle="Heading/Subheading">Hours this week</Heading>
+        <Text as="span" textStyle="Heading/2">{hours.total}</Text>
+        <Text as="span" textStyle="Body/Small/Regular" tone="base">Across 6 projects</Text>
+      </Stack>
+      <ProgressBar value={86} label layout="stacked" valueLabel="86% of capacity" aria-label="Hours of capacity" />
+    </Stack>
+  </Card>
+</Grid>`,
+  },
+  {
+    title: "Dark chart card",
+    description: "ChartCard and MetricCard pass theme and color to their Card: a Solid Neutral chart card draws its title, figure, axes and grid in Content/Inverse, and the range switch and open button keep their own fills.",
+    render: () => <DarkRevenueCard />,
+    code: `<ChartCard title="Revenue" headingLevel={4} theme="solid" color="neutral" value={formatMoney(invoiced)}
+  description={\`Invoiced, \${range.months[0].month} to \${range.months.at(-1).month}\`}
+  ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "This year" }]} range={rangeId} onRangeChange={setRangeId}
+  onOpen={() => setReportOpen(true)} openLabel="Open revenue report">
+  <LineChart key={rangeId} aria-label={\`Revenue invoiced per month, \${range.label}\`} data={points} format={formatCompactMoney} height={200} />
+</ChartCard>`,
   },
 ]);

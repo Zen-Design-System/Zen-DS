@@ -11,13 +11,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseExpression } from "@babel/parser";
+import { parse, parseExpression } from "@babel/parser";
 import {
   CONTENT_SLOTS, activeSlotsOf, contentSummaryOf, ghostAnchorsOf, headingLevelFor, hostPropsOf, hostTitleLevel, inactiveCondition, insertTargetFor,
   isClickableHost, isLayoutPrimitive, isSlotActive, slotFlowOf, slotIsClickTarget, slotOf, slotsOf,
 } from "./registry.ts";
 import { DATA_SLOTS, dataSlotOf, itemTitle } from "./dataSlots.ts";
-import { COMPONENT_FOLDERS, NOT_RECOMMENDED, PALETTE, PALETTE_GROUPS, isMobileChain, paletteFor, paletteItem, paletteSections, preferredFor, searchPalette, warningForCode } from "./palette.ts";
+import { COMPONENT_FOLDERS, NOT_RECOMMENDED, PALETTE, PALETTE_GROUPS, WIDGET_PAGE_CONTEXT, isMobileChain, paletteFor, paletteItem, paletteSections, preferredFor, searchPalette, warningForCode, widgetCode } from "./palette.ts";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const components = path.join(root, "src/components");
@@ -302,6 +302,9 @@ const reasons = (result) => {
   return rows.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`);
 };
 const everyId = PALETTE.filter((item) => item.id !== "metric").map((item) => item.id);
+/** Every Widgets entry is a card (ChartCard, MetricCard, Card): warned in a card. */
+const WIDGET_IDS = PALETTE.filter((item) => item.group === "Widgets").map((item) => item.id);
+const WIDGETS_IN_A_CARD = `Widgets: A card never goes inside a card (${PALETTE.filter((item) => item.group === "Widgets").map((item) => item.label).join(", ")})`;
 const everyIdInCard = PALETTE.filter((item) => item.id !== "metric-card").map((item) => item.id);
 const cardStatic = paletteFor(ctxFor("Card"));
 check("Card: every item listed (Metric, not MetricCard)", ids(cardStatic), everyIdInCard);
@@ -309,6 +312,7 @@ check("Card: cards warned", reasons(cardStatic), [
   "Navigation: Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout (Menu item, Menu section)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
+  WIDGETS_IN_A_CARD,
 ]);
 check("Card: nothing hidden", cardStatic.hidden, []);
 check("Card: warnings carry a short caption", cardStatic.warnings.card?.short, "Card inside a card");
@@ -321,6 +325,7 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Navigation: Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout (Menu item, Menu section)",
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
+  WIDGETS_IN_A_CARD,
   "Inputs: The card is one click target, so it holds no controls or fields (Text field, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Slider field, Colour field, Colour picker, Inline field, Colour selector, File upload)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
@@ -376,12 +381,68 @@ for (const def of Object.values(CONTENT_SLOTS)) for (const slot of def.slots) {
 const sections = paletteSections(cardStatic, slotOf("Card", "children"));
 check("paletteSections: preferred first", [sections[0].title, sections[0].items.map((item) => item.id)], ["Preferred for Content", ["heading", "paragraph", "list", "metric", "stack"]]);
 check("paletteSections: no item twice, none missing", sections.flatMap((section) => section.items).length, cardStatic.items.length);
-check("paletteSections: warned items last", [sections.at(-1).title, sections.at(-1).items.map((item) => item.id)], [NOT_RECOMMENDED, ["menu-item", "menu-section", "card", "chart-card"]]);
+check("paletteSections: warned items last", [sections.at(-1).title, sections.at(-1).items.map((item) => item.id)], [NOT_RECOMMENDED, ["menu-item", "menu-section", "card", "chart-card", ...WIDGET_IDS]]);
 const leadingSections = paletteSections(paletteFor(ctxFor("ListItem", "leading")), slotOf("ListItem", "leading"));
 check("paletteSections: a preferred item with a warning goes last", [leadingSections[0].title, leadingSections[0].items.map((item) => item.id), leadingSections.length], ["Preferred for Leading", ["avatar", "dock-icon"], 2]);
 check("paletteSections: sidePanel's preferred metric is MetricCard", paletteSections(paletteFor(ctxFor("SidePanel")), slotOf("SidePanel", "children"))[0].items.map((item) => item.id), ["input-field", "select-field", "paragraph", "list"]);
 check("searchPalette", searchPalette(PALETTE, "text").map((item) => item.id), ["heading", "paragraph", "caption", "tabs", "card", "progress", "skeleton", "input-field", "textarea-field", "rich-text-field", "stack", "grid", "app-shell", "action-bar"]);
 check("searchPalette: every word", searchPalette(PALETTE, "data list").map((item) => item.id), ["list", "list-box", "description-list"]);
+
+/* ───────────── 4b. Widgets: the platform's Widgets page renders what the palette inserts ───────────── */
+
+// examples/pages/widgets.tsx shows each Widgets entry's code (widgetCode) next to a component that renders it: every
+// `pattern("<id>", Component, …)` there must return exactly the entry's JSX (same elements, props and values; layout
+// whitespace and comments aside), and every Widgets entry must have its pattern.
+{
+  const pageFile = path.join(root, "src/platform/examples/pages/widgets.tsx");
+  const program = parse(fs.readFileSync(pageFile, "utf8"), { sourceType: "module", plugins: ["jsx", "typescript"] });
+  const returned = new Map();
+  const patterns = [];
+  const visit = (node) => {
+    if (!node || typeof node.type !== "string") return;
+    if (node.type === "FunctionDeclaration" && node.id) {
+      const ret = node.body.body.find((statement) => statement.type === "ReturnStatement");
+      if (ret?.argument?.type === "JSXElement") returned.set(node.id.name, ret.argument);
+    }
+    if (node.type === "CallExpression" && node.callee.type === "Identifier" && node.callee.name === "pattern" && node.arguments[0]?.type === "StringLiteral" && node.arguments[1]?.type === "Identifier") {
+      patterns.push([node.arguments[0].value, node.arguments[1].name]);
+    }
+    for (const [key, value] of Object.entries(node)) {
+      if (key === "loc" || key === "start" || key === "end") continue;
+      if (Array.isArray(value)) value.forEach(visit);
+      else if (value && typeof value.type === "string") visit(value);
+    }
+  };
+  visit(program);
+  const SKIP = new Set(["loc", "start", "end", "range", "extra", "leadingComments", "trailingComments", "innerComments", "comments", "errors", "tokens"]);
+  /** The JSX as data: no places or comments, JSX text with its whitespace folded (and dropped when only layout). */
+  const shapeOf = (node) => {
+    if (Array.isArray(node)) {
+      return node.filter((child) => !(child?.type === "JSXText" && !child.value.replace(/\s+/g, " ").trim()) && !(child?.type === "JSXExpressionContainer" && child.expression.type === "JSXEmptyExpression")).map(shapeOf);
+    }
+    if (!node || typeof node !== "object") return node;
+    if (node.type === "JSXText") return { type: "JSXText", value: node.value.replace(/\s+/g, " ").trim() };
+    return Object.fromEntries(Object.entries(node).filter(([key]) => !SKIP.has(key)).map(([key, value]) => [key, shapeOf(value)]));
+  };
+  const widgets = PALETTE.filter((item) => item.group === "Widgets");
+  check("widgets: every Widgets entry has its pattern on the page", widgets.map((item) => item.id).filter((id) => !patterns.some(([pid]) => pid === id)), []);
+  // The examples array writes each widget's title literally (the coverage gate counts literal titles): it must be the
+  // entry's label, and every Widgets entry has one example.
+  const titled = [...fs.readFileSync(pageFile, "utf8").matchAll(/\{ title: ("(?:\\.|[^"\\])*"), \.\.\.widgetExample\("([^"]+)"\) \}/g)].map((m) => [JSON.parse(m[1]), m[2]]);
+  check("widgets: each example's title is its entry's label", titled.filter(([title, id]) => paletteItem(id)?.label !== title).map(([title, id]) => `${id}: "${title}"`), []);
+  check("widgets: every Widgets entry has one example", widgets.map((item) => item.id).filter((id) => titled.filter(([, tid]) => tid === id).length !== 1), []);
+  check("widgets: every pattern on the page is a Widgets entry, once", [patterns.filter(([id]) => paletteItem(id)?.group !== "Widgets").map(([id]) => id), patterns.length === new Set(patterns.map(([id]) => id)).size], [[], true]);
+  for (const [id, name] of patterns) {
+    const item = paletteItem(id);
+    if (!item) continue;
+    const page = returned.get(name);
+    check(`widgets: ${id} renders through ${name}`, Boolean(page), true);
+    if (page) check(`widgets: ${name} on the page = the ${id} entry's code`, JSON.stringify(shapeOf(page)) === JSON.stringify(shapeOf(parseExpression(item.build(WIDGET_PAGE_CONTEXT), { plugins: ["jsx", "typescript"] }))), true);
+    check(`widgets: ${id} code on the page starts with its import line`, widgetCode(id).split("\n")[0], `import { ${[...new Set(item.components)].sort((a, b) => a.localeCompare(b)).join(", ")} } from "@zen-ds/react";`);
+    // A builder page keeps no functions: its version is the code without the format callbacks.
+    check(`widgets: ${id} builder version has no callback`, /=>/.test(item.builder(WIDGET_PAGE_CONTEXT)), false);
+  }
+}
 
 /* ───────────── 5. --deep: every item in every host that offers it, through tsc + usage + style guards ───────────── */
 

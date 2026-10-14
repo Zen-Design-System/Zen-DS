@@ -199,6 +199,28 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("charts: figmaReadCode reads a chart's properties, Heading and Segmented items, and Chart/Chart-Card as its Card", /const readChart = async/.test(figmaReadCode("1:2")) && /set\.name === "Chart\/Chart-Card"/.test(figmaReadCode("1:2")));
 }
 
+// Card Theme=Solid and Color (2026-10-14): a Solid or Pale Card keeps its Color as `color`; a Card around a lone chart
+// with its Heading (a ChartCard) or a Metric-Inline (a MetricCard) passes it on.
+{
+  const cardSet = [...mapping.sets.values()].find((set) => set.code === "Card");
+  const card = (id, props, children = []) => ({ type: "INSTANCE", id, name: "Card", set: { id: cardSet.id, name: cardSet.name }, props: { Surface: "Default", Spacing: "Medium", Active: "No", "Sub-Action": false, ...props }, slots: [{ id: `${id}-c`, name: "Content", children }] });
+  const frame = {
+    type: "FRAME", name: "Widgets", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] },
+    children: [
+      card("8:1", { Theme: "Solid", Color: "Neutral" }, [{ type: "TEXT", name: "Title", characters: "Invoiced this year", textStyle: "Heading/Subheading" }]),
+      card("8:2", { Theme: "Pale", Color: "Violet", Spacing: "Small" }, [{ type: "TEXT", name: "Title", characters: "Design hours", textStyle: "Heading/Subheading" }]),
+      card("8:5", { Theme: "Border", Color: "Neutral", Surface: "Flat" }, [{ type: "TEXT", name: "Title", characters: "Hours", textStyle: "Heading/Subheading" }]),
+      card("8:3", { Theme: "Solid", Color: "Yellow" }, [{ type: "INSTANCE", id: "8:4", name: "Chart/Line-Chart", set: { id: "6643:63324", name: "Chart/Line-Chart" }, props: { "Show Icon": false, Title: "Revenue", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false } }]),
+    ],
+  };
+  const { text: page } = pageFromFigma(frame, { mapping });
+  check("card colour: the page is valid dialect", validateDialect(page), []);
+  ok("card colour: Theme Solid + Color Neutral (the dark widget) is theme=\"solid\" with the default colour left out", /<Card theme="solid">/.test(page));
+  ok("card colour: Theme Pale + Color Violet keeps its colour", /<Card theme="pale" color="violet" spacing="small">/.test(page));
+  ok("card surface: Theme Border + Surface Flat is surface=\"flat\"", /<Card theme="border" surface="flat">/.test(page));
+  ok("card colour: a Solid Yellow Card around a chart with its Heading is a ChartCard that passes its colour on", /<ChartCard title="Revenue" theme="solid" color="yellow">/.test(page));
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

@@ -190,7 +190,7 @@ Every background belongs to one of five layers, bottom to top. Pick the token by
 
 1. **Canvas** is always the bottom layer: the page colour. Most designs use `canvas-default`; designs that want a white page use `canvas-alt`. Components never paint Canvas.
 2. **Surface** is for cards and containers on the Canvas. Choose `surface-default` or `surface-alt` to suit the page style.
-   - On a **`canvas-flat`** page, top and bottom navigation containers use **`surface-flat`**, so the bar and the page stay seamless in both light and dark mode. `surface-flat` is not for cards.
+   - On a **`canvas-flat`** page, top and bottom navigation containers use **`surface-flat`**, so the bar and the page stay seamless in both light and dark mode. `surface-flat` is not for cards, except Figma's Card Border × Surface=Flat: a Card `theme="border" surface="flat"` on that page (and the `on-container` card inside an overlay).
 3. **Other colours** are component fills (Neutral/Subtle, Support/*, Solid, states) on top of Surface or Canvas.
 4. **Container** is only for Modal/Dialog, Modal/Forms and Bottom-Sheet panels.
 5. **Popover** is the top layer: popovers, menus, tooltips, pickers, flyouts and toasts.
@@ -249,6 +249,7 @@ Harness (`npm run usage:check`): `navigation/back-chevron` (error). Suppress a d
 | `canvas-alt` | `surface-default` | a closed border: `0 0 0 1px` Border/Neutral/**Pale** when static, **Subtle** when actionable (§6) |
 | `canvas-alt` | `surface-alt` | nothing extra (the colour separates it) |
 | `canvas-default` / `canvas-flat` | `surface-default` | as designed |
+| `canvas-flat` | `surface-flat` (Card `theme="border" surface="flat"`) | the Pale border (Figma Card Border × Surface=Flat) |
 
 - **A shadow does not count.** Elevation alone reads as a smudge on white, and it disappears in dark mode, so the border is required even when the box also has a shadow.
 - **Navigation bars** (Top/Bottom Navigation, Sidebar) are not boxes on the page; they keep their own separators.

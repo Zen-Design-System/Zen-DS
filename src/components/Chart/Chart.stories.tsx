@@ -143,7 +143,7 @@ const months6 = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
 const hoursOf = (value: number) => `${value.toLocaleString("en-US")} h`;
 const money = (value: number) => `$${Math.round(value / 1000)}K`;
 
-/** One measure over time as a line over its flat area; the Tooltip stands beside the active dot (Figma Type=Area). */
+/** One measure over time as a line over its fading area (Solid → Subtle at 30%); the Tooltip stands beside the active dot (Figma Type=Area). */
 export const Area: Story = {
   render: () => (
     <ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, 2026" value="11,480 h">

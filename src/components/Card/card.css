@@ -24,7 +24,118 @@
 .zen-card[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .zen-card[data-surface="default"] { --zen-card-surface: var(--zen-color-background-surface-default, #fff); }
 .zen-card[data-surface="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); }
-.zen-card[data-tone="pale"] { background: var(--zen-color-background-support-neutral-pale); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* Surface=Flat (Figma Border/Flat 15530:502–520): a Border card on a Canvas/Flat page takes Surface/Flat (the page colour
+   in both modes) inside its Pale frame. Card.tsx sets it on Border only.
+   zen-allow-surface-flat: Figma's Card Border × Surface=Flat is Surface/Flat (user, 2026-10-14), not a navigation bar. */
+.zen-card[data-surface="flat"] { --zen-card-surface: var(--zen-color-background-surface-flat, #fff); }
+/* Color (Figma Card Color, Pale and Solid only; Card.tsx sets data-color on those themes, so a card never inherits
+   another card's fill). Pale: Support/<Color>/Pale (6643:51022, 15480:87358–87418, 15530:526, 15530:550). Solid: Neutral
+   Background/Neutral/Solid/Default (15480:87472), a hue Support/<Color>/Solid (15480:87478–87496); Figma has no Solid
+   Violet, Green, Blue or Purple (they would fail contrast) and Card.tsx renders those as Solid Neutral. */
+.zen-card[data-color="neutral"] { --zen-card-pale: var(--zen-color-background-support-neutral-pale); --zen-card-solid: var(--zen-color-background-neutral-solid-default); }
+.zen-card[data-color="brand"] { --zen-card-pale: var(--zen-color-background-support-brand-pale); --zen-card-solid: var(--zen-color-background-support-brand-solid); }
+.zen-card[data-color="cyan"] { --zen-card-pale: var(--zen-color-background-support-cyan-pale); --zen-card-solid: var(--zen-color-background-support-cyan-solid); }
+.zen-card[data-color="violet"] { --zen-card-pale: var(--zen-color-background-support-violet-pale); }
+.zen-card[data-color="green"] { --zen-card-pale: var(--zen-color-background-support-green-pale); }
+.zen-card[data-color="yellow"] { --zen-card-pale: var(--zen-color-background-support-yellow-pale); --zen-card-solid: var(--zen-color-background-support-yellow-solid); }
+.zen-card[data-color="orange"] { --zen-card-pale: var(--zen-color-background-support-orange-pale); --zen-card-solid: var(--zen-color-background-support-orange-solid); }
+.zen-card[data-color="blue"] { --zen-card-pale: var(--zen-color-background-support-blue-pale); }
+.zen-card[data-color="purple"] { --zen-card-pale: var(--zen-color-background-support-purple-pale); }
+/* Pale: Support/<Color>/Pale + Effect/Overlay (background blur 100). */
+.zen-card[data-tone="pale"] { background: var(--zen-card-pale, var(--zen-color-background-support-neutral-pale)); backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
+/* Solid: the one widget of a row that stands out (user rule 2026-10-14). No shadow, blur or stroke. */
+.zen-card[data-tone="solid"] { background: var(--zen-card-solid, var(--zen-color-background-neutral-solid-default)); }
+/* What the children of a Solid card read. Never a mode switch (one page = one mode): the page keeps its mode and every
+   surface its fill. The card re-points, on its Content and Sub-Action wrappers, the neutral tokens that content drawn
+   straight on its fill reads, to the tokens Figma binds there (Metric-Card Hero · Solid Neutral, 15487:89034):
+   Content/Neutral/* → Content/Inverse/* (the Sub-Action icon Inverse/Light), Border/Neutral/Solid → Border/Inverse,
+   Background/Neutral/Solid → Background/Inverse/Solid (the sparkline's area fades Inverse/Solid → Inverse/Subtle), and
+   the neutral alpha fills, hairlines and tracks → the Background/Inverse/* step of the same alpha (Figma has no
+   Border/Inverse/Pale|Subtle). Measured on Neutral/Solid (Strongest / Base / Light): light mode 18.4 / 12.8 / 7.1:1,
+   dark mode (a near-white fill) 18.4 / 8.1 / 3.8:1, as Content/Neutral reads on Surface (Light ≥ 3:1, icons and meta).
+   A hue Solid is a bright fill in both modes: Figma keeps neutral content there, which dark mode turns light (≤ 2.9:1),
+   so dark mode takes the same Inverse re-point (dark content); and Light measures 2.9:1 on Cyan/Orange, so on a hue
+   Light reads Base (≥ 4.6:1). Controls that paint their own fill keep it: Button, Segmented and Badge levels read their
+   component tokens (set on the page), so the author picks Button appearance="overlay" level="inverse" and an on-colour
+   Badge as Figma does; the few whose label reads Content/Neutral on an Inverse, White or Surface fill get the page's
+   neutral content back (--zen-card-page-*). Fields and other Surface controls stay off Solid cards. Selected (Active)
+   cards take the Surface fill and keep the page tokens. */
+.zen-card[data-tone="solid"]:not([data-active="true"]) {
+  --zen-card-page-strongest: var(--zen-color-content-neutral-strongest);
+  --zen-card-page-base: var(--zen-color-content-neutral-base);
+  --zen-card-page-light: var(--zen-color-content-neutral-light);
+  --zen-card-page-solid: var(--zen-color-background-neutral-solid-default);
+}
+.zen-card[data-tone="solid"][data-color="neutral"]:not([data-active="true"]),
+:where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-active="true"]) { color: var(--zen-color-content-inverse-strongest); }
+.zen-card[data-tone="solid"][data-color="neutral"]:not([data-active="true"]) > :is(.zen-card__content, .zen-card__sub-action),
+:where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-active="true"]) > :is(.zen-card__content, .zen-card__sub-action) {
+  --zen-color-content-neutral-strongest: var(--zen-color-content-inverse-strongest);
+  --zen-color-content-neutral-base: var(--zen-color-content-inverse-base);
+  --zen-color-content-neutral-light: var(--zen-color-content-inverse-light);
+  --zen-color-content-disabled: var(--zen-color-content-inverse-disabled);
+  --zen-color-border-neutral-solid-default: var(--zen-color-border-inverse);
+  --zen-color-border-active-neutral-solid: var(--zen-color-border-inverse);
+  --zen-color-border-neutral-subtle-default: var(--zen-color-background-inverse-subtle-pressed);
+  --zen-color-border-active-neutral-subtle: var(--zen-color-background-inverse-subtle-pressed);
+  --zen-color-border-neutral-pale-default: var(--zen-color-background-inverse-subtle-default);
+  --zen-color-background-neutral-solid-default: var(--zen-color-background-inverse-solid-default);
+  --zen-color-background-active-neutral-solid: var(--zen-color-background-inverse-solid-default);
+  --zen-color-background-active-neutral-subtle: var(--zen-color-background-inverse-subtle-default);
+  --zen-color-background-neutral-subtle-default: var(--zen-color-background-inverse-subtle-default);
+  --zen-color-background-neutral-subtle-hover: var(--zen-color-background-inverse-subtle-hover);
+  --zen-color-background-neutral-subtle-pressed: var(--zen-color-background-inverse-subtle-pressed);
+  --zen-color-background-support-neutral-subtle: var(--zen-color-background-inverse-subtle-default);
+  --zen-color-background-neutral-pale-default: var(--zen-color-background-inverse-flat-hover);
+  --zen-color-background-support-neutral-pale: var(--zen-color-background-inverse-flat-hover);
+  --zen-color-background-neutral-flat-hover: var(--zen-color-background-inverse-flat-hover);
+  --zen-color-background-neutral-flat-pressed: var(--zen-color-background-inverse-flat-pressed);
+  --zen-color-border-neutral-subtle-pressed: var(--zen-color-background-inverse-subtle-pressed);
+  /* Chart Sector/Secondary (Support/Neutral/Deep, the near-black series) flips as the Hero's area does. */
+  --zen-chart-sector-secondary: var(--zen-color-background-inverse-solid-default);
+}
+/* The heatmap's deepest step (Support/Brand/Deep: the strongest mark, near-white in dark mode) reads the card's strongest
+   ink there, as Sector/Secondary does. */
+.zen-card[data-tone="solid"][data-color="neutral"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart),
+:where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart) { --zen-color-background-support-brand-deep: var(--zen-color-background-inverse-solid-default); }
+/* (In dark mode Base is already re-pointed to Inverse/Base above, so Light follows it.) */
+.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) > :is(.zen-card__content, .zen-card__sub-action) { --zen-color-content-neutral-light: var(--zen-color-content-neutral-base); }
+/* Chart and metric marks on a hue Solid take Figma's Color Chart Sector/On-Color styles, three neutral steps that stay
+   apart on any hue: the primary series (Sector/Primary and the Accent line, dots and fade of the line charts)
+   On-Color/Primary = Content/On-Colors; the near-black series On-Color/Secondary = Content/Neutral/Light (read as Base
+   here); and on Brand the heatmap's Brand ramp steps to the Neutral one. The palette series in the card's own hue (Cyan,
+   Yellow, Orange) takes the Brand hue the white primary leaves free, Solid → Subtle as its fade: Figma's On-Color/
+   Tertiary (Border/Neutral/Subtle/Pressed) reads as a line (ΔE 12) but its area washes into the fill (ΔE 3.5 at the
+   fade's 30%). Scoped to the marks (charts, metric marks, progress bars and rings: the Accent progress fill is the
+   primary series too), so badges and buttons keep theirs. */
+.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) {
+  --zen-chart-sector-primary: var(--zen-color-content-on-colors);
+  --zen-color-border-accent-solid-default: var(--zen-color-content-on-colors);
+  --zen-color-background-accent-solid-default: var(--zen-color-content-on-colors);
+  --zen-color-border-active-accent-solid: var(--zen-color-content-on-colors);
+  --zen-color-background-active-accent-solid: var(--zen-color-content-on-colors);
+  --zen-chart-sector-secondary: var(--zen-color-content-neutral-light);
+}
+.zen-card[data-tone="solid"][data-color="brand"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) {
+  --zen-color-background-support-brand-pale: var(--zen-color-background-support-neutral-pale);
+  --zen-color-background-support-brand-soft: var(--zen-color-background-support-neutral-soft);
+  --zen-color-background-support-brand-solid: var(--zen-color-background-support-neutral-solid);
+  --zen-color-background-support-brand-rich: var(--zen-color-background-support-neutral-rich);
+  --zen-color-background-support-brand-deep: var(--zen-color-background-support-neutral-deep);
+}
+.zen-card[data-tone="solid"][data-color="cyan"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) { --zen-color-background-support-cyan-solid: var(--zen-color-background-support-brand-solid); --zen-color-background-support-cyan-subtle: var(--zen-color-background-support-brand-subtle); }
+.zen-card[data-tone="solid"][data-color="yellow"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) { --zen-color-background-support-yellow-solid: var(--zen-color-background-support-brand-solid); --zen-color-background-support-yellow-subtle: var(--zen-color-background-support-brand-subtle); }
+.zen-card[data-tone="solid"][data-color="orange"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart, .zen-metric-spark, .zen-metric-bars, .zen-metric-categories, .zen-progress-bar, .zen-progress-circle) { --zen-color-background-support-orange-solid: var(--zen-color-background-support-brand-solid); --zen-color-background-support-orange-subtle: var(--zen-color-background-support-brand-subtle); }
+.zen-card[data-tone="solid"]:not([data-active="true"]) :is(.zen-button[data-appearance="overlay"], .zen-badge[data-tone="inverse"], .zen-dock-icon:is([data-tone="inverse"], [data-tone="surface"]), .zen-tooltip[data-color="white-overlay"], .zen-chart__pill) {
+  --zen-color-content-neutral-strongest: var(--zen-card-page-strongest);
+  --zen-color-content-neutral-base: var(--zen-card-page-base);
+  --zen-color-content-neutral-light: var(--zen-card-page-light);
+}
+/* …and those whose Content/Inverse label sits on a Neutral/Solid fill (Tooltip, Badge, Avatar, Dock Icon, the chart's
+   average tag) keep the page's Neutral/Solid. */
+.zen-card[data-tone="solid"]:not([data-active="true"]) :is(.zen-tooltip, .zen-badge, .zen-avatar, .zen-dock-icon, .zen-chart__average-tag) {
+  --zen-color-background-neutral-solid-default: var(--zen-card-page-solid);
+}
 /* On-Container: Surface/Flat, a card inside a Modal, Side Panel or Bottom Sheet (their Container fill); selected keeps
    it (Figma Card Theme=On-Container).
    zen-allow-surface-flat: Figma's On-Container theme is Surface/Flat (user, 2026-10-12), not a navigation bar. */

@@ -84,6 +84,12 @@ export const Good = () => <>
   <Slider aria-labelledby="brightness-label" theme="white" size="large" />
   <RichTextField label="Announcement" onValueChange={(html) => setHtml(html)} />
   <Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card>
+  <Card theme="pale" color="violet"><Text>Design hours</Text></Card>
+  <Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card>
+  <Card theme="border" surface="flat"><Text>Hours this week</Text></Card>
+  <Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card>
+  <MetricCard theme="solid" color="yellow" label="Next payout" value="$12,400" />
+  <ChartCard title="Revenue" theme="pale" color="cyan"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
   <Card theme="border" subAction={{ label: "More actions", onClick: openMenu }}><Text>Q4 review</Text></Card>
   <ListItem title="Ava Chen" onClick={open} trailing={<Text>9:41</Text>} />
   <ListItem title="Ava Chen" trailing={<IconButton onClick={act} size="md" aria-label="Message" icon={<Icon name="icon-mail-01-line" />} />} />
@@ -98,6 +104,10 @@ export const Good = () => <>
   <Rating aria-label="Rate this template" value={stars} onChange={setStars} />
   <ColorSelector aria-label="Label colour" colors={colors} value={color} onChange={setColor} />
   <Metric label="Revenue" value="$1,680.68" />
+  <MetricCard type="sparkline" label="Revenue" value="$105,700" series={[61, 66, 64, 73]} />
+  <MetricCard type="goal-progress" label="Collected" value="$108,400" goal={{ value: 108400, target: 135000 }} />
+  <MetricCard type="comparison" label="Cash flow" comparison={[{ id: "in", label: "Invoiced", value: "$105,700" }, { id: "out", label: "Collected", value: "$88,300" }]} />
+  <MetricCard type="category-bar" label="Invoices" value="$184,200" categories={[{ id: "paid", label: "Paid", value: 106800 }, { id: "pending", label: "Pending", value: 77400 }]} />
   <FileUpload label="Contract" accept="application/pdf" caption="PDF only. Max 2 MB" onFilesAdd={add} />
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }} />
   <IconButton onClick={act} appearance="flat" level="primary" size="sm" aria-label="Close" icon={<Icon name="icon-x-small-line" />} />

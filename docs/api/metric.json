@@ -167,24 +167,136 @@
     {
       "name": "MetricCard",
       "file": "src/components/MetricWidget/MetricWidget.tsx",
-      "description": "Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding an XLarge Metric and a ⋮ Sub-Action.",
+      "description": "Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an\nXLarge Icon-Highlight Metric; the other types (see `type`) put their marks, bar or columns under a Title-Highlight one.",
       "deprecated": null,
-      "extends": "MetricProps",
+      "extends": null,
       "props": [
+        {
+          "name": "value",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\"). Every type shows it but `comparison`, whose columns\n carry the numbers.",
+          "deprecated": null
+        },
+        {
+          "name": "theme",
+          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"semi-pale\"",
+          "required": false,
+          "default": null,
+          "description": "Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme=\"pale\" color=\"brand\" by default).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": null,
+          "description": "Card Color (Figma Card Color, for theme=\"pale\" or \"solid\"): the Card's hue. Solid Neutral is the dark widget; see Card.",
+          "deprecated": null
+        },
+        {
+          "name": "subAction",
+          "type": "CardSubAction | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the Card's root `<div>` (not to the Metric inside it).",
+          "deprecated": null
+        },
+        {
+          "name": "type",
+          "type": "\"kpi\" | \"sparkline\" | \"spark-bars\" | \"goal-progress\" | \"comparison\" | \"category-bar\" | \"hero\"",
+          "required": false,
+          "default": "\"kpi\"",
+          "description": "Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): an Icon-Highlight Metric, as before. Every other\ntype draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart\n(Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)\nbars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;\n`comparison` (15481:1848) the `label` as a Heading/Subheading title over the `comparison` columns; `category-bar`\n(15481:1957, Large) a bar of shares from `categories` and a row per category; `hero` (15481:2047, XLarge) a neutral\ntrend line from `series` on a Brand Pale card (theme=\"solid\" for the dark widget), with `footer` for its button.",
+          "deprecated": null
+        },
+        {
+          "name": "series",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "sparkline · spark-bars · hero: the values in order, oldest first; the last is the current period (the Secondary bar).\n The line spans the lowest to the highest value. The card's `value` and `trend` say the numbers; the marks get an\n accessible summary.",
+          "deprecated": null
+        },
+        {
+          "name": "seriesLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "sparkline · spark-bars · hero: the marks' accessible name, instead of \"Trend over 12 periods: from … to …, low …, high …\".",
+          "deprecated": null
+        },
+        {
+          "name": "goal",
+          "type": "MetricGoal",
+          "required": false,
+          "default": null,
+          "description": "goal-progress: the amount reached and the goal.",
+          "deprecated": null
+        },
+        {
+          "name": "comparison",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "comparison: two to four columns side by side (Spacing/Gap/Medium, a Border/Neutral/Subtle rule before each but the\n first); they stack on a narrow card.",
+          "deprecated": null
+        },
+        {
+          "name": "categories",
+          "type": "unknown",
+          "required": false,
+          "default": null,
+          "description": "category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours).",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "(value: number) => string",
+          "required": false,
+          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount).\n Default \"1.2K\".",
+          "deprecated": null
+        },
+        {
+          "name": "footer",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Content under the type's own (Figma Hero: a Small Button — level=\"primary\" on a hue card, appearance=\"overlay\"\n level=\"inverse\" on Solid Neutral, as Figma's Button/Overlay Inverse).",
+          "deprecated": null
+        },
+        {
+          "name": "headingLevel",
+          "type": "2 | 3 | 4",
+          "required": false,
+          "default": "3",
+          "description": "comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under\n the page h1), as ChartCard's. The look stays Heading/Subheading: the level follows the outline, not the size.",
+          "deprecated": null
+        },
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Draw the marks in on mount and when their data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
         {
           "name": "label",
           "type": "ReactNode",
           "required": true,
           "default": null,
           "description": "Figma Metric-Title.",
-          "deprecated": null
-        },
-        {
-          "name": "value",
-          "type": "ReactNode",
-          "required": true,
-          "default": null,
-          "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\").",
           "deprecated": null
         },
         {
@@ -308,35 +420,11 @@
           "deprecated": null
         },
         {
-          "name": "ref",
-          "type": "Ref<HTMLDivElement>",
-          "required": false,
-          "default": null,
-          "description": "Forwarded to the root `<div>`.",
-          "deprecated": null
-        },
-        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
-          "deprecated": null
-        },
-        {
-          "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"semi-pale\"",
-          "required": false,
-          "default": "\"shadow\"",
-          "description": "Card theme (Figma Metric-Card uses Shadow).",
-          "deprecated": null
-        },
-        {
-          "name": "subAction",
-          "type": "CardSubAction | ReactNode",
-          "required": false,
-          "default": null,
-          "description": "Card Sub-Action (Figma: ⋮ Button/Icon-Flat).",
           "deprecated": null
         }
       ]
@@ -345,6 +433,7 @@
   "types": {
     "CardSubAction": "interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }",
     "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]",
+    "MetricGoal": "interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }",
     "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\""
   }
 }

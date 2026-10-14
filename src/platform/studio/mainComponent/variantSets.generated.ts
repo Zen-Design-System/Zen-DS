@@ -975,18 +975,60 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Flat",
             "Pale",
             "Border",
-            "Semi-Pale",
-            "On-Container"
+            "On-Container",
+            "Solid"
           ],
           "values": [
             "shadow",
             "flat",
             "pale",
             "border",
-            "semi-pale",
-            "on-container"
+            "on-container",
+            "solid"
           ],
           "default": "shadow"
+        },
+        {
+          "prop": "color",
+          "label": "Color",
+          "names": [
+            "Neutral",
+            "Brand",
+            "Cyan",
+            "Violet",
+            "Green",
+            "Yellow",
+            "Orange",
+            "Blue",
+            "Purple"
+          ],
+          "values": [
+            "neutral",
+            "brand",
+            "cyan",
+            "violet",
+            "green",
+            "yellow",
+            "orange",
+            "blue",
+            "purple"
+          ],
+          "default": "neutral"
+        },
+        {
+          "prop": "surface",
+          "label": "Surface",
+          "names": [
+            "Default",
+            "Alt",
+            "Flat"
+          ],
+          "values": [
+            "default",
+            "alt",
+            "flat"
+          ],
+          "default": "default"
         },
         {
           "prop": "spacing",
@@ -1002,7 +1044,7 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "default": "medium"
         },
         {
-          "prop": "active",
+          "prop": "selected",
           "label": "Active",
           "names": [
             "No",
@@ -3267,82 +3309,35 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
   ],
   "MetricCard": [
     {
-      "name": "Primitives/Metric/Metric-Inline/Icon-Highlight",
-      "figma": "595:55188",
-      "fixed": {
-        "variant": "icon-highlight"
-      },
+      "name": "Metric-Card",
+      "figma": "6643:64008",
+      "fixed": {},
       "axes": [
         {
-          "prop": "size",
-          "label": "Size",
+          "prop": "type",
+          "label": "Type",
           "names": [
-            "XLarge",
-            "Large",
-            "Medium",
-            "Small",
-            "XSmall"
+            "KPI",
+            "Sparkline",
+            "Spark-Bars",
+            "Goal-Progress",
+            "Comparison",
+            "Category-Bar",
+            "Hero"
           ],
           "values": [
-            "xlarge",
-            "large",
-            "medium",
-            "small",
-            "xsmall"
+            "kpi",
+            "sparkline",
+            "spark-bars",
+            "goal-progress",
+            "comparison",
+            "category-bar",
+            "hero"
           ],
-          "default": "xlarge"
+          "default": "kpi"
         }
       ],
-      "toggles": [
-        {
-          "prop": "counter",
-          "label": "Counter",
-          "on": "3",
-          "default": false
-        }
-      ]
-    },
-    {
-      "name": "Primitives/Metric/Metric-Inline/Title-Highlight",
-      "figma": "7523:507049",
-      "fixed": {
-        "variant": "title-highlight"
-      },
-      "axes": [
-        {
-          "prop": "size",
-          "label": "Size",
-          "names": [
-            "XLarge",
-            "Large",
-            "Medium",
-            "Small",
-            "XSmall"
-          ],
-          "values": [
-            "xlarge",
-            "large",
-            "medium",
-            "small",
-            "xsmall"
-          ],
-          "default": "xlarge"
-        }
-      ],
-      "toggles": [
-        {
-          "prop": "hint",
-          "label": "Hint",
-          "on": "How this number is worked out",
-          "default": false
-        },
-        {
-          "prop": "labelIcon",
-          "label": "Label-Icon",
-          "on": "icon-wallet-02-line",
-          "default": false
-        }
-      ]
+      "toggles": []
     }
   ],
   "ChatMessage": [

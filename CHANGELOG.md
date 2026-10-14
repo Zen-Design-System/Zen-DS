@@ -251,8 +251,26 @@ removed (four unused colour ramps were, see Removed).
 - `LineChart compare`: the legend is start-aligned, as Figma's Multi-Line chart.
 - Guidelines: a "when to use" line with two "→" lost everything after the second arrow on the platform page (Input,
   App Shell and Chart lost their second advice); each advice is its own line now, and the page keeps the full text.
+- Charts follow the live Figma again (2026-10-14, user: "update lại chart, widget từ Figma"): the line chart's area and
+  the area chart's bands fade from their colour to its Subtle at 30% (they were flat), and only the active period of a
+  line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Widget patterns, batch 1 (2026-10-14, user): a **Widgets** page on the platform and a **Widgets** group in Zen
+  Studio's palette with 20 dashboard widgets — seven metric cards (KPI, sparkline, spark bars, goal progress, period
+  comparison, category split, hero) and thirteen chart cards — one source for both, carried by Export › Figma and
+  Import from Figma.
+- `MetricCard type` (Figma Metric-Card Type): `kpi` (default, unchanged) · `sparkline` · `spark-bars` ·
+  `goal-progress` · `comparison` · `category-bar` · `hero`, with `series`, `goal`, `comparison`, `categories`,
+  `footer`. The sparkline's area fades like the line chart's, its top edge on the line. A `comparison` card's title is a heading
+  (`headingLevel`, default 3, as ChartCard's). In Zen Studio a MetricCard keeps the switches of the Metric it holds
+  (Trend, Hint, Label-Icon, Custom…) beside its Type and Card.
+- `Card theme="solid"` and `color` (Figma Card Theme=Solid and Color): Pale in nine colours, Solid in Neutral (the dark
+  widget), Brand, Cyan, Yellow and Orange; `surface="flat"` for Border cards on a Canvas/Flat page. A Solid card keeps
+  the page's mode and points its content, borders, tracks and chart marks at the Inverse / On-Color tokens, as Figma's
+  dark Hero. `MetricCard` and `ChartCard` take `color`. Harness: `card/color-ignored`, `card/solid-color`,
+  `card/surface-ignored`, `metric/type-data`, `metric/category-count`. Zen Studio maps Card Theme, Color and Surface
+  and Metric-Card Type both ways and shows them in the inspector.
 - `docs/qa/component-review-checklist.md`: the review checklist (Figma, a11y, security, React, code, tests).
 - `tests/smoke/conformance.test.tsx`: every public component renders under StrictMode, forwards `ref`, keeps
   `className` and leaves nothing behind after unmount.

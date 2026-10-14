@@ -295,6 +295,33 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   customize-without-detach.md, Figma audit `bounds/stroke-clip-gap` (dry run: Input page 0, old swatch shape caught).
 - Batch 2 (SliderField) and 3 (CurvePreview) wait for the user.
 
+## Widget patterns batch 1 (tier L, user: "Build tiếp các widget pattern cho đa dạng" → "làm mỗi lần 20 cái. Commit, push, merge rồi tính tiếp")
+
+- Choices (AskUserQuestion): a Widgets page on the platform + a Widgets group in Studio's palette; batch 1 = the seven
+  Metric-Card types + thirteen chart widgets. Worktree `../Zen-DS-widgets`, branch `zen/feat/widgets-batch1`. Spec,
+  manifest, as-built: `docs/research/widget-patterns-spec-2026-10-14.md`.
+- Agents: card-color (Card `theme="solid"`, `color`, `surface="flat"`, Solid token re-points incl. chart marks and
+  area fades, Studio mapping + inspector), metric-types (`MetricCard type`, internal MetricMarks, `figma-metric.mjs`),
+  widgets (app-layer page `widgets` + palette group, one source checked by palette.selftest §4b, figma-widgets
+  selftest), chart-sync (re-read the 15 chart sets after the user's Figma edits: Line and Area areas fade Solid →
+  Subtle at 30%, idle sector rules hidden).
+- User mid-batch: the Sparkline bug (area 4px above the line, end dot clipped by Metric-Body) — the Figma write was
+  refused by the tool's shared-library guard; the user rebuilt the Sparkline (and Hero) in Figma with a fade, code
+  follows. "nên học cách làm lớp mờ dần của line chart" → fade on the sparkline and LineChart (AskUserQuestion); the
+  designer then made the Area chart fade too. "Thêm 1 bộ variable background Inverse" → already in Figma and code
+  (Solid, Subtle, Flat): user "Không cần thêm". Design check of the widget charts: spark-bar sample given real weekly
+  variation, This year vs last → six months, Budget rings legend at the bottom.
+- Merged main b399312 (Tung's React 19 refs refactor): ChartCard and MetricCard keep `ref` and gain `color`.
+- Checks: tsc, usage, style, guidelines, studio:selftest, `npm test` 871 passed; QA gate below.
+- Open (BACKLOG P2): Figma bugs and older chart diffs for the designer; BarList leader 78%.
+- Finished by "Giám sát" (user: "tiếp quản phiên donut"; the Donut session had closed at its 22:15 gate, FAIL): merged
+  main d46001d (ColorField; 9 conflicts: guidelines.source and palette.selftest kept both, component-properties merged by
+  page, generated docs/Studio files rebuilt). Fixed: Studio E2E SP-13/SP-20/SP-21 (MetricCard mapped to Metric-Card only
+  had dropped the Metric switches; the Inspector now adds the Metric it holds, `componentGroups` HOLDS — push/pull keep
+  Metric-Card, figma-widgets 31/31), audit outline (phone section h2 → Heading/4; comparison title a heading,
+  `headingLevel`, 2 under a phone's h1). Gate: static, Vitest 64/64, behaviour ✓; E2E 263/265 (O-02/O-04 = main's
+  modal-isolation regression, PR #57).
+
 ## Batch 2: SliderField (tier L, stacked branch zen/feat/slider-field-20261014 on #53, user: "Có")
 - SliderField: Input box (::before background + Effect/Input, ::after border on top, the value as a fill), role=slider
   on the number area (the label is part of its hit target), click/Enter/F2 → a text input (Enter applies, clamped and

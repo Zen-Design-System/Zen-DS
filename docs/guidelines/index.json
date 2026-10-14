@@ -2246,13 +2246,15 @@
         "Grids of objects users scan and pick (projects, templates, plans).",
         "KPI / stat tiles (Flat by default; Shadow beside a shadowed Sidebar).",
         "A selectable option with rich content (Active marks the choice).",
-        "Framing a List or a group of settings (Border)."
+        "Framing a List or a group of settings (Border).",
+        "A dashboard widget in colour: Pale in any of the nine hues, or the one widget of a row that stands out (Solid)."
       ],
       "avoid": [
         "Page sections that are just spacing → layout, not a card.",
         "A single line of content → ListItem.",
         "Rows of comparable data → Table.",
-        "Messages → Inline Message."
+        "Messages → Inline Message.",
+        "Darkening one card with a mode switch (data-theme) → theme=\"solid\" color=\"neutral\"."
       ],
       "props": {
         "Card": [
@@ -2262,11 +2264,12 @@
           "alignSelf?: start|center|end|stretch",
           "ref?: Ref<HTMLElement>",
           "children?: ReactNode",
-          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
+          "theme?: shadow|flat|pale|border|on-container|solid|semi-pale = shadow",
+          "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple = neutral",
           "spacing?: md|sm|medium|small = md",
           "selected?: boolean",
           "active?: boolean (deprecated)",
-          "surface?: default|alt",
+          "surface?: default|alt|flat",
           "onClick?: (event: MouseEvent<HTMLElement>|KeyboardEvent<HTMLElement>) => void",
           "aria-label?: string",
           "subAction?: CardSubAction|ReactNode",
@@ -2283,18 +2286,27 @@
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
         "Put secondary card actions in the Sub-Action menu.",
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"border\" surface=\"flat\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Flat cards only, which is what a Canvas/Alt page takes anyway.",
+        "Put colour on a box with theme=\"pale\" and a color (any of the nine hues, content stays neutral), e.g. a card per project or client on a white Canvas/Alt page.",
+        "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) suits one time-sensitive figure.",
+        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read Content/Inverse/* by themselves; pick Button appearance=\"overlay\" level=\"inverse\" and Badge theme=\"on-color\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
         "Pricing plans: Flat cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
       ],
       "dont": [
         "Don't put buttons, links or inputs inside a clickable card (harness: card/clickable-no-nested-controls).",
         "Don't nest cards inside cards.",
         "Don't frame a static card with Subtle — Border uses Pale until the card is clickable (§6).",
-        "Don't use Active as decoration; it means selected."
+        "Don't use Active as decoration; it means selected.",
+        "Don't make a whole row Solid: one widget stands out, the rest share the row's theme.",
+        "Don't set data-theme or a dark mode on one card to darken it: one page is one mode, and theme=\"solid\" color=\"neutral\" re-points only its content tokens.",
+        "Don't put fields, Search or other Surface controls on a Solid card; they keep the page's Surface fill."
       ],
       "rules": [
         "card/clickable-no-nested-controls",
         "card/on-container-in-overlay",
+        "card/color-ignored",
+        "card/surface-ignored",
+        "card/solid-color",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
@@ -2863,18 +2875,25 @@
       "title": "Metric Widget",
       "file": "docs/guidelines/metric.md",
       "apiFile": "docs/api/metric.json",
-      "figma": "Metric-Card, Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)",
+      "figma": "Metric-Card (Type: KPI · Sparkline · Spark-Bars · Goal-Progress · Comparison · Category-Bar · Hero), Primitives/Metric/Metric-Inline/*, .Primitives/Metrics/Metric-Trend (page 595:54968)",
       "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
-      "purpose": "Show one key number with its label, an identifying icon and how it changed.",
+      "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
       "use": [
         "Dashboard KPI tiles (MetricCard).",
         "Summary rows above tables or charts (Metric Small/Medium inline).",
-        "A single highlighted figure in a card or panel."
+        "A single highlighted figure in a card or panel.",
+        "A KPI and the shape of its last periods → MetricCard type=\"sparkline\" (a line) or \"spark-bars\" (bars, the current one highlighted).",
+        "A number toward its goal → MetricCard type=\"goal-progress\".",
+        "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
+        "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
+        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button."
       ],
       "avoid": [
-        "Series over time → a chart.",
+        "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
         "Many comparable numbers → Table.",
-        "Progress toward a goal → Progress."
+        "Progress of a task, an upload or a quota → ProgressBar.",
+        "More than 7 parts of a total → DonutChart, BarList or a Table.",
+        "More than one hero in a row → one hero, the rest plain MetricCards."
       ],
       "props": {
         "Metric": [
@@ -2899,8 +2918,19 @@
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MetricCard": [
+          "value?: ReactNode",
+          "theme?: shadow|flat|pale|border|on-container|solid|semi-pale",
+          "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple",
+          "subAction?: CardSubAction|ReactNode",
+          "ref?: Ref<HTMLDivElement>",
+          "type?: kpi|sparkline|spark-bars|goal-progress|comparison|category-bar|hero = kpi",
+          "seriesLabel?: string",
+          "goal?: MetricGoal",
+          "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
+          "footer?: ReactNode",
+          "headingLevel?: 2|3|4 = 3",
+          "animate?: boolean = true",
           "label: ReactNode",
-          "value: ReactNode",
           "trend?: { direction: MetricTrendDirection; label: ReactNode }",
           "icon?: IconName|false",
           "iconTheme?: DockIconTheme",
@@ -2916,14 +2946,14 @@
           "labelIcon?: IconName|ReactNode",
           "hint?: ReactNode",
           "className?: string",
-          "ref?: Ref<HTMLDivElement>",
-          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
-          "theme?: shadow|flat|pale|border|on-container|semi-pale = shadow",
-          "subAction?: CardSubAction|ReactNode"
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
       },
       "do": [
         "Format the value with units and separators (harness: metric/formatted-value).",
+        "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
+        "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
+        "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
         "Always say what the trend compares against (\"vs. last month\").",
         "Use the same size for metrics in one row; one hero metric at most.",
         "Pair a worrying trend with guidance (Inline Message) or a link to details.",
@@ -2937,7 +2967,11 @@
         "Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status."
       ],
       "rules": [
+        "card/color-ignored",
+        "card/solid-color",
         "metric/formatted-value",
+        "metric/type-data",
+        "metric/category-count",
         "api/overrides-studio-only",
         "icon/unknown-name",
         "interaction/no-noop-handler",
@@ -4011,8 +4045,9 @@
           "range?: string",
           "onRangeChange?: (id: string) => void",
           "rangesFullWidth?: boolean = true",
-          "theme?: shadow|flat|pale|border|on-container|semi-pale = flat",
-          "surface?: default|alt",
+          "theme?: shadow|flat|pale|border|on-container|solid|semi-pale = flat",
+          "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple",
+          "surface?: default|alt|flat",
           "children: ReactNode",
           "className?: string",
           "ref?: Ref<HTMLDivElement>",
@@ -4038,6 +4073,9 @@
         "Don't mix chart styles on one screen: every chart takes the shared grid, labels, Tooltip, legend and motion."
       ],
       "rules": [
+        "card/color-ignored",
+        "card/surface-ignored",
+        "card/solid-color",
         "chart/stack-needs-legend",
         "chart/needs-name",
         "chart/shares-need-legend",

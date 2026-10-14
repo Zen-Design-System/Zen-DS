@@ -999,7 +999,7 @@ const retry = () => {
   },
   {
     title: "Hours over time",
-    description: "An area chart reads one measure over time as a straight line over its flat area, from the first month to the last. The active month shows its dot, a rule down to the baseline and the Tooltip beside the dot; with one series the card title names the measure, so there is no legend.",
+    description: "An area chart reads one measure over time as a straight line over its fading area, from the first month to the last. The active month shows its dot, a rule down to the baseline and the Tooltip beside the dot; with one series the card title names the measure, so there is no legend.",
     render: () => <HoursAreaCard />,
     code: `<ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">
   <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" series={[{ id: "hours", label: "Billable hours" }]}
