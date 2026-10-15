@@ -9,6 +9,7 @@ import { useSlotMenuItems } from "../slots/menu";
 import { clipboardActions, clipboardMenuItems, clipboardShortcuts } from "../edit/clipboard";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
+import { visibilityMenuItems } from "../edit/visibility";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { presentFrame, zoomToFrame } from "../board/presentFrame";
@@ -112,6 +113,8 @@ export function CanvasMenu() {
     { id: "wrap-stack", label: "Wrap in Stack", icon: "icon-rows-01-line", shortcut: autoLayoutShortcut, caption: wrap.ok ? undefined : wrap.reason, disabled: !wrap.ok, onSelect: () => { void wrapSelection("stack"); } },
     { id: "wrap-box", label: "Wrap in Box", icon: "icon-square-line", shortcut: frameSelectionShortcut, disabled: !wrap.ok, onSelect: () => { void wrapSelection("box"); } },
   ] : [];
+  // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
+  const visibility: MenuEntry[] = menu?.target.kind === "node" ? visibilityMenuItems(selection) : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection);
   const editOff = canEdit() ? undefined : studioStore.getState().role === "admin" ? "Editing needs the Studio dev server" : "View only — switch to Admin to edit";
@@ -158,7 +161,7 @@ export function CanvasMenu() {
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, detach, ...slotItems.trailing];
+        : [...selectLayer, ...clipboard, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...visibility, detach, ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 

@@ -1,4 +1,4 @@
-import { useMemo, type Ref } from "react";
+import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
 import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, niceScale, signatureOf, staggerStyle, useChartSelection, type ChartDatum, type ChartSeries } from "./chartCore";
@@ -32,7 +32,7 @@ export interface GroupedBarChartProps {
 
 /**
  * Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall
- * apart, centred in the period's column; each bar takes its series' Color Chart Sector style (`chartPalette`) with
+ * apart, centred in the period's column (with room to spare the group grows to 70% of the column, bars up to 32px); each bar takes its series' Color Chart Sector style (`chartPalette`) with
  * Corner-Radius/XSmall on its top corners. The bar charts' frame: Y labels (Label/Small/Medium, Content/Neutral/Light)
  * right-aligned Spacing/Padding/XSmall before the plot, dashed 4 / 4 Border/Neutral/Pale gridlines over a solid
  * Border/Active/Neutral/Subtle baseline, X labels under it (the active one a pill). The active group keeps its colours
@@ -55,7 +55,7 @@ export function GroupedBarChart({ data, series, format = defaultFormat, height =
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--grouped", className].filter(Boolean).join(" ")} kind="bar" animate={animate} summary={summary}
         tooltip={current ? <SeriesValues items={series.map((s, si) => ({ id: s.id, color: colourAt(s, si), value: valueOf(s) }))} /> : null}>
-        <div className="zen-chart__bars" key={signature}>
+        <div className="zen-chart__bars" key={signature} style={{ "--zen-chart-series": series.length } as CSSProperties}>
           {data.map((d, i) => (
             <span key={d.label + i} className="zen-chart__group" data-active={i === active ? "true" : undefined}>
               {series.map((s, si) => <span key={s.id} className="zen-chart__group-bar" style={staggerStyle(i, { height: `${(values[i][si] / top) * 100}%`, background: colourAt(s, si) })} />)}

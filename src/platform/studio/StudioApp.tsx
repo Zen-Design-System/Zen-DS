@@ -21,6 +21,7 @@ import { Inspector } from "./inspector/Inspector";
 import { LayersPanel } from "./select/LayersPanel";
 import { AssetsPanel } from "./edit/assets/AssetsPanel";
 import { duplicateLayers, removeLayers } from "./edit/multi";
+import { canHide, toggleLayerHidden } from "./edit/visibility";
 import { multiSelection } from "./select/multiSelection";
 import { wrapSelection } from "./select/wrapSelection";
 import { duplicateSelection, editDataGroup, editDataItem, editDataItems, removeSelection } from "./slots/actions";
@@ -370,6 +371,15 @@ export function StudioApp() {
         if (doc || inExample) return;
         const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
         if (frameId) { event.preventDefault(); presentFrame(frameId); }
+        return;
+      }
+      // ⇧⌘H hides the selected layer or shows it again (Figma's Show/Hide), on a page made in the Studio (edit/visibility.ts).
+      if (mod && event.shiftKey && !event.altKey && event.code === "KeyH") {
+        if (doc || inExample) return;
+        const selection = state.selection;
+        if (!canHide(selection)) return;
+        event.preventDefault();
+        if (!event.repeat) void toggleLayerHidden(selection.src, selection.name);
         return;
       }
       // ⌘/Ctrl+D duplicates the selected layer (Figma's Duplicate) in the Select tool. On the canvas the browser's bookmark

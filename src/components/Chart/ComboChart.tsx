@@ -54,7 +54,7 @@ const round = (value: number) => Math.round(value * 1e6) / 1e6;
 
 /**
  * Figma Chart/Combo-Chart (15485:2519): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,
- * 20px, Corner-Radius/XSmall on the top corners) read the start axis; a straight 2px Color Chart Sector/Secondary line
+ * 20px, half the period's column with room to spare, up to 40px; Corner-Radius/XSmall on the top corners) read the start axis; a straight 2px Color Chart Sector/Secondary line
  * (round caps) with an 8px dot on every period (Surface/Default, 2px ring) reads the end axis. Both axes take
  * Label/Small/Medium in Content/Neutral/Light, Spacing/Padding/XSmall from the plot (the start one right-aligned, the end
  * one left-aligned) and share the dashed 4 / 4 Border/Neutral/Pale gridlines over a solid Border/Active/Neutral/Subtle

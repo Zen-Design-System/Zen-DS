@@ -402,3 +402,79 @@ Conditions that pick something else win over the default:
 
 Not machine-checked yet; the brief (`docs/research/example-rebuild-brief-2026-09-30.md` §3) and
 `docs/guides/example-patterns.md` §3 repeat it for example authors.
+
+## 17. One page, two layouts: the desktop header becomes the phone's Top Navigation
+
+User rule (2026-10-16; spec `docs/research/responsive-header-spec-2026-10-16.md`, skill
+`skills/zen-responsive-screens`). A page that runs on desktop and on phones keeps **one set of parts and moves each
+one to its place**. Nothing is dropped: every action the desktop header offers is reachable on the phone.
+
+| Layout | Width (`useZen().breakpoint`) | Chrome |
+| --- | --- | --- |
+| Desktop | ≥ 1024 | AppShell: Sidebar beside the page, the top bar, `sections` (Figma Header/Dashboard) |
+| Tablet | 744–1023 | The same AppShell; the Sidebar opens as a drawer from the Menu button |
+| Mobile | < 744 | `TopNavigation` + `BottomNavigation` (Figma Top-Navigation/Mobile, Bottom-Navigation) instead of the AppShell, around the same content: branch on `useZen().breakpoint === "mobile"` |
+
+**The screen's kind picks the bar** (top-navigation-mobile-rules §1): a **root** (a Sidebar destination: no `back`,
+Breadcrumbs of one item or none) is `type="default"` with `largeTitle` and the BottomNavigation; a **child** (Breadcrumbs
+of two or more, or `back`) is `type="compact"` with the Back chevron and the bar `title`, without the BottomNavigation;
+a **modal or form** screen has Close and its Primary in an ActionBar footer.
+
+| Desktop part | On the phone |
+| --- | --- |
+| Sidebar items | BottomNavigation from the top-level rows in order (group titles and sub-rows skipped): up to 5 map one to one; more than 5 → the first 4 + More (the full list in a sheet) |
+| Sidebar brand, footer rows (Settings), collapse toggle | the account sheet or More, never the bar |
+| Breadcrumbs | root: none · child: Back chevron to the parent crumb (§10) |
+| PageHeader `title` | root: `largeTitle` and `title` (the folded bar) · child: `title` |
+| PageHeader `description`, `meta` | the first block of the content |
+| PageHeader `tabs` | `controlBar`: Tabs or Segmented `fullWidth` |
+| PageHeader Primary | a list root: a trailing "+" action labelled as the button · a detail or form: ActionBar footer |
+| PageHeader Tertiary and Danger buttons | ⋯ More → an action BottomSheet (Danger last) |
+| Top bar Search | a list root: `controlBar` Search + `searchAction` · elsewhere: a Search trailing action |
+| Notifications (`AppShellAction`) | root: a trailing action with `dot` (a count becomes the dot) · child: none (a child's trailing holds only that screen's actions) |
+| Other `AppShellAction`s, the plan Badge | root: ⋯ More or the account sheet · child: none |
+| Account (`AppShellAccount` + Menu) | root: the avatar in `leading`, opening the account menu as an action BottomSheet · child: none (Back holds `leading`) · none when the BottomNavigation has a Profile tab |
+| Control-bar row: Search + filter Chips | `controlBar` Search; the Chips → a scrolling Chip row at the top of the content |
+| `floatingAction`, `footer` | stay (the floating action hides on scroll; ActionBar `lg`, full width) |
+| `aside` (SidePanel) | a pushed screen or a BottomSheet `size="max"` |
+| `banner` | TopNavigation `banner` |
+
+Rules:
+
+1. **Three trailing places** (Figma Trailing-Slot holds 3; a `searchAction` takes one once the Search folds). By
+   priority: the Search action, "+" (a root), notifications, ⋯ More. With more candidates than places, More takes the
+   last place and holds the rest (with a `dot` when an item in it has one).
+2. **Every desktop header action is reachable on the phone**: in the bar, More, the footer, the account sheet or the
+   More tab. A part meant for one layout only is hidden on the other on purpose (Studio: Hide on mobile / desktop; code:
+   the breakpoint from `useZen()`), never lost in the mapping.
+3. **One h1.** The page title lives in AppShell `sections` (never in the content), so the phone hides that PageHeader
+   and the TopNavigation title is the h1 (top-navigation-mobile-rules R12).
+4. **Same words.** `title` / `largeTitle` = the PageHeader title; a root's title = its BottomNavigation label (R13); a
+   trailing action's label = the desktop button's.
+5. **One way to create.** The Primary becomes "+" or the footer, never both; a `floatingAction` "+" counts as that way.
+
+```tsx
+const phone = useZen()?.breakpoint === "mobile";
+const content = <Container>…</Container>; // the page both layouts share; its title is the header's, not in here
+return phone ? (
+  <>
+    <TopNavigation title="Expenses" largeTitle="Expenses" leading={<AppShellAccount name="Khoa Dang" onClick={openAccount} />}
+      trailing={[{ icon: "icon-plus-line", label: "New expense" }, { icon: "icon-bell-01-line", label: "Notifications", dot: true }]}
+      controlBar={<Search aria-label="Search" placeholder="Search expenses" />} searchAction={{ onClick: focusSearch }} sticky />
+    <main>{content}</main>
+    <BottomNavigation value="expenses" items={[home, expenses, approvals, cards, more]} />
+  </>
+) : (
+  <AppShell
+    sidebar={<Sidebar aria-label="Main" selectedId="expenses">…</Sidebar>}
+    header={<Search aria-label="Search" placeholder="Search expenses" />}
+    headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
+    sections={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
+  >
+    {content}
+  </AppShell>
+);
+```
+
+In Zen Studio a Screen keeps both sets (its desktop AppShell, and its Top / Bottom Navigation in the Screen section):
+build the phone set by this table. Not machine-checked yet beyond the TopNavigation rules (`top-navigation/*`).

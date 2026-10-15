@@ -8,7 +8,7 @@ The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcru
 
 ## Use it for
 - Every signed-in web app screen (dashboards, admin, HR and settings).
-- Apps that must work from phone to desktop with one navigation.
+- Desktop and tablet app frames: below 1024px the Sidebar becomes a drawer; on phones the same page takes a TopNavigation + BottomNavigation instead (see Do).
 - Top-bar icon actions with an unread dot or count → AppShellAction.
 - The account menu → Menu with an AppShellAccount trigger.
 
@@ -113,6 +113,7 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 - Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.
 - Store the rail state from onSidebarCollapsedChange so the Sidebar opens the way people left it.
 - Let layout follow the shell's width; force it only for previews and tests.
+- On phones (useZen()?.breakpoint === "mobile"), draw the page's content between a TopNavigation and a BottomNavigation instead of the AppShell, mapped from it: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable, and the title stays in sections so each layout has one h1 (component-usage-rules §17, skill zen-responsive-screens).
 
 ## ❌ Don't
 - Don't build your own sidebar + main flex layout or your own drawer.

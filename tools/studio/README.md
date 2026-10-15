@@ -179,20 +179,27 @@ Unwrap (a one-layer wrap undone: the Position section's Ignore auto layout off o
 - `unwrapped.loc` is the element's opening tag (the wrapper's old place, moved up when an import line went); the
   example snippet is unwrapped the same way when the wrapper's code occurs exactly once in it.
 
+Slots holding several layers and hidden layers (user, 2026-10-16; `visibility.mjs`): a prop of a builder page may hold
+a fragment (`headerActions={<><Badge … /><AppShellAccount … /></>}`), its layers straight in the slot as Figma's. Any
+layer takes `hidden` (every layout), `hidden="mobile"` or `hidden="desktop"`; a component takes `hiddenSlots={["prop"]}`
+(Figma's boolean on a slot). Both are Studio-only: the canvas does not draw them (Layers lists a hidden layer dimmed),
+`pruneHidden` leaves them out of the code export and the Figma push.
+
 A Screen's master layout (user, 2026-10-15: the Screen section's desktop parts edit one root AppShell, Figma
 ◇ Master-Layout, so a page from a template never shows a second Sidebar; `{ op: "screenFrame", prop, on, code }`,
 `screen-frame.mjs`):
 
-- Alone in its request, on a `<Screen>`. `prop` is a part of `FRAME_PARTS` (`sidebar`, `header`, `headerActions`,
-  `sections`, `aside`, `floatingAction`, `footer`; `screen-chrome.mjs`), `code` the component it starts with
-  (`screenFrameCode`).
+- Alone in its request, on a `<Screen>`. `prop` is a part of `FRAME_PARTS` (`banner`, `sidebar`, `header`,
+  `headerCenter`, `headerActions`, `sections`, `aside`, `floatingAction`, `footer`; `screen-chrome.mjs`), `code` the
+  component it starts with (`screenFrameCode`). The Screen section switches a part that holds layers off and on through
+  the AppShell's `hiddenSlots` instead (above), so its layers come back as they were.
+- The mobile layout keeps the Screen's Top and Bottom Navigation: the canvas, the code export and the Figma push draw
+  the AppShell's content without its frame there.
 - On: the prop joins the Screen's root AppShell, or an AppShell is made around the Screen's content. Off: the prop goes;
   an AppShell left without a frame part is taken away again. The page's import follows (new components in, the ones
   nothing reads any more out). On twice or off twice changes nothing.
 - Builder pages made before (the Screen's own `sidebar` / `header` props) are moved into the AppShell when they open
   (`migrateScreenFrame`, `builder/localApi.ts`), a second Sidebar or Page header dropped, every element's id kept.
-- The mobile layout keeps the Screen's Top and Bottom Navigation: the canvas, the code export and the Figma push draw
-  the AppShell's content without its frame there.
 
 Wrap several layers (Figma's Frame selection ⌥⌘G / Add auto layout ⇧A on a multi-selection, 2026-10-03;
 `{ op: "wrap", tag: "Stack", props: { direction: …, gap: … }, with: ["14:6", "18:6"] }`, `applyWrapMany`):

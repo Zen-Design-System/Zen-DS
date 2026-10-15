@@ -356,6 +356,14 @@ const appShellHeaderActions: ContentSlot = {
   accepts: { only: ["AppShellAction", "AppShellAccount", "Badge", "Button", "IconButton", "Avatar", "Menu"] },
 };
 
+const appShellBanner: ContentSlot = {
+  // {banner ? <div ref={setBannerEl} className="zen-app-shell__banner">…} above the whole frame, sticky: an AlertBanner.
+  component: "AppShell", prop: "banner", name: "Banner",
+  kind: "content", container: ":scope > .zen-app-shell__banner", mountsWhenEmpty: false,
+  ghostAnchor: { selector: ":scope", place: "first-child", flow: "column" }, flow: "block", gap: "none", max: 1,
+  accepts: { only: ["AlertBanner"] },
+};
+
 const appShellSections: ContentSlot = {
   // {sections ? <div className="zen-app-shell__sections">…} at the top of main (Figma Header/Dashboard Sections): rows
   // under the top bar.
@@ -537,6 +545,23 @@ const dashboardCenter: ContentSlot = {
   activeWhen: [{ prop: "type", is: ["navigation"], default: "control-bar" }],
 };
 
+const dashboardLeading: ContentSlot = {
+  // Navigation: <div className="zen-dashboard-header__leading">{leading}</div>, always drawn (Figma Leading-Slots: the
+  // sidebar toggle and Breadcrumbs, gap Medium).
+  component: "DashboardHeader", prop: "leading", name: "Leading-Slots", figma: { node: "4122:33402", native: true },
+  kind: "content", container: ":scope > .zen-dashboard-header__leading", mountsWhenEmpty: true, flow: "row", gap: "own",
+  accepts: { deny: [...overlayDeny] },
+  activeWhen: [{ prop: "type", is: ["navigation"], default: "control-bar" }],
+};
+
+const dashboardCustom: ContentSlot = {
+  // Custom: the row itself holds the layers (Figma Custome-Elements, its own spelling: one slot, gap Medium, centred).
+  component: "DashboardHeader", prop: "children", name: "Custome-Elements", figma: { node: "4122:33402", native: true },
+  kind: "content", container: ":scope", mountsWhenEmpty: true, flow: "row", gap: "own",
+  accepts: { deny: [...overlayDeny] },
+  activeWhen: [{ prop: "type", is: ["custom"], default: "control-bar" }],
+};
+
 const dashboardTrailing: ContentSlot = {
   component: "DashboardHeader", prop: "trailing", name: "Trailing-Slots", figma: { node: "4122:33402", native: true },
   kind: "content", container: ":scope > .zen-dashboard-header__trailing, :scope > .zen-page-header__row > .zen-page-header__actions > .zen-page-header__trailing", mountsWhenEmpty: false,
@@ -583,7 +608,7 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   // A Sidebar row or section placed on its own or in a Sidebar slot: their own small slots.
   SidebarMenuItem: { root: ".zen-sidebar__item-group", titleLevel: null, slots: [sidebarMenuItemTrailing] },
   SidebarMenuSection: { root: ".zen-sidebar__section", titleLevel: null, slots: [sidebarMenuSectionAction] },
-  AppShell: { root: ".zen-app-shell", titleLevel: null, slots: [appShellSidebar, appShellHeader, appShellHeaderCenter, appShellHeaderActions, appShellSections, appShellAside, appShellFloating, appShellFooter] },
+  AppShell: { root: ".zen-app-shell", titleLevel: null, slots: [appShellBanner, appShellSidebar, appShellHeader, appShellHeaderCenter, appShellHeaderActions, appShellSections, appShellAside, appShellFloating, appShellFooter] },
   Sidebar: { root: ".zen-sidebar", titleLevel: null, slots: [sidebarHeader, sidebarBody, sidebarFooter] },
   PageHeader: { root: ".zen-page-header", titleLevel: { prop: "headingLevel", default: 1 }, slots: [pageHeaderBreadcrumbs, pageHeaderMeta, pageHeaderActions, pageHeaderTrailing, pageHeaderTabs] },
   // A builder page's Screen (not a library component): its app frame's header is a free slot.
@@ -593,7 +618,7 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   Screen: { root: ".studio-builder-screen", titleLevel: null, slots: [] },
   Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction, metricCustom] },
   MetricCard: { root: ".zen-metric-card", titleLevel: null, slots: [metricCardCustom] },
-  DashboardHeader: { root: ".zen-dashboard-header", titleLevel: null, slots: [dashboardSearch, dashboardControls, dashboardActions, dashboardCenter, dashboardTrailing] },
+  DashboardHeader: { root: ".zen-dashboard-header", titleLevel: null, slots: [dashboardLeading, dashboardSearch, dashboardControls, dashboardActions, dashboardCenter, dashboardTrailing, dashboardCustom] },
   EmptyState: { root: ".zen-empty-state", titleLevel: null, slots: [emptyStateIcon] },
   // Stack and Grid space their children with their gap prop (default md); Box is a plain block (Layout.tsx, layout.css).
   Stack: { root: ".zen-stack", titleLevel: null, slots: [layout("Stack", "column", "own")] },
@@ -756,9 +781,9 @@ export function insertTargetFor(slot: ContentSlot, content: SlotContentSummary):
       : { mode: "direct" };
   }
   const only = content.count === 1 ? content.only : undefined;
-  // A prop slot that holds one Stack or Grid (a page header's actions in a row Stack): that is its row of layers, so a new
-  // one joins it; beside it, the prop would need a fragment, which a page made in the Studio cannot hold (2026-10-13
-  // Figma walk: "Add to Action-Slots › Button" was refused on a page from a template).
+  // A prop slot that holds one Stack or Grid (a page header's actions in a row Stack, as older template pages wrote them):
+  // that is its row of layers, so a new one joins it. A prop holding anything else takes the new layer beside it, both in
+  // the prop's fragment (<>…</>, which pages made in the Studio hold since 2026-10-16), as Figma's slot.
   if (slot.prop !== "children" && (only?.name === "Stack" || only?.name === "Grid")) return { mode: "into", name: only.name };
   if (slot.gap !== "none" || content.count === 0) return { mode: "direct" };
   if (only?.name === "Grid") return { mode: "into", name: "Grid" };

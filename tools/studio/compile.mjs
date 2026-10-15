@@ -17,6 +17,7 @@
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
 import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
+import { pruneHidden } from "./visibility.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -164,6 +165,12 @@ function valueCode(value, ctx, indent, where) {
       return !flat.includes("\n") && indent.length + flat.length <= WIDTH ? flat : `{\n${fields.map((field) => `${indent}${UNIT}${field},`).join("\n")}\n${indent}}`;
     }
     case "element": return elementCode(value.node, ctx, indent);
+    case "fragment": {
+      // A slot holding several layers (Figma's slot): they stay side by side in the prop, the component lays them out.
+      const kids = value.children.map((child) => childCode(child, ctx, indent + UNIT));
+      const flat = `<>${kids.join("")}</>`;
+      return !flat.includes("\n") && indent.length + flat.length <= WIDTH ? flat : `<>\n${kids.map((kid) => `${indent}${UNIT}${kid}`).join("\n")}\n${indent}</>`;
+    }
     case "proto": return protoCode(value, ctx, where);
     case "ref": return refCode(value);
     case "code": return value.code;
@@ -312,7 +319,8 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   if (page.errors.length || !page.board) return { error: page.errors[0] ? `line ${page.errors[0].line}: ${page.errors[0].message}` : "The page has no board" };
   const title = String(page.header?.title ?? "Untitled");
   const name = componentName(title);
-  const frames = page.board.children.filter((child) => child.kind === "element");
+  // Each frame as its layout draws it: hidden layers and switched-off slots left out (tools/studio/visibility.mjs).
+  const frames = page.board.children.filter((child) => child.kind === "element").map((node) => pruneHidden(node, node.name === "Screen" ? screenLayout(literalOf(node, "device") ?? "desktop", literalOf(node, "layout")) : undefined)).filter(Boolean);
   const screens = frames.filter((node) => node.name === "Screen");
   const overlays = frames.filter((node) => node.name === "Overlay");
   if (!screens.length) return { error: "The page has no Screen" };

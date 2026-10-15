@@ -76,7 +76,8 @@ const lastClass = (selector) => classesIn(selector).at(-1);
 function declarations(css, cls) {
   const out = [];
   for (const [, selectors, body] of css.replace(/\/\*[^]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (selectors.split(",").some((s) => s.trim() === `.${cls}`)) out.push(body);
+    // `.cls` itself, or `.cls:not(…)` (DashboardHeader's row rule leaves Type=Main to PageHeader).
+    if (selectors.split(",").some((s) => s.trim() === `.${cls}` || s.trim().startsWith(`.${cls}:not(`))) out.push(body);
   }
   return out.join(";");
 }
@@ -101,7 +102,8 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
     for (const selector of [slot.container, ...ghostAnchorsOf(slot).map((anchor) => anchor.selector), slot.parts]) {
       for (const cls of classesIn(selector)) check(`${id}: .${cls} is in the source`, tsx.includes(cls), true);
     }
-    const cls = lastClass(slot.container ?? def.root);
+    // A slot that is the root itself (`:scope`: DashboardHeader's Custom row) is checked on the root's class.
+    const cls = lastClass(slot.container && slot.container !== ":scope" ? slot.container : def.root);
     const decls = declarations(css, cls);
     if (slot.container !== null) {
       // Conditional mount: `{x ? <div className="zen-…__body">` in the TSX; also a fragment that opens wrappers first

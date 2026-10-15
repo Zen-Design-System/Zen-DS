@@ -65,6 +65,7 @@ function valueCode(value, ctx) {
       return fields.length ? `{ ${fields.join(", ")} }` : "{}";
     }
     case "element": return elementCode(value.node, "", ctx, true);
+    case "fragment": return `<>${value.children.map((child) => childCode(child, "", ctx, true)).join("")}</>`;
     case "proto": return `proto.${value.action}(${value.args.map(literalCode).join(", ")})`;
     case "ref": return refCode(value);
     default: throw new Error(`Unknown value kind ${value.kind}`);
@@ -114,16 +115,18 @@ function namesOf(doc) {
   const names = new Set();
   const visitValue = (value) => {
     if (value.kind === "element") visitNode(value.node);
+    else if (value.kind === "fragment") value.children.forEach(visitChild);
     else if (value.kind === "array") value.items.forEach(visitValue);
     else if (value.kind === "object") Object.values(value.fields).forEach(visitValue);
   };
   const visitNode = (node) => {
     names.add(node.name.split(".")[0]);
     Object.values(node.props).forEach(visitValue);
-    for (const child of node.children) {
-      if (child.kind === "element") visitNode(child);
-      else if (child.kind === "map") visitNode(child.node);
-    }
+    node.children.forEach(visitChild);
+  };
+  const visitChild = (child) => {
+    if (child.kind === "element") visitNode(child);
+    else if (child.kind === "map") visitNode(child.node);
   };
   if (doc.board) visitNode(doc.board);
   return names;
@@ -159,16 +162,18 @@ function elementsOf(root) {
   const out = [];
   const visitValue = (value) => {
     if (value.kind === "element") visitNode(value.node);
+    else if (value.kind === "fragment") value.children.forEach(visitChild);
     else if (value.kind === "array") value.items.forEach(visitValue);
     else if (value.kind === "object") Object.values(value.fields).forEach(visitValue);
   };
   const visitNode = (node) => {
     out.push(node);
     for (const [name, value] of Object.entries(node.props)) if (name !== ID_PROP) visitValue(value);
-    for (const child of node.children) {
-      if (child.kind === "element") visitNode(child);
-      else if (child.kind === "map") visitNode(child.node);
-    }
+    node.children.forEach(visitChild);
+  };
+  const visitChild = (child) => {
+    if (child.kind === "element") visitNode(child);
+    else if (child.kind === "map") visitNode(child.node);
   };
   if (root) visitNode(root);
   return out;
@@ -186,6 +191,7 @@ export function docFromText(text, { components, newId = newDocId } = {}) {
   const seen = new Set();
   const convertValue = (value) => {
     if (value.kind === "element") return { kind: "element", node: convertNode(value.node) };
+    if (value.kind === "fragment") return { kind: "fragment", children: value.children.map(convertChild) };
     if (value.kind === "array") return { kind: "array", items: value.items.map(convertValue) };
     if (value.kind === "object") return { kind: "object", fields: Object.fromEntries(Object.entries(value.fields).map(([name, field]) => [name, convertValue(field)])) };
     return value;
@@ -196,9 +202,9 @@ export function docFromText(text, { components, newId = newDocId } = {}) {
     seen.add(own);
     const props = {};
     for (const [name, value] of Object.entries(node.props)) if (name !== ID_PROP) props[name] = convertValue(value);
-    const children = node.children.map((child) => (child.kind === "element" ? convertNode(child) : child.kind === "map" ? { ...child, node: convertNode(child.node) } : child));
-    return { kind: "element", id: own, name: node.name, props, children };
+    return { kind: "element", id: own, name: node.name, props, children: node.children.map(convertChild) };
   };
+  const convertChild = (child) => (child.kind === "element" ? convertNode(child) : child.kind === "map" ? { ...child, node: convertNode(child.node) } : child);
   return { doc: { header: tree.header, mock: tree.mock, board: convertNode(tree.board) }, errors: tree.errors };
 }
 

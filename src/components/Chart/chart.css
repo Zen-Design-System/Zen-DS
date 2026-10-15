@@ -364,11 +364,13 @@
    after it on the start half, centred on the point and kept inside the plot's height (16px = half the Tooltip). */
 .zen-chart__point-tip { position: absolute; z-index: 1; top: clamp(calc(16px - var(--zen-chart-lane-top)), var(--zen-chart-y, 50%), calc(100% - 16px)); pointer-events: none; transform: translate(calc(-100% - var(--zen-element-size-popular-2-xsmall, 12px)), -50%); }
 .zen-chart__point-tip[data-side="end"] { transform: translate(var(--zen-element-size-popular-2-xsmall, 12px), -50%); }
-/* Grouped bars: per period a centred group of 12px bars Spacing/Gap/2XSmall apart (narrower when the column can't hold
-   them), Corner-Radius/XSmall on the top corners; the groups that aren't active ease to 88%, as stacked columns. */
+/* Grouped bars: per period a centred group of bars Spacing/Gap/2XSmall apart, Corner-Radius/XSmall on the top corners;
+   the groups that aren't active ease to 88%, as stacked columns. 12px at Figma's size; with room to spare (user,
+   2026-10-16: "Các cột ốm quá. Khi không gian còn khá nhiều") the group grows to 70% of its column, each bar up to
+   32px, and narrower than 12px only when the column can't hold them (--zen-chart-series: the bars in a group). */
 .zen-chart__group, .zen-chart__combo-column { display: flex; height: 100%; min-width: 0; align-items: flex-end; justify-content: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
 .zen-chart__group { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.zen-chart__group-bar { display: block; min-width: 2px; min-height: 2px; flex: 0 1 12px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
+.zen-chart__group-bar { display: block; min-width: 2px; min-height: 2px; flex: 0 1 clamp(12px, calc((70% - (var(--zen-chart-series, 2) - 1) * var(--zen-spacing-gap-2-xsmall, 4px)) / var(--zen-chart-series, 2)), 32px); border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
 .zen-chart__group:not([data-active="true"]) .zen-chart__group-bar, .zen-chart__combo-column:not([data-active="true"]) .zen-chart__combo-bar { opacity: .88; }
 /* Combo: 20px Color Chart Sector/Primary bars (Corner-Radius/XSmall top corners) on the start axis, a Color Chart
    Sector/Secondary line on the end axis (Figma Y-Axis-End: left-aligned, Spacing/Padding/XSmall after the plot). The end
@@ -378,7 +380,8 @@
 .zen-chart-combo .zen-chart__sector::before { content: none; }
 .zen-chart__y-end { box-sizing: content-box; padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); text-align: left; }
 .zen-chart__y-end > span { right: auto; left: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-chart__combo-bar { display: block; width: min(100%, 20px); min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-sector-primary, #ff66d4); }
+/* 20px at Figma's size, half its column with room to spare (up to 40px, as a bar chart's bar), never wider than it. */
+.zen-chart__combo-bar { display: block; width: min(100%, clamp(20px, 50%, 40px)); min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-sector-primary, #ff66d4); }
 .zen-chart__combo-line { stroke: var(--zen-chart-sector-secondary, #111); }
 /* Motion: grouped and combo bars rise from the baseline under their top corners (clip, Slow, Emphasized, staggered per
    period); areas and the combo line wipe in from the left with their dots (.zen-chart__marks, as the line chart); the

@@ -64,6 +64,7 @@ const pages = {
   "rich page": RICH,
   "blank desktop": newPageText({ title: "Blank", device: "desktop", chrome: false }),
   "blank phone with chrome": newPageText({ title: "Phone", device: "phone" }),
+  "empty page (no app frame, nothing in it)": newPageText({ title: "Empty", empty: true }),
 };
 const userPage = ".zen-studio/pages/admin-list-team-members-2.zen.tsx";
 if (fs.existsSync(userPage)) pages["a page made in the Studio"] = fs.readFileSync(userPage, "utf8");
@@ -89,7 +90,8 @@ const start = docFromText(RICH, { newId }).doc;
 const startText = printPage(start);
 const nodes = (doc) => {
   const out = [];
-  const visit = (node) => { out.push(node); for (const value of Object.values(node.props)) if (value.kind === "element") visit(value.node); for (const child of node.children) { if (child.kind === "element") visit(child); else if (child.kind === "map") visit(child.node); } };
+  const visitChild = (child) => { if (child.kind === "element") visit(child); else if (child.kind === "map") visit(child.node); };
+  const visit = (node) => { out.push(node); for (const value of Object.values(node.props)) { if (value.kind === "element") visit(value.node); else if (value.kind === "fragment") value.children.forEach(visitChild); } node.children.forEach(visitChild); };
   visit(doc.board);
   return out;
 };
@@ -201,6 +203,57 @@ check("a loc with nothing there is refused, as the engine refuses it", editDoc(s
   const through = editDoc(start, startText, { file: FILE, loc: locIn(start, startText, button), name: "Button", ops: [{ op: "replaceElement", code }] }, { applyOps, dataFieldEdit, sha1, options: engine(startText) });
   check("code with ids: the text has none", [typeof through.text === "string", /data-zen-id/.test(through.text ?? ""), /<Stack gap="sm">\s*<Text>From Figma<\/Text>\s*<\/Stack>/.test(through.text ?? "")], [true, false, true]);
   check("code with ids: the document takes them", [through.ids, nodes(through.doc).filter((node) => node.id.startsWith("fpull-")).map((node) => `${node.name}#${node.id}`)], [true, ["Stack#fpull-1", "Text#fpull-2"]]);
+}
+
+/* ── a slot prop holding several layers (<>…</>, user 2026-10-16: as Figma's slot) ─────────────────────────────── */
+{
+  const FRAG = `// @zen-page {"format":1,"title":"Slots"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Badge, Button, List, ListItem } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Slots" device="desktop">
+        <List>
+          <ListItem title="Alex" trailing={<Badge>New</Badge>} />
+          <ListItem title="Binh" trailing={<><Badge>One</Badge><Button level="tertiary">Two</Button></>} />
+        </List>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  check("fragment prop: the page is valid", parsePage(FRAG).errors, []);
+  const value = parsePage(FRAG).board.children[0].children[0].children[1].props.trailing;
+  check("fragment prop: read as the slot's layers", [value.kind, value.children.map((child) => child.name)], ["fragment", ["Badge", "Button"]]);
+  const doc = docFromText(FRAG, { newId }).doc;
+  const text = printPage(doc);
+  check("fragment prop: its print reads back as the same page", tree(text), withoutIds(doc));
+  check("fragment prop: the engine's print keeps every id", JSON.stringify(docFromText(printPage(doc, { ids: true })).doc), JSON.stringify(doc));
+  check("fragment prop: every layer in it has a place", nodes(doc).every((node) => locsOf(doc, text).locOf.has(node.id)), true);
+  const edit = (label, name, index, ops) => {
+    const node = nodes(doc).filter((entry) => entry.name === name)[index];
+    const loc = locsOf(doc, text).locOf.get(node.id);
+    const direct = applyOps(text, loc, name, ops, engine(text));
+    const through = editDoc(doc, text, { file: FILE, loc, name, ops }, { applyOps, dataFieldEdit, sha1, options: engine(text) });
+    check(`${label}: the document accepts it`, through.error ?? null, null);
+    if (!through.error) check(`${label}: same page as the engine's`, withoutIds(through.doc), tree(direct.code));
+    return through;
+  };
+  const added = edit("a second layer in a one-layer slot", "ListItem", 0, [{ op: "insertChild", prop: "trailing", code: '<Button level="tertiary">Open</Button>' }]);
+  if (!added.error) {
+    const slot = byName(added.doc, "ListItem", 0).props.trailing;
+    check("a second layer: the slot holds both, the first keeps its id", [slot.kind, slot.children.map((child) => child.name), slot.children[0].id], ["fragment", ["Badge", "Button"], byName(doc, "Badge", 0).id]);
+  }
+  const removed = edit("remove a layer from a slot", "Button", 0, [{ op: "removeElement" }]);
+  if (!removed.error) check("remove: the other layer stays in the slot", byName(removed.doc, "ListItem", 1).props.trailing.children?.map((child) => child.name) ?? [byName(removed.doc, "ListItem", 1).props.trailing.node?.name], ["Badge"]);
+  const copied = edit("duplicate a layer in a slot", "Badge", 1, [{ op: "duplicateElement" }]);
+  if (!copied.error) check("duplicate: three layers in the slot", byName(copied.doc, "ListItem", 1).props.trailing.children.map((child) => child.name), ["Badge", "Badge", "Button"]);
+  const moved = edit("move a layer within its slot", "Button", 0, [{ op: "moveElement", to: "prev" }]);
+  if (!moved.error) check("move: the Button goes first", byName(moved.doc, "ListItem", 1).props.trailing.children.map((child) => child.name), ["Button", "Badge"]);
 }
 
 if (failures.length) {

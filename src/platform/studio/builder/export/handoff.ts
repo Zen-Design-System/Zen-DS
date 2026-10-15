@@ -75,6 +75,7 @@ export function designNames(board: PageNode | null): DesignNames {
   const sets = { textStyles: new Set<string>(), spacing: new Set<string>(), colour: new Set<string>(), shape: new Set<string>() };
   const visitValue = (value: PageValue) => {
     if (value.kind === "element") visitNode(value.node);
+    else if (value.kind === "fragment") value.children.forEach(visitChild);
     else if (value.kind === "array") value.items.forEach(visitValue);
     else if (value.kind === "object") Object.values(value.fields).forEach(visitValue);
   };

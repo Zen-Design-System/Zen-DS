@@ -19,6 +19,7 @@ import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
 import { cacheGeneration, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
 import { engineNow, zenComponents } from "./engine";
 import { setPlaces } from "../select/srcIds";
+import { setHiddenLayers } from "../edit/visibility";
 
 /** A stable number per prototype-actions object (the canvas's inert set, Interact's live one) for the render cache. */
 const protoKeys = new WeakMap<object, number>();
@@ -109,6 +110,8 @@ export function BuilderBoard({ id }: { id: string }) {
     try { return engine.locsOf(page.doc, text, { components: new Set(zenComponents) }) as { idAt: Map<string, string>; locOf: Map<string, string> }; } catch { return null; }
   }, [page?.doc, text]);
   if (places) setPlaces(file, places.locOf);
+  // Hidden layers are not drawn: Layers lists them from the page's tree (edit/visibility.ts).
+  if (tree) setHiddenLayers(file, tree);
   const framesRef = useRef<HTMLDivElement>(null);
   useFrameKeys(id, text);
   const frames = useMemo(() => {

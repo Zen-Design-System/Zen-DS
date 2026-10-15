@@ -10,6 +10,7 @@ export type DocValue =
   | { kind: "array"; items: DocValue[] }
   | { kind: "object"; fields: Record<string, DocValue> }
   | { kind: "element"; node: DocNode }
+  | { kind: "fragment"; children: DocChild[] }
   | { kind: "proto"; action: string; args: unknown[] }
   | { kind: "ref"; root: string; path: string[] };
 
@@ -42,6 +43,7 @@ export function valueText(value: DocValue): string {
     case "array": return value.items.length <= 3 && value.items.every((item) => item.kind === "literal" && typeof item.value !== "object") ? `[${value.items.map(valueText).join(", ")}]` : `[${value.items.length} items]`;
     case "object": return `{${Object.keys(value.fields).join(", ")}}`;
     case "element": return `<${value.node.name} #${value.node.id}>`;
+    case "fragment": return `[${value.children.length} layers]`;
     case "proto": return `proto.${value.action}(${value.args.map((arg) => JSON.stringify(arg)).join(", ")})`;
     case "ref": return `{${refText(value)}}`;
     default: return "…";
@@ -52,7 +54,7 @@ export function valueText(value: DocValue): string {
 function propsText(node: DocNode): string {
   const parts: string[] = [];
   for (const [name, value] of Object.entries(node.props)) {
-    if (value.kind === "element") continue;
+    if (value.kind === "element" || value.kind === "fragment") continue;
     if (value.kind === "literal" && value.value === true) parts.push(name);
     else parts.push(`${name}=${valueText(value)}`);
   }
@@ -67,11 +69,16 @@ export function ownText(node: DocNode): string | null {
 
 const elementChildren = (node: DocNode): Array<{ node: DocNode; label?: string }> => {
   const out: Array<{ node: DocNode; label?: string }> = [];
-  for (const [name, value] of Object.entries(node.props)) if (value.kind === "element") out.push({ node: value.node, label: `${name}:` });
-  for (const child of node.children) {
-    if (child.kind === "element") out.push({ node: child });
-    else if (child.kind === "map") out.push({ node: child.node, label: `each ${child.item} of ${typeof child.source === "object" && child.source && "root" in child.source ? refText(child.source as { root: string; path: string[] }) : "a list"}:` });
+  const childEntry = (child: DocChild, label?: string) => {
+    if (child.kind === "element") out.push({ node: child, label });
+    else if (child.kind === "map") out.push({ node: child.node, label: `${label ? `${label} ` : ""}each ${child.item} of ${typeof child.source === "object" && child.source && "root" in child.source ? refText(child.source as { root: string; path: string[] }) : "a list"}:` });
+  };
+  for (const [name, value] of Object.entries(node.props)) {
+    if (value.kind === "element") out.push({ node: value.node, label: `${name}:` });
+    // A slot holding several layers: each one under the slot's name, as Figma lists a slot's layers.
+    else if (value.kind === "fragment") value.children.forEach((child) => childEntry(child, `${name}:`));
   }
+  node.children.forEach((child) => childEntry(child));
   return out;
 };
 

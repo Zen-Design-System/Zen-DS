@@ -19,6 +19,24 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- GroupedBarChart and ComboChart bars grow with the room they have (2026-10-16, user: "Các cột ốm quá. Khi không gian
+  còn khá nhiều"): Figma's 12px / 20px at Figma's size, then a grouped bar's group takes up to 70% of its period's
+  column (each bar up to 32px) and a combo bar half its column (up to 40px, as a bar chart's bar).
+- Zen Studio headers edit as Figma's slots (2026-10-16, user: "Các header là Slot nên có thể tự do thêm bớt element"): a
+  slot prop holds several layers for real (`<>…</>` on a page you made), so a top bar, its actions or a page header's
+  actions take a second layer (⌘D, paste, Assets) instead of refusing, and a template's header actions copy in as
+  separate layers (no wrapping row Stack). Hide and show any layer as Figma's eye (⇧⌘H, the eye in Layers, the layer
+  menu), also on one layout only (Hide on mobile / Hide on desktop): the canvas, the export and the Figma push leave it
+  out, Layers lists it dimmed. Slot switches (the Inspector's booleans, the Screen section's parts) hide a slot and keep
+  its layers (`hiddenSlots`), so switching back on brings the same content. New slots: DashboardHeader Leading-Slots
+  and Custom, AppShell Banner; the Screen section adds Banner and Top bar center; AppShell and PageHeader switches use
+  Figma's names (Nav-Trailing-Block, Nav-Center-Block, Subheading…).
+- Zen Studio New page › Empty page (2026-10-16, user: "cho phép tạo trang frame trống hoàn toàn"): one Screen with
+  nothing in it; a frame drawn with the Frame tool (F) is empty too, as Figma's.
+- Rules: `docs/component-usage-rules.md` §17 "One page, two layouts" maps the desktop header (Sidebar, Breadcrumbs,
+  PageHeader, top bar search and actions, account) to the phone's TopNavigation and BottomNavigation (three trailing
+  places, nothing dropped, one h1); new skill `skills/zen-responsive-screens` (code, Studio, Figma) with worked examples;
+  the Figma AI kit and `AGENTS.consumer.md` point to it.
 - Zen Studio Present and Play (2026-10-16, user: "thanh … giống của trình duyệt để view load bên trong khung"): the
   floating bottom pill is now a browser-style bar across the top (navigation, the screen's name in an address pill,
   light/dark, Viewport, Modes, Exit), and the screen loads in the frame below it, so the bar never covers it; a
