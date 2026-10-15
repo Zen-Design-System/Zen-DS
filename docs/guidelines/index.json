@@ -3771,7 +3771,11 @@
           "busy?: boolean = false",
           "onStop?: () => void",
           "disabled?: boolean = false",
+          "value?: string",
           "defaultValue?: string = ",
+          "onValueChange?: (text: string) => void",
+          "onAccept?: () => void",
+          "onClear?: () => void",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLFormElement>"
@@ -3805,6 +3809,7 @@
         "ai-chat/no-actions-while-streaming",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
       ]
     },

@@ -38,6 +38,38 @@
       "import": "./dist/tokens/index.js",
       "default": "./dist/tokens/index.js"
     },
+    "./ai-ui": {
+      "types": "./dist/ai-ui/index.d.ts",
+      "import": "./dist/ai-ui/index.js",
+      "default": "./dist/ai-ui/index.js"
+    },
+    "./ai-ui/lint": {
+      "types": "./tools/ai-ui/lint.d.mts",
+      "import": "./tools/ai-ui/lint.mjs",
+      "default": "./tools/ai-ui/lint.mjs"
+    },
+    "./ai-ui/compose": {
+      "types": "./tools/ai-ui/compose.d.mts",
+      "import": "./tools/ai-ui/compose.mjs",
+      "default": "./tools/ai-ui/compose.mjs"
+    },
+    "./ai-ui/server": {
+      "types": "./tools/ai-ui/server.d.mts",
+      "import": "./tools/ai-ui/server.mjs",
+      "default": "./tools/ai-ui/server.mjs"
+    },
+    "./ai-ui/adapters/anthropic": {
+      "types": "./tools/ai-ui/adapters/anthropic.d.mts",
+      "import": "./tools/ai-ui/adapters/anthropic.mjs",
+      "default": "./tools/ai-ui/adapters/anthropic.mjs"
+    },
+    "./ai-ui/eval": {
+      "types": "./tools/ai-ui/eval.d.mts",
+      "import": "./tools/ai-ui/eval.mjs",
+      "default": "./tools/ai-ui/eval.mjs"
+    },
+    "./ai-ui/catalog.json": "./docs/ai-ui/catalog.json",
+    "./ai-ui/catalog.index.json": "./docs/ai-ui/catalog.index.json",
     "./eslint": "./tools/usage-guard/eslint.mjs",
     "./usage": "./tools/usage-guard/api.mjs",
     "./package.json": "./package.json"
@@ -59,7 +91,25 @@
     "tools/zen-ds.mjs",
     "tools/zen-audit/audit.mjs",
     "tools/zen-audit/app-checks.mjs",
-    "tools/platform-audit/quality-checks.mjs"
+    "tools/platform-audit/quality-checks.mjs",
+    "docs/ai-ui/README.md",
+    "docs/ai-ui/catalog.json",
+    "docs/ai-ui/catalog.index.json",
+    "docs/ai-ui/composer-rules.md",
+    "src/ai-ui",
+    "tools/ai-ui/lint.mjs",
+    "tools/ai-ui/lint.d.mts",
+    "tools/ai-ui/compose.mjs",
+    "tools/ai-ui/compose.d.mts",
+    "tools/ai-ui/compact.mjs",
+    "tools/ai-ui/server.mjs",
+    "tools/ai-ui/server.d.mts",
+    "tools/ai-ui/adapters/anthropic.mjs",
+    "tools/ai-ui/adapters/anthropic.d.mts",
+    "tools/ai-ui/eval.mjs",
+    "tools/ai-ui/eval.d.mts",
+    "tools/ai-ui/eval/prompts.json",
+    "tools/ai-ui/fixtures/booking.json"
   ],
   "scripts": {
     "dev": "vite",
@@ -91,6 +141,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "mcp:selftest": "node mcp/selftest.mjs",
+    "ai-ui:build": "node tools/ai-ui/build-catalog.mjs",
+    "ai-ui:check": "node tools/ai-ui/build-catalog.mjs --check",
+    "ai-ui:selftest": "node tools/ai-ui/selftest.mjs",
+    "ai-ui:eval": "node tools/ai-ui/eval.mjs",
     "ai-kit:build": "node tools/ai-kit/build.mjs",
     "ai-kit:check": "node tools/ai-kit/build.mjs --check",
     "platform:behaviour": "node tools/platform-audit/behaviour.mjs",
@@ -111,6 +165,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.134.0",
     "@babel/parser": "^7.29.9",
     "@modelcontextprotocol/sdk": "1.30.1",
     "@storybook/addon-a11y": "10.6.0",
@@ -140,5 +195,6 @@
     "zen-usage": "tools/usage-guard/cli.mjs",
     "zen-ds-mcp": "mcp/server.mjs"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "peerDependenciesMeta": {}
 }

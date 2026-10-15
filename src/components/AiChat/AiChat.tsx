@@ -39,7 +39,19 @@ export interface AiChatFieldProps {
   busy?: boolean;
   onStop?: () => void;
   disabled?: boolean;
+  /** The prompt text, controlled (pairs with `onValueChange`); leave it out to let the field keep its own. */
+  value?: string;
+  /** Initial prompt text when uncontrolled. */
   defaultValue?: string;
+  /** Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it. */
+  onValueChange?: (text: string) => void;
+  /** Tab accepts what the app proposes for the prompt (compose while typing: keep the guessed intent) and then moves
+   *  focus as in any field, into the proposed UI when it is next in the tab order. Pass it only while there is
+   *  something to accept. */
+  onAccept?: () => void;
+  /** Escape clears the prompt and calls it (a preview to dismiss, a draft to drop). Pass it only while there is
+   *  something to clear; without it Escape does nothing in the field. */
+  onClear?: () => void;
   className?: string;
   /** Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio;
    *  app code sets onAttach / onVoice / onVoiceMode. */
@@ -51,22 +63,33 @@ export interface AiChatFieldProps {
 /**
  * Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary
  * 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and
- * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a
+ * Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line; Tab also calls `onAccept` (keep the guessed
+ * intent) and still moves focus, Escape clears only with `onClear`. The whole field is the prompt's hit area: a
  * click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with
  * their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219):
  * `listening` shows Listening… and turns the microphone into Stop.
  */
-export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className, overrides, ref }: AiChatFieldProps) {
+export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, value, defaultValue = "", onValueChange, onAccept, onClear, className, overrides, ref }: AiChatFieldProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   // Dictation (State=Voice) shows Listening… in the prompt; the field's accessible name stays the prompt's own.
   const prompt = placeholderProp ?? t.askAnything;
   const placeholder = listening ? t.listening : prompt;
-  const [text, setText] = useState(defaultValue);
+  const [ownText, setOwnText] = useState(defaultValue);
+  const text = value ?? ownText;
+  const setText = (next: string) => { if (value === undefined) setOwnText(next); onValueChange?.(next); };
   const typing = text.trim().length > 0;
   const long = text.length > 48 || text.includes("\n");
   const submit = (event?: FormEvent) => { event?.preventDefault(); if (!typing || busy) return; onSubmit(text.trim()); setText(""); };
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); submit(); } };
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); submit(); return; }
+    // Tab accepts and Escape clears only while the app passes the handler (there is something to accept or clear);
+    // otherwise Tab moves focus as in any field and Escape does nothing.
+    // Tab keeps the guess and still moves focus (into the proposed UI when it is next): never a keyboard trap.
+    if (event.key === "Tab" && onAccept && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) { onAccept(); return; }
+    if (event.key === "Escape" && onClear) { event.preventDefault(); setText(""); onClear(); }
+  };
   // The whole field is the prompt's hit area: a click or tap on the padding, the placeholder or the gaps between the
   // controls types into the prompt (caret at the end); the buttons keep their own action. Keyboard users reach the
   // prompt with Tab as before.

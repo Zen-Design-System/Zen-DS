@@ -1,0 +1,174 @@
+{
+  "$comment": "Prompt set for `npm run ai-ui:eval` (tools/ai-ui/eval.mjs). `intents` feed the keyword classifier for the partial-input metric; `data` is what every case may read with $ref (described to the model by shape); a case's `intent` is the classifier's expected answer (null: no confident intent), `expect` what a right answer contains (kind ui | text | any; all / any / none: component names), `edits` follow-ups on the composed UI (kind ops | state | spec | text; ops: op names, any of).",
+  "intents": [
+    { "intent": "booking", "words": ["schedule", "book", "meeting", "review", "appointment", "đặt lịch", "hẹn", "họp"] },
+    { "intent": "invoices", "words": ["invoice", "overdue", "unpaid", "bill", "hoá đơn", "hóa đơn"] },
+    { "intent": "revenue", "words": ["revenue", "invoiced", "chart", "quarter", "doanh thu"] },
+    { "intent": "confirm", "words": ["delete", "remove", "archive", "xoá", "xóa"] }
+  ],
+  "data": {
+    "projects": [
+      { "value": "banking", "label": "Online banking redesign", "client": "Mekong Freight", "progress": 0.62 },
+      { "value": "saola", "label": "Saola Outdoor brand refresh", "client": "Saola Outdoor", "progress": 0.35 }
+    ],
+    "slots": [
+      { "value": "09:00", "label": "09:00" },
+      { "value": "10:00", "label": "10:00" },
+      { "value": "14:00", "label": "14:00" },
+      { "value": "16:00", "label": "16:00" }
+    ],
+    "invoices": [
+      { "id": "INV-2026-0139", "client": "Mekong Freight", "amount": 12880, "currency": "USD", "due": "2026-09-30", "status": "overdue" },
+      { "id": "INV-2026-0142", "client": "Saola Outdoor", "amount": 4200, "currency": "USD", "due": "2026-10-20", "status": "open" },
+      { "id": "INV-2026-0137", "client": "Lotus Bank", "amount": 9600, "currency": "USD", "due": "2026-09-15", "status": "paid" }
+    ],
+    "revenue": [
+      { "quarter": "Q1", "amount": 182000, "previous": 160000 },
+      { "quarter": "Q2", "amount": 210000, "previous": 175000 },
+      { "quarter": "Q3", "amount": 198000, "previous": 190000 }
+    ],
+    "contacts": [
+      { "name": "Gia Pham", "role": "Design lead", "email": "gia@saola.vn" },
+      { "name": "Emi Sato", "role": "Brand strategist", "email": "emi@saola.vn" },
+      { "name": "Linh Vo", "role": "Account manager", "email": "linh@dizai.studio" }
+    ],
+    "plans": [
+      { "value": "basic", "label": "Basic", "price": "$9 / month", "seats": 1 },
+      { "value": "pro", "label": "Pro", "price": "$29 / month", "seats": 5 }
+    ],
+    "notifications": { "email": true, "push": true, "digest": "weekly" }
+  },
+  "cases": [
+    {
+      "id": "booking-en",
+      "intent": "booking",
+      "prompt": "Schedule a design review for the online banking redesign",
+      "expect": { "kind": "ui", "any": ["SelectField", "DateField", "DatePicker", "ChipGroup"], "all": ["Button"] },
+      "edits": [
+        { "id": "accent", "prompt": "Make the main button accent", "expect": { "kind": "ops", "ops": ["setProp"] } },
+        { "id": "time", "prompt": "Let's do it at 4 pm", "expect": { "kind": ["state", "ops"] } },
+        { "id": "notes", "prompt": "Add a field for notes to the reviewers", "expect": { "kind": "ops", "ops": ["insertChild", "setChildren", "replaceNode"] } }
+      ]
+    },
+    {
+      "id": "booking-vi",
+      "intent": "booking",
+      "prompt": "Đặt lịch họp review thiết kế với team banking tuần sau",
+      "expect": { "kind": "ui", "any": ["SelectField", "DateField", "DatePicker", "ChipGroup"], "all": ["Button"] }
+    },
+    {
+      "id": "invoices-overdue",
+      "intent": "invoices",
+      "prompt": "Which invoices are overdue?",
+      "expect": { "kind": "ui", "any": ["Table", "List", "ListItem", "BarList", "DescriptionList", "Card"] },
+      "edits": [
+        { "id": "sort", "prompt": "Show the biggest amount first", "expect": { "kind": ["ops", "spec", "state"] } }
+      ]
+    },
+    {
+      "id": "invoices-vi",
+      "intent": "invoices",
+      "prompt": "Hoá đơn nào quá hạn rồi?",
+      "expect": { "kind": "ui", "any": ["Table", "List", "ListItem", "BarList", "DescriptionList", "Card"] }
+    },
+    {
+      "id": "revenue-quarter",
+      "intent": "revenue",
+      "prompt": "Show revenue by quarter this year",
+      "expect": { "kind": "ui", "any": ["BarChart", "LineChart", "AreaChart", "ComboChart", "StackBarChart", "GroupedBarChart", "ChartCard", "MetricCard", "Metric"] }
+    },
+    {
+      "id": "revenue-vi",
+      "intent": "revenue",
+      "prompt": "Doanh thu quý này so với quý trước?",
+      "expect": { "kind": "ui", "any": ["BarChart", "LineChart", "AreaChart", "ComboChart", "GroupedBarChart", "ChartCard", "MetricCard", "Metric"] }
+    },
+    {
+      "id": "delete-project",
+      "intent": "confirm",
+      "prompt": "Delete the Saola project",
+      "expect": { "kind": "ui", "any": ["Dialog", "ModalForm", "AlertBanner", "InlineMessage"], "all": ["Button"] },
+      "edits": [
+        { "id": "cancel", "prompt": "No wait, keep it", "expect": { "kind": ["text", "ops", "spec", "state"] } }
+      ]
+    },
+    {
+      "id": "progress-status",
+      "intent": null,
+      "prompt": "How far along is the Saola project?",
+      "expect": { "kind": "any", "any": ["ProgressBar", "ProgressCircle", "Metric", "MetricCard", "Stepper", "Text", "DescriptionList"] }
+    },
+    {
+      "id": "notifications-toggle",
+      "intent": null,
+      "prompt": "I want to turn off email notifications but keep push",
+      "expect": { "kind": "ui", "any": ["Toggle", "ToggleListItem", "Checkbox", "Form", "FormField"] }
+    },
+    {
+      "id": "contacts-list",
+      "intent": null,
+      "prompt": "Who is on the Saola project and what do they do?",
+      "expect": { "kind": "ui", "any": ["List", "ListItem", "Table", "DescriptionList", "Card", "AvatarStack", "Avatar"] }
+    },
+    {
+      "id": "new-project-form",
+      "intent": null,
+      "prompt": "Create a new project: name, client, start date and budget",
+      "expect": { "kind": "ui", "any": ["InputField", "TextAreaField", "NumberField"], "all": ["Button"] }
+    },
+    {
+      "id": "plan-choice",
+      "intent": null,
+      "prompt": "Which plan should I pick, Basic or Pro?",
+      "expect": { "kind": "any", "any": ["RadioButton", "Segmented", "Card", "ListBox", "List", "ListItem", "DescriptionList", "Text"] }
+    },
+    {
+      "id": "upload-contract",
+      "intent": null,
+      "prompt": "I need to send you the signed contract",
+      "expect": { "kind": "ui", "any": ["FileUpload", "UploaderFileItem"] }
+    },
+    {
+      "id": "rate-sprint",
+      "intent": null,
+      "prompt": "Let me rate the last sprint from 1 to 10",
+      "expect": { "kind": "ui", "any": ["NpsScale", "OpinionScale", "Rating", "Slider", "SliderField", "Segmented"] }
+    },
+    {
+      "id": "search-files",
+      "intent": null,
+      "prompt": "Find the brand guideline PDF from last month",
+      "expect": { "kind": "any", "any": ["Search", "InputField", "List", "ListItem", "FileIcon", "EmptyState", "Text"] }
+    },
+    {
+      "id": "style-request",
+      "intent": null,
+      "prompt": "Make me a big red button that says Pay now",
+      "expect": { "kind": "ui", "all": ["Button"] }
+    },
+    {
+      "id": "unknown-widget",
+      "intent": null,
+      "prompt": "Show a calendar heatmap of my commits this year",
+      "expect": { "kind": "any" }
+    },
+    {
+      "id": "chrome-request",
+      "intent": null,
+      "prompt": "Build the app shell with a sidebar, top bar and a dashboard",
+      "expect": { "kind": "any", "none": ["AppShell", "Sidebar", "TopNavigation", "BottomNavigation", "PageHeader", "DashboardHeader"] }
+    },
+    {
+      "id": "prose-capabilities",
+      "intent": null,
+      "prompt": "What can you do?",
+      "expect": { "kind": "any", "none": ["InputField", "SelectField", "DateField", "Table"] }
+    },
+    {
+      "id": "small-talk",
+      "intent": null,
+      "prompt": "Thanks, that's all for today",
+      "expect": { "kind": "text" }
+    }
+  ]
+}

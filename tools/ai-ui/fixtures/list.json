@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "data": {
+    "orders": [
+      { "id": "o1", "title": "Order #1041", "caption": "3 items · Oct 12", "total": "₫1.250.000" },
+      { "id": "o2", "title": "Order #1042", "caption": "1 item · Oct 13", "total": "₫320.000" }
+    ],
+    "rows": [{ "id": "r1", "name": "Ava Nguyen", "role": "Admin" }, { "id": "r2", "name": "Minh Tran", "role": "Editor" }]
+  },
+  "root": {
+    "type": "Stack", "id": "root", "props": { "gap": "md" },
+    "children": [
+      { "type": "Text", "id": "intro", "children": ["Your recent orders:"] },
+      {
+        "type": "List", "id": "orders",
+        "children": [
+          { "$map": "orders", "as": "order", "node": { "type": "ListItem", "id": "order", "props": { "title": { "$ref": "order.title" }, "caption": { "$ref": "order.caption" }, "value": { "$ref": "order.total" }, "onClick": { "$action": "openOrder", "args": { "id": { "$ref": "order.id" } } } } } }
+        ]
+      },
+      {
+        "type": "Table", "id": "members",
+        "props": { "aria-label": "Members", "columns": [{ "id": "name", "header": "Name" }, { "id": "role", "header": "Role" }], "rows": { "$ref": "rows" } }
+      },
+      { "type": "Card", "id": "pending-card", "pending": true },
+      { "type": "Stack", "id": "loading", "children": [{ "$pending": "heading" }, { "$pending": "text" }] }
+    ]
+  }
+}

@@ -21,7 +21,7 @@ const text = async (name, args = {}) => {
 
 const { tools } = await client.listTools();
 const names = tools.map((t) => t.name).sort();
-expect(names.join() === ["check_usage", "get_component", "get_setup", "get_template", "get_tokens", "list_components", "list_templates", "map_figma_component", "search_icons"].join(), `tools: ${names.join(", ")}`);
+expect(names.join() === ["check_spec", "check_usage", "get_catalog", "get_component", "get_setup", "get_template", "get_tokens", "list_components", "list_templates", "map_figma_component", "search_icons"].join(), `tools: ${names.join(", ")}`);
 
 const setup = await text("get_setup");
 expect(/ZenProvider/.test(setup.body) && /styles\.css/.test(setup.body), "get_setup mentions ZenProvider and styles.css");
@@ -58,6 +58,20 @@ const mapped = await text("map_figma_component", { component: "Button/Main", pro
 expect(mapped.body.includes('<Button level="primary" size="md">Save changes</Button>'), `map_figma_component(Button/Main): ${mapped.body.slice(0, 200)}`);
 const field = await text("map_figma_component", { component: "Input/Text-Field", properties: { Size: "Large" } });
 expect(/InputField size="lg"/.test(field.body) && /input\/needs-label/.test(field.body), `map_figma_component(Input/Text-Field) flags the missing label: ${field.body.slice(0, 200)}`);
+
+// AI UI catalog and spec check (docs/ai-ui): tier 1, one component, a good spec, a rejected one.
+const catalogList = await text("get_catalog");
+expect(/- SelectField: /.test(catalogList.body) && /Chrome \(whole screens only\): .*AppShell/.test(catalogList.body), `get_catalog lists SelectField and marks chrome: ${catalogList.body.slice(0, 200)}`);
+const catalogEntry = await text("get_catalog", { component: "ChipGroup" });
+expect(/## ChipGroup/.test(catalogEntry.body) && /options: ChipGroupOption\[\]/.test(catalogEntry.body) && /ChipGroupOption \{/.test(catalogEntry.body) && /value ⇄ onValueChange/.test(catalogEntry.body), `get_catalog(ChipGroup) has props, types and bindings: ${catalogEntry.body.slice(0, 300)}`);
+expect((await text("get_catalog", { component: "Nope" })).isError, "get_catalog on an unknown component is an error result");
+const goodSpec = await text("check_spec", { spec: { version: 1, root: { type: "Stack", id: "root", children: [{ type: "Button", id: "save", props: { level: "primary", onClick: { $action: "save" } }, children: ["Save"] }] } } });
+expect(/^✓/.test(goodSpec.body), `check_spec passes a clean spec: ${goodSpec.body.slice(0, 200)}`);
+const badSpec = await text("check_spec", { spec: JSON.stringify({ version: 1, root: { type: "Stack", id: "root", children: [{ type: "Buton", children: ["Save"] }, { type: "IconButton", id: "add", props: { icon: "icon-plus-line" } }] } }) });
+expect(/^✗/.test(badSpec.body) && /unknown-component/.test(badSpec.body) && /Did you mean "Button"/.test(badSpec.body), `check_spec rejects with the code and a hint: ${badSpec.body.slice(0, 300)}`);
+const lintSpec = await text("check_spec", { spec: { version: 1, root: { type: "IconButton", id: "add", props: { icon: "icon-plus-line", onClick: { $action: "add" } } } } });
+expect(/icon-button\/needs-name/.test(lintSpec.body), `check_spec runs the usage harness on the spec: ${lintSpec.body.slice(0, 300)}`);
+expect((await text("check_spec", { spec: "{not json" })).isError, "check_spec on invalid JSON is an error result");
 
 await client.close();
 if (problems.length) { console.log(problems.map((p) => `✗ ${p}`).join("\n")); process.exit(1); }
