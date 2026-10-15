@@ -261,6 +261,19 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Zen Studio Interact, zoomed in or out (2026-10-15, user): an example's overlays stay in its frame and zoom with it. A
+  Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
+  and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole
+  canvas.
+- Tooltip (above or below its trigger) stays whole near the edge of the window or of a frame that clips it, such as a
+  phone preview: it moves along instead of being cut off ("A tip on a phone" lost its first words).
+- Popover placement (useAnchoredPosition), Tooltip, the Sidebar rail tooltip and the Table editor's error bubble now
+  sit on their anchor inside a transform-scaled container (a scaled phone preview, a zoomed canvas): positions are
+  converted from viewport px to the container's own px (`_shared/layer-space.ts`, as Menu already did). Unscaled pages
+  are unchanged.
+- Zen Studio: on a builder page, the Inspector's frame Width and Theme now follow the frame (2026-10-15, user): a width
+  dragged on the frame's edge shows in Width, and a Width or Theme picked there reaches the frame (the Inspector kept
+  them under the platform page instead of the builder page).
 - Zen Studio: a page made from a template no longer locks a control with the state it was captured in (a DateField's
   `value=""` that ignored picked days, a Chip's `popoverOpen={false}`): it is written as the `default…` twin. Pushing such
   a page to Figma keeps Select=Yes for `defaultChecked` / `defaultSelected`.
@@ -298,6 +311,11 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio Present and Play: a **Viewport** button on the bar (2026-10-15, user) — Auto (as before), Desktop
+  1440 × 900, Tablet 768 × 1024, Phone 390 × 844, or any W × H typed in px (an empty H fills the window). The screen
+  renders in a box of that size (its dialogs and menus open inside it) and scales down to fit the window, never up; the
+  choice holds while ‹ › step and Restart, and resets when Present or Play ends. The box's right edge, bottom edge and
+  corner drag to a free size (Shift snaps to 8, Esc puts it back, a double-click returns to Auto).
 - Components keep their own state where a parent used to (2026-10-15, user: so a page made from a template in Zen
   Studio works as the template does): an Advanced Chip with `popoverItems` and no `onPopoverSelect` keeps the choice
   itself (the picked value as its label, the count for multiple, × and Delete clear it); Chip `defaultSelected` (Normal

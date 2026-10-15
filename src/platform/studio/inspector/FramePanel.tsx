@@ -195,8 +195,9 @@ function ScreenSection({ frameId }: { frameId: string }) {
 
 export function FramePanel({ frameId, controlsSlot }: { frameId: string; controlsSlot: HTMLElement }) {
   const page = useStudio((state) => state.page);
-  const collection = useStudio((state) => state.collection);
-  const key = pageKey(page, collection);
+  // The board's key (StudioFrame, FrameChrome): a builder page keeps its frames' width and theme under local:<id>, so a
+  // width dragged on its frame's edge shows here and a width or theme set here reaches the frame.
+  const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frameId]);
   const frames = useStudioFrames();
   const frame = frames.find((candidate) => candidate.id === frameId);

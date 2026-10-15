@@ -173,3 +173,43 @@ the Studio mode; Emphasis Light.
   part-props and figma-push selftests; starters coverage 46/46 with compile; npm test 910 passed.
 - Still needs option C (not built): links between components (a chip that opens a DatePicker or BottomSheet, a filter
   that filters a Table, Next on a Stepper).
+
+## Present / Play viewport: Auto · Desktop · Tablet · Phone · W × H, drag to resize (tier S, user: "trong present của trang thiết kế, nên cho chọn các view desktop, tablet, mobile, hoặc số điền tự do để preview" + "cho phép User nắm góc kéo không?")
+
+- Spec: a Viewport button on the Present/Play bar (PresentBar; icon + "Viewport" / device / "W × H", IconButton on a
+  phone) opens a bar panel: Segmented Auto · Desktop · Tablet · Phone (Play's DEVICE_WIDTH at 900 / 1024 / 844 high),
+  then NumberField inline W and H (200–4096 px, empty H = Fill the window). A fixed size renders the example in a box
+  of that many CSS px (`board/presentViewport.tsx` useViewportFit): overlay root (Dialog/SidePanel/Menu open inside),
+  `contain: layout` (a presented desktop screen fills the box), scaled down from its top-left to fit the window, never
+  up; panel caption "W × H at N%". Auto keeps the old layout (the wrappers are `display: contents`, same tree, so a
+  switch keeps the example's state). Present resets it on exit like its modes; Play keeps it through Restart.
+- Drag (ViewportHandles, the canvas frame edge's pattern): right edge = W (×2, the box is centred), bottom = H, corner
+  both; Info-blue ring + grips on hover/drag, size tag at the box's bottom, Shift snaps to 8, Esc restores (Present and
+  Play leave Escape to a drag: `presentEscapeOwners`), double-click → Auto, result announced; hidden from AT (W/H fields
+  are the keyboard way). With the panel open its middle covers the bottom grip (the strip still takes the rest).
+- Checked with Playwright on :5173 (Present on button: Phone 390×844, Desktop at 98%, 1000×Fill, clamp 50→200, ‹ ›
+  keeps it, Esc closes panel then exits; drag +50 → 490, −100 → 744, corner+Shift → 400×784, Esc mid-drag restores
+  without leaving Present, double-click → Auto; Play on local:dashboard-7: Tablet 768×1024 at 87%, Restart keeps it).
+  No page errors. Gate: usage-guard `layer/canvas-is-page` on the box → `zen-allow-canvas-layer` (the box is the
+  presented screen's page, as Present's layer).
+- Fix (user: "kéo frame nhưng số kích thước vẫn giữ nguyên và ngược lại", screenshot: toolbar 1341, Inspector "Auto
+  (1440px)" on local:admin-list-team-members-3): FramePanel built its frameOverrides key as `pageKey(page, collection)`,
+  the board (StudioFrame, FrameChrome, Present) as `pageKey(page, collection, localPage)`; on a builder page the
+  Inspector read and wrote `<platform page>` while the frame used `local:<id>` (Theme was dead there too). FramePanel now
+  reads the board's key. Playwright: edge drag → Width "1329 (custom)"; Width 1024 → frame 1024px, toolbar 1024.
+- Interact overlays (user: drop Interact because zoomed out "popover sẽ lỗi, modal hiện ngoài frame" → "nếu có [cách
+  fix] thì không cần bỏ"). Repro (Playwright, 50%): Dialog at 100% centred on the canvas over many frames; Menu and
+  Toast at 100% beside a 50% frame. Cause: every example portalled into the one unscaled canvas-area layer. Fix:
+  StudioFrame is `data-zen-overlay-root` (Dialog/ModalForm/SidePanel/Menu/Chat open in it) and has its own portal
+  layer `.studio-frame__portal` (ZenPortal users: Popover, Tooltip, toasts; `contain: layout`), both in the world; a
+  frame holding a contained modal gets min-height 720 (board re-measures). Library, at the owner: positions inside a
+  scaled container were written in viewport px — `useAnchoredPosition` now converts through the container's scale
+  (as Menu did; shift into view allowed again there), and the fixed layers (Tooltip, Sidebar rail tooltip, Table
+  editor bubble) go through `fixedLayerSpace` (`_shared/layer-space.ts`: nearest transform/contain/container block;
+  identity on a normal page). After (50%): Dialog inside its frame, Menu/Toast/date-range popover/Tooltip at the
+  frame's scale on their anchors (tooltip centred, 4 screen px = 8 × 0.5 above). E2E O-01..O-04 4/0.
+- Gate PASS (14 files; Vitest 66/66 after rewriting the scaled-frame test, which asserted the old unit mix: left 500 in
+  a 0.5 frame = half-way off the anchor; now "under its anchor" + "shifted into view" + fixedLayerSpace cases). Contact
+  sheet tooltip-390 "A tip on a phone": the closable tip was cut at the phone screen's left edge, the same in the
+  2026-10-14 sheet (pre-existing). Fixed at the owner: an explicit top/bottom Tooltip measures itself against
+  visibleBounds (now exported from useAnchoredPosition) and shifts by `--zen-tooltip-shift`, 4px in.
