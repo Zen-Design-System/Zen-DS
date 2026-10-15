@@ -33,20 +33,19 @@ export const rows = [
     },
   },
   {
-    id: "S-02", feature: "Zoom % menu opens on screen (left panel docked)", wp: "WP-A",
+    id: "S-02", feature: "Zoom % menu on the Inspector's tab row (Figma UI3) opens on screen", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio();
-      const trigger = page.locator('[role="toolbar"][aria-label="Zoom"] button').filter({ hasText: "%" }).first();
+      const trigger = page.locator("#studio-right .studio-inspector__tabs .studio-zoom__value").first();
       return menuItemsOnScreen(page, () => trigger.click());
     },
   },
   {
-    // Preview modes change in Play and Present only (user, 2026-10-09): the toolbar has light/dark, no Modes.
-    id: "S-03", feature: "Modes: none in the toolbar; Present's Modes panel opens on screen", wp: "WP-A",
+    // Preview modes change in Play and Present only (user, 2026-10-09): the panel headers have no Modes.
+    id: "S-03", feature: "Modes: none in the panel headers; Present's Modes panel opens on screen", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio();
-      const toolbar = page.locator("header, .studio-toolbar").first();
-      if (await toolbar.getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("the toolbar still has Modes");
+      if (await page.locator(".studio-panel-head, .studio-bar").getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("a panel header still has Modes");
       await focusFrame(page, 3);
       await page.keyboard.press("KeyF");
       const exit = page.getByRole("button", { name: /Exit full screen/i });
@@ -58,7 +57,7 @@ export const rows = [
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       if (!inViewport(box)) throw new Error(`Modes panel off screen: ${JSON.stringify(box)}`);
-      return "no toolbar Modes; Present's panel inside the viewport";
+      return "no Modes in the panel headers; Present's panel inside the viewport";
     },
   },
   {
@@ -118,7 +117,7 @@ export const rows = [
     },
   },
   {
-    id: "S-07", feature: "Phone width: the Inspector button is reachable in the toolbar", wp: "WP-A",
+    id: "S-07", feature: "Phone width: the Inspector button is reachable in its corner bar", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio({ viewport: { width: 390, height: 844 } });
       const button = page.getByRole("button", { name: /^Inspector/ }).first();

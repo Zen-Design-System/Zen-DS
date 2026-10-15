@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { SelectField } from "../../../components/Input";
 import { Heading } from "../../../components/Text";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { applyCssEdit } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { confirmDiscard, requestSave, useStudioDrafts } from "../sourceDrafts";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { RowSelectField } from "../inspector/rowFields";
 import { ValueCell } from "../inspector/PartPanel";
 import { canEdit, studioStore, useStudio } from "../store";
 import { invalidateCssIndex, styleRows, type Declaration, type StyleRow } from "./cssResolve";
@@ -104,7 +104,7 @@ export function VariantPanel({ selection }: { selection: VariantSelection }) {
         <InspectorSection title="Variant">
           {set.axes.map((axis) => (
             <InspectorRow key={axis.prop} label={axis.label} name={axis.prop}>
-              <SelectField
+              <RowSelectField
                 aria-label={axis.label}
                 size="sm"
                 value={selection.variant[axis.prop] ?? axis.default}
@@ -115,7 +115,7 @@ export function VariantPanel({ selection }: { selection: VariantSelection }) {
           ))}
           {set.toggles.map((toggle) => (
             <InspectorRow key={toggle.prop} label={toggle.label} name={toggle.prop}>
-              <SelectField
+              <RowSelectField
                 aria-label={toggle.label}
                 size="sm"
                 value={toggleOn(toggle, filters) ? "on" : "off"}

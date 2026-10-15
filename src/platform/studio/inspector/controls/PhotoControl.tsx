@@ -1,10 +1,12 @@
 import { useContext, useId, useMemo, useRef, useState } from "react";
 import { Avatar } from "../../../../components/Avatar";
 import { Button } from "../../../../components/Button";
+import { Icon } from "../../../../components/Icon";
 import { Popover, PopoverItem } from "../../../../components/Popover";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { altOf, ASSET_PREFIX, useUploads, type Upload } from "../../builder/assets/uploads";
 import { LIBRARY_PHOTOS, MEDIA_FILES, MEDIA_PREFIX, pictureValueOf, resolveMedia } from "../../builder/library/media";
+import { useInlineLabel } from "../Section";
 import { InspectorFileContext } from "./hostContext";
 
 /*
@@ -59,6 +61,7 @@ export function PhotoControl({ label, value: given, disabled, onSet, onClear, pe
   /** An avatar: the people photos lead the menu. */
   people?: boolean;
 }) {
+  const inlineLabel = useInlineLabel();
   const file = useContext(InspectorFileContext);
   const uploads = useUploads();
   const [open, setOpen] = useState(false);
@@ -77,20 +80,23 @@ export function PhotoControl({ label, value: given, disabled, onSet, onClear, pe
   const current = value ? resolveMedia(value) : undefined;
   const name = value ? nameOf(value, groups) : "None";
   return (
-    <div ref={anchorRef} className="studio-icon-control studio-photo-control" data-empty={value ? undefined : "true"}>
+    <div ref={anchorRef} className="studio-icon-control studio-photo-control" data-empty={value ? undefined : "true"} data-inline={inlineLabel ? "true" : undefined}>
       {/* zen-allow-filter-button: an inspector value picker (a picture for a prop), not a filter or sort control; it wears a
           field's frame like the selects around it (Design panel UI3) */}
       <Button
         level="tertiary"
         size="sm"
         disabled={disabled}
-        startIcon={typeof current === "string" ? <Thumb src={current} /> : "icon-image-line"}
+        startIcon={inlineLabel ? undefined : typeof current === "string" ? <Thumb src={current} /> : "icon-image-line"}
         endIcon="icon-chevron-down-line"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${label}: ${value ? name : "none"}`}
         onClick={() => setOpen((was) => !was)}
       >
+        {/* Inline (Figma Inline-Field): the row's label left, the picture and its name at the end. */}
+        {inlineLabel ? <span className={`studio-inline-label ${typographyStyles["Body/Small/Medium"]}`}>{inlineLabel}</span> : null}
+        {inlineLabel ? (typeof current === "string" ? <Thumb src={current} /> : <Icon name="icon-image-line" size="sm" decorative />) : null}
         <span className={`studio-icon-control__label ${typographyStyles["Body/Small/Medium"]}`}>{name}</span>
       </Button>
       <Popover

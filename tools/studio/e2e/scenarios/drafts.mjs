@@ -8,23 +8,24 @@ const disk = (ctx, rel) => fs.readFileSync(path.join(ctx.root, rel), "utf8");
 
 export const rows = [
   {
-    id: "D-01", feature: "An edit is a draft: the disk is untouched, the toolbar says Unsaved", wp: "GĐ0",
+    id: "D-01", feature: "An edit is a draft: the disk is untouched, the Inspector header counts it", wp: "GĐ0",
     async run(ctx) {
       const before = disk(ctx, ctx.saveFile);
       const page = await freshSelect(ctx, "save-a", { frame: 4, file: ctx.saveFile });
       await pickOption(page, "level", "Primary");
       await expectSource(ctx, "save-a", (el) => el.attr("level") === "primary", "the draft edit", { file: ctx.saveFile });
       if (disk(ctx, ctx.saveFile) !== before) throw new Error("the edit reached the disk before Save");
-      const toolbar = async () => (await page.locator("header").first().innerText({ timeout: 2000 }).catch(() => "")).replace(/\s+/g, " ");
+      // The Inspector header's drafts button: the count, its whole sentence in its name (Figma UI3 panel header).
+      const drafts = async () => (await page.locator(".studio-drafts__count").first().getAttribute("aria-label", { timeout: 2000 }).catch(() => "")) ?? "";
       const t0 = Date.now();
       try {
-        await until(async () => /Unsaved · 2 files/.test(await toolbar()), { timeout: 12_000, message: "Unsaved · 2 files" });
+        await until(async () => /^2 files with unsaved drafts/.test(await drafts()), { timeout: 12_000, message: "2 files with unsaved drafts" });
       } catch {
-        throw new Error(`toolbar reads "${(await toolbar()).slice(0, 80)}" after 12 s (want Unsaved · 2 files: the fixture page and the save fixture)`);
+        throw new Error(`the drafts button reads "${(await drafts()).slice(0, 80)}" after 12 s (want 2 files with unsaved drafts: the fixture page and the save fixture)`);
       }
       const lag = Date.now() - t0;
-      if (lag > 2500) throw new Error(`the toolbar counted the new draft only after ${(lag / 1000).toFixed(1)} s (the drafts poll), not at once`);
-      return "draft only; Unsaved · 2 files";
+      if (lag > 2500) throw new Error(`the header counted the new draft only after ${(lag / 1000).toFixed(1)} s (the drafts poll), not at once`);
+      return "draft only; 2 files with unsaved drafts";
     },
   },
   {

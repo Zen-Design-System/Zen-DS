@@ -81,9 +81,11 @@ export const rows = [
     async run(ctx) {
       const { page } = await ctx.studio();
       const area = await page.locator(".studio-viewport").boundingBox();
-      // A spot left of the board, on the dotted canvas.
+      // A spot left of the board, on the dotted canvas the floating left panel leaves visible (Figma UI3 shell).
+      const left = await page.locator("#studio-left").boundingBox();
+      const x = Math.max(area.x, left && left.x >= 0 ? left.x + left.width : area.x) + 12;
       try {
-        const items = await contextMenuAt(page, area.x + 12, area.y + area.height - 80);
+        const items = await contextMenuAt(page, x, area.y + area.height - 80);
         await closeMenu(page);
         return `${items.length} items`;
       } catch {

@@ -121,6 +121,23 @@ function viewportBox(): Box {
 /** The canvas viewport's client box (cached; refreshed when the canvas changes size). */
 export const getViewportBox = (): Box => viewportBox();
 
+/** Screen px of the viewport covered by the floating side panels (Figma UI3: the canvas runs under them). */
+export type CanvasInsets = { left: number; right: number; top: number; bottom: number };
+let insets: CanvasInsets = { left: 0, right: 0, top: 0, bottom: 0 };
+
+/** StudioApp reports the part of the canvas its docked panels cover; fit, zoom and keep-in-view aim at the rest. */
+export function setCanvasInsets(next: CanvasInsets) {
+  insets = next;
+}
+
+/** The part of the viewport the panels leave visible, in viewport-local px (never narrower than a third of it). */
+export function getSafeBox() {
+  const box = viewportBox();
+  const left = Math.min(insets.left, box.width / 3);
+  const right = Math.min(insets.right, box.width / 3);
+  return { x: left, y: insets.top, width: box.width - left - right, height: Math.max(box.height - insets.top - insets.bottom, box.height / 3) };
+}
+
 /** A client rect (as getBoundingClientRect returns it) in world coordinates. */
 export function toWorldRect(rect: DOMRect | Rect): Rect {
   const box = viewportBox();
@@ -131,9 +148,9 @@ export function toWorldRect(rect: DOMRect | Rect): Rect {
 
 /** The viewport that shows world rect `rect` whole and centred, `padding` screen px from the edges. */
 function viewportFor(rect: Rect, padding: number, maxZoom: number): StudioViewport {
-  const box = viewportBox();
+  const box = getSafeBox();
   const zoom = clampZoom(Math.min((box.width - padding * 2) / Math.max(rect.width, 1), (box.height - padding * 2) / Math.max(rect.height, 1), maxZoom));
-  return { zoom, x: box.width / 2 - (rect.x + rect.width / 2) * zoom, y: box.height / 2 - (rect.y + rect.height / 2) * zoom };
+  return { zoom, x: box.x + box.width / 2 - (rect.x + rect.width / 2) * zoom, y: box.y + box.height / 2 - (rect.y + rect.height / 2) * zoom };
 }
 
 /** Zoom around a point given in viewport-local px. */
@@ -147,8 +164,8 @@ function zoomAround(zoom: number, localX: number, localY: number, animate = fals
 }
 
 function centerLocal() {
-  const box = viewportBox();
-  return { x: box.width / 2, y: box.height / 2 };
+  const box = getSafeBox();
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
 /** Zoom in / out one ladder step from where the view is heading (a quick double press goes two steps). */
@@ -189,10 +206,12 @@ export const canvasApi = {
     setViewportNow(viewportFor(toWorldRect(rect), options?.padding ?? 48, options?.maxZoom ?? MAX_ZOOM), { animate: true });
   },
   ensureVisible: (rect: DOMRect): void => {
-    const box = viewportBox();
+    const client = viewportBox();
+    const box = getSafeBox();
     const margin = 32;
-    const left = rect.left - box.left;
-    const top = rect.top - box.top;
+    // Relative to the visible part (what the floating panels leave).
+    const left = rect.left - client.left - box.x;
+    const top = rect.top - client.top - box.y;
     const inside = left >= margin && top >= margin && left + rect.width <= box.width - margin && top + rect.height <= box.height - margin;
     if (inside) return;
     // Off screen: centre it, or line its top-left up with the margin when it is bigger than the viewport.
@@ -213,20 +232,20 @@ export const canvasApi = {
    * Document) open readable at their top instead of shrinking to fit their height. */
   zoomToWidth: (screenRect: DOMRect, options?: { margin?: number; maxZoom?: number }): void => {
     const rect = toWorldRect(screenRect);
-    const box = viewportBox();
+    const box = getSafeBox();
     const margin = options?.margin ?? 48;
     const zoom = clampZoom(Math.min(options?.maxZoom ?? 1, (box.width - margin * 2) / Math.max(rect.width, 1)));
-    setViewportNow({ zoom, x: box.width / 2 - (rect.x + rect.width / 2) * zoom, y: margin - rect.y * zoom }, { animate: true });
+    setViewportNow({ zoom, x: box.x + box.width / 2 - (rect.x + rect.width / 2) * zoom, y: box.y + margin - rect.y * zoom }, { animate: true });
   },
   /** Read a frame at an exact zoom (100%): its top under `margin`, centred across when it fits the viewport, else its
    * left edge at `margin` (the rest pans). Unlike zoomToWidth it never shrinks the frame to fit. */
   zoomToRead: (screenRect: DOMRect, options?: { zoom?: number; margin?: number }): void => {
     const rect = toWorldRect(screenRect);
-    const box = viewportBox();
+    const box = getSafeBox();
     const margin = options?.margin ?? 24;
     const zoom = clampZoom(options?.zoom ?? 1);
     const fits = rect.width * zoom + margin * 2 <= box.width;
-    setViewportNow({ zoom, x: fits ? box.width / 2 - (rect.x + rect.width / 2) * zoom : margin - rect.x * zoom, y: margin - rect.y * zoom }, { animate: true });
+    setViewportNow({ zoom, x: box.x + (fits ? box.width / 2 - (rect.x + rect.width / 2) * zoom : margin - rect.x * zoom), y: box.y + margin - rect.y * zoom }, { animate: true });
   },
   /** Zoom to fit (Shift+1, Figma's): every frame on the board, whole and centred, at whatever zoom that takes (never
    * above 100%). Reading starts from a frame instead (⇧2 on it, or its label). */
@@ -292,9 +311,9 @@ if (typeof window !== "undefined") window.addEventListener("resize", () => { box
 /** The viewport that fits `rect` (world coordinates) to the width, top-left aligned `margin` px in, between `minZoom`
  * and `maxZoom` (a rect wider than the canvas at `minZoom` runs off to the right). */
 export function viewportForWidth(rect: Rect, margin = 48, maxZoom = 1, minZoom = MIN_ZOOM): StudioViewport {
-  const box = viewportBox();
+  const box = getSafeBox();
   const zoom = clampZoom(Math.min(maxZoom, Math.max(minZoom, (box.width - margin * 2) / Math.max(rect.width, 1))));
-  return { zoom, x: margin - rect.x * zoom, y: margin - rect.y * zoom };
+  return { zoom, x: box.x + margin - rect.x * zoom, y: box.y + margin - rect.y * zoom };
 }
 
 /**

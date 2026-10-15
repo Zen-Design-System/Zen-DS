@@ -1,42 +1,65 @@
-/* Zen Studio layout (spec §2): toolbar 48 · Pages|Layers · canvas · Inspector; the window never scrolls.
-   Side panels are resizable (StudioApp sets --studio-left-width / --studio-right-width from the prefs). ≥ 1280px both
-   are docked; 1024–1279px Pages|Layers is a drawer and the Inspector stays docked; < 1024px both are drawers; ⌘\ hides
-   both (they stay reachable as drawers). A drawer's column collapses to 0.
-   Stacking (the app isolates): side panels at the base, the toolbar 5, resize handles 6, drawers 24 over their scrim 23,
-   the examples' overlay portal 20, Present 30, the chrome's own popovers 40. */
+/* Zen Studio layout (spec §2), Figma UI3's floating panels (user, 2026-10-15): the canvas fills the window and the
+   panels float over it, Spacing/Padding/XSmall from the edges: Pages | Layers on the left, the Inspector on the right,
+   both full height (a hugging Inspector left its option lists no room: they opened cut off, E2E B-15). The window never
+   scrolls. Panels are resizable
+   (StudioApp sets --studio-left-width / --studio-right-width from the prefs). ≥ 1280px both are docked; 1024–1279px
+   Pages | Layers is a drawer and the Inspector stays docked; < 1024px both are drawers; ⌘\ hides both (a small bar in
+   each corner opens them). --studio-inset-left/right: the part of the canvas a docked panel covers (overlay layer, tools).
+   Stacking (the app isolates): the canvas at the base, the examples' overlay portal 20, the canvas pills 21, the
+   panels 22, resize handles 23, drawers 25 over their scrim 24, Present 30, the chrome's own popovers 40. */
 /* zen-allow-canvas-layer: the Studio window is the page layer behind its panels. */
 .studio-app {
-  --studio-toolbar-height: 48px;
+  --studio-edge: var(--zen-spacing-padding-xsmall, 8px);
   --studio-left-width: 272px;
   --studio-right-width: 320px;
-  --studio-left-column: var(--studio-left-width);
-  /* zen-allow-slot-size: a docked Inspector never squeezes the canvas below 360px (it stops at its 280px minimum). */
-  --studio-right-column: min(var(--studio-right-width), max(280px, calc(100vw - var(--studio-left-column) - 360px)));
+  /* zen-allow-slot-size: a docked Inspector never squeezes the visible canvas below 360px (it stops at its 280px minimum). */
+  --studio-right-column: min(var(--studio-right-width), max(280px, calc(100vw - var(--studio-left-width) - 360px)));
+  --studio-inset-left: 0px;
+  --studio-inset-right: 0px;
   position: fixed;
   inset: 0;
-  display: grid;
   overflow: hidden;
-  grid-template-columns: var(--studio-left-column) minmax(0, 1fr) var(--studio-right-column);
-  grid-template-rows: var(--studio-toolbar-height) minmax(0, 1fr);
-  grid-template-areas: "toolbar toolbar toolbar" "left canvas right";
   isolation: isolate;
   background: var(--zen-color-background-canvas-default, #f7f7f7);
   color: var(--zen-color-content-neutral-strongest, #111);
 }
-.studio-app[data-left="drawer"] { --studio-left-column: 0px; }
-.studio-app[data-right="drawer"] { --studio-right-column: 0px; }
+.studio-app[data-left="docked"] { --studio-inset-left: calc(var(--studio-edge) + var(--studio-left-width)); }
+.studio-app[data-right="docked"]:not([data-doc="true"]) { --studio-inset-right: calc(var(--studio-edge) + var(--studio-right-column)); }
 
-.studio-toolbar { position: relative; z-index: 5; grid-area: toolbar; }
-.studio-left { grid-area: left; }
-.studio-right { grid-area: right; }
 /* clip: focus inside the canvas must never scroll the work area itself (the canvas turns such scrolls into pans). */
-.studio-canvas-area { position: relative; min-width: 0; min-height: 0; overflow: clip; grid-area: canvas; }
+.studio-canvas-area { position: absolute; inset: 0; min-width: 0; min-height: 0; overflow: clip; }
+/* A document page reads as a normal page beside the left panel. */
+.studio-app[data-doc="true"] .studio-canvas-area { left: var(--studio-inset-left); }
+
+/* The floating panels: Surface/Default with the popover's edge and shadow, so they keep an edge over any canvas. */
+.studio-left,
+.studio-right {
+  position: absolute;
+  z-index: 22;
+  top: var(--studio-edge);
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  flex-direction: column;
+  border-radius: var(--zen-corner-radius-xlarge, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-color-background-surface-default, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+}
+.studio-left { bottom: var(--studio-edge); left: var(--studio-edge); width: var(--studio-left-width); overflow: clip; }
+/* The Inspector's body scrolls; its drafts list hangs below the header, so the panel does not clip (its own blocks keep
+   inside the corners). */
+.studio-right { right: var(--studio-edge); bottom: var(--studio-edge); width: var(--studio-right-column); }
+/* A document page: the right panel is its header alone, a bar that hugs its controls. */
+.studio-right[data-bar="true"] { bottom: auto; width: max-content; max-width: calc(100% - var(--studio-inset-left) - 3 * var(--studio-edge)); }
 
 /* The examples' overlay layer (Interact): it covers the canvas area only. Layout containment makes it the containing
    block of its fixed overlays — a Dialog, Side Panel or Bottom Sheet and its scrim, the toast stack — so they cover and
    centre on the canvas, and paint containment clips them to it; the toolbar and side panels stay usable. The layer
    takes no pointer events itself; its overlays do (zero specificity: a surface that opts out, like a tooltip, keeps it). */
-.studio-canvas-area > .studio-portal-root { position: absolute; z-index: 20; inset: 0; contain: layout paint; pointer-events: none; }
+.studio-canvas-area > .studio-portal-root { position: absolute; z-index: 20; inset: 0 var(--studio-inset-right) 0 var(--studio-inset-left); contain: layout paint; pointer-events: none; }
+.studio-app[data-doc="true"] .studio-canvas-area > .studio-portal-root { inset: 0; }
 :where(.studio-canvas-area > .studio-portal-root) > * { pointer-events: auto; }
 /* Select and Hand: an overlay an example left open (a Dialog, a Side Panel) is a layer, not a control, as in Figma's
    design mode: clicks go to the canvas, which picks it (SelectionLayer sets data-picking for its hit test); its own
@@ -44,9 +67,9 @@
 .studio-canvas-area:has(> .studio-viewport:not([data-tool="interact"])) > .studio-portal-root > * { pointer-events: none; }
 .studio-canvas-area > .studio-portal-root.studio-portal-root[data-picking="true"] > * { pointer-events: auto; }
 /* Surfaces placed at window coordinates (from getBoundingClientRect: icon-button and rail tooltips, the table editor's
-   error) move back by the canvas area's offset — the toolbar above it and the docked left column beside it. */
+   error) move back by the overlay layer's offset — the docked left panel it starts after. */
 .studio-canvas-area > .studio-portal-root :is(.zen-tooltip-layer, .zen-sidebar__rail-tooltip, .zen-table-editor__error-tooltip) {
-  margin: calc(-1 * var(--studio-toolbar-height)) 0 0 calc(-1 * var(--studio-left-column));
+  margin: 0 0 0 calc(-1 * var(--studio-inset-left));
 }
 /* The App Shell playground's own full screen covers the window (z 25): its overlays rise above it and are placed against
    the window again (a zero-size anchor, no containment), and the canvas area stops clipping so a menu opened past its
@@ -62,47 +85,29 @@
 :where(.studio-chrome-portal) > * { pointer-events: auto; }
 .studio-dialogs { display: contents; }
 
-/* Drawers: over the canvas, opened from toolbar buttons; Escape and the scrim close them. */
+/* Drawers: the same floating panels, sliding in over the canvas from the corner bars' buttons; Escape and the scrim
+   close them. */
 .studio-app[data-left="drawer"] .studio-left,
-.studio-app[data-right="drawer"] .studio-right {
-  position: fixed;
-  z-index: 24;
-  top: var(--studio-toolbar-height);
-  bottom: 0;
-  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+.studio-app[data-right="drawer"] .studio-right:not([data-bar="true"]) {
+  z-index: 25;
   visibility: hidden;
   transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out), visibility 0s linear var(--zen-motion-duration-base, 200ms);
 }
 /* zen-allow-slot-size: a drawer leaves a 48px strip of canvas (and its scrim) to tap. */
-.studio-app[data-left="drawer"] .studio-left { left: 0; width: min(var(--studio-left-width), calc(100vw - 48px)); transform: translateX(calc(-100% * var(--zen-motion-movement, 1))); }
+.studio-app[data-left="drawer"] .studio-left { width: min(var(--studio-left-width), calc(100vw - 48px)); transform: translateX(calc((-100% - var(--studio-edge)) * var(--zen-motion-movement, 1))); }
 /* zen-allow-slot-size: a drawer leaves a 48px strip of canvas (and its scrim) to tap. */
-.studio-app[data-right="drawer"] .studio-right { right: 0; width: min(var(--studio-right-width), calc(100vw - 48px)); transform: translateX(calc(100% * var(--zen-motion-movement, 1))); }
+.studio-app[data-right="drawer"] .studio-right:not([data-bar="true"]) { width: min(var(--studio-right-width), calc(100vw - 48px)); transform: translateX(calc((100% + var(--studio-edge)) * var(--zen-motion-movement, 1))); }
 .studio-app[data-left="drawer"] .studio-left[data-open="true"],
 .studio-app[data-right="drawer"] .studio-right[data-open="true"] { transform: none; visibility: visible; transition-delay: 0s; }
 @media (prefers-reduced-motion: reduce) {
   .studio-app :is(.studio-left, .studio-right) { transition: none; }
 }
-/* A drawer's own Close button, at the end of its tab row (the row is the Tabs' small item height). */
-.studio-drawer__close {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  right: var(--zen-spacing-padding-xsmall, 8px);
-  display: flex;
-  height: var(--zen-tab-item-size-small-height, 32px);
-  align-items: center;
-}
 .studio-scrim {
   position: fixed;
-  z-index: 23;
-  inset: var(--studio-toolbar-height) 0 0;
+  z-index: 24;
+  inset: 0;
   padding: 0;
   border: 0;
   background: var(--zen-color-background-overlay, rgb(0 0 0 / 25%));
   cursor: default;
 }
-
-/* Document pages (Overviews, Installation, Foundations: doc/DocumentPage.tsx) read as a normal page: no inspector, no
-   canvas tools. */
-.studio-app[data-doc="true"] { --studio-right-column: 0px; }
-.studio-app[data-doc="true"] [aria-controls="studio-right"] { display: none; }

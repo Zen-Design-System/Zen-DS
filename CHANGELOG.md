@@ -19,6 +19,14 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio looks like Figma UI3's floating panels (2026-10-15, user): the canvas fills the window and Pages | Layers
+  and the Inspector float over it; the toolbar row is gone (brand menu and Document | Studio head the left panel, role,
+  undo/redo and drafts the Inspector, the zoom sits on its tab row, light/dark moved to the brand menu). Inspector rows
+  draw Figma's Input/Inline-Field (the label inside the field: text, number with − +, select, colour token, icon, a
+  read-only value), numbers with a known range use Slider/Field, and the chrome uses Emphasis Light. Fit, zoom and
+  keep-in-view aim at the canvas the panels leave visible.
+- Zen Figma library: Input/Inline-Field has Type=Number (the number and − + steppers, `<NumberField layout="inline">`);
+  `.Primitives/Input/Number/Trailing`'s − button is bound to Button-Tertiary/Content again, as the + is.
 - Segmented spacing follows the live Figma (2026-10-15, user): the label pads 8px on each side (was 4) and the icon
   sits next to it with no gap (was 4, Small 2), so a segment with text is 4–6px wider; `Segmented/Spacing/XSmall/*` is
   removed (Figma deleted it, nothing read it). Contract re-captured.

@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Icon } from "../../../components/Icon";
 import { TabPanel, Tabs } from "../../../components/Tabs";
+import { ZoomMenu } from "../canvas/ZoomControls";
 import { PrototypePanel } from "../builder/proto/PrototypePanel";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudioEditStatus, useStudioServer } from "../api";
@@ -123,6 +124,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
           aria-label="Inspector views"
           onValueChange={(id) => studioStore.setState({ inspectorTab: id as StudioInspectorTab })}
         />
+        {/* The zoom on the tab row, as Figma UI3's. */}
+        <ZoomMenu size="xs" />
       </div>
       <TabPanel idPrefix="studio-inspector" id={tab} className="studio-inspector__body">
         {tab === "prototype" ? <PrototypePanel />
