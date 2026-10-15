@@ -270,6 +270,11 @@ removed (four unused colour ramps were, see Removed).
   spec, `@zen-ds/react/ai-ui/lint`), `<AiUi>` (renders with the real components, binds pairs to shared state, emits
   actions, Skeletons while loading), `applyOps` (edits by node id) and `markdownToSpec`. Tests: `npm run ai-ui:selftest`,
   `tests/ai-ui`.
+- Platform page **Patterns › AI UI** (`?page=ai-ui`, 2026-10-15): the runtime at work inside Zen AI with a deterministic
+  composer standing in for the model: a booking form, the invoices table (Skeleton first, rows after), revenue by month, a
+  confirmation Dialog and a prose answer, each validated against the catalog and rendered in the AI bubble; what Alex picks
+  shows in a "shared state" panel, follow-ups edit the UI in place, a rejected spec shows its errors; a phone example and a
+  playground whose code is the React the renderer runs (`toJsx`).
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

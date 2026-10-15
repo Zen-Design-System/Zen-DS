@@ -5,7 +5,9 @@ The app validates and lints the spec, renders it with the real components, and k
 state the conversation can read and change. The model writes no code, no CSS and no colours: only components and props
 from the catalog, so the token system, the usage rules and the accessibility of every component hold at run time.
 
-Branch `zen/feat/ai-ui-runtime-20261014` (2026-10-14). What exists, where, and the decisions still open are below.
+Branch `zen/feat/ai-ui-runtime-20261014` (2026-10-14). What exists, where, and the decisions still open are below. The
+platform page **Patterns › AI UI** (`npm run dev`, `?page=ai-ui`; `src/platform/examples/pages/ai-ui.tsx`) shows it at work
+inside Zen AI with a deterministic composer standing in for the model.
 
 ## Files
 

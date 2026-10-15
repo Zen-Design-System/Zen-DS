@@ -25,7 +25,8 @@ Last updated: 2026-10-14.
 - **AI UI runtime (2026-10-14):** branch `zen/feat/ai-ui-runtime-20261014`, not merged (the user: no merge without a
   request). `@zen-ds/react/ai-ui` renders, validates, prints, lints and edits the JSON spec a model composes from
   `docs/ai-ui/catalog.json` (generated; `npm run ai-ui:build` / `ai-ui:check` / `ai-ui:selftest`, tests/ai-ui). Read
-  `docs/ai-ui/README.md` (files, spec, runtime, catalog rules, findings, the 5 open decisions in BACKLOG "AI UI").
+  `docs/ai-ui/README.md` (files, spec, runtime, catalog rules, findings, the 5 open decisions in BACKLOG "AI UI"). The
+  platform page Patterns › AI UI (`?page=ai-ui`, app layer) shows it at work with a deterministic composer.
 - **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
   pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.

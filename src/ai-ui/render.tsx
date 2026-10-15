@@ -107,7 +107,8 @@ function emptyFor(schema: PropSchema | undefined): unknown {
 
 function resolveValue(value: UiValue, scope: Scope, ctx: Context, id: string | null): unknown {
   if (isNode(value)) return renderNode(value, scope, ctx);
-  if (Array.isArray(value)) return value.map((item) => resolveValue(item, scope, ctx, id));
+  // A list of nodes in a prop (ListItem title with an inline Link) needs keys, as any React list does.
+  if (Array.isArray(value)) return value.map((item, index) => (isNode(item) ? renderNode(item, scope, ctx, index) : resolveValue(item, scope, ctx, id)));
   if (value === null || typeof value !== "object") return value;
   switch (markerOf(value)) {
     case "ref": return readRef((value as { $ref: string }).$ref, scope, ctx);

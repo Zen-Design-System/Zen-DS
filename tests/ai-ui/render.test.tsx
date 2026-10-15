@@ -152,7 +152,8 @@ describe("AiUi renders a spec", () => {
   });
 
   it("renders a Markdown answer as Zen text, list, link and table", async () => {
-    const ui = markdownToSpec("## Your visit\n\nWe found **3 slots** on Tuesday, see [the list](https://example.com/slots).\n\n- 09:00\n- 10:30\n\n| Service | Price |\n|---|---|\n| Haircut | 250k |\n");
+    // Inline nodes inside a list item (a ListItem title that is an array of text and a Link) need React keys: the test fails on the key warning.
+    const ui = markdownToSpec("## Your visit\n\nWe found **3 slots** on Tuesday, see [the list](https://example.com/slots).\n\n- **09:00** at [Linh's](https://example.com/linh)\n- 10:30\n\n| Service | Price |\n|---|---|\n| Haircut | 250k |\n");
     expect(validateSpec(ui, catalog).ok).toBe(true);
     const screen = await render(<ZenProvider><AiUi spec={ui} catalog={catalog} /></ZenProvider>);
     expect(screen.getByRole("heading", { name: "Your visit" }).element()).toBeTruthy();
