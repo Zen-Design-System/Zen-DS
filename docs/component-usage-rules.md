@@ -413,7 +413,7 @@ one to its place**. Nothing is dropped: every action the desktop header offers i
 | --- | --- | --- |
 | Desktop | ≥ 1024 | AppShell: Sidebar beside the page, the top bar, `sections` (Figma Header/Dashboard) |
 | Tablet | 744–1023 | The same AppShell; the Sidebar opens as a drawer from the Menu button |
-| Mobile | < 744 | AppShell `topNavigation` + `bottomNavigation` (Figma Top-Navigation/Mobile, Bottom-Navigation): they replace the top bar, the drawer and `sections` |
+| Mobile | < 744 | `TopNavigation` + `BottomNavigation` (Figma Top-Navigation/Mobile, Bottom-Navigation) instead of the AppShell, around the same content: branch on `useZen().breakpoint === "mobile"` |
 
 **The screen's kind picks the bar** (top-navigation-mobile-rules §1): a **root** (a Sidebar destination: no `back`,
 Breadcrumbs of one item or none) is `type="default"` with `largeTitle` and the BottomNavigation; a **child** (Breadcrumbs
@@ -454,21 +454,27 @@ Rules:
 5. **One way to create.** The Primary becomes "+" or the footer, never both; a `floatingAction` "+" counts as that way.
 
 ```tsx
-<AppShell
-  sidebar={<Sidebar aria-label="Main" selectedId="expenses">…</Sidebar>}
-  header={<Search aria-label="Search" placeholder="Search expenses" />}
-  headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
-  sections={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
-  topNavigation={
+const phone = useZen()?.breakpoint === "mobile";
+const content = <Container>…</Container>; // the page both layouts share; its title is the header's, not in here
+return phone ? (
+  <>
     <TopNavigation title="Expenses" largeTitle="Expenses" leading={<AppShellAccount name="Khoa Dang" onClick={openAccount} />}
       trailing={[{ icon: "icon-plus-line", label: "New expense" }, { icon: "icon-bell-01-line", label: "Notifications", dot: true }]}
-      controlBar={<Search aria-label="Search" placeholder="Search expenses" />} searchAction={{ onClick: focusSearch }} />
-  }
-  bottomNavigation={<BottomNavigation value="expenses" items={[home, expenses, approvals, cards, more]} />}
->
-  …
-</AppShell>
+      controlBar={<Search aria-label="Search" placeholder="Search expenses" />} searchAction={{ onClick: focusSearch }} sticky />
+    <main>{content}</main>
+    <BottomNavigation value="expenses" items={[home, expenses, approvals, cards, more]} />
+  </>
+) : (
+  <AppShell
+    sidebar={<Sidebar aria-label="Main" selectedId="expenses">…</Sidebar>}
+    header={<Search aria-label="Search" placeholder="Search expenses" />}
+    headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><Menu trigger={<AppShellAccount name="Khoa Dang" />} items={account} /></>}
+    sections={<PageHeader title="Expenses" actions={<Button level="primary">New expense</Button>} />}
+  >
+    {content}
+  </AppShell>
+);
 ```
 
-Zen Studio applies this table when it draws a Screen's phone layout from its desktop AppShell (the phone parts stay
-linked until you edit them there). Not machine-checked yet beyond the TopNavigation rules (`top-navigation/*`).
+In Zen Studio a Screen keeps both sets (its desktop AppShell, and its Top / Bottom Navigation in the Screen section):
+build the phone set by this table. Not machine-checked yet beyond the TopNavigation rules (`top-navigation/*`).
