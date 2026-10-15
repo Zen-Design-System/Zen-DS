@@ -30,6 +30,8 @@ export function docFromText(text: string, options?: { components?: Set<string>; 
 export function locsOf(doc: PageDoc, text: string, options?: { components?: Set<string> }): { idAt: Map<string, string>; locOf: Map<string, string> };
 export function newDocId(): string;
 export function withoutIds(doc: PageDoc): unknown;
+/** Pages made before the master layout: the Screen's `sidebar` / `header` moved into its root AppShell (screen-frame.mjs). */
+export function migrateScreenFrame(text: string, options?: { file?: string }): { text: string; changed: boolean; notes: string[] };
 /** Where each element of the first text is in the second, by id: "line:col" → "line:col", null when gone; null overall
  *  when no id carried over. */
 export type LocMap = Record<string, string | null>;

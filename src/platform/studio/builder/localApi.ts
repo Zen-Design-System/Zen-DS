@@ -1,8 +1,9 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DetachPlan, EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
 import { engineOptions, loadDetach, loadEngine, zenComponents } from "./engine";
-import { getPage, pageIdOf, putPage, setPageDoc } from "./store/pageStore";
+import { getPage, pageFile, pageIdOf, putPage, setPageDoc } from "./store/pageStore";
 import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
+import { LEGACY_FRAME } from "../../../../tools/studio/screen-chrome.mjs";
 
 /*
  * The Studio's source API for builder pages kept in the browser (Studio builder GĐ2 M1; spec
@@ -31,7 +32,9 @@ const remember = (hash: string, doc: PageDoc) => {
 /** Gives an open page its document (a text written without one: an older page, an import, a restored version). */
 export async function ensurePageDoc(id: string): Promise<void> {
   const page = await getPage(id);
-  if (!page || page.doc) return;
+  if (!page) return;
+  if (LEGACY_FRAME.test(page.text) && (await moveScreenFrame(id, page))) return;
+  if (page.doc) return;
   const engine = await loadEngine();
   const { doc, errors } = engine.docFromText(page.text, { components: new Set(zenComponents) });
   // A page with dialect errors stays text; its errors show as before.
@@ -39,6 +42,31 @@ export async function ensurePageDoc(id: string): Promise<void> {
   // The text stays as written (the person's formatting; the user's call, 2026-10-11: the page file stays TSX and its
   // document travels beside it in this browser). Refused when an edit landed meanwhile: that edit brought its own.
   if (await setPageDoc(id, page.text, doc)) remember(engine.sha1(page.text), doc);
+}
+
+/**
+ * A page made before the master layout (tools/studio/screen-frame.mjs): its Screen's own Sidebar and Page header move
+ * into the root AppShell, once, as an edit of its own (undo brings the old frame back). A page from a template showed
+ * both its AppShell's Sidebar and the Screen's. The move runs on the print with ids too, so every element keeps its id
+ * (a pulled page's Figma links). True when the page was rewritten.
+ */
+async function moveScreenFrame(id: string, page: { text: string; doc?: PageDoc }): Promise<boolean> {
+  const engine = await loadEngine();
+  const file = pageFile(id);
+  const moved = engine.migrateScreenFrame(page.text, { file });
+  if (!moved.changed) return false;
+  const components = new Set(zenComponents);
+  const plain = engine.docFromText(moved.text, { components });
+  if (!plain.doc || plain.errors.length) return false;
+  let doc = plain.doc;
+  if (page.doc) {
+    const tracked = engine.migrateScreenFrame(engine.printPage(page.doc, { ids: true }), { file });
+    const read = tracked.changed ? engine.docFromText(tracked.text, { components }).doc : null;
+    if (read && JSON.stringify(engine.withoutIds(read)) === JSON.stringify(engine.withoutIds(plain.doc))) doc = read;
+  }
+  await putPage(id, moved.text, { doc });
+  remember(engine.sha1(moved.text), doc);
+  return true;
 }
 
 export const isLocalFile = (file: string | null | undefined): file is string => typeof file === "string" && file.startsWith("local:");

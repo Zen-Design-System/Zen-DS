@@ -164,8 +164,13 @@ const isLibraryPart = (part: string) => { const classes = classesOf(part); retur
 /** States and pseudo elements the static markup does not show: the rule counts when its element is there. */
 const DYNAMIC = /::?(?:hover|focus(?:-visible|-within)?|active|visited|link|any-link|target|checked|indeterminate|disabled|enabled|placeholder-shown|autofill|read-only|read-write|invalid|valid|user-invalid|user-valid|open|popover-open|modal|default|required|optional|in-range|out-of-range|before|after|placeholder|marker|selection|first-line|first-letter|backdrop|file-selector-button|-webkit-[\w-]+|-moz-[\w-]+)(?:\([^()]*\))?/g;
 
+/** A `:not(…)` clause (one level of nested parentheses): it only narrows a match, and a state inside it inverts it. */
+const NOT_CLAUSE = /:not\((?:[^()]|\([^()]*\))*\)/g;
+
 function usedBy(part: string, roots: HTMLElement[]): boolean {
-  const base = part.replace(DYNAMIC, "").trim() || "*";
+  // `:not(…)` goes before the states: with `:focus-within` taken out of `:not([data-focusable="true"]:focus-within)`, a
+  // skip link (AppShell's, data-focusable) seemed not to use VisuallyHidden's rule and showed in the export (2026-10-15).
+  const base = part.replace(NOT_CLAUSE, "").replace(DYNAMIC, "").trim() || "*";
   try {
     return roots.some((root) => root.matches(base) || root.querySelector(base) !== null);
   } catch {

@@ -3,7 +3,7 @@ import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Segmented } from "../../../components/Segmented";
 import { Toggle } from "../../../components/Toggle";
-import { SCREEN_CHROME, screenChromeCode, screenLayout, type ScreenChromeLayout } from "../../../../tools/studio/screen-chrome.mjs";
+import { FRAME_PARTS, SCREEN_CHROME, screenChromeCode, screenFrameCode, screenLayout, type ScreenChromeLayout } from "../../../../tools/studio/screen-chrome.mjs";
 import { Heading } from "../../../components/Text";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -11,9 +11,9 @@ import { frameWidthPresets, isCustomFrameWidth } from "../board/frameLayout";
 import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
-import { applyEdit } from "../api";
+import { applyEdit, studioApi } from "../api";
 import { DEVICE_WIDTH, type PageDevice, type ScreenCanvas } from "../builder/proto/runtime";
-import type { PageNode } from "../builder/render/renderPage";
+import type { PageChild, PageNode } from "../builder/render/renderPage";
 import { pageFile, usePage } from "../builder/store/pageStore";
 import { usePageTree } from "../builder/usePageTree";
 import type { StudioFrameWidth } from "../types";
@@ -41,6 +41,18 @@ const CANVASES: Array<{ id: ScreenCanvas; label: string; token: string }> = [
   { id: "alt", label: "Alt", token: "Background/Canvas/Alt (a white page)" },
   { id: "flat", label: "Flat", token: "Background/Canvas/Flat" },
 ];
+
+/** The first element named `name` among `children` and their children (props not searched), depth first. */
+function firstElementNamed(children: PageChild[], name: string): PageNode | null {
+  for (const child of children) {
+    const node = child.kind === "element" ? child : child.kind === "map" ? child.node : null;
+    if (!node) continue;
+    if (node.name === name) return node;
+    const inner = firstElementNamed(node.children, name);
+    if (inner) return inner;
+  }
+  return null;
+}
 
 /**
  * A builder page's Screen frame (Figma: a frame's device preset and fill): its Device and its Canvas (the background
@@ -74,6 +86,26 @@ function ScreenSection({ frameId }: { frameId: string }) {
   const writePart = (part: (typeof SCREEN_CHROME)[number], on: boolean) => {
     const op = on ? { op: "insertChild" as const, prop: part.prop, code: screenChromeCode(part.prop, title) } : { op: "removeProp" as const, name: part.prop };
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `${part.label} ${on ? "on" : "off"}`);
+  };
+  // The desktop layout's frame is the master layout (user, 2026-10-15): one AppShell at the Screen's root, as a page
+  // from a template has it. Each part is a prop of that AppShell; the first part on wraps the content in it, the last off
+  // takes it away (op screenFrame, tools/studio/screen-frame.mjs).
+  const content = node.children.filter((child) => !(child.kind === "text" && !child.value.trim()));
+  const shell = content.length === 1 && content[0].kind === "element" && content[0].name === "AppShell" ? content[0] : null;
+  // A template's Page header is in its content, not the AppShell's `sections`: Page header reads it (as the move of an
+  // older page does, screen-frame.mjs), so switching it on never adds a second one, and off takes that one away.
+  const contentHeader = shell ? firstElementNamed(shell.children, "PageHeader") : null;
+  const partOn = (prop: string) => shell?.props[prop]?.kind === "element" || (prop === "sections" && Boolean(contentHeader));
+  const writeFramePart = (part: (typeof FRAME_PARTS)[number], on: boolean) => {
+    const label = `${part.label} ${on ? "on" : "off"}`;
+    if (!on && part.prop === "sections" && contentHeader && shell?.props.sections?.kind !== "element") {
+      // Removing a layer checks the text it runs on (its hash).
+      const file = pageFile(localPage);
+      void studioApi.source(file).then(({ hash }) => applyEdit({ file, loc: contentHeader.loc, name: contentHeader.name, ops: [{ op: "removeElement" }], hash }, label));
+      return;
+    }
+    const op = { op: "screenFrame" as const, prop: part.prop, on, code: screenFrameCode(part.prop, title) };
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, label);
   };
   // Default is no prop at all, as the device's desktop default.
   const writeCanvas = (next: ScreenCanvas) => {
@@ -124,7 +156,14 @@ function ScreenSection({ frameId }: { frameId: string }) {
       ) : null}
       {/* One Toggle per part (user, 2026-10-09: "nó là toggle"): the label takes the field's whole width, the switch
           ends the row (a label column wrapped "Bottom navigation" onto two lines). */}
-      {SCREEN_CHROME.filter((part) => part.layout === layout).map((part) => (
+      {layout === "desktop" ? FRAME_PARTS.map((part) => (
+        <InspectorFields
+          key={part.prop}
+          name={part.prop}
+          code={`AppShell ${part.prop}`}
+          fields={[<Toggle key={part.prop} label={part.label} checked={partOn(part.prop)} disabled={!admin} onCheckedChange={(next) => writeFramePart(part, next)} />]}
+        />
+      )) : SCREEN_CHROME.filter((part) => part.layout === layout).map((part) => (
         <InspectorFields
           key={part.prop}
           name={part.prop}

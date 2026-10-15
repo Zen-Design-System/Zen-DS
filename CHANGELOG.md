@@ -19,6 +19,14 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio: a Screen's desktop frame is its master layout (2026-10-15, user: "Khung Screen = Master-Layout đầy đủ"):
+  one AppShell at the Screen's root, as Figma's ◇ Master-Layout. Screen › Sidebar, Top bar, Top bar actions, Page header,
+  Side panel, Floating action and Footer each switch one of its parts (Page header also reads the one a template keeps in
+  its content), so a page from a template no longer shows a second Sidebar or Page header. Pages made before open with
+  the Screen's Sidebar and Page header moved into it (a duplicate dropped); a phone keeps its Top and Bottom navigation
+  and shows the page without the AppShell.
+- Zen Studio's HTML export keeps VisuallyHidden's rule, so an AppShell's "Skip to content" link no longer shows on the
+  exported page.
 - Zen Studio looks like Figma UI3's floating panels (2026-10-15, user): the canvas fills the window and Pages | Layers
   and the Inspector float over it; the toolbar row is gone (brand menu and Document | Studio head the left panel, role,
   undo/redo and drafts the Inspector, the zoom sits on its tab row, light/dark moved to the brand menu). Inspector rows

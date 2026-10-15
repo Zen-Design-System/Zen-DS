@@ -12,6 +12,8 @@
 //                                           `with` (sibling locs): several layers of one JSX parent in one wrapper (applyWrapMany)
 //                                           op "unwrap" (alone): a Box|Stack|Grid holding one element is replaced by it;
 //                                           `unwrapped` = { loc } of the element (applyUnwrap)
+//                                           op "screenFrame" (alone, on a Screen): one part of its master layout (the root
+//                                           AppShell) on or off, { prop, on, code } (screen-frame.mjs setScreenFramePart)
 //                                           ops "insertChild" | "removeElement" | "duplicateElement" | "moveElement" | "clearSlot" |
 //                                           "resetSlot" (alone): slots.mjs applySlotOp; `inserted` / `moved` = { loc }, `removed` /
 //                                           `cleared` / `reset` = true; opts add componentModules?, requiredChildren?, requiredProps?,
@@ -27,6 +29,7 @@ import MagicString from "magic-string";
 import cloning from "../../src/platform/studio/cloning.json" with { type: "json" };
 import { UNIT, importEdits, pathTo, piece } from "./source-helpers.mjs";
 import { SLOT_OPS, applySlotOp, isSharedFile, sharedRefusal } from "./slots.mjs";
+import { setScreenFramePart } from "./screen-frame.mjs";
 
 const BOM = "\uFEFF";
 const PLUGINS = ["jsx", "typescript"];
@@ -1782,6 +1785,21 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
   if (ops.some((op) => op?.op === "detach")) return applyDetach(code, bom, text, ast, element, ops, { snippets, keys, file, eol, componentCss });
   if (ops.some((op) => op?.op === "wrap")) return applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, lineCommentEnds });
   if (ops.some((op) => op?.op === "unwrap")) return applyUnwrap(code, bom, text, ast, element, ops, { snippets, file, eol });
+  if (ops.some((op) => op?.op === "screenFrame")) {
+    if (ops.length !== 1) return fail("invalid", "screenFrame cannot be combined with other ops");
+    if (actual !== "Screen") return fail("invalid", `screenFrame is sent on a <Screen>, not <${actual}>`);
+    let next;
+    try {
+      next = setScreenFramePart(text, loc, ops[0], { file });
+    } catch (error) {
+      if (error instanceof EditError) return fail(error.code, error.message);
+      throw error;
+    }
+    if (next === text) return { code, changed: { from: target.line, to: target.line } };
+    const after = parseSource(next);
+    if (!after || after.errors.length > ast.errors.length) return fail("invalid", "The edit would break the file's syntax");
+    return { code: bom + next, changed: changedRange(text, next) };
+  }
   let next;
   let edits;
   // A setTextStyle that adds the file's first typographyStyles use imports it; one that removes the last use drops the

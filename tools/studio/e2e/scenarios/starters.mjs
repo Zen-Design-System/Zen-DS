@@ -1,6 +1,6 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
-import { focusFrame, openStudioSpace, ownerOfLayer, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { focusFrame, inspectorRow, openStudioSpace, ownerOfLayer, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, pageText, selectedName } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
@@ -638,4 +638,28 @@ export const rows = [
       }
     },
   })),
+  {
+    id: "SP-22", feature: "A page from the Dashboard template on its master layout (user, 2026-10-15): Screen › Sidebar, Top bar and Page header read the template's own (its Page header is in the content); Page header off takes it away, on puts one in Sections; never two Sidebars or Page headers", wp: "master layout 2026-10-15",
+    timeout: 120_000,
+    async run(ctx) {
+      const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+      const text = async () => (await pageText(page, id)) ?? "";
+      const count = async (name) => ((await text()).match(new RegExp(`<${name}\\b`, "g")) ?? []).length;
+      const frame = page.locator('[data-studio-frame^="screen:"]').first();
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+      const toggle = (prop) => inspectorRow(page, prop).getByRole("switch");
+      const on = async (prop) => (await toggle(prop).getAttribute("aria-checked")) === "true";
+      await toggle("sidebar").waitFor({ state: "visible", timeout: 5000 });
+      const read = [await on("sidebar"), await on("header"), await on("sections")];
+      if (read.join() !== "true,true,true") throw new Error(`Sidebar, Top bar, Page header read ${read.join(", ")}`);
+      await toggle("sections").click();
+      await until(async () => (await count("PageHeader")) === 0, { message: "the template's Page header taken away" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => !(await on("sections")), { message: "Page header reads off" });
+      await toggle("sections").click();
+      await until(async () => /sections=\{<PageHeader /.test(await text()) && (await count("PageHeader")) === 1, { message: "one Page header, in Sections" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => (await frame.locator(".zen-page-header").count()) === 1 && (await frame.locator(".zen-sidebar").count()) === 1, { message: "one Page header and one Sidebar on the Screen" });
+      return "Sidebar · Top bar · Page header read on; Page header off → none, on → one in Sections";
+    },
+  },
 ];

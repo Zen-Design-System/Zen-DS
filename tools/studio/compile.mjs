@@ -251,7 +251,10 @@ function screenContent(screen, ctx, indent) {
   const part = (prop) => (screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
   const layout = screenLayout(screen.props.device?.value ?? "desktop", screen.props.layout?.value);
   const shown = SCREEN_CHROME.filter((entry) => entry.layout === layout && part(entry.prop));
-  const kids = screen.children.filter((child) => child.kind !== "text" || child.value.trim());
+  const blank = (child) => child.kind === "text" && !child.value.trim();
+  const all = screen.children.filter((child) => !blank(child));
+  // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: a phone shows its content only.
+  const kids = layout === "mobile" && all.length === 1 && all[0].kind === "element" && all[0].name === "AppShell" ? all[0].children.filter((child) => !blank(child)) : all;
   if (!shown.length) {
     if (kids.length === 1 && kids[0].kind === "element") return elementCode(kids[0], ctx, indent);
     const inner = indent + UNIT;

@@ -2,7 +2,8 @@
 // The edit engine on a builder page kept in the browser ("local:<id>.zen.tsx", Studio builder GĐ2 M1): the same ops as
 // on example code, results that stay valid pages. Run: node tools/studio/builder.selftest.mjs
 import { dataFieldEdit } from "./data-source.mjs";
-import { SCREEN_CHROME, boardFrames, frameCode, freeFrameId, newPageText, parsePage, protoCode, screenChromeCode, screenLayout, validateDialect } from "./dialect.mjs";
+import { SCREEN_CHROME, boardFrames, frameCode, freeFrameId, newPageText, parsePage, protoCode, screenLayout, validateDialect } from "./dialect.mjs";
+import { FRAME_PARTS, screenFrameCode } from "./screen-chrome.mjs";
 import { applyOps, describeElement, sha1 } from "./jsx-source.mjs";
 
 const failures = [];
@@ -14,7 +15,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
@@ -95,32 +96,57 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("protoCode forms", [protoCode("close"), protoCode("toast", 'Say "hi"'), protoCode("link", "https://zen.dev")], ["proto.close()", 'proto.toast({ title: "Say \\"hi\\"" })', 'proto.link("https://zen.dev")']);
 }
 
-// The app frame (user, 2026-10-09): a blank page's Screen holds Sidebar + Page Header and Top + Bottom Navigation as
-// props; a part switched off is the prop removed, switched on again it comes back with its import.
+// The app frame (user, 2026-10-09; master layout 2026-10-15): a blank desktop page's Screen holds Top + Bottom Navigation
+// as props (the mobile layout's) and one root AppShell, the master layout, with the Sidebar and the Page header. A part
+// switched off is the AppShell's prop removed (the AppShell goes with its last part); switched on, it comes back with its
+// import (an AppShell made around the content when there is none).
 {
   let framed = newPageText({ title: "Orders" });
   check("a page with its frame is valid", validateDialect(framed, { components }), []);
-  const screen = () => parsePage(framed).board.children[0];
-  check("the Screen holds the four parts", SCREEN_CHROME.map((part) => screen().props[part.prop]?.node?.name ?? null), ["Sidebar", "PageHeader", "TopNavigation", "BottomNavigation"]);
-  check("the header carries the title", screen().props.header.node.props.title, { kind: "literal", value: "Orders" });
-  check("the Stack is still the Screen's first child", screen().children[0].name, "Stack");
-  const off = applyOps(framed, screen().loc, "Screen", [{ op: "removeProp", name: "sidebar" }], options(framed));
+  const kids = (node) => (node?.children ?? []).filter((child) => child.kind === "element");
+  const screen = (text = framed) => parsePage(text).board.children[0];
+  const shell = (text = framed) => kids(screen(text)).find((child) => child.name === "AppShell") ?? null;
+  check("the Screen holds the mobile layout's parts", SCREEN_CHROME.map((part) => screen().props[part.prop]?.node?.name ?? null), [null, null, "TopNavigation", "BottomNavigation"]);
+  check("its master layout: one AppShell with the Sidebar and the Page header", [kids(screen()).map((child) => child.name), shell()?.props.sidebar?.node?.name, shell()?.props.sections?.node?.name], [["AppShell"], "Sidebar", "PageHeader"]);
+  check("the Page header carries the title", shell().props.sections.node.props.title, { kind: "literal", value: "Orders" });
+  check("the Stack is the AppShell's content", kids(shell()).map((child) => child.name), ["Stack"]);
+  const frame = (text, prop, on) => applyOps(text, screen(text).loc, "Screen", [{ op: "screenFrame", prop, on, code: screenFrameCode(prop, "Orders") }], options(text));
+  const packageImport = (text) => /import \{ ([^}]+) \} from "@zen-ds\/react";/.exec(text)?.[1].split(", ") ?? [];
+  const off = frame(framed, "sidebar", false);
   check("switch the Sidebar off", off.error ?? null, null);
   framed = off.code ?? framed;
-  check("no sidebar prop, still valid", ["sidebar" in screen().props, validateDialect(framed, { components })], [false, []]);
-  const bare = framed.replace(/import \{ [^}]+ \} from "@zen-ds\/react";/, 'import { BottomNavigation, PageHeader, Stack, Text, TopNavigation } from "@zen-ds/react";');
-  const on = applyOps(bare, parsePage(bare).board.children[0].loc, "Screen", [{ op: "insertChild", prop: "sidebar", code: screenChromeCode("sidebar", "Orders") }], options(bare));
+  check("no Sidebar, its imports gone, still valid", ["sidebar" in shell().props, packageImport(framed).filter((name) => /^Sidebar/.test(name)), validateDialect(framed, { components })], [false, [], []]);
+  const on = frame(framed, "sidebar", true);
   check("switch it on again", on.error ?? null, null);
-  check("Sidebar back, imported", [parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.name ?? null, /import \{ [^}]*\bSidebar\b[^}]* \} from "@zen-ds\/react";/.test(on.code ?? "")], ["Sidebar", true]);
+  check("Sidebar back, imported", [shell(on.code)?.props.sidebar?.node?.name ?? null, packageImport(on.code ?? "").includes("Sidebar")], ["Sidebar", true]);
   // Its rows are Body-Content children (Figma Menu-Item instances), imported with it.
-  check("the Sidebar's rows are SidebarMenuItem children, imported", [(parsePage(on.code ?? "").board?.children[0].props.sidebar?.node?.children ?? []).filter((child) => child.kind === "element").map((child) => child.name), /import \{ [^}]*\bSidebarMenuItem\b[^}]* \} from "@zen-ds\/react";/.test(on.code ?? "")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
+  check("the Sidebar's rows are SidebarMenuItem children, imported", [kids(shell(on.code)?.props.sidebar?.node).map((child) => child.name), packageImport(on.code ?? "").includes("SidebarMenuItem")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
+  check("on again twice: nothing changes", frame(on.code, "sidebar", true).code === on.code, true);
+  // Every part on one AppShell, then every part off: the AppShell goes with the last, the Stack is the Screen's again.
+  let all = on.code ?? framed;
+  for (const part of FRAME_PARTS) {
+    const result = frame(all, part.prop, true);
+    check(`${part.label} on, valid`, [result.error ?? null, validateDialect(result.code ?? "", { components })], [null, []]);
+    all = result.code ?? all;
+  }
+  check("every part on the one AppShell, each imported", [Object.keys(shell(all).props).filter((name) => FRAME_PARTS.some((part) => part.prop === name)).sort(), FRAME_PARTS.every((part) => packageImport(all).includes(part.component))], [FRAME_PARTS.map((part) => part.prop).sort(), true]);
+  for (const part of FRAME_PARTS) all = frame(all, part.prop, false).code ?? all;
+  check("all off: no AppShell, the Stack is the Screen's content", [kids(screen(all)).map((child) => child.name), packageImport(all).filter((name) => FRAME_PARTS.some((part) => part.component === name) || name === "AppShell" || name === "SidebarMenuItem"), validateDialect(all, { components })], [["Stack"], [], []]);
+  const back = frame(all, "sections", true);
+  check("a part on a Screen without an AppShell wraps its content", [kids(screen(back.code)).map((child) => child.name), kids(shell(back.code)).map((child) => child.name), validateDialect(back.code ?? "", { components })], [["AppShell"], ["Stack"], []]);
+  check("not a part: refused", applyOps(framed, screen().loc, "Screen", [{ op: "screenFrame", prop: "banner", on: true, code: "<AlertBanner />" }], options(framed)).code ?? null, "invalid");
+  const stack = kids(shell())[0];
+  check("sent on another element: refused", applyOps(framed, stack.loc, "Stack", [{ op: "screenFrame", prop: "aside", on: true }], options(framed)).code ?? null, "invalid");
   check("layouts", [screenLayout("phone"), screenLayout("desktop", "mobile"), screenLayout("tablet"), screenLayout("tablet", "desktop")], ["mobile", "desktop", "mobile", "desktop"]);
   const tablet = applyOps(framed, screen().loc, "Screen", [{ op: "setProp", name: "layout", value: { kind: "string", value: "desktop" } }], options(framed));
   check("a tablet laid out as desktop is valid", validateDialect(tablet.code ?? "", { components }), []);
   const wrong = framed.replace('device="desktop"', 'device="tablet" layout="wide"');
   check("an unknown layout is refused", validateDialect(wrong, { components }).map((error) => error.message), ["layout is mobile, desktop"]);
   const added = applyOps(framed, parsePage(framed).board.loc, "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id: "screen-2", title: "Detail", device: "phone" }) }], options(framed));
-  check("a new Screen comes with its frame", [added.error ?? null, parsePage(added.code ?? "").board?.children[1]?.props.topNavigation?.node?.props.title ?? null, validateDialect(added.code ?? "", { components })], [null, { kind: "literal", value: "Detail" }, []]);
+  check("a new phone Screen comes with its bars, no AppShell", [added.error ?? null, parsePage(added.code ?? "").board?.children[1]?.props.topNavigation?.node?.props.title ?? null, kids(parsePage(added.code ?? "").board?.children[1]).map((child) => child.name), validateDialect(added.code ?? "", { components })], [null, { kind: "literal", value: "Detail" }, ["Stack"], []]);
+  const desk = applyOps(framed, parsePage(framed).board.loc, "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id: "screen-3", title: "List" }) }], options(framed));
+  check("a new desktop Screen comes with its master layout", [desk.error ?? null, kids(parsePage(desk.code ?? "").board?.children[1]).map((child) => child.name), validateDialect(desk.code ?? "", { components })], [null, ["AppShell"], []]);
+  check("a new phone page has no AppShell", [/\bAppShell\b/.test(newPageText({ title: "P", device: "phone" })), validateDialect(newPageText({ title: "P", device: "phone" }), { components })], [false, []]);
 }
 
 if (failures.length) {
