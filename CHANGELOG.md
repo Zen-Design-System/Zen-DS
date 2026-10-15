@@ -19,12 +19,37 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio canvas, free frames on a page you made (2026-10-15, user: "canvas tự do hơn, giống Figma"): drag a frame by
+  its name (or a selected frame anywhere) to move it, with red snap guides to the other frames (⌘ off, ⇧ one axis, Esc
+  back); ⌥-drag drops a copy; ⌘D, ⌘C / ⌘V copy a frame (also onto another page); the arrow keys nudge it. The toolbar's
+  Screen tool is now Frame (F, as in Figma): drag a box for a Screen of that size, or click for one on the page's device.
+  Present the selected frame moved from F to ⌥⌘↵ (Figma's). Places are written in the page (`x` / `y` on Screen and
+  Overlay, `width` / `height` on a drawn Screen); one ⌘Z per gesture.
+- Zen Studio: a Screen's desktop frame is its master layout (2026-10-15, user: "Khung Screen = Master-Layout đầy đủ"):
+  one AppShell at the Screen's root, as Figma's ◇ Master-Layout. Screen › Sidebar, Top bar, Top bar actions, Page header,
+  Side panel, Floating action and Footer each switch one of its parts (Page header also reads the one a template keeps in
+  its content), so a page from a template no longer shows a second Sidebar or Page header. Pages made before open with
+  the Screen's Sidebar and Page header moved into it (a duplicate dropped); a phone keeps its Top and Bottom navigation
+  and shows the page without the AppShell.
+- Zen Studio's HTML export keeps VisuallyHidden's rule, so an AppShell's "Skip to content" link no longer shows on the
+  exported page.
 - Zen Studio looks like Figma UI3's floating panels (2026-10-15, user): the canvas fills the window and Pages | Layers
   and the Inspector float over it; the toolbar row is gone (brand menu and Document | Studio head the left panel, role,
   undo/redo and drafts the Inspector, the zoom sits on its tab row, light/dark moved to the brand menu). Inspector rows
   draw Figma's Input/Inline-Field (the label inside the field: text, number with − +, select, colour token, icon, a
   read-only value), numbers with a known range use Slider/Field, and the chrome uses Emphasis Light. Fit, zoom and
   keep-in-view aim at the canvas the panels leave visible.
+- Zen Studio Inspector polish (2026-10-15, user): a row's hint reads as its field's Help-Text (Caption/Regular,
+  Content/Neutral/Light, 4px under the field); no-effect warnings are Zen Inline-Messages (Warning, their fix as the
+  Action) ending at the fields' edge, not hand-drawn pills; Frame › Theme puts its label above the Segmented, as a Screen's Canvas
+  (beside the label "Page · Light · Dark" was cut). Field-grid rows without a label above (Screen's Top / Bottom navigation
+  switches) centre their control, so they keep the panel's 8px rhythm. Document | Studio floats at the top centre of the canvas (it was cut to
+  "Docu…" in the left header), with "Zen Studio" back beside the menu mark; document pages start under the floating bars.
+  The alignment box takes the input fill and Figma's vertical insets. An enum prop with no known default shows "Default"
+  as its chosen value (Stack Scroll had nothing selected). Modes move into their controls instead of the icon column: Wrap is Flow's third
+  segment (↓ → ↵, Figma UI3) and a Grid's separate/one gap commands sit in its gap lists. The
+  Inspector header no longer pushes Save all out of a narrow panel (the role button keeps its avatar there) and the role
+  button has no chevron and shows the signed-in person's photo, else their initial on their own hue.
 - Zen Figma library: Input/Inline-Field has Type=Number (the number and − + steppers, `<NumberField layout="inline">`);
   `.Primitives/Input/Number/Trailing`'s − button is bound to Button-Tertiary/Content again, as the + is.
 - Segmented spacing follows the live Figma (2026-10-15, user): the label pads 8px on each side (was 4) and the icon
@@ -236,6 +261,25 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Zen Studio Interact, zoomed in or out (2026-10-15, user): an example's overlays stay in its frame and zoom with it. A
+  Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
+  and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole
+  canvas.
+- Zen Studio frames clip their content, as Figma's Clip content (2026-10-15, user): nothing an example opens spills out
+  of its frame. An open Popover, Menu, Date or Colour Picker grows its example frame to 720px, as a modal does, and
+  flips or moves to open whole inside it; icon tooltips stay inside the frame too.
+- Tooltip (above or below its trigger) stays whole near the edge of the window or of a frame that clips it, such as a
+  phone preview: it moves along instead of being cut off ("A tip on a phone" lost its first words).
+- Popover placement (useAnchoredPosition), Tooltip, the Sidebar rail tooltip and the Table editor's error bubble now
+  sit on their anchor inside a transform-scaled container (a scaled phone preview, a zoomed canvas): positions are
+  converted from viewport px to the container's own px (`_shared/layer-space.ts`, as Menu already did). Unscaled pages
+  are unchanged.
+- Zen Studio: on a builder page, the Inspector's frame Width and Theme now follow the frame (2026-10-15, user): a width
+  dragged on the frame's edge shows in Width, and a Width or Theme picked there reaches the frame (the Inspector kept
+  them under the platform page instead of the builder page).
+- Zen Studio: a page made from a template no longer locks a control with the state it was captured in (a DateField's
+  `value=""` that ignored picked days, a Chip's `popoverOpen={false}`): it is written as the `default…` twin. Pushing such
+  a page to Figma keeps Select=Yes for `defaultChecked` / `defaultSelected`.
 - Security: RichTextField sanitises the HTML it receives as `value` / `defaultValue` (scripts, event handlers and
   `javascript:` URLs are dropped); Link adds `rel="noopener noreferrer"` to any `target="_blank"`, not only `external`.
 - A press inside a popup opened from another popup (a Select or Menu inside a Popover, a DatePicker in a Chip filter) no
@@ -270,6 +314,16 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio Present and Play: a **Viewport** button on the bar (2026-10-15, user) — Auto (as before), Desktop
+  1440 × 900, Tablet 768 × 1024, Phone 390 × 844, or any W × H typed in px (an empty H fills the window). The screen
+  renders in a box of that size (its dialogs and menus open inside it) and scales down to fit the window, never up; the
+  choice holds while ‹ › step and Restart, and resets when Present or Play ends. The box's right edge, bottom edge and
+  corner drag to a free size (Shift snaps to 8, Esc puts it back, a double-click returns to Auto).
+- Components keep their own state where a parent used to (2026-10-15, user: so a page made from a template in Zen
+  Studio works as the template does): an Advanced Chip with `popoverItems` and no `onPopoverSelect` keeps the choice
+  itself (the picked value as its label, the count for multiple, × and Delete clear it); Chip `defaultSelected` (Normal
+  chips toggle themselves) and `defaultPopoverOpen`; Pagination `defaultPage` and `defaultPageSize` (`page` is now
+  optional); Stepper `defaultCurrent` (a Passed step takes you back); SelectField `defaultPopoverOpen`.
 - **AI UI runtime** (`@zen-ds/react/ai-ui`, 2026-10-14, branch `zen/feat/ai-ui-runtime-20261014`): the layer for UI a
   model composes at run time (docs/ai-ui/README.md). A generated catalog (`docs/ai-ui/catalog.json`, 133 public
   components: props as a JSON-Schema subset, controlled-pair bindings, required actions, stable / verified / experimental

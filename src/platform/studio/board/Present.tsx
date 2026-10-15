@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { ZenPortalProvider } from "../../../components/Portal";
-import { fullScreenEscapeOwners } from "../../PlatformFullScreen";
 import { PlatformPhoneModesContext } from "../../PlatformPhone";
 import { isWideExample } from "../../examples/types";
 import { ExampleCard } from "../../PlatformShowcases";
@@ -13,6 +12,7 @@ import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
+import { presentEscapeOwners, useViewportFit, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
 
 /** Present's own modes: what the user picked in its Modes panel. They hold while ‹ › step between examples and are
@@ -28,15 +28,17 @@ export function Present() {
   const presenting = useStudio((state) => state.presenting);
   const frames = useStudioFrames();
   const [own, setOwn] = useState<PresentModes>({});
+  // The viewport holds while ‹ › step, like the modes, and is forgotten when Present ends.
+  const [viewport, setViewport] = useState<PresentViewport>(null);
   useEffect(() => {
-    if (!presenting) setOwn({});
+    if (!presenting) { setOwn({}); setViewport(null); }
   }, [presenting]);
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((modes) => ({ ...modes, [key]: value })), []);
   const frame = presenting ? frames.find((entry) => entry.id === presenting) : undefined;
-  return frame?.example ? <PresentLayer key={frame.id} frame={frame} example={frame.example} own={own} onModeChange={setMode} /> : null;
+  return frame?.example ? <PresentLayer key={frame.id} frame={frame} example={frame.example} own={own} onModeChange={setMode} viewport={viewport} onViewportChange={setViewport} /> : null;
 }
 
-function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void }) {
+function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void; viewport: PresentViewport; onViewportChange: (viewport: PresentViewport) => void }) {
   const canvasModes = useStudio((state) => state.preview);
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
@@ -73,7 +75,7 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
       if (event.defaultPrevented) return;
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || layerRef.current?.querySelector(fullScreenEscapeOwners)) return;
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || layerRef.current?.querySelector(presentEscapeOwners)) return;
         const free = target === layerRef.current || target === document.body || Boolean(target?.closest(".platform-fullscreen-bar button"));
         if (!free) return;
         event.preventDefault();
@@ -81,7 +83,7 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
         return;
       }
       if (event.key !== "Escape") return;
-      if (target?.closest("input, textarea, select, [contenteditable='true'], td, th") || layerRef.current?.querySelector(fullScreenEscapeOwners)) return;
+      if (target?.closest("input, textarea, select, [contenteditable='true'], td, th") || layerRef.current?.querySelector(presentEscapeOwners)) return;
       event.preventDefault();
       exit();
     };
@@ -100,14 +102,21 @@ function PresentLayer({ frame, example, own, onModeChange }: { frame: StudioFram
   }, [exit, frame.id]);
 
   const width = resolveFrameWidth(frame.baseWidth, override?.width);
+  const fit = useViewportFit(viewport, stageRef);
   return (
     <div ref={layerRef} className="studio-present" role="dialog" aria-label={`${example.title}, full screen`} tabIndex={-1} data-screen={example.screen ? "true" : undefined} {...modes}>
-      <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} />
+      <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={viewport} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} />
       <ZenPortalProvider container={portalRoot}>
         <PlatformTypographyContext value={preview.typography}>
           <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
             <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
-              <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+              {/* The same two wrappers in Auto (they take no box) and in a fixed viewport, so a change keeps the example's state. */}
+              <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
+                <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
+                  <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+                </div>
+                <ViewportHandles viewport={viewport} fit={fit} onChange={onViewportChange} />
+              </div>
             </div>
           </PlatformPhoneModesContext>
         </PlatformTypographyContext>

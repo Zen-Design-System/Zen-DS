@@ -4053,6 +4053,10 @@
           "type": "boolean",
           "description": "Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling."
         },
+        "defaultSelected": {
+          "type": "boolean",
+          "description": "Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's close affordance clears it."
+        },
         "dropdown": {
           "type": "boolean",
           "description": "Figma's Dropdown property."
@@ -4118,6 +4122,11 @@
         "popoverOpen": {
           "type": "boolean",
           "description": "Controlled open state for the advanced chip menu."
+        },
+        "defaultPopoverOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Uncontrolled start for `popoverOpen` (default false)."
         },
         "popoverMultiple": {
           "type": "boolean",
@@ -4231,7 +4240,8 @@
       "bindings": [
         {
           "prop": "popoverOpen",
-          "handler": "onPopoverOpenChange"
+          "handler": "onPopoverOpenChange",
+          "initial": "defaultPopoverOpen"
         },
         {
           "prop": "popoverSearch",
@@ -5215,6 +5225,92 @@
           "type": "string",
           "x-kind": "date",
           "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        },
+        "readOnly": {
+          "type": "boolean",
+          "x-html": true
+        },
+        "required": {
+          "type": "boolean",
+          "x-html": true
+        },
+        "placeholder": {
+          "type": "string",
+          "x-html": true
+        },
+        "name": {
+          "type": "string",
+          "x-html": true
+        },
+        "autoComplete": {
+          "type": "string",
+          "x-html": true
+        },
+        "inputMode": {
+          "enum": [
+            "none",
+            "text",
+            "decimal",
+            "numeric",
+            "tel",
+            "search",
+            "email",
+            "url"
+          ],
+          "x-html": true
+        },
+        "maxLength": {
+          "type": "number",
+          "x-html": true
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "x-html": true
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "x-html": true
+        },
+        "step": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "x-html": true
         },
         "value": {
           "type": "string",
@@ -11108,8 +11204,12 @@
       "props": {
         "page": {
           "type": "number",
-          "x-required": true,
-          "description": "1-based current page."
+          "description": "1-based current page (controlled)."
+        },
+        "defaultPage": {
+          "type": "number",
+          "default": 1,
+          "description": "Uncontrolled start for `page` (default 1): ‹ › and the page items then move it themselves."
         },
         "onValueChange": {
           "x-kind": "action",
@@ -11149,8 +11249,11 @@
         },
         "pageSize": {
           "type": "number",
-          "default": 50,
           "description": "Items per page and total items (Inline/Manually)."
+        },
+        "defaultPageSize": {
+          "type": "number",
+          "default": 50
         },
         "total": {
           "type": "number",
@@ -11208,11 +11311,13 @@
         {
           "prop": "page",
           "handler": "onPageChange",
-          "auto": true
+          "auto": true,
+          "initial": "defaultPage"
         },
         {
           "prop": "pageSize",
-          "handler": "onPageSizeChange"
+          "handler": "onPageSizeChange",
+          "initial": "defaultPageSize"
         },
         {
           "prop": "value",
@@ -12557,6 +12662,11 @@
           "type": "boolean",
           "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself."
         },
+        "defaultPopoverOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Uncontrolled start for `popoverOpen` (default false)."
+        },
         "onPopoverOpenChange": {
           "x-kind": "action",
           "params": [
@@ -12666,7 +12776,8 @@
       "bindings": [
         {
           "prop": "popoverOpen",
-          "handler": "onPopoverOpenChange"
+          "handler": "onPopoverOpenChange",
+          "initial": "defaultPopoverOpen"
         },
         {
           "prop": "value",
@@ -14097,8 +14208,12 @@
         },
         "current": {
           "type": "number",
-          "default": 0,
           "description": "Index of the current step (State=Focused)."
+        },
+        "defaultCurrent": {
+          "type": "number",
+          "default": 0,
+          "description": "Uncontrolled start for `current` (default 0)."
         },
         "orientation": {
           "enum": [

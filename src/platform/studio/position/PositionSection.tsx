@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
-import { Icon } from "../../../components/Icon";
+import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField, SelectField, type SelectFieldOption } from "../../../components/Input";
 import { ScaleTrail } from "../inspector/controls/ScaleField";
 import type { IconName } from "../../../icons/generated/names";
@@ -328,7 +328,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
           <Button appearance="flat" level="primary" size="xs" onClick={() => selectSrc(geometry.floatBox!, selection)}>Select Box</Button>
         </div>
       ) : !floating ? (
-        <p className={`studio-position__caption ${typographyStyles["Body/Small/Regular"]}`}>{locked ? `Position is set in the code (${positionValue.state === "bound" ? `{${positionValue.expression}}` : positionValue.via})` : flowHint}</p>
+        <p className={`studio-position__caption ${typographyStyles["Caption/Regular"]}`}>{locked ? `Position is set in the code (${positionValue.state === "bound" ? `{${positionValue.expression}}` : positionValue.via})` : flowHint}</p>
       ) : null}
 
       {floating ? (
@@ -357,16 +357,12 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
         <InsetRow key={prop} prop={prop} value={values[prop]} ladder={ladder} api={api} name={name} />
       ))}
 
-      {notes.map((note) => (
-        <div key={note.text} className="studio-position__note-row">
-          <p className={`studio-position__note ${typographyStyles["Body/Small/Regular"]}`} data-tone={note.tone}>
-            {note.tone === "warning" ? <Icon name="icon-alert-triangle-line" size="sm" decorative /> : null}
-            {note.text}
-          </p>
-          {/* zen-allow-compact-button: a quiet fix next to a one-line warning in a dense tool panel, as the Size group's */}
-          {/* zen-allow-destructive: removes props that do nothing here, as one undoable draft edit; not an irreversible delete */}
-          {note.action ? <Button appearance="flat" level="primary" size="xs" onClick={note.action.run}>{note.action.label}</Button> : null}
-        </div>
+      {/* A warning is Zen's Inline-Message (Warning), its fix the Action (one undoable draft edit); a neutral note is the
+          fields' Help-Text (Caption/Regular, Content/Neutral/Light). */}
+      {notes.map((note) => note.tone === "warning" ? (
+        <InlineMessage key={note.text} theme="warning" className="studio-inspector__warning" action={note.action ? { label: note.action.label, onClick: note.action.run } : undefined}>{note.text}</InlineMessage>
+      ) : (
+        <p key={note.text} className={`studio-position__caption ${typographyStyles["Caption/Regular"]}`}>{note.text}</p>
       ))}
     </InspectorSection>
   );

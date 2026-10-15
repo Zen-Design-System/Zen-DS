@@ -59,6 +59,19 @@ export const subscribeStudioFrames = subscribe;
 export const getStudioSections = () => sections;
 export const findFrame = (id: string | null | undefined) => (id ? frames.find((frame) => frame.id === id) ?? null : null);
 
+/*
+ * Frames that moved without changing size (a builder page's free frames: a drag, a nudge, a place read from the page):
+ * whatever caches frame boxes measures again (the frame chrome; the prototype arrows), as a ResizeObserver never fires.
+ */
+const moveListeners = new Set<() => void>();
+export function notifyFramesMoved() {
+  moveListeners.forEach((listener) => listener());
+}
+export function onFramesMoved(listener: () => void) {
+  moveListeners.add(listener);
+  return () => { moveListeners.delete(listener); };
+}
+
 export function useStudioFrames() {
   return useSyncExternalStore(subscribe, getStudioFrames, getStudioFrames);
 }

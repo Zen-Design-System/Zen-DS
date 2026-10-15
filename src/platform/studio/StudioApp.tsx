@@ -47,7 +47,7 @@ import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
 import { PanelResizer } from "./shell/PanelResizer";
 import { ShortcutsDialog } from "./shell/ShortcutsDialog";
 import { openShortcuts } from "./shell/shortcutsOpen";
-import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader } from "./shell/PanelHeaders";
+import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader, SpaceBar } from "./shell/PanelHeaders";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
@@ -361,6 +361,13 @@ export function StudioApp() {
         void detachSelection(selection);
         return;
       }
+      // ⌥⌘↵ / Ctrl+Alt+Enter presents the selected frame (Figma's Present; it was F until 2026-10-15).
+      if (mod && event.altKey && !event.shiftKey && event.key === "Enter") {
+        if (doc || inExample) return;
+        const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
+        if (frameId) { event.preventDefault(); presentFrame(frameId); }
+        return;
+      }
       // ⌘/Ctrl+D duplicates the selected layer (Figma's Duplicate) in the Select tool. On the canvas the browser's bookmark
       // dialog never opens, whatever is selected; a held key does not go on duplicating the copy.
       if (mod && !event.altKey && !event.shiftKey && key === "d") {
@@ -471,8 +478,8 @@ export function StudioApp() {
         const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
         startPlay(frameId?.startsWith("screen:") ? frameId.split(":")[1] : null);
       } else if (key === "f") {
-        const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
-        if (frameId) { event.preventDefault(); presentFrame(frameId); }
+        // Figma's F: the Frame tool, on a page you made (user, 2026-10-15; Present moved to ⌥⌘↵).
+        if (state.localPage) studioStore.setState({ tool: "frame" });
       } else return;
     };
     // Ctrl/⌘ + wheel over the chrome must never zoom the page itself (the canvas zooms its own content).
@@ -536,9 +543,9 @@ export function StudioApp() {
               )}
             </ZenPortalProvider>
           </StudioBridgeContext>
-          {/* Overlays of the examples (Dialog, Side Panel, Toast, Tooltip, Popover…): unscaled, outside the world, in the
-              preview modes, in a layer clipped to the canvas area (studio.css), so a modal's scrim covers the canvas and
-              leaves the Studio chrome usable. The class official-portal-root is what examples and the full-screen code
+          {/* The canvas's overlay layer: unscaled, outside the world, in the preview modes, clipped to the canvas area
+              (studio.css). Each frame holds its own example's overlays since 2026-10-15 (StudioFrame: in the world, so they
+              zoom with it); this layer takes what renders outside a frame, and a frame's portals until its layer mounts. The class official-portal-root is what examples and the full-screen code
               look for. data-zen-isolation-root: a modal's isolation (inert) stays inside this layer, so the canvas keeps
               taking Studio's clicks (Select, E2E O-02/O-04) and the chrome stays usable. */}
           <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" {...previewAttributes(preview)} />
@@ -558,6 +565,7 @@ export function StudioApp() {
           </ChromeScope>
         )}
         {leftDocked || presenting ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedLeftBar layout={layout} /></ChromeScope>}
+        {layout.phone || presenting ? null : <ChromeScope className="studio-space-bar" inert={inert}><SpaceBar /></ChromeScope>}
         {rightDocked || presenting || docPage ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedRightBar layout={layout} /></ChromeScope>}
 
         {leftDocked && !presenting ? <PanelResizer side="left" width={panels.left} label="Resize Pages and layers panel" controls="studio-left" /> : null}

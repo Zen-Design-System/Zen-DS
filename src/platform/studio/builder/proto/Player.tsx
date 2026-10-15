@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
 import { ToastProvider, useToast, type ToastOptions } from "../../../../components/Toast";
-import { fullScreenEscapeOwners } from "../../../PlatformFullScreen";
 import { PresentBar } from "../../board/PresentBar";
+import { presentEscapeOwners, useViewportFit, ViewportHandles, type PresentViewport } from "../../board/presentViewport";
 import { canvasApi } from "../../canvas/viewport";
 import { previewAttributes, type ModeKey } from "../../shell/modes";
 import { studioStore, useStudio } from "../../store";
@@ -68,6 +68,10 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
   const modes: StudioPreviewSettings = { ...canvasModes, ...own };
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
+  // Auto plays each Screen at its device's width; a device or a typed W × H holds for the whole Play (Restart keeps it).
+  const [viewport, setViewport] = useState<PresentViewport>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const fit = useViewportFit(viewport, stageRef);
 
   const restart = useCallback(() => { setHistory([]); setOverlay(null); }, []);
   const exit = useCallback(() => stopPlay(), []);
@@ -107,7 +111,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
       if (event.key === "Escape") {
         // An open overlay (Dialog, Menu…) takes Escape first.
-        if (layerRef.current?.querySelector(fullScreenEscapeOwners)) return;
+        if (layerRef.current?.querySelector(presentEscapeOwners)) return;
         event.preventDefault();
         exit();
       } else if (event.key.toLowerCase() === "r" && !event.shiftKey) {
@@ -138,19 +142,23 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes)}>
       <ProtoContext value={actions}>
       <PageOsContext value={pageOsOf(tree?.header)}>
-        <div className="studio-player__stage">
-          <div className="studio-player__device" style={{ width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-zen-overlay-root="" data-screen-id={current}>
-            {screen ? (
-              <div key={`${history.length}:${current}`} className="studio-player__screen">
-                {renderNode(screen, { mock: ctx.mock }, ctx)}
-              </div>
-            ) : <p className="studio-player__empty">{tree ? "This page has no Screen to play." : ""}</p>}
-            {overlayChild ? renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay}`, { open: true, onOpenChange: (open: boolean) => { if (!open) setOverlay(null); } }) : null}
+        <div ref={stageRef} className="studio-player__stage">
+          <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
+            <div className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current}>
+              {screen ? (
+                <div key={`${history.length}:${current}`} className="studio-player__screen">
+                  {renderNode(screen, { mock: ctx.mock }, ctx)}
+                </div>
+              ) : <p className="studio-player__empty">{tree ? "This page has no Screen to play." : ""}</p>}
+              {overlayChild ? renderNode(overlayChild, { mock: ctx.mock }, ctx, `overlay:${overlay}`, { open: true, onOpenChange: (open: boolean) => { if (!open) setOverlay(null); } }) : null}
+            </div>
+            <ViewportHandles viewport={viewport} fit={fit} onChange={setViewport} />
           </div>
         </div>
       </PageOsContext>
       </ProtoContext>
       <PresentBar title={screenTitle ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
+        viewport={viewport} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}
         leading={<>
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />

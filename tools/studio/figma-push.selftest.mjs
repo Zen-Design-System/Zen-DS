@@ -243,6 +243,12 @@ export default function Page() {
   check("AppShell: every layer keyed, no key twice (the frame by the Screen, not its AppShell)", { all: keys.every(Boolean), unique: new Set(keys).size === keys.length, root: frame.key !== shell.key }, { all: true, unique: true, root: true });
 }
 {
+  // The master layout (the Screen's root AppShell, screen-frame.mjs) is the desktop layout's: a phone draws its content.
+  const { frame } = push(SHELL.replace('device="desktop">', 'device="phone">'));
+  const names = []; const walk = (node) => { names.push(node.set?.name ?? node.name); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  check("Screen master layout (phone): no AppShell row, no Sidebar or top bar; the page's rows are drawn", { shell: frame.children[0]?.name === "AppShell" || names.includes("Sidebar"), rows: names.filter((name) => name === "List-Item").length }, { shell: false, rows: 2 });
+}
+{
   // The Screen's app frame (screen-chrome.mjs): Sidebar beside a column of the Page header and the page.
   const chrome = SHELL.replace(/<AppShell[\s\S]*<\/AppShell>/, '<Stack gap="md"><Heading level={1}>Team</Heading></Stack>').replace('device="desktop">', 'device="desktop" header={<PageHeader title="Team" />} sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>} topNavigation={<Heading>Phone only</Heading>}>');
   const { frame, notes } = push(chrome);
@@ -1039,7 +1045,7 @@ export default function Page() {
   ok("pull: a List-Item's leading swapped for a file icon (read from its main component) and its IconButton trailing", text.includes('<ListItem title="Usability plan – transfers.pdf" caption="1.2 MB · Ava Chen · Yesterday at 4:05 pm" leading={<FileIcon format="pdf" />} trailing={<IconButton icon="icon-trash-line" appearance="flat" aria-label="Delete Usability plan – transfers.pdf" />} />'));
   const page = `// @zen-page {"format":1,"title":"Controls"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { Checkbox, DockIcon, Stack } from "@zen-ds/react";
+import { Checkbox, Chip, DockIcon, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1050,15 +1056,19 @@ export default function Page() {
         <Stack>
           <Checkbox label="I confirm" caption="Billed in October." />
           <DockIcon theme="emoji" emoji="🏝️" />
+          <Checkbox label="Keep me signed in" defaultChecked />
+          <Chip variant="normal" defaultSelected>Unread</Chip>
         </Stack>
       </Screen>
     </Board>
   );
 }
 `;
-  const [box, dock] = push(page).frame.children;
+  const [box, dock, kept, unread] = push(page).frame.children;
   check("push: Checkbox label, caption through its Content (shown, then written)", [box.texts, box.nested, box.props.Caption], [{ Label: "I confirm" }, [{ path: "Content", props: { Subtext: true }, texts: { Subtext: "Billed in October." } }], undefined]);
   check("push: an emoji Dock-Icon's emoji as its text", dock.text, "🏝️");
+  // The Studio writes a state prop as its uncontrolled twin (so the page stays interactive): the same Figma property.
+  check("push: defaultChecked and defaultSelected are Select=Yes", [kept.props.Select, unread.props.Select], ["Yes", "Yes"]);
   // A Heading's level rides on its layer's name, so it comes back a Heading (its level's text style unsaid).
   const headings = `// @zen-page {"format":1,"title":"Headings"}
 import { Board, Screen } from "@zen-ds/react/builder";

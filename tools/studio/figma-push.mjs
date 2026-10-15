@@ -250,7 +250,10 @@ function setsByCode(mapping) {
 function figmaProps(entry, code, mapping, notes, where, only = null, filled = null) {
   const props = {};
   const defaults = mapping.apiProps[entry.code];
-  const valueOf = (prop) => (prop in code ? code[prop] : only ? undefined : defaults?.get(prop));
+  // A state prop written as its uncontrolled twin (a Chip's defaultSelected, a Checkbox's defaultChecked: what the Studio
+  // writes so the page stays interactive) is the same Figma property.
+  const twinOf = (prop) => `default${prop[0].toUpperCase()}${prop.slice(1)}`;
+  const valueOf = (prop) => (prop in code ? code[prop] : twinOf(prop) in code ? code[twinOf(prop)] : only ? undefined : defaults?.get(prop));
   // A component that is several Figma sets (Sidebar: Basic, Workspace, Small-Density) maps the properties of them all:
   // write only those this set has (its contract's property names), when the contract knows the set.
   const known = entry.defaults && Object.keys(entry.defaults).length ? new Set(Object.keys(entry.defaults)) : null;
@@ -1517,7 +1520,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const chromeProps = SCREEN_CHROME.map((part) => part.prop);
   const chromeOf = (prop) => (SCREEN_CHROME.some((part) => part.prop === prop && part.layout === active) && screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
   const chrome = chromeProps.some(chromeOf);
-  const layers = screen.children.filter((child) => child.kind === "element");
+  const placed = screen.children.filter((child) => child.kind === "element");
+  // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: the mobile layout draws its content.
+  const layers = active === "mobile" && placed.length === 1 && placed[0].name === "AppShell" ? placed[0].children.filter((child) => child.kind === "element") : placed;
   const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });

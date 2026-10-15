@@ -1,10 +1,12 @@
-import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useInsertionEffect, useLayoutEffect, useRef, useState, type FocusEvent, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
+import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useInsertionEffect, useLayoutEffect, useRef, useState, type FocusEvent, type CSSProperties, type HTMLAttributes, type PointerEvent, type ReactElement, type ReactNode } from "react";
 import { Icon } from "../Icon";
 import "../Icon/core";
 import { ZenPortal } from "../Portal";
 import { useZenLabels } from "../_shared/zen-context";
 import { usePresence } from "../Motion";
 import { scaleKey } from "../_shared/scale";
+import { fixedLayerSpace } from "../_shared/layer-space";
+import { visibleBounds } from "../Popover/useAnchoredPosition";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tooltip.css";
@@ -119,6 +121,23 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
   const presence = usePresence(open, 80);
   const [escaped, setEscaped] = useState(false);
   if (open && escaped) setEscaped(false);
+  // Above or below its trigger the tooltip is centred on it; near the edge of what shows it (the viewport, or an ancestor
+  // that clips: a phone preview) it moves along so it stays whole, 4px in (2026-10-15: "A tip on a phone" was cut off at
+  // the screen's edge). Measured without the shift it has; px of its own (a scaled frame draws them at its scale).
+  const [shift, setShift] = useState(0);
+  useLayoutEffect(() => {
+    const surface = presence.mounted && (placement === "top" || placement === "bottom") ? document.getElementById(id) : null;
+    if (!surface?.parentElement) { setShift(0); return; }
+    const rect = surface.getBoundingClientRect();
+    const scale = surface.offsetWidth > 0 ? rect.width / surface.offsetWidth : 1;
+    const left = rect.left - shift * scale;
+    const right = rect.right - shift * scale;
+    const bounds = visibleBounds(surface.parentElement);
+    const margin = 4;
+    const dx = left < bounds.left + margin ? bounds.left + margin - left : right > bounds.right - margin ? bounds.right - margin - right : 0;
+    const next = Math.round(dx / (scale || 1));
+    if (next !== shift) setShift(next);
+  }, [presence.mounted, placement, content, id, shift]);
   useEffect(() => clear, []);
   useEffect(() => {
     if (!open) return undefined;
@@ -155,7 +174,7 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
       onPointerDown={closable ? undefined : hide}
     >
       <InsideTooltipContext.Provider value={true}>{trigger}</InsideTooltipContext.Provider>
-      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role={closable ? "note" : "tooltip"} color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"} onClose={closable ? hide : undefined}>{content}</TooltipSurface> : null}
+      {presence.mounted && !(escaped && !open) ? <TooltipSurface id={id} role={closable ? "note" : "tooltip"} color={color} size={size} className="zen-tooltip--floating" data-placement={placement} data-state={open ? undefined : "closing"} style={shift ? ({ "--zen-tooltip-shift": `${shift}px` } as CSSProperties) : undefined} onClose={closable ? hide : undefined}>{content}</TooltipSurface> : null}
     </span>
   );
 }
@@ -218,14 +237,19 @@ function IconTooltipLayer({ anchor, placement, closing = false, children }: { an
   const [position, setPosition] = useState<{ top: number; left: number; side: "top" | "bottom" } | null>(null);
   useLayoutEffect(() => {
     const el = layer.current; if (!el) return;
-    const rect = anchor.getBoundingClientRect(), gap = 8, edge = 4;
-    const width = el.offsetWidth, height = el.offsetHeight, viewportWidth = document.documentElement.clientWidth;
+    // Measured in viewport px; written in the layer's own px, which differ inside a scaled frame (layer-space.ts).
+    const space = fixedLayerSpace(el.parentElement);
+    const rect = anchor.getBoundingClientRect(), gap = 8 * space.scale, edge = 4;
+    const width = el.offsetWidth * space.scale, height = el.offsetHeight * space.scale;
+    // Where it can be seen: the viewport, or inside a fixed containing block the part of it nothing clips (a Zen Studio
+    // frame clips its content: the tip flips and moves to stay inside, 2026-10-15).
+    const bounds = space.block ? visibleBounds(space.block) : { top: 0, left: 0, right: document.documentElement.clientWidth, bottom: window.innerHeight };
     let side = placement;
-    if (side === "top" && rect.top - height - gap < edge) side = "bottom";
-    else if (side === "bottom" && rect.bottom + height + gap > window.innerHeight - edge) side = "top";
+    if (side === "top" && rect.top - height - gap < bounds.top + edge) side = "bottom";
+    else if (side === "bottom" && rect.bottom + height + gap > bounds.bottom - edge) side = "top";
     const top = side === "top" ? rect.top - height - gap : rect.bottom + gap;
-    const left = Math.min(Math.max(edge, rect.left + rect.width / 2 - width / 2), viewportWidth - width - edge);
-    setPosition({ top, left, side });
+    const left = Math.min(Math.max(bounds.left + edge, rect.left + rect.width / 2 - width / 2), bounds.right - width - edge);
+    setPosition({ top: (top - space.top) / space.scale, left: (left - space.left) / space.scale, side });
   }, [anchor, placement]);
   return (
     <ZenPortal>

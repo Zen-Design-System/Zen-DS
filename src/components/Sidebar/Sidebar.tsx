@@ -1,5 +1,6 @@
 import { Children, cloneElement, createContext, Fragment, isValidElement, useContext, useEffect, useRef, useState, type Dispatch, type ElementType, type FocusEvent, type PointerEvent, type ReactElement, type ReactNode, type Ref, type RefObject, type SetStateAction } from "react";
-import { ZenPortal } from "../Portal";
+import { usePortalContainer, ZenPortal } from "../Portal";
+import { fixedLayerSpace } from "../_shared/layer-space";
 import { Icon, type IconName } from "../Icon";
 import { BadgeCounter } from "../Badge";
 import { IconButton } from "../Button";
@@ -242,11 +243,17 @@ function WorkspaceHeader({ items, onSelect, action }: { items: SidebarItem[]; on
 function useRailTooltip(enabled: boolean, delay = TOOLTIP_HOVER_DELAY) {
   const [position, setPosition] = useState<{ top: number; left: number; label?: string } | null>(null);
   const timer = useRef<number | undefined>(undefined);
+  // The tooltip renders in the portal container: placed in that layer's own px (it differs inside a scaled frame).
+  const portal = usePortalContainer();
   const clear = () => window.clearTimeout(timer.current);
   const hide = () => { clear(); setPosition(null); };
   const show = (target: HTMLElement, wait: number, label?: string) => {
     clear();
-    const place = () => { const rect = target.getBoundingClientRect(); setPosition({ top: rect.top + rect.height / 2, left: rect.right + 8, label }); };
+    const place = () => {
+      const rect = target.getBoundingClientRect();
+      const space = fixedLayerSpace(portal);
+      setPosition({ top: (rect.top + rect.height / 2 - space.top) / space.scale, left: (rect.right - space.left) / space.scale + 8, label });
+    };
     if (wait <= 0) place(); else timer.current = window.setTimeout(place, wait);
   };
   useEffect(() => clear, []);

@@ -32,8 +32,9 @@
 
 .zen-tooltip-anchor { position: relative; display: inline-flex; }
 .zen-tooltip--floating { position: absolute; z-index: 50; animation: zen-tooltip-in var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
-.zen-tooltip--floating[data-placement="top"] { bottom: calc(100% + 8px); left: 50%; translate: -50% 0; }
-.zen-tooltip--floating[data-placement="bottom"] { top: calc(100% + 8px); left: 50%; translate: -50% 0; }
+/* Centred on the trigger, moved along by --zen-tooltip-shift near the edge of what shows it (Tooltip.tsx). */
+.zen-tooltip--floating[data-placement="top"] { bottom: calc(100% + 8px); left: 50%; translate: calc(-50% + var(--zen-tooltip-shift, 0px)) 0; }
+.zen-tooltip--floating[data-placement="bottom"] { top: calc(100% + 8px); left: 50%; translate: calc(-50% + var(--zen-tooltip-shift, 0px)) 0; }
 .zen-tooltip--floating[data-placement="left"] { right: calc(100% + 8px); top: 50%; translate: 0 -50%; }
 .zen-tooltip--floating[data-placement="right"] { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
 @keyframes zen-tooltip-in { from { opacity: 0; } to { opacity: 1; } }

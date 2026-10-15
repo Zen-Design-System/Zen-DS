@@ -1,6 +1,6 @@
 // Starter rows (Studio builder GĐ3b, spec docs/research/studio-builder-starters-spec-2026-10-07.md): a builder page made
 // from what an example or template frame shows ("New page from this frame"), kept in the browser and editable.
-import { focusFrame, openStudioSpace, ownerOfLayer, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { focusFrame, inspectorRow, openStudioSpace, ownerOfLayer, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, pageText, selectedName } from "./builder.mjs";
 import { pickOption, waitSeed } from "./inspector.mjs";
 
@@ -619,6 +619,71 @@ export const rows = [
       }
     },
   },
+  {
+    id: "SP-23", feature: "A page from the Admin list template works as the template does (user 2026-10-15: \"chip advance, date input… hoạt động như bình thường trong studio\"): its filter Chip keeps no controlled prop that would lock it, and in Interact it picks a value (the label shows it), counts a second one and × clears them", wp: "studio self-managed 2026-10-15",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        /** Names the step that failed. */
+        const step = async (name, run) => { try { return await run(); } catch (error) { throw new Error(`${name}: ${error.message}`); } };
+        const { page, id: pageId, newErrors } = await step("New page from the Admin list frame", () => pageFromFrame(ctx, 0, { on: "templates" }));
+        const chipText = await firstElementText(page, pageId, "Chip");
+        if (!/popoverItems=/.test(chipText) || /\bselected=|\bpopoverOpen=|onPopoverSelect/.test(chipText)) throw new Error(`expected a filter Chip with its items and no controlled selected / popoverOpen:\n${chipText.slice(0, 500)}`);
+        // The page's Screen in view (the new page opens on its overlays), then Interact.
+        await focusScreen(page);
+        await page.keyboard.press("KeyI");
+        await until(async () => (await page.locator(".studio-viewport").getAttribute("data-tool")) === "interact", { message: "the Interact tool on" });
+        const chip = page.locator(`.studio-frame [data-zen-src^="local:${pageId}.zen.tsx:"][data-zen-name="Chip"][aria-haspopup="listbox"]`).first();
+        const label = () => chip.locator(".zen-chip__label").innerText();
+        const placeholder = await label();
+        await step("open the chip's menu", () => chip.click());
+        const options = page.locator(".studio-frame .zen-popover").getByRole("option");
+        await options.first().waitFor({ state: "visible", timeout: 5000 });
+        const [first, second] = (await options.allInnerTexts()).map((text) => text.trim());
+        await step(`pick "${first}"`, () => options.filter({ hasText: first }).first().click());
+        await until(async () => (await label()) === first, { message: `the chip's label to show "${first}"` }).catch(async (error) => { throw new Error(`${error.message} (shows "${await label()}")`); });
+        await step(`pick "${second}"`, () => options.filter({ hasText: second }).first().click());
+        await until(async () => (await label()) === placeholder && /2 applied/.test((await chip.getAttribute("aria-label")) ?? ""), { message: "two values counted" });
+        await page.keyboard.press("Escape");
+        await step("press ×", () => chip.locator(".zen-chip__multi-trailing").click());
+        await until(async () => (await chip.getAttribute("data-select")) === "false", { message: "× to clear the filter" });
+        if (newErrors().length) throw new Error(`console errors on the new page: ${newErrors().slice(0, 2).join(" | ").slice(0, 300)}`);
+        return `"${placeholder}" → "${first}" → "${placeholder}, 2 applied" → cleared`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "SP-24", feature: "A page from the Dashboard template: in Interact the New project form's DateField opens its calendar and a picked day fills the field (user 2026-10-15: \"date input… hoạt động như bình thường trong studio\")", wp: "studio self-managed 2026-10-15",
+    timeout: 60_000,
+    async run(ctx) {
+      try {
+        const step = async (name, run) => { try { return await run(); } catch (error) { throw new Error(`${name}: ${error.message}`); } };
+        const { page, id } = await step("New page from the Dashboard template", () => pageFromTemplate(ctx, "Dashboard"));
+        // A value the template's form held is the field's starting value, not a lock (`value=""` kept nothing typed or picked).
+        const fieldText = await firstElementText(page, id, "DateField");
+        if (/\bvalue=/.test(fieldText)) throw new Error(`the DateField keeps a controlled value: ${fieldText.slice(0, 200)}`);
+        // The form is an Overlay frame of the page: its Layers row brings it into view.
+        await showLeftTab(page, "layers");
+        const row = page.locator('[data-layer-id^="frame:overlay:"]').filter({ hasText: /new.project/i }).first();
+        await step("the New project overlay in Layers", () => row.click());
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Shift+Digit2");
+        await page.keyboard.press("KeyI");
+        await until(async () => (await page.locator(".studio-viewport").getAttribute("data-tool")) === "interact", { message: "the Interact tool on" });
+        const field = page.locator('.studio-frame input[role="combobox"][aria-haspopup="dialog"]').first();
+        await step("click the date field", () => field.click());
+        await until(async () => (await field.getAttribute("aria-expanded")) === "true", { message: "the calendar open" });
+        const day = page.locator(".zen-date-picker__day:not([disabled])").filter({ hasText: /^\s*15\s*$/ }).first();
+        await step("pick the 15th", () => day.click());
+        const value = await until(async () => { const text = await field.inputValue(); return /\/15\//.test(text) ? text : null; }, { message: "the picked day in the field" });
+        return `calendar opens, the 15th fills the field (${value})`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
   ...[["SP-02", 4, "Sign in", "desktop"], ["SP-03", 5, "Mobile list", "phone"]].map(([id, frame, name, device]) => ({
     id, feature: `New page from the ${name} template: a ${device} page that renders`, wp: "GĐ3b M1",
     // The first row opens the Templates page, which the server compiles then (about 20 s).
@@ -638,4 +703,28 @@ export const rows = [
       }
     },
   })),
+  {
+    id: "SP-22", feature: "A page from the Dashboard template on its master layout (user, 2026-10-15): Screen › Sidebar, Top bar and Page header read the template's own (its Page header is in the content); Page header off takes it away, on puts one in Sections; never two Sidebars or Page headers", wp: "master layout 2026-10-15",
+    timeout: 120_000,
+    async run(ctx) {
+      const { page, id } = await pageFromTemplate(ctx, "Dashboard");
+      const text = async () => (await pageText(page, id)) ?? "";
+      const count = async (name) => ((await text()).match(new RegExp(`<${name}\\b`, "g")) ?? []).length;
+      const frame = page.locator('[data-studio-frame^="screen:"]').first();
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+      const toggle = (prop) => inspectorRow(page, prop).getByRole("switch");
+      const on = async (prop) => (await toggle(prop).getAttribute("aria-checked")) === "true";
+      await toggle("sidebar").waitFor({ state: "visible", timeout: 5000 });
+      const read = [await on("sidebar"), await on("header"), await on("sections")];
+      if (read.join() !== "true,true,true") throw new Error(`Sidebar, Top bar, Page header read ${read.join(", ")}`);
+      await toggle("sections").click();
+      await until(async () => (await count("PageHeader")) === 0, { message: "the template's Page header taken away" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => !(await on("sections")), { message: "Page header reads off" });
+      await toggle("sections").click();
+      await until(async () => /sections=\{<PageHeader /.test(await text()) && (await count("PageHeader")) === 1, { message: "one Page header, in Sections" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => (await frame.locator(".zen-page-header").count()) === 1 && (await frame.locator(".zen-sidebar").count()) === 1, { message: "one Page header and one Sidebar on the Screen" });
+      return "Sidebar · Top bar · Page header read on; Page header off → none, on → one in Sections";
+    },
+  },
 ];

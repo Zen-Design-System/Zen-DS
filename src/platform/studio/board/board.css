@@ -149,7 +149,26 @@
   /* The 1px Pale border stays one screen pixel at every zoom. */
   box-shadow: 0 0 0 calc(1px / var(--studio-zoom, 1)) var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
   color: var(--zen-color-content-neutral-strongest, #111);
+  /* Figma's Clip content (user, 2026-10-15): nothing an example opens spills out of its frame. Popover, Menu and Tooltip
+     measure what is visible (visibleBounds, Menu's bounds) and flip or move to stay inside it instead of being cut. */
+  overflow: clip;
 }
+/* A frame's own overlay layer (StudioFrame): what its example portals (Popover, Tooltip, the toast stack) renders here,
+   in the world, so it zooms with the frame and takes its theme. Layout containment makes it the block of their fixed
+   layers (the toast stack sits at the frame's bottom). Above the frame's content and the overlays the frame holds itself
+   (a contained Dialog or Menu); the layer takes no pointer events, its overlays do (zero specificity). In Select and Hand
+   the canvas's capture layer is above the whole world, so overlays stay layers there, as in Figma's design mode. */
+.studio-frame__portal { position: absolute; z-index: 30; inset: 0; contain: layout; pointer-events: none; }
+:where(.studio-frame__portal) > * { pointer-events: auto; }
+/* A frame holding an open overlay is at least a laptop screen high (user, 2026-10-15: keep 720, nothing spills out of
+   the frame): a modal (a contained Dialog, Modal Form or Side Panel) opens at its own size instead of squeezed into a
+   short example, and a Popover, Menu, Date or Colour Picker finds room inside the frame (measured after the frame has
+   grown, the same layout pass) instead of being clipped. The board makes room below (StudioBoard re-measures the frame)
+   and takes it back when the overlay closes. Tooltips and toasts fit where they are and leave the frame as it is. The
+   anchored surfaces count in example frames only (builder Screens are those too): a playground shows open specimens
+   that fit its stage, and must not grow for them. */
+.studio-frame:has(> :is(.zen-dialog-overlay, .zen-side-panel-overlay)[data-contained="true"]),
+.studio-frame[data-kind="example"]:has(:is(.zen-popover[data-side], .zen-menu, .zen-date-picker[data-side], .zen-color-picker[data-side])) { min-height: 720px; }
 /* One selection colour on the canvas: Info blue, as the layer outlines (select.css), never the examples' own accent. */
 .studio-frame[data-hovered="true"] { outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
 .studio-frame[data-selected="true"] { outline: calc(2px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
@@ -206,8 +225,71 @@
 /* A card presented at its frame width (a desktop screen instead fills the window: the card's own full-screen rules). */
 /* Present's canvas is the stage: the card and its grey stage step aside, so the example sits on the page directly (never
    a white card inside a grey stage inside a card). */
-.studio-present__stage > .pe-card:not([data-screen="true"]) { width: min(var(--studio-frame-width, 640px), 100%); align-self: flex-start; background: none; box-shadow: none; }
-.studio-present__stage > .pe-card:not([data-screen="true"]) > .pe-card__stage { margin: 0; padding: 0; border-radius: 0; background: none; }
+.studio-present__viewport > .pe-card:not([data-screen="true"]) { width: min(var(--studio-frame-width, 640px), 100%); align-self: flex-start; background: none; box-shadow: none; }
+.studio-present__viewport > .pe-card:not([data-screen="true"]) > .pe-card__stage { margin: 0; padding: 0; border-radius: 0; background: none; }
+/* Present's and Play's viewport (presentViewport.tsx). Auto: the wrappers take no box, so the example lays out in the
+   stage as before. A fixed W × H: the wrapper takes the scaled box's room in the stage; the box is that many CSS px,
+   scaled from its top-left, scrolls its content and holds the example's fixed layers (a presented desktop screen fills
+   the box, not the window). Its edge is the Player device's (Large radius, level-1 shadow) with a Subtle ring: its edges
+   drag (ViewportHandles), so it is an actionable box. */
+:is(.studio-present__fit, .studio-present__viewport)[data-viewport="auto"] { display: contents; }
+.studio-present__fit[data-viewport="fixed"] { position: relative; flex: 0 0 auto; align-self: flex-start; }
+/* zen-allow-canvas-layer: the viewport is the presented screen's page (Present's own page, at a device's size). */
+.studio-present__fit[data-viewport="fixed"] > :is(.studio-present__viewport, .studio-player__device) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  overflow: auto;
+  contain: layout;
+  transform-origin: top left;
+  border-radius: var(--zen-corner-radius-large, 16px);
+  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-bottom-level-1-shadow);
+}
+/* An example card in a fixed viewport takes its width, inset as on its canvas frame. */
+.studio-present__viewport[data-viewport="fixed"] > .pe-card:not([data-screen="true"]) { width: 100%; }
+.studio-present__viewport[data-viewport="fixed"] > .pe-card:not([data-screen="true"]) > .pe-card__stage { padding: var(--zen-spacing-padding-xlarge, 24px); }
+/* Its drag handles (ViewportHandles), outside the scaled box so they keep screen px: strips across the right edge, the
+   bottom edge and the corner, with a short grip pill beside each edge. Hover and drag paint the grips and the box's ring
+   in Info blue, the Studio's one selection colour (as the canvas frame's edge). */
+.studio-viewport-handles { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+.studio-viewport-handles__hit { position: absolute; pointer-events: auto; touch-action: none; }
+.studio-viewport-handles__hit[data-axis="x"] { top: 0; bottom: 0; left: 100%; width: 16px; translate: -6px 0; cursor: ew-resize; }
+.studio-viewport-handles__hit[data-axis="y"] { top: 100%; right: 0; left: 0; height: 16px; translate: 0 -6px; cursor: ns-resize; }
+.studio-viewport-handles__hit[data-axis="xy"] { top: 100%; left: 100%; width: 20px; height: 20px; translate: -8px -8px; cursor: nwse-resize; }
+.studio-viewport-handles__hit:is([data-axis="x"], [data-axis="y"])::after {
+  position: absolute;
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%));
+  content: "";
+  transition: background-color var(--zen-motion-duration-fast) var(--zen-motion-ease-standard);
+}
+.studio-viewport-handles__hit[data-axis="x"]::after { top: 50%; left: 10px; width: 4px; height: 32px; translate: 0 -50%; }
+.studio-viewport-handles__hit[data-axis="y"]::after { top: 10px; left: 50%; width: 32px; height: 4px; translate: -50% 0; }
+.studio-viewport-handles:is(:has(.studio-viewport-handles__hit:hover), [data-dragging="true"]) .studio-viewport-handles__hit::after { background: var(--zen-color-background-info-solid-default, #0a85ff); }
+.studio-present__fit:has(> .studio-viewport-handles:is(:has(.studio-viewport-handles__hit:hover), [data-dragging="true"])) > :is(.studio-present__viewport, .studio-player__device) {
+  box-shadow: 0 0 0 2px var(--zen-color-border-info-solid-default, #0a85ff), var(--zen-style-shadow-bottom-level-1-shadow);
+}
+/* The size while dragging, at the box's bottom centre: the canvas frame edge's tag (Info/Solid/Pressed +
+   Content/Inverse/Strongest). */
+.studio-viewport-handles__label {
+  position: absolute;
+  bottom: var(--zen-spacing-gap-small, 12px);
+  left: 50%;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: -50% 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-viewport-handles__hit::after { transition: none; }
+}
+/* The Viewport panel's W and H fields, side by side. */
+.studio-viewport-size { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* The presented example's overlays stack above its full-screen card (25) and the Exit pill (26), like the classic portal (z ≥ 30). */
 .studio-present .studio-portal-root { position: relative; z-index: 30; }
 /* A presented desktop screen stays full screen while focus is inside it. platform.css raises a focused card

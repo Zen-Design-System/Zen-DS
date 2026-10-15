@@ -8,6 +8,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
+  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
+  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
+  own state) is done: session log 2026-10-15 "Self-managed state".
 - **P2 · AI UI: `verified` status is a heuristic (2026-10-14, user):** `tools/ai-ui/build-catalog.mjs` marks a component
   `verified` when a Figma contract file or suite name matches its folder (41 components). Confirm the list or set it in
   `tools/ai-ui/catalog.config.mjs` `STATUS_OVERRIDES`. Pointer: docs/ai-ui/README.md "Open decisions".

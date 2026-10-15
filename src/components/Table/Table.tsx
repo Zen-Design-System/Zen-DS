@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactElement, type ReactNode, type Ref, type RefObject } from "react";
-import { ZenPortal } from "../Portal";
+import { usePortalContainer, ZenPortal } from "../Portal";
+import { fixedLayerSpace } from "../_shared/layer-space";
 import { Avatar } from "../Avatar";
 import { Badge } from "../Badge";
 import { Button, IconButton, type ButtonLevel, type ButtonSize } from "../Button";
@@ -207,17 +208,26 @@ function EditorLayer({ children }: { children: ReactNode }) {
   return <ZenPortal><div className="zen-table-editor__layer" onMouseDown={(event) => event.preventDefault()}>{children}</div></ZenPortal>;
 }
 
-/** Viewport rect of the editing cell, kept in sync on scroll and resize (for the fixed error bubble). */
+/** Rect of the editing cell in the editor layer's px (the viewport's, unless the layer sits in a scaled frame:
+ * layer-space.ts), kept in sync on scroll and resize (for the fixed error bubble). */
 function useRect(ref: RefObject<HTMLElement | null>, active: boolean) {
-  const [rect, setRect] = useState<DOMRect | null>(null);
+  const [rect, setRect] = useState<{ top: number; left: number; bottom: number; right: number } | null>(null);
+  const portal = usePortalContainer();
   useLayoutEffect(() => {
     if (!active) { setRect(null); return undefined; }
-    const update = () => { if (ref.current) setRect(ref.current.getBoundingClientRect()); };
+    const update = () => {
+      if (!ref.current) return;
+      const box = ref.current.getBoundingClientRect();
+      const space = fixedLayerSpace(portal);
+      const x = (value: number) => (value - space.left) / space.scale;
+      const y = (value: number) => (value - space.top) / space.scale;
+      setRect({ top: y(box.top), left: x(box.left), bottom: y(box.bottom), right: x(box.right) });
+    };
     update();
     window.addEventListener("scroll", update, true);
     window.addEventListener("resize", update);
     return () => { window.removeEventListener("scroll", update, true); window.removeEventListener("resize", update); };
-  }, [ref, active]);
+  }, [ref, active, portal]);
   return rect;
 }
 

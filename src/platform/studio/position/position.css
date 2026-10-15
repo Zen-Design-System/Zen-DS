@@ -13,7 +13,9 @@
 .studio-position__field .zen-input__native { color: var(--zen-color-content-neutral-base); }
 .studio-position__axis { display: inline-flex; min-width: var(--zen-element-size-popular-small, 16px); justify-content: center; color: var(--zen-color-content-neutral-base); }
 
-.studio-position__caption { margin: 0; color: var(--zen-color-content-neutral-base); }
+/* Help-Text of the X / Y fields above it (Zen Input's: Caption/Regular, Content/Neutral/Light). */
+.studio-position__caption { margin: 0; color: var(--zen-color-content-neutral-light); }
+.studio-position__via > .studio-position__caption { color: var(--zen-color-content-neutral-base); }
 .studio-position__via { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-position__via > .zen-button { flex: 0 0 auto; }
 
@@ -47,9 +49,3 @@
 .studio-constraints__hit[data-part="center-y"] .studio-constraints__line { width: 10px; height: 2px; }
 .studio-constraints[data-disabled="true"] .studio-constraints__hit { color: var(--zen-color-content-disabled); }
 
-/* Warnings and notes, with their action (Remove…), as the Size group's. */
-.studio-position__note-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-position__note-row > .zen-button { flex: 0 0 auto; }
-.studio-position__note { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; color: var(--zen-color-content-neutral-base); }
-.studio-position__note[data-tone="warning"] { padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
-.studio-position__note > .zen-icon { flex: 0 0 auto; }

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { Children, createContext, isValidElement, useContext, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
+import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { DeviceBars, SAFE_AREAS, type DeviceOs } from "./DeviceBars";
 
@@ -52,26 +53,36 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   layout?: ScreenLayout;
   canvas?: ScreenCanvas;
   state?: string;
-  /** The app frame (dialect SCREEN_CHROME): the desktop layout shows `sidebar` and `header`, the mobile layout
-   *  `topNavigation` and `bottomNavigation`; the other layout's parts are kept for when the device changes. */
+  /** The app frame (dialect SCREEN_CHROME). The desktop layout's is the Screen's master layout, one root AppShell
+   *  (tools/studio/screen-frame.mjs; `sidebar` and `header` are the props of pages made before it, moved into the
+   *  AppShell when the page opens). The mobile layout shows `topNavigation` and `bottomNavigation` and the AppShell's
+   *  content without its frame; the other layout's parts are kept for when the device changes. */
   sidebar?: ReactNode;
   header?: ReactNode;
   topNavigation?: ReactNode;
   bottomNavigation?: ReactNode;
   children?: ReactNode;
+  /** The frame's place on the board (the canvas reads it from the page, render/framePlace.ts); nothing on the screen. */
+  x?: number;
+  y?: number;
+  /** A drawn Screen's width (the frame takes it, render/frames.ts) and height (the screen's least height). */
+  width?: number;
+  height?: number;
 };
 
-export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, ...rest }: ScreenProps) {
+export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width: _width, height, ...rest }: ScreenProps) {
   const phone = device === "phone";
   // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
   const os = useContext(PageOsContext);
   const bars = device === "desktop" ? null : SAFE_AREAS[os][device];
   const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
+  const drawn = typeof height === "number" ? ({ "--studio-screen-height": `${height}px` } as CSSProperties) : null;
   const active = screenLayoutOf(device, layout);
   // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
   const inset = bars ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
   const desktop = active === "desktop";
   const chrome = desktop ? Boolean(sidebar || header) : Boolean(topNavigation || bottomNavigation);
+  const content = desktop ? children : withoutMasterLayout(children);
   return (
     <div
       {...rest}
@@ -87,10 +98,10 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
       data-typography={phone ? "mobile" : undefined}
       data-os={bars ? os : undefined}
       data-inset={inset || undefined}
-      style={safe ? { ...safe, ...style } : style}
+      style={safe || drawn ? { ...safe, ...drawn, ...style } : style}
       aria-label={title}
     >
-      {!chrome ? children : desktop ? (
+      {!chrome ? content : desktop ? (
         <>
           {sidebar ? <div className="studio-builder-screen__side">{sidebar}</div> : null}
           <div className="studio-builder-screen__main">
@@ -101,7 +112,7 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
       ) : (
         <div className="studio-builder-screen__main">
           {topNavigation ? <div className="studio-builder-screen__top">{topNavigation}</div> : null}
-          <div className="studio-builder-screen__content">{children}</div>
+          <div className="studio-builder-screen__content">{content}</div>
           {bottomNavigation ? <div className="studio-builder-screen__bottom">{bottomNavigation}</div> : null}
         </div>
       )}
@@ -111,8 +122,15 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
   );
 }
 
+/** A Screen's content without its master layout (a lone root AppShell gives its children): the mobile layout's. */
+function withoutMasterLayout(children: ReactNode): ReactNode {
+  const nodes = Children.toArray(children).filter((child) => !(typeof child === "string" && !child.trim()));
+  const [only] = nodes;
+  return nodes.length === 1 && isValidElement<{ children?: ReactNode }>(only) && only.type === AppShell ? only.props.children : children;
+}
+
 /** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. */
-export function Overlay({ id, children, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode }) {
+export function Overlay({ id, children, x: _x, y: _y, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode; x?: number; y?: number }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   return (
     // The frame is the overlay's device frame (data-zen-overlay-root): a Dialog opens contained, its scrim fills this frame

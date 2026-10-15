@@ -61,6 +61,11 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "position": "legendPosition"
     }
   },
+  "ChannelField": {
+    "InputField": {
+      "value": "value"
+    }
+  },
   "ChartCard": {
     "Card": {
       "color": "color",

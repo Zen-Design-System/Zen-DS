@@ -7,19 +7,24 @@
 //   PAGE_DEVICES, SCREEN_STATES, SCREEN_CANVASES, SCREEN_LAYOUTS, SCREEN_CHROME, screenLayout(device, layout),
 //   screenChromeCode(prop, title)
 //   boardFrames(tree), freeFrameId(base, taken), frameCode({ kind, id, title, device }), protoCode(action, arg)   (M3)
+//   FRAME_SIZE   free frames: x / y on a Board child, width / height on a Screen (2026-10-15)
 //
 // Tree: Node = { kind: "element", name, loc: "line:col", props: { [name]: Value }, children: Child[] }
 //       Value = { kind: "literal", value } | { kind: "array", items } | { kind: "object", fields } | { kind: "element", node }
 //             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock" or a .map item name)
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
-import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout } from "./screen-chrome.mjs";
+import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenLayout } from "./screen-chrome.mjs";
 
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
 export const PAGE_DEVICES = ["phone", "tablet", "desktop"];
 export const SCREEN_STATES = ["empty", "loading", "error"];
 export const SCREEN_CANVASES = ["default", "alt", "flat"];
+/** A Screen's drawn size (props `width`, `height`, world px); the max is the frame width's (board/frameLayout.ts). */
+export const FRAME_SIZE = { min: 120, max: 4096 };
+/** A frame's place on the board (props `x`, `y`, world px from the board's origin): far enough for any canvas. */
+const FRAME_PLACE = 100000;
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "proto"]);
 const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link"]);
 const PACKAGE = "@zen-ds/react";
@@ -40,22 +45,53 @@ export function pageHeader(text) {
 
 const quote = (value) => JSON.stringify(String(value));
 
-/** The chrome props of a new Screen's opening tag, one per line at `indent` (multi-line components indented under it). */
-const chromeAttrs = (title, indent) => SCREEN_CHROME.map((part) => {
-  const code = screenChromeCode(part.prop, title).split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n");
-  return `${indent}${part.prop}={${code}}`;
-});
-const CHROME_IMPORTS = [...new Set(SCREEN_CHROME.flatMap((part) => [...screenChromeCode(part.prop).matchAll(/<([A-Z]\w*)/g)].map((match) => match[1])))];
+/** Props one per line at `indent` (a multi-line component indented under its prop). */
+const propLines = (entries, indent) => entries.map(([prop, code]) => `${indent}${prop}={${code.split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n")}}`);
+const componentsOf = (codes) => codes.flatMap((code) => [...code.matchAll(/<([A-Z]\w*)/g)].map((match) => match[1]));
+/** The parts a new Screen's master layout (its root AppShell, screen-frame.mjs) starts with: the Sidebar and the Page header. */
+const NEW_FRAME = ["sidebar", "sections"];
+
+/**
+ * A new Screen's app frame (user, 2026-10-09; master layout 2026-10-15): the mobile layout's Top and Bottom Navigation as
+ * the Screen's props, and on the desktop layout a root AppShell around the content. A phone or tablet in its mobile layout
+ * starts without the AppShell: the Screen section adds it when the layout turns desktop. Returns the lines at `indent`
+ * and the components they use.
+ */
+function screenLines({ open, title, heading, device, chrome, indent }) {
+  const inner = (depth) => indent + "  ".repeat(depth);
+  const framed = chrome && screenLayout(device) === "desktop";
+  const depth = framed ? 2 : 1;
+  const stack = [
+    `${inner(depth)}<Stack gap="md" padding="${device === "phone" ? "lg" : "xl"}">`,
+    chrome ? `${inner(depth + 1)}<Text tone="base">Start building here: add components from Assets.</Text>` : `${inner(depth + 1)}<Text textStyle="Heading/3">${heading}</Text>`,
+    `${inner(depth)}</Stack>`,
+  ];
+  if (!chrome) return { lines: [`${indent}${open}>`, ...stack, `${indent}</Screen>`], components: ["Stack", "Text"] };
+  const bars = SCREEN_CHROME.filter((part) => part.layout === "mobile").map((part) => [part.prop, screenChromeCode(part.prop, title)]);
+  const frame = framed ? NEW_FRAME.map((prop) => [prop, screenFrameCode(prop, title)]) : [];
+  const attrs = propLines(bars, inner(1));
+  const lines = [
+    `${indent}${open}`,
+    ...attrs.map((line, index) => (index === attrs.length - 1 ? `${line}>` : line)),
+    ...(framed ? [`${inner(1)}<AppShell`, ...propLines(frame, inner(2)), `${inner(1)}>`] : []),
+    ...stack,
+    ...(framed ? [`${inner(1)}</AppShell>`] : []),
+    `${indent}</Screen>`,
+  ];
+  return { lines, components: ["Stack", "Text", ...(framed ? ["AppShell"] : []), ...componentsOf([...bars, ...frame].map(([, code]) => code))] };
+}
 
 /**
  * A blank page: one Screen on `device` holding a padded Stack, ready to take components. With `chrome` (the default) the
- * Screen comes with its app frame (SCREEN_CHROME: Sidebar + Page Header, Top + Bottom Navigation; the title is in the
- * header, so the Stack starts with a line of body text); without it, the Stack starts with the title as a heading.
+ * Screen comes with its app frame (screenLines: the master layout's Sidebar + Page header, Top + Bottom Navigation; the
+ * title is in the header, so the Stack starts with a line of body text); without it, the Stack starts with the title as
+ * a heading.
  */
 export function newPageText({ title = "Untitled", device = "desktop", chrome = true } = {}) {
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
-  const names = [...new Set(["Stack", "Text", ...(chrome ? CHROME_IMPORTS : [])])].sort((a, b) => a.localeCompare(b));
-  const open = `      <Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
+  const open = `<Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
+  const screen = screenLines({ open, title, heading: title.replace(/[{}<>]/g, ""), device: screenDevice, chrome, indent: "      " });
+  const names = [...new Set(screen.components)].sort((a, b) => a.localeCompare(b));
   return [
     `// @zen-page ${JSON.stringify({ format: 1, title })}`,
     `import { Board, Screen, proto } from ${quote(BUILDER_PACKAGE)};`,
@@ -66,11 +102,7 @@ export function newPageText({ title = "Untitled", device = "desktop", chrome = t
     "export default function Page() {",
     "  return (",
     "    <Board>",
-    ...(chrome ? [open, ...chromeAttrs(title, "        ").map((line, index, all) => (index === all.length - 1 ? `${line}>` : line))] : [`${open}>`]),
-    `        <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
-    chrome ? `          <Text tone="base">Start building here: add components from Assets.</Text>` : `          <Text textStyle="Heading/3">${title.replace(/[{}<>]/g, "")}</Text>`,
-    "        </Stack>",
-    "      </Screen>",
+    ...screen.lines,
     "    </Board>",
     "  );",
     "}",
@@ -80,14 +112,17 @@ export function newPageText({ title = "Untitled", device = "desktop", chrome = t
 
 /* ── prototype (GĐ2 M3): frames on the Board and proto actions ─────────────────────────────────────────────────── */
 
-/** The Board's Screens and Overlays: [{ kind: "screen" | "overlay", id, state?, title, device?, loc }] (a parsed page's tree). */
+/** The Board's Screens and Overlays: [{ kind: "screen" | "overlay", id, state?, title, device?, x?, y?, loc }] (a parsed page's tree). */
 export function boardFrames(tree) {
   const literal = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
   return (tree?.board?.children ?? []).filter((child) => child.kind === "element").map((node) => {
     const id = String(literal(node, "id") ?? "");
-    if (node.name === "Overlay") return { kind: "overlay", id, title: id, loc: node.loc };
+    const x = literal(node, "x");
+    const y = literal(node, "y");
+    const place = typeof x === "number" && typeof y === "number" ? { x, y } : {};
+    if (node.name === "Overlay") return { kind: "overlay", id, title: id, ...place, loc: node.loc };
     const state = literal(node, "state");
-    return { kind: "screen", id, ...(typeof state === "string" ? { state } : {}), title: String(literal(node, "title") ?? id), device: literal(node, "device") ?? "desktop", loc: node.loc };
+    return { kind: "screen", id, ...(typeof state === "string" ? { state } : {}), title: String(literal(node, "title") ?? id), device: literal(node, "device") ?? "desktop", ...place, loc: node.loc };
   });
 }
 
@@ -97,29 +132,29 @@ export function freeFrameId(base, taken) {
   for (let n = 1; ; n += 1) if (!used.has(`${base}-${n}`)) return `${base}-${n}`;
 }
 
+/** ` x={…} y={…}` (and ` width={…} height={…}`) for a new frame's opening tag: whole px, only what was given. */
+const placeAttrs = (values) => Object.entries(values).filter(([, value]) => Number.isFinite(value)).map(([name, value]) => ` ${name}={${Math.round(value)}}`).join("");
+
 /**
  * The code of a new Board child: a Screen (title heading in a padded Stack, on `device`) or an Overlay holding a Dialog
  * whose actions close it. Inserted with insertChild on the Board; slots.mjs adds the runtime and component imports.
+ * `x` / `y` place it on the board (without them it joins the row of unplaced frames); a drawn Screen also has its
+ * `width` / `height` (the device's width and height when left out).
  */
-export function frameCode({ kind, id, title, device = "desktop", chrome = true }) {
+export function frameCode({ kind, id, title, device = "desktop", chrome = true, x, y, width, height }) {
   const name = String(title ?? id).replace(/[{}<>]/g, "");
+  const place = placeAttrs({ x, y });
   if (kind === "overlay") {
     return [
-      `<Overlay id=${quote(id)}>`,
+      `<Overlay id=${quote(id)}${place}>`,
       `  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`,
       "</Overlay>",
     ].join("\n");
   }
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
   // A new Screen comes with the app frame as a new page does (its title in the header).
-  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"`;
-  return [
-    ...(chrome ? [open, ...chromeAttrs(name, "  ").map((line, index, all) => (index === all.length - 1 ? `${line}>` : line))] : [`${open}>`]),
-    `  <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
-    chrome ? `    <Text tone="base">Start building here: add components from Assets.</Text>` : `    <Text textStyle="Heading/3">${name}</Text>`,
-    "  </Stack>",
-    "</Screen>",
-  ].join("\n");
+  const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${place}${placeAttrs({ width, height })}`;
+  return screenLines({ open, title: name, heading: name, device: screenDevice, chrome, indent: "" }).lines.join("\n");
 }
 
 /** A prop's proto action as code: navigate / open take a frame id, toast a title, link a URL; close and back nothing. */
@@ -347,6 +382,15 @@ export function parsePage(text, { components } = {}) {
       if (child.kind !== "element" || (child.name !== "Screen" && child.name !== "Overlay")) { errors.push({ line: 1, column: 0, message: "A Board holds <Screen> and <Overlay> only" }); continue; }
       const id = child.props.id;
       if (id?.kind !== "literal" || typeof id.value !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(id.value)) errors.push({ line: Number(child.loc.split(":")[0]), column: Number(child.loc.split(":")[1]), message: `<${child.name}> needs an id of lowercase letters, digits and dashes` });
+      // Free frames: a place on the board (both or neither), and a Screen's drawn size.
+      const number = (name, min, max) => {
+        const value = child.props[name];
+        if (value && !(value.kind === "literal" && typeof value.value === "number" && Number.isFinite(value.value) && value.value >= min && value.value <= max)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `${name} is a number from ${min} to ${max}` });
+      };
+      number("x", -FRAME_PLACE, FRAME_PLACE);
+      number("y", -FRAME_PLACE, FRAME_PLACE);
+      if (Boolean(child.props.x) !== Boolean(child.props.y)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `<${child.name}> takes x and y together` });
+      if (child.name === "Overlay" && (child.props.width || child.props.height)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "An Overlay takes its dialog's size (no width or height)" });
       if (child.name === "Screen") {
         const device = child.props.device;
         if (device && !(device.kind === "literal" && PAGE_DEVICES.includes(device.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `device is ${PAGE_DEVICES.join(", ")}` });
@@ -360,6 +404,8 @@ export function parsePage(text, { components } = {}) {
         if (canvas && !(canvas.kind === "literal" && SCREEN_CANVASES.includes(canvas.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `canvas is ${SCREEN_CANVASES.join(", ")}` });
         const state = child.props.state;
         if (state && !(state.kind === "literal" && SCREEN_STATES.includes(state.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `state is ${SCREEN_STATES.join(", ")} (no state = the default)` });
+        number("width", FRAME_SIZE.min, FRAME_SIZE.max);
+        number("height", FRAME_SIZE.min, FRAME_SIZE.max);
       }
     }
   }

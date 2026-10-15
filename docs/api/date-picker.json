@@ -281,7 +281,7 @@
       "file": "src/components/Input/Input.tsx",
       "description": "",
       "deprecated": null,
-      "extends": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
       "props": [
         {
           "name": "label",

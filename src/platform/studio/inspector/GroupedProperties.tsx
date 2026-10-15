@@ -1,5 +1,6 @@
 import { Fragment, startTransition, useEffect, useState } from "react";
 import { Icon } from "../../../components/Icon";
+import { InlineMessage } from "../../../components/InlineMessage";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { dataItemBlock, dataSlotOf, editDataItem, insertIntoSlot, openSlotPicker, slotHostContext, sourceItems, type DataSlot } from "../slots";
 import { paletteFor } from "../slots/palette";
@@ -202,19 +203,13 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
             )}
             {/* The field stays editable; the warning says why it does nothing in this state. */}
             {(warnings.get(spec.name) ?? []).map((text) => (
-              <p key={text} className={`studio-group__warning ${typographyStyles["Body/Small/Regular"]}`}>
-                <Icon name="icon-alert-triangle-line" size="sm" decorative />
-                {text}
-              </p>
+              <InlineMessage key={text} theme="warning" className="studio-inspector__warning">{text}</InlineMessage>
             ))}
           </Fragment>
         ))}
         {objects.length ? <ObjectProperties component={component} props={objects} api={api} selection={selection} /> : null}
         {objects.flatMap((entry) => warnings.get(entry.spec.name) ?? []).map((text) => (
-          <p key={text} className={`studio-group__warning ${typographyStyles["Body/Small/Regular"]}`}>
-            <Icon name="icon-alert-triangle-line" size="sm" decorative />
-            {text}
-          </p>
+          <InlineMessage key={text} theme="warning" className="studio-inspector__warning">{text}</InlineMessage>
         ))}
         {instances.length ? (
           <div className="studio-nested">

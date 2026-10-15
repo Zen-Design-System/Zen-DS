@@ -52,7 +52,7 @@ export function clampAnchoredLeft(left: number, width: number, boundsLeft: numbe
 
 /** The viewport intersected with every ancestor that clips its overflow — the area the surface can
  * actually be seen in. */
-function visibleBounds(from: HTMLElement) {
+export function visibleBounds(from: HTMLElement) {
   let top = 0;
   let left = 0;
   let bottom = document.documentElement.clientHeight;
@@ -113,39 +113,39 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       // containing block — viewport-sized and pinned to the top of the document — so a flipped (bottom-based) surface
       // measured from the body's full height flew thousands of pixels off screen.
       const icb = (container === document.body || container === document.documentElement) && getComputedStyle(container).position === "static";
-      const originTop = icb ? -window.scrollY : frame.top + container.clientTop;
-      const originLeft = icb ? -window.scrollX : frame.left + container.clientLeft;
-      const originBottom = originTop + (icb ? document.documentElement.clientHeight : container.clientHeight);
-      const originRight = originLeft + (icb ? document.documentElement.clientWidth : container.clientWidth);
+      // A transform-scaled container (a device preview, a Zen Studio frame at its zoom): the rects are viewport px, the
+      // offsets are written in the container's own px, so both sides go through `scale` (as Menu's placement does).
+      const scale = icb ? 1 : frame.width / container.offsetWidth || 1;
+      const originTop = icb ? -window.scrollY : frame.top + container.clientTop * scale;
+      const originLeft = icb ? -window.scrollX : frame.left + container.clientLeft * scale;
+      const originBottom = originTop + (icb ? document.documentElement.clientHeight : container.clientHeight * scale);
+      const originRight = originLeft + (icb ? document.documentElement.clientWidth : container.clientWidth * scale);
       const bounds = visibleBounds(container);
-      const height = surface.offsetHeight;
-      const width = surface.offsetWidth;
-      const below = bounds.bottom - box.bottom - gap - VIEWPORT_MARGIN;
-      const above = box.top - bounds.top - gap - VIEWPORT_MARGIN;
+      const height = surface.offsetHeight * scale;
+      const width = surface.offsetWidth * scale;
+      const below = bounds.bottom - box.bottom - gap * scale - VIEWPORT_MARGIN;
+      const above = box.top - bounds.top - gap * scale - VIEWPORT_MARGIN;
       const side = resolveAnchoredSide(lastSide, below, above, height);
       const fitsStart = box.left + width <= bounds.right - VIEWPORT_MARGIN;
       const fitsEnd = box.right - width >= bounds.left + VIEWPORT_MARGIN;
       const resolvedAlign = resolveAnchoredAlign(lastAlign, align, fitsStart, fitsEnd);
       lastSide = side;
       lastAlign = resolvedAlign;
-      // It fits on neither edge (wider than the room on both sides of its anchor): shift it into view instead. Not inside a
-      // transform-scaled frame (a docs phone preview, the Studio canvas): these measures are screen px while the offsets are
-      // written in the frame's layout px, so a shift there misplaced surfaces that fit; they keep the placement they had.
+      // It fits on neither edge (wider than the room on both sides of its anchor): shift it into view instead.
       if (trackAnchorWidth) {
         // offsetWidth is layout px, so the width is right inside a transform-scaled frame too.
         const measured = `${target.offsetWidth}px`;
         if (measureAnchor || anchorWidth === undefined) anchorWidth = measured;
         else if (measured !== anchorWidth) remeasureAnchor();
       }
-      const scaled = container.offsetWidth > 0 && Math.abs(container.getBoundingClientRect().width / container.offsetWidth - 1) > 0.01;
-      const shifted = scaled || (resolvedAlign === "start" ? fitsStart : fitsEnd)
+      const shifted = (resolvedAlign === "start" ? fitsStart : fitsEnd)
         ? null
         : clampAnchoredLeft(resolvedAlign === "start" ? box.left : box.right - width, width, bounds.left, bounds.right);
       const style: CSSProperties = {
-        top: side === "bottom" ? box.bottom - originTop + gap : "auto",
-        bottom: side === "top" ? originBottom - box.top + gap : "auto",
-        left: shifted !== null ? shifted - originLeft : resolvedAlign === "start" ? box.left - originLeft : "auto",
-        right: shifted === null && resolvedAlign === "end" ? originRight - box.right : "auto",
+        top: side === "bottom" ? (box.bottom - originTop) / scale + gap : "auto",
+        bottom: side === "top" ? (originBottom - box.top) / scale + gap : "auto",
+        left: shifted !== null ? (shifted - originLeft) / scale : resolvedAlign === "start" ? (box.left - originLeft) / scale : "auto",
+        right: shifted === null && resolvedAlign === "end" ? (originRight - box.right) / scale : "auto",
         ...(anchorWidth ? { [ANCHOR_WIDTH]: anchorWidth } : null),
       };
       setPlacement((current) => (

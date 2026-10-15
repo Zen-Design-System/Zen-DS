@@ -224,7 +224,7 @@
       "name": "Chip",
       "status": "verified",
       "purpose": "Compact, selectable tokens. Advanced chips are the Zen filter control: each owns a Popover of options.",
-      "props": "children? variant? size? level? theme? selected? dropdown? selectionMode? selectionCount? counter? value? leading? photoSrc? photoAlt? trailing? popoverItems? popoverOpen? popoverMultiple? onPopoverOpenChange? onPopoverSelect? onClearSelection? popoverLabel? popoverSearch? popoverSearchValue? onPopoverSearchChange? popoverSearchPlaceholder? popoverScrollBar? onPopoverCreate? popoverCreateLabel? popoverPortal? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
+      "props": "children? variant? size? level? theme? selected? defaultSelected? dropdown? selectionMode? selectionCount? counter? value? leading? photoSrc? photoAlt? trailing? popoverItems? popoverOpen? defaultPopoverOpen? popoverMultiple? onPopoverOpenChange? onPopoverSelect? onClearSelection? popoverLabel? popoverSearch? popoverSearchValue? onPopoverSearchChange? popoverSearchPlaceholder? popoverScrollBar? onPopoverCreate? popoverCreateLabel? popoverPortal? type? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
     },
     {
       "name": "ChipGroup",
@@ -286,7 +286,7 @@
       "name": "DateField",
       "status": "verified",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
-      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? onValueChange? datePicker? datePickerActions? onDateChange? minDate? maxDate? today? value? defaultValue?"
+      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? onValueChange? datePicker? datePickerActions? onDateChange? minDate? maxDate? today? aria-label? aria-labelledby? aria-describedby? disabled? readOnly? required? placeholder? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
     },
     {
       "name": "DatePicker",
@@ -551,7 +551,7 @@
       "name": "Pagination",
       "status": "stable",
       "purpose": "Move through a large, ordered result set one page at a time.",
-      "props": "page onValueChange? onPageChange? theme? pageCount? pageSize? total? pageSizeOptions? onPageSizeChange? size? aria-label? value? defaultValue?"
+      "props": "page? defaultPage? onValueChange? onPageChange? theme? pageCount? pageSize? defaultPageSize? total? pageSizeOptions? onPageSizeChange? size? aria-label? value? defaultValue?"
     },
     {
       "name": "Popover",
@@ -617,7 +617,7 @@
       "name": "SelectField",
       "status": "verified",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
-      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? options? onValueChange? placeholder? onFocus? onBlur? popoverLabel? popoverSearch? popoverSearchPlaceholder? popoverWidth? popoverOpen? onPopoverOpenChange? readOnly? aria-label? aria-labelledby? aria-describedby? disabled? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
+      "props": "label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error? size? leading? trailing? layout? options? onValueChange? placeholder? onFocus? onBlur? popoverLabel? popoverSearch? popoverSearchPlaceholder? popoverWidth? popoverOpen? defaultPopoverOpen? onPopoverOpenChange? readOnly? aria-label? aria-labelledby? aria-describedby? disabled? required? name? autoComplete? inputMode? maxLength? min? max? step? value? defaultValue?"
     },
     {
       "name": "Sidebar",
@@ -690,7 +690,7 @@
       "name": "Stepper",
       "status": "stable",
       "purpose": "Shows progress through a multi-step, sequential process and where the user is in it.",
-      "props": "steps? children? current? orientation? onStepClick? aria-label? aria-labelledby? aria-describedby?"
+      "props": "steps? children? current? defaultCurrent? orientation? onStepClick? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "TabItem",

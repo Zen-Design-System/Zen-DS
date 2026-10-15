@@ -233,12 +233,23 @@ function useSegmentedFits(labels: string[]) {
 
 /** A string-literal union: Segmented when up to four options all fit whole at the current width, otherwise a select. */
 /** `labels` names options whose value is not the text to show ("between" → "Space between"); others show as written. */
-export function EnumControl({ label, value, fallback, disabled, onSet, options, labels }: ControlProps<string> & { options: string[]; labels?: Record<string, string> }) {
+/** The "not set" choice of an enum with no known default: the component's own default (picking it removes the prop). */
+const DEFAULT_CHOICE = "__studio-default__";
+
+export function EnumControl({ label, value, fallback, disabled, onSet, onReset, options, labels }: ControlProps<string> & { options: string[]; labels?: Record<string, string>; onReset?: () => void }) {
   // The long spelling of a size ("small") is the same option as the short one ("sm"): matched, never a second option.
   const matched = value === undefined ? undefined : matchOption(value, options);
-  const all = matched !== undefined && !options.includes(matched) ? [...options, matched] : options;
-  const current = matched ?? (fallback === undefined ? "" : matchOption(fallback, all));
-  const text = (option: string) => labels?.[option] ?? option;
+  // No known default (Stack scroll: x | y): "Default" leads the options and is what an unset prop shows, so the control
+  // always has a choice selected (user, 2026-10-15: a Segmented with none selected read as broken, a select as "—").
+  const withDefault = fallback === undefined && (matched === undefined || Boolean(onReset));
+  const listed = matched !== undefined && !options.includes(matched) ? [...options, matched] : options;
+  const all = withDefault ? [DEFAULT_CHOICE, ...listed] : listed;
+  const current = matched ?? (fallback === undefined ? (withDefault ? DEFAULT_CHOICE : "") : matchOption(fallback, all));
+  const text = (option: string) => (option === DEFAULT_CHOICE ? "Default" : labels?.[option] ?? option);
+  const pick = (next: string) => {
+    if (next === DEFAULT_CHOICE) { if (matched !== undefined) onReset?.(); }
+    else if (next !== matched) onSet(next);
+  };
   const [ref, fits] = useSegmentedFits(all.length <= 4 ? all.map(text) : []);
   const inlineLabel = useInlineLabel();
   return (
@@ -250,7 +261,7 @@ export function EnumControl({ label, value, fallback, disabled, onSet, options, 
           fullWidth
           disabled={disabled}
           value={current}
-          onValueChange={(next) => { if (next !== matched) onSet(next); }}
+          onValueChange={pick}
           options={all.map((option) => ({ id: option, label: text(option) }))}
         />
       ) : (
@@ -263,7 +274,7 @@ export function EnumControl({ label, value, fallback, disabled, onSet, options, 
           value={current}
           placeholder="—"
           popoverSearch={all.length > 12}
-          onValueChange={(next) => { if (next !== matched) onSet(next); }}
+          onValueChange={pick}
           options={all.map((option) => ({ value: option, label: text(option) }))}
         />
       )}
@@ -834,7 +845,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
         ? <ToneControl {...common} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} component={extra.component} />
         : scale
           ? <ScaleField {...common} prop={spec.name} scale={scale} options={editor.options} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />
-          : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} />;
+          : <EnumControl {...common} {...namedOptions(editor.options, extra.optionLabels)} value={enumValue} fallback={enumFallback} onSet={onSet} onReset={extra.onReset} />;
     }
     case "number-enum":
       return <NumberEnumControl {...common} options={editor.options} value={typeof literal === "number" ? literal : undefined} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;

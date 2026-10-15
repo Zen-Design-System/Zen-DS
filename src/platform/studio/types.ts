@@ -8,7 +8,7 @@ import type { PlatformShellSettings } from "../PlatformTemplate";
 
 /** Canvas tools: Select (V) picks layers, Hand (H) pans, Interact (I) uses the examples like a real app. */
 /** Canvas tools: Move (select), Hand, Interact, and the placement tools (toolbar, 2026-10-09: Screen, Stack, Text, Image). */
-export type StudioTool = "select" | "hand" | "interact" | "screen" | "stack" | "text" | "image";
+export type StudioTool = "select" | "hand" | "interact" | "frame" | "stack" | "text" | "image";
 
 /** Admin edits source through the dev server; Viewer inspects read-only. Default admin. */
 export type StudioRole = "admin" | "viewer";
@@ -328,6 +328,12 @@ export type EditOp =
    * be the request's only op; the answer's `unwrapped.loc` is the element, to select it.
    */
   | { op: "unwrap" }
+  /**
+   * A Screen's master layout (tools/studio/screen-frame.mjs): one part of its root AppShell on (`code`: the component it
+   * starts with; the AppShell is made around the content when missing) or off (the AppShell goes with its last part).
+   * Sent on the <Screen>, the request's only op.
+   */
+  | { op: "screenFrame"; prop: string; on: boolean; code?: string }
   /*
    * Content slots (docs/research/studio-slots-spec-2026-10-03.md "Source ops", tools/studio/slots.mjs). Each must be the
    * request's only op. insertChild is sent on the slot's host (or the slot's only Stack/Grid); the others on the element.
