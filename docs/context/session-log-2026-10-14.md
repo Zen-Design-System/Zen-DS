@@ -510,3 +510,9 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   interaction test, Build-QA `--only=ai-ui,ai-chat --isolated` (audit, dark, behaviour), verify:package.
 - For the designer (BACKLOG "AI UI"): the tentative look of a guessed form and its dashed add-chips, the underlined span
   in the field, a keycap component.
+- Live check with the user's key (2026-10-15): `/ai-ui/status` enabled but "không thấy chạy". Reproduced in the sandbox
+  with a dummy key: the API answers 401, the route 500, and the page fell back to the demo composer in silence (chips and
+  seeded prompts never use the model by design, only typed prompts do). Fixed at the owner: `postJson` returns the
+  server's reason, the answer bubble shows "Zen AI could not reach the model: …" before the fallback, the live example's
+  status line says it too, and the Vite plugin logs every ≥ 500 answer (`[zen ai-ui] POST /ai-ui/compose → 500: …`).
+  Verified with Chromium against a dev server: a faked model answer renders; a failing one shows the reason.

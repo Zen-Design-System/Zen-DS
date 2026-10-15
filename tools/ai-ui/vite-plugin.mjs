@@ -19,7 +19,13 @@ export function aiUiDevServer({ prefix = "/ai-ui" } = {}) {
           server.config.logger.warn(`[zen ai-ui] no model: ${error.message} (npm i -D @anthropic-ai/sdk)`);
         }
       }
-      const listener = createNodeListener(createAiUiHandler({ model, modelName }), { prefix });
+      const handler = createAiUiHandler({ model, modelName });
+      // A failed model call shows in this terminal too, not only as the 500 the page falls back from.
+      const listener = createNodeListener(async (request) => {
+        const result = await handler(request);
+        if (result.status >= 500) server.config.logger.warn(`[zen ai-ui] ${request.method} ${prefix}${request.path} → ${result.status}: ${result.body?.error ?? ""}`);
+        return result;
+      }, { prefix });
       server.middlewares.use((request, response, next) => {
         if (!request.url?.startsWith(`${prefix}/`)) return next();
         listener(request, response).catch((error) => { response.statusCode = 500; response.end(JSON.stringify({ error: error.message })); });
