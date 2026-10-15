@@ -141,16 +141,22 @@ const placeAttrs = (values) => Object.entries(values).filter(([, value]) => Numb
  * `x` / `y` place it on the board (without them it joins the row of unplaced frames); a drawn Screen also has its
  * `width` / `height` (the device's width and height when left out).
  */
-export function frameCode({ kind, id, title, device = "desktop", chrome = true, x, y, width, height }) {
-  const name = String(title ?? id).replace(/[{}<>]/g, "");
+/** What a new Overlay holds (the Prototype tab's Add overlay): a Dialog, a Bottom Sheet or a Side Panel (they place
+ *  themselves), or a Card the Overlay places (its position, 2026-10-15). */
+export const OVERLAY_HOLDS = ["dialog", "sheet", "panel", "card"];
+const OVERLAY_TITLES = { dialog: "Are you sure?", sheet: "Choose an option", panel: "Details", card: "Tip" };
+const overlayContent = (holds, name) => {
+  const body = '<Text tone="base">Say what happens next.</Text>';
+  if (holds === "sheet") return [`  <BottomSheet title=${quote(name)} primaryAction={{ label: "Done", onClick: proto.close() }}>`, `    ${body}`, "  </BottomSheet>"];
+  if (holds === "panel") return [`  <SidePanel type="modal" title=${quote(name)} primaryAction={{ label: "Save", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }}>`, `    ${body}`, "  </SidePanel>"];
+  if (holds === "card") return ["  <Card>", '    <Stack gap="xs">', `      <Text textStyle="Body/Base/Bold">${name}</Text>`, `      ${body}`, "    </Stack>", "  </Card>"];
+  return [`  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`];
+};
+
+export function frameCode({ kind, id, title, device = "desktop", chrome = true, x, y, width, height, holds = "dialog" }) {
+  const name = String(title ?? (kind === "overlay" ? OVERLAY_TITLES[holds] ?? OVERLAY_TITLES.dialog : id)).replace(/[{}<>]/g, "");
   const place = placeAttrs({ x, y });
-  if (kind === "overlay") {
-    return [
-      `<Overlay id=${quote(id)}${place}>`,
-      `  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`,
-      "</Overlay>",
-    ].join("\n");
-  }
+  if (kind === "overlay") return [`<Overlay id=${quote(id)}${place}>`, ...overlayContent(OVERLAY_HOLDS.includes(holds) ? holds : "dialog", name), "</Overlay>"].join("\n");
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
   // A new Screen comes with the app frame as a new page does (its title in the header).
   const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${place}${placeAttrs({ width, height })}`;

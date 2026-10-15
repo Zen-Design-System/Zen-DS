@@ -449,6 +449,7 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await flowPage(ctx);
       await page.getByRole("button", { name: "Add overlay" }).click();
+      await page.getByRole("menuitem", { name: "Dialog" }).click(); // Add overlay asks what it holds
       await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1 in the page" });
       const text = await pageText(page, id);
       if (!/import \{ Board, Overlay, Screen, proto \} from "@zen-ds\/react\/builder";/.test(text)) throw new Error("Overlay not imported");
@@ -506,11 +507,12 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await flowPage(ctx);
       await page.getByRole("button", { name: "Add overlay" }).click();
+      await page.getByRole("menuitem", { name: "Dialog" }).click(); // Add overlay asks what it holds
       await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1" });
       await sleep(400);
       await clickNamed(page, id, "Button");
       await prototypeTab(page);
-      await setAction(page, "Open overlay", "overlay-1");
+      await setAction(page, "Open overlay", "Are you sure?"); // an Overlay is listed by its dialog's title
       await until(async () => /onClick=\{proto\.open\("overlay-1"\)\}/.test((await pageText(page, id)) ?? ""), { message: "the open action" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("p");

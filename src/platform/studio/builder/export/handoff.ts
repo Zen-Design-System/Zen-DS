@@ -19,7 +19,8 @@ export type HandoffFrame = {
   html: string;
   focus: FocusStop[];
 };
-export type HandoffAction = { frame: string | null; where: string; action: string; target: unknown };
+/** `options`: the action's animation and delay (protoModel.ts ProtoOptions), as the design wrote them. */
+export type HandoffAction = { frame: string | null; where: string; action: string; target: unknown; options?: Record<string, unknown> };
 export type HandoffInput = {
   id: string;
   title: string;
@@ -104,8 +105,32 @@ const elementCode = (text: string) => text.replace(/<([A-Z][\w.]*)>/g, (_match, 
 const frameName = (frame: string | null) => (frame ?? "").replace(/^screen:/, "").replace(/^overlay:/, "overlay ").replace(/:/, " · state ");
 
 /** What a prototype action does, and its code. */
+const ANIMATION_WORDS: Record<string, string> = { instant: "instantly", dissolve: "dissolving", move: "moving in", push: "pushing", slide: "sliding in" };
+
+/** How the design animates an action and how long it waits first (", pushing left (Motion/Duration/Slow) after 800 ms"). */
+function optionsText(action: HandoffAction): string {
+  const options = action.options ?? {};
+  const animation = typeof options.animation === "string" ? options.animation : null;
+  const moves = animation === "move" || animation === "push" || animation === "slide";
+  const parts = [
+    ...(animation ? [`${ANIMATION_WORDS[animation] ?? animation}${moves ? ` ${typeof options.direction === "string" ? options.direction : "left"}` : ""}${typeof options.duration === "string" && animation !== "instant" ? ` (Motion/Duration/${options.duration.charAt(0).toUpperCase()}${options.duration.slice(1)})` : ""}`] : []),
+    ...(typeof options.delay === "number" ? [`after ${options.delay} ms`] : []),
+  ];
+  return parts.length ? `, ${parts.join(", ")}` : "";
+}
+
 function actionText(action: HandoffAction): [string, string] {
+  const [does, code] = actionWords(action);
+  return [`${does}${optionsText(action)}`, code];
+}
+
+function actionWords(action: HandoffAction): [string, string] {
   const target = typeof action.target === "string" ? action.target : "";
+  // A choice control's per-item action: each item and where it leads.
+  if ((action.action === "navigate" || action.action === "open") && action.target && typeof action.target === "object" && !Array.isArray(action.target)) {
+    const entries = Object.entries(action.target as Record<string, unknown>).map(([item, to]) => `${code(item)} → ${code(String(to))}`).join(", ");
+    return [`${action.action === "navigate" ? "goes to the screen of the chosen item" : "opens the overlay of the chosen item"}: ${entries || "none yet"}`, action.action === "navigate" ? "navigate(…) by choiceKey(item) + onNavigate" : "setOverlay(…) by choiceKey(item)"];
+  }
   switch (action.action) {
     case "navigate": return [`goes to screen ${code(target)}`, `navigate(${JSON.stringify(target)}) + onNavigate`];
     case "open": return [`opens overlay ${code(target)}`, `setOverlay(${JSON.stringify(target)})`];
@@ -116,6 +141,7 @@ function actionText(action: HandoffAction): [string, string] {
       return [`shows a toast${title ? ` “${title}”` : ""}`, "toast(…): replace it with the real outcome"];
     }
     case "link": return [`opens ${target}`, "window.open(…)"];
+    case "hover": return [`shows overlay ${code(target)} while the pointer is over it`, "onPointerEnter / onPointerLeave → setOverlay"];
     default: return [action.action, ""];
   }
 }

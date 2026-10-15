@@ -110,6 +110,11 @@ Last updated: 2026-10-15.
   (frames without them keep the old row, `builder/render/framePlace.ts`); drag by name or a selected frame, ⌥ copies,
   ⌘D / ⌘C ⌘V / arrows (`builder/frameMove.ts`, `frameKeys.ts`, writes in `frameEdit.ts`); toolbar Frame (F) draws a
   Screen (`width` / `height`); Present is ⌥⌘↵. Component (Document) pages keep their generated layout (user: not free).
+- **Zen Studio prototype = Figma's prototype mode (2026-10-15, branch `zen/feat/prototype-usability-20261015`, worktree
+  `../Zen-DS-proto`):** ⊕ drag to connect, clickable arrows with draggable ends, per-item targets for tab bars / Tabs /
+  Segmented / Sidebar (`proto.navigate({ item: screen })`), design-word triggers, Flow rows, Play hotspot hints; round 2:
+  Animation per connection, After delay, While hovering, overlay position / outside press / dim, Add overlay menu. Code
+  in `builder/proto/` (protoModel/protoTriggers/protoEdit/protoDom/playMotion), E2E group `prototype` (PT-01…10).
 - **Zen Studio UI3 shell (2026-10-15, user):** Figma UI3 floating panels — no toolbar row; the canvas fills the window
   under the panels (`canvas/viewport.ts` `setCanvasInsets` / `getSafeBox`: fit, zoom, keep-in-view, frame chrome and
   edge pan aim at the visible part); headers in `shell/PanelHeaders.tsx`; corner bars when a panel is not docked.

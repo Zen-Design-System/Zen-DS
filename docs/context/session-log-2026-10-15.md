@@ -213,6 +213,52 @@ the Studio mode; Emphasis Light.
   sheet tooltip-390 "A tip on a phone": the closable tip was cut at the phone screen's left edge, the same in the
   2026-10-14 sheet (pre-existing). Fixed at the owner: an explicit top/bottom Tooltip measures itself against
   visibleBounds (now exported from useAnchoredPosition) and shifts by `--zen-tooltip-shift`, 4px in.
+## Studio Prototype usability (tier M, user: "Nâng cấp Usability của tính năng Prototype của Studio")
+
+- Walk first (private E2E-style server on the worktree, Playwright): a Button → Screen 2 took select + tab + 2 picks;
+  no drag to connect, arrows not clickable, the tab read `onClick`, Flow rows inert, a tab bar's tabs could not lead to
+  different screens (one `onValueChange` for the bar; a SidebarMenuItem "takes no clicks"), Play gave no hint where to
+  press and named the screen twice.
+- Branch `zen/feat/prototype-usability-20261015`, worktree `../Zen-DS-proto` (the shared checkout had the Canvas session's
+  frame-placement work in progress: frames stacked mid-edit). `builder/proto/`: `protoModel.ts` (pure: frames, links,
+  trigger words, choice items, per-item code; selftest 18 in studio:selftest), `protoTriggers.ts` (API triggers,
+  `protoSubject`: an item layer edits its control), `protoEdit.ts` (one edit per action), `protoDom.ts` (item elements
+  by label, layer elements through React — BottomNavigation keeps the mark off its DOM — selected-item store).
+- Canvas (`ProtoLinks.tsx`): a screen-space layer portalled into the viewport (z 15: above Select, below frame chrome);
+  ⊕ drag → Navigate to / Open overlay; arrow click selects its layer; selected arrows' ends drag to retarget, off every
+  frame to remove; a press on ⊕ opens the action list; Esc cancels. Items in a row (tabs) get ⊕ inside by their right
+  edge and arrows from their top.
+- Per item: `proto.navigate|open({ item: target })`; `runtime.tsx protoHandler` picks by the value or the item's id
+  (`onItemClick(item)`); `compile.mjs` writes `choiceKey` + a typed map (compile selftest "by item", tsc-checked);
+  handoff.md lists each item. Play hotspots (`Player.tsx`): what leads somewhere (a tab bar's linked tabs only), the
+  control's own corners, fade = Motion/Duration/Slow × 3.
+- E2E: new group `prototype` PT-01…PT-05 (⊕, arrow click, end drag/remove, ⌘Z; tab bar by item; hints; Flow; Sidebar
+  row); B-17 picks the overlay by its title. Not merged with the Canvas session's `onFramesMoved` (not on main yet):
+  ProtoLinks re-measures on frame style/size changes; subscribe to `onFramesMoved` once it lands.
+
+## Studio Prototype, round 2 (tier M, user approved the P2 list: "ok")
+
+- Branch brought up to origin/main b20fe50 (#68 free frames, #69 Present/Play viewport): stash, fast-forward, pop;
+  conflicts in Player.tsx (viewport + hotspots kept), package.json, docs (both sides kept). ProtoLinks now follows
+  `onFramesMoved`; Overlay frames are named by what they show (render/frames.ts via protoModel `overlayTitleOf`).
+- Options as the action's second argument (`proto.navigate("x", { animation, direction, duration, delay })`; close / back
+  take them first); defaults (Dissolve, left, base) are not written. `protoModel` ANIMATIONS / optionsOf /
+  protoActionCode (protoEdit no longer goes through the engine's protoCode). Play (`Player.tsx`, `playMotion.ts`): the
+  frame going away stays drawn until its motion ends (onAnimationEnd, 700 ms fallback); distances × Motion/Movement,
+  durations Motion/Duration/*; Back runs the popped step backwards.
+- After delay: Screen `onDelay` (stripped in renderPage; Play runs it per visit). While hovering: `whileHovering` on a
+  layer that takes DOM props, Open overlay only; renderPage turns it into pointer enter / leave only where the actions
+  carry `hover` (Play), so the canvas never opens overlays under the pointer; a hover overlay lets the pointer through.
+- Overlay settings on the Overlay element (`position`, `closeOnOutside`, `background`), for layers that do not open
+  themselves (`placesItself` = an `open` prop; compile-api-build writes OPENS for the export). Canvas and Play place the
+  layer the same way (`.studio-builder-overlay__place`, `.studio-player__overlay`). Add overlay is a menu (Dialog ·
+  Bottom sheet · Side panel · Card; dialect `frameCode` `holds`); an empty Overlay is a drop target (drag.ts) and a
+  selected Overlay frame an insert target (target.ts; refuses when it already shows a layer).
+- Export: After delay → useEffect per screen, While hovering → onPointerEnter / onPointerLeave, a custom overlay →
+  `{overlay === "x" && (…)}` with its place in a comment and a TODO line; handoff lists animation and delay.
+- Tests: protoModel selftest 26, compile selftest 50 (tsc on the outputs), E2E PT-06…PT-10 (Push options + backwards,
+  After delay 300 ms, While hovering, Card overlay top right + dim + outside press, emptied Overlay takes a Card);
+  B-14/B-17, PT-01/PT-04 pick "Dialog" from Add overlay.
 
 ## Clip content: overlays stay inside their frame (tier S, user: 720 → "Có", Popover tràn ra ngoài frame → "Không")
 
