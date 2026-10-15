@@ -7,6 +7,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P3 · Designer question: Navigation-Mobile/Top/Action-Icon-Gap is 20 (2026-10-15):** Component Size spacing now aliases
+  Spacing/Gap|Padding, but the Gap ladder has no 20 (16 Medium, 24 Large), so this one stays on `dm-20`. Keep, or move it to a
+  Gap step (a visible change in Top Navigation's flat icon actions)?
 
 - **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
