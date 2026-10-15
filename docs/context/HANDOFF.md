@@ -107,6 +107,12 @@ Last updated: 2026-10-15.
   (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
   `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
   keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push).
+- **Zen Studio MCP M0 (2026-10-15, user):** AI clients (Claude Code first) read and edit the open Studio page live
+  through `/__zen-studio/mcp` (relayed to the tab over Vite's HMR socket, one ⌘Z per change, AI chip Stop/Resume).
+  Merged in #72 (baafbf8). Tools: get_studio_state, get_tree, update, get_screenshot, on pages made in the Studio;
+  `npm run studio:mcp` prints the `claude mcp add` command. Not yet tried from the user's own Claude Code. Next, each
+  waiting for the user's go: M1 full write set, then the embedded Zen Agent, M2 code pages; spec
+  `docs/research/studio-mcp-canvas-2026-10-15.md`.
 - **Zen Studio free frames (2026-10-15, user):** on a page you made, Screens / Overlays sit at `x` / `y` from the page
   (frames without them keep the old row, `builder/render/framePlace.ts`); drag by name or a selected frame, ⌥ copies,
   ⌘D / ⌘C ⌘V / arrows (`builder/frameMove.ts`, `frameKeys.ts`, writes in `frameEdit.ts`); toolbar Frame (F) draws a
