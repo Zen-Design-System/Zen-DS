@@ -516,11 +516,14 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
     <Stack gap="md">
       {/* The field keeps its pill on the canvas; the guess card sits right under it (nested corners stay concentric, usage rules §13 / rhythm). */}
       <Stack gap="xs">
-        <AiChatField placeholder="Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" value={text}
-          onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
-          onSubmit={submit}
-          onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
-          onClear={text || preview ? clear : undefined} />
+        {/* The live composer is at work in "skeleton" (a template shown, the answer on its way) and "composing" (an edit of a kept spec). */}
+        <div className="px-ai-ui-glow" data-busy={live?.phase === "skeleton" || live?.phase === "composing" || undefined}>
+          <AiChatField placeholder="Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" value={text}
+            onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
+            onSubmit={submit}
+            onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
+            onClear={text || preview ? clear : undefined} />
+        </div>
         {preview && meta ? (
           <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
             <Stack gap="md">
@@ -594,16 +597,30 @@ function Aside({ demo, onClose }: { demo: Demo; onClose?: () => void }) {
 
 /* ───────────── The screens ───────────── */
 
-/** Keeps the end of the conversation in view: on a new turn, and once the catalog lets an answer render its UI. */
+/** Keeps the end of the conversation in view: on a new turn, once the catalog lets an answer render its UI, and while
+    that UI still grows (lazy icons, fonts) as long as the reader was at the end; a reader who scrolled up stays put. */
 function useScrollToEnd(turns: unknown, catalog: unknown) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { ref.current?.scrollTo({ top: ref.current.scrollHeight }); }, [turns, catalog]);
+  useEffect(() => {
+    const el = ref.current;
+    const flow = el?.firstElementChild;
+    if (!el || !flow || typeof ResizeObserver === "undefined") return undefined;
+    let height = el.scrollHeight;
+    const observer = new ResizeObserver(() => {
+      const wasAtEnd = el.scrollTop + el.clientHeight >= height - 80;
+      height = el.scrollHeight;
+      if (wasAtEnd) el.scrollTo({ top: height });
+    });
+    observer.observe(flow);
+    return () => observer.disconnect();
+  }, []);
   return ref;
 }
 
 /** Zen AI on the desktop: a bar (title, who answers, the panel's button), the conversation with its composed UIs scrolling
-    under a Liquid Glass field (Figma AI/Chat-Field, Style=Liquid Glass), and, when opened, what the conversation sees in a
-    panel over the screen's right edge. */
+    under a Liquid Glass field (Figma AI/Chat-Field, Style=Liquid Glass) on the window's Canvas, and, when opened, what the
+    conversation sees in a panel over the screen's right edge. */
 function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: boolean }) {
   const demo = useComposerDemo(initial);
   const screenRef = useRef<HTMLDivElement>(null);
@@ -625,7 +642,7 @@ function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: 
         <Box ref={scrollRef} scroll="y" className="px-ai-ui-screen__scroll">
           <div className="px-ai-ui-screen__flow">
             <div className="px-ai-ui-screen__thread"><Stack gap="lg" className="px-ai-ui-column"><Thread demo={demo} /><Suggestions demo={demo} /></Stack></div>
-            <div className="px-ai-ui-screen__dock"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></div>
+            <div className="px-ai-ui-screen__dock"><div className="px-ai-ui-glow px-ai-ui-column" data-busy={demo.busy || undefined}><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></div></div>
           </div>
         </Box>
         {aside && open ? <Box id={panelId} role="region" aria-label="What Zen AI sees" surface="surface" effectStyle="Shadow/Bottom/Level-3" scroll="y" className="px-ai-ui-aside"><Aside demo={demo} onClose={() => setOpen(false)} /></Box> : null}
@@ -640,10 +657,10 @@ function ComposerPhone({ initial }: { initial: string[] }) {
   const screenRef = useRef<HTMLDivElement>(null);
   return (
     <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="liquid-glass" title="Zen AI" scrollRef={screenRef} />}>
+      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
       <div className="px-ai-ui-phone-flow">
         <Box className="px-ai-ui-phone-body"><Thread demo={demo} /></Box>
-        <Box className="px-ai-ui-phone-dock"><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></Box>
+        <Box className="px-ai-ui-phone-dock"><div className="px-ai-ui-glow" data-busy={demo.busy || undefined}><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></div></Box>
       </div>
     </PlatformPhone>
   );
@@ -766,7 +783,7 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
     title: "On a phone",
     description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column, the Liquid Glass field docks above the home indicator and the conversation scrolls under it.",
     render: () => <ComposerPhone initial={[suggestions[0].prompt]} />,
-    code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="liquid-glass" title="Zen AI" />} footer={<AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" onSubmit={ask} />}>
+    code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />} footer={<AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" onSubmit={ask} />}>
   <AiChatThread aria-label="Conversation with Zen AI">
     <AiChatBubble side="ai"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></AiChatBubble>
   </AiChatThread>

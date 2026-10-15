@@ -376,11 +376,12 @@ removed (four unused colour ramps were, see Removed).
   Schedule; Enter and the button run the form's primary action. No status line, no sentence above a guess.
 - **Zen AI chat screen on Patterns › AI UI** (2026-10-15): the demo screen reads as the product. A bar (title, a Tag naming
   who answers: the model behind `/ai-ui` or the demo composer), the conversation scrolling under a docked
-  `AiChatField fieldStyle="liquid-glass"` (desktop and phone, the phone's `TopNavigation type="liquid-glass"` over it),
-  suggested prompts after the last answer, new bubbles and answers fading in from the motion tokens, the page tinted like
-  the AI Chat playground's Liquid Glass stage with a slow opacity-only breathing of the tint, and the shared state / events
+  `AiChatField fieldStyle="liquid-glass"` (desktop and phone), suggested prompts after the last answer, new bubbles and
+  answers fading in from the motion tokens, and the shared state / events
   panel ("What Zen AI sees", a `DescriptionList` and the event list) opened from the bar over the screen's edge instead of
-  a JSON column. The conversation scrolls to its end once an answer's UI renders.
+  a JSON column. The conversation scrolls to its end once an answer's UI renders. While the AI works (the field is
+  busy, the composer card is composing) a gradient ring in the Support hues turns around the field, with a soft halo
+  under it; it fades in and out, and reduced motion keeps it still.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

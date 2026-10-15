@@ -559,3 +559,15 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   Usage harness and style guard run on the two files directly (edits went through scripts, so the gate saw 0 UI
   files). Sheets 390 / 1512 reviewed. No JS effect
   library: gradients, glass and fades are CSS + the Liquid Glass hook already in the field.
+- Working-state ring (the user: "gradient tôi nói là hiệu ứng lúc thinking … chứ đâu phải gradient nền"): the gradient
+  the user meant is the AI-at-work effect, not a page tint. `.px-ai-ui-glow` wraps the three fields (desktop dock,
+  phone dock, composer card) with `data-busy` from `demo.busy` / the live composer's `skeleton` + `composing` phases:
+  a Padding/3-XSmall ring (masked pseudo-element, conic gradient of Support Pink/Violet/Cyan Solid) turning on an
+  `@property` angle multiplied by `--zen-motion-movement` (still under reduced motion), a blurred halo under it, both
+  fading in and out at Motion/Duration/Base. Style guard made the width and the radius step tokens. The page tint from
+  P1-d stays until the user says otherwise (reported as a question). The live composer's "skeleton" phase is the
+  working state for a first guess (`composing` only edits a kept spec). `useScrollToEnd` also follows the thread's
+  growth while the reader is at the end (the 390 sheet showed the chips under the dock). Then the user: "bỏ nền
+  gradient đi" — the P1-d page tint and its breathing layer are gone (screens on their Canvas, the phone back to
+  `TopNavigation type="compact-alt"`); the Liquid Glass field and the ring stay. Gate `--only=ai-ui --isolated`
+  green; sheets 390 / 1512 reviewed.

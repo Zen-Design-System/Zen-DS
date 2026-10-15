@@ -1,20 +1,8 @@
 /* AI UI examples (examples/pages/ai-ui.tsx). */
 
-/* The assistant screen (PreviewWindow) and the phone screen stand in for the app page Zen AI sits on, tinted as the
-   AI Chat playground's Liquid Glass stage (platform.css: Support Pink/Violet/Cyan Subtle over Canvas/Default, tints that
-   keep Content/Neutral/Strongest ≥ 4.5:1 in light and dark). The tint breathes: a second layer of the same tints, turned,
-   fades in and out on an endless loop (opacity only, Motion/Ease/Linear for a crossfade; no reduced-motion fallback is
-   needed for a fade, WCAG 2.3.3 covers motion). An "AI glow" gradient of its own waits for tokens (BACKLOG). */
-.px-ai-ui-screen, .px-ai-ui-phone-flow {
-  --px-ai-ui-stage: linear-gradient(160deg, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 0%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 55%, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 100%);
-  --px-ai-ui-stage-turned: linear-gradient(340deg, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 0%, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 55%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 100%);
-  position: relative;
-  z-index: 0;
-  /* zen-allow-canvas-layer: the demo screen stands in for the app page */
-  background: var(--px-ai-ui-stage), var(--zen-color-background-canvas-default, #f7f7f7);
-}
-.px-ai-ui-screen::before, .px-ai-ui-phone-flow::before { position: absolute; z-index: -1; inset: 0; background: var(--px-ai-ui-stage-turned); content: ""; animation: px-ai-ui-breathe 16s var(--zen-motion-ease-linear, linear) infinite; }
-@keyframes px-ai-ui-breathe { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+/* The assistant screen (PreviewWindow) and the phone screen keep their Canvas (the user, 2026-10-15: no page gradient);
+   the AI shows itself in the Liquid Glass field and the working-state ring below. */
+.px-ai-ui-screen, .px-ai-ui-phone-flow { position: relative; z-index: 0; }
 
 /* Desktop: the bar on top, then the conversation scrolls while the field stays docked at the bottom of the scroll
    (sticky), so the bubbles pass under the glass. Padding is the page margin at the sides (Margin/Comfortable), as the
@@ -36,9 +24,7 @@
 
 /* Phone: the same flow inside the phone's scrolling screen. The thread keeps the screen margin (Margin/Comfortable, 20
    on phones); the docked field is a strip whose bottom clears the home indicator, as the AI Chat page's phone. */
-/* The header overlays the screen (PlatformPhone pads the screen by its height): the flow reaches up under it, so the tint
-   runs behind the status bar and the Top Navigation instead of stopping at a seam. */
-.px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; margin-top: calc(-1 * var(--platform-phone-header-height, 0px)); padding-top: var(--platform-phone-header-height, 0px); }
+.px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; }
 .px-ai-ui-phone-body { flex: 1 0 auto; padding: var(--zen-margin-comfortable, 20px); }
 .px-ai-ui-phone-dock { position: sticky; z-index: 1; bottom: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
 
@@ -47,3 +33,19 @@
    DatePicker popover may overflow; left for the pattern's own CSS. */
 .px-ai-ui-composer, .px-ai-ui-composer__guess { animation: px-ai-ui-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
 @keyframes px-ai-ui-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* While the AI works (the field is busy, the composer card is composing): a 2 px gradient ring around the field in the
+   three Support hues (Pink · Violet · Cyan Solid, the hues of the AI Chat playground's Liquid Glass stage), turning slowly; it fades in and
+   out (Motion/Duration/Base). The turn is an angle multiplied by --zen-motion-movement, so reduced motion keeps the
+   ring still and its colour. The ring is a masked pseudo-element on a wrapper: the field itself is untouched. */
+@property --px-ai-ui-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.px-ai-ui-glow { position: relative; border-radius: var(--zen-ai-chat-field-corner-radius, 32px); }
+.px-ai-ui-glow { --px-ai-ui-ring: var(--zen-spacing-padding-3-xsmall, 2px); }
+.px-ai-ui-glow::before { position: absolute; z-index: 2; inset: calc(-1 * var(--px-ai-ui-ring)); box-sizing: border-box; padding: var(--px-ai-ui-ring); border-radius: calc(var(--zen-ai-chat-field-corner-radius, 32px) + var(--zen-corner-radius-2-xsmall, 2px)); background: conic-gradient(from calc(var(--px-ai-ui-angle) * var(--zen-motion-movement, 1)), var(--zen-color-background-support-pink-solid, #ff66d4), var(--zen-color-background-support-violet-solid, #7a5af8), var(--zen-color-background-support-cyan-solid, #21b8d8), var(--zen-color-background-support-pink-solid, #ff66d4)); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; opacity: 0; transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); content: ""; pointer-events: none; }
+/* A soft halo under the ring: the same gradient, blurred, at a quarter of the opacity. */
+.px-ai-ui-glow::after { position: absolute; z-index: 0; inset: calc(-1 * var(--px-ai-ui-ring)); border-radius: calc(var(--zen-ai-chat-field-corner-radius, 32px) + var(--zen-corner-radius-2-xsmall, 2px)); background: conic-gradient(from calc(var(--px-ai-ui-angle) * var(--zen-motion-movement, 1)), var(--zen-color-background-support-pink-solid, #ff66d4), var(--zen-color-background-support-violet-solid, #7a5af8), var(--zen-color-background-support-cyan-solid, #21b8d8), var(--zen-color-background-support-pink-solid, #ff66d4)); filter: blur(var(--zen-spacing-padding-xsmall, 8px)); opacity: 0; transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); content: ""; pointer-events: none; }
+.px-ai-ui-glow > * { position: relative; z-index: 1; }
+.px-ai-ui-glow[data-busy="true"]::before, .px-ai-ui-glow[data-busy="true"]::after { animation: px-ai-ui-turn 2.4s var(--zen-motion-ease-linear, linear) infinite; }
+.px-ai-ui-glow[data-busy="true"]::before { opacity: 1; }
+.px-ai-ui-glow[data-busy="true"]::after { opacity: .35; }
+@keyframes px-ai-ui-turn { to { --px-ai-ui-angle: 360deg; } }
