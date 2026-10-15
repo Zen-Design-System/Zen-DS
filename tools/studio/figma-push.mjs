@@ -1520,7 +1520,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const chromeProps = SCREEN_CHROME.map((part) => part.prop);
   const chromeOf = (prop) => (SCREEN_CHROME.some((part) => part.prop === prop && part.layout === active) && screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
   const chrome = chromeProps.some(chromeOf);
-  const layers = screen.children.filter((child) => child.kind === "element");
+  const placed = screen.children.filter((child) => child.kind === "element");
+  // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: the mobile layout draws its content.
+  const layers = active === "mobile" && placed.length === 1 && placed[0].name === "AppShell" ? placed[0].children.filter((child) => child.kind === "element") : placed;
   const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });

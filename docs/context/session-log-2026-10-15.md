@@ -92,6 +92,32 @@ the Studio mode; Emphasis Light.
   person's photo, else their initial (2XSmall: one letter) on a solid hue picked from their id (user: "dùng màu"); the
   person icon only with nobody signed in. Checked with a real draft, then discarded.
 
+## Studio Screen = master layout (tier M, user: "một số [template] làm sai thành bị duplicate 2 sidebar", "trang Dashboard tôi vừa tạo từ template bị lỗi"; chose "Template dùng khung của Screen", "Khung Screen = Master-Layout đầy đủ")
+
+- Cause: the Screen's own app-frame props (`sidebar`, `header`, drawn by builder/proto/runtime.tsx) sat beside a
+  template's AppShell, so Screen › Sidebar on a page from a template drew a second Sidebar (Figma was right).
+- Now the desktop frame is one root `<AppShell>` (tools/studio/screen-frame.mjs): op `screenFrame` (jsx-source.mjs,
+  alone, on a Screen) switches `FRAME_PARTS` (sidebar, header, headerActions, sections, aside, floatingAction, footer;
+  screen-chrome.mjs, import-free for the client) on that AppShell, wrapping the content on the first part and unwrapping
+  on the last; imports follow. FramePanel's desktop toggles read and write it; the mobile toggles are unchanged. Page
+  header also reads a PageHeader in the AppShell's content (where the templates keep it): off removes that one, so on
+  never adds a second.
+- `migrateScreenFrame` runs when a page opens (localApi.ts ensurePageDoc → moveScreenFrame, on the text and on the print
+  with ids, so ids and Figma links stay): the Screen's Sidebar → AppShell `sidebar` unless it has one, its PageHeader →
+  `sections` unless a PageHeader is already there. New desktop pages and Screens start that way (dialect.mjs
+  screenLines); a phone Screen starts without the AppShell.
+- Mobile layout: runtime Screen, compile.mjs and figma-push.mjs draw a lone root AppShell's content only (no top bar or
+  drawer under the Top/Bottom navigation). The Screen's own Header slot is gone (registry.ts): the AppShell's Sections is
+  the free header now.
+- Tests: screen-frame.selftest.mjs (19, in studio:selftest), builder.selftest app-frame block rewritten (56),
+  compile.selftest (37), figma-push.selftest phone check (245), engine-iso lists the two modules. E2E: B-26 (a tablet's
+  desktop layout shows AppShell's drawer button: AppShell's own < 1024 breakpoint), B-28 (AppShell › Sections), HO-08
+  (its fixture is a pre-master-layout page), new B-36 (a two-Sidebar page from before opens with one, the template's) and
+  SP-22 (Dashboard template: toggles read its parts; Page header off → none, on → one). A probe over the 12 desktop
+  templates: 1 AppShell, 1 Sidebar, no Screen props each, the toggles reading the template's parts.
+- Found on the way, fixed: the HTML export dropped VisuallyHidden's rule (htmlExport.tsx usedBy stripped `:focus-within`
+  inside `:not(…)`, inverting it), so AppShell's "Skip to content" showed and shifted the page 20px (HO-08 0.50% → 0.00%).
+
 ## Self-managed state for template pages in Studio (tier M, user: "chip advance, date input… hoạt động như bình thường trong studio"; chose B + the lock fix)
 
 - Cause: "New page from this frame" keeps literals only (handlers go), so state a parent held froze; and a controlled
@@ -113,8 +139,8 @@ the Studio mode; Emphasis Light.
   ChannelField value (`draft ?? value`, same meaning). A broader alias/`||` version was tried and dropped: it added ~15
   mappings, one harmful (Popover open → popoverOpen would lock it).
 - Harness `chip/multiple-needs-count` skips a chip that counts itself (fixtures updated). Guidelines rows for the three.
-- Tests: tests/interaction/self-managed-state.test.tsx (11); Studio E2E SP-22 (Admin list filter chip in Interact:
-  "Role" → "Owner" → "Role, 2 applied" → cleared), SP-23 (Dashboard New project DateField: calendar, 15th fills it);
+- Tests: tests/interaction/self-managed-state.test.tsx (11); Studio E2E SP-23 (Admin list filter chip in Interact:
+  "Role" → "Owner" → "Role, 2 applied" → cleared), SP-24 (Dashboard New project DateField: calendar, 15th fills it);
   part-props and figma-push selftests; starters coverage 46/46 with compile; npm test 910 passed.
 - Still needs option C (not built): links between components (a chip that opens a DatePicker or BottomSheet, a filter
   that filters a Table, Next on a Stepper).
