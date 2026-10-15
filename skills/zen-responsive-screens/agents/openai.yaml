@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zen responsive screens"
+  short_description: "Turn a Zen desktop header into the phone's Top Navigation by Zen's mapping"
+  default_prompt: "Use $zen-responsive-screens: read docs/component-usage-rules.md §17, list the desktop screen's parts, decide root or child, move each part to its phone place (≤ 3 trailing actions, nothing lost), then build and check both layouts."

@@ -89,6 +89,9 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
     label is "Back", while PageHeader's visible Back names the destination ("Invoices"); footer CTAs go in an `ActionBar` (Large,
     full width, Primary on top, clears the home indicator); filter chips sit in one horizontally scrolling row and
     open a `BottomSheet type="action"`.
+13. **Desktop and phone:** a page that runs on both gives AppShell its phone chrome (`topNavigation`,
+    `bottomNavigation`) by the mapping in `docs/guidelines/app-shell.md` (Phone layout): the page title in `sections`
+    (one h1), at most 3 trailing actions, every desktop header action still reachable.
 
 ## 4. API facts that save a round trip
 
