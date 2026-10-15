@@ -92,6 +92,23 @@ the Studio mode; Emphasis Light.
   person's photo, else their initial (2XSmall: one letter) on a solid hue picked from their id (user: "dùng màu"); the
   person icon only with nobody signed in. Checked with a real draft, then discarded.
 
+## Component Size spacing → Spacing/Gap and Spacing/Padding (tier XS, user: "đổi dm-# thành các biến gap và padding tương ứng, trừ raw … update lại cho studio luôn")
+
+- Figma (9nZv4uW2LT21yuHabMTCh1, Component Size): every Gap / Padding variable (by its last name segment; Badge
+  `Customize` counts as padding) that aliased `dm-N` now aliases the `Spacing/Gap|Padding` step of the same px: 175 mode
+  values on 94 variables, resolved values read back equal. Raw values (0, 5, 6, 10) and sizes stay. Left on `dm-20`:
+  `Navigation-Mobile/Top/Action-Icon-Gap` (no Gap 20 step; BACKLOG P3). Segmented Medium had already been aliased in
+  Figma, its Compact H/V padding to Padding/XSmall = 8 (repo had raw 6).
+- Repo: `component-size.json` Compact/Comfortable from the live read (179 alias swaps, 2 value changes: Segmented Medium
+  Compact padding 6 → 8); the Studio mode follows the same rule (84 swaps; its raw values and dm-20 stay). tokens:build
+  (web + native), tokens:check ✓, `segmented.css` fallbacks 8px. Contract Primitives/Segmented/Item + Segmented
+  re-captured (mcp-capture, 1 chunk; __DIGEST equals live d23b5e58 / 16d1df66), lock rebuilt; run-all ✓.
+- Gate (`--files`, 35 pages): PASS; one new ⚠ fixed at its owner: card@390 Settings section, the cards' 16px inset
+  nested in the frame's 12px corner (card.css's 20px radius had never applied over `.pe-shell`): on a phone the
+  example's frame is square, as screen examples are (`card.css`); `--only=card` PASS, 0 warnings. Contact sheets
+  segmented-390 (Medium segments 8px) and card-390 checked. Unsaved Studio draft of chart.tsx is another session's.
+
+
 ## Studio Screen = master layout (tier M, user: "một số [template] làm sai thành bị duplicate 2 sidebar", "trang Dashboard tôi vừa tạo từ template bị lỗi"; chose "Template dùng khung của Screen", "Khung Screen = Master-Layout đầy đủ")
 
 - Cause: the Screen's own app-frame props (`sidebar`, `header`, drawn by builder/proto/runtime.tsx) sat beside a

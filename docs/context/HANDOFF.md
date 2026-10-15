@@ -64,6 +64,9 @@ Last updated: 2026-10-15.
   2026-10-14 (live Figma read): Component Size `Segmented/Size` Medium 36 / 44, Small 28 / 36, XSmall deleted (Studio
   mode kept at 28 / 24); Segmented track padding 3XSmall, Primary track outlined. 2026-10-15: `Segmented/Spacing`
   Gap 0 and Text-Wrapper-Padding 8 (Medium and Small), Spacing/XSmall deleted; Studio mode follows Compact.
+  2026-10-15 (user, Figma + repo): every Component Size Gap/Padding variable aliases `Spacing/Gap|Padding/*`, not
+  `dm-#` (raw values and sizes stay; Action-Icon-Gap stays dm-20, BACKLOG P3); the Studio mode follows the same rule.
+  A new Component Size spacing value aliases a Spacing step. Segmented Medium Compact padding 8 (was 6).
   2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
   Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
