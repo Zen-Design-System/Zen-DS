@@ -51,7 +51,7 @@ export const rows = [
       const exit = page.getByRole("button", { name: /Exit full screen/i });
       await exit.waitFor({ state: "visible", timeout: 4000 });
       await page.locator(".studio-present").getByRole("button", { name: "Modes", exact: true }).first().click();
-      const pop = page.locator(".platform-fullscreen-bar__panel[role=dialog]").last();
+      const pop = page.locator(".studio-present-bar__panel[role=dialog]").last();
       await pop.waitFor({ state: "visible", timeout: 4000 });
       const box = await pop.boundingBox();
       await page.keyboard.press("Escape");

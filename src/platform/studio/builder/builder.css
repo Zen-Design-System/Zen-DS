@@ -83,8 +83,7 @@
 .studio-page-list__text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Play (proto/Player.tsx): the page's current Screen at its device width, its overlays inside that device. */
-/* zen-allow-raw-spacing: room below the device for the floating Play bar (40 + its 16 inset + 16), as Present's stage. */
-.studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 72px; }
+.studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
 .studio-player__device { position: relative; overflow: hidden; align-self: flex-start; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
 /* Animations between frames (proto/playMotion.ts): the frame going away stays drawn over or under the one coming in until
    its motion ends. Distances are fractions of the frame's size times Motion/Movement (0 with reduced motion: the fades

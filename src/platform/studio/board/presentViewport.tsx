@@ -47,8 +47,8 @@ type ViewportFit = { mode: "auto" | "fixed"; scale: number; width?: number; heig
 
 /**
  * Lays a fixed viewport out in the stage: `fitStyle` sizes the wrapper that takes the scaled box's room in the stage's
- * flow, `boxStyle` the box itself (its CSS px, scaled from its top-left corner). The room is the full-window layer (the
- * stage's parent) less the stage's padding, which keeps the Present bar clear.
+ * flow, `boxStyle` the box itself (its CSS px, scaled from its top-left corner). The room is the page under the bar (the
+ * stage's parent, .studio-present__scroll) less the stage's padding.
  */
 export function useViewportFit(viewport: PresentViewport, stageRef: RefObject<HTMLElement | null>): ViewportFit {
   const fixed = Boolean(viewport);
@@ -141,8 +141,9 @@ export function ViewportFields({ idPrefix, viewport, onChange, scale, autoWidth 
   );
 }
 
-/** What owns Escape in Present and Play besides the full-screen owners: a viewport drag (Escape puts the size back). */
-export const presentEscapeOwners = `${fullScreenEscapeOwners}, .studio-viewport-handles[data-dragging="true"]`;
+/** What owns Escape in Present and Play besides the full-screen owners: the bar's Viewport or Modes panel (Escape closes
+ *  it first) and a viewport drag (Escape puts the size back). */
+export const presentEscapeOwners = `${fullScreenEscapeOwners}, .studio-present-bar__panel, .studio-viewport-handles[data-dragging="true"]`;
 
 /** Shift snaps a dragged size to this many px, as the canvas frame's edge does. */
 const SIZE_STEP = 8;
