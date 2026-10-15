@@ -38,8 +38,16 @@
           "name": "current",
           "type": "number",
           "required": false,
+          "default": null,
+          "description": "Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. Leave it out and Stepper\n keeps the step itself, from `defaultCurrent`: a Passed step can then be pressed to go back to it.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultCurrent",
+          "type": "number",
+          "required": false,
           "default": "0",
-          "description": "Index of the current step (State=Focused). Earlier steps are Passed, later ones Default.",
+          "description": "Uncontrolled start for `current` (default 0).",
           "deprecated": null
         },
         {

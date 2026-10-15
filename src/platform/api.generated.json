@@ -267,6 +267,14 @@
           "deprecated": null
         },
         {
+          "name": "defaultSelected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's\n close affordance clears it. Leave `selected` out to use it.",
+          "deprecated": null
+        },
+        {
           "name": "select",
           "type": "boolean",
           "required": false,
@@ -351,7 +359,7 @@
           "type": "PopoverItemData[]",
           "required": false,
           "default": null,
-          "description": "Items rendered by the shared Figma Popover/Default composition.",
+          "description": "Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the\nchip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles)\nand the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or\nnothing picked at first) is then Selected, counts several for `selectionMode` \"multiple\" and clears them with its\nclose affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice\nin your own state.",
           "deprecated": null
         },
         {
@@ -360,6 +368,14 @@
           "required": false,
           "default": null,
           "description": "Controlled open state for the advanced chip menu.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultPopoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Uncontrolled start for `popoverOpen` (default false).",
           "deprecated": null
         },
         {
@@ -959,6 +975,14 @@
           "deprecated": null
         },
         {
+          "name": "defaultPopoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Uncontrolled start for `popoverOpen` (default false).",
+          "deprecated": null
+        },
+        {
           "name": "onPopoverOpenChange",
           "type": "(open: boolean) => void",
           "required": false,
@@ -986,7 +1010,7 @@
     },
     {
       "name": "DateField",
-      "extends": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
       "props": [
         {
           "name": "label",
@@ -5141,7 +5165,7 @@
     },
     {
       "name": "DateField",
-      "extends": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
       "props": [
         {
           "name": "label",
@@ -7412,9 +7436,17 @@
         {
           "name": "page",
           "type": "number",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "1-based current page.",
+          "description": "1-based current page (controlled). Leave it out and Pagination keeps the page itself, from `defaultPage`.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultPage",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Uncontrolled start for `page` (default 1): ‹ › and the page items then move it themselves.",
           "deprecated": null
         },
         {
@@ -7453,8 +7485,16 @@
           "name": "pageSize",
           "type": "number",
           "required": false,
+          "default": null,
+          "description": "Items per page and total items (Inline/Manually). `pageSize` is controlled; leave it out and the page-size Chip or\n Input changes it itself, from `defaultPageSize` (default 50), keeping the first row of the page in view.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultPageSize",
+          "type": "number",
+          "required": false,
           "default": "50",
-          "description": "Items per page and total items (Inline/Manually).",
+          "description": "",
           "deprecated": null
         },
         {
@@ -8029,8 +8069,16 @@
           "name": "current",
           "type": "number",
           "required": false,
+          "default": null,
+          "description": "Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. Leave it out and Stepper\n keeps the step itself, from `defaultCurrent`: a Passed step can then be pressed to go back to it.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultCurrent",
+          "type": "number",
+          "required": false,
           "default": "0",
-          "description": "Index of the current step (State=Focused). Earlier steps are Passed, later ones Default.",
+          "description": "Uncontrolled start for `current` (default 0).",
           "deprecated": null
         },
         {

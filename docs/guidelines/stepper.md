@@ -21,7 +21,7 @@ Shows progress through a multi-step, sequential process and where the user is in
 | --- | --- | --- |
 | Orientation | `orientation` | horizontal · vertical — vertical: the bar starts at its first marker and ends at its last (no hidden outer line space); each step's title + caption centres on its marker, middle steps keep Figma's 82px |
 | Steps | `steps[] {id, title, caption, icon, error}` | Title Body/Base/Bold · Caption Caption/Regular |
-| Current | `current` | earlier = Passed (check), current = Focused (ring), later = Default |
+| Current | `current or defaultCurrent` | earlier = Passed (check), current = Focused (ring), later = Default; with defaultCurrent Stepper keeps the step and a Passed step takes you back |
 | Error | `step.error` | State=Error: negative marker, ring and lines |
 | Navigation | `onStepClick` | Passed/Focused/Error steps become buttons |
 | Steps slot | `children: <StepperStep id title caption icon error />` | instead of steps; it renders nothing alone, Stepper draws each state from current |
@@ -39,7 +39,8 @@ Also accepts `HTMLAttributes<HTMLOListElement>`.
 | `ref` | `Ref<HTMLOListElement>` | — | The root `<ol>`. |
 | `steps` | `StepperStep[]` | — | The steps as data. Or give StepperStep children (Figma Stepper-Bar's steps): `<StepperStep id="details" title="Details" />`. |
 | `children` | `ReactNode` | — | The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state from `current`, the progress lines and the click behaviour. |
-| `current` | `number` | `0` | Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. |
+| `current` | `number` | — | Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. Leave it out and Stepper keeps the step itself, from `defaultCurrent`: a Passed step can then be pressed to go back to it. |
+| `defaultCurrent` | `number` | `0` | Uncontrolled start for `current` (default 0). |
 | `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma Stepper-Bar/Horizontal or Stepper-Bar/Vertical. |
 | `onStepClick` | `(step: StepperStep, index: number) => void` | — | Makes Passed/Focused/Error steps clickable (e.g. to go back and edit). Default steps stay inert. |
 | `aria-label` | `string` | — | Names the list (default "Progress", from the locale's labels). |

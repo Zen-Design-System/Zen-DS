@@ -247,6 +247,9 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Zen Studio: a page made from a template no longer locks a control with the state it was captured in (a DateField's
+  `value=""` that ignored picked days, a Chip's `popoverOpen={false}`): it is written as the `default…` twin. Pushing such
+  a page to Figma keeps Select=Yes for `defaultChecked` / `defaultSelected`.
 - Security: RichTextField sanitises the HTML it receives as `value` / `defaultValue` (scripts, event handlers and
   `javascript:` URLs are dropped); Link adds `rel="noopener noreferrer"` to any `target="_blank"`, not only `external`.
 - A press inside a popup opened from another popup (a Select or Menu inside a Popover, a DatePicker in a Chip filter) no
@@ -281,6 +284,11 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Components keep their own state where a parent used to (2026-10-15, user: so a page made from a template in Zen
+  Studio works as the template does): an Advanced Chip with `popoverItems` and no `onPopoverSelect` keeps the choice
+  itself (the picked value as its label, the count for multiple, × and Delete clear it); Chip `defaultSelected` (Normal
+  chips toggle themselves) and `defaultPopoverOpen`; Pagination `defaultPage` and `defaultPageSize` (`page` is now
+  optional); Stepper `defaultCurrent` (a Passed step takes you back); SelectField `defaultPopoverOpen`.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

@@ -98,11 +98,14 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `popoverSearchPlaceholder` | `string` | — |  |
 | `popoverWidth` | `"fill" \| "hug" \| number` | — | Width of the option Popover (Popover `width`): unset is Figma's 240px; `"fill"` matches the field's box, `"hug"` grows to the longest option (never narrower than the field) so long values such as domains stay whole. |
 | `popoverOpen` | `boolean` | — | Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself. On mobile (the nearest `data-breakpoint`, else ZenProvider's breakpoint, is `mobile`) the options open in a Bottom Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it. |
+| `defaultPopoverOpen` | `boolean` | `false` | Uncontrolled start for `popoverOpen` (default false). |
 | `onPopoverOpenChange` | `(open: boolean) => void` | — | Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. |
 | `readOnly` | `boolean` | `false` | Figma State=Read-Only: shows the value, keeps the chevron, never opens. |
 | `ref` | `Ref<HTMLSelectElement>` | — | The hidden native `<select>` that holds the value (name, form data, autofill). |
 
 ### DateField
+Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
+
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `label` | `ReactNode` | — |  |

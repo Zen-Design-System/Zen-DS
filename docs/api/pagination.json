@@ -13,9 +13,17 @@
         {
           "name": "page",
           "type": "number",
-          "required": true,
+          "required": false,
           "default": null,
-          "description": "1-based current page.",
+          "description": "1-based current page (controlled). Leave it out and Pagination keeps the page itself, from `defaultPage`.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultPage",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Uncontrolled start for `page` (default 1): ‹ › and the page items then move it themselves.",
           "deprecated": null
         },
         {
@@ -54,8 +62,16 @@
           "name": "pageSize",
           "type": "number",
           "required": false,
+          "default": null,
+          "description": "Items per page and total items (Inline/Manually). `pageSize` is controlled; leave it out and the page-size Chip or\n Input changes it itself, from `defaultPageSize` (default 50), keeping the first row of the page in view.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultPageSize",
+          "type": "number",
+          "required": false,
           "default": "50",
-          "description": "Items per page and total items (Inline/Manually).",
+          "description": "",
           "deprecated": null
         },
         {

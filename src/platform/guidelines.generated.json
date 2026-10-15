@@ -265,6 +265,11 @@
         "advanced (default) · normal · number-only"
       ],
       [
+        "Own state",
+        "popoverItems without onPopoverSelect · defaultSelected · defaultPopoverOpen",
+        "uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it"
+      ],
+      [
         "Size",
         "size",
         "xsmall (normal only) · small · medium"
@@ -385,7 +390,7 @@
       {
         "id": "chip/multiple-needs-count",
         "severity": "warn",
-        "summary": "A multiple-selection Chip shows how many values are active with selectionCount.",
+        "summary": "A multiple-selection Chip shows how many values are active with selectionCount (a chip that keeps its own choice, popoverItems without onPopoverSelect, counts them itself).",
         "allow": "chip-count"
       },
       {
@@ -3024,13 +3029,13 @@
       ],
       [
         "Pages",
-        "page / onPageChange / pageCount",
-        "ellipsis collapses the middle"
+        "page or defaultPage / onPageChange / pageCount",
+        "ellipsis collapses the middle; with defaultPage Pagination keeps the page itself"
       ],
       [
         "Range",
-        "pageSize / total / pageSizeOptions / onPageSizeChange",
-        "“1–50 of 100 results”"
+        "pageSize or defaultPageSize / total / pageSizeOptions / onPageSizeChange",
+        "“1–50 of 100 results”; a page size Pagination keeps itself keeps the page's first row in view"
       ]
     ],
     "keyboard": [
@@ -3542,8 +3547,8 @@
       ],
       [
         "Current",
-        "current",
-        "earlier = Passed (check), current = Focused (ring), later = Default"
+        "current or defaultCurrent",
+        "earlier = Passed (check), current = Focused (ring), later = Default; with defaultCurrent Stepper keeps the step and a Passed step takes you back"
       ],
       [
         "Error",

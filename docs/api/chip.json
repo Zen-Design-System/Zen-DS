@@ -75,6 +75,14 @@
           "deprecated": null
         },
         {
+          "name": "defaultSelected",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's\n close affordance clears it. Leave `selected` out to use it.",
+          "deprecated": null
+        },
+        {
           "name": "select",
           "type": "boolean",
           "required": false,
@@ -159,7 +167,7 @@
           "type": "PopoverItemData[]",
           "required": false,
           "default": null,
-          "description": "Items rendered by the shared Figma Popover/Default composition.",
+          "description": "Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the\nchip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles)\nand the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or\nnothing picked at first) is then Selected, counts several for `selectionMode` \"multiple\" and clears them with its\nclose affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice\nin your own state.",
           "deprecated": null
         },
         {
@@ -168,6 +176,14 @@
           "required": false,
           "default": null,
           "description": "Controlled open state for the advanced chip menu.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultPopoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Uncontrolled start for `popoverOpen` (default false).",
           "deprecated": null
         },
         {

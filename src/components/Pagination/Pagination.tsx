@@ -9,6 +9,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./pagination.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useControllableState } from "../_shared/use-controllable-state";
 
 export const paginationThemes = ["primary", "secondary", "inline", "manually"] as const;
 export const paginationItemSizes = ["xsmall", "small"] as const;
@@ -53,8 +54,10 @@ export function paginationRange(page: number, pageCount: number): Array<number |
 }
 
 export interface PaginationProps {
-  /** 1-based current page. */
-  page: number;
+  /** 1-based current page (controlled). Leave it out and Pagination keeps the page itself, from `defaultPage`. */
+  page?: number;
+  /** Uncontrolled start for `page` (default 1): ‹ › and the page items then move it themselves. */
+  defaultPage?: number;
   /** Called with the new 1-based page when ‹ › or a page item is pressed. */
   onValueChange?: (page: number) => void;
   /** Called with the new page number (1-based). `onValueChange` is the same callback under the name value controls share. */
@@ -63,8 +66,10 @@ export interface PaginationProps {
   theme?: PaginationTheme;
   /** Number of pages (Primary/Secondary). For Inline/Manually it is derived from `total` / `pageSize`. */
   pageCount?: number;
-  /** Items per page and total items (Inline/Manually). */
+  /** Items per page and total items (Inline/Manually). `pageSize` is controlled; leave it out and the page-size Chip or
+   *  Input changes it itself, from `defaultPageSize` (default 50), keeping the first row of the page in view. */
   pageSize?: number;
+  defaultPageSize?: number;
   total?: number;
   pageSizeOptions?: number[];
   onPageSizeChange?: (pageSize: number) => void;
@@ -87,15 +92,20 @@ export interface PaginationProps {
  * (Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the
  * arrows always match the items in both densities.
  */
-export function Pagination({ page, onValueChange, onPageChange, theme = "primary", pageCount, pageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className, overrides, ref }: PaginationProps) {
+export function Pagination({ page: pageProp, defaultPage = 1, onValueChange, onPageChange, theme = "primary", pageCount, pageSize, defaultPageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className, overrides, ref }: PaginationProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.pagination;
   const size = scaleKey(sizeProp, paginationItemSizes);
+  const [page, setPage] = useControllableState({ value: pageProp, defaultValue: defaultPage, name: "Pagination page" });
+  const [ownPageSize, setOwnPageSize] = useState(defaultPageSize);
+  const perPage = pageSize ?? ownPageSize;
   const compact = theme === "inline" || theme === "manually";
-  const pages = Math.max(1, compact ? Math.ceil(total / Math.max(1, pageSize)) : pageCount ?? 1);
+  const pages = Math.max(1, compact ? Math.ceil(total / Math.max(1, perPage)) : pageCount ?? 1);
   const current = Math.min(Math.max(1, page), pages);
-  const go = (next: number) => { if (next >= 1 && next <= pages && next !== current) { onValueChange?.(next); onPageChange?.(next); } };
+  const go = (next: number) => { if (next >= 1 && next <= pages && next !== current) { setPage(next); onValueChange?.(next); onPageChange?.(next); } };
+  // A new page size keeps the first row of the page in view (the page Pagination keeps itself; a controlled one is yours).
+  const resize = (next: number) => { setPage(Math.floor(((current - 1) * perPage) / next) + 1); setOwnPageSize(next); onPageSizeChange?.(next); };
   const arrowSize = size === "small" ? "sm" : "xs";
   const previous = nest("Previous", <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />);
   const next = nest("Next", <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />);
@@ -117,13 +127,13 @@ export function Pagination({ page, onValueChange, onPageChange, theme = "primary
     );
   }
 
-  const first = total === 0 ? 0 : (current - 1) * pageSize + 1;
-  const last = Math.min(total, current * pageSize);
+  const first = total === 0 ? 0 : (current - 1) * perPage + 1;
+  const last = Math.min(total, current * perPage);
   return (
     <nav ref={ref} className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
       {theme === "inline"
-        ? nest("Page-Size", <PageSizeChip pageSize={pageSize} options={pageSizeOptions} onChange={onPageSizeChange} />)
-        : <PageSizeInput pageSize={pageSize} onChange={onPageSizeChange} />}
+        ? nest("Page-Size", <PageSizeChip pageSize={pageSize ?? ownPageSize} options={pageSizeOptions} onChange={resize} />)
+        : <PageSizeInput pageSize={pageSize ?? ownPageSize} onChange={resize} />}
       <span className={`zen-pagination__range ${typographyStyles["Body/Small/Regular"]}`} aria-live="polite">{t.resultsRange(first, last, total)}</span>
       <div className="zen-pagination__navigator">{previous}{next}</div>
     </nav>
@@ -131,7 +141,7 @@ export function Pagination({ page, onValueChange, onPageChange, theme = "primary
 }
 
 /** Inline: Chip/Advanced Small Secondary Text-Only ("50 results") opening the shared Popover. */
-function PageSizeChip({ pageSize, options, onChange }: { pageSize: number; options: number[]; onChange?: (value: number) => void }) {
+function PageSizeChip({ pageSize, options, onChange }: { pageSize: number; options: number[]; onChange: (value: number) => void }) {
   const t = useZenLabels();
   return (
     <Chip
@@ -140,7 +150,7 @@ function PageSizeChip({ pageSize, options, onChange }: { pageSize: number; optio
       dropdown
       popoverLabel={t.resultsPerPage}
       popoverItems={options.map((option) => ({ id: String(option), label: t.results(option), selected: option === pageSize }))}
-      onPopoverSelect={(item) => onChange?.(Number(item.id))}
+      onPopoverSelect={(item) => onChange(Number(item.id))}
     >
       {t.results(pageSize)}
     </Chip>
@@ -148,13 +158,13 @@ function PageSizeChip({ pageSize, options, onChange }: { pageSize: number; optio
 }
 
 /** Manually: Input/Text-Field Small (133px) holding the page size; committed on Enter or blur. */
-function PageSizeInput({ pageSize, onChange }: { pageSize: number; onChange?: (value: number) => void }) {
+function PageSizeInput({ pageSize, onChange }: { pageSize: number; onChange: (value: number) => void }) {
   const t = useZenLabels();
   const [draft, setDraft] = useState(String(pageSize));
   useEffect(() => setDraft(String(pageSize)), [pageSize]);
   const commit = () => {
     const value = Math.round(Number(draft));
-    if (Number.isFinite(value) && value > 0) onChange?.(value);
+    if (Number.isFinite(value) && value > 0) onChange(value);
     else setDraft(String(pageSize));
   };
   return (

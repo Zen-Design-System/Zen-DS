@@ -8,6 +8,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./stepper.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { useControllableState } from "../_shared/use-controllable-state";
 
 export const stepperStates = ["default", "focused", "passed", "error"] as const;
 export type StepperState = (typeof stepperStates)[number];
@@ -34,8 +35,11 @@ export interface StepperProps extends HTMLAttributes<HTMLOListElement> {
   /** The steps as StepperStep elements, in order, when `steps` is not given. Stepper still draws each one's state
    *  from `current`, the progress lines and the click behaviour. */
   children?: ReactNode;
-  /** Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. */
+  /** Index of the current step (State=Focused). Earlier steps are Passed, later ones Default. Leave it out and Stepper
+   *  keeps the step itself, from `defaultCurrent`: a Passed step can then be pressed to go back to it. */
   current?: number;
+  /** Uncontrolled start for `current` (default 0). */
+  defaultCurrent?: number;
   /** Figma Stepper-Bar/Horizontal or Stepper-Bar/Vertical. */
   orientation?: StepperOrientation;
   /** Makes Passed/Focused/Error steps clickable (e.g. to go back and edit). Default steps stay inert. */
@@ -80,17 +84,19 @@ export function StepperItem({ state = "default", index = 1, icon, ref }: {
  * Step-Vertical: a marker between two 2px progress lines (Neutral/Subtle ahead, Neutral/Solid behind, Negative/Solid
  * on error) with Title + Caption (gap 3XSmall, padding-inline XSmall).
  */
-export function Stepper({ ref, steps: stepsProp, children, current = 0, orientation = "horizontal", onStepClick, "aria-label": ariaLabelProp, className, overrides, ...rest }: StepperProps) {
+export function Stepper({ ref, steps: stepsProp, children, current: currentProp, defaultCurrent = 0, orientation = "horizontal", onStepClick, "aria-label": ariaLabelProp, className, overrides, ...rest }: StepperProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.progress;
+  const [current, setCurrent] = useControllableState({ value: currentProp, defaultValue: defaultCurrent, name: "Stepper current" });
   const steps: StepperStep[] = stepsProp ?? slotItems(children, StepperStep).map(({ slotKey, ...step }, index) => ({ ...step, id: step.id ?? slotKey ?? String(index) }));
   return (
     <ol {...rest} ref={ref} className={["zen-stepper", className].filter(Boolean).join(" ")} data-orientation={orientation} aria-label={ariaLabel}>
       {steps.map((step, index) => {
         const state = stateOf(step, index, current);
         const position = index === 0 ? "first" : index === steps.length - 1 ? "last" : "middle";
-        const clickable = Boolean(onStepClick) && state !== "default";
+        // Steps the person has reached take a press (onStepClick); a Stepper that keeps its own step goes back to a Passed one.
+        const clickable = onStepClick ? state !== "default" : currentProp === undefined && index < current;
         const body = (
           <>
             <span className="zen-stepper__track">
@@ -108,7 +114,7 @@ export function Stepper({ ref, steps: stepsProp, children, current = 0, orientat
         return (
           <li key={step.id} className="zen-stepper__step" data-state={state} data-position={position} aria-current={state === "focused" ? "step" : undefined}>
             {clickable
-              ? <button type="button" className="zen-stepper__hit" onClick={() => onStepClick?.(step, index)}>{body}</button>
+              ? <button type="button" className="zen-stepper__hit" onClick={() => { setCurrent(index); onStepClick?.(step, index); }}>{body}</button>
               : <span className="zen-stepper__hit">{body}</span>}
           </li>
         );

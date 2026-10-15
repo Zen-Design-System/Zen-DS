@@ -48,6 +48,9 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   state?: ChipState;
   /** Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling. */
   selected?: boolean;
+  /** Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's
+   *  close affordance clears it. Leave `selected` out to use it. */
+  defaultSelected?: boolean;
   /**
    * Figma's Select property. Selected chips show the close affordance in Advanced.
    * @deprecated Use selected.
@@ -74,10 +77,19 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   photoAlt?: string;
   /** Trailing slot: an icon name or a node; replaces the dropdown chevron / remove affordance. */
   trailing?: IconName | ReactNode;
-  /** Items rendered by the shared Figma Popover/Default composition. */
+  /**
+   * Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the
+   * chip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles)
+   * and the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or
+   * nothing picked at first) is then Selected, counts several for `selectionMode` "multiple" and clears them with its
+   * close affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice
+   * in your own state.
+   */
   popoverItems?: PopoverItemData[];
   /** Controlled open state for the advanced chip menu. */
   popoverOpen?: boolean;
+  /** Uncontrolled start for `popoverOpen` (default false). */
+  defaultPopoverOpen?: boolean;
   /** Keep the shared Popover open while selected options are toggled. */
   popoverMultiple?: boolean;
   onPopoverOpenChange?: (open: boolean) => void;
@@ -122,10 +134,11 @@ export function Chip({
     theme,
     state = "default",
     selected: selectedProp,
+    defaultSelected,
     select: selectProp,
     dropdown,
     selectionMode,
-    selectionCount,
+    selectionCount: selectionCountProp,
     counter,
     value,
     leading: leadingProp,
@@ -134,6 +147,7 @@ export function Chip({
     trailing: trailingProp,
     popoverItems,
     popoverOpen,
+    defaultPopoverOpen = false,
     popoverMultiple = false,
     onPopoverOpenChange,
     onPopoverSelect,
@@ -158,29 +172,63 @@ export function Chip({
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, chipSizes);
   const t = useZenLabels();
-  const select = selectedProp ?? selectProp ?? false;
+  const isNumberOnly = variant === "number-only";
+  const controlledSelect = selectedProp ?? selectProp;
+  // The chip keeps the choice itself when nobody listens to picks (see popoverItems). What it starts from is its key: when
+  // those props change (an edit in Zen Studio, new data), it starts from them again.
+  const ownsChoice = !isNumberOnly && popoverItems !== undefined && !onPopoverSelect && !onPopoverCreate;
+  const startItems = ownsChoice ? (popoverItems ?? []).filter((item) => item.selected) : [];
+  const startKey = `${controlledSelect}|${defaultSelected}|${startItems.map((item) => item.id).join("\u0000")}`;
+  const [own, setOwn] = useState<{ key: string; selected: boolean; ids: string[] } | null>(null);
+  const mine = own?.key === startKey ? own : null;
+  const setOwnChoice = (selected: boolean, ids: string[]) => setOwn({ key: startKey, selected, ids });
+  // Picks turn a filter chip Selected (× clears it): one that says so (selected / defaultSelected) or starts with nothing
+  // picked. A chip that starts on a value without being Selected (a period picker) only changes that value.
+  const picksSelect = controlledSelect !== undefined || defaultSelected !== undefined || startItems.length === 0;
+  const select = mine && (picksSelect || !ownsChoice) ? mine.selected : controlledSelect ?? defaultSelected ?? false;
+  // Uncontrolled (defaultSelected): a Normal or Number-only chip turns itself on and off; an Advanced chip clears itself.
+  const ownsToggle = !ownsChoice && variant !== "advanced" && controlledSelect === undefined && defaultSelected !== undefined;
+  const ownsClear = variant === "advanced" && !onClearSelection && (ownsChoice || (controlledSelect === undefined && defaultSelected !== undefined));
+  const clearSelection = onClearSelection ?? (ownsClear ? () => setOwnChoice(false, []) : undefined);
+  // Once a chip that keeps the choice is used, what it shows comes from that choice (until then, from its props): the one
+  // picked value as its label, with its photo or icon, else its placeholder. The placeholder is the label it was given,
+  // unless that label is the value it started with (a page captured with one value on), then the popover's label.
+  const used = ownsChoice ? mine : null;
+  const ids = used?.ids ?? startItems.map((item) => item.id);
+  const usedItems = used ? popoverItems?.map((item) => ({ ...item, selected: used.ids.includes(item.id) })) : undefined;
+  const selectionCount = ownsChoice ? (used ? used.ids.length : selectionCountProp ?? startItems.length) : selectionCountProp;
+  const picked = used?.ids.length === 1 ? popoverItems?.find((item) => item.id === used.ids[0]) : undefined;
+  const textOf = (node: ReactNode) => (typeof node === "string" || typeof node === "number" ? String(node) : null);
+  const startedOnValue = textOf(children) !== null && startItems.some((item) => textOf(item.label) === textOf(children));
+  const placeholder = startedOnValue && textOf(popoverLabel) !== null ? popoverLabel : children;
+  const label = used ? (picked ? picked.label : placeholder) : children;
+  // A photo or icon that came from the start value leaves with it (usedPhoto null: no photo).
+  const fromStart = (media: unknown) => media !== undefined && startItems.some((item) => item.photoSrc === media || item.leading === media);
+  const pickedIcon = typeof picked?.leading === "string" ? picked.leading : undefined;
+  const usedPhoto = used ? picked?.photoSrc ?? (pickedIcon || fromStart(photoSrc) ? null : undefined) : undefined;
+  const showsPhoto = usedPhoto !== null && Boolean(usedPhoto ?? photoSrc);
+  const leadingIcon = used ? (picked?.photoSrc ? undefined : pickedIcon ?? (fromStart(leadingProp) ? undefined : leadingProp)) : leadingProp;
   // Icon names render at the slot's size today (leading Small 16, trailing chevron 2XSmall); the slot CSS sizes the glyph.
   const trailing = nest("Trailing", renderIcon(trailingProp, { size: "2xs" }));
-  const [uncontrolledPopoverOpen, setUncontrolledPopoverOpen] = useState(false);
+  const [uncontrolledPopoverOpen, setUncontrolledPopoverOpen] = useState(defaultPopoverOpen);
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   const dropdownRef = useRef<HTMLSpanElement>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const mergedButtonRef = useMergedRefs(buttonRef, ref);
   // The portalled layer (popoverPortal): outside the chip in the DOM, so light dismiss checks it as well.
   const layerRef = useRef<HTMLDivElement>(null);
-  const isNumberOnly = variant === "number-only";
   const photoSize: AvatarSize = size === "xsmall" ? "2xsmall" : size === "medium" ? "small" : "xsmall";
-  const leading = photoSrc ? nest("Avatar", <Avatar size={photoSize} theme="photo" background="subtle" src={photoSrc} alt={photoAlt} />) : nest("Leading", renderIcon(leadingProp, { size: "sm" }));
+  const leading = showsPhoto ? nest("Avatar", <Avatar size={photoSize} theme="photo" background="subtle" src={usedPhoto ?? photoSrc} alt={photoAlt} />) : nest("Leading", renderIcon(leadingIcon, { size: "sm" }));
   const isDisabled = disabled || state === "disabled";
   // Anything that makes pressing the chip do something: a handler, a selection (a toggle, even while off), a submit,
   // or ARIA state the caller manages (an external sheet it opens).
   const pressable = Boolean(onClick || onKeyDown || onClearSelection || buttonProps.onPointerDown || buttonProps.onPointerUp || buttonProps.onMouseDown || buttonProps.onMouseUp || buttonProps.form || buttonProps.formAction)
-    || type !== "button" || selectedProp !== undefined || selectProp !== undefined
+    || type !== "button" || selectedProp !== undefined || selectProp !== undefined || defaultSelected !== undefined
     || buttonProps["aria-pressed"] !== undefined || buttonProps["aria-haspopup"] !== undefined || buttonProps["aria-expanded"] !== undefined;
   // Figma Chip/Number-Only is a count as well as a pressable number: with nothing to do it is a <span> (see the JSDoc).
   const isStatic = isNumberOnly && !isDisabled && !pressable;
   // Padding follows the rendered leading slot, including callers that omit Theme.
-  const resolvedTheme = leading && !isNumberOnly ? (photoSrc || theme === "leading-photo" ? "leading-photo" : "leading-icon") : "text-only";
+  const resolvedTheme = leading && !isNumberOnly ? (showsPhoto || theme === "leading-photo" ? "leading-photo" : "leading-icon") : "text-only";
   // The chip owns a Popover only when it has something to show. `dropdown` alone is just the chevron affordance: a chip that
   // opens an external surface (a Bottom Sheet, a filter panel) passes its own onClick / aria-haspopup / aria-expanded.
   const canOpenPopover = !isNumberOnly && !isDisabled && (popoverItems !== undefined || onPopoverCreate !== undefined);
@@ -192,7 +240,7 @@ export function Chip({
   const handleClear = (event: MouseEvent<HTMLSpanElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    onClearSelection?.();
+    clearSelection?.();
   };
   // The clear affordance lives inside the chip <button>; it is pointer-clickable but not a
   // nested focus stop (interactive-in-interactive is invalid). Keyboard users press
@@ -201,8 +249,8 @@ export function Chip({
     <span
       className="zen-chip__remove"
       aria-hidden="true"
-      data-clickable={onClearSelection ? "true" : undefined}
-      onClick={onClearSelection ? handleClear : undefined}
+      data-clickable={clearSelection ? "true" : undefined}
+      onClick={clearSelection ? handleClear : undefined}
     >
       <Icon name="icon-x-circle-solid" decorative />
     </span>
@@ -211,7 +259,7 @@ export function Chip({
   // always numeric, never a caller-provided string or arbitrary React node.
   const multipleCount = typeof selectionCount === "number" && Number.isFinite(selectionCount) ? Math.max(0, Math.trunc(selectionCount)) : 0;
   const multipleTrailing = selectionMode === "multiple" && select && multipleCount > 1 ? (
-    <span className="zen-chip__multi-trailing" aria-hidden="true" data-clickable={onClearSelection ? "true" : undefined} onClick={onClearSelection ? handleClear : undefined}>
+    <span className="zen-chip__multi-trailing" aria-hidden="true" data-clickable={clearSelection ? "true" : undefined} onClick={clearSelection ? handleClear : undefined}>
       {nest("Badge-Counter", <BadgeCounter className="zen-chip__multi-count" size={size === "medium" ? "small" : "xsmall"} theme="neutral" background="solid" value={multipleCount} />)}
       <span className="zen-chip__multi-remove" aria-hidden="true"><Icon name="icon-x-circle-solid" decorative /></span>
     </span>
@@ -223,7 +271,7 @@ export function Chip({
   const shownCount = counterShown ? counter : multipleTrailing ? multipleCount : undefined;
   const countName = shownCount === undefined ? null : variant === "advanced" || !counterShown ? t.appliedCount(shownCount) : String(shownCount);
   const ownName = buttonProps["aria-label"] !== undefined || buttonProps["aria-labelledby"] !== undefined;
-  const textLabel = typeof children === "string" || typeof children === "number" ? String(children) : null;
+  const textLabel = textOf(label);
   const countLabel = countName && !ownName && textLabel ? `${textLabel}, ${countName}` : undefined;
   const countSuffix = countName && !ownName && !textLabel ? <VisuallyHidden>{`, ${countName}`}</VisuallyHidden> : null;
   const resolvedTrailing = trailing ?? (multipleTrailing ?? (showRemove ? singleRemove : showDropdown ? <Icon name={isPopoverOpen || state === "press" ? "icon-chevron-up-line" : "icon-chevron-down-line"} size="2xs" /> : null));
@@ -238,13 +286,14 @@ export function Chip({
   // One popover at a time: opening this chip's menu closes another object's open popover (and vice versa).
   useExclusivePopover(canOpenPopover && isPopoverOpen, () => setPopoverOpen(false), dropdownRef);
   const handleClick = composeEventHandlers(onClick, (event) => {
+    if (ownsToggle) setOwnChoice(!select, []);
     // detail === 0 means the click came from Enter/Space.
     if (canOpenPopover) setPopoverOpen(!isPopoverOpen, { fromKeyboard: event.detail === 0 });
   });
   const handleKeyDown = composeEventHandlers(onKeyDown, (event) => {
-    if ((event.key === "Delete" || event.key === "Backspace") && select && onClearSelection) {
+    if ((event.key === "Delete" || event.key === "Backspace") && select && clearSelection) {
       event.preventDefault();
-      onClearSelection();
+      clearSelection();
       return;
     }
     if (!canOpenPopover) return;
@@ -259,6 +308,10 @@ export function Chip({
     }
   });
   const handlePopoverSelect = (item: PopoverItemData) => {
+    if (ownsChoice) {
+      const next = popoverMultiple ? (ids.includes(item.id) ? ids.filter((id) => id !== item.id) : [...ids, item.id]) : [item.id];
+      setOwnChoice(next.length > 0, next);
+    }
     onPopoverSelect?.(item);
     if (!popoverMultiple) setPopoverOpen(false, { restoreFocus: true });
   };
@@ -304,7 +357,7 @@ export function Chip({
       aria-haspopup={canOpenPopover ? "listbox" : buttonProps["aria-haspopup"]}
       aria-expanded={canOpenPopover ? isPopoverOpen : buttonProps["aria-expanded"]}
       aria-pressed={!canOpenPopover && variant !== "advanced" && buttonProps.role !== "radio" ? select : undefined}
-      aria-keyshortcuts={select && onClearSelection ? "Delete Backspace" : undefined}
+      aria-keyshortcuts={select && clearSelection ? "Delete Backspace" : undefined}
       aria-label={countLabel ?? buttonProps["aria-label"]}
       className={["zen-chip", className].filter(Boolean).join(" ")}
       data-level={resolvedLevel}
@@ -316,7 +369,7 @@ export function Chip({
       data-variant={variant}
     >
       {leading && !isNumberOnly ? <span className={["zen-chip__slot", resolvedTheme === "leading-photo" ? "zen-chip__photo" : ""].filter(Boolean).join(" ")}>{leading}</span> : null}
-      {isNumberOnly ? <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span> : <span className={`zen-chip__label ${typographyStyles[state === "placeholder" ? "Body/Base/Medium" : "Body/Base/Bold"]}`}>{children}{countSuffix}</span>}
+      {isNumberOnly ? <span className={`zen-chip__value ${typographyStyles["Body/Base/Bold"]}`}>{resolvedValue ?? children}</span> : <span className={`zen-chip__label ${typographyStyles[state === "placeholder" ? "Body/Base/Medium" : "Body/Base/Bold"]}`}>{label}{countSuffix}</span>}
       {/* Figma Chip/Advanced "Counter" boolean shows the layer "Badge": a count → Badge-Counter XSmall · Neutral · Subtle (Figma still nests a plain Badge). */}
       {!isNumberOnly && counter !== undefined ? nest("Badge", <BadgeCounter className="zen-chip__counter" size="xsmall" theme="neutral" background="subtle" value={counter} aria-hidden="true" />) : null}
       {resolvedTrailing ? <span className="zen-chip__slot zen-chip__trailing">{resolvedTrailing}</span> : null}
@@ -356,7 +409,7 @@ export function Chip({
         searchPlaceholder={popoverSearchPlaceholder}
         onSearchChange={onPopoverSearchChange}
         scrollBar={popoverScrollBar}
-        items={popoverItems}
+        items={usedItems ?? popoverItems}
         multiple={popoverMultiple}
         onSelect={handlePopoverSelect}
         autoFocus={openedFromKeyboard}

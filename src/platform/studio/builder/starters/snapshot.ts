@@ -14,7 +14,9 @@ import { mergeText, type PageDevice, type SnapChild, type SnapNode, type SnapVal
  * - Its props become literals: text, numbers, booleans, lists and plain objects of those; a photo of the library
  *   becomes `zen-media:<key>`. Handlers and other functions go (a page is a drawing; prototype links are added in the
  *   Prototype tab). A controlled prop becomes its default twin (value → defaultValue) when the component has one, so the
- *   page stays interactive.
+ *   page stays interactive. A state the component can keep itself therefore needs that twin (Chip popoverOpen →
+ *   defaultPopoverOpen, selected → defaultSelected; Pagination page, Stepper current, 2026-10-15): written as a literal,
+ *   the controlled prop would lock it (`popoverOpen={false}`, a menu that never opens on the page).
  * - Elements in its props (children, leading, action…) are read from the fibers they rendered (found by their props
  *   object, which React keeps as the fiber's props), so the page's own components (HrShell, a helper) are walked through
  *   and lists show the rows they rendered; one that did not render (a hidden tab) is read from its props.

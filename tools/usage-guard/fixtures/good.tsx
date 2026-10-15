@@ -64,6 +64,8 @@ export const Good = () => <>
   <Tabs aria-label="Mail" items={[{ id: "inbox", label: "Inbox" }, …]} />
   <Segmented aria-label="View" options={[{ id: "grid", label: "Grid" }, { id: "list", label: "List" }]} />
   <Chip variant="advanced" selectionMode="multiple" selectionCount={owners.length} popoverItems={items} popoverMultiple>Owner</Chip>
+  {/* Keeps its own choice (no onPopoverSelect): it counts the picked items itself. */}
+  <Chip variant="advanced" selectionMode="multiple" popoverMultiple popoverLabel="Status" popoverItems={[{ id: "open", label: "Open", selected: true }, { id: "done", label: "Done" }]}>Status</Chip>
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><InputField label="Workspace name" /></Dialog>
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
   <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>

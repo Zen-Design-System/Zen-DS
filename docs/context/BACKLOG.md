@@ -8,6 +8,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 ## Open items
 
+- **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
+  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
+  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
+  own state) is done: session log 2026-10-15 "Self-managed state".
 - **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
   PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
   tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?

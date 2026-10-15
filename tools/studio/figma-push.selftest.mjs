@@ -1039,7 +1039,7 @@ export default function Page() {
   ok("pull: a List-Item's leading swapped for a file icon (read from its main component) and its IconButton trailing", text.includes('<ListItem title="Usability plan – transfers.pdf" caption="1.2 MB · Ava Chen · Yesterday at 4:05 pm" leading={<FileIcon format="pdf" />} trailing={<IconButton icon="icon-trash-line" appearance="flat" aria-label="Delete Usability plan – transfers.pdf" />} />'));
   const page = `// @zen-page {"format":1,"title":"Controls"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { Checkbox, DockIcon, Stack } from "@zen-ds/react";
+import { Checkbox, Chip, DockIcon, Stack } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1050,15 +1050,19 @@ export default function Page() {
         <Stack>
           <Checkbox label="I confirm" caption="Billed in October." />
           <DockIcon theme="emoji" emoji="🏝️" />
+          <Checkbox label="Keep me signed in" defaultChecked />
+          <Chip variant="normal" defaultSelected>Unread</Chip>
         </Stack>
       </Screen>
     </Board>
   );
 }
 `;
-  const [box, dock] = push(page).frame.children;
+  const [box, dock, kept, unread] = push(page).frame.children;
   check("push: Checkbox label, caption through its Content (shown, then written)", [box.texts, box.nested, box.props.Caption], [{ Label: "I confirm" }, [{ path: "Content", props: { Subtext: true }, texts: { Subtext: "Billed in October." } }], undefined]);
   check("push: an emoji Dock-Icon's emoji as its text", dock.text, "🏝️");
+  // The Studio writes a state prop as its uncontrolled twin (so the page stays interactive): the same Figma property.
+  check("push: defaultChecked and defaultSelected are Select=Yes", [kept.props.Select, unread.props.Select], ["Yes", "Yes"]);
   // A Heading's level rides on its layer's name, so it comes back a Heading (its level's text style unsaid).
   const headings = `// @zen-page {"format":1,"title":"Headings"}
 import { Board, Screen } from "@zen-ds/react/builder";
