@@ -22,6 +22,21 @@ Last updated: 2026-10-15.
   `../Zen-DS-refactor`, not merged. Shared helpers in `_shared` (controllable state, stable callback, merged refs,
   layers, modal isolation, HTML sanitiser), every component takes `ref` as a prop, conformance test. Details: session log
   2026-10-14, review list `docs/qa/component-review-checklist.md`.
+- **AI UI runtime (2026-10-14):** branch `zen/feat/ai-ui-runtime-20261014`, not merged (the user: no merge without a
+  request). `@zen-ds/react/ai-ui` renders, validates, prints, lints and edits the JSON spec a model composes from
+  `docs/ai-ui/catalog.json` (generated; `npm run ai-ui:build` / `ai-ui:check` / `ai-ui:selftest`, tests/ai-ui). Read
+  `docs/ai-ui/README.md` (files, spec, runtime, catalog rules, findings, the 5 open decisions in BACKLOG "AI UI"). The
+  platform page Patterns › AI UI (`?page=ai-ui`, app layer) shows it at work with a deterministic composer;
+  `@zen-ds/react/ai-ui/compose` runs the real loop with the app's model function (`…/ai-ui/server` mounts it,
+  `…/ai-ui/adapters/anthropic` is the Claude API adapter, the dev server serves `/ai-ui/*` with `ANTHROPIC_API_KEY`),
+  `createLiveComposer` composes while typing (the user's decision 2026-10-15: "lúc gõ") with `extractSlots` (title /
+  date / time / people / place on the device, en + vi), a template per intent pre-filled from them, Tab = keep
+  (`accept`), Escape = clear, Enter = the UI's primary action (`primaryActionOf`; `AiChatField` `onAccept` /
+  `onClear`), and `zen-ds-mcp` has
+  `get_catalog` + `check_spec`; `npm run ai-ui:eval` measures the loop on 20 prompts (valid-spec rate, wrong UI, time
+  to first UI, the classifier on partial input; `--dry` and `--classifier-only` need no key; the first live run needs
+  `ANTHROPIC_API_KEY` and is not done yet). PR #64 open (the user merges). Still open: where the classifier runs in the
+  product (the kit's default is on-device keywords, the model only once an intent is likely).
 - **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
   pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.

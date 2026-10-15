@@ -386,3 +386,127 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   (`.studio-portal-root`), so a canvas modal only isolates other overlays in that layer. An app has no mark: unchanged.
 - Checks: shared-hooks "stays inside a data-zen-isolation-root" fails without the fix, passes with it; E2E overlays
   O-01–O-04 4/4; tsc.
+
+## AI UI runtime: catalog, spec, renderer (tier L, user: "Tách nhánh riêng đặt tên rồi làm. Không merge khi chưa có yêu cầu. Đảm bảo những thứ plan làm là những thứ chưa làm")
+
+- Context: the user's handoff for a conversational UI product (a person types anything, the UI for that context is composed
+  from Zen at run time and is interactive at once). Readiness read on the repo first: 65–70 % for a booking pilot, 55–60 %
+  for the open-ended case; the missing part was the runtime layer, and Zen Studio already held ~60 % of it (dialect tree,
+  renderPage, ops). Plan W1–W7 approved as a whole; branch `zen/feat/ai-ui-runtime-20261014` from `origin/main` (a04b390).
+- Checked "not already done" before each item: no `docs/specs`, no catalog or JSON schema anywhere, no library-level
+  renderer (Studio's is platform-only), `tools/studio/compile-api-build.mjs` derives only required functions. Reused its
+  type-text helpers' approach and `check-unions`' source resolver idea (own implementation in `tools/ai-ui/types.mjs`).
+- Built (docs/ai-ui/README.md has the detail): `tools/ai-ui/build-catalog.mjs` → `docs/ai-ui/{catalog.json, catalog.index.json,
+  spec.schema.json, composer-rules.md}` (133 public components, 52 shared types, 56 binding pairs, 41 verified, 2
+  experimental; decisions in `catalog.config.mjs`); `src/ai-ui/` = `@zen-ds/react/ai-ui` (spec helpers, `validateSpec`,
+  `toJsx`, `applyOps`, `markdownToSpec`, `<AiUi>` / `renderSpec`); `tools/ai-ui/lint.mjs` = `@zen-ds/react/ai-ui/lint`;
+  `npm run ai-ui:build / ai-ui:check / ai-ui:selftest`; CI step; `vite.lib.config.ts` entry, `tsconfig.build.json`,
+  `build-lib-types.mjs` copies the `.d.mts`, package exports and files; `examples/consumer-smoke/ssr.mjs` renders a spec
+  in Node (verify:package).
+- Decisions made on the way (to confirm, BACKLOG "AI UI"): spec = Zen's own node tree with `$ref` / `$state` / `$action` /
+  `$map` / `pending` markers (the Studio dialect's shape, so Studio and the runtime can share it); props excluded by name
+  (`className`, `style`, `overrides`, `ref`, `key`, `state`) and by type (refs, element types, CSS, formatters); a documented
+  `id` prop stays (SidebarMenuItem); HTML attributes admitted per `extends`; `value` / `defaultValue` written out from
+  `on<X>Change`; auto-binding by node id for `value`, `checked`, `open`, `page`, `range`, `expanded`, `selected`; a required
+  prop with no JSON form makes the component `experimental`; a required handler field inside an object (TableBulkAction
+  `onClick`) is never required in a spec (the renderer emits it as an action); bound props fall back to the component's
+  own default (DatePicker `open` = true) so controlled components never flip.
+- Gates: tsc, `usage:check` (457 files, 200 rules, 1 pre-existing warning), `guidelines:check`, `style:check`, `ai-ui:check`,
+  `ai-ui:selftest` (24 checks), `tests/ai-ui` 137 passed / 13 skipped, `tests/smoke` + content-tone + scale 394 passed,
+  `verify:package` OK (13 entry points, tsc with skipLibCheck:false on the `.d.mts`). Browser tests ran on the sandbox's
+  Chromium 1194 through a symlink for Playwright's 1243 (download blocked); no repo change for that.
+- Fixed on the way: `tests/smoke/fixtures.tsx` Sidebar fixture carried a stray `id` on a section (the type has none).
+- Findings: a 4-column Table needs ~608 px and scrolls sideways inside its own box at 600 / 390 px; `data-ai-ui-id` does
+  not reach the DOM on the Skeletons; fenced code has no code-block component. BACKLOG lines added; no PR opened.
+
+## AI UI demo page on the platform (tier L, user: "tiếp")
+
+- Page `ai-ui` in the app layer beside Templates and Widgets (`src/platform/appLayer/{types.ts,ai-ui.tsx}`,
+  `PlatformAppLayer.tsx`), examples and playground in `src/platform/examples/pages/ai-ui.{tsx,css}`; Studio lays its
+  playground out desktop-wide (`studio/board/frameLayout.ts`). A deterministic composer answers a prompt with a spec built
+  from the studio's data (booking, invoices with a Skeleton first, revenue, a confirmation Dialog, Markdown prose, one
+  deliberately broken spec); specs validate against the catalog before they render, picks land in a controlled shared
+  state shown beside the thread, follow-ups ("make the button accent", "at 4 pm") apply ops and state to the UI on screen.
+- Gate (`npm run qa -- --only=ai-ui --isolated`) found and fixed on the way: a React key warning for lists of nodes inside
+  a prop (ListItem title from Markdown; `src/ai-ui/render.tsx`, test hardened), an icon name that does not exist
+  (`icon-edit-03-line` → 02; the usage rule sees literal props only), seeded conversations answered after a delay so the
+  contact sheets showed thinking dots (seeded prompts answer at once), StrictMode's second effect run cleared the data
+  timer so the invoices table never arrived (one effect that resets and re-seeds), and the 404 the audit reported on every
+  load was `/favicon.ico` (the platform had no favicon: `index.html` now declares an empty one; a real icon is the
+  designer's call). `llms.txt` is generated by `build-guidelines.mjs`: the AI UI section moved into the generator.
+
+## AI UI compose loop + MCP tools (tier M, user: "tiếp")
+
+- `tools/ai-ui/compose.mjs` (`@zen-ds/react/ai-ui/compose`): `tier1` / `tier2` / `buildSystemPrompt` (the rules from
+  composer-rules.md, tier 1 ≈ 41 KB with prop names or 26 KB without, tier 2 for 4 picked components ≈ 37 KB),
+  `extractJson`, `judge` (validateSpec + lintSpec), `feedbackFor`, `composeUi` (pick → compose → feedback loop, ids
+  assigned, text-only answers accepted, `attempts` kept for the metrics) and `composeEdit` (ops / state / spec / text,
+  a failed op goes back with the ids on screen). The model is the app's function: no provider in Zen.
+  `tools/ai-ui/compact.mjs` now holds the prop formatting the catalog index and the prompts share.
+- `mcp/server.mjs`: `get_catalog` (tier 1 without prop names, chrome and experimental first, under the 40 KB clip; or
+  one component's tier 2 with status and exclusions) and `check_spec` (judge + feedback text; invalid JSON is an error
+  result). `mcp/selftest.mjs` expects 11 tools and checks both.
+- Selftest: scripted model (picks, answers a broken spec, gets the numbered problems with hints, fixes it; gives up after
+  `maxAttempts`; text-only; ops retry on an unknown id; state-only). A first assertion read the shared `messages` array
+  after the loop had appended to it: fixed to read the first message.
+- Gates: tsc, `ai-ui:selftest`, `mcp:selftest`, `verify:package`.
+
+## Where the model connects, composing while typing, PR #64 (tier M, user: "nối ở đâu, như thế nào" · "Lúc gõ" · "OK")
+
+- PR #64 opened for the branch (the user's OK); merging stays theirs.
+- Connection: `tools/ai-ui/adapters/anthropic.mjs` (official SDK, loaded on first use; `claude-opus-5-5`, effort
+  medium, cached system prompt, `fallbacks: "default"` with its beta header, a refusal returned as a text-only answer;
+  tested against a fake client — no key in the sandbox, so no live call), `tools/ai-ui/server.mjs` (framework-free
+  handler + `node:http` listener + standalone), `tools/ai-ui/vite-plugin.mjs` (the handler at `/ai-ui/*` on the dev
+  server when `ANTHROPIC_API_KEY` resolves; `enabled: false` otherwise, so the QA server and CI are unaffected). The
+  demo page sends typed prompts to `/ai-ui/compose` or `/ai-ui/edit` when `/ai-ui/status` says enabled and falls back
+  to its deterministic composer; seeded prompts stay deterministic (screenshots, gate). `@anthropic-ai/sdk` is a
+  devDependency for the platform; apps install it themselves.
+- "Lúc gõ": `src/ai-ui/live.mjs` `createLiveComposer` (debounce 300, on-device `keywordClassifier`, Skeleton at 60 %
+  confidence, compose with AbortSignal, stale answers dropped, an unsure guess never clears the UI, switch margin /
+  stick time, Enter composes regardless). `AiChatField` gains `value` / `onValueChange` (the field had no way to expose
+  the text being typed; `defaultValue` stays; docs/api, guidelines and the catalog regenerated — the catalog pairs them).
+  Example "Composed while typing" on the page.
+- Selftest: adapter request shape and refusal, the handler's routes and errors, the live composer's timeline.
+
+### Eval script (2026-10-15, tier S, user: "Làm mục 1, viết script eval")
+
+- `tools/ai-ui/eval.mjs` (`npm run ai-ui:eval`, also `@zen-ds/react/ai-ui/eval`) and `tools/ai-ui/eval/prompts.json`
+  (20 cases, en + vi, with follow-ups; `intents` for the classifier; shared `data` read with `$ref`). Per case:
+  `composeUi` with the adapter (one model function per case so usage lands on it), then the follow-ups chained on the
+  result; the record keeps every reply, the problem codes, the components used and the ms to the accepted spec. Summary
+  and Markdown report: valid-spec rate (first / within the loop / per attempt), wrong UI against `expect`, text
+  answers, time to first UI (median, p90), tokens, follow-ups, and the keyword classifier on 25–100 % of each prompt
+  (no model). `--dry` runs a scripted model (one broken spec first, text for small talk, ops / state for edits) so the
+  pipeline and the report run without a key; `--classifier-only` is that metric alone. Reports in `.qa/ai-ui-eval/`.
+- Not run live: the sandbox has no key. Dry run: 20/20 valid within the loop, one feedback round (`unknown-component`);
+  the wrong-UI metric flags the 13 cases where the scripted booking form is not the expected UI. Classifier: 19/20 right
+  at 25 % of the prompt, 20/20 from 50 %, no false positives on the 13 cases without an intent.
+- Selftest section 10 covers runEval's counts, the report and the classifier metric. Two expectations tightened after
+  the dry run (delete-project and new-project-form let a plain form pass).
+
+### Slots and the keyboard contract (2026-10-15, tier S, user: "Làm 1 và 2, chưa merge")
+
+- Reference: two ShapeShift UI screenshots the user shared (one field; while typing, the guessed type's form appears
+  pre-filled from the sentence, empty slots as "+ Add …" chips, Tab keeps the type, Esc clears, Enter adds). The site
+  and x.com are blocked by the sandbox's network policy; the screenshots were enough.
+- `src/ai-ui/live.mjs`: `extractSlots(text, { now, dayFirst })` — title after the lead-in ("remind me to", "đặt lịch"),
+  date (ISO; today / tomorrow / weekdays / next week / numeric / month names, en + vi), time (HH:MM; am / pm, "4h chiều",
+  a bare hour 1–6 is the afternoon), people (after with / với, @handles), a capitalised place after at / in / ở / tại,
+  and the `spans` for later highlighting. `keywordClassifier(intents, { slots })` passes the original text to the
+  extractor; `skeleton` may be a function of the slots (a template). The composer gains `accept()` / `state.pinned`
+  (a pinned intent ignores the classifier's switches and keeps composing for the new text; `reset` unpins) and
+  `primaryActionOf(spec)` + `resolveArgs(args, { state, data })` for Enter.
+- `AiChatField`: `onAccept` (Tab) and `onClear` (Escape), only while passed. First cut prevented Tab's default; the
+  behaviour gate flagged it as a keyboard trap (APG), so Tab now keeps the guess and still moves focus, into the form
+  when it is next. Guideline a11y line and keyboard rows; interaction tests for both keys and for the field without
+  the handlers.
+- Demo "Composed while typing": the booking intent's tier 1 is `bookingSpec(title)` pre-filled from the slots; the
+  slots land in `review.*` only when they change (a pick survives typing; a first cut compared against a ref already
+  overwritten, so nothing landed — seen on the contact sheet, fixed; the date is written as the field's own
+  MM/DD/YYYY text, since DateField's value is the text it shows); the hints row uses Tag as a keycap (Tab · Esc ·
+  Enter); Enter runs Schedule with the resolved args and shows the call; the deterministic composer keeps the title.
+- Gates: tsc, ai-ui selftest (+ 8 checks), usage, style, guidelines, ai-ui:check, mcp, smoke + ai-ui tests (489),
+  interaction test, Build-QA `--only=ai-ui,ai-chat --isolated` (audit, dark, behaviour), verify:package.
+- For the designer (BACKLOG "AI UI"): the tentative look of a guessed form and its dashed add-chips, the underlined span
+  in the field, a keycap component.

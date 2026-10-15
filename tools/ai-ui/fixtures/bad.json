@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "root": {
+    "type": "Stack",
+    "id": "root",
+    "props": {
+      "gap": "huge",
+      "className": "my-stack"
+    },
+    "children": [
+      {
+        "type": "Buton",
+        "children": [
+          "Save"
+        ]
+      },
+      {
+        "type": "Button",
+        "id": "a",
+        "props": {
+          "level": "primry",
+          "size": {
+            "$action": "nope"
+          }
+        },
+        "children": [
+          "Go"
+        ]
+      },
+      {
+        "type": "IconButton",
+        "id": "b",
+        "props": {
+          "icon": "icon-plus-line"
+        }
+      },
+      {
+        "type": "Dialog",
+        "id": "dlg",
+        "props": {
+          "open": true
+        }
+      },
+      {
+        "type": "AppShell",
+        "id": "shell"
+      },
+      {
+        "type": "Checkbox",
+        "props": {
+          "label": "Agree"
+        }
+      },
+      {
+        "type": "Text",
+        "id": "a",
+        "props": {
+          "tone": {
+            "$map": "x",
+            "as": "y",
+            "node": {
+              "type": "Text"
+            }
+          }
+        },
+        "children": [
+          "Twice"
+        ]
+      },
+      {
+        "type": "Badge",
+        "id": "badge",
+        "props": {
+          "theme": "accent"
+        },
+        "children": [
+          {
+            "$pending": "circle"
+          }
+        ]
+      }
+    ]
+  }
+}

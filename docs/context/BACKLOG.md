@@ -12,9 +12,36 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
   own state) is done: session log 2026-10-15 "Self-managed state".
+- **P2 · AI UI: `verified` status is a heuristic (2026-10-14, user):** `tools/ai-ui/build-catalog.mjs` marks a component
+  `verified` when a Figma contract file or suite name matches its folder (41 components). Confirm the list or set it in
+  `tools/ai-ui/catalog.config.mjs` `STATUS_OVERRIDES`. Pointer: docs/ai-ui/README.md "Open decisions".
+- **P3 · AI UI: classifier placement in the product (2026-10-15, user; handoff Q4):** the user chose "UI while typing"
+  (Q1 decided). The kit classifies on the device (`keywordClassifier`) and asks the model only once an intent is likely;
+  a smarter classifier (embeddings or a small model) is the product's choice: on-device keeps keystrokes private, a
+  server one needs consent. Pointer: docs/ai-ui/README.md "Composing while typing".
+- **P2 · AI UI: a tentative look for a guessed form (2026-10-15, designer; ShapeShift reference):** while the intent
+  is only likely, ShapeShift shows the form faded with its empty slots as dashed "+ Add date" chips; Zen has no
+  tentative state or token (Chip `state="placeholder"` only recolours the label). Needs Figma: a state on the form's
+  components or an opacity token, and the dashed add-chip. Pointer: docs/ai-ui/README.md "Composing while typing".
+- **P3 · AI UI: the recognised span underlined in the prompt field (2026-10-15, designer):** ShapeShift underlines the
+  words a slot came from; `extractSlots` returns the `spans`, but `AiChatField` is a plain textarea (an overlay or a
+  contenteditable, tier M). Needs Figma.
+- **P3 · Keycap component (2026-10-15, designer):** keyboard hints ("Tab to keep as booking") need a Kbd; the AI UI demo
+  uses Tag for now.
+- **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
+  node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
+- **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls
+  sideways in its own box (tests/ai-ui/narrow.test.tsx). Keep, or a compact mode that folds columns (Figma first)?
+- **P3 · AI UI: prose has no code block (2026-10-14, designer):** `markdownToSpec` renders fenced code as `Text as="code"`;
+  no mono text style or CodeBlock / Prose component exists. Needs Figma.
+- **P3 · AI UI: ChatReactorsPanel is experimental (2026-10-14, user):** its required `glyph` is a formatter function with
+  no JSON form (`unavailable` in the catalog). Give it a JSON form if chat reactions should be composable.
+- **P3 · AI UI: `data-ai-ui-id` on components that do not forward HTML attributes (2026-10-14):** the Skeletons (and any
+  part that keeps `...rest`) carry no id in the DOM; decide whether every component should forward `data-*`.
 - **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
   PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
   tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?
+- **P3 · Designer question: the mobile playground's "Sort by" Action sheet marks the current sort (2026-10-15, seen by `usage:check`, on main since 2026-10-07):** `src/platform/PlatformMobilePlaygrounds.tsx:240` passes `selectedId` to a `type="action"` BottomSheet; rule `bottom-sheet/choice-uses-list-item` warns that a single choice is a Modal sheet with `<List>` of `<ListItem selected>` rows. Keep the Action sheet (Figma shows Sort by as actions) and allow it, or switch the playground to the Modal sheet?
 - **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
   the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
   and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile

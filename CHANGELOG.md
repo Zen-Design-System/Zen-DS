@@ -297,6 +297,42 @@ removed (four unused colour ramps were, see Removed).
   itself (the picked value as its label, the count for multiple, × and Delete clear it); Chip `defaultSelected` (Normal
   chips toggle themselves) and `defaultPopoverOpen`; Pagination `defaultPage` and `defaultPageSize` (`page` is now
   optional); Stepper `defaultCurrent` (a Passed step takes you back); SelectField `defaultPopoverOpen`.
+- **AI UI runtime** (`@zen-ds/react/ai-ui`, 2026-10-14, branch `zen/feat/ai-ui-runtime-20261014`): the layer for UI a
+  model composes at run time (docs/ai-ui/README.md). A generated catalog (`docs/ai-ui/catalog.json`, 133 public
+  components: props as a JSON-Schema subset, controlled-pair bindings, required actions, stable / verified / experimental
+  status, page chrome flagged; `npm run ai-ui:build` / `ai-ui:check`), a spec format (nodes with `$ref`, `$state`,
+  `$action`, `$map`, `pending`), `validateSpec` (coded errors with hints), `toJsx` + `lintSpec` (the usage harness on a
+  spec, `@zen-ds/react/ai-ui/lint`), `<AiUi>` (renders with the real components, binds pairs to shared state, emits
+  actions, Skeletons while loading), `applyOps` (edits by node id) and `markdownToSpec`. Tests: `npm run ai-ui:selftest`,
+  `tests/ai-ui`.
+- Platform page **Patterns › AI UI** (`?page=ai-ui`, 2026-10-15): the runtime at work inside Zen AI with a deterministic
+  composer standing in for the model: a booking form, the invoices table (Skeleton first, rows after), revenue by month, a
+  confirmation Dialog and a prose answer, each validated against the catalog and rendered in the AI bubble; what Alex picks
+  shows in a "shared state" panel, follow-ups edit the UI in place, a rejected spec shows its errors; a phone example and a
+  playground whose code is the React the renderer runs (`toJsx`).
+- **Compose loop and MCP tools** (`@zen-ds/react/ai-ui/compose`, 2026-10-15): `composeUi` (pick components from tier 1,
+  compose with their tier 2, parse → validate → lint → send the problems back until the spec is clean) and `composeEdit`
+  (a follow-up as ops, a state change or a new spec), provider-agnostic through the app's `model` function;
+  `zen-ds-mcp` gains `get_catalog` and `check_spec`.
+- **Where the model connects + composing while typing** (2026-10-15): `@zen-ds/react/ai-ui/server` (a framework-free
+  request handler with `/status`, `/catalog`, `/compose`, `/edit`, `/check`; `node:http` listener; standalone
+  `node tools/ai-ui/server.mjs`), `@zen-ds/react/ai-ui/adapters/anthropic` (the model function on the Claude API through
+  the official SDK, key server-side only), the platform's dev server mounts it at `/ai-ui/*` when `ANTHROPIC_API_KEY`
+  is set, and `createLiveComposer` / `keywordClassifier` compose while the person types (debounce, on-device classifier,
+  Skeleton first, stale answers dropped, no flicker). `AiChatField` takes `value` / `onValueChange`. Patterns › AI UI
+  gains "Composed while typing" and uses the model for typed prompts when the server has one.
+- **AI UI eval** (`npm run ai-ui:eval`, `@zen-ds/react/ai-ui/eval`, 2026-10-15): runs a prompt set (20 cases, English
+  and Vietnamese, with follow-ups) through the compose loop on a real model and reports the handoff's metrics: valid-spec
+  rate (first attempt, within the retry loop, per spec attempt), wrong UI against what each case expects, time to first
+  UI, tokens, follow-up edits, and the keyword classifier's intent accuracy on 25–100 % of each prompt; `--dry` and
+  `--classifier-only` run without a key. Reports in `.qa/ai-ui-eval/`.
+- **Compose while typing, part 2** (2026-10-15, user, after the ShapeShift UI reference): `extractSlots` reads title,
+  date, time, people and place from the sentence on the device (English and Vietnamese); `keywordClassifier` takes a
+  default slot extractor and a template per intent built from the slots, so the first UI is the real form pre-filled;
+  the live composer gains Tab (`accept()`: the guessed intent stays while the sentence goes on; focus moves on as
+  usual), and `primaryActionOf` /
+  `resolveArgs` let Enter run the UI's primary action. `AiChatField` gains `onAccept` (Tab) and `onClear` (Escape),
+  active only while passed. Patterns › AI UI's "Composed while typing" shows the pre-filled form and the key hints.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

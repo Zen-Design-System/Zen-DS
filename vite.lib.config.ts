@@ -33,6 +33,7 @@ export default defineConfig({
         "icons/all": `${src}/icons/all.ts`,
         "icons/names": `${src}/icons/names.ts`,
         tokens: `${src}/tokens/index.ts`,
+        "ai-ui": `${src}/ai-ui/index.ts`,
       },
       formats: ["es"],
       cssFileName: "components",

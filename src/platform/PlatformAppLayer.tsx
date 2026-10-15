@@ -7,6 +7,7 @@ import * as shell from "./appLayer/shell";
 import * as templates from "./appLayer/templates";
 import * as text from "./appLayer/text";
 import * as widgets from "./appLayer/widgets";
+import * as aiUi from "./appLayer/ai-ui";
 import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./appLayer/types";
 
 /*
@@ -14,7 +15,7 @@ import type { AppLayerPage, AppLayerPageMeta, ExampleMap } from "./appLayer/type
  * groups can be built independently. PlatformExamples renders the pages, PlatformApp lists them, PlatformShowcases
  * appends the examples (to new pages and to existing ones such as "toast" or "sidebar").
  */
-const groups = [layout, text, navigation, content, form, shell, templates, panels, widgets];
+const groups = [layout, text, navigation, content, form, shell, templates, panels, widgets, aiUi];
 
 export const appLayerPages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = Object.assign({}, ...groups.map((group) => group.pages));
 

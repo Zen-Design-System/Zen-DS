@@ -164,6 +164,6 @@ export const fixtures: Record<string, Fixture> = {
   Link: { props: { href: "#", children: "Billing settings" } },
   ActionBar: { props: { primaryAction: { label: "Track order", onClick: noop } } },
   AppShell: { props: { children: "Page body" } },
-  Sidebar: { props: { sections: [{ id: "main", items: [{ id: "home", label: "Home", icon: "icon-home-02-line" }] }] } },
+  Sidebar: { props: { sections: [{ items: [{ id: "home", label: "Home", icon: "icon-home-02-line" }] }] } },
   FileUpload: { props: { label: "Attachments" } },
 };
