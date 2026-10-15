@@ -1,0 +1,22 @@
+/* The AI chip (mcp/AiChip.tsx): a floating pill bottom-left of the visible canvas, as the tip "?" is bottom-right
+   (canvas/canvas.css): the same popover surface, above the examples' overlay layer (z 20), below the panels (22). */
+.studio-ai {
+  position: absolute;
+  z-index: 21;
+  left: calc(var(--studio-inset-left, 0px) + var(--zen-spacing-padding-medium, 16px));
+  bottom: var(--zen-spacing-padding-medium, 16px);
+  display: flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  padding-inline-start: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+}
+/* While a call runs, the star pulses (opacity only: reduced motion keeps it, it moves nothing). */
+.studio-ai[data-state="working"] > .zen-icon { animation: studio-ai-pulse var(--zen-motion-duration-slow, 400ms) var(--zen-motion-ease-standard, ease) infinite alternate; }
+@keyframes studio-ai-pulse { from { opacity: 1; } to { opacity: 0.4; } }
+.studio-canvas-area[data-world-fullscreen="true"] > .studio-ai { visibility: hidden; }

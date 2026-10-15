@@ -213,3 +213,24 @@ the Studio mode; Emphasis Light.
   sheet tooltip-390 "A tip on a phone": the closable tip was cut at the phone screen's left edge, the same in the
   2026-10-14 sheet (pre-existing). Fixed at the owner: an explicit top/bottom Tooltip measures itself against
   visibleBounds (now exported from useAnchoredPosition) and shifts by `--zen-tooltip-shift`, 4px in.
+
+## Research: Studio MCP for AI clients on the live canvas (research only, user: "Nghiên cứu trước tính năng kết nối mcp vào studio … Nghiên cứu chứ chưa làm ngay")
+
+- No code changed. Write-up: `docs/research/studio-mcp-canvas-2026-10-15.md` (updates A4 of
+  `studio-agent-spec-2026-10-05.md`). Finding: AI calls must run in the open Studio tab (builder pages, their ids and undo
+  live in the browser; the dev server's `.zen-studio/pages/` mirror is only synced on connect or "Sync with the folder").
+  Proposed: MCP Streamable HTTP in the Vite plugin, relayed to the tab over Vite's HMR WebSocket (`server.ws` ↔
+  `import.meta.hot`), executed through `api.ts applyEdit` (one undo step per AI call). Milestones M0–M3 and 5 questions
+  wait for the user's approval.
+- User's answers (same day, §11 of the write-up): Claude Code first; dev server on this machine only (deploy = M3);
+  M0–M1 builder pages only; AI edits directly (Stop + ⌘Z, no per-call approval); the embedded Zen Agent is still wanted,
+  after M1, on the same MCP. M0 not started: waits for the user's go.
+- M0 built (user: "có"), branch `zen/feat/studio-mcp-m0-20261015`, worktree `../Zen-DS-mcp` (node_modules symlinked per
+  entry, own server on 5186 via launch config `zen-mcp-worktree-5186`). Server `tools/studio/mcp/` (SDK v1 stateless JSON,
+  guards: loopback Host, no Origin, Bearer token from `npm run studio:mcp`), relay over Vite's HMR socket, tab runtime
+  `src/platform/studio/mcp/` (writes through `applyEdit`), AI chip with Stop/Resume; `htmlExport.tsx` picture code split
+  into `drawFrame` + `framePicture` (handoff unchanged). Checks: mcp.selftest 13/13, studio:selftest, tsc, a live
+  Playwright + SDK-client run 14/14 (selection, update, one ⌘Z step, screenshot, Stop/Resume, closed tab). Not yet tried
+  with the user's own Claude Code (needs `claude mcp add`).
+- Gate: `npm run qa -- --isolated --files=<the 14 edited files>` PASS (static gates, Studio self-tests, tsc, Studio E2E
+  270 works · 0 broken).
