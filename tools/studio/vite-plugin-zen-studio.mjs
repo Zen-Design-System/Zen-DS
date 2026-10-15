@@ -6,6 +6,7 @@
 //      describe an element, say whether it can be detached, apply edit ops (detach and wrap included) and undo/redo writes to
 //      the file's admin DRAFT, list, save (write to disk, then style-guard + usage-guard) and discard drafts (admin role
 //      header, per-server token, same Origin only, annotated files only, atomic writes).
+//   3. /__zen-studio/mcp (2026-10-15): the Studio MCP for AI clients, relayed to an open Studio tab (mcp/server.mjs).
 // Admin drafts (2026-10-03): edits never touch the disk until POST /save. A draft = { base (disk text when it
 // started), baseHash, content, updatedAt } per repo-relative file, kept in memory and in
 // node_modules/.cache/zen-studio/drafts-<port>.json (one file per dev server, restored when it starts). Every reader
@@ -38,6 +39,8 @@ import { componentModulesFrom } from "./component-modules.mjs";
 import { validateDialect } from "./dialect.mjs";
 import { PAGES_DIR, PagesError, pagesFolder } from "./pages-folder.mjs";
 import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote.mjs";
+import { attachRelay, createRelay } from "./mcp/relay.mjs";
+import { MCP_PATH, studioMcp } from "./mcp/server.mjs";
 
 const PREFIX = "/__zen-studio";
 const ROLE_HEADER = "x-zen-studio-role";
@@ -134,6 +137,14 @@ export function zenStudio() {
         server.watcher.on("change", onDisk);
         server.watcher.on("add", onDisk);
       }
+      // The Studio MCP (mcp/server.mjs): AI clients call /__zen-studio/mcp, the open Studio tab runs each call.
+      const relay = createRelay();
+      attachRelay(server.ws, relay);
+      const mcp = studioMcp({ root, relay, version: packageVersion(root), port: () => { const address = server.httpServer?.address(); return address && typeof address === "object" ? address.port : null; } });
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.split("?")[0] !== MCP_PATH) return next();
+        mcp(req, res).catch((error) => { if (!res.headersSent) send(res, 500, { ok: false, code: "invalid", error: String(error?.message ?? error) }); });
+      });
       server.middlewares.use((req, res, next) => {
         // The builder pages folder is read through GET /pages only (token), never served as a file (/@fs/ included).
         if (/\/\.zen-studio(?:\/|$)/.test(safeDecode(req.url ?? ""))) return send(res, 403, { ok: false, code: "forbidden", error: "Builder pages are read through /__zen-studio/pages" });
@@ -1190,6 +1201,15 @@ function exclusive(task, gone = () => false) {
 }
 
 const firstLine = (text) => String(text ?? "").split(/\r?\n/).find((line) => line.trim())?.trim() ?? null;
+
+/** The repo's package version (the Studio MCP's serverInfo). */
+function packageVersion(root) {
+  try {
+    return String(JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version ?? "0.0.0");
+  } catch {
+    return "0.0.0";
+  }
+}
 
 const safeDecode = (value) => {
   try {

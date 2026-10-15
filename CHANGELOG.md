@@ -335,6 +335,12 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio MCP, first step (M0, 2026-10-15, user: "kết nối mcp vào studio để Claude hoặc AI khác … design trực tiếp
+  trên canvas"): Claude Code (or another MCP client) connects to the dev server at `/__zen-studio/mcp` and reads and
+  changes the page made in the Studio that is open in the browser, live: `get_studio_state`, `get_tree` (layers by id),
+  `update` (props and text), `get_screenshot`. Each change is one ⌘Z step; an AI chip bottom-left of the canvas shows
+  the client and holds Stop / Resume. `npm run studio:mcp` prints the `claude mcp add` command with this checkout's
+  token. Spec: `docs/research/studio-mcp-canvas-2026-10-15.md`.
 - Zen Studio Present and Play: a **Viewport** button on the bar (2026-10-15, user) — Auto (as before), Desktop
   1440 × 900, Tablet 768 × 1024, Phone 390 × 844, or any W × H typed in px (an empty H fills the window). The screen
   renders in a box of that size (its dialogs and menus open inside it) and scales down to fit the window, never up; the
