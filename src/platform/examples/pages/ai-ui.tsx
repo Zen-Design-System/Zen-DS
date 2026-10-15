@@ -8,13 +8,14 @@ import { AiChatBubble, AiChatField, AiChatThread } from "../../../components/AiC
 import { Chip } from "../../../components/Chip";
 import { Tag } from "../../../components/Tag";
 import { InlineMessage } from "../../../components/InlineMessage";
+import { Card } from "../../../components/Card";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
 import { SkeletonText } from "../../../components/Skeleton";
 import { Heading, Text } from "../../../components/Text";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { AiUi, applyOps, createLiveComposer, extractSlots, keywordClassifier, markdownToSpec, primaryActionOf, resolveArgs, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type Slots as LiveSlots, type UiNode, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
+import { AiUi, applyOps, createLiveComposer, extractSlots, keywordClassifier, markdownToSpec, primaryActionOf, resolveArgs, walkNodes, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type Slots as LiveSlots, type UiNode, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
 import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Panel, PlaygroundFilterChip, option } from "../../appLayer/shared";
@@ -63,6 +64,17 @@ const postJson = async <T extends { ok: true },>(url: string, body: unknown, sig
   } catch (error) { if ((error as Error).name === "AbortError") throw error; return { ok: false, error: (error as Error).message }; }
 };
 
+/** A composed UI with bound controls (fields, chips, a table) sits on a Card, so a form reads as one object inside the answer (the user, 2026-10-15: "các form nên bỏ vô card cho dễ nhìn"); prose, a chart or a lone button stay in the flow. The host frames it, the model never adds the Card. */
+function hasControls(spec: UiSpec, catalog: Catalog): boolean {
+  let found = false;
+  walkNodes(spec.root, (node) => { if (found) return false; if (catalog.components[node.type]?.bindings?.length) found = true; return found ? false : undefined; });
+  return found;
+}
+function Framed({ spec, catalog, children }: { spec: UiSpec; catalog: Catalog; children: ReactNode }) {
+  // Flat on the canvas (usage rules §16), the small spacing inside a chat column.
+  return hasControls(spec, catalog) ? <Card theme="flat" spacing="sm" width="fill">{children}</Card> : <>{children}</>;
+}
+
 /* ───────────── What the composer answers with (specs from the studio's data) ───────────── */
 
 const firstName = me.name.split(" ")[0];
@@ -97,7 +109,7 @@ const bookingSpec = (title = "Schedule a design review"): UiSpec => ({
       { type: "DateField", id: "date", props: { label: "Date", value: { $state: "review.date" } } },
       { type: "ChipGroup", id: "slot", props: { "aria-label": "Time", options: { $ref: "slots" }, value: { $state: "review.slot" } } },
       {
-        type: "Stack", id: "booking-actions", props: { direction: "row", gap: "sm", justify: "end" },
+        type: "Stack", id: "booking-actions", props: { direction: "row", gap: "sm", justify: "end", wrap: true },
         children: [
           { type: "Button", id: "cancel", props: { level: "tertiary", onClick: { $action: "cancel" } }, children: ["Cancel"] },
           { type: "Button", id: "submit", props: { level: "primary", onClick: { $action: "book", args: { review: { $state: "review" } } } }, children: ["Schedule"] },
@@ -316,7 +328,7 @@ function Answer({ turn, demo }: { turn: Turn; demo: Demo }) {
       {failure}
       {turn.text ? <span>{turn.text}</span> : null}
       {check.ok
-        ? <AiUi spec={turn.spec} catalog={demo.catalog} state={demo.shared} onStateChange={demo.onStateChange} onAction={demo.onAction} />
+        ? <Framed spec={turn.spec} catalog={demo.catalog}><AiUi spec={turn.spec} catalog={demo.catalog} state={demo.shared} onStateChange={demo.onStateChange} onAction={demo.onAction} /></Framed>
         : <InlineMessage theme="negative" title="This answer's UI did not pass the catalog check">{check.errors.map((problem) => `${problem.path}: ${problem.message}${problem.hint ? ` ${problem.hint}` : ""}`).join(" · ")}</InlineMessage>}
     </Stack>
   );
@@ -473,7 +485,7 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
           <AiChatBubble side="ai">
             <Stack gap="md">
               {live?.answer ? <span>{live.answer}</span> : null}
-              {catalog ? <AiUi spec={preview} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={(call) => { setDone(`${call.name} ${JSON.stringify(call.args)}`); clear(); }} /> : <SkeletonText lines={3} />}
+              {catalog ? <Framed spec={preview} catalog={catalog}><AiUi spec={preview} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={(call) => { setDone(`${call.name} ${JSON.stringify(call.args)}`); clear(); }} /></Framed> : <SkeletonText lines={3} />}
             </Stack>
           </AiChatBubble>
         </AiChatThread>
@@ -591,7 +603,7 @@ const renderCode = `const check = validateSpec(spec, catalog);            // the
   <Stack gap="md">
     <span>{answer.text}</span>
     {check.ok
-      ? <AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} />
+      ? <Card theme="flat" spacing="sm" width="fill"><AiUi spec={spec} catalog={catalog} state={shared} onStateChange={setShared} onAction={run} /></Card>   // a form reads as one object on a Card; the host frames it
       : <InlineMessage theme="negative" title="This answer's UI did not pass the catalog check">{check.errors[0].message}</InlineMessage>}
   </Stack>
 </AiChatBubble>`;
@@ -655,7 +667,7 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
   },
   {
     title: "On a phone",
-    description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column, the field docks above the home indicator.",
+    description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column on its Card, and in the narrow bubble the time chips and the actions wrap onto another row instead of overflowing; the field docks above the home indicator.",
     render: () => <ComposerPhone initial={[suggestions[0].prompt]} />,
     code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />} footer={<AiChatField placeholder="Ask Zen AI" onSubmit={ask} />}>
   <AiChatThread aria-label="Conversation with Zen AI">

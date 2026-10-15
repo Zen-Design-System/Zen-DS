@@ -521,3 +521,16 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   Added `workspaceId` / `ANTHROPIC_WORKSPACE_ID` (per-request header, so an injected client works too; selftest). Their
   401 "invalid x-api-key" is the value itself: the Console lists keys masked (`sk-ant-usr-1hA...KwAA`), the full key
   shows once at creation. README: create a key scoped to one workspace, or set the workspace id.
+
+### Live composer UX study + forms on a Card (2026-10-15, user: "Bạn nghiên cứu thử nhé" · "các form nên bỏ vô card")
+
+- `docs/research/ai-ui-live-composer-ux-2026-10-15.md`: what ShapeShift does (one card, a guess looks like a guess,
+  nothing said twice, keyboard-first, quiet motion), nine findings on our example (F1–F9, each at its owner), six
+  principles, the composer-card layout with wireframes (desktop guessing / confident, phone with the preview above the
+  field), the state table, what Zen has vs what needs Figma, and a plan P1-a … P4 with three open questions for the user.
+  The live site stays refused by the sandbox's network policy; the study works from the two screenshots.
+- P1-a applied (the user's direct ask): `Framed` on the demo page wraps a composed UI that has bound controls in
+  `<Card theme="flat" spacing="sm" width="fill">` (flat per usage rules §16, the gate flagged the shadow default; small
+  spacing in a chat column); the booking actions row wraps (the gate's density check: Cancel / Schedule outgrew the
+  390 px column at Comfortable once the Card's padding came in). Gate `--only=ai-ui --isolated` green; sheets reviewed.
+  Not committed, not pushed, not merged (the user: "làm xong khoan commit, push hay merge").
