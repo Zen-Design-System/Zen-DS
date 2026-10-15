@@ -381,6 +381,12 @@ removed (four unused colour ramps were, see Removed).
   usual), and `primaryActionOf` /
   `resolveArgs` let Enter run the UI's primary action. `AiChatField` gains `onAccept` (Tab) and `onClear` (Escape),
   active only while passed. Patterns › AI UI's "Composed while typing" shows the pre-filled form and the key hints.
+- Patterns › AI UI with a model behind `/ai-ui` (2026-10-15): when the model call fails (a bad key, no credit, the
+  network) the answer says why, with the server's reason, before the demo composer's fallback, and the dev server logs
+  the failed call in its terminal; before, the page fell back in silence.
+- `anthropicModel` sends `anthropic-workspace-id` (option `workspaceId`, default `ANTHROPIC_WORKSPACE_ID`) for a
+  personal or service-account key with Organization scope (2026-10-15); a key scoped to one workspace needs nothing.
+  The AI UI README says which key to create and what a 401 means.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

@@ -510,3 +510,14 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   interaction test, Build-QA `--only=ai-ui,ai-chat --isolated` (audit, dark, behaviour), verify:package.
 - For the designer (BACKLOG "AI UI"): the tentative look of a guessed form and its dashed add-chips, the underlined span
   in the field, a keycap component.
+- Live check with the user's key (2026-10-15): `/ai-ui/status` enabled but "không thấy chạy". Reproduced in the sandbox
+  with a dummy key: the API answers 401, the route 500, and the page fell back to the demo composer in silence (chips and
+  seeded prompts never use the model by design, only typed prompts do). Fixed at the owner: `postJson` returns the
+  server's reason, the answer bubble shows "Zen AI could not reach the model: …" before the fallback, the live example's
+  status line says it too, and the Vite plugin logs every ≥ 500 answer (`[zen ai-ui] POST /ai-ui/compose → 500: …`).
+  Verified with Chromium against a dev server: a faked model answer renders; a failing one shows the reason.
+- The user's key is a personal key with Organization scope (the Console's new key types): such keys need
+  `anthropic-workspace-id` on every request (docs: Authentication → Select a workspace), which the adapter did not send.
+  Added `workspaceId` / `ANTHROPIC_WORKSPACE_ID` (per-request header, so an injected client works too; selftest). Their
+  401 "invalid x-api-key" is the value itself: the Console lists keys masked (`sk-ant-usr-1hA...KwAA`), the full key
+  shows once at creation. README: create a key scoped to one workspace, or set the workspace id.

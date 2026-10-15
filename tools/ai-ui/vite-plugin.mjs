@@ -13,13 +13,20 @@ export function aiUiDevServer({ prefix = "/ai-ui" } = {}) {
         try {
           const { anthropicModel, DEFAULT_MODEL } = await import("./adapters/anthropic.mjs");
           modelName = process.env.ZEN_AI_MODEL ?? DEFAULT_MODEL;
-          model = anthropicModel({ model: modelName, effort: process.env.ZEN_AI_EFFORT ?? "medium" });
-          server.config.logger.info(`[zen ai-ui] ${prefix}/compose answers with ${modelName}`);
+          const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID || null;
+          model = anthropicModel({ model: modelName, effort: process.env.ZEN_AI_EFFORT ?? "medium", workspaceId });
+          server.config.logger.info(`[zen ai-ui] ${prefix}/compose answers with ${modelName}${workspaceId ? ` in workspace ${workspaceId}` : ""}`);
         } catch (error) {
           server.config.logger.warn(`[zen ai-ui] no model: ${error.message} (npm i -D @anthropic-ai/sdk)`);
         }
       }
-      const listener = createNodeListener(createAiUiHandler({ model, modelName }), { prefix });
+      const handler = createAiUiHandler({ model, modelName });
+      // A failed model call shows in this terminal too, not only as the 500 the page falls back from.
+      const listener = createNodeListener(async (request) => {
+        const result = await handler(request);
+        if (result.status >= 500) server.config.logger.warn(`[zen ai-ui] ${request.method} ${prefix}${request.path} → ${result.status}: ${result.body?.error ?? ""}`);
+        return result;
+      }, { prefix });
       server.middlewares.use((request, response, next) => {
         if (!request.url?.startsWith(`${prefix}/`)) return next();
         listener(request, response).catch((error) => { response.statusCode = 500; response.end(JSON.stringify({ error: error.message })); });

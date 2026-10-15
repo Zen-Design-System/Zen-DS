@@ -123,6 +123,11 @@ const reply = await adapter({ system: "SYS", messages: [{ role: "user", content:
 check("the Anthropic adapter sends the system prompt cached, the effort, the fallback beta and returns the text", reply === "{\"text\":\"hi\"}" && requests[0].model === "claude-opus-5-5" && requests[0].system[0].cache_control?.type === "ephemeral" && requests[0].output_config.effort === "low" && requests[0].fallbacks === "default" && requests[0].betas.includes("server-side-fallback-2026-07-01") && requests[0].messages[0].role === "user" && usages.length === 1, JSON.stringify(requests[0]).slice(0, 300));
 const refused = await adapter({ system: "SYS", messages: [{ role: "user", content: "please refuse" }] });
 check("a refusal comes back as a text-only answer the loop accepts", JSON.parse(refused).text.includes("can't help") && !("spec" in JSON.parse(refused)));
+const headerCalls = [];
+const headerClient = { beta: { messages: { create: async (request, options) => { headerCalls.push(options); return { stop_reason: "end_turn", content: [{ type: "text", text: "{}" }], usage: {} }; } } } };
+await anthropicModel({ client: headerClient, workspaceId: "wrkspc_test" })({ system: "SYS", messages: [{ role: "user", content: "hi" }] });
+await anthropicModel({ client: headerClient, workspaceId: null })({ system: "SYS", messages: [{ role: "user", content: "hi" }] });
+check("a multi-workspace key sends anthropic-workspace-id on every request; a single-workspace key sends nothing", headerCalls[0]?.headers?.["anthropic-workspace-id"] === "wrkspc_test" && headerCalls[1] === undefined, JSON.stringify(headerCalls));
 
 // 8. the request handler: status, catalog, check, compose through a scripted model, edit, errors
 const scriptedModel = async ({ messages }) => (/Which components will the UI/.test(messages.at(-1).content) ? '["Button"]' : /make it accent/.test(messages.at(-1).content) ? '{"text":"Done.","ops":[{"op":"setProp","id":"go","name":"level","value":"accent"}]}' : '{"text":"Here.","spec":{"root":{"type":"Button","id":"go","props":{"level":"primary","onClick":{"$action":"go"}},"children":["Go"]}}}');

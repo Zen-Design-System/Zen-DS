@@ -52,11 +52,15 @@ function useServer() {
   useEffect(() => { let live = true; void aiServer().then((loaded) => { if (live) setStatus(loaded); }); return () => { live = false; }; }, []);
   return status;
 }
-const postJson = async <T,>(url: string, body: unknown, signal?: AbortSignal): Promise<T | null> => {
+type Failed = { ok: false; error: string };
+/** A POST to the dev server's /ai-ui routes: the JSON answer, or `{ ok: false, error }` with the server's reason (a model error, a 503 without a key, the network), so the page can say why it fell back. */
+const postJson = async <T extends { ok: true },>(url: string, body: unknown, signal?: AbortSignal): Promise<T | Failed> => {
   try {
     const response = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal });
-    return response.ok ? ((await response.json()) as T) : null;
-  } catch (error) { if ((error as Error).name === "AbortError") throw error; return null; }
+    const json = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
+    if (response.ok && json) return json;
+    return { ok: false, error: json?.error ?? `${response.status} ${response.statusText}` };
+  } catch (error) { if ((error as Error).name === "AbortError") throw error; return { ok: false, error: (error as Error).message }; }
 };
 
 /* ───────────── What the composer answers with (specs from the studio's data) ───────────── */
@@ -204,7 +208,7 @@ function compose(prompt: string, lastSpec: UiSpec | undefined, slots?: LiveSlots
 
 /* ───────────── The demo assistant: turns, shared state, events ───────────── */
 
-type Turn = { id: number; side: "you" | "ai"; text: string; spec?: UiSpec; thinking?: boolean };
+type Turn = { id: number; side: "you" | "ai"; text: string; spec?: UiSpec; thinking?: boolean; /** The model could not answer this typed prompt (the server's reason); the demo composer did. */ error?: string };
 type Event = { id: number; kind: "state" | "action"; title: string; caption: string };
 
 function useComposerDemo(initial: string[]) {
@@ -242,11 +246,11 @@ function useComposerDemo(initial: string[]) {
     // A typed prompt with a model behind /ai-ui: a follow-up edits the UI on screen (/edit), anything else composes (/compose);
     // the deterministic composer answers when the server cannot.
     void (async () => {
-      type ComposeBody = { ok: boolean; text: string; spec: UiSpec | null };
-      type EditBody = { ok: boolean; kind: string; text: string; spec: UiSpec; state: Record<string, unknown> | null };
+      type ComposeBody = { ok: true; text: string; spec: UiSpec | null };
+      type EditBody = { ok: true; kind: string; text: string; spec: UiSpec; state: Record<string, unknown> | null };
       if (lastWithSpec?.spec) {
         const edit = await postJson<EditBody>("/ai-ui/edit", { prompt, spec: lastWithSpec.spec, state: shared });
-        if (edit?.ok) {
+        if (edit.ok) {
           if (edit.kind === "ops" || edit.kind === "spec") setTurns((all) => all.map((turn) => (turn.id === lastWithSpec.id ? { ...turn, spec: edit.spec } : turn)));
           if (edit.state) { for (const [path, value] of Object.entries(edit.state)) { setShared((state) => writeState(state, path, value)); log("state", `${path} = ${JSON.stringify(value)}`, `Set by ${server.model}`); } }
           patch(id, { text: edit.text || "Done.", thinking: false });
@@ -254,8 +258,10 @@ function useComposerDemo(initial: string[]) {
         }
       }
       const composed = await postJson<ComposeBody>("/ai-ui/compose", { prompt, data: studioData(), state: shared });
-      if (composed?.ok) { patch(id, { text: composed.text, spec: composed.spec ?? undefined, thinking: false }); return; }
+      if (composed.ok) { patch(id, { text: composed.text, spec: composed.spec ?? undefined, thinking: false }); return; }
+      // The model failed (a bad key, no credit, the network…): the demo composer answers, and the bubble says why.
       local();
+      patch(id, { error: composed.error });
     })();
   };
   // A seeded conversation answers its first prompt at once; the rest follow one by one. The effect starts from a clean
@@ -300,11 +306,14 @@ type Demo = ReturnType<typeof useComposerDemo>;
 /* ───────────── An answer: text, then the UI (validated first) ───────────── */
 
 function Answer({ turn, demo }: { turn: Turn; demo: Demo }) {
-  if (!turn.spec) return <>{turn.text}</>;
-  if (!demo.catalog) return <Stack gap="md">{turn.text ? <span>{turn.text}</span> : null}<SkeletonText lines={3} /></Stack>;
+  // A typed prompt the model could not answer: the server's reason first, then the demo composer's answer.
+  const failure = turn.error ? <InlineMessage theme="negative" title="Zen AI could not reach the model">{`${turn.error}. The demo composer answered instead.`}</InlineMessage> : null;
+  if (!turn.spec) return failure ? <Stack gap="md">{failure}<span>{turn.text}</span></Stack> : <>{turn.text}</>;
+  if (!demo.catalog) return <Stack gap="md">{failure}{turn.text ? <span>{turn.text}</span> : null}<SkeletonText lines={3} /></Stack>;
   const check = validateSpec(turn.spec, demo.catalog);
   return (
     <Stack gap="md">
+      {failure}
       {turn.text ? <span>{turn.text}</span> : null}
       {check.ok
         ? <AiUi spec={turn.spec} catalog={demo.catalog} state={demo.shared} onStateChange={demo.onStateChange} onAction={demo.onAction} />
@@ -393,6 +402,7 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
   const [shared, setShared] = useState<Record<string, unknown>>({});
   const [sent, setSent] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
   const composerRef = useRef<LiveComposer | null>(null);
   const lastSlots = useRef<LiveSlots | null>(null);
   useEffect(() => {
@@ -402,8 +412,9 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
       compose: async (prompt, { slots, signal }) => {
         const known = (slots as LiveSlots | null) ?? null;
         if (server.enabled) {
-          const remote = await postJson<{ ok: boolean; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData(), state: known ? withSlots({}, known, null) : undefined }, signal);
-          if (remote?.ok) return { text: remote.text, spec: remote.spec };
+          const remote = await postJson<{ ok: true; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData(), state: known ? withSlots({}, known, null) : undefined }, signal);
+          if (remote.ok) { setServerError(null); return { text: remote.text, spec: remote.spec }; }
+          setServerError(remote.error);
         }
         // The demo composer, after the moment a model would take.
         await new Promise((resolve) => setTimeout(resolve, 400));
@@ -455,7 +466,7 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
         {text ? <KeyHint keys="Esc">to clear</KeyHint> : null}
         <KeyHint keys="Enter">{actionLabel ? `to ${actionLabel.toLowerCase()}` : "to compose now"}</KeyHint>
       </Stack>
-      <Text textStyle="Body/Small/Regular" tone="base">{status}{slotsLine ? ` · ${slotsLine}` : ""}{sent ? ` · sent: “${sent}”` : ""}</Text>
+      <Text textStyle="Body/Small/Regular" tone="base">{status}{slotsLine ? ` · ${slotsLine}` : ""}{sent ? ` · sent: “${sent}”` : ""}{serverError ? ` · the model failed (${serverError}), the demo composer answered` : ""}</Text>
       {done ? <Text textStyle="Body/Small/Regular">{done}</Text> : null}
       {preview ? (
         <AiChatThread aria-label="Preview of the UI being composed">
