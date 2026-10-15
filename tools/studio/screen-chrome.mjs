@@ -58,8 +58,11 @@ export function screenChromeCode(prop, title) {
  * ◇ Master-Layout. The parts the Screen section switches, each an AppShell prop with the code it starts with.
  */
 export const FRAME_PARTS = [
+  { prop: "banner", label: "Banner", component: "AlertBanner" },
   { prop: "sidebar", label: "Sidebar", component: "Sidebar" },
   { prop: "header", label: "Top bar", component: "Search" },
+  // Figma Nav-Center-Block (Center-Slots, up to 400px): a Search in the middle of the bar (user, 2026-10-16).
+  { prop: "headerCenter", label: "Top bar center", component: "Search" },
   { prop: "headerActions", label: "Top bar actions", component: "AppShellAccount" },
   { prop: "sections", label: "Page header", component: "PageHeader" },
   { prop: "aside", label: "Side panel", component: "SidePanel" },
@@ -76,6 +79,8 @@ export function screenFrameCode(prop, title) {
   switch (prop) {
     case "sidebar": return screenChromeCode("sidebar", title);
     case "header": return `<Search aria-label="Search" placeholder="Search" />`;
+    case "headerCenter": return `<Search aria-label="Search" placeholder="Search" />`;
+    case "banner": return `<AlertBanner theme="info">Your trial ends in 7 days.</AlertBanner>`;
     case "headerActions": return `<AppShellAccount name="Khoa Dang" />`;
     case "sections": return `<PageHeader title=${name} />`;
     case "aside": return [`<SidePanel type="standard" title="Details" open>`, `  <Text tone="base">Details of the selected item.</Text>`, `</SidePanel>`].join("\n");

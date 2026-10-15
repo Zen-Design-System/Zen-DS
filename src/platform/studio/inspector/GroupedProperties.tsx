@@ -17,6 +17,8 @@ import { propLabel, type PropSpec, type PropValue } from "./propSchema";
 import { savedSetProp } from "./writePlan";
 import { InspectorSection } from "./Section";
 import "./nested.css";
+import { canHideSrc, slotSwitchOp, slotsOffValue } from "../edit/visibility";
+import { HIDDEN_SLOTS_PROP } from "../../../../tools/studio/visibility.mjs";
 
 /*
  * The Properties section of a component with Figma groups (propGroups.ts): its own properties and booleans, then one
@@ -63,13 +65,19 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   // Optimistic: the switch flips at once and holds until the canvas shows the new value (a second press meanwhile acts
   // on what the switch shows, not on the props read before the write landed).
   const [pending, setPending] = useState<boolean | null>(null);
+  // On a page made in the Studio, off hides the slot and keeps its layers (`hiddenSlots`, Figma's boolean on a slot), so
+  // on brings back exactly what it held (user, 2026-10-16; edit/visibility.ts).
+  const keeps = canHideSrc(selection.src);
+  const offNow = keeps ? slotsOffValue(api.valueFor(HIDDEN_SLOTS_PROP)) : [];
+  const slotOff = offNow.includes(toggle.prop);
+  const shownOn = rendered && !slotOff;
   useEffect(() => {
     if (pending === null) return undefined;
-    if (pending === rendered) { setPending(null); return undefined; }
+    if (pending === shownOn) { setPending(null); return undefined; }
     const timer = window.setTimeout(() => setPending(null), PENDING_MS);
     return () => window.clearTimeout(timer);
-  }, [pending, rendered]);
-  const on = pending ?? rendered;
+  }, [pending, shownOn]);
+  const on = pending ?? shownOn;
   const spec: PropSpec = { name: toggle.prop, type: "boolean", description: `Figma boolean ${toggle.label}: shows the ${toggle.label} layer (${toggle.prop} set).`, defaultValue: false, editor: { kind: "boolean" } };
   // A value the source computes (a playground's state, a condition) or spreads: read-only, showing what renders.
   const computed = (value.state === "bound" && !inPlace(element, toggle.prop)) || value.state === "spread";
@@ -101,6 +109,8 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   // two call actions with their toast hook), as Figma shows a hidden layer's content again; else a starting value. A
   // playground refuses slot ops: the saved attribute is set again in its saved place (savedSetProp), not at the tag's end.
   const switchOn = () => {
+    const back = slotOff ? slotSwitchOp(offNow, toggle.prop, true) : null;
+    if (back) { void api.apply([back], `${element.name} ${toggle.label} on`); return; }
     const saved = element.savedAttributes?.[toggle.prop];
     if (!saved) { startValue(); return; }
     const op = selection.panelId ? savedSetProp(toggle.prop, saved) : { op: "resetSlot" as const, prop: toggle.prop };
@@ -110,6 +120,8 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   // Off: the items go through the item op (all of them at once), so the useToast() line they brought goes with them
   // (example and template content; a playground removes the prop).
   const switchOff = () => {
+    const keep = keeps && value.state !== "unset" ? slotSwitchOp(offNow, toggle.prop, false) : null;
+    if (keep) { void api.apply([keep], `${element.name} ${toggle.label} off`); return; }
     const { on: start } = toggle;
     if (start.kind === "item" && slot && dataItemBlock(selection) === null && sourceItems(element, slot).state === "items") { void editDataItem(selection, slot, "remove", 0, 0, { all: true }); return; }
     api.removeProp(toggle.prop);

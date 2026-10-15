@@ -3,7 +3,7 @@
 //
 //   parsePage(text, { components? }) → { header, mock, board, errors }   the neutral tree the renderer (and GĐ5 export) walk
 //   validateDialect(text, { components? }) → errors [{ line, column, message }]
-//   newPageText({ title, device, chrome }) → the text of a blank page
+//   newPageText({ title, device, chrome, empty }) → the text of a blank page (`empty`: one Screen with nothing in it)
 //   PAGE_DEVICES, SCREEN_STATES, SCREEN_CANVASES, SCREEN_LAYOUTS, SCREEN_CHROME, screenLayout(device, layout),
 //   screenChromeCode(prop, title)
 //   boardFrames(tree), freeFrameId(base, taken), frameCode({ kind, id, title, device }), protoCode(action, arg)   (M3)
@@ -11,6 +11,7 @@
 //
 // Tree: Node = { kind: "element", name, loc: "line:col", props: { [name]: Value }, children: Child[] }
 //       Value = { kind: "literal", value } | { kind: "array", items } | { kind: "object", fields } | { kind: "element", node }
+//             | { kind: "fragment", children: Child[] }   a slot prop holding several layers, written <>…</> (2026-10-16)
 //             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock" or a .map item name)
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
@@ -57,7 +58,10 @@ const NEW_FRAME = ["sidebar", "sections"];
  * starts without the AppShell: the Screen section adds it when the layout turns desktop. Returns the lines at `indent`
  * and the components they use.
  */
-function screenLines({ open, title, heading, device, chrome, indent }) {
+function screenLines({ open, title, heading, device, chrome, empty = false, indent }) {
+  // Completely empty (user, 2026-10-16: "cho phép tạo trang frame trống hoàn toàn"): no app frame and no content, as
+  // Figma's new frame; the person adds everything.
+  if (empty) return { lines: [`${indent}${open} />`], components: [] };
   const inner = (depth) => indent + "  ".repeat(depth);
   const framed = chrome && screenLayout(device) === "desktop";
   const depth = framed ? 2 : 1;
@@ -85,17 +89,17 @@ function screenLines({ open, title, heading, device, chrome, indent }) {
  * A blank page: one Screen on `device` holding a padded Stack, ready to take components. With `chrome` (the default) the
  * Screen comes with its app frame (screenLines: the master layout's Sidebar + Page header, Top + Bottom Navigation; the
  * title is in the header, so the Stack starts with a line of body text); without it, the Stack starts with the title as
- * a heading.
+ * a heading. `empty`: the Screen holds nothing at all (no app frame, no Stack), as Figma's new frame.
  */
-export function newPageText({ title = "Untitled", device = "desktop", chrome = true } = {}) {
+export function newPageText({ title = "Untitled", device = "desktop", chrome = true, empty = false } = {}) {
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
   const open = `<Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
-  const screen = screenLines({ open, title, heading: title.replace(/[{}<>]/g, ""), device: screenDevice, chrome, indent: "      " });
+  const screen = screenLines({ open, title, heading: title.replace(/[{}<>]/g, ""), device: screenDevice, chrome: chrome && !empty, empty, indent: "      " });
   const names = [...new Set(screen.components)].sort((a, b) => a.localeCompare(b));
   return [
     `// @zen-page ${JSON.stringify({ format: 1, title })}`,
     `import { Board, Screen, proto } from ${quote(BUILDER_PACKAGE)};`,
-    `import { ${names.join(", ")} } from ${quote(PACKAGE)};`,
+    ...(names.length ? [`import { ${names.join(", ")} } from ${quote(PACKAGE)};`] : []),
     "",
     "export const mock = {};",
     "",
@@ -153,14 +157,14 @@ const overlayContent = (holds, name) => {
   return [`  <Dialog title=${quote(name)} description="Say what happens next." primaryAction={{ label: "Continue", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />`];
 };
 
-export function frameCode({ kind, id, title, device = "desktop", chrome = true, x, y, width, height, holds = "dialog" }) {
+export function frameCode({ kind, id, title, device = "desktop", chrome = true, empty = false, x, y, width, height, holds = "dialog" }) {
   const name = String(title ?? (kind === "overlay" ? OVERLAY_TITLES[holds] ?? OVERLAY_TITLES.dialog : id)).replace(/[{}<>]/g, "");
   const place = placeAttrs({ x, y });
   if (kind === "overlay") return [`<Overlay id=${quote(id)}${place}>`, ...overlayContent(OVERLAY_HOLDS.includes(holds) ? holds : "dialog", name), "</Overlay>"].join("\n");
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
   // A new Screen comes with the app frame as a new page does (its title in the header).
   const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"${place}${placeAttrs({ width, height })}`;
-  return screenLines({ open, title: name, heading: name, device: screenDevice, chrome, indent: "" }).lines.join("\n");
+  return screenLines({ open, title: name, heading: name, device: screenDevice, chrome: chrome && !empty, empty, indent: "" }).lines.join("\n");
 }
 
 /** A prop's proto action as code: navigate / open take a frame id, toast a title, link a URL; close and back nothing. */
@@ -306,9 +310,14 @@ export function parsePage(text, { components } = {}) {
       const value = !attr.value ? { kind: "literal", value: true }
         : attr.value.type === "StringLiteral" ? { kind: "literal", value: attr.value.value }
           : attr.value.type === "JSXExpressionContainer" ? expression(attr.value.expression, items)
-            : attr.value.type === "JSXElement" ? wrapElement(attr.value, items) : fail(attr, `${prop}: this kind of value is not editable`);
+            : attr.value.type === "JSXElement" ? wrapElement(attr.value, items)
+              : attr.value.type === "JSXFragment" ? fragmentValue(attr.value, items) : fail(attr, `${prop}: this kind of value is not editable`);
       if (value) props[prop] = value;
     }
+    return { kind: "element", name, loc: locOf(node), props, children: childrenOf(node, items) };
+  };
+  /** The children of an element or of a prop's fragment → Child[]. */
+  const childrenOf = (node, items) => {
     const children = [];
     for (const child of node.children) {
       if (child.type === "JSXText") { const value = jsxText(child.value); if (value) children.push({ kind: "text", value }); continue; }
@@ -327,9 +336,14 @@ export function parsePage(text, { components } = {}) {
         fail(child, "A child is text, a component, a mock field or {mock.list.map((item) => <… />)}");
       }
     }
-    return { kind: "element", name, loc: locOf(node), props, children };
+    return children;
   };
   const wrapElement = (node, items) => { const next = element(node, items); return next ? { kind: "element", node: next } : null; };
+  /**
+   * A slot prop holding several layers (user, 2026-10-16: "a prop holds several layers for real", as Figma's slot): the
+   * layers sit straight in the slot, the component lays them out. Only components, text, mock fields and lists.
+   */
+  const fragmentValue = (node, items) => ({ kind: "fragment", children: childrenOf(node, items) });
 
   /** `{mock.list.map((item) => <X … />)}` → map child; undefined when it is not a .map call; null after an error. */
   const mapOf = (node, items) => {
@@ -350,6 +364,7 @@ export function parsePage(text, { components } = {}) {
     const value = unwrap(node);
     if (value.type === "JSXEmptyExpression") return fail(node, "Empty prop value");
     if (value.type === "JSXElement") return wrapElement(value, items);
+    if (value.type === "JSXFragment") return fragmentValue(value, items);
     if (value.type === "CallExpression" && value.callee.type === "MemberExpression" && value.callee.object.type === "Identifier" && value.callee.object.name === "proto") {
       const action = value.callee.property.name;
       if (!PROTO_ACTIONS.has(action)) return fail(value, `proto.${action} is not an interaction (navigate, open, close, back, toast, link)`);

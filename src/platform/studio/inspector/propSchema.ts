@@ -113,6 +113,10 @@ const propLabels: Record<string, string> = {
 const componentPropLabels: Record<string, Record<string, string>> = {
   FormActions: { sticky: "Pin to bottom", inset: "Side inset" },
   TopNavigation: { sticky: "Pin to top" },
+  // Figma's names (◇ Master-Layout, Header/Dashboard, user 2026-10-16): the booleans where Figma has one, else the slot.
+  AppShell: { banner: "Banner", sidebar: "Sidebar", header: "Leading-Slots", headerCenter: "Nav-Center-Block", headerActions: "Nav-Trailing-Block", sections: "Sections", aside: "Side-Panel", floatingAction: "Floating-Actions", footer: "Footer" },
+  // PageHeader is Figma's Primitives/Dashboard/Header Type=Main.
+  PageHeader: { description: "Subheading", childTitle: "Child-Heading", actions: "Actions", trailing: "Nav-Trailing-Block" },
 };
 
 /** Components whose `as` picks the HTML element they render (a list of tags); elsewhere (Link, ZenProvider) it takes a
@@ -145,7 +149,9 @@ export function matchOption(value: string, options: readonly string[]): string {
 /** Props the inspector never edits: children, handlers, styling escape hatches, React internals, and `overrides`
  *  (written by the nested layers' own Properties, inspector/OverrideProperties.tsx). */
 export function isSkippedProp(name: string) {
-  return name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
+  // hidden / hiddenSlots: a builder page's layer and slot visibility, set by the eye, ⇧⌘H and the slot switches
+  // (edit/visibility.ts), not typed as attributes.
+  return name === "hidden" || name === "hiddenSlots" || name === "children" || name === "className" || name === "style" || name === "ref" || name === "key" || name === "overrides" || name === "data-zen-src" || /^data-studio-/.test(name) || /^on[A-Z]/.test(name);
 }
 
 export const typographyKeys = Object.keys(typographyStyles);

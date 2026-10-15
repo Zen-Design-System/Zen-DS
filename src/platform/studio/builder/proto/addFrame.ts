@@ -40,8 +40,8 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   const firstScreen = frames.find((frame) => frame.name === "Screen");
   const device = drawn ?? String((firstScreen && literal(firstScreen, "device")) ?? "desktop");
   const title = kind === "screen" ? `Screen ${id.split("-").at(-1)}` : undefined;
-  // A drawn Screen is empty, as Figma's drawn frame (no app frame); a placed or added one comes with it.
-  const code = engine.frameCode({ kind, id, title, device, chrome: width === undefined, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
+  // A drawn Screen is empty, as Figma's drawn frame (no app frame, nothing in it); a placed or added one comes with it.
+  const code = engine.frameCode({ kind, id, title, device, chrome: width === undefined, empty: width !== undefined, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, kind === "screen" ? (width !== undefined ? "Draw frame" : "Add screen") : "Add overlay");
   if (response.ok && place) studioStore.setState({ selection: { kind: "frame", frameId: `${kind}:${id}` } });
   return Boolean(response.ok);

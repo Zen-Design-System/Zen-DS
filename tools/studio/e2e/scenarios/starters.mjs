@@ -539,7 +539,7 @@ export const rows = [
     },
   },
   {
-    id: "SP-19", feature: "Figma walk fixes on template pages (2026-10-13): Add to Action-Slots › Button joins the page header's row of buttons (was refused: a fragment in a prop); a Sidebar item renamed on the canvas (⌘-click, double-click its label, type) writes its label; Trend off hides one card's trend", wp: "studio walk 2026-10-13",
+    id: "SP-19", feature: "Figma walk fixes on template pages (2026-10-13): Add to Action-Slots › Button joins the page header's buttons (a layer of its fragment since 2026-10-16); a Sidebar item renamed on the canvas (⌘-click, double-click its label, type) writes its label; Trend off hides one card's trend", wp: "studio walk 2026-10-13",
     timeout: 90_000,
     async run(ctx) {
       try {
@@ -561,7 +561,9 @@ export const rows = [
         await page.locator("#studio-right").getByRole("button", { name: /Add to Action-Slots/ }).first().click();
         await page.getByRole("option", { name: /^Button/ }).first().click();
         await until(async () => (await firstElementText(page, id, "PageHeader")).split("<Button").length > before, { timeout: 8000, message: "a Button in the header's actions" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
-        if (/actions=\{<>/.test(await firstElementText(page, id, "PageHeader"))) throw new Error("a fragment in actions");
+        // Since 2026-10-16 (user: a prop holds several layers for real) the actions may be a fragment: the Button is one
+        // of its layers, never a Stack wrapped around them.
+        if (/actions=\{<Stack/.test(await firstElementText(page, id, "PageHeader"))) throw new Error("the actions wrapped in a Stack");
         return `Sidebar "${label.text}" → People in place; Button added to the header's actions`;
       } finally {
         await ctx.studio({ fresh: true });
@@ -569,7 +571,7 @@ export const rows = [
     },
   },
   {
-    id: "SP-20", feature: "Figma's Trend boolean on a Metric card (2026-10-13): off removes that card's trend (its badge goes), on writes a starting trend again", wp: "studio walk 2026-10-13",
+    id: "SP-20", feature: "Figma's Trend boolean on a Metric card (2026-10-13): off hides that card's trend (its badge goes, the trend stays in the page: hiddenSlots, 2026-10-16), on shows the same trend again", wp: "studio walk 2026-10-13",
     timeout: 60_000,
     async run(ctx) {
       try {
@@ -578,11 +580,14 @@ export const rows = [
         await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
         const trend = page.locator("#studio-right").getByRole("switch", { name: "Trend", exact: true }).first();
         await trend.click();
-        await until(async () => !/trend=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "trend removed from the first card" });
+        const written = (await firstElementText(page, id, "MetricCard")).match(/trend=\{\{[^}]*\}\}/)?.[0];
+        await until(async () => /hiddenSlots=\{\["trend"\]\}/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "trend hidden on the first card" });
+        if (written && !(await firstElementText(page, id, "MetricCard")).includes(written)) throw new Error("switching Trend off changed the trend");
         await until(() => page.evaluate(() => !document.querySelector(".studio-frame .zen-metric-card")?.querySelector(".zen-metric__content .zen-badge")), { timeout: 8000, message: "its badge gone" });
         await trend.click();
-        await until(async () => /trend=\{\{/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "a trend written again" });
-        return "Trend off → no trend; on → a trend";
+        await until(async () => !/hiddenSlots/.test(await firstElementText(page, id, "MetricCard")) && /trend=\{\{/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "the trend shown again" });
+        await until(() => page.evaluate(() => Boolean(document.querySelector(".studio-frame .zen-metric-card")?.querySelector(".zen-metric__content .zen-badge"))), { timeout: 8000, message: "its badge back" });
+        return "Trend off → hidden (kept); on → the same trend";
       } finally {
         await ctx.studio({ fresh: true });
       }
@@ -605,7 +610,8 @@ export const rows = [
         const before = await marks();
         if (before.length < 10 || !before.every((mark) => /:@[\w-]+$/.test(mark ?? ""))) throw new Error(`not marked by id (${before.length}): ${before.slice(0, 3).join(", ")}`);
         await hint.click();
-        await until(async () => !/hint=/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "hint removed (a line fewer)" });
+        // Off hides the hint and keeps it (hiddenSlots, 2026-10-16): the edit still changes the lines around the card.
+        await until(async () => /hiddenSlots=\{\["hint"\]\}/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "hint hidden" });
         const after = await marks();
         if (after.join("|") !== before.join("|")) throw new Error("the marks of the elements below changed with the line count");
         // Their place is still read right: ⌘-click a ListBox's padding selects the ListBox.
@@ -613,7 +619,7 @@ export const rows = [
         await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
         await page.keyboard.down("Meta"); await page.mouse.click(list.x + 4, list.y + 4); await page.keyboard.up("Meta");
         await until(async () => (await selectedName(page)) === "ListBox", { message: "the ListBox selected by its mark" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
-        return `${before.length} marks kept through an edit that removed a line; ListBox selected`;
+        return `${before.length} marks kept through an edit of the card's lines; ListBox selected`;
       } finally {
         await ctx.studio({ fresh: true });
       }
@@ -704,7 +710,7 @@ export const rows = [
     },
   })),
   {
-    id: "SP-22", feature: "A page from the Dashboard template on its master layout (user, 2026-10-15): Screen › Sidebar, Top bar and Page header read the template's own (its Page header is in the content); Page header off takes it away, on puts one in Sections; never two Sidebars or Page headers", wp: "master layout 2026-10-15",
+    id: "SP-22", feature: "A page from the Dashboard template on its master layout (user, 2026-10-15): Screen › Sidebar, Top bar and Page header read the template's own (its Page header is in the content); Page header off hides it (kept, 2026-10-16), on shows the same one; never two Sidebars or Page headers", wp: "master layout 2026-10-15",
     timeout: 120_000,
     async run(ctx) {
       const { page, id } = await pageFromTemplate(ctx, "Dashboard");
@@ -719,12 +725,14 @@ export const rows = [
       const read = [await on("sidebar"), await on("header"), await on("sections")];
       if (read.join() !== "true,true,true") throw new Error(`Sidebar, Top bar, Page header read ${read.join(", ")}`);
       await toggle("sections").click();
-      await until(async () => (await count("PageHeader")) === 0, { message: "the template's Page header taken away" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      // The header's own attributes hold JSX (actions={<>…}), so its `hidden` is read from the element's text.
+      const headerHidden = async () => /\shidden(?=[\s/>])/.test(await firstElementText(page, id, "PageHeader"));
+      await until(async () => (await headerHidden()) && (await count("PageHeader")) === 1 && (await frame.locator(".zen-page-header").count()) === 0, { message: "the template's Page header hidden, kept in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       await until(async () => !(await on("sections")), { message: "Page header reads off" });
       await toggle("sections").click();
-      await until(async () => /sections=\{<PageHeader /.test(await text()) && (await count("PageHeader")) === 1, { message: "one Page header, in Sections" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => !(await headerHidden()) && (await count("PageHeader")) === 1, { message: "the same Page header shown again" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       await until(async () => (await frame.locator(".zen-page-header").count()) === 1 && (await frame.locator(".zen-sidebar").count()) === 1, { message: "one Page header and one Sidebar on the Screen" });
-      return "Sidebar · Top bar · Page header read on; Page header off → none, on → one in Sections";
+      return "Sidebar · Top bar · Page header read on; Page header off → hidden, on → the same one";
     },
   },
 ];

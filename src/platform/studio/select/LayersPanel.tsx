@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, startTransition } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
+import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
 import { Search } from "../../../components/Search";
@@ -25,6 +26,8 @@ import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type Ext
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
+import { allHiddenLayers, canHideSrc, hideShortcut, toggleLayerHidden } from "../edit/visibility";
+import { hiddenLabel, type HiddenValue } from "../../../../tools/studio/visibility.mjs";
 import { layerName, MAIN_FRAME, variantKey, variantRoot } from "../mainComponent/model";
 import type { StudioSelection, StudioVariantRef } from "../types";
 import "./select.css";
@@ -95,6 +98,8 @@ type LayerNode = {
   named?: LayerNode[];
   /** part: a text layer (named by its words). */
   text?: boolean;
+  /** node: its `hidden` on a page made in the Studio (edit/visibility.ts); a row not drawn here has no fiber. */
+  hiddenLayer?: HiddenValue;
 };
 
 /** `aliases`: a folded wrapper's id → the panel row that stands for it (selecting the wrapper highlights the panel). */
@@ -184,10 +189,61 @@ function buildTree(world: Element, page: PlatformPage, showAll: boolean): Tree {
     if (group.frameId !== MAIN_FRAME) {
       if (!showAll) group.children = simplify(group.children, aliases);
       attachSlots(group.children, byId, !showAll);
+      addHiddenRows(group, byId);
     }
     group.children.forEach((child) => relink(child, group));
   }
   return { groups, byId, total, aliases, figma: !showAll };
+}
+
+/** Figma's eye on a layer row: on hover, and always while the layer is hidden; ⇧⌘H does the same from the keyboard. Its
+ *  name shows as Zen's icon tooltip. The tree's keys reach the rows, so the eye takes no Tab stop. */
+function LayerEye({ src, name, hidden }: { src: string; name: string; hidden: boolean }) {
+  const label = `${hidden ? "Show" : "Hide"} ${name} (${hideShortcut})`;
+  const { bind, tooltip } = useIconTooltip(label);
+  return (
+    <>
+      <button
+        type="button"
+        tabIndex={-1}
+        className="studio-layers__eye"
+        aria-label={hidden ? `Show ${name}` : `Hide ${name}`}
+        {...bind({ onPointerDown: (event: ReactPointerEvent) => event.stopPropagation(), onClick: (event: MouseEvent) => { event.stopPropagation(); void toggleLayerHidden(src, name); } })}
+      >
+        <Icon name={hidden ? "icon-eye-off-line" : "icon-eye-line"} size={16} />
+      </button>
+      {tooltip}
+    </>
+  );
+}
+
+/** The row whose children hold `row`, searched under `root`. */
+function holderOf(root: LayerNode, row: LayerNode): LayerNode | null {
+  if (root.children.includes(row)) return root;
+  for (const child of root.children) { const found = holderOf(child, row); if (found) return found; }
+  return null;
+}
+
+/**
+ * Hidden layers of a page made in the Studio (edit/visibility.ts): one hidden on this frame's layout is not drawn, so it
+ * gets a row of its own where it would be (under its nearest listed ancestor, in its slot, after the layer drawn before
+ * it), dimmed, as Figma lists a hidden layer; one hidden on the other layout only is drawn and its row says so.
+ */
+function addHiddenRows(group: LayerNode, byId: Map<string, LayerNode>) {
+  for (const layer of allHiddenLayers()) {
+    if (layer.frameId !== group.frameId) continue;
+    const own = byId.get(`${layer.src}#0`);
+    if (own) { own.hiddenLayer = layer.value; own.meta ??= hiddenLabel(layer.value); continue; }
+    if (layer.drawn) continue;
+    const parent = layer.ancestors.map((src) => byId.get(`${src}#0`)).find((row): row is LayerNode => Boolean(row && row.frameId === group.frameId)) ?? group;
+    const slot = layer.prop ? parent.children.find((row) => row.kind === "slot" && row.slot?.prop === layer.prop) : undefined;
+    const before = layer.after ? byId.get(`${layer.after}#0`) : undefined;
+    const holder = (before ? holderOf(slot ?? parent, before) : null) ?? slot ?? parent;
+    const row: LayerNode = { id: `${layer.src}#0`, kind: "node", name: layer.name, src: layer.src, frameId: group.frameId, isComponent: true, instance: 0, count: 1, depth: 0, children: [], fiber: null, frame: group.frame, parent: holder, hiddenLayer: layer.value, meta: hiddenLabel(layer.value) };
+    const at = before ? holder.children.indexOf(before) + 1 : 0;
+    holder.children.splice(at, 0, row);
+    byId.set(row.id, row);
+  }
 }
 
 /** The Main component frame's layers: each component, its Figma sets, their variants and the elements inside them. */
@@ -965,6 +1021,7 @@ export function LayersPanel() {
               data-kind={node.kind}
               data-component={node.isComponent || undefined}
               data-wrapped={node.wrap ? "true" : undefined}
+              data-hidden={node.hiddenLayer === undefined ? undefined : String(node.hiddenLayer)}
               className={`studio-layers__row ${typographyStyles[node.kind === "frame" ? "Body/Small/Bold" : node.kind === "panel" ? "Body/Small/Medium" : "Body/Small/Regular"]}`}
               style={{ ["--studio-depth" as string]: node.depth }}
               onPointerEnter={() => layerHover.set(hitForNode(node))}
@@ -987,6 +1044,9 @@ export function LayersPanel() {
               <span className="studio-layers__name">{node.name}</span>
               {node.meta ? <span className={`studio-layers__hint ${typographyStyles["Caption/Regular"]}`}>{node.meta}</span> : null}
               {node.count > 1 ? <span className={`studio-layers__count ${typographyStyles["Caption/Regular"]}`} aria-label={`${node.count} instances`}>×{node.count}</span> : null}
+              {node.kind === "node" && node.src && canHideSrc(node.src) ? (
+                <LayerEye src={node.src} name={node.name} hidden={node.hiddenLayer === true} />
+              ) : null}
             </div>
           ))}
           {hidden ? <p className={`studio-layers__more ${typographyStyles["Caption/Regular"]}`}>{plural(hidden, "more layer")}: collapse a group or find by name.</p> : null}

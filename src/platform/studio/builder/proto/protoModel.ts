@@ -212,6 +212,7 @@ export function findNode(tree: PageTree | null, loc: string): PageNode | null {
     while (values.length) {
       const value = values.pop()!;
       if (value.kind === "element") stack.push(value.node);
+      else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
       else if (value.kind === "array") values.push(...value.items);
       else if (value.kind === "object") values.push(...Object.values(value.fields));
     }
@@ -233,6 +234,7 @@ export function parentOf(tree: PageTree | null, loc: string): PageNode | null {
     while (values.length) {
       const value = values.pop()!;
       if (value.kind === "element") inner.push(value.node);
+      else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") inner.push(child); else if (child.kind === "map") inner.push(child.node); }
       else if (value.kind === "array") values.push(...value.items);
       else if (value.kind === "object") values.push(...Object.values(value.fields));
     }
@@ -324,6 +326,7 @@ export function linksOf(tree: PageTree | null): ProtoLink[] {
             }
           }
         } else if (value.kind === "element") stack.push(value.node);
+        else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
         else if (value.kind === "array") values.push(...value.items);
         else if (value.kind === "object") values.push(...Object.values(value.fields));
       }
@@ -353,6 +356,7 @@ export function protoSourcesOf(tree: PageTree | null): Map<string, ChoiceItem[] 
         if (arg && typeof arg === "object" && !Array.isArray(arg) && (value.action === "navigate" || value.action === "open")) Object.keys(arg).forEach((key) => keys.add(key));
         else whole = true;
       } else if (value.kind === "element") stack.push(value.node);
+      else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
       else if (value.kind === "array") values.push(...value.items);
       else if (value.kind === "object") values.push(...Object.values(value.fields));
     }

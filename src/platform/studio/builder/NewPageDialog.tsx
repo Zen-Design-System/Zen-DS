@@ -73,7 +73,8 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
     }
     const name = await untitledName();
     const [engine, page] = await Promise.all([loadEngine(), freeId(name)]);
-    await putPage(page, engine.newPageText({ title: name, device: "desktop" }), { title: name, folder });
+    // "empty": one desktop Screen with nothing in it, as Figma's new frame (user, 2026-10-16).
+    await putPage(page, engine.newPageText({ title: name, device: "desktop", empty: start === "empty" }), { title: name, folder });
     reset();
     onOpenChange(false);
     openLocalPage(page);
@@ -85,7 +86,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       className="studio-new-page"
       onOpenChange={(next) => { if (!next) setError(null); onOpenChange(next); }}
       title="New page"
-      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : "A desktop page with its app frame (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
+      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : start === "empty" ? "One desktop Screen with nothing in it, saved in this browser. Add the app frame from the Screen section, or build from scratch." : "A desktop page with its app frame (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
       primaryAction={{ label: busy ? "Creating…" : "Create page", disabled: busy, onClick: () => void create() }}
       secondaryAction={{ label: "Cancel" }}
     >
@@ -96,7 +97,14 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-plus-line" size="base" decorative /></span>
             <span className="studio-choice__text">
               <Text as="span" textStyle="Body/Small/Bold">Blank page</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">One desktop Screen; change it as you work</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="base">One desktop Screen with its app frame</Text>
+            </span>
+          </ChoiceCard>
+          <ChoiceCard name={`${id}-start`} value="empty" checked={start === "empty"} onPick={pickStart} className="studio-choice--template">
+            <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-square-line" size="base" decorative /></span>
+            <span className="studio-choice__text">
+              <Text as="span" textStyle="Body/Small/Bold">Empty page</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="base">One empty Screen, no app frame</Text>
             </span>
           </ChoiceCard>
           {(choices ?? []).map((choice) => (

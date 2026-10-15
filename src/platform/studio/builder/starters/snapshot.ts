@@ -107,9 +107,9 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
     const nodes = mergeText(fromElement(raw, ctx));
     if (!nodes.length) return undefined;
     if (nodes.length === 1) return nodes[0].kind === "text" ? literal(nodes[0].value) : { kind: "element", node: nodes[0] };
-    // A group of actions, badges or text runs side by side.
-    note(ctx, `${where} held several elements: put in a row Stack`);
-    return { kind: "element", node: { kind: "element", name: "Stack", props: [["direction", literal("row")], ["gap", literal("xs")], ["align", literal("center")]], children: wrapLoose(nodes) } };
+    // A group of actions, badges or text runs side by side: the slot holds them as its layers (user, 2026-10-16: a prop
+    // holds several layers for real, as Figma's slot), so each one can be selected, hidden or removed.
+    return { kind: "fragment", children: wrapLoose(nodes) };
   }
   if (ctx.seen.has(raw) || ctx.depth > 40) return undefined;
   ctx.seen.add(raw);

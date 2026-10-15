@@ -189,6 +189,14 @@
 .studio-layers__hint { min-width: 0; flex: 1 1 0; overflow: hidden; color: var(--zen-color-content-neutral-base); text-align: end; text-overflow: ellipsis; white-space: nowrap; }
 /* With a hint the name keeps its width; the hint takes what is left (and truncates first). */
 .studio-layers__row:has(> .studio-layers__hint) > .studio-layers__name { flex: 0 1 auto; }
+/* A hidden layer (edit/visibility.ts): dimmed as Figma's; the eye shows on hover and stays while it is hidden. */
+.studio-layers__row[data-hidden="true"] > .studio-layers__icon,
+.studio-layers__row[data-hidden="true"] > .studio-layers__name { opacity: 0.5; }
+.studio-layers__eye { display: inline-flex; flex: 0 0 auto; width: 20px; height: 20px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 6px); background: none; color: var(--zen-color-content-neutral-base); cursor: pointer; visibility: hidden; }
+.studio-layers__eye:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest); }
+.studio-layers__row:hover > .studio-layers__eye,
+.studio-layers__row[aria-selected="true"] > .studio-layers__eye,
+.studio-layers__row[data-hidden] > .studio-layers__eye { visibility: visible; }
 .studio-layers__row[data-kind="panel"] { margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-layers__row[data-kind="panel"] .studio-layers__icon { color: var(--zen-color-content-neutral-strongest); }
 /* Parts are read-only: the folder and its rows in the base tone, components without the Layers hue. */

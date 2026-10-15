@@ -11,6 +11,8 @@ export type SnapValue =
   | { kind: "array"; items: SnapValue[] }
   | { kind: "object"; fields: Array<[string, SnapValue]> }
   | { kind: "element"; node: SnapNode }
+  /** A slot prop holding several layers, written <>…</> (the template's own fragment). */
+  | { kind: "fragment"; children: SnapChild[] }
   /** proto.<action>() (an overlay's own button closes it). */
   | { kind: "proto"; action: "close" };
 export type SnapNode = { kind: "element"; name: string; props: Array<[string, SnapValue]>; children: SnapChild[] };
@@ -45,6 +47,10 @@ function expression(value: SnapValue, indent: string): string {
     case "literal": return literal(value.value);
     case "proto": return `proto.${value.action}()`;
     case "element": return element(value.node, indent);
+    case "fragment": {
+      const kids = mergeText(value.children).map((kid) => child(kid, indent + UNIT));
+      return `<>\n${kids.map((kid) => `${indent}${UNIT}${kid}`).join("\n")}\n${indent}</>`;
+    }
     case "array": {
       if (!value.items.length) return "[]";
       const items = value.items.map((item) => expression(item, indent + UNIT));
@@ -110,6 +116,7 @@ export function componentsOf(nodes: SnapNode[]): Set<string> {
   const names = new Set<string>();
   const value = (entry: SnapValue) => {
     if (entry.kind === "element") visit(entry.node);
+    else if (entry.kind === "fragment") entry.children.forEach((kid) => { if (kid.kind === "element") visit(kid); });
     else if (entry.kind === "array") entry.items.forEach(value);
     else if (entry.kind === "object") entry.fields.forEach(([, field]) => value(field));
   };

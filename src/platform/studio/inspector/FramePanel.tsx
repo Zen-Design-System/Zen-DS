@@ -11,7 +11,7 @@ import { frameWidthPresets, isCustomFrameWidth } from "../board/frameLayout";
 import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
-import { applyEdit, studioApi } from "../api";
+import { applyEdit } from "../api";
 import { DEVICE_WIDTH, type PageDevice, type ScreenCanvas } from "../builder/proto/runtime";
 import type { PageChild, PageNode } from "../builder/render/renderPage";
 import { pageFile, usePage } from "../builder/store/pageStore";
@@ -23,6 +23,8 @@ import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { RowSelectField } from "./rowFields";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { presentKeys } from "../shell/modKey";
+import { setLayerHidden, slotSwitchOp } from "../edit/visibility";
+import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, hiddenSlotsOf, hiddenValueOf } from "../../../../tools/studio/visibility.mjs";
 
 /*
  * Inspector for a selected frame (spec §6): width, theme, Present (examples) or Zoom to frame (page-sized frames), and
@@ -84,9 +86,15 @@ function ScreenSection({ frameId }: { frameId: string }) {
     const op = next === "mobile" ? { op: "removeProp" as const, name: "layout" } : { op: "setProp" as const, name: "layout", value: { kind: "string" as const, value: next } };
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Tablet laid out as ${next}`);
   };
+  // Off hides a part and keeps its layers (`hiddenSlots`, Figma's boolean; edit/visibility.ts): on brings them back as
+  // they were. A part never written gets its starting component.
+  const screenOff = hiddenSlotsOf(node.props[HIDDEN_SLOTS_PROP]);
   const writePart = (part: (typeof SCREEN_CHROME)[number], on: boolean) => {
+    const label = `${part.label} ${on ? "on" : "off"}`;
+    const keep = (on && screenOff.includes(part.prop)) || (!on && node.props[part.prop]?.kind === "element") ? slotSwitchOp(screenOff, part.prop, on) : null;
+    if (keep) { void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [keep] }, label); return; }
     const op = on ? { op: "insertChild" as const, prop: part.prop, code: screenChromeCode(part.prop, title) } : { op: "removeProp" as const, name: part.prop };
-    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `${part.label} ${on ? "on" : "off"}`);
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, label);
   };
   // The desktop layout's frame is the master layout (user, 2026-10-15): one AppShell at the Screen's root, as a page
   // from a template has it. Each part is a prop of that AppShell; the first part on wraps the content in it, the last off
@@ -96,15 +104,22 @@ function ScreenSection({ frameId }: { frameId: string }) {
   // A template's Page header is in its content, not the AppShell's `sections`: Page header reads it (as the move of an
   // older page does, screen-frame.mjs), so switching it on never adds a second one, and off takes that one away.
   const contentHeader = shell ? firstElementNamed(shell.children, "PageHeader") : null;
-  const partOn = (prop: string) => shell?.props[prop]?.kind === "element" || (prop === "sections" && Boolean(contentHeader));
+  // A part holds one layer or several (a fragment: the template's header actions).
+  const holds = (value: { kind: string } | undefined) => value?.kind === "element" || value?.kind === "fragment";
+  // Off hides a part (the root AppShell's `hiddenSlots`; the content's Page header by its own `hidden`) and keeps its layers,
+  // as Figma's boolean does: on brings back what the template or you put there (user, 2026-10-16).
+  const shellOff = hiddenSlotsOf(shell?.props[HIDDEN_SLOTS_PROP]);
+  const headerHidden = Boolean(contentHeader && hiddenValueOf(contentHeader.props[HIDDEN_PROP]) === true);
+  const partOn = (prop: string) => (holds(shell?.props[prop]) && !shellOff.includes(prop)) || (prop === "sections" && Boolean(contentHeader) && !headerHidden && !holds(shell?.props.sections));
   const writeFramePart = (part: (typeof FRAME_PARTS)[number], on: boolean) => {
     const label = `${part.label} ${on ? "on" : "off"}`;
-    if (!on && part.prop === "sections" && contentHeader && shell?.props.sections?.kind !== "element") {
-      // Removing a layer checks the text it runs on (its hash).
-      const file = pageFile(localPage);
-      void studioApi.source(file).then(({ hash }) => applyEdit({ file, loc: contentHeader.loc, name: contentHeader.name, ops: [{ op: "removeElement" }], hash }, label));
+    const file = pageFile(localPage);
+    if (part.prop === "sections" && contentHeader && !holds(shell?.props.sections)) {
+      void setLayerHidden(`${file}:${contentHeader.loc}`, contentHeader.name, on ? null : true);
       return;
     }
+    const keep = shell && ((on && shellOff.includes(part.prop)) || (!on && holds(shell.props[part.prop]))) ? slotSwitchOp(shellOff, part.prop, on) : null;
+    if (shell && keep) { void applyEdit({ file, loc: shell.loc, name: shell.name, ops: [keep] }, label); return; }
     const op = { op: "screenFrame" as const, prop: part.prop, on, code: screenFrameCode(part.prop, title) };
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, label);
   };
@@ -169,7 +184,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
           key={part.prop}
           name={part.prop}
           code={`Screen ${part.prop}`}
-          fields={[<Toggle key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element"} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />]}
+          fields={[<Toggle key={part.prop} label={part.label} checked={node.props[part.prop]?.kind === "element" && !screenOff.includes(part.prop)} disabled={!admin} onCheckedChange={(next) => writePart(part, next)} />]}
         />
       ))}
       <InspectorFields
