@@ -534,3 +534,28 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   spacing in a chat column); the booking actions row wraps (the gate's density check: Cancel / Schedule outgrew the
   390 px column at Comfortable once the Card's padding came in). Gate `--only=ai-ui --isolated` green; sheets reviewed.
   Not committed, not pushed, not merged (the user: "làm xong khoan commit, push hay merge").
+- P1-b/c applied on the demo (the user: "đồng ý"): `LiveTypingExample` is the composer card — AiChatField, then a flat
+  Card (type row `intentMeta` icon + label + "likely" / "kept", the slot title as Heading/4, `SlotChips` with `dropdown`
+  for heard values and `state="placeholder"` "+ Add …" for empty ones, the template through `composerBody()` which drops
+  the spec's heading and button row, a footer with KeyHints and Cancel / Schedule run by `primaryActionOf` +
+  `resolveArgs`). `sure` = pinned, answered, or confidence ≥ 0.85; chips show while guessing, the form once sure or a
+  chip is opened. Gate findings fixed at the owner: focus audit (the DatePicker popover was clipped by the body's
+  overflow → no height transition, fade only), gap ladder §13 in the footer (md between groups, sm / xs inside), nested
+  corners (the pill field moved out of the card). Gate `--only=ai-ui --isolated` green; sheets reviewed.
+- P1-d applied on the demo (the user: "giao diện của AI chat chưa tối ưu … làm tiếp rồi commit sau"): `ComposerScreen`
+  has a bar (h1 "Zen AI" at Heading/4, `ModelTag`, the panel button), the thread and the suggestion chips in a column
+  that scrolls under a sticky `AiChatField fieldStyle="liquid-glass"` (the chips moved out of the dock: text showed
+  between them); the screen and the phone flow carry the AI Chat playground's Liquid Glass tint with a 16 s opacity-only
+  breathing layer (`zen-allow-canvas-layer`; an AI-glow gradient of its own waits for tokens); bubbles and answers get
+  `.px-ai-ui-enter` (fade, Motion/Duration/Base); `useScrollToEnd` follows the turns and the catalog (the first answer's
+  Card was cut by the dock); the aside is "What Zen AI sees" — `DescriptionList` rows from `flatten(demo.shared)` and
+  the events — a Surface Box with Shadow/Bottom/Level-3 over the screen's right edge (a Grid column crushed the chat
+  below 960), opened by the bar's button (`aria-expanded`, `aria-controls` while open) and closed by an `IconButton`;
+  the dev note under the field is gone (the Tag and the example description say who answers); the phone's
+  `TopNavigation` is `liquid-glass` (compact-alt's Surface/Alt fill cut a grey band through the tint) and its flow
+  reaches under the overlaid header. Gate `--only=ai-ui --isolated` green after two of its findings were fixed: the
+  visible h1 at Heading/4 (hierarchy: a content h1 is Heading/1, only a TopNavigation bar title keeps bar size) is
+  a VisuallyHidden h1 again with the bar's title as Text; the bar wraps at 390 (the Tag and the button overflowed).
+  Usage harness and style guard run on the two files directly (edits went through scripts, so the gate saw 0 UI
+  files). Sheets 390 / 1512 reviewed. No JS effect
+  library: gradients, glass and fades are CSS + the Liquid Glass hook already in the field.

@@ -370,6 +370,17 @@ removed (four unused colour ramps were, see Removed).
   form, chips, a table) renders on a flat Card inside the answer, so it reads as one object; prose, a chart or a lone
   button stay in the flow. The host frames it, the model never adds the Card. Study of the live composer's layout and
   interaction against the ShapeShift reference: `docs/research/ai-ui-live-composer-ux-2026-10-15.md`.
+- Patterns › AI UI "Composed while typing" is the composer card (2026-10-15, the study's P1-b/c): the field, then a flat
+  Card that holds the guess (type row with the intent, the title heard, the slots as chips: "10/16/2026", "16:00",
+  "+ Add people"), the form once the intent is sure or a chip is opened, and a footer with the key hints and Cancel /
+  Schedule; Enter and the button run the form's primary action. No status line, no sentence above a guess.
+- **Zen AI chat screen on Patterns › AI UI** (2026-10-15): the demo screen reads as the product. A bar (title, a Tag naming
+  who answers: the model behind `/ai-ui` or the demo composer), the conversation scrolling under a docked
+  `AiChatField fieldStyle="liquid-glass"` (desktop and phone, the phone's `TopNavigation type="liquid-glass"` over it),
+  suggested prompts after the last answer, new bubbles and answers fading in from the motion tokens, the page tinted like
+  the AI Chat playground's Liquid Glass stage with a slow opacity-only breathing of the tint, and the shared state / events
+  panel ("What Zen AI sees", a `DescriptionList` and the event list) opened from the bar over the screen's edge instead of
+  a JSON column. The conversation scrolls to its end once an answer's UI renders.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

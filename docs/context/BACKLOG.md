@@ -28,6 +28,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   contenteditable, tier M). Needs Figma.
 - **P3 · Keycap component (2026-10-15, designer):** keyboard hints ("Tab to keep as booking") need a Kbd; the AI UI demo
   uses Tag for now.
+- **P2 · AI UI: "AI glow" gradient tokens (2026-10-15, designer):** the Zen AI screen on Patterns › AI UI borrows the
+  AI Chat playground's Liquid Glass stage (Support Pink/Violet/Cyan Subtle over Canvas/Default) and breathes it by
+  opacity; a gradient of its own for "AI is composing" (field ring, card edge, page tint) needs colours in Figma first,
+  then `tokens:build` — `tokens.css` has no gradient token today. Pointer: `src/platform/examples/pages/ai-ui.css`.
 - **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
   node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
 - **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls

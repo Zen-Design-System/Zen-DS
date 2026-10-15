@@ -1,19 +1,49 @@
 /* AI UI examples (examples/pages/ai-ui.tsx). */
 
-/* The assistant screen (PreviewWindow): the conversation scrolls, the field stays docked; padding is the page margin at
-   the sides (Margin/Comfortable), as the AI Chat page's screen. */
-.px-ai-ui-screen { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 100%; height: 100%; }
-.px-ai-ui-screen__scroll { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xlarge, 24px); }
-.px-ai-ui-screen__dock { padding: 0 var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); }
+/* The assistant screen (PreviewWindow) and the phone screen stand in for the app page Zen AI sits on, tinted as the
+   AI Chat playground's Liquid Glass stage (platform.css: Support Pink/Violet/Cyan Subtle over Canvas/Default, tints that
+   keep Content/Neutral/Strongest ≥ 4.5:1 in light and dark). The tint breathes: a second layer of the same tints, turned,
+   fades in and out on an endless loop (opacity only, Motion/Ease/Linear for a crossfade; no reduced-motion fallback is
+   needed for a fade, WCAG 2.3.3 covers motion). An "AI glow" gradient of its own waits for tokens (BACKLOG). */
+.px-ai-ui-screen, .px-ai-ui-phone-flow {
+  --px-ai-ui-stage: linear-gradient(160deg, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 0%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 55%, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 100%);
+  --px-ai-ui-stage-turned: linear-gradient(340deg, var(--zen-color-background-support-cyan-subtle, rgb(33 184 216 / 16%)) 0%, var(--zen-color-background-support-pink-subtle, rgb(255 102 212 / 16%)) 55%, var(--zen-color-background-support-violet-subtle, rgb(122 90 248 / 16%)) 100%);
+  position: relative;
+  z-index: 0;
+  /* zen-allow-canvas-layer: the demo screen stands in for the app page */
+  background: var(--px-ai-ui-stage), var(--zen-color-background-canvas-default, #f7f7f7);
+}
+.px-ai-ui-screen::before, .px-ai-ui-phone-flow::before { position: absolute; z-index: -1; inset: 0; background: var(--px-ai-ui-stage-turned); content: ""; animation: px-ai-ui-breathe 16s var(--zen-motion-ease-linear, linear) infinite; }
+@keyframes px-ai-ui-breathe { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+/* Desktop: the bar on top, then the conversation scrolls while the field stays docked at the bottom of the scroll
+   (sticky), so the bubbles pass under the glass. Padding is the page margin at the sides (Margin/Comfortable), as the
+   AI Chat page's screen; the thread grows to push the dock down when the conversation is short. */
+.px-ai-ui-screen { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 100%; height: 100%; }
+.px-ai-ui-screen__bar { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) 0; }
+.px-ai-ui-screen__flow { display: flex; min-height: 100%; flex-direction: column; }
+.px-ai-ui-screen__thread { flex: 1 0 auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xlarge, 24px); }
+.px-ai-ui-screen__dock { position: sticky; z-index: 1; bottom: 0; padding: 0 var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); }
 /* The field lines up with the conversation column (AiChatThread: max 800, centred). */
 .px-ai-ui-column { width: 100%; max-width: 800px; margin-inline: auto; }
 
-/* The panel beside the conversation (what the conversation sees): its own scroll, the screen's margin on the right. */
-.px-ai-ui-aside { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) 0; }
-/* Shared state as JSON: keep the line breaks of JSON.stringify, wrap long values. */
-.px-ai-ui-json { display: block; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* A new bubble, and the answer replacing its thinking dots, fade in (opacity only). */
+.px-ai-ui-enter, .px-ai-ui-enter .zen-ai-bubble__content { animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
 
-/* Phone: the thread keeps the screen margin (Margin/Comfortable, 20 on phones); the docked field is a strip whose bottom
-   clears the home indicator, as the AI Chat page's phone. */
-.px-ai-ui-phone-body { padding: var(--zen-margin-comfortable, 20px); }
-.px-ai-ui-phone-dock { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+/* The panel (what the conversation sees) lies over the screen's right edge, so the conversation keeps its width at any
+   window size; a Surface Box with Shadow/Bottom/Level-3, its own scroll, the screen's margin at the sides; it fades in. */
+.px-ai-ui-aside { position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; width: min(320px, 100%); box-sizing: border-box; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px); animation: px-ai-ui-fade var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
+
+/* Phone: the same flow inside the phone's scrolling screen. The thread keeps the screen margin (Margin/Comfortable, 20
+   on phones); the docked field is a strip whose bottom clears the home indicator, as the AI Chat page's phone. */
+/* The header overlays the screen (PlatformPhone pads the screen by its height): the flow reaches up under it, so the tint
+   runs behind the status bar and the Top Navigation instead of stopping at a seam. */
+.px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; margin-top: calc(-1 * var(--platform-phone-header-height, 0px)); padding-top: var(--platform-phone-header-height, 0px); }
+.px-ai-ui-phone-body { flex: 1 0 auto; padding: var(--zen-margin-comfortable, 20px); }
+.px-ai-ui-phone-dock { position: sticky; z-index: 1; bottom: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+
+/* The composer card (docs/research/ai-ui-live-composer-ux-2026-10-15.md §4): the guess card and each new guess fade
+   in (opacity only, so reduced motion needs no fallback). A height transition would need a settled state before the
+   DatePicker popover may overflow; left for the pattern's own CSS. */
+.px-ai-ui-composer, .px-ai-ui-composer__guess { animation: px-ai-ui-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
+@keyframes px-ai-ui-fade { from { opacity: 0; } to { opacity: 1; } }
