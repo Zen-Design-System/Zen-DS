@@ -13224,6 +13224,22 @@
           "deprecated": null
         },
         {
+          "name": "onAccept",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Tab accepts what the app proposes for the prompt (compose while typing: keep the guessed intent) and then moves\n focus as in any field, into the proposed UI when it is next in the tab order. Pass it only while there is\n something to accept.",
+          "deprecated": null
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Escape clears the prompt and calls it (a preview to dismiss, a draft to drop). Pass it only while there is\n something to clear; without it Escape does nothing in the field.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,

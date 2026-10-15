@@ -160,8 +160,22 @@ controller for the field (`src/ai-ui/live.mjs`, isomorphic):
 - at `minConfidence` (0.6) the intent's Skeleton shows at once (tier 1) and `compose` is asked for the real UI with an
   `AbortSignal` (tier 2/3); a keystroke during composing drops the stale answer;
 - an unsure guess never clears what is shown; a different intent replaces it only when clearly more likely
-  (`switchMargin`) or after `stickMs`; Enter (`submit`) composes regardless;
-- `AiChatField` now takes `value` / `onValueChange` for it (the API convention; `defaultValue` stays).
+  (`switchMargin`) or after `stickMs`;
+- **slots from the sentence** (2026-10-15, after the ShapeShift UI reference the user shared): `extractSlots` reads
+  title, date, time, people and place on the device, English and Vietnamese (`keywordClassifier(intents, { slots:
+  extractSlots })`); an intent's `skeleton` may be a function of the slots, so tier 1 is the real form pre-filled from
+  them (the demo's booking form reads "Design review with the banking team", tomorrow, 16:00 before any model call);
+  the app writes the slots into the shared state (`review.*` in the demo), only the ones that changed, so a pick made
+  in the form survives further typing. A demo-grade extractor: the product swaps in its own through `slots`;
+- **the keyboard contract**: Tab keeps the guessed intent (`accept()`, `state.pinned`: the sentence may go on, the
+  intent stays) and still moves focus, into the form when it is next (never a trap), Escape clears (`reset()`), Enter runs the UI's primary action when one is on screen
+  (`primaryActionOf` + `resolveArgs`, the same call a click makes) and composes otherwise (`submit`). `AiChatField`
+  takes `value` / `onValueChange` (the API convention; `defaultValue` stays), and `onAccept` / `onClear` for Tab and
+  Escape, passed only while there is something to accept or clear;
+- still the designer's (BACKLOG "AI UI"): a tentative look for the form while it is only a guess (ShapeShift fades it
+  and draws the empty slots as dashed "+ Add …" chips; Zen has no such state or token), the recognised span underlined
+  inside the field (`extractSlots` already returns the `spans`), and a keycap component for the hints (the demo uses
+  Tag).
 
 ## Measuring (eval)
 

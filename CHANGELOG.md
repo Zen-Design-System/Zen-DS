@@ -299,6 +299,13 @@ removed (four unused colour ramps were, see Removed).
   rate (first attempt, within the retry loop, per spec attempt), wrong UI against what each case expects, time to first
   UI, tokens, follow-up edits, and the keyword classifier's intent accuracy on 25–100 % of each prompt; `--dry` and
   `--classifier-only` run without a key. Reports in `.qa/ai-ui-eval/`.
+- **Compose while typing, part 2** (2026-10-15, user, after the ShapeShift UI reference): `extractSlots` reads title,
+  date, time, people and place from the sentence on the device (English and Vietnamese); `keywordClassifier` takes a
+  default slot extractor and a template per intent built from the slots, so the first UI is the real form pre-filled;
+  the live composer gains Tab (`accept()`: the guessed intent stays while the sentence goes on; focus moves on as
+  usual), and `primaryActionOf` /
+  `resolveArgs` let Enter run the UI's primary action. `AiChatField` gains `onAccept` (Tab) and `onClear` (Escape),
+  active only while passed. Patterns › AI UI's "Composed while typing" shows the pre-filled form and the key hints.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

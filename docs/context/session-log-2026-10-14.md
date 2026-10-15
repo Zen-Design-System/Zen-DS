@@ -484,3 +484,29 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   at 25 % of the prompt, 20/20 from 50 %, no false positives on the 13 cases without an intent.
 - Selftest section 10 covers runEval's counts, the report and the classifier metric. Two expectations tightened after
   the dry run (delete-project and new-project-form let a plain form pass).
+
+### Slots and the keyboard contract (2026-10-15, tier S, user: "Làm 1 và 2, chưa merge")
+
+- Reference: two ShapeShift UI screenshots the user shared (one field; while typing, the guessed type's form appears
+  pre-filled from the sentence, empty slots as "+ Add …" chips, Tab keeps the type, Esc clears, Enter adds). The site
+  and x.com are blocked by the sandbox's network policy; the screenshots were enough.
+- `src/ai-ui/live.mjs`: `extractSlots(text, { now, dayFirst })` — title after the lead-in ("remind me to", "đặt lịch"),
+  date (ISO; today / tomorrow / weekdays / next week / numeric / month names, en + vi), time (HH:MM; am / pm, "4h chiều",
+  a bare hour 1–6 is the afternoon), people (after with / với, @handles), a capitalised place after at / in / ở / tại,
+  and the `spans` for later highlighting. `keywordClassifier(intents, { slots })` passes the original text to the
+  extractor; `skeleton` may be a function of the slots (a template). The composer gains `accept()` / `state.pinned`
+  (a pinned intent ignores the classifier's switches and keeps composing for the new text; `reset` unpins) and
+  `primaryActionOf(spec)` + `resolveArgs(args, { state, data })` for Enter.
+- `AiChatField`: `onAccept` (Tab) and `onClear` (Escape), only while passed. First cut prevented Tab's default; the
+  behaviour gate flagged it as a keyboard trap (APG), so Tab now keeps the guess and still moves focus, into the form
+  when it is next. Guideline a11y line and keyboard rows; interaction tests for both keys and for the field without
+  the handlers.
+- Demo "Composed while typing": the booking intent's tier 1 is `bookingSpec(title)` pre-filled from the slots; the
+  slots land in `review.*` only when they change (a pick survives typing; a first cut compared against a ref already
+  overwritten, so nothing landed — seen on the contact sheet, fixed; the date is written as the field's own
+  MM/DD/YYYY text, since DateField's value is the text it shows); the hints row uses Tag as a keycap (Tab · Esc ·
+  Enter); Enter runs Schedule with the resolved args and shows the call; the deterministic composer keeps the title.
+- Gates: tsc, ai-ui selftest (+ 8 checks), usage, style, guidelines, ai-ui:check, mcp, smoke + ai-ui tests (489),
+  interaction test, Build-QA `--only=ai-ui,ai-chat --isolated` (audit, dark, behaviour), verify:package.
+- For the designer (BACKLOG "AI UI"): the tentative look of a guessed form and its dashed add-chips, the underlined span
+  in the field, a keycap component.

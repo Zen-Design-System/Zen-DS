@@ -17,7 +17,7 @@ Prompting and conversing with an assistant: a field to ask, answers to read and 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Field | `AiChatField onSubmit · fieldStyle · model · onModelClick · busy · onStop` | Default · Surface · Liquid Glass; Primary = Voice → Send → Stop; placeholder is one truncated line; Long-Typing puts the prompt (padding 12) 16 above the controls |
+| Field | `AiChatField onSubmit · fieldStyle · model · onModelClick · busy · onStop · value / onValueChange · onAccept · onClear` | Default · Surface · Liquid Glass; Primary = Voice → Send → Stop; placeholder is one truncated line; Long-Typing puts the prompt (padding 12) 16 above the controls |
 | Bubble | `AiChatBubble side · actions[] · version · streaming · thinking · thinkingLabel` | You: Neutral/Subtle radius 24 · AI: plain Body/Extra/Regular; thinking = three 8px dots in a looping wave (1.2s, 150ms stagger) until the first text arrives, then a pulsing caret while streaming |
 | Block | `AiChatBlock greeting · suggestions[]` | Say-Hi: 44px logo + Heading/1 greeting (gap 16) · 24 · field + suggestions (gap 16); suggestions are Chip/Normal Medium Secondary with a leading icon |
 | Thread | `AiChatThread` | role=log, max 800 |
@@ -42,7 +42,7 @@ Figma AI/Chat-Bubble (4218:1270): You = a Neutral/Subtle bubble (radius 24, padd
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>` element. |
 
 ### AiChatField
-Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219): `listening` shows Listening… and turns the microphone into Stop.
+Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt Body/Extra/Medium · model · mic · Primary 40px) that becomes two rows for long prompts (State=Long-Typing). The Primary action is Voice (recording) when empty and Send (arrow-up) once there is text. Enter sends, Shift+Enter adds a line; Tab also calls `onAccept` (keep the guessed intent) and still moves focus, Escape clears only with `onClear`. The whole field is the prompt's hit area: a click or tap anywhere outside its buttons puts the caret in the prompt. The +, the microphone and Voice appear only with their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219): `listening` shows Listening… and turns the microphone into Stop.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -62,6 +62,8 @@ Figma AI/Chat-Field (12074:16888): radius 32, padding 12; one row (+ · prompt B
 | `value` | `string` | — | The prompt text, controlled (pairs with `onValueChange`); leave it out to let the field keep its own. |
 | `defaultValue` | `string` | `""` | Initial prompt text when uncontrolled. |
 | `onValueChange` | `(text: string) => void` | — | Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it. |
+| `onAccept` | `() => void` | — | Tab accepts what the app proposes for the prompt (compose while typing: keep the guessed intent) and then moves focus as in any field, into the proposed UI when it is next in the tab order. Pass it only while there is something to accept. |
+| `onClear` | `() => void` | — | Escape clears the prompt and calls it (a preview to dismiss, a draft to drop). Pass it only while there is something to clear; without it Escape does nothing in the field. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio; app code sets onAttach / onVoice / onVoiceMode. |
 | `ref` | `Ref<HTMLFormElement>` | — | Ref to the root `<form>` element. |
@@ -103,6 +105,8 @@ interface AiChatSuggestion { label: string; icon?: IconName | ReactElement; onCl
 | --- | --- |
 | Enter | Send the prompt |
 | Shift+Enter | New line |
+| Tab (with onAccept) | Keep the guessed intent the app shows, then move on as usual (into the proposed UI when it is next) |
+| Escape (with onClear) | Clear the prompt and what the app previews for it |
 | Tab | Reach Copy / Regenerate / feedback under an answer |
 | Enter / Space | Run the focused action |
 
@@ -123,6 +127,7 @@ interface AiChatSuggestion { label: string; icon?: IconName | ReactElement; onCl
 ## Accessibility
 - The thread is role=log (aria-live=polite); a streaming answer sets aria-busy.
 - Enter sends and Shift+Enter adds a line; the Primary button is named for what it does now (Start voice mode · Send · Stop generating).
+- Tab always moves focus; with onAccept it also keeps the guessed intent on its way out (never a keyboard trap). Escape clears only while the app passes onClear.
 - The thinking dots are role=status named by thinkingLabel ("Thinking", "Retrying"), and the bubble sets aria-busy; with reduced motion the dots only fade in turn, without moving.
 
 ## Content

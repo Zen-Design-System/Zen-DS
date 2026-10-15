@@ -15,6 +15,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (Q1 decided). The kit classifies on the device (`keywordClassifier`) and asks the model only once an intent is likely;
   a smarter classifier (embeddings or a small model) is the product's choice: on-device keeps keystrokes private, a
   server one needs consent. Pointer: docs/ai-ui/README.md "Composing while typing".
+- **P2 · AI UI: a tentative look for a guessed form (2026-10-15, designer; ShapeShift reference):** while the intent
+  is only likely, ShapeShift shows the form faded with its empty slots as dashed "+ Add date" chips; Zen has no
+  tentative state or token (Chip `state="placeholder"` only recolours the label). Needs Figma: a state on the form's
+  components or an opacity token, and the dashed add-chip. Pointer: docs/ai-ui/README.md "Composing while typing".
+- **P3 · AI UI: the recognised span underlined in the prompt field (2026-10-15, designer):** ShapeShift underlines the
+  words a slot came from; `extractSlots` returns the `spans`, but `AiChatField` is a plain textarea (an overlay or a
+  contenteditable, tier M). Needs Figma.
+- **P3 · Keycap component (2026-10-15, designer):** keyboard hints ("Tab to keep as booking") need a Kbd; the AI UI demo
+  uses Tag for now.
 - **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
   node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
 - **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls

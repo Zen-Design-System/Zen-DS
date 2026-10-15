@@ -1536,6 +1536,50 @@
                   }
                 ],
                 "description": "Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it."
+              },
+              "onAccept": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "$action": {
+                        "type": "string"
+                      },
+                      "args": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "$action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Tab accepts what the app proposes for the prompt (compose while typing: keep the guessed intent) and then moves focus as in any field, into the proposed UI when it is next in the t"
+              },
+              "onClear": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "$action": {
+                        "type": "string"
+                      },
+                      "args": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "$action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Escape clears the prompt and calls it (a preview to dismiss, a draft to drop)."
               }
             },
             "required": [],

@@ -3774,6 +3774,8 @@
           "value?: string",
           "defaultValue?: string = ",
           "onValueChange?: (text: string) => void",
+          "onAccept?: () => void",
+          "onClear?: () => void",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "ref?: Ref<HTMLFormElement>"

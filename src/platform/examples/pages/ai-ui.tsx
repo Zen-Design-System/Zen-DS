@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AiChatBubble, AiChatField, AiChatThread } from "../../../components/AiChat";
 import { Chip } from "../../../components/Chip";
+import { Tag } from "../../../components/Tag";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
@@ -13,7 +14,7 @@ import { SkeletonText } from "../../../components/Skeleton";
 import { Heading, Text } from "../../../components/Text";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { AiUi, applyOps, createLiveComposer, keywordClassifier, markdownToSpec, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
+import { AiUi, applyOps, createLiveComposer, extractSlots, keywordClassifier, markdownToSpec, primaryActionOf, resolveArgs, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type Slots as LiveSlots, type UiNode, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
 import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Panel, PlaygroundFilterChip, option } from "../../appLayer/shared";
@@ -62,6 +63,7 @@ const postJson = async <T,>(url: string, body: unknown, signal?: AbortSignal): P
 
 const firstName = me.name.split(" ")[0];
 const slots = ["09:00", "10:00", "14:00", "16:00"];
+const nearestSlot = (hour: number) => slots.find((s) => Number(s.slice(0, 2)) === hour) ?? slots.reduce((best, s) => (Math.abs(Number(s.slice(0, 2)) - hour) < Math.abs(Number(best.slice(0, 2)) - hour) ? s : best), slots[0]);
 const lumen = projectById("lumen-banking");
 const overdue = invoices.filter((invoice) => invoice.status === "Overdue");
 const quarter = (ids: string[]) => studioMonths.filter((m) => ids.includes(m.id)).reduce((sum, m) => sum + m.invoiced, 0);
@@ -76,7 +78,7 @@ const studioData = () => ({
 });
 
 /** A form to schedule a design review: project, date, time slot and the two actions. Everything the person picks is `review.*` in the shared state. */
-const bookingSpec = (): UiSpec => ({
+const bookingSpec = (title = "Schedule a design review"): UiSpec => ({
   version: 1,
   data: {
     projects: projects.filter((project) => project.status === "Active").map((project) => ({ value: project.id, label: project.name })),
@@ -86,7 +88,7 @@ const bookingSpec = (): UiSpec => ({
     type: "Stack", id: "booking", props: { gap: "md" },
     children: [
       // A heading inside an answer sits right under the chat page's h1: level 2, drawn at Heading/4 size.
-      { type: "Heading", id: "booking-title", props: { level: 2, textStyle: "Heading/4" }, children: ["Schedule a design review"] },
+      { type: "Heading", id: "booking-title", props: { level: 2, textStyle: "Heading/4" }, children: [title] },
       { type: "SelectField", id: "project", props: { label: "Project", options: { $ref: "projects" }, value: { $state: "review.project" } } },
       { type: "DateField", id: "date", props: { label: "Date", value: { $state: "review.date" } } },
       { type: "ChipGroup", id: "slot", props: { "aria-label": "Time", options: { $ref: "slots" }, value: { $state: "review.slot" } } },
@@ -180,7 +182,7 @@ const brokenSpec = (): UiSpec => ({
 
 type Reply = { text: string; spec?: UiSpec; /** The spec's data arrives later (a Skeleton first). */ later?: UiSpec; ops?: SpecOp[]; state?: [string, unknown] };
 
-function compose(prompt: string, lastSpec: UiSpec | undefined): Reply {
+function compose(prompt: string, lastSpec: UiSpec | undefined, slots?: LiveSlots | null): Reply {
   const text = prompt.trim();
   const hasSubmit = lastSpec && JSON.stringify(lastSpec).includes('"id":"submit"');
   const level = /\b(accent|primary|tertiary|secondary|danger)\b/i.exec(text)?.[1].toLowerCase();
@@ -189,10 +191,10 @@ function compose(prompt: string, lastSpec: UiSpec | undefined): Reply {
   if (hasSubmit && time && /\b(am|pm|h|giờ|o'clock|:\d{2}|at|lúc)\b/i.test(text)) {
     let hour = Number(time[1]);
     if (time[3]?.toLowerCase() === "pm" && hour < 12) hour += 12;
-    const slot = slots.find((s) => Number(s.slice(0, 2)) === hour) ?? slots.reduce((best, s) => (Math.abs(Number(s.slice(0, 2)) - hour) < Math.abs(Number(best.slice(0, 2)) - hour) ? s : best), slots[0]);
+    const slot = nearestSlot(hour);
     return { text: `Set the time to ${slot}.`, state: ["review.slot", slot] };
   }
-  if (/\b(schedule|book|meeting|review|appointment|call)\b|đặt lịch|hẹn|họp/i.test(text)) return { text: "Here is the form. Pick the project, a date and a time, and I'll schedule it.", spec: bookingSpec() };
+  if (/\b(schedule|book|meeting|review|appointment|call)\b|đặt lịch|hẹn|họp/i.test(text)) return { text: "Here is the form. Pick the project, a date and a time, and I'll schedule it.", spec: bookingSpec(slots?.title ?? undefined) };
   if (/\binvoice|overdue|unpaid|bill|hoá đơn|hóa đơn/i.test(text)) return { text: "Checking the studio's invoices…", spec: invoicesSpec(true), later: invoicesSpec(false) };
   if (/\brevenue|invoiced|chart|month|quarter|doanh thu/i.test(text)) return { text: "Here is what the studio invoiced over the last six months.", spec: revenueSpec() };
   if (/\bdelete|remove|archive|xoá|xóa/i.test(text)) return { text: "That is a destructive change.", spec: confirmSpec() };
@@ -348,12 +350,40 @@ const skeletonOf = (kind: "form" | "list" | "chart" | "text"): UiSpec => ({
   root: { type: "Stack", id: `skeleton-${kind}`, props: { gap: "md" }, children: kind === "form" ? [{ $pending: "heading" }, { $pending: "shape" }, { $pending: "shape" }, { $pending: "text" }] : kind === "chart" ? [{ $pending: "heading" }, { $pending: "shape" }] : [{ $pending: "text" }] },
 });
 /** The on-device classifier: trigger words per intent and the Skeleton to show at once. Nothing leaves the device until an intent is likely. */
+/** What the demo's classifier knows: trigger words, and for the booking intent a tier-1 template: the real form, pre-filled from the slots the sentence carries. */
 const liveIntents = [
-  { intent: "booking", words: ["schedule", "book", "meeting", "review", "appointment", "đặt lịch", "hẹn", "họp"], skeleton: skeletonOf("form") },
+  { intent: "booking", words: ["schedule", "book", "meeting", "review", "appointment", "đặt lịch", "hẹn", "họp"], skeleton: (slots: Record<string, unknown> | null) => bookingSpec(typeof slots?.title === "string" ? slots.title : undefined) },
   { intent: "invoices", words: ["invoice", "overdue", "unpaid", "bill", "hoá đơn", "hóa đơn"], skeleton: skeletonOf("list") },
   { intent: "revenue", words: ["revenue", "invoiced", "chart", "quarter", "doanh thu"], skeleton: skeletonOf("chart") },
   { intent: "confirm", words: ["delete", "remove", "archive", "xoá", "xóa"], skeleton: skeletonOf("text") },
 ];
+
+/** The slots the sentence carries, written into the form's shared state (`review.*`): only a slot that changed since the last reading, so a pick made in the form survives further typing. */
+function withSlots(prev: Record<string, unknown>, slots: LiveSlots | null, last: LiveSlots | null): Record<string, unknown> {
+  const review = { ...((prev.review as Record<string, unknown> | undefined) ?? {}) };
+  const changed = (key: "date" | "time" | "people") => JSON.stringify(slots?.[key] ?? null) !== JSON.stringify(last?.[key] ?? null);
+  // DateField's value is the text it shows (MM/DD/YYYY, what a pick writes back), so the ISO slot is written in that form.
+  if (changed("date")) { if (slots?.date) review.date = fieldDate(slots.date); else delete review.date; }
+  if (changed("time")) { if (slots?.time) review.slot = nearestSlot(Number(slots.time.slice(0, 2))); else delete review.slot; }
+  if (changed("people")) { if (slots?.people?.length) review.people = slots.people; else delete review.people; }
+  return { ...prev, review };
+}
+
+const fieldDate = (iso: string) => { const [y, m, d] = iso.split("-"); return `${m}/${d}/${y}`; };
+const describeSlots = (slots: LiveSlots | null) => (slots ? [slots.title ? `“${slots.title}”` : null, slots.date, slots.time, slots.people?.length ? `with ${slots.people.join(", ")}` : null, slots.place ? `at ${slots.place}` : null].filter(Boolean).join(" · ") : "");
+
+/** The label of the Button a primary action lives on (its first text child), for the Enter hint. */
+function buttonLabel(node: UiNode | undefined, id: string | null): string | null {
+  if (!node || typeof node !== "object" || !id) return null;
+  if (node.id === id) { const first = node.children?.[0]; return typeof first === "string" ? first : null; }
+  for (const child of node.children ?? []) { const found = buttonLabel(child as UiNode, id); if (found) return found; }
+  return null;
+}
+
+/** Keyboard hint: the key as a Tag (no keycap component yet), then what it does. */
+function KeyHint({ keys, children }: { keys: string; children: ReactNode }) {
+  return <Stack direction="row" gap="xs" align="center"><Tag>{keys}</Tag><Text textStyle="Body/Small/Regular" tone="base">{children}</Text></Stack>;
+}
 
 function LiveTypingExample({ initial = "" }: { initial?: string }) {
   const catalog = useCatalog();
@@ -362,42 +392,77 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
   const [live, setLive] = useState<LiveState | null>(null);
   const [shared, setShared] = useState<Record<string, unknown>>({});
   const [sent, setSent] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
   const composerRef = useRef<LiveComposer | null>(null);
+  const lastSlots = useRef<LiveSlots | null>(null);
   useEffect(() => {
     if (!server) return undefined;
     const composer = createLiveComposer({
-      classify: keywordClassifier(liveIntents),
-      compose: async (prompt, { signal }) => {
+      classify: keywordClassifier(liveIntents, { slots: extractSlots }),
+      compose: async (prompt, { slots, signal }) => {
+        const known = (slots as LiveSlots | null) ?? null;
         if (server.enabled) {
-          const remote = await postJson<{ ok: boolean; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData() }, signal);
+          const remote = await postJson<{ ok: boolean; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData(), state: known ? withSlots({}, known, null) : undefined }, signal);
           if (remote?.ok) return { text: remote.text, spec: remote.spec };
         }
         // The demo composer, after the moment a model would take.
         await new Promise((resolve) => setTimeout(resolve, 400));
         if (signal.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
-        const reply = compose(prompt, undefined);
+        const reply = compose(prompt, undefined, known);
         return { text: reply.text, spec: reply.spec ?? null };
       },
-      onChange: setLive,
+      onChange: (state) => {
+        setLive(state);
+        // The slots land in the shared state as they change, so the template and the composed form read them.
+        const slots = (state.slots as LiveSlots | null) ?? null;
+        if (state.phase === "idle") { lastSlots.current = null; return; }
+        const last = lastSlots.current;
+        if (JSON.stringify(slots) !== JSON.stringify(last)) { lastSlots.current = slots; setShared((prev) => withSlots(prev, slots, last)); }
+      },
     });
     composerRef.current = composer;
     if (initial) void composer.submit(initial);
     return () => { composer.dispose(); composerRef.current = null; };
   }, [server]); // eslint-disable-line react-hooks/exhaustive-deps
   const preview = live && live.phase !== "idle" ? live.spec ?? live.skeleton : null;
-  const status = !live || live.phase === "idle" ? "Waiting for an intent" : live.phase === "skeleton" ? `${live.intent}: likely (${Math.round(live.confidence * 100)}%), composing…` : live.phase === "composing" ? `${live.intent}: updating…` : live.phase === "ready" ? `${live.intent}: ready (${Math.round(live.confidence * 100)}%)` : "Could not compose";
+  const action = preview ? primaryActionOf(preview) : null;
+  const actionLabel = action ? buttonLabel(preview?.root, action.id) ?? action.action : null;
+  const percent = live ? Math.round(live.confidence * 100) : 0;
+  const status = !live || live.phase === "idle" ? "Waiting for an intent" : `${live.intent}: ${live.phase === "skeleton" ? `likely (${percent}%), composing…` : live.phase === "composing" ? `composing again (${percent}%)` : live.phase === "ready" ? `ready (${percent}%)` : live.phase}${live.pinned ? " · kept (Tab)" : ""}`;
+  const slotsLine = describeSlots((live?.slots as LiveSlots | null) ?? null);
+  const clear = () => { setDone(null); setSent(null); setShared({}); lastSlots.current = null; composerRef.current?.reset(); };
+  const run = (prompt: string) => {
+    if (action && preview) {
+      // Enter runs the UI's primary action, as a click on it would: the args read the shared state the form filled.
+      const args = resolveArgs(action.args, { state: shared, data: preview.data ?? studioData() });
+      setDone(`${actionLabel}: ${action.action} ${JSON.stringify(args)}`);
+      clear();
+      return;
+    }
+    setDone(null);
+    setSent(prompt);
+    void composerRef.current?.submit(prompt);
+  };
   return (
     <Stack gap="md">
-      <AiChatField placeholder="Type, don't send: schedule a review, overdue invoices…" value={text}
+      <AiChatField placeholder="Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" value={text}
         onValueChange={(next) => { setText(next); setSent(null); composerRef.current?.input(next); }}
-        onSubmit={(prompt) => { setSent(prompt); setText(""); void composerRef.current?.submit(prompt); }} />
-      <Text textStyle="Body/Small/Regular" tone="base">{status}{sent ? ` · sent: “${sent}”` : ""}</Text>
+        onSubmit={run}
+        onAccept={live?.intent && !live.pinned ? () => { composerRef.current?.accept(); } : undefined}
+        onClear={text || preview ? clear : undefined} />
+      <Stack direction="row" gap="md" wrap>
+        {live?.intent && !live.pinned ? <KeyHint keys="Tab">to keep as {live.intent} and fill it in</KeyHint> : null}
+        {text ? <KeyHint keys="Esc">to clear</KeyHint> : null}
+        <KeyHint keys="Enter">{actionLabel ? `to ${actionLabel.toLowerCase()}` : "to compose now"}</KeyHint>
+      </Stack>
+      <Text textStyle="Body/Small/Regular" tone="base">{status}{slotsLine ? ` · ${slotsLine}` : ""}{sent ? ` · sent: “${sent}”` : ""}</Text>
+      {done ? <Text textStyle="Body/Small/Regular">{done}</Text> : null}
       {preview ? (
         <AiChatThread aria-label="Preview of the UI being composed">
           <AiChatBubble side="ai">
             <Stack gap="md">
               {live?.answer ? <span>{live.answer}</span> : null}
-              {catalog ? <AiUi spec={preview} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={() => undefined} /> : <SkeletonText lines={3} />}
+              {catalog ? <AiUi spec={preview} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={(call) => { setDone(`${call.name} ${JSON.stringify(call.args)}`); clear(); }} /> : <SkeletonText lines={3} />}
             </Stack>
           </AiChatBubble>
         </AiChatThread>
@@ -546,15 +611,19 @@ setShared((state) => writePath(state, "review.slot", "16:00"));                 
   },
   {
     title: "Composed while typing",
-    description: "The UI appears as the sentence forms, before Send. A keyword classifier runs on the device, so no keystroke leaves it until an intent is likely; at that point the intent's Skeleton shows at once and the composer is asked (a model through /ai-ui when one is configured). A keystroke during composing drops the stale answer; an unsure guess never clears what is shown; Enter composes regardless. Type a different request to watch it switch.",
+    description: "The UI appears as the sentence forms, before Send. A keyword classifier runs on the device, so no keystroke leaves it until an intent is likely, and it pulls the slots out of the sentence (title, date, time, people, place): the booking intent's tier 1 is the real form, pre-filled from them, shown at once while the composer is asked (a model through /ai-ui when one is configured) for the real UI. A keystroke during composing drops the stale answer; an unsure guess never clears what is shown. Tab keeps the guessed intent and moves into the form, Escape clears, Enter runs the form's primary action when one is on screen (Schedule) and composes otherwise. Type a different request to watch it switch.",
     wide: true,
-    render: () => <LiveTypingExample initial="Schedule a design review with the banking team" />,
+    render: () => <LiveTypingExample initial="Schedule a design review with the banking team tomorrow at 4 pm" />,
     code: `const live = createLiveComposer({
-  classify: keywordClassifier([{ intent: "booking", words: ["schedule", "book", "meeting"], skeleton }]),   // on-device
-  compose: (prompt, { signal }) => post("/ai-ui/compose", { prompt, data }, signal),                       // the model, when likely
-  onChange: setLive,                                                                                         // skeleton → composing → ready
+  classify: keywordClassifier(intents, { slots: extractSlots }),                  // on-device: the intent, and title / date / time / people from the sentence
+  compose: (prompt, { slots, signal }) => post("/ai-ui/compose", { prompt, data, state: fromSlots(slots) }, signal),
+  onChange: setLive,                                                               // skeleton (a template pre-filled from the slots) → composing → ready
 });
-<AiChatField value={text} onValueChange={(next) => { setText(next); live.input(next); }} onSubmit={(prompt) => live.submit(prompt)} />
+const action = primaryActionOf(live.spec ?? live.skeleton);                       // Enter runs it; without one, Enter composes
+<AiChatField value={text} onValueChange={(next) => { setText(next); live.input(next); }}
+  onAccept={live.intent && !live.pinned ? () => live.accept() : undefined}         // Tab keeps the guessed intent, then moves into the form
+  onClear={text ? () => live.reset() : undefined}                                  // Escape clears
+  onSubmit={(prompt) => (action ? run(action.action, resolveArgs(action.args, { state: shared })) : live.submit(prompt))} />
 {live.spec ?? live.skeleton ? <AiUi spec={live.spec ?? live.skeleton} catalog={catalog} state={shared} onStateChange={setShared} /> : null}`,
   },
   {

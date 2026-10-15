@@ -16,7 +16,7 @@ import { markdownToSpec } from "../../src/ai-ui/markdown.mjs";
 import { composeEdit, composeUi, extractJson, feedbackFor, buildSystemPrompt, tier1 } from "./compose.mjs";
 import { anthropicModel } from "./adapters/anthropic.mjs";
 import { createAiUiHandler } from "./server.mjs";
-import { createLiveComposer, keywordClassifier } from "../../src/ai-ui/live.mjs";
+import { createLiveComposer, extractSlots, keywordClassifier, primaryActionOf, resolveArgs } from "../../src/ai-ui/live.mjs";
 import { classifierMetric, dryModel, loadPromptSet, renderReport, runEval } from "./eval.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -162,7 +162,29 @@ await live.submit("anything at all");
 check("submit composes regardless of confidence", live.state.phase === "ready" && live.state.intent === null);
 live.dispose();
 
-// 10. the eval on the scripted model: the metrics it reports, the report, and the classifier on partial prompts (no model)
+// 10. slots from the sentence (en + vi), a template built from them, Tab (accept) pinning the intent, Enter's primary action
+const now = new Date(2026, 9, 15, 9, 0, 0); // Thursday 2026-10-15
+const en = extractSlots("Remind me to pay the rent tomorrow at 4 pm with Linh at Lotus Cafe", { now });
+check("extractSlots reads title, date, time, people and place (en)", en?.title === "Pay the rent" && en.date === "2026-10-16" && en.time === "16:00" && en.people?.join() === "Linh" && en.place === "Lotus Cafe" && en.spans.map((x) => x.slot).join() === "date,time,people,place", JSON.stringify(en));
+const vi = extractSlots("Đặt lịch họp review với Gia lúc 9h sáng thứ sáu", { now });
+check("extractSlots reads a Vietnamese sentence (thứ sáu, 9h sáng, với Gia)", vi?.title === "Họp review" && vi.date === "2026-10-16" && vi.time === "09:00" && vi.people?.join() === "Gia" && vi.place === null, JSON.stringify(vi));
+const plain = extractSlots("buy a coffee", { now });
+check("a sentence without slots keeps its title, a bare hour reads as the afternoon, numeric dates are day-first", plain?.title === "Buy a coffee" && plain.date === null && extractSlots("call Minh at 4", { now })?.time === "16:00" && extractSlots("ship it on 12/10", { now })?.date === "2027-10-12" && extractSlots("ship it on 12/10", { now, dayFirst: false })?.date === "2026-12-10", JSON.stringify([plain, extractSlots("call Minh at 4", { now }), extractSlots("ship it on 12/10", { now })]));
+const classifyWithSlots = keywordClassifier([{ intent: "booking", words: ["schedule"], skeleton: (slots) => ({ version: 1, root: { type: "Text", id: "t", children: [slots?.title ?? "?"] } }) }], { slots: (text) => extractSlots(text, { now }) });
+const guess = classifyWithSlots("Schedule a design review tomorrow at 4 pm");
+check("keywordClassifier runs the slot extractor and builds the template from the slots", guess?.slots?.title === "Design review" && guess.slots.time === "16:00" && guess.skeleton?.root.children[0] === "Design review", JSON.stringify(guess));
+const pinLive = createLiveComposer({ classify, debounceMs: 10, stickMs: 50, onChange: () => undefined, compose: async (text, { intent }) => ({ spec: { version: 1, root: { type: "Text", id: intent, children: [text] } } }) });
+pinLive.input("schedule a review"); await sleep(60);
+check("accept() pins the intent on screen", pinLive.accept() === true && pinLive.state.pinned === true && pinLive.state.intent === "booking", JSON.stringify(pinLive.state));
+pinLive.input("schedule a review, then which invoices are overdue"); await sleep(200);
+check("a pinned intent stays while the sentence changes, and compose runs for it", pinLive.state.intent === "booking" && pinLive.state.pinned === true && pinLive.state.phase === "ready" && pinLive.state.spec?.root.children[0].endsWith("overdue"), `${pinLive.state.intent} ${pinLive.state.pinned} ${pinLive.state.phase}`);
+pinLive.reset();
+check("reset() unpins; there is nothing to accept when idle", pinLive.state.pinned === false && pinLive.accept() === false);
+pinLive.dispose();
+const primary = primaryActionOf(booking);
+check("primaryActionOf finds the primary Button's $action and resolveArgs reads the state", primary?.id === "book" && primary.action === "book" && JSON.stringify(resolveArgs(primary.args, { state: { when: { slot: "16:00" } } })) === '{"when":{"slot":"16:00"}}', JSON.stringify(primary));
+
+// 11. the eval on the scripted model: the metrics it reports, the report, and the classifier on partial prompts (no model)
 const promptSet = loadPromptSet();
 const dry = dryModel();
 const evalRun = await runEval(promptSet, { catalog, makeModel: () => dry, only: ["booking-en", "invoices-overdue", "small-talk"], concurrency: 1 });

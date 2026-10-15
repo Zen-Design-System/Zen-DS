@@ -23,4 +23,32 @@ describe("AiChatField actions", () => {
     expect(onAttach).toHaveBeenCalledTimes(1);
     expect(onVoice).toHaveBeenCalledTimes(2);
   });
+
+  // Compose while typing (2026-10-15): Tab keeps the guessed intent (onAccept) and still moves focus, never a trap;
+  // Escape clears only while the app passes onClear.
+  it("Tab accepts without trapping focus, Escape clears only with its handler", async () => {
+    const onAccept = vi.fn();
+    const onClear = vi.fn();
+    const onValueChange = vi.fn();
+    const screen = await render(<AiChatField onSubmit={() => {}} defaultValue="schedule a review" onAccept={onAccept} onClear={onClear} onValueChange={onValueChange} />);
+    const field = screen.getByRole("textbox").element() as HTMLTextAreaElement;
+    field.focus();
+    expect(field.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }))).toBe(true);
+    expect(onAccept).toHaveBeenCalledTimes(1);
+    expect(field.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true, cancelable: true }))).toBe(true);
+    expect(onAccept).toHaveBeenCalledTimes(1);
+    expect(field.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))).toBe(false);
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(onValueChange).toHaveBeenLastCalledWith("");
+    await expect.element(screen.getByRole("textbox")).toHaveValue("");
+  });
+
+  it("without the handlers Tab and Escape are left to the browser", async () => {
+    const screen = await render(<AiChatField onSubmit={() => {}} defaultValue="hello" />);
+    const field = screen.getByRole("textbox").element() as HTMLTextAreaElement;
+    field.focus();
+    expect(field.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }))).toBe(true);
+    expect(field.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))).toBe(true);
+    await expect.element(screen.getByRole("textbox")).toHaveValue("hello");
+  });
 });

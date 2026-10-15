@@ -30,7 +30,7 @@
       "name": "AiChatField",
       "status": "stable",
       "purpose": "Prompting and conversing with an assistant: a field to ask, answers to read and rate, and an empty state that suggests where to start.",
-      "props": "onSubmit placeholder? fieldStyle? model? onModelClick? onAttach? onVoice? onVoiceMode? listening? onStopListening? busy? onStop? disabled? value? defaultValue? onValueChange?"
+      "props": "onSubmit placeholder? fieldStyle? model? onModelClick? onAttach? onVoice? onVoiceMode? listening? onStopListening? busy? onStop? disabled? value? defaultValue? onValueChange? onAccept? onClear?"
     },
     {
       "name": "AiVoiceConversation",
