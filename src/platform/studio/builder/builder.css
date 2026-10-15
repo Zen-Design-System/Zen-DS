@@ -1,12 +1,29 @@
 /* A builder page on the canvas (BuilderBoard.tsx) and its runtime (proto/runtime.tsx). World coordinates. */
 .studio-builder-board { display: grid; grid-template-areas: none; grid-template-columns: max-content; grid-template-rows: none; }
-/* zen-allow-raw-spacing: canvas coordinates — frames sit 96 apart, room for their labels when zoomed out (as the board's 128). */
-.studio-builder-board__frames { display: flex; align-items: flex-start; gap: 96px; }
+/* Free frames (Figma-like): each frame sits at its own place in world px (BuilderBoard writes left / top from the page's
+   x / y, render/framePlace.ts places the rest in a row 96 apart); the box spans them for the board's size. */
+.studio-builder-board__frames { position: relative; }
+.studio-builder-board__frames > .studio-frame { position: absolute; top: 0; left: 0; }
+/* A frame gesture (frameMove.ts), in screen space over the frame chrome: Figma's red smart guides, the copy a ⌥-drag
+   drops or the box the Frame tool draws, and that box's size under it. */
+.studio-frame-move { position: absolute; z-index: 25; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-frame-move > * { position: absolute; top: 0; left: 0; box-sizing: border-box; }
+.studio-frame-move__guide { background: var(--zen-color-border-negative-solid-default); }
+.studio-frame-move__ghost { border: 1px solid var(--zen-color-border-info-solid-default); background: var(--zen-color-background-info-subtle-default); }
+.studio-frame-move__size {
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-default);
+  color: var(--zen-color-content-inverse-strongest);
+  white-space: nowrap;
+  translate: -50% var(--zen-spacing-gap-2-xsmall, 4px);
+}
+.studio-frame-move > [hidden] { display: none; }
 .studio-builder-board__errors { display: flex; max-width: 720px; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 
 /* A Screen is a page: the Canvas layer, at least a device's height. */
-.studio-builder-screen { display: flow-root; min-height: 900px; border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
-.studio-builder-screen[data-device="phone"] { min-height: 844px; }
+.studio-builder-screen { display: flow-root; min-height: var(--studio-screen-height, 900px); border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
+.studio-builder-screen[data-device="phone"] { min-height: var(--studio-screen-height, 844px); }
 /* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
    (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */
 .studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }

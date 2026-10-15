@@ -22,6 +22,7 @@ import { copyText, exampleOf, frameKind, frameLabel } from "./frames";
 import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { RowSelectField } from "./rowFields";
 import { SlotHost, useSlotFilled } from "./SlotHost";
+import { presentKeys } from "../shell/modKey";
 
 /*
  * Inspector for a selected frame (spec §6): width, theme, Present (examples) or Zoom to frame (page-sized frames), and
@@ -264,7 +265,7 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
             level={presentable ? "primary" : "tertiary"}
             size="sm"
             startIcon={presentable ? "icon-play-line" : "icon-zoom-in-line"}
-            aria-keyshortcuts="F"
+            aria-keyshortcuts={presentKeys}
             disabled={!frame}
             onClick={() => presentFrame(frameId)}
           >

@@ -559,18 +559,63 @@ export const rows = [
     },
   },
   {
-    id: "B-20", feature: "Toolbar › Screen on a page you made: a click on the canvas adds a Screen on the page's device", wp: "toolbar 2026-10-09",
+    id: "B-20", feature: "Toolbar › Frame on a page you made: a click on the canvas adds a Screen on the page's device, placed at the click", wp: "toolbar 2026-10-09, free frames 2026-10-15",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
-      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Screen", exact: true }).click();
+      await page.locator(".studio-canvas-tools").getByRole("button", { name: "Frame", exact: true }).click();
       const box = await page.locator(".studio-viewport").boundingBox();
-      await page.mouse.move(box.x + 40, box.y + box.height - 120);
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height - 160);
       await page.mouse.down();
       await page.mouse.up();
       await until(async () => (((await pageText(page, id)) ?? "").match(/<Screen\b/g) ?? []).length === 2, { message: "a second Screen" });
       const text = (await pageText(page, id)) ?? "";
       if ((text.match(/<Screen [^>]*device="phone"/g) ?? []).length !== 2) throw new Error("the new Screen is not on the page's device (phone)");
-      return "Screen tool → a second phone Screen";
+      if (!/<Screen id="screen-2"[^>]* x=\{-?\d+\} y=\{-?\d+\}/.test(text)) throw new Error("the new Screen has no place (x, y)");
+      // Placed at the click: its top-left is where the pointer was.
+      const frame = await page.locator('[data-studio-frame="screen:screen-2"]').boundingBox();
+      if (!frame || Math.abs(frame.x - (box.x + box.width / 2)) > 3 || Math.abs(frame.y - (box.y + box.height - 160)) > 3) throw new Error(`the Screen is not at the click (${frame ? `${Math.round(frame.x)},${Math.round(frame.y)}` : "none"})`);
+      return "Frame tool click → a second phone Screen at the click";
+    },
+  },
+  {
+    id: "B-37", feature: "Free frames: a Screen dragged by its name moves there (x, y in the page, one ⌘Z); ⌥-drag drops a copy and leaves the Screen", wp: "free frames 2026-10-15",
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      const label = page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]');
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      const drag = async (dx, dy, alt) => {
+        const box = await label.boundingBox();
+        const from = { x: box.x + 8, y: box.y + box.height / 2 };
+        await page.mouse.move(from.x, from.y);
+        if (alt) await page.keyboard.down("Alt");
+        await page.mouse.down();
+        for (let step = 1; step <= 6; step += 1) await page.mouse.move(from.x + (dx * step) / 6, from.y + (dy * step) / 6);
+        await page.mouse.up();
+        if (alt) await page.keyboard.up("Alt");
+      };
+      // A Screen's opening tag (its app frame's props make it several lines): x / y, null without a place.
+      const placeOf = async (screen) => {
+        const text = (await pageText(page, id)) ?? "";
+        const start = text.indexOf(`<Screen id="${screen}"`);
+        if (start < 0) return null;
+        const match = text.slice(start, text.indexOf("<Stack", start)).match(/\bx=\{(-?\d+)\}\s+y=\{(-?\d+)\}/);
+        return match ? [Number(match[1]), Number(match[2])] : null;
+      };
+      const before = await frame.boundingBox();
+      // Towards the open canvas (a drag over a side panel pans, as in Figma).
+      await drag(150, 100, false);
+      await until(async () => (await placeOf("screen-1")) !== null, { message: "screen-1 placed" });
+      const moved = await frame.boundingBox();
+      // The 3 px threshold and a snap may take a few px; the frame follows the pointer.
+      if (Math.abs(moved.x - before.x - 150) > 8 || Math.abs(moved.y - before.y - 100) > 8) throw new Error(`moved by ${Math.round(moved.x - before.x)}, ${Math.round(moved.y - before.y)} (expected 150, 100)`);
+      await drag(200, 0, true);
+      await until(async () => (await placeOf("screen-2")) !== null, { message: "a copy screen-2" });
+      const stayed = await frame.boundingBox();
+      if (Math.abs(stayed.x - moved.x) > 1 || Math.abs(stayed.y - moved.y) > 1) throw new Error("the ⌥-dragged Screen moved");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press(process.platform === "darwin" ? "Meta+z" : "Control+z");
+      await until(async () => !/<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "⌘Z takes the copy back" });
+      return "moved by its name, ⌥ copy at the drop, ⌘Z";
     },
   },
   {

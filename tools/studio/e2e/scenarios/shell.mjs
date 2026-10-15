@@ -47,7 +47,7 @@ export const rows = [
       const { page } = await ctx.studio();
       if (await page.locator(".studio-panel-head, .studio-bar").getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("a panel header still has Modes");
       await focusFrame(page, 3);
-      await page.keyboard.press("KeyF");
+      await page.keyboard.press(process.platform === "darwin" ? "Alt+Meta+Enter" : "Control+Alt+Enter");
       const exit = page.getByRole("button", { name: /Exit full screen/i });
       await exit.waitFor({ state: "visible", timeout: 4000 });
       await page.locator(".studio-present").getByRole("button", { name: "Modes", exact: true }).first().click();
