@@ -28,6 +28,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
   PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
   tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?
+- **P3 · Designer question: the mobile playground's "Sort by" Action sheet marks the current sort (2026-10-15, seen by `usage:check`, on main since 2026-10-07):** `src/platform/PlatformMobilePlaygrounds.tsx:240` passes `selectedId` to a `type="action"` BottomSheet; rule `bottom-sheet/choice-uses-list-item` warns that a single choice is a Modal sheet with `<List>` of `<ListItem selected>` rows. Keep the Action sheet (Figma shows Sort by as actions) and allow it, or switch the playground to the Modal sheet?
 - **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
   the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
   and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile
