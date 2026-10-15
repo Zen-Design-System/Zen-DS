@@ -1,4 +1,6 @@
 import { studioApi } from "../../api";
+import { studioStore } from "../../store";
+import { ensurePageDoc } from "../localApi";
 import { copyUploadsTo } from "../assets/uploads";
 import { idFromFileName } from "./pageModel";
 import { connectMirror, needsReconnect, run, SETTINGS, syncMirror, type PageMirror } from "./pageStore";
@@ -191,3 +193,19 @@ export async function unlinkFolder(): Promise<void> {
 
 /** Sync again (after an error, or files changed in the folder). */
 export const resyncPages = () => syncMirror();
+
+/*
+ * A page changed in the dev server's folder from outside this tab (an editor, an AI's file tools, another browser): the
+ * server says so over its HMR socket (vite-plugin-zen-studio.mjs, "zen-studio:pages-changed") and this tab syncs at once
+ * instead of on its next reload. When the folder's text replaced the open page, it gets its document (layer ids) again.
+ */
+async function folderChanged() {
+  await syncMirror();
+  const open = studioStore.getState().localPage;
+  if (open) await ensurePageDoc(open);
+}
+const onFolderChanged = () => { void folderChanged(); };
+if (DEV) {
+  import.meta.hot?.on("zen-studio:pages-changed", onFolderChanged);
+  import.meta.hot?.dispose(() => import.meta.hot?.off?.("zen-studio:pages-changed", onFolderChanged));
+}

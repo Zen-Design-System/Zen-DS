@@ -38,3 +38,21 @@
   .qa/reports/2026-10-15T19-13-45-310b3ec6.md): static, audit 1512/390, dark, behaviour, Studio E2E 280 works · 0 broken
   (S-03, PT-03 now reading the real bar title, PT-04…10, B-16/17). Contact sheets: docs pages unchanged. Finished; not
   committed (the supervisor gathers).
+
+## Studio MCP M1 + live folder sync (tier M, user: "làm M1 đi", "Hiện tại claude chạy xong phải refesh lại mới thấy. Không realtime được")
+
+- Cause of "refresh to see": `mcp-5173.log` had no `update` call — Claude read over MCP, then wrote
+  `.zen-studio/pages/untitled-page.zen.tsx` with its file tools (M0 had no tool to build), and a tab only synced the
+  folder on connect or "Sync with the folder". Fixed at the owner: the plugin `fs.watch`es the pages folder (Vite's
+  watcher skips node_modules, where the E2E server keeps its pages) and sends `zen-studio:pages-changed`; `mirrors.ts`
+  syncs at once and re-documents the open page (ids). Shown ≈ 200–300 ms after the write, no reload. Server
+  instructions now tell the AI never to edit page files.
+- M1 tools (branch `zen/feat/studio-mcp-m1-20261016`, worktree `../Zen-DS-mcp`): list_pages, get_node, get_code, insert,
+  replace, move, duplicate, delete, wrap, unwrap, batch (`as` / `"$name"`, one undo step, refused part-way = reverted),
+  create_page, add_frame, select, focus, open_page (20 in all). `api.ts` gains `squashEdits` / `revertEdits`; relay 60 s.
+- E2E group `mcp` (AI-01…06, `AI-` because `MC-` is Main component's): read, update + ⌘Z, insert + HTML refused, batch +
+  revert, outside file edit live, Stop. 6/6 three runs, in the baseline (AI-05 was flaky once: the tab's own rename push
+  overwrote the test's write; the row now waits for the named page in the folder, as B-36). Live tab run 22/22.
+- Gate found B-36 (old page → master layout) waiting for the unmigrated page after a manual Sync: with the watched
+  folder the page arrives already moved (as opening it does). The row now accepts either text; 2/2.
+- Not done in M1: the change highlight; the real dashboard walk with the user's Claude Code.

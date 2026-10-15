@@ -136,6 +136,23 @@ export function zenStudio() {
         const onDisk = (abs) => { void diskChanged(abs); };
         server.watcher.on("change", onDisk);
         server.watcher.on("add", onDisk);
+        // A builder page changed in the pages folder from outside a tab (an editor, an AI's file tools, another browser):
+        // the open tabs sync with the folder at once (builder/store/mirrors.ts) instead of on their next reload. Watched
+        // with fs.watch, not Vite's watcher, which skips a folder under node_modules (the E2E server's pages).
+        const pagesAbs = path.join(root, process.env.ZEN_STUDIO_PAGES_DIR || PAGES_DIR);
+        let pagesTimer = null;
+        try {
+          fs.mkdirSync(pagesAbs, { recursive: true });
+          const pagesWatcher = fs.watch(pagesAbs, (_event, name) => {
+            if (!String(name ?? "").endsWith(".zen.tsx")) return;
+            clearTimeout(pagesTimer);
+            pagesTimer = setTimeout(() => server.ws.send({ type: "custom", event: "zen-studio:pages-changed", data: {} }), 150);
+          });
+          pagesWatcher.on("error", () => pagesWatcher.close());
+          server.httpServer?.once("close", () => { clearTimeout(pagesTimer); pagesWatcher.close(); });
+        } catch (error) {
+          logger.warn?.(`[zen-studio] pages folder not watched (${error?.message ?? error}): open tabs see outside changes on reload`);
+        }
       }
       // The Studio MCP (mcp/server.mjs): AI clients call /__zen-studio/mcp, the open Studio tab runs each call.
       const relay = createRelay();
