@@ -232,8 +232,17 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
 
   return (
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes)}>
+      <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
+        viewport={viewport} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}
+        leading={<>
+          <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
+          <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
+        </>} />
+      {/* The page under the bar (Present's): the device scrolls in it, never under the bar. */}
+      <div className="studio-present__page">
       <ProtoContext value={actions}>
       <PageOsContext value={os}>
+      <div className="studio-present__scroll">
         <div ref={stageRef} className="studio-player__stage">
           <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
             <div ref={deviceRef} onPointerDownCapture={showHotspots} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
@@ -285,14 +294,10 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
             <ViewportHandles viewport={viewport} fit={fit} onChange={setViewport} />
           </div>
         </div>
+      </div>
       </PageOsContext>
       </ProtoContext>
-      <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
-        viewport={viewport} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}
-        leading={<>
-          <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
-          <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
-        </>} />
+      </div>
     </div>
   );
 }

@@ -19,6 +19,11 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio Present and Play (2026-10-16, user: "thanh … giống của trình duyệt để view load bên trong khung"): the
+  floating bottom pill is now a browser-style bar across the top (navigation, the screen's name in an address pill,
+  light/dark, Viewport, Modes, Exit), and the screen loads in the frame below it, so the bar never covers it; a
+  full-screen page, its Dialogs and AppShell's sticky columns fill that frame. Viewport and Modes drop down below their
+  button.
 - Zen Studio Layers has no Refresh button (2026-10-15, user): the tree already rebuilds on page, source and DOM changes,
   and now also when a text changes on the canvas (a text layer is named by its words), as Figma's layers follow the
   canvas.

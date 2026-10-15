@@ -134,7 +134,7 @@ export const rows = [
       await page.keyboard.press("Escape");
       await page.keyboard.press("p");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
-      const title = (await playing(page).locator(".platform-fullscreen-bar").innerText().catch(() => "")).split("\n")[0].trim();
+      const title = (await playing(page).locator(".studio-present-bar__title").innerText()).trim();
       if (/ · /.test(title)) throw new Error(`the bar repeats the name: "${title}"`);
       const device = await playing(page).locator(".studio-player__device").boundingBox();
       await page.mouse.click(device.x + device.width / 2, device.y + device.height / 2);
