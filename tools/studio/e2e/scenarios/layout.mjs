@@ -1,5 +1,5 @@
 // Auto layout / Layout section rows (WP-D, redesign spec Phases 3, 4, 6; Figma-language spec 2026-10-09 §3): Flow with
-// the Wrap toggle, the alignment box, Gap with Auto, the cross axis, Padding H / V, Clip content, Grid gaps, Grid columns
+// Wrap in Flow, the alignment box, Gap with Auto, the cross axis, Padding H / V, Clip content, Grid gaps, Grid columns
 // (plain and per breakpoint) and the no-effect warnings. Each gesture is one write.
 import { inspectorRow, sleep, until } from "../lib/studio.mjs";
 import { expectSource, freshSelect, pickOption, scaleStep } from "./inspector.mjs";
@@ -19,7 +19,7 @@ const has = (text, pattern) => pattern.test(text);
 
 export const rows = [
   {
-    id: "L-01", feature: "Flow: the Wrap toggle writes direction row + wrap in one edit; Vertical removes both", wp: "WP-D",
+    id: "L-01", feature: "Flow: Wrap (the third Flow segment, Figma UI3) writes direction row + wrap in one edit; Vertical removes both", wp: "WP-D",
     async run(ctx) {
       const page = await selectRowStack(ctx);
       await inspectorRow(page, "direction").getByRole("button", { name: "Wrap" }).click();
@@ -150,13 +150,13 @@ export const rows = [
     id: "L-07", feature: "Grid gap: separate row and column gaps, then one gap again", wp: "WP-D",
     async run(ctx) {
       const page = await selectGrid(ctx);
-      await page.locator("#studio-right").getByRole("button", { name: "Separate row and column gaps" }).click();
+      // The mode is a command in the gap field's own list (Figma keeps "Auto" there), not a link icon beside it.
+      await pickOption(page, "gap", "Separate row and column gaps");
       await until(async () => (await inspectorRow(page, "columnGap").count()) > 0, { message: "column and row gap fields" });
       await pickOption(page, "columnGap", scaleStep("lg"));
       await expectSource(ctx, "grid", (el) => el.attr("columnGap") === "lg" && el.attr("gap") === "md", "columnGap lg, gap kept");
       await sleep(300);
-      await page.locator("#studio-right").getByRole("button", { name: "Use one gap" }).click();
-      await page.getByRole("menuitem", { name: "Use lg for both" }).click();
+      await pickOption(page, "columnGap", "Use lg for both");
       await expectSource(ctx, "grid", (el) => el.attr("gap") === "lg" && el.attr("columnGap") === undefined, "gap lg, columnGap removed");
       return "columnGap lg → one gap lg";
     },

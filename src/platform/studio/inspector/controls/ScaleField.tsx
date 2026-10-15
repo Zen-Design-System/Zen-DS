@@ -66,7 +66,7 @@ export function ScaleTrail({ px }: { px: number | null }) {
   );
 }
 
-export function ScaleField({ label, prop, scale, options, value, fallback, disabled, onSet, onReset, extras = [], leading, placeholder }: {
+export function ScaleField({ label, prop, scale, options, value, fallback, disabled, onSet, onReset, extras = [], actions = [], leading, placeholder }: {
   label: string;
   /** The prop's name: while unset, what it renders with is measured on the element (Horizontal padding from Padding). */
   prop: string;
@@ -83,6 +83,9 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   onReset?: () => void;
   /** Items above the ladder that are not steps (the gap list's "Auto"); `value` may name one. ↑/↓ skip them. */
   extras?: Array<{ key: string; label: string }>;
+  /** Commands at the top of the list (where Figma keeps "Auto"), not values (a Grid gap's "Separate row and column gaps" / "Use one gap"): picking
+   *  one runs it, the field keeps its value. Figma keeps such a mode in the field's own list, not an icon beside it. */
+  actions?: Array<{ key: string; label: string; run: () => void }>;
   /** A leading icon naming the field (Figma's gap / padding glyphs). */
   leading?: IconName;
   /** Shown while unset instead of the effective step ("Mixed · 16 / 4" when the axes differ). */
@@ -192,8 +195,13 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
         value={pending ?? matched ?? ""}
         placeholder={placeholder ?? (effective !== undefined ? text(effective) : "—")}
         onPopoverOpenChange={(next) => { open.current = next; setListOpen(next); if (!next) rowKey.current = null; }}
-        onValueChange={(next) => { setPending(null); if (next !== matched) onSet(next); }}
-        options={[...extras.map((item) => ({ value: item.key, label: item.label })), ...ladder.map((key) => ({ value: key, ...step(key) }))]}
+        onValueChange={(next) => {
+          setPending(null);
+          const action = actions.find((item) => item.key === next);
+          if (action) action.run();
+          else if (next !== matched) onSet(next);
+        }}
+        options={[...actions.map((item) => ({ value: item.key, label: item.label })), ...extras.map((item) => ({ value: item.key, label: item.label })), ...ladder.map((key) => ({ value: key, ...step(key) }))]}
       />
     </div>
   );

@@ -40,8 +40,9 @@ function useWritable() {
   return editable && server.ready && server.writable;
 }
 
-/** The Zen mark and its menu: shortcuts, light/dark, panels, classic docs, log out (and, on a phone, undo/redo/role). */
-export function BrandMenu({ layout }: { layout: PanelLayout }) {
+/** The Zen mark and its menu: shortcuts, light/dark, panels, classic docs, log out (and, on a phone, undo/redo/role).
+ * `compact`: the mark and a chevron only (corner bars, a phone's drawer); else "Zen Studio" beside the mark. */
+export function BrandMenu({ layout, compact = false }: { layout: PanelLayout; compact?: boolean }) {
   const { phone } = layout;
   const ui = useStudio((state) => state.panels.ui);
   const chromeTheme = useStudio((state) => state.chromeTheme);
@@ -72,14 +73,17 @@ export function BrandMenu({ layout }: { layout: PanelLayout }) {
         ] : []),
       ]}
       // zen-allow-no-action: the Menu's trigger (Menu wires its click and keys).
-      // The mark and a chevron, as Figma UI3's file menu; the name is the button's accessible name.
-      trigger={<Button className="studio-brand" appearance="flat" level="primary" size="sm" aria-label="Zen Studio menu" endIcon={<Icon name="icon-chevron-down-line" decorative />}><Icon name="icon-zen" decorative /></Button>}
+      // As Figma UI3's file menu: the mark, the name, a chevron (the mark and the chevron alone where room is short).
+      trigger={compact
+        ? <Button className="studio-brand" appearance="flat" level="primary" size="sm" aria-label="Zen Studio menu" endIcon={<Icon name="icon-chevron-down-line" decorative />}><Icon name="icon-zen" decorative /></Button>
+        : <Button className="studio-brand" appearance="flat" level="primary" size="sm" aria-label="Zen Studio menu" startIcon={<Icon name="icon-zen" decorative />} endIcon={<Icon name="icon-chevron-down-line" decorative />}>Zen Studio</Button>}
     />
   );
 }
 
-/** Document | Studio: the docs pages or the pages made in the Studio. */
-export function SpaceSwitch() {
+/** Document | Studio: the docs pages or the pages made in the Studio. `floating`: the pill at the top centre of the
+ * canvas (it hugs its labels); else it fills the left header (a phone's drawer). */
+export function SpaceSwitch({ floating = false }: { floating?: boolean }) {
   const space = useStudio((state) => state.space);
   const localPage = useStudio((state) => state.localPage);
   return (
@@ -88,7 +92,7 @@ export function SpaceSwitch() {
       aria-label="Space"
       size="sm"
       level="secondary"
-      fullWidth
+      fullWidth={!floating}
       value={localPage ? "studio" : space}
       // Studio reopens the page made last, while it is still there.
       onValueChange={(next) => setSpace(next === "studio" ? "studio" : "document", (id) => Boolean(cachedPage(id)))}
@@ -102,16 +106,22 @@ export function DrawerClose({ label }: { label: string }) {
   return <IconButton className="studio-drawer__close" appearance="flat" level="primary" size="sm" aria-label={label} icon={<Icon name="icon-x-line" />} onClick={() => studioStore.setState({ drawer: null })} />;
 }
 
-/** The left panel's header: the brand menu and the Document | Studio switch (and Close while it is a drawer with no tab
- * row; with one, Close ends the tab row so the switch keeps its room). */
+/** The left panel's header: the brand menu (and Close while it is a drawer with no tab row; with one, Close ends the
+ * tab row). Document | Studio floats at the top centre of the canvas (SpaceBar; user, 2026-10-15: in the header it was
+ * cut to "Docu…"), except on a phone, where it stays here. */
 export function LeftHeader({ layout, drawer }: { layout: PanelLayout; drawer: boolean }) {
   return (
     <div className="studio-panel-head">
-      <BrandMenu layout={layout} />
-      <SpaceSwitch />
+      <BrandMenu layout={layout} compact={layout.phone} />
+      {layout.phone ? <SpaceSwitch /> : null}
       {drawer ? <DrawerClose label="Close pages and layers" /> : null}
     </div>
   );
+}
+
+/** Document | Studio as a floating pill at the top centre of the part of the canvas the panels leave. */
+export function SpaceBar() {
+  return <SpaceSwitch floating />;
 }
 
 /** The admin's drafts (count · Save all) or the viewer's "drafts shown" note, and the read-only chip. */
@@ -158,7 +168,7 @@ export function CollapsedLeftBar({ layout }: { layout: PanelLayout }) {
   const drawer = useStudio((state) => state.drawer);
   return (
     <div className="studio-bar studio-bar--left">
-      <BrandMenu layout={layout} />
+      <BrandMenu layout={layout} compact />
       <IconButton appearance="flat" level="primary" size="sm" aria-label="Pages and layers" aria-expanded={drawer === "left"} aria-controls="studio-left" icon={<Icon name="icon-layout-left-line" />} onClick={() => studioStore.setState({ drawer: drawer === "left" ? null : "left" })} />
     </div>
   );

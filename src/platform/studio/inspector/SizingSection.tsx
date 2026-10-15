@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { useWords } from "../useWords";
-import { Button } from "../../../components/Button";
 import { Divider } from "../../../components/Divider";
 import { Icon } from "../../../components/Icon";
+import { InlineMessage } from "../../../components/InlineMessage";
 import { InputField, InputLeadingTrailing } from "../../../components/Input";
 import { Popover, PopoverItem } from "../../../components/Popover";
 import { Segmented } from "../../../components/Segmented";
@@ -362,15 +362,10 @@ function SizeGroup({ api, specs, component, host, src }: LayoutGroupProps & { sr
         <AlignInParent value={alignValue} info={info} disabled={disabled} onWrite={send} />
       ) : null}
       {names.has("alignSelf") && !parentLaysOut && alignValue.state === "literal" ? (
-        <div className="studio-sizing__warning">
-          <p className={`studio-sizing__note ${typographyStyles["Body/Small/Regular"]}`}>
-            <Icon name="icon-alert-triangle-line" size="sm" decorative />
-            Align in parent needs a Stack or Grid parent.
-          </p>
-          {/* zen-allow-compact-button: a quiet fix next to a one-line warning in a dense tool panel (spec: no-effect warnings) */}
-          {/* zen-allow-destructive: removes a prop that does nothing here, as one undoable draft edit; not an irreversible delete */}
-          <Button appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => send(alignSelfOps(null, alignValue))}>Remove</Button>
-        </div>
+        // A no-effect warning with its fix: Zen's Inline-Message (Warning), the fix as its Action (one undoable draft edit).
+        <InlineMessage theme="warning" className="studio-inspector__warning" action={disabled ? undefined : { label: "Remove", onClick: () => send(alignSelfOps(null, alignValue)) }}>
+          Align in parent needs a Stack or Grid parent.
+        </InlineMessage>
       ) : null}
 
       {names.has("fillChildren") ? <Children value={fillValue} disabled={disabled} onWrite={send} /> : null}

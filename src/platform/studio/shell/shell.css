@@ -24,6 +24,12 @@
 .studio-panel-head__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }
 .studio-panel-head__end { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-inline-start: auto; }
 .studio-brand .zen-icon { color: var(--zen-color-content-neutral-strongest, #111); }
+/* Role · Undo / Redo · drafts count · Save all is wider than a 320px Inspector (Save all ran out of the panel, user
+   2026-10-15): below 360px, while drafts are listed, the role button keeps its avatar and chevron (its name stays its
+   accessible name and in its menu). */
+@container studio-right (max-width: 359px) {
+  .studio-panel-head:has(.studio-drafts) .studio-role .zen-badge { display: none; }
+}
 .studio-role .zen-badge { pointer-events: none; }
 
 /* ── Corner bars: what stays of a panel that is not docked (narrow window, or hidden with ⌘\) ── */
@@ -42,6 +48,22 @@
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
 .studio-bar--left { left: var(--studio-edge); }
+/* Document | Studio: a pill at the top centre of the visible canvas (between the docked panels), as the canvas tools are
+   at its bottom centre; auto margins centre it (no translateX(-50%) half pixel). */
+.studio-space-bar {
+  position: absolute;
+  z-index: 22;
+  top: var(--studio-edge);
+  right: var(--studio-inset-right, 0px);
+  left: var(--studio-inset-left, 0px);
+  width: max-content;
+  margin-inline: auto;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-color-background-surface-default, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+}
 .studio-bar--right { right: var(--studio-edge); }
 
 /* ── Side panels ── */

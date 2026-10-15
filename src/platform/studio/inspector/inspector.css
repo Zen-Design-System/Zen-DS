@@ -114,7 +114,14 @@
   line-height: var(--zen-typography-line-height-body-small);
   letter-spacing: var(--zen-typography-letter-spacing-body-small);
 }
-.studio-inspector__row-hint { grid-column: 2 / -1; color: var(--zen-color-content-neutral-base); }
+/* A row's hint is its field's Help-Text (Zen Input: Caption/Regular in Content/Neutral/Light, Input/Spacing/Small/
+   Outside-Field-Gap under the field), smaller than the field's own text; it read as a stray line flush under it (user,
+   2026-10-15). */
+.studio-inspector__row:has(> .studio-inspector__row-hint) { row-gap: var(--zen-input-spacing-small-outside-field-gap, 4px); }
+.studio-inspector__row-hint { margin: 0; grid-column: 2 / -1; color: var(--zen-color-content-neutral-light); }
+/* A no-effect warning (Properties, Size, Position): Zen's Inline-Message (Warning), ending where the fields end (the icon
+   column stays free), its fix as the message's Action. Replaces the hand-drawn warning pills (user, 2026-10-15). */
+.studio-inspector .studio-inspector__warning.zen-inline-message { width: auto; margin-inline-end: calc(var(--zen-button-size-xsmall, 24px) + var(--zen-spacing-gap-xsmall, 8px)); }
 
 /* Figma Input/Inline-Field (user, 2026-10-15): a field that took its row's label (Section.tsx useInlineLabel) draws it
    inside on the left, the value at the end, across both field columns; the icon column stays. The row's own label stays
@@ -153,6 +160,10 @@
 .studio-fields [data-col="wide"] { grid-column: 1 / 3; }
 /* The icon sits beside the first line of fields (Figma: at the top of the alignment box's row). */
 .studio-fields__icon { display: inline-flex; min-height: var(--zen-input-size-small, 32px); grid-column: 3; grid-row: 1; align-items: center; justify-content: center; }
+/* A row with no label above is one field-height line (the icon cell keeps it 32px): its control sits in the middle, so a
+   shorter one (a labelled Toggle, 20px) keeps the 8px rhythm of the rows around it instead of 8px above and 20px below
+   (user, 2026-10-15: Top / Bottom navigation under Device). */
+.studio-fields:not([data-labelled="true"]) { align-items: center; }
 .studio-fields[data-labelled="true"] > .studio-fields__icon { grid-row: 2; }
 /* A plain row in a section on the field grid: the label above (one line), the control across the two field columns, its
    action in the icon column — the same edges as InspectorFields. */
