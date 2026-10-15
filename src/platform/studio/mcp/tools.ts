@@ -201,7 +201,9 @@ async function getNode(args: Args): Promise<ToolAnswer> {
   if (isDone(layer)) return layer.answer;
   const element = await studioApi.element(page.file, layer.loc);
   const props = Object.fromEntries((element?.attributes ?? []).filter((attr) => attr.name !== "data-zen-id").map((attr) => [attr.name, attr.kind === "string" ? attr.value : attr.kind === "true" ? true : { code: attr.value ?? attr.raw }]));
-  const slots = Object.entries(layer.node.props).filter(([, value]) => value.kind === "element").map(([name, value]) => ({ prop: name, layer: value.kind === "element" ? `${value.node.name} #${value.node.id}` : "" }));
+  // A slot holds one layer, or several (a fragment, 2026-10-16): each listed by its component and id.
+  const slots = Object.entries(layer.node.props).flatMap(([name, value]) => (value.kind === "element" ? [{ prop: name, layer: `${value.node.name} #${value.node.id}` }]
+    : value.kind === "fragment" ? value.children.flatMap((child) => (child.kind === "element" ? [{ prop: name, layer: `${child.name} #${child.id}` }] : [])) : []));
   const parent = layer.parent;
   const index = parent ? childLayers(parent).findIndex((child) => child.id === layer.node.id) : -1;
   return answer(JSON.stringify({
