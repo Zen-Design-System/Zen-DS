@@ -17,3 +17,34 @@
 - Removed stale worktrees: Zen-DS-chart-grid, -listbox-theme, -sidepanel, -vibe, -color, -curve, -pr53.
 - Still open, for the user: the UI Foundations deck branches (claude/eloquent-ptolemy-lhe433,
   claude/gallant-brown-x2gmlu) — whether they belong in this repo.
+
+## Header slots as Figma's, hide / show, Empty page; the desktop ⇄ mobile header rule (tier L, session "Header chỉnh sửa và responsive design")
+
+- Research (4 read-only reports: Studio editability, live Figma `9nZv4uW2…`, the code's desktop → mobile, other
+  systems) → `docs/research/responsive-header-spec-2026-10-16.md`. The user chose: P2 → P1 → P3+P4; a prop holds
+  several layers for real; account avatar in Top-Leading on mobile; Sidebar > 5 → first 4 + More.
+- Root causes of "headers not editable": a builder page refused fragments in props (a one-layer slot could not take a
+  second); switches deleted content and switched back on with starting code; missing slots (DashboardHeader leading /
+  children, AppShell banner).
+- P2: usage rules §17, skill `skills/zen-responsive-screens` (+ worked examples from Expenses, HR Home, Invoice detail),
+  pointers in zen-component-usage, zen-figma-design (AI kit), AGENTS.consumer rule 13. `ai-kit:check` 107 ✓.
+- P1: dialect Value `fragment` (dialect, doc, renderer, compile, MCP outline, proto model, handoff, starters snapshot →
+  a template's several elements are a fragment); push maps a fragment to the transparent row Stack it drew before.
+  `tools/studio/visibility.mjs` (`hidden` true | "mobile" | "desktop", `hiddenSlots`, `pruneHidden`): renderer skips by
+  the frame's layout, compile and push prune; Layers lists not-drawn layers from the page tree (edit/visibility.ts,
+  `addHiddenRows`) with an eye; ⇧⌘H; layer menu Hide / Hide on mobile / desktop; Inspector and Screen-section switches
+  write `hiddenSlots`. Registry: dashboardLeading, dashboardCustom (`:scope` container; palette selftest reads the root
+  class and `:not()` rules), appShellBanner; FRAME_PARTS + banner, headerCenter; Figma-name labels (propSchema).
+- Empty page (user, mid-session): `newPageText` / `frameCode` `empty`; New page › Empty page; Frame tool draws empty.
+- Checks: studio:selftest all ✓ (doc 135, visibility 13, palette 2344, builder 68, push 246, compile 50); E2E B-38…B-41
+  works (empty page, ⌘D into a one-layer top bar, ⇧⌘H + Layers eye + mobile/desktop-only texts, Top bar actions
+  off/on keeps the three layers). Next: P3 (AppShell `topNavigation` / `bottomNavigation`) + P4 (derive the phone
+  header in the Studio), on a follow-up branch.
+- Chart bars (user, mid-session, screenshots of GroupedBarChart and ComboChart): `chart.css` group bars
+  `flex: 0 1 clamp(12px, (70% − gaps) / --zen-chart-series, 32px)` (GroupedBarChart sets `--zen-chart-series`), combo
+  bars `min(100%, clamp(20px, 50%, 40px))`: Figma's 12 / 20px at a ~45px column, wider with room.
+- Gate 1: 5 E2E rows asserted the old delete-on-switch / no-fragment behaviour (B-25, SP-19…22): updated to hide-and-keep
+  (hiddenSlots, a hidden template Page header) and fragment actions; a real bug on the way: the Inspector read
+  `hiddenSlots` from `raw` (the whole attribute) → `slotsOffValue` now reads the list from the expression. The Layers eye
+  takes Zen's icon tooltip (`LayerEye`, `useIconTooltip`; harness `button/icon-only-raw`). The widgets page's "9 text
+  styles" rhythm warning is not from this change (widgets.tsx untouched): left to its owner.
