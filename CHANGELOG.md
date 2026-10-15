@@ -289,6 +289,8 @@ removed (four unused colour ramps were, see Removed).
   Component Theme picks its 9 modes in a SelectField instead of a Segmented that ran off the page; a Segmented stays for
   2–5 modes. The platform audit now visits every token collection page and fails a rendered Segmented with more than 5
   (or fewer than 2) items (kind `counts`), which the static `segmented/option-count` cannot count when options are computed.
+- Zen Studio toolbar (2026-10-15, user): with Stack, Text or Image on, a click on another tool switches to it again;
+  before, the floating toolbar sat over the canvas, the placement took the click, and only the shortcut keys worked.
 - Zen Studio Interact, zoomed in or out (2026-10-15, user): an example's overlays stay in its frame and zoom with it. A
   Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
   and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole
