@@ -536,9 +536,9 @@ export function StudioApp() {
               )}
             </ZenPortalProvider>
           </StudioBridgeContext>
-          {/* Overlays of the examples (Dialog, Side Panel, Toast, Tooltip, Popover…): unscaled, outside the world, in the
-              preview modes, in a layer clipped to the canvas area (studio.css), so a modal's scrim covers the canvas and
-              leaves the Studio chrome usable. The class official-portal-root is what examples and the full-screen code
+          {/* The canvas's overlay layer: unscaled, outside the world, in the preview modes, clipped to the canvas area
+              (studio.css). Each frame holds its own example's overlays since 2026-10-15 (StudioFrame: in the world, so they
+              zoom with it); this layer takes what renders outside a frame, and a frame's portals until its layer mounts. The class official-portal-root is what examples and the full-screen code
               look for. data-zen-isolation-root: a modal's isolation (inert) stays inside this layer, so the canvas keeps
               taking Studio's clicks (Select, E2E O-02/O-04) and the chrome stays usable. */}
           <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" {...previewAttributes(preview)} />

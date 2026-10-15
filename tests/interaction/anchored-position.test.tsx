@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { Popover, ZenProvider, type PopoverProps } from "../../src/index";
 import { clampAnchoredLeft } from "../../src/components/Popover/useAnchoredPosition";
+import { fixedLayerSpace } from "../../src/components/_shared/layer-space";
 
 describe("clampAnchoredLeft", () => {
   it("shifts a surface that runs off the right edge back to the 8px margin", () => {
@@ -36,23 +37,36 @@ describe("Popover placement", () => {
     );
   }
 
-  it("leaves a surface in a transform-scaled frame where it was (a docs phone preview: no shift)", async () => {
-    function Scaled() {
-      const anchor = useRef<HTMLButtonElement>(null);
-      return (
-        <div className="scaled-frame" style={{ position: "relative", width: 1200, height: 400, transform: "scale(0.5)", transformOrigin: "top left" }}>
-          <button ref={anchor} type="button" style={{ position: "absolute", top: 100, left: 1000, width: 80 }}>Anchor</button>
-          <Popover open anchorRef={anchor} aria-label="Scaled" style={{ width: 2400, maxWidth: "none" }}><span>Wide content</span></Popover>
-        </div>
-      );
-    }
-    const screen = await render(<ZenProvider><Scaled /></ZenProvider>);
+  // A transform-scaled frame (a docs phone preview, a Zen Studio frame at its zoom: 2026-10-15). The rects are viewport px
+  // and the offsets the frame's own px: before, a surface was written at the viewport distance (half-way to its anchor at
+  // 0.5) and never shifted. Measured on screen, so the assertions hold whatever the units.
+  function Scaled({ left, width }: { left: number; width?: number }) {
+    const anchor = useRef<HTMLButtonElement>(null);
+    return (
+      <div className="scaled-frame" style={{ position: "relative", width: 1200, height: 400, transform: "scale(0.5)", transformOrigin: "top left" }}>
+        <button ref={anchor} type="button" style={{ position: "absolute", top: 100, left, width: 80 }}>Anchor</button>
+        <Popover open anchorRef={anchor} aria-label="Scaled" style={width ? { width, maxWidth: "none" } : undefined}><span>Content</span></Popover>
+      </div>
+    );
+  }
+
+  it("places a surface under its anchor inside a transform-scaled frame", async () => {
+    const screen = await render(<ZenProvider><Scaled left={300} /></ZenProvider>);
     const surface = () => document.querySelector<HTMLElement>(".zen-popover");
     await expect.poll(() => surface()?.style.left ?? "").not.toBe("");
-    const frame = document.querySelector<HTMLElement>(".scaled-frame")!.getBoundingClientRect();
     const anchor = (screen.getByRole("button", { name: "Anchor" }).element() as HTMLElement).getBoundingClientRect();
-    // Anchored at its start edge as before the clamp existed, not pulled toward the viewport's margin.
-    expect(parseFloat(surface()!.style.left)).toBeCloseTo(anchor.left - frame.left, 0);
+    const rect = surface()!.getBoundingClientRect();
+    expect(rect.left).toBeCloseTo(anchor.left, 0);
+    expect(rect.top).toBeGreaterThanOrEqual(anchor.bottom);
+    expect(rect.top - anchor.bottom).toBeLessThan(8);
+  });
+
+  it("shifts a surface wider than the room on both sides into view inside a transform-scaled frame", async () => {
+    await render(<ZenProvider><Scaled left={1000} width={2400} /></ZenProvider>);
+    const surface = () => document.querySelector<HTMLElement>(".zen-popover");
+    await expect.poll(() => surface()?.style.left ?? "").not.toBe("");
+    const rect = surface()!.getBoundingClientRect();
+    expect(rect.left).toBeGreaterThanOrEqual(8 - 0.5);
   });
 
   for (const align of ["start", "end"] as const) {
@@ -112,5 +126,26 @@ describe("Popover width", () => {
     await expect.poll(surfaceWidth).toBeCloseTo(360, 0);
     await screen.rerender(<ZenProvider><Anchored anchorWidth={200} width={120} /></ZenProvider>);
     await expect.poll(surfaceWidth).toBeCloseTo(240, 0);
+  });
+});
+
+/** fixedLayerSpace (2026-10-15): where a `position: fixed` layer (Tooltip, the Sidebar rail tooltip, the Table editor
+ * bubble) is drawn from: the viewport on a normal page, a transform-scaled frame's padding box at its scale inside one. */
+describe("fixedLayerSpace", () => {
+  it("is the viewport without a containing block", async () => {
+    await render(<div className="plain-host" />);
+    expect(fixedLayerSpace(document.querySelector(".plain-host"))).toEqual({ left: 0, top: 0, scale: 1 });
+  });
+  it("is a transform-scaled frame's origin and scale inside one", async () => {
+    await render(
+      <div className="scaled-host" style={{ position: "absolute", top: 30, left: 40, width: 400, height: 200, transform: "scale(0.5)", transformOrigin: "top left" }}>
+        <div className="scaled-child" />
+      </div>,
+    );
+    const host = document.querySelector<HTMLElement>(".scaled-host")!.getBoundingClientRect();
+    const space = fixedLayerSpace(document.querySelector(".scaled-child"));
+    expect(space.scale).toBeCloseTo(0.5, 3);
+    expect(space.left).toBeCloseTo(host.left, 1);
+    expect(space.top).toBeCloseTo(host.top, 1);
   });
 });

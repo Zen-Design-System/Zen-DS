@@ -58,7 +58,8 @@
 /* A document page: the right panel is its header alone, a bar that hugs its controls. */
 .studio-right[data-bar="true"] { bottom: auto; width: max-content; max-width: calc(100% - var(--studio-inset-left) - 3 * var(--studio-edge)); }
 
-/* The examples' overlay layer (Interact): it covers the canvas area only. Layout containment makes it the containing
+/* The canvas's overlay layer (overlays outside a frame; each frame holds its own example's, StudioFrame): it covers the
+   canvas area only. Layout containment makes it the containing
    block of its fixed overlays — a Dialog, Side Panel or Bottom Sheet and its scrim, the toast stack — so they cover and
    centre on the canvas, and paint containment clips them to it; the toolbar and side panels stay usable. The layer
    takes no pointer events itself; its overlays do (zero specificity: a surface that opts out, like a tooltip, keeps it). */
