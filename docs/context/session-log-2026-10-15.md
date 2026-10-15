@@ -342,3 +342,13 @@ the Studio mode; Emphasis Light.
   with the user's own Claude Code (needs `claude mcp add`).
 - Gate: `npm run qa -- --isolated --files=<the 14 edited files>` PASS (static gates, Studio self-tests, tsc, Studio E2E
   270 works · 0 broken).
+
+## Studio placement tool stuck on the toolbar (tier S, user screenshot: "Lỗi kẹt tool … chỉ đổi được bằng phím tắt")
+
+- Cause: `edit/place.ts` (Stack · Text · Image) caught every press inside the canvas box (capture on window, stopped,
+  click swallowed). Since the UI3 floating shell the toolbar, side panels and their menus sit inside that box, so a
+  click on another tool never reached it. The Frame tool (`builder/frameMove.ts`) already skipped `.studio-chrome`.
+- Fix: `onCanvas(event)` = inside the box and the target not in `.studio-chrome` / `.studio-chrome-portal`; used for
+  move, down and up (hovering the chrome hides the insertion line).
+- Probe (Playwright on :5173, toolbar clicks only): Image/Stack/Text → click Move, Hand, Interact, Image: 11/11 switch;
+  hover on the canvas still shows the placement label; 0 page errors.

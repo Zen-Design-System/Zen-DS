@@ -21,16 +21,20 @@ const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, or
 type Placing = { label: string; item: Insertable | null; run: (() => void) | null; target: DropTarget | null; refusal: string | null };
 let placing: Placing | null = null;
 
-const overCanvas = (x: number, y: number) => {
+/** The pointer is on the canvas itself: inside its box and not on the chrome floating over it (the toolbar, the side
+ *  panels, their menus and tooltips), which keeps its own clicks, so another tool can be picked while this one is on. */
+const onCanvas = (event: PointerEvent) => {
   const box = getViewportBox();
-  return x >= box.left && x <= box.left + box.width && y >= box.top && y <= box.top + box.height;
+  const { clientX: x, clientY: y } = event;
+  if (x < box.left || x > box.left + box.width || y < box.top || y > box.top + box.height) return false;
+  return !(event.target instanceof Element && event.target.closest(".studio-chrome, .studio-chrome-portal"));
 };
 
 function onMove(event: PointerEvent) {
   const current = placing;
   if (!current) return;
   const pointer = { x: event.clientX, y: event.clientY };
-  if (!overCanvas(pointer.x, pointer.y)) {
+  if (!onCanvas(event)) {
     current.target = null;
     publishDragView(null);
     return;
@@ -53,14 +57,14 @@ function onMove(event: PointerEvent) {
 
 /** The press is the placement's own: the canvas neither selects nor starts a marquee under it. */
 function onDown(event: PointerEvent) {
-  if (!placing || event.button !== 0 || !overCanvas(event.clientX, event.clientY)) return;
+  if (!placing || event.button !== 0 || !onCanvas(event)) return;
   event.preventDefault();
   event.stopPropagation();
 }
 
 function onUp(event: PointerEvent) {
   const current = placing;
-  if (!current || event.button !== 0 || !overCanvas(event.clientX, event.clientY)) return;
+  if (!current || event.button !== 0 || !onCanvas(event)) return;
   event.preventDefault();
   event.stopPropagation();
   // The click that follows this release is the placement's too.
