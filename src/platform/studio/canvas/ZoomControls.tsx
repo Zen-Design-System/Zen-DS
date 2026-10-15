@@ -1,14 +1,13 @@
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu, type MenuEntry } from "../../../components/Menu";
-import { ChromeScope } from "../shell/ChromeScope";
 import { useStudio } from "../store";
 import { modKey } from "../shell/modKey";
 import { canvasApi, formatZoom, useCanvasZoom, zoomIn, zoomOut } from "./viewport";
 import { zoomToSelection } from "./zoomToSelection";
 import "./canvas.css";
 
-/** The zoom percentage and its menu (toolbar and the canvas pill). */
+/** The zoom percentage and its menu (the Inspector's tab row, as Figma UI3's; the collapsed Inspector bar). */
 export function ZoomMenu({ align = "end", size = "sm" }: { align?: "start" | "end"; size?: "xs" | "sm" }) {
   const zoom = useCanvasZoom();
   const hasSelection = useStudio((state) => state.selection !== null);
@@ -29,17 +28,5 @@ export function ZoomMenu({ align = "end", size = "sm" }: { align?: "start" | "en
       items={items}
       trigger={<Button className="studio-zoom__value" appearance="flat" level="primary" size={size} aria-label={`Zoom ${formatZoom(zoom)}`} endIcon={<Icon name="icon-chevron-down-line" decorative />}>{formatZoom(zoom)}</Button>}
     />
-  );
-}
-
-/**
- * Floating zoom pill, top-right of the canvas, as Figma's: only the percentage and its menu (XSmall). Zoom in/out, fit
- * and selection live in that menu and on their keys (⌘+ ⌘− ⇧1 ⇧2), so the pill stays out of the way.
- */
-export function ZoomControls() {
-  return (
-    <ChromeScope className="studio-zoom" role="toolbar" aria-label="Zoom">
-      <ZoomMenu size="xs" />
-    </ChromeScope>
   );
 }

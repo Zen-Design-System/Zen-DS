@@ -1,11 +1,12 @@
 /* Zen Studio inspector (spec §6): compact rows, label left, control right, sections split by Pale hairlines. */
 
 /* The panel is resizable (280–720px): the label column grows with it, within readable bounds. */
-.studio-inspector { --studio-inspector-label: clamp(80px, 28%, 120px); display: flex; height: 100%; min-height: 0; flex-direction: column; background: var(--zen-color-background-surface-default); color: var(--zen-color-content-neutral-strongest); }
+/* It fills the floating panel (studio.css), which paints the surface and the rounded corners. */
+.studio-inspector { --studio-inspector-label: clamp(80px, 28%, 120px); display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; color: var(--zen-color-content-neutral-strongest); }
 /* Paragraphs follow the blocks' gaps (the spacing ladder), not the browser's default margins. */
 .studio-inspector p { margin: 0; }
 /* The Tabs track is the only line under the tabs; tab text lines up with the panel content (12px). */
-.studio-inspector__tabs { flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.studio-inspector__tabs { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 /* Figma UI3 tabs (Design · Code; Pages · Layers · Assets in shell.css): text tabs, the selected one on a quiet fill, no
    underline; labels in Body/Small like the rest of the panel, the Small tab height (32px) kept so the bar breathes. */
 :is(.studio-inspector__tabs, .studio-left__tabs) .zen-tab__label {
@@ -114,6 +115,31 @@
   letter-spacing: var(--zen-typography-letter-spacing-body-small);
 }
 .studio-inspector__row-hint { grid-column: 2 / -1; color: var(--zen-color-content-neutral-base); }
+
+/* Figma Input/Inline-Field (user, 2026-10-15): a field that took its row's label (Section.tsx useInlineLabel) draws it
+   inside on the left, the value at the end, across both field columns; the icon column stays. The row's own label stays
+   in the DOM for its tooltip, hidden. A label-left row whose control is no field (a switch, a Segmented) indents its label
+   by the field's inset, so every label of the panel starts on one line. */
+.studio-inspector__row:has(> .studio-inspector__row-control :is(.zen-input-field[data-layout="inline"], [data-inline="true"], .zen-slider-field)) > .studio-inspector__row-label { display: none; }
+.studio-inspector__row:has(> .studio-inspector__row-control :is(.zen-input-field[data-layout="inline"], [data-inline="true"], .zen-slider-field)) > .studio-inspector__row-control { grid-column: 1 / 3; }
+.studio-inspector__row:has(> .studio-inspector__row-control :is(.zen-input-field[data-layout="inline"], [data-inline="true"], .zen-slider-field)) > .studio-inspector__row-hint { grid-column: 1 / 3; }
+.studio-inspector__row:not([data-stacked="true"], [data-compact="true"]) > .studio-inspector__row-label { padding-inline-start: var(--zen-input-spacing-small-horizontal-padding, 8px); }
+/* The label inside a field: Content/Neutral/Base in the value's own text style (Body/Small/Medium in this panel). */
+.studio-inspector .zen-input__inline-label,
+.studio-inline-label {
+  font-size: var(--zen-typography-font-size-body-small);
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+}
+.studio-inline-label { min-width: 0; max-width: 60%; flex: none; overflow: hidden; margin-inline-end: auto; color: var(--zen-color-content-neutral-base); text-overflow: ellipsis; white-space: nowrap; }
+.studio-inspector__static[data-inline="true"] { gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-inspector__static[data-inline="true"] > .studio-inspector__static-text { text-align: end; }
+.studio-icon-control[data-inline="true"] .zen-button__label { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-icon-control[data-inline="true"] .studio-icon-control__label { flex: 0 1 auto; text-align: end; }
+.studio-icon-control[data-inline="true"] > .zen-button > :last-child { margin-inline-start: 0; }
+.studio-inspector__row-control > .studio-slider-control,
+.studio-slider-control > .zen-slider-field { width: 100%; min-width: 0; }
 
 /* Figma UI3's field grid (InspectorFields): [field][field][24px icon], labels above (Caption), 2xs between a label and
    its field. The icon column is always there, so fields end at the same edge in every section. */
@@ -289,6 +315,25 @@
 .studio-inspector .platform-property-row__control,
 .studio-inspector .platform-property-row__chip { grid-column: auto; min-width: 0; }
 .studio-inspector .platform-property-row > .zen-toggle { justify-self: start; }
+/* Every playground label starts where an Inline-Field's label does (the field's inset). */
+.studio-inspector .platform-property-row > .platform-property-row__label { padding-inline-start: var(--zen-input-spacing-small-horizontal-padding, 8px); }
+/* A playground select reads as Figma Input/Inline-Field (user, 2026-10-15): its label over the field's left side, the
+   value in the right half, across both field columns. The select keeps its own accessible name (aria-label). */
+.studio-inspector .platform-property-row[data-kind="select"]:has(> .zen-input-field) { grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); }
+.studio-inspector .platform-property-row[data-kind="select"]:has(> .zen-input-field) > .platform-property-row__label {
+  position: relative;
+  z-index: 1;
+  max-width: 50%;
+  box-sizing: border-box;
+  overflow: hidden;
+  grid-area: 1 / 1;
+  font-weight: var(--zen-emphasis-font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.studio-inspector .platform-property-row[data-kind="select"] > .zen-input-field { grid-area: 1 / 1; }
+.studio-inspector .platform-property-row[data-kind="select"] > .zen-input-field .zen-select__trigger { padding-inline-start: 50%; text-align: end; }
 .studio-inspector .platform-playground-controls > .zen-toggle { width: auto; min-width: 0; }
 .studio-inspector__slot--code .platform-code { min-width: 0; }
 

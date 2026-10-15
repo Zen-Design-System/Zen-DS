@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-14.
+Last updated: 2026-10-15.
 
 ## Read order
 
@@ -94,6 +94,12 @@ Last updated: 2026-10-14.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio UI3 shell (2026-10-15, user):** Figma UI3 floating panels — no toolbar row; the canvas fills the window
+  under the panels (`canvas/viewport.ts` `setCanvasInsets` / `getSafeBox`: fit, zoom, keep-in-view, frame chrome and
+  edge pan aim at the visible part); headers in `shell/PanelHeaders.tsx`; corner bars when a panel is not docked.
+  Inspector rows are Input/Inline-Field (`Section.tsx` `useInlineLabel`: a field control takes its row's label inside),
+  ranged numbers use SliderField (`inspector/numberRanges.ts`), chrome Emphasis Light. Figma Inline-Field Type=Number
+  added the same day (15753:6135…).
 - **Zen Studio clicks and booleans (2026-10-13, branch `zen/fix/studio-toggles-click`, worktree `Zen-DS-click`):**
   clicks pass through layout wrappers and AppShell / the page body (template pages 5.6 → 2.5 double-clicks to a layer),
   right-click › Select layer ›; every Figma boolean on template pages works or says why (slot toggles open their picker,

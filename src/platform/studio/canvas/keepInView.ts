@@ -5,7 +5,7 @@ import { findBySrc, rectOf } from "../select/picker";
 import { studioStore } from "../store";
 import type { StudioSelection } from "../types";
 import { variantElement, variantKey } from "../mainComponent/model";
-import { canvasApi, getViewport, getViewportBox, setViewportNow, toWorldRect } from "./viewport";
+import { canvasApi, getSafeBox, getViewport, setViewportNow, toWorldRect } from "./viewport";
 
 /*
  * The selection stays in view when the board lays itself out again (spec §3): a frame above it in its column changes
@@ -66,10 +66,11 @@ function onCanvas(rect: Rect) {
 /** Does [start, start + size) show on a canvas `view` px long (VISIBLE_MIN of it, or all of a smaller one)? */
 const shows = (start: number, size: number, view: number) => Math.min(start + size, view) - Math.max(start, 0) >= Math.max(Math.min(VISIBLE_MIN, size), 0.5);
 
+/** Shown in the part of the canvas the floating side panels leave visible (getSafeBox). */
 function visible(rect: Rect) {
-  const box = getViewportBox();
+  const box = getSafeBox();
   const local = onCanvas(rect);
-  return shows(local.left, local.width, box.width) && shows(local.top, local.height, box.height);
+  return shows(local.left - box.x, local.width, box.width) && shows(local.top - box.y, local.height, box.height);
 }
 
 /** The smallest move along one axis that brings [start, start + size) back on a canvas `view` px long. */
@@ -115,10 +116,10 @@ export function useKeepSelectionInView(viewport: HTMLElement | null, world: HTML
       before = now;
       // Another selection or another frame element (a page change, a remount): nothing to keep.
       if (!previous || !now || previous.key !== now.key || previous.frame !== now.frame || !previous.visible || now.visible) return;
-      const box = getViewportBox();
+      const box = getSafeBox();
       const local = onCanvas(now.rect);
-      const dx = nudge(local.left, local.width, box.width);
-      const dy = nudge(local.top, local.height, box.height);
+      const dx = nudge(local.left - box.x, local.width, box.width);
+      const dy = nudge(local.top - box.y, local.height, box.height);
       if (!dx && !dy) return;
       const current = getViewport();
       setViewportNow({ ...current, x: current.x + dx, y: current.y + dy }, { animate: true });

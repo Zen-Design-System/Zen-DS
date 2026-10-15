@@ -694,15 +694,16 @@ export const componentDescriptions = {
   "Primitives/Input/Input-Conditions/Condition-Item": part("One rule of Input-Conditions (Default, Success, Wrong).", "Input-Conditions"),
   "Control-Bar/Select-Item": part("One option of a field's leading or trailing picker (units, country codes).", "the Input/* fields"),
   "Input/Inline-Field": card({
-    what: "A one-line field for dense property panels and inspectors: the label sits inside the box (left) and the value on the right, as text, an option or a colour. Built on .Primitives/Input/Field-Only, so its states and sizes follow the Input family.",
+    what: "A one-line field for dense property panels and inspectors: the label sits inside the box (left) and the value on the right, as text, an option, a colour or a number. Built on .Primitives/Input/Field-Only, so its states and sizes follow the Input family.",
     use: ["Property panels and inspectors (a tweak panel, layer or widget settings) where a stacked Label → Field → Help-Text would double the height.", "Rows beside Slider/Field: the same height, radius and label position."],
-    instead: ["Forms people fill once → Input/Text-Field, Input/Select-Field or Input/Color-Field (label above).", "Numbers people drag → Slider/Field.", "On/off → Toggle.", "2–5 options → Segmented."],
-    props: [["Type", "Text (free text) · Select (opens the Popover of options; chevron) · Color (the hex and a Color-Swatch; opens Color-Picker)"], ["State", "Inputted (rest) · Hover · Typing (editing, cursor) · Disabled"], ["Size", "Medium 40 · Small 32"]],
+    instead: ["Forms people fill once → Input/Text-Field, Input/Select-Field or Input/Color-Field (label above).", "Numbers tuned by feel inside a known min–max → Slider/Field.", "On/off → Toggle.", "2–5 options → Segmented."],
+    props: [["Type", "Text (free text) · Select (opens the Popover of options; chevron) · Color (the hex and a Color-Swatch; opens Color-Picker) · Number (the number and − + steppers, .Primitives/Input/Number/Trailing; ↑/↓ step)"], ["State", "Inputted (rest) · Hover · Typing (editing, cursor) · Disabled"], ["Size", "Medium 40 · Small 32"]],
     rules: [
       "The label is the text in the Leading slot (Content/Neutral/Base) and the value is the Content text (right-aligned): edit both texts directly.",
+      "Type=Number for exact counts and steps (lines, columns, a px size): the steppers stay visible in every state and are disabled with the field.",
       "Group rows per section, Spacing/Gap/XSmall apart; the section title sits 12 above its rows (the Accordion's own gap).",
     ],
-    code: "`<InputField layout=\"inline\">` · `<SelectField layout=\"inline\">` · `<ColorField layout=\"inline\">`",
+    code: "`<InputField layout=\"inline\">` · `<SelectField layout=\"inline\">` · `<ColorField layout=\"inline\">` · `<NumberField layout=\"inline\">`",
   }),
   "Input/Color-Field": card({
     what: "Pick or type one colour (any hex): the field shows the value as a Color-Swatch (leading) and its hex; clicking it opens Color-Picker under the field (State=Focused), typing edits the hex (State=Typing).",

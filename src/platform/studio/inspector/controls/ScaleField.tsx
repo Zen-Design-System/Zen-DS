@@ -7,6 +7,7 @@ import { radiusValue, type ZenCornerRadius } from "../../../../components/_share
 import { keyForPx, tokenPx } from "../../select/spacing";
 import { spacingHover } from "../../select/spacingHover";
 import { matchOption } from "../propSchema";
+import { useInlineLabel } from "../Section";
 import { InspectorHostContext, InspectorSrcContext } from "./hostContext";
 import { pxText, scaleStep, stepKey, type TokenScale } from "./scale";
 import "./controls.css";
@@ -87,6 +88,7 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
   /** Shown while unset instead of the effective step ("Mixed · 16 / 4" when the axes differ). */
   placeholder?: string;
 }) {
+  const inlineLabel = useInlineLabel();
   const host = useContext(InspectorHostContext);
   const src = useContext(InspectorSrcContext);
   const [pending, setPending] = useState<string | null>(null);
@@ -178,10 +180,13 @@ export function ScaleField({ label, prop, scale, options, value, fallback, disab
       onPointerEnter={() => setEngaged((now) => ({ ...now, pointer: true }))}
       onPointerLeave={() => setEngaged((now) => ({ ...now, pointer: false }))}
     >
+      {/* In a label-left row: Figma's Inline-Field, the label inside instead of the glyph. */}
       <SelectField
         aria-label={label}
         size="sm"
-        leading={leading}
+        layout={inlineLabel ? "inline" : undefined}
+        label={inlineLabel ?? undefined}
+        leading={inlineLabel ? undefined : leading}
         trailing={<ScaleTrail px={shownKey === "full" ? null : shownPx} />}
         disabled={disabled}
         value={pending ?? matched ?? ""}
