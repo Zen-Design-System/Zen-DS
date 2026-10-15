@@ -18,6 +18,38 @@ export const pageText = (page, id) => page.evaluate((key) => new Promise((resolv
   request.onerror = () => resolve(null);
 }), id);
 
+/** A page as the Studio wrote it before the master layout (2026-10-15): the Screen's own Sidebar and Page header, and a
+ *  template's AppShell with its own Sidebar and a Page header in its content. */
+const legacyFramePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { AppShell, PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop"
+        sidebar={<Sidebar aria-label="Main" selectedId="home">
+          <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
+        </Sidebar>}
+        header={<PageHeader title=${JSON.stringify(title)} />}>
+        <AppShell
+          sidebar={<Sidebar aria-label="Main" selectedId="dashboard">
+            <SidebarMenuItem id="dashboard" label="Dashboard" icon="icon-home-03-line" />
+          </Sidebar>}
+        >
+          <Stack gap="lg" padding="xl">
+            <PageHeader title="Dashboard" />
+            <Text tone="base">Revenue this month</Text>
+          </Stack>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 let made = 0;
 /** New page from the Pages tab; returns its id (from the address). */
 export async function newPage(ctx, { title, device = "phone" } = {}) {
@@ -630,20 +662,21 @@ export const rows = [
     },
   },
   {
-    id: "B-26", feature: "A phone Screen shows Top + Bottom navigation; a tablet is laid out as mobile or (Screen › Layout) desktop", wp: "app frame 2026-10-09",
+    id: "B-26", feature: "A phone Screen shows Top + Bottom navigation and the page without its master layout (AppShell); a tablet is laid out as mobile or (Screen › Layout) desktop, where the AppShell's Sidebar is a drawer (narrower than 1024)", wp: "app frame 2026-10-09, master layout 2026-10-15",
     async run(ctx) {
       const { page, id } = await newPage(ctx, { device: "phone" });
       const frame = page.locator('[data-studio-frame="screen:screen-1"]');
       await until(async () => (await frame.locator(".zen-top-nav").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) > 0, { message: "Top and Bottom navigation on the phone" });
-      if ((await frame.locator(".zen-sidebar").count()) > 0) throw new Error("the Sidebar shows on a phone");
+      if ((await frame.locator(".zen-sidebar, .zen-app-shell").count()) > 0) throw new Error("the master layout (AppShell, Sidebar) shows on a phone");
       await showLeftTab(page, "layers");
       await page.locator('[data-layer-id^="frame:screen:"]').first().click();
       await page.locator("#studio-right").getByRole("button", { name: /^Tablet,/ }).click();
       await until(async () => /<Screen [^>]*device="tablet"/.test((await pageText(page, id)) ?? ""), { message: "the Screen on tablet" });
       await page.locator("#studio-right").getByRole("button", { name: /^Laid out as desktop/ }).click();
       await until(async () => /\blayout="desktop"/.test((await pageText(page, id)) ?? ""), { message: 'layout="desktop"' });
-      await until(async () => (await frame.locator(".zen-sidebar").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) === 0, { message: "the desktop frame on the tablet" });
-      return "phone bars; tablet → desktop layout shows the Sidebar";
+      // AppShell's own breakpoint: under 1024 its Sidebar opens as a drawer from the top bar's menu button.
+      await until(async () => (await frame.locator('.zen-app-shell .zen-app-shell__toggle [aria-haspopup="dialog"]').count()) === 1 && (await frame.locator(".zen-bottom-nav, .zen-top-nav").count()) === 0, { message: "the master layout on the tablet (its Sidebar behind the menu button), no phone bars" });
+      return "phone bars, no AppShell; tablet → desktop layout shows the AppShell, its Sidebar a drawer";
     },
   },
   {
@@ -685,7 +718,7 @@ export const rows = [
     },
   },
   {
-    id: "B-28", feature: "Page header › Breadcrumbs on puts a real Breadcrumbs (not a text label) whose Item-List + adds an item; the Screen's Header is a slot (+ adds content); a Menu item outside a Sidebar keeps the row's padding", wp: "slots 2026-10-10",
+    id: "B-28", feature: "Page header › Breadcrumbs on puts a real Breadcrumbs (not a text label) whose Item-List + adds an item; the master layout's Sections (the AppShell's, under the top bar) is a slot (+ adds content); a Menu item outside a Sidebar keeps the row's padding", wp: "slots 2026-10-10, master layout 2026-10-15",
     async run(ctx) {
       const { page, id } = await newPage(ctx, { device: "desktop" });
       const frame = page.locator('[data-studio-frame="screen:screen-1"]');
@@ -707,21 +740,46 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
       await until(async () => (((await text()).match(/<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "").match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
-      // Up to the Screen (Esc: Breadcrumbs → PageHeader → Screen): its Header slot takes any content.
+      // Up to the master layout (Esc: Breadcrumbs → PageHeader → AppShell): its Sections slot takes any content.
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
-      await until(async () => (await selectedName(page)) === "Screen", { message: "the Screen selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
-      await page.locator('#studio-right [data-slot="header"]').getByRole("button", { name: "Add to Header" }).click();
+      await until(async () => (await selectedName(page)) === "AppShell", { message: "the AppShell selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      await page.locator('#studio-right [data-slot="sections"]').getByRole("button", { name: "Add to Sections" }).click();
       await page.getByRole("option", { name: /^Search/ }).first().click();
-      await until(async () => /header=\{<Stack gap="md">[^]*<PageHeader [^]*<Search /.test(await text()), { message: "the Header holds the PageHeader and a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /sections=\{<[^]*<PageHeader [^]*<Search /.test(await text()), { message: "the Sections hold the PageHeader and a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       // A Menu item placed outside a Sidebar still draws Figma's Menu-Item (padding and gap Small).
       await selectStack(page, id);
       await insertAsset(page, "Menu item");
-      await until(async () => (await frame.locator(".studio-builder-screen__content .zen-sidebar__item").count()) === 1, { message: "the Menu item in the page's Stack" });
-      const spacing = await frame.locator(".studio-builder-screen__content .zen-sidebar__item").first().evaluate((el) => { const style = getComputedStyle(el); return `${style.paddingLeft} ${style.columnGap}`; });
+      await until(async () => (await frame.locator(".zen-app-shell__main .zen-sidebar__item").count()) === 1, { message: "the Menu item in the page's Stack" });
+      const spacing = await frame.locator(".zen-app-shell__main .zen-sidebar__item").first().evaluate((el) => { const style = getComputedStyle(el); return `${style.paddingLeft} ${style.columnGap}`; });
       if (spacing !== "12px 12px") throw new Error(`the row outside a Sidebar has padding/gap ${spacing}`);
-      return `Breadcrumbs: ${before} → ${before + 1} items · Header: PageHeader + Search · Menu item outside a Sidebar: ${spacing}`;
+      return `Breadcrumbs: ${before} → ${before + 1} items · Sections: PageHeader + Search · Menu item outside a Sidebar: ${spacing}`;
+    },
+  },
+  {
+    id: "B-36", feature: "A page made before the master layout (its Screen's own Sidebar and Page header beside a template's AppShell: two Sidebars) opens with one Sidebar and one Page header, in the AppShell; Screen › Sidebar reads the AppShell's", wp: "master layout 2026-10-15",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx, { device: "desktop" });
+      // The folder has the page once its name is there (an earlier push would overwrite the old page written below).
+      await until(async () => (folderText(ctx, id) ?? "").includes(JSON.stringify(name)), { message: "the named page in the folder" });
+      await sleep(500);
+      // The page as the Studio kept it before 2026-10-15 (user: "trang Dashboard tôi vừa tạo từ template bị lỗi").
+      fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`), legacyFramePage(name));
+      await mineOption(page, /^Sync with the folder/);
+      await until(async () => /<Screen [^>]*\bsidebar=\{/.test((await pageText(page, id)) ?? ""), { message: "the old page in the browser" }).catch(async (error) => { throw new Error(`${error.message} (browser: ${((await pageText(page, id)) ?? "").slice(0, 400).replace(/\s+/g, " ")} · folder: ${(folderText(ctx, id) ?? "").slice(0, 200).replace(/\s+/g, " ")})`); });
+      await page.reload();
+      const text = async () => (await pageText(page, id)) ?? "";
+      await until(async () => !/<Screen [^>]*\bsidebar=\{/.test(await text()) && ((await text()).match(/<Sidebar\b/g) ?? []).length === 1 && ((await text()).match(/<PageHeader\b/g) ?? []).length === 1, { message: "the Screen's frame moved into the AppShell, one Sidebar and one Page header left" }).catch(async (error) => { throw new Error(`${error.message} (Sidebars ${((await text()).match(/<Sidebar\b/g) ?? []).length})`); });
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await frame.locator(".zen-sidebar").count()) === 1 && (await frame.locator(".zen-page-header").count()) === 1 && (await frame.locator(".zen-app-shell").count()) === 1, { message: "one Sidebar, one Page header, one AppShell on the Screen" });
+      if (!/selectedId="dashboard"/.test(await text())) throw new Error("the template's own Sidebar was not the one kept");
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id^="frame:screen:"]').first().click();
+      const sidebar = inspectorRow(page, "sidebar").getByRole("switch");
+      await sidebar.waitFor({ state: "visible", timeout: 5000 });
+      if ((await sidebar.getAttribute("aria-checked")) !== "true") throw new Error("Screen › Sidebar reads off on the master layout");
+      return "two Sidebars → one (the template's), one Page header, Screen › Sidebar on";
     },
   },
   {

@@ -243,6 +243,12 @@ export default function Page() {
   check("AppShell: every layer keyed, no key twice (the frame by the Screen, not its AppShell)", { all: keys.every(Boolean), unique: new Set(keys).size === keys.length, root: frame.key !== shell.key }, { all: true, unique: true, root: true });
 }
 {
+  // The master layout (the Screen's root AppShell, screen-frame.mjs) is the desktop layout's: a phone draws its content.
+  const { frame } = push(SHELL.replace('device="desktop">', 'device="phone">'));
+  const names = []; const walk = (node) => { names.push(node.set?.name ?? node.name); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  check("Screen master layout (phone): no AppShell row, no Sidebar or top bar; the page's rows are drawn", { shell: frame.children[0]?.name === "AppShell" || names.includes("Sidebar"), rows: names.filter((name) => name === "List-Item").length }, { shell: false, rows: 2 });
+}
+{
   // The Screen's app frame (screen-chrome.mjs): Sidebar beside a column of the Page header and the page.
   const chrome = SHELL.replace(/<AppShell[\s\S]*<\/AppShell>/, '<Stack gap="md"><Heading level={1}>Team</Heading></Stack>').replace('device="desktop">', 'device="desktop" header={<PageHeader title="Team" />} sidebar={<Sidebar aria-label="Main" selectedId="home"><SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" /></Sidebar>} topNavigation={<Heading>Phone only</Heading>}>');
   const { frame, notes } = push(chrome);

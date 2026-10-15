@@ -535,7 +535,7 @@ export const rows = [
     },
   },
   {
-    id: "HO-08", feature: "A Screen with its app frame (Sidebar beside, Page header on top) exports HTML laid out as on the canvas (pixel comparison)", wp: "slots 2026-10-10",
+    id: "HO-08", feature: "A Screen with its app frame (Sidebar beside, Page header on top; a page from before the master layout, moved into its AppShell when it opens) exports HTML laid out as on the canvas (pixel comparison)", wp: "slots 2026-10-10, master layout 2026-10-15",
     timeout: 120_000,
     async run(ctx) {
       // A desktop frame (1440 px) fits this viewport at 100%.
@@ -551,6 +551,8 @@ export const rows = [
         if (/\.studio-/.test(css)) throw new Error("styles.css holds a .studio- rule");
         const html = new TextDecoder().decode(files.get("screens/home.html"));
         if (/studio-builder/.test(html)) throw new Error("the markup keeps a studio-builder class");
+        if ((html.match(/class="zen-app-shell[ "]/g) ?? []).length !== 1 || (html.match(/class="zen-sidebar[ "]/g) ?? []).length !== 1) throw new Error("the markup is not one AppShell with one Sidebar (the master layout)");
+        if (!/\.zen-visually-hidden\b/.test(css)) throw new Error("styles.css lacks VisuallyHidden's rule (AppShell's skip link would show)");
         const origin = new URL(page.url()).origin;
         const view = await context.newPage();
         await view.route(`${origin}/__html-export/**`, (route) => {

@@ -87,6 +87,10 @@ Last updated: 2026-10-15.
 - **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
+- **Zen Studio Screen = master layout (2026-10-15, user):** a builder Screen's desktop frame is one root `<AppShell>`
+  (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
+  `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
+  keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push).
 - **Zen Studio UI3 shell (2026-10-15, user):** Figma UI3 floating panels — no toolbar row; the canvas fills the window
   under the panels (`canvas/viewport.ts` `setCanvasInsets` / `getSafeBox`: fit, zoom, keep-in-view, frame chrome and
   edge pan aim at the visible part); headers in `shell/PanelHeaders.tsx`; corner bars when a panel is not docked.

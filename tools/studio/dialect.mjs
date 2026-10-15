@@ -13,7 +13,7 @@
 //             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock" or a .map item name)
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
-import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout } from "./screen-chrome.mjs";
+import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenLayout } from "./screen-chrome.mjs";
 
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
@@ -40,22 +40,53 @@ export function pageHeader(text) {
 
 const quote = (value) => JSON.stringify(String(value));
 
-/** The chrome props of a new Screen's opening tag, one per line at `indent` (multi-line components indented under it). */
-const chromeAttrs = (title, indent) => SCREEN_CHROME.map((part) => {
-  const code = screenChromeCode(part.prop, title).split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n");
-  return `${indent}${part.prop}={${code}}`;
-});
-const CHROME_IMPORTS = [...new Set(SCREEN_CHROME.flatMap((part) => [...screenChromeCode(part.prop).matchAll(/<([A-Z]\w*)/g)].map((match) => match[1])))];
+/** Props one per line at `indent` (a multi-line component indented under its prop). */
+const propLines = (entries, indent) => entries.map(([prop, code]) => `${indent}${prop}={${code.split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n")}}`);
+const componentsOf = (codes) => codes.flatMap((code) => [...code.matchAll(/<([A-Z]\w*)/g)].map((match) => match[1]));
+/** The parts a new Screen's master layout (its root AppShell, screen-frame.mjs) starts with: the Sidebar and the Page header. */
+const NEW_FRAME = ["sidebar", "sections"];
+
+/**
+ * A new Screen's app frame (user, 2026-10-09; master layout 2026-10-15): the mobile layout's Top and Bottom Navigation as
+ * the Screen's props, and on the desktop layout a root AppShell around the content. A phone or tablet in its mobile layout
+ * starts without the AppShell: the Screen section adds it when the layout turns desktop. Returns the lines at `indent`
+ * and the components they use.
+ */
+function screenLines({ open, title, heading, device, chrome, indent }) {
+  const inner = (depth) => indent + "  ".repeat(depth);
+  const framed = chrome && screenLayout(device) === "desktop";
+  const depth = framed ? 2 : 1;
+  const stack = [
+    `${inner(depth)}<Stack gap="md" padding="${device === "phone" ? "lg" : "xl"}">`,
+    chrome ? `${inner(depth + 1)}<Text tone="base">Start building here: add components from Assets.</Text>` : `${inner(depth + 1)}<Text textStyle="Heading/3">${heading}</Text>`,
+    `${inner(depth)}</Stack>`,
+  ];
+  if (!chrome) return { lines: [`${indent}${open}>`, ...stack, `${indent}</Screen>`], components: ["Stack", "Text"] };
+  const bars = SCREEN_CHROME.filter((part) => part.layout === "mobile").map((part) => [part.prop, screenChromeCode(part.prop, title)]);
+  const frame = framed ? NEW_FRAME.map((prop) => [prop, screenFrameCode(prop, title)]) : [];
+  const attrs = propLines(bars, inner(1));
+  const lines = [
+    `${indent}${open}`,
+    ...attrs.map((line, index) => (index === attrs.length - 1 ? `${line}>` : line)),
+    ...(framed ? [`${inner(1)}<AppShell`, ...propLines(frame, inner(2)), `${inner(1)}>`] : []),
+    ...stack,
+    ...(framed ? [`${inner(1)}</AppShell>`] : []),
+    `${indent}</Screen>`,
+  ];
+  return { lines, components: ["Stack", "Text", ...(framed ? ["AppShell"] : []), ...componentsOf([...bars, ...frame].map(([, code]) => code))] };
+}
 
 /**
  * A blank page: one Screen on `device` holding a padded Stack, ready to take components. With `chrome` (the default) the
- * Screen comes with its app frame (SCREEN_CHROME: Sidebar + Page Header, Top + Bottom Navigation; the title is in the
- * header, so the Stack starts with a line of body text); without it, the Stack starts with the title as a heading.
+ * Screen comes with its app frame (screenLines: the master layout's Sidebar + Page header, Top + Bottom Navigation; the
+ * title is in the header, so the Stack starts with a line of body text); without it, the Stack starts with the title as
+ * a heading.
  */
 export function newPageText({ title = "Untitled", device = "desktop", chrome = true } = {}) {
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
-  const names = [...new Set(["Stack", "Text", ...(chrome ? CHROME_IMPORTS : [])])].sort((a, b) => a.localeCompare(b));
-  const open = `      <Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
+  const open = `<Screen id="screen-1" title=${quote(title)} device="${screenDevice}"`;
+  const screen = screenLines({ open, title, heading: title.replace(/[{}<>]/g, ""), device: screenDevice, chrome, indent: "      " });
+  const names = [...new Set(screen.components)].sort((a, b) => a.localeCompare(b));
   return [
     `// @zen-page ${JSON.stringify({ format: 1, title })}`,
     `import { Board, Screen, proto } from ${quote(BUILDER_PACKAGE)};`,
@@ -66,11 +97,7 @@ export function newPageText({ title = "Untitled", device = "desktop", chrome = t
     "export default function Page() {",
     "  return (",
     "    <Board>",
-    ...(chrome ? [open, ...chromeAttrs(title, "        ").map((line, index, all) => (index === all.length - 1 ? `${line}>` : line))] : [`${open}>`]),
-    `        <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
-    chrome ? `          <Text tone="base">Start building here: add components from Assets.</Text>` : `          <Text textStyle="Heading/3">${title.replace(/[{}<>]/g, "")}</Text>`,
-    "        </Stack>",
-    "      </Screen>",
+    ...screen.lines,
     "    </Board>",
     "  );",
     "}",
@@ -113,13 +140,7 @@ export function frameCode({ kind, id, title, device = "desktop", chrome = true }
   const screenDevice = PAGE_DEVICES.includes(device) ? device : "desktop";
   // A new Screen comes with the app frame as a new page does (its title in the header).
   const open = `<Screen id=${quote(id)} title=${quote(name)} device="${screenDevice}"`;
-  return [
-    ...(chrome ? [open, ...chromeAttrs(name, "  ").map((line, index, all) => (index === all.length - 1 ? `${line}>` : line))] : [`${open}>`]),
-    `  <Stack gap="md" padding="${screenDevice === "phone" ? "lg" : "xl"}">`,
-    chrome ? `    <Text tone="base">Start building here: add components from Assets.</Text>` : `    <Text textStyle="Heading/3">${name}</Text>`,
-    "  </Stack>",
-    "</Screen>",
-  ].join("\n");
+  return screenLines({ open, title: name, heading: name, device: screenDevice, chrome, indent: "" }).lines.join("\n");
 }
 
 /** A prop's proto action as code: navigate / open take a frame id, toast a title, link a URL; close and back nothing. */

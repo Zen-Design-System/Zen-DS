@@ -446,19 +446,6 @@ const pageHeaderTabs: ContentSlot = {
   accepts: { only: ["Tabs"] },
 };
 
-const screenHeader: ContentSlot = {
-  // A builder page's Screen (builder/proto/runtime.tsx): {header ? <div className="studio-builder-screen__header">…} at the
-  // top of the desktop layout's main column (builder.css: a block with padding). Figma Primitives/Dashboard/Header
-  // Type=Custom is one free slot (6034:46170): the header holds what the page needs (user, 2026-10-10: "Header page cũng
-  // nên là slot để custom được header tuỳ use case"); the Screen's Page header toggle starts it with a PageHeader.
-  component: "Screen", prop: "header", name: "Header", figma: { node: "6034:46170", native: true },
-  kind: "content", container: ":scope > .studio-builder-screen__main > .studio-builder-screen__header", mountsWhenEmpty: false,
-  ghostAnchor: { selector: ":scope > .studio-builder-screen__main", place: "first-child" }, flow: "block", gap: "none",
-  accepts: { deny: [...overlayDeny] },
-  // A phone shows the mobile layout (top and bottom navigation), which has no header.
-  activeWhen: [{ prop: "device", not: ["phone"], default: "desktop" }],
-};
-
 const pageHeaderTrailing: ContentSlot = {
   // {trailing ? <span className="zen-page-header__trailing">…</span> : null} after the actions; page-header.css: an
   // inline flex row, Gap/Small. Figma Trailing-Slots (Action-Item Button/Icon-Main, Avatar/Single).
@@ -600,7 +587,10 @@ export const CONTENT_SLOTS: Readonly<Record<string, SlotComponent>> = {
   Sidebar: { root: ".zen-sidebar", titleLevel: null, slots: [sidebarHeader, sidebarBody, sidebarFooter] },
   PageHeader: { root: ".zen-page-header", titleLevel: { prop: "headingLevel", default: 1 }, slots: [pageHeaderBreadcrumbs, pageHeaderMeta, pageHeaderActions, pageHeaderTrailing, pageHeaderTabs] },
   // A builder page's Screen (not a library component): its app frame's header is a free slot.
-  Screen: { root: ".studio-builder-screen", titleLevel: null, slots: [screenHeader] },
+  // A builder Screen's desktop frame is its master layout (user, 2026-10-15): the root AppShell, whose Sections slot is
+  // the free header (Figma Header/Dashboard Type=Custom; user, 2026-10-10: "Header page cũng nên là slot để custom được
+  // header tuỳ use case"). The Screen has no header slot of its own, so a page never draws a second one.
+  Screen: { root: ".studio-builder-screen", titleLevel: null, slots: [] },
   Metric: { root: ".zen-metric", titleLevel: null, slots: [metricAction, metricCustom] },
   MetricCard: { root: ".zen-metric-card", titleLevel: null, slots: [metricCardCustom] },
   DashboardHeader: { root: ".zen-dashboard-header", titleLevel: null, slots: [dashboardSearch, dashboardControls, dashboardActions, dashboardCenter, dashboardTrailing] },

@@ -52,3 +52,38 @@ export function screenChromeCode(prop, title) {
   }
   throw new Error(`${prop} is not a Screen chrome prop (${SCREEN_CHROME.map((part) => part.prop).join(", ")})`);
 }
+
+/**
+ * The desktop layout's master layout (user, 2026-10-15; screen-frame.mjs): one <AppShell> at the Screen's root, Figma
+ * ◇ Master-Layout. The parts the Screen section switches, each an AppShell prop with the code it starts with.
+ */
+export const FRAME_PARTS = [
+  { prop: "sidebar", label: "Sidebar", component: "Sidebar" },
+  { prop: "header", label: "Top bar", component: "Search" },
+  { prop: "headerActions", label: "Top bar actions", component: "AppShellAccount" },
+  { prop: "sections", label: "Page header", component: "PageHeader" },
+  { prop: "aside", label: "Side panel", component: "SidePanel" },
+  { prop: "floatingAction", label: "Floating action", component: "IconButton" },
+  { prop: "footer", label: "Footer", component: "ActionBar" },
+];
+
+/** Every AppShell prop that draws part of the frame: an AppShell without any of them is no frame (it unwraps). */
+export const FRAME_PROPS = new Set(["sidebar", "header", "headerCenter", "headerActions", "sections", "aside", "floatingAction", "footer", "banner"]);
+
+/** The component a frame part starts with (`title`: the page's). */
+export function screenFrameCode(prop, title) {
+  const name = quote(String(title ?? "Untitled").replace(/[{}<>]/g, ""));
+  switch (prop) {
+    case "sidebar": return screenChromeCode("sidebar", title);
+    case "header": return `<Search aria-label="Search" placeholder="Search" />`;
+    case "headerActions": return `<AppShellAccount name="Khoa Dang" />`;
+    case "sections": return `<PageHeader title=${name} />`;
+    case "aside": return [`<SidePanel type="standard" title="Details" open>`, `  <Text tone="base">Details of the selected item.</Text>`, `</SidePanel>`].join("\n");
+    case "floatingAction": return `<IconButton level="accent" icon="icon-plus-line" aria-label="New" />`;
+    case "footer": return `<ActionBar position="static" primaryAction={{ label: "Save" }} />`;
+    default: throw new Error(`${prop} is not a frame part (${FRAME_PARTS.map((part) => part.prop).join(", ")})`);
+  }
+}
+
+/** Whether a page may hold the old frame props (cheap; migrateScreenFrame then reads the Screens themselves). */
+export const LEGACY_FRAME = /<Screen\b[\s\S]*\b(?:sidebar|header)=\{/;
