@@ -69,6 +69,8 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the calendar surface (the root `<div>`, a popover or the inline group). |
 
 ### DateField
+Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
+
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `label` | `ReactNode` | — |  |

@@ -7,7 +7,8 @@
 //
 // Passed on unchanged: the attribute's value is one of the owner's props, through its destructured name
 // (`{ actionsDirection }`, `{ size: sizeProp = "md" }`) or `props.x`, also behind `??` / `||` (a fallback) or a type
-// assertion. Anything computed (a ternary, a call, a template) is not: the part cannot be edited through it.
+// assertion, or after `??` behind the component's own state (`usedItems ?? popoverItems`, `draft ?? value`: the prop
+// until the part is used). Anything computed (a ternary, a call, a template) is not: the part cannot be edited through it.
 //
 //   node tools/studio/part-props-build.mjs           write src/platform/studio/inspector/partProps.generated.ts
 //   node tools/studio/part-props-build.mjs --check   exit 1 when that file is out of date
@@ -103,8 +104,13 @@ function passedProp(expression, owner, shadowed) {
   if (expression.type === "Identifier") return !shadowed.has(expression.name) && owner.locals.has(expression.name) ? owner.locals.get(expression.name) : null;
   if (expression.type === "MemberExpression" && !expression.computed && expression.object.type === "Identifier" && expression.object.name === owner.propsObject
     && !shadowed.has(owner.propsObject) && expression.property.type === "Identifier") return expression.property.name;
-  // A fallback (`size ?? "md"`, `level || "primary"`) still passes the prop on when it is set.
-  if (expression.type === "LogicalExpression" && (expression.operator === "??" || expression.operator === "||")) return passedProp(expression.left, owner, shadowed);
+  // A fallback (`size ?? "md"`, `level || "primary"`) still passes the prop on when it is set; own state in front of it
+  // (a local, not another object's field) passes it on until the part is used.
+  if (expression.type === "LogicalExpression" && (expression.operator === "??" || expression.operator === "||")) {
+    const left = passedProp(expression.left, owner, shadowed);
+    if (left || expression.operator !== "??" || expression.left.type !== "Identifier") return left;
+    return passedProp(expression.right, owner, shadowed);
+  }
   if (expression.type === "TSAsExpression" || expression.type === "TSNonNullExpression" || expression.type === "TSSatisfiesExpression" || expression.type === "ParenthesizedExpression") return passedProp(expression.expression, owner, shadowed);
   return null;
 }

@@ -19,8 +19,8 @@ Move through a large, ordered result set one page at a time.
 | --- | --- | --- |
 | Theme | `theme` | primary · secondary (numbered) · inline (page size + range) · manually (jump field + range) |
 | Size | `size` | sets both the page items and the ‹ › arrows: xsmall = 24 (Icon-Main XSmall, Figma) · small = 32 (Icon-Main Small) |
-| Pages | `page / onPageChange / pageCount` | ellipsis collapses the middle |
-| Range | `pageSize / total / pageSizeOptions / onPageSizeChange` | “1–50 of 100 results” |
+| Pages | `page or defaultPage / onPageChange / pageCount` | ellipsis collapses the middle; with defaultPage Pagination keeps the page itself |
+| Range | `pageSize or defaultPageSize / total / pageSizeOptions / onPageSizeChange` | “1–50 of 100 results”; a page size Pagination keeps itself keeps the page's first row in view |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/pagination.json`.
@@ -30,12 +30,14 @@ Figma Pagination (774:29083). Button/Icon-Main XSmall Tertiary ‹ › (icon-che
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `page` (required) | `number` | — | 1-based current page. |
+| `page` | `number` | — | 1-based current page (controlled). Leave it out and Pagination keeps the page itself, from `defaultPage`. |
+| `defaultPage` | `number` | `1` | Uncontrolled start for `page` (default 1): ‹ › and the page items then move it themselves. |
 | `onValueChange` | `(page: number) => void` | — | Called with the new 1-based page when ‹ › or a page item is pressed. |
 | `onPageChange` | `(page: number) => void` | — | Called with the new page number (1-based). `onValueChange` is the same callback under the name value controls share. |
 | `theme` | `"primary" \| "secondary" \| "inline" \| "manually"` | `"primary"` | Primary/Secondary: numbered items. Inline: page-size Chip + range label. Manually: page-size Input + range label. |
 | `pageCount` | `number` | — | Number of pages (Primary/Secondary). For Inline/Manually it is derived from `total` / `pageSize`. |
-| `pageSize` | `number` | `50` | Items per page and total items (Inline/Manually). |
+| `pageSize` | `number` | — | Items per page and total items (Inline/Manually). `pageSize` is controlled; leave it out and the page-size Chip or Input changes it itself, from `defaultPageSize` (default 50), keeping the first row of the page in view. |
+| `defaultPageSize` | `number` | `50` |  |
 | `total` | `number` | `0` |  |
 | `pageSizeOptions` | `number[]` | `[10, 25, 50, 100]` |  |
 | `onPageSizeChange` | `(pageSize: number) => void` | — |  |

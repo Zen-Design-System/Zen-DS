@@ -176,12 +176,20 @@ function splitDeprecated(description = "") {
 }
 
 /** `export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {` → the extends clause, as written. */
-function extendsOf(source, name) {
+function extendsOf(source, name, seen = new Set()) {
   const match = source.match(new RegExp(`interface\\s+${name}Props\\s+extends\\s+([^{]+)\\{`));
   if (match) return match[1].replace(/\s+/g, " ").trim();
-  // `type XProps = Shared & Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & { … }`: keep the HTML part.
+  // `type XProps = Shared & Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & { … }`: keep the HTML part. A props type
+  // of the same file in it brings its own HTML part (`type DateFieldProps = InputFieldProps & { … }`: an input's attributes,
+  // so its value has a defaultValue twin).
   const alias = source.match(new RegExp(`type\\s+${name}Props\\s*=\\s*([^;]+);`));
-  const html = alias?.[1].split("&").map((part) => part.replace(/\s+/g, " ").trim()).filter((part) => /HTMLAttributes|HTMLProps/.test(part));
+  const html = alias?.[1].split("&").map((part) => part.replace(/\s+/g, " ").trim()).flatMap((part) => {
+    if (/HTMLAttributes|HTMLProps/.test(part)) return [part];
+    const base = /^(\w+)Props$/.exec(part)?.[1];
+    if (!base || seen.has(base)) return [];
+    const inherited = extendsOf(source, base, new Set([...seen, name]));
+    return inherited ? [inherited] : [];
+  });
   return html?.length ? html.join(" & ") : null;
 }
 

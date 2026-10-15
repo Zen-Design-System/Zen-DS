@@ -250,7 +250,10 @@ function setsByCode(mapping) {
 function figmaProps(entry, code, mapping, notes, where, only = null, filled = null) {
   const props = {};
   const defaults = mapping.apiProps[entry.code];
-  const valueOf = (prop) => (prop in code ? code[prop] : only ? undefined : defaults?.get(prop));
+  // A state prop written as its uncontrolled twin (a Chip's defaultSelected, a Checkbox's defaultChecked: what the Studio
+  // writes so the page stays interactive) is the same Figma property.
+  const twinOf = (prop) => `default${prop[0].toUpperCase()}${prop.slice(1)}`;
+  const valueOf = (prop) => (prop in code ? code[prop] : twinOf(prop) in code ? code[twinOf(prop)] : only ? undefined : defaults?.get(prop));
   // A component that is several Figma sets (Sidebar: Basic, Workspace, Small-Density) maps the properties of them all:
   // write only those this set has (its contract's property names), when the contract knows the set.
   const known = entry.defaults && Object.keys(entry.defaults).length ? new Set(Object.keys(entry.defaults)) : null;

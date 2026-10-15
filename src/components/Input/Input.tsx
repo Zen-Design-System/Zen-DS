@@ -534,6 +534,8 @@ export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTML
    * Sheet instead of a Popover: a List of the options, the picked one selected with a check, and a pick closes it.
    */
   popoverOpen?: boolean;
+  /** Uncontrolled start for `popoverOpen` (default false). */
+  defaultPopoverOpen?: boolean;
   /** Called with the next open state: the trigger, Escape, a pick, a click outside or focus leaving the field. */
   onPopoverOpenChange?: (open: boolean) => void;
   /** Figma State=Read-Only: shows the value, keeps the chevron, never opens. */
@@ -549,7 +551,7 @@ function selectFocusEvent(event: FocusEvent<HTMLElement>, select: HTMLSelectElem
 }
 
 export function SelectField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, layout, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, onPopoverOpenChange, children, onFocus, onBlur, overrides, popoverWidth, ref, ...selectProps }: SelectFieldProps,
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, leading, trailing, layout, className, required, disabled, readOnly = false, options = [], onValueChange, placeholder, popoverLabel, popoverSearch = false, popoverSearchPlaceholder, popoverOpen, defaultPopoverOpen = false, onPopoverOpenChange, children, onFocus, onBlur, overrides, popoverWidth, ref, ...selectProps }: SelectFieldProps,
 ) {
   const error = errorProp ?? errorMessage;
   const size = scaleKey(sizeProp, inputSizes);
@@ -559,7 +561,7 @@ export function SelectField(
   const message = error ?? helpText;
   const nativeRef = useRef<HTMLSelectElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const [open, setOpen] = useControllableState({ value: popoverOpen, defaultValue: false, onChange: onPopoverOpenChange, name: "SelectField popoverOpen" });
+  const [open, setOpen] = useControllableState({ value: popoverOpen, defaultValue: defaultPopoverOpen, onChange: onPopoverOpenChange, name: "SelectField popoverOpen" });
   const [openedFromKeyboard, setOpenedFromKeyboard] = useState(false);
   // Focus moves into the list only when the person opened it from the trigger; a list opened from outside
   // (popoverOpen) leaves focus where it is.
