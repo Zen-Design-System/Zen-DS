@@ -1,193 +1,362 @@
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "../../../../components/Button";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Button, IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
+import { Menu } from "../../../../components/Menu";
+import { Segmented } from "../../../../components/Segmented";
 import { Text } from "../../../../components/Text";
-import api from "../../../api.generated.json";
-import { applyEdit, parseSrc } from "../../api";
-import { addFrame as addBoardFrame } from "./addFrame";
-import { InspectorRow, InspectorSection } from "../../inspector/Section";
+import { Toggle } from "../../../../components/Toggle";
+import { typographyStyles } from "../../../../tokens/typography.generated";
+import { parseSrc } from "../../api";
+import { zoomToFrame } from "../../board/presentFrame";
+import { InspectorFields, InspectorRow, InspectorSection } from "../../inspector/Section";
 import { RowInputField, RowSelectField } from "../../inspector/rowFields";
-import { useStudio } from "../../store";
-import type { EditOp } from "../../types";
-import { loadEngine } from "../engine";
+import { canEdit, studioStore, useStudio } from "../../store";
 import type { PageNode, PageTree, PageValue } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
+import { addFrame as addBoardFrame } from "./addFrame";
 import { startPlay } from "./Player";
+import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
+import { selectedItem } from "./protoDom";
+import {
+  ACTIONS, actionsFor, ANIMATIONS, choiceItemsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, frameNodeOf, framesOf,
+  HOVER_TRIGGER, isItemTrigger, literalOf, moves, optionsOf, protoOf, targetsByItem, triggerLabel,
+  type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFrame, type ProtoOptions,
+} from "./protoModel";
+import { placesItself, protoSubject, type ProtoSubject } from "./protoTriggers";
 
 /*
  * The Inspector's Prototype tab on a builder page (Studio builder GĐ2 M3, spec
- * docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page's flow (its Screens and Overlays, Add screen,
- * Add overlay, Play) and the selected element's interactions: each trigger it takes (onClick, onSelect…) with an action
- * (navigate to a Screen, open an Overlay, close, back, show a toast, open a link). An action is written as the prop's
- * `proto.*(…)` expression (setProp), so it is code like any other prop and ⌘Z undoes it.
+ * docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d; Figma's Prototype panel since 2026-10-15):
+ * - Flow: the page's Screens and Overlays (a click selects the frame and brings it into view, ▷ plays from a Screen; the
+ *   first Screen is where Play starts), Add screen, Add overlay, Play (from the selected Screen, else the start).
+ * - Interactions of the selected layer: each trigger it takes (On click / On tap, On change, While hovering; a Screen's
+ *   After delay) with an action (navigate to a Screen, open an Overlay, close, back, show a toast, open a link) and how
+ *   it animates (Instant, Dissolve, Move in, Push, Slide in; direction, duration); the main trigger and every set one
+ *   show, the others come from + (Add interaction). An action is written as the prop's `proto.*(…)` expression, so it is
+ *   code like any other prop and ⌘Z undoes it. On the canvas the layer's ⊕ draws the same connection (ProtoLinks).
+ * - Overlay: where an Overlay shows what it holds (Figma's overlay position), whether a press outside closes it and
+ *   whether the screen dims behind it; a Dialog, Side Panel or Bottom Sheet places itself.
  */
 
-type Action = "none" | "navigate" | "open" | "close" | "back" | "toast" | "link";
-const ACTIONS: Array<{ value: Action; label: string }> = [
-  { value: "none", label: "None" },
-  { value: "navigate", label: "Navigate to" },
-  { value: "open", label: "Open overlay" },
-  { value: "close", label: "Close overlay" },
-  { value: "back", label: "Back" },
-  { value: "toast", label: "Show toast" },
-  { value: "link", label: "Open link" },
-];
+/** What Add overlay puts in the new Overlay: a component that places itself, or a Card the Overlay places. */
+const OVERLAY_KINDS = [
+  { id: "dialog", label: "Dialog", icon: "icon-browser-line" },
+  { id: "sheet", label: "Bottom sheet", icon: "icon-layout-bottom-line" },
+  { id: "panel", label: "Side panel", icon: "icon-layout-right-line" },
+  { id: "card", label: "Card · you place it", icon: "icon-square-line" },
+] as const;
 
-type ApiEntry = { name: string; extends?: string | null; props: Array<{ name: string; type: string }> };
-const API: Map<string, ApiEntry> = new Map(Object.values(api as unknown as Record<string, ApiEntry[]>).flat().map((entry) => [entry.name, entry]));
-
-/** The event props a component takes (`on[A-Z]…` functions; onClick for one that takes the DOM element's props). */
-export function triggersOf(name: string, written: string[]): string[] {
-  const entry = API.get(name.split(".")[0]);
-  const own = (entry?.props ?? []).filter((prop) => /^on[A-Z]/.test(prop.name) && /=>|Function|Handler/.test(prop.type)).map((prop) => prop.name);
-  const dom = entry?.extends && /HTMLAttributes/.test(entry.extends) ? ["onClick"] : [];
-  return [...new Set([...written.filter((prop) => /^on[A-Z]/.test(prop)), ...dom, ...own])];
-}
-
-/** The node at `loc` (props, children, list rows and element-valued props included). */
-function findNode(tree: PageTree | null, loc: string): PageNode | null {
-  const stack: PageNode[] = tree?.board ? [tree.board] : [];
-  while (stack.length) {
-    const node = stack.pop()!;
-    if (node.loc === loc) return node;
-    for (const child of node.children) {
-      if (child.kind === "element") stack.push(child);
-      else if (child.kind === "map") stack.push(child.node);
-    }
-    const values: PageValue[] = Object.values(node.props);
-    while (values.length) {
-      const value = values.pop()!;
-      if (value.kind === "element") stack.push(value.node);
-      else if (value.kind === "array") values.push(...value.items);
-      else if (value.kind === "object") values.push(...Object.values(value.fields));
-    }
-  }
-  return null;
-}
-
-const literalOf = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
-
-/** The Board's frames (dialect.mjs boardFrames, computed here from the tree). */
-function framesOf(tree: PageTree | null) {
-  return (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element").map((node) => ({
-    kind: node.name === "Overlay" ? "overlay" as const : "screen" as const,
-    id: String(literalOf(node, "id") ?? ""),
-    state: literalOf(node, "state") as string | undefined,
-    title: String(literalOf(node, "title") ?? literalOf(node, "id") ?? ""),
-    device: (literalOf(node, "device") as string | undefined) ?? "desktop",
-  }));
-}
+/** The Screen a frame id belongs to ("screen:checkout:paid" → "checkout"), or null. */
+const screenOfFrame = (frameId: string | null | undefined) => (frameId?.startsWith("screen:") ? frameId.split(":")[1] : null);
 
 export function PrototypePanel() {
   const localPage = useStudio((state) => state.localPage);
   const selection = useStudio((state) => state.selection);
-  const admin = useStudio((state) => state.role === "admin");
+  const editable = useStudio((state) => canEdit(state));
   const page = usePage(localPage);
   const tree = usePageTree(page?.text);
   const frames = useMemo(() => framesOf(tree), [tree]);
   if (!localPage || !page) return null;
   const file = pageFile(localPage);
   const src = selection?.kind === "node" ? parseSrc(selection.src) : null;
-  const node = src && src.file === file ? findNode(tree, src.loc) : null;
-
-  const addFrame = (kind: "screen" | "overlay") => addBoardFrame(localPage, kind);
+  // A selected frame is its Screen (After delay) or its Overlay (its settings).
+  const frameNode = selection?.kind === "frame" ? frameNodeOf(tree, selection.frameId) : null;
+  const subject = src && src.file === file ? protoSubject(tree, src.loc) : frameNode ? protoSubject(tree, frameNode.loc) : null;
+  const overlayNode = subject?.node.name === "Overlay" ? subject.node : null;
+  // An item of a choice control (a SidebarMenuItem) shows its control's interactions, that item marked.
+  const via = subject?.item ? choiceItemsOf(subject.node).find((item) => item.value === subject.item)?.label ?? subject.item : null;
+  const selectedFrame = selection?.kind === "frame" ? selection.frameId : selection?.kind === "node" ? selection.frameId : null;
+  const playFrom = screenOfFrame(selectedFrame);
+  const home = frames.find((frame) => frame.frameId === selectedFrame);
+  const firstScreen = frames.find((frame) => frame.kind === "screen");
 
   return (
     <div className="studio-prototype" data-e2e="prototype-panel">
       <InspectorSection
         title="Flow"
-        actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-play-line" decorative />} aria-keyshortcuts="P" onClick={() => startPlay(null)}>Play</Button>}
+        actions={<Button appearance="main" level="primary" size="sm" startIcon={<Icon name="icon-play-line" decorative />} aria-keyshortcuts="P" onClick={() => startPlay(playFrom)}>Play</Button>}
       >
-        <ul className="studio-prototype__frames" aria-label="Screens and overlays">
+        <ul className="studio-inspector__items studio-prototype__frames" aria-label="Screens and overlays">
           {frames.map((frame) => (
-            <li key={`${frame.kind}:${frame.id}:${frame.state ?? ""}`} className="studio-prototype__frame">
-              <Icon name={frame.kind === "overlay" ? "icon-layers-three-01-line" : "icon-mobile-line"} size="sm" decorative />
-              <Text as="span" textStyle="Body/Small/Medium" className="studio-prototype__frame-name">{frame.title}</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">{frame.state ? `${frame.id} · ${frame.state}` : frame.id}</Text>
-            </li>
+            <FlowRow key={frame.frameId} frame={frame} start={frame === firstScreen} current={frame.frameId === selectedFrame} />
           ))}
         </ul>
         <div className="studio-prototype__add">
-          <Button appearance="main" level="tertiary" size="sm" disabled={!admin || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => void addFrame("screen")}>Add screen</Button>
-          <Button appearance="main" level="tertiary" size="sm" disabled={!admin || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => void addFrame("overlay")}>Add overlay</Button>
+          <Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => void addBoardFrame(localPage, "screen")}>Add screen</Button>
+          <Menu
+            trigger={<Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} endIcon={<Icon name="icon-chevron-down-line" decorative />}>Add overlay</Button>}
+            items={OVERLAY_KINDS.map((kind) => ({ id: kind.id, label: kind.label, icon: kind.icon }))}
+            onSelect={(item) => void addBoardFrame(localPage, "overlay", { holds: item.id as (typeof OVERLAY_KINDS)[number]["id"] })}
+          />
         </div>
       </InspectorSection>
-      <InspectorSection title="Interactions">
-        {node && src ? <Interactions key={src.loc} node={node} file={file} loc={src.loc} frames={frames} home={selection?.kind === "node" ? selection.frameId : null} disabled={!admin} /> : (
-          <Text tone="base" textStyle="Body/Small/Regular">Select a button or another control on the canvas to give it an action.</Text>
-        )}
-      </InspectorSection>
+      {overlayNode ? (
+        <OverlaySettings key={overlayNode.loc} node={overlayNode} file={file} disabled={!editable} />
+      ) : subject ? (
+        <Interactions key={subject.node.loc} subject={subject} tree={tree} layer={{ file, loc: subject.node.loc, name: subject.node.name }} via={via} frames={frames} home={home ?? null} disabled={!editable} />
+      ) : (
+        <InspectorSection title="Interactions">
+          <Text tone="base" textStyle="Body/Small/Regular">Select a layer, then drag its ⊕ onto a screen.</Text>
+        </InspectorSection>
+      )}
     </div>
   );
 }
 
-type Frame = ReturnType<typeof framesOf>[number];
-
-/** `home`: the frame the element is on ("screen:<id>[:state]"): Navigate to picks another Screen first. */
-function Interactions({ node, file, loc, frames, home, disabled }: { node: PageNode; file: string; loc: string; frames: Frame[]; home: string | null; disabled: boolean }) {
-  const triggers = triggersOf(node.name, Object.keys(node.props));
-  if (!triggers.length) return <Text tone="base" textStyle="Body/Small/Regular">{`<${node.name}> takes no clicks or other events.`}</Text>;
+/** A frame of the flow: the row selects it and brings it into view; ▷ plays from a Screen. */
+function FlowRow({ frame, start, current }: { frame: ProtoFrame; start: boolean; current: boolean }) {
+  const show = () => {
+    studioStore.setState({ selection: { kind: "frame", frameId: frame.frameId } });
+    const element = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frame.frameId)}"]`);
+    if (element) zoomToFrame(element);
+  };
+  const meta = start ? "Start" : frame.state ?? (frame.kind === "overlay" ? "Overlay" : null);
   return (
-    <>
-      {triggers.map((trigger) => <TriggerRow key={trigger} trigger={trigger} value={node.props[trigger]} node={node} file={file} loc={loc} frames={frames} home={home} disabled={disabled} />)}
-    </>
+    <li className="studio-inspector__item-wrap studio-prototype__frame" data-frame={frame.frameId}>
+      <button type="button" className="studio-inspector__item" aria-current={current || undefined} onClick={show}>
+        <span className="studio-inspector__item-icon" aria-hidden="true"><Icon name={frame.kind === "overlay" ? "icon-layers-three-01-line" : frame.device === "desktop" ? "icon-monitor-01-line" : "icon-mobile-line"} size="sm" decorative /></span>
+        <span className={`studio-inspector__item-name ${typographyStyles["Body/Small/Medium"]}`}>{frame.title}</span>
+        {meta ? <span className={`studio-inspector__item-meta ${typographyStyles["Body/Small/Regular"]}`}>{meta}</span> : null}
+      </button>
+      {frame.kind === "screen" ? (
+        <IconButton className="studio-prototype__play" appearance="flat" level="primary" size="xs" icon="icon-play-line" aria-label={`Play from ${frame.title}`} tooltip="Play from here" onClick={() => startPlay(frame.id)} />
+      ) : null}
+    </li>
   );
 }
 
-function TriggerRow({ trigger, value, node, file, loc, frames, home, disabled }: { trigger: string; value: PageValue | undefined; node: PageNode; file: string; loc: string; frames: Frame[]; home: string | null; disabled: boolean }) {
-  const proto = value?.kind === "proto" ? value : null;
-  const action: Action = proto ? (proto.action as Action) : "none";
-  const arg = proto ? proto.args[0] : undefined;
+/** The selected layer's interactions: the main trigger and every set one, the rest under + (Add interaction). `via`: the
+ *  selected layer is this item of the control (its label, for the note). */
+function Interactions({ subject, tree, layer, via, frames, home, disabled }: { subject: ProtoSubject; tree: PageTree | null; layer: ProtoLayer; via: string | null; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean }) {
+  const { node, triggers, trigger: main } = subject;
+  const [added, setAdded] = useState<string[]>([]);
+  const shown = triggers.filter((trigger) => trigger === main || node.props[trigger] !== undefined || added.includes(trigger));
+  const more = triggers.filter((trigger) => !shown.includes(trigger));
+  const touch = Boolean(home && home.kind === "screen" && home.device !== "desktop");
+  // A trigger picked from + opens its action list at once.
+  const [opening, setOpening] = useState<string | null>(null);
+  useEffect(() => {
+    if (!opening) return;
+    document.querySelector<HTMLElement>(`#studio-right [data-prop="proto:${CSS.escape(opening)}"] button`)?.click();
+    setOpening(null);
+  }, [opening]);
+
+  const addMenu = more.length && !disabled ? (
+    <Menu
+      align="end"
+      trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-plus-line" aria-label="Add interaction" tooltip="Add interaction" />}
+      items={more.map((trigger) => ({ id: trigger, label: triggerLabel(trigger, touch) }))}
+      onSelect={(item) => { setAdded((list) => [...list, item.id]); setOpening(item.id); }}
+    />
+  ) : null;
+
+  return (
+    <InspectorSection title="Interactions" actions={addMenu} note={via ? `${via} · in ${node.name}` : undefined}>
+      {shown.length ? shown.map((trigger) => (
+        <TriggerRow key={trigger} trigger={trigger} label={triggerLabel(trigger, touch)} value={node.props[trigger]} items={isItemTrigger(node, trigger) ? choiceItemsOf(node) : []} tree={tree} layer={layer} frames={frames} home={home} disabled={disabled} onRemoved={() => setAdded((list) => list.filter((item) => item !== trigger))} />
+      )) : <Text tone="base" textStyle="Body/Small/Regular">{`${node.name} takes no clicks.`}</Text>}
+    </InspectorSection>
+  );
+}
+
+/** "None" in an item's target list (a Select option needs a value). */
+const NO_TARGET = "__none";
+
+/** One trigger of the selected layer: its action and target, how it animates (After delay: how long first). A choice
+ *  control's item trigger (a tab bar's On change) leads each item to its own Screen or Overlay: one row per item. */
+function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, disabled, onRemoved }: { trigger: string; label: string; value: PageValue | undefined; items: ChoiceItem[]; tree: PageTree | null; layer: ProtoLayer; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean; onRemoved: () => void }) {
+  const proto = protoOf(value);
+  const action: ProtoAction = proto?.action ?? "none";
+  const arg = proto?.args[0];
   const argText = typeof arg === "string" ? arg : arg && typeof arg === "object" && "title" in arg ? String((arg as { title?: unknown }).title ?? "") : "";
+  const options = proto ? optionsOf(action, proto.args) : {};
   const custom = value !== undefined && !proto;
   const [draft, setDraft] = useState(argText);
   useEffect(() => setDraft(argText), [argText]);
+  const delayText = String(options.delay ?? DEFAULT_DELAY);
+  const [delayDraft, setDelayDraft] = useState(delayText);
+  useEffect(() => setDelayDraft(delayText), [delayText]);
+  const picked = useSyncExternalStore(selectedItem.subscribe, selectedItem.get, selectedItem.get);
+  const pickedItem = picked && picked.loc === layer.loc ? picked.item : null;
+  const byItem = items.length > 0 && (action === "navigate" || action === "open");
+  const targets = byItem ? targetsByItem(arg, items) ?? {} : {};
+  const homeScreen = home?.kind === "screen" ? home.id : null;
 
-  const write = async (next: Action, target?: string) => {
+  const write = (next: ProtoAction, target?: string) => {
     if (next === "none") {
-      await applyEdit({ file, loc, name: node.name, ops: [{ op: "removeProp", name: trigger } as EditOp] }, `${trigger} → none`);
+      void writeAction(layer, trigger, "none");
+      onRemoved();
       return;
     }
-    const engine = await loadEngine();
-    const homeScreen = home?.startsWith("screen:") ? home.split(":")[1] : null;
-    const screenIds = frames.filter((frame) => frame.kind === "screen" && !frame.state).map((frame) => frame.id);
-    const fallback = next === "navigate" ? screenIds.find((screen) => screen !== homeScreen) ?? screenIds[0] : next === "open" ? frames.find((frame) => frame.kind === "overlay")?.id : next === "toast" ? "Done" : next === "link" ? "https://" : undefined;
-    const code = engine.protoCode(next, target ?? fallback ?? "");
-    await applyEdit({ file, loc, name: node.name, ops: [{ op: "setProp", name: trigger, value: { kind: "expression", code } } as EditOp] }, `${trigger} → ${next}`);
+    // A new action keeps the animation (and the delay) it had.
+    const kept: ProtoOptions = next === action ? options : { delay: options.delay, ...(next === "navigate" || next === "open" ? { animation: options.animation, direction: options.direction, duration: options.duration } : {}) };
+    if (items.length && (next === "navigate" || next === "open") && target === undefined) {
+      // Per item: the item selected on the canvas starts with a target, the others go nowhere until one is picked.
+      const start = pickedItem ? { [pickedItem]: defaultTarget(next, frames, homeScreen) } : {};
+      void writeItemTargets(layer, trigger, next, start, ACTIONS.find((entry) => entry.value === next)?.label ?? next, kept);
+      return;
+    }
+    void writeAction(layer, trigger, next, target ?? defaultTarget(next, frames, homeScreen), kept);
+  };
+  const writeItem = (item: ChoiceItem, target: string) => {
+    if (action !== "navigate" && action !== "open") return;
+    const next = { ...targets, [item.value]: target === NO_TARGET ? undefined : target };
+    void writeItemTargets(layer, trigger, action, next, `${item.label} → ${target === NO_TARGET ? "none" : frames.find((frame) => frame.id === target)?.title ?? target}`, options);
+  };
+  /** The same action with other options (animation, direction, duration, delay). */
+  const writeOptions = (change: ProtoOptions, label: string) => {
+    if (!proto || action === "none") return;
+    const next = { ...options, ...change };
+    if (byItem && (action === "navigate" || action === "open")) void writeItemTargets(layer, trigger, action, targets, label, next);
+    else void writeAction(layer, trigger, action, typeof arg === "string" ? arg : argText, next, label);
   };
 
   const screens = frames.filter((frame) => frame.kind === "screen" && !frame.state);
   const overlays = frames.filter((frame) => frame.kind === "overlay");
+  // An overlay that places itself (a Dialog…) animates itself too.
+  const target = action === "open" && typeof arg === "string" ? frameNodeOf(tree, `overlay:${arg}`) : null;
+  const targetChild = target?.children.find((child): child is PageNode => child.kind === "element") ?? null;
+  const selfPlaced = Boolean(targetChild && placesItself(targetChild.name));
+  const animates = trigger !== HOVER_TRIGGER && (action === "navigate" || (action === "open" && !selfPlaced));
+  const set = value !== undefined;
+  const remove = set && !disabled
+    ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-minus-line" aria-label={`Remove ${label}`} tooltip="Remove interaction" onClick={() => write("none")} />
+    : null;
   return (
     <div className="studio-prototype__trigger" data-trigger={trigger}>
-      <InspectorRow label={trigger} name={`proto:${trigger}`}>
-        <RowSelectField aria-label={`${trigger} action`} size="sm" disabled={disabled} value={custom ? "" : action} placeholder="Code" onValueChange={(next) => void write(next as Action)} options={ACTIONS} />
+      <InspectorRow label={label} labelTitle={trigger} name={`proto:${trigger}`} action={remove}>
+        <RowSelectField aria-label={`${label} action`} size="sm" disabled={disabled} value={custom ? "" : action} placeholder="Set in code" onValueChange={(next) => write(next as ProtoAction)} options={[...actionsFor(trigger)]} />
       </InspectorRow>
-      {action === "navigate" ? (
-        <InspectorRow label="Screen" name={`proto:${trigger}:target`}>
-          <RowSelectField aria-label={`${trigger} screen`} size="sm" disabled={disabled} value={argText} placeholder="—" onValueChange={(next) => void write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
+      {trigger === DELAY_TRIGGER && action !== "none" ? (
+        <InspectorRow label="Delay (ms)" name={`proto:${trigger}:delay`}>
+          <RowInputField
+            aria-label="Delay in milliseconds"
+            size="sm"
+            inputMode="numeric"
+            disabled={disabled}
+            value={delayDraft}
+            onChange={(event) => setDelayDraft(event.target.value.replace(/[^\d]/g, ""))}
+            onBlur={() => { if (delayDraft && delayDraft !== delayText) writeOptions({ delay: Number(delayDraft) }, `After delay ${delayDraft} ms`); }}
+            onKeyDown={(event) => { if (event.key === "Enter" && delayDraft && delayDraft !== delayText) { event.preventDefault(); writeOptions({ delay: Number(delayDraft) }, `After delay ${delayDraft} ms`); } }}
+          />
         </InspectorRow>
       ) : null}
-      {action === "open" ? (
+      {byItem ? items.map((item) => (
+        <div key={item.value} className="studio-prototype__item" data-current={item.value === pickedItem || undefined}>
+          <InspectorRow label={item.label} name={`proto:${trigger}:item:${item.value}`}>
+            <RowSelectField
+              aria-label={`${item.label} ${action === "open" ? "overlay" : "screen"}`}
+              size="sm"
+              disabled={disabled}
+              value={targets[item.value] ?? NO_TARGET}
+              onValueChange={(next) => writeItem(item, next)}
+              options={[{ value: NO_TARGET, label: "None" }, ...(action === "open" ? overlays : screens).map((frame) => ({ value: frame.id, label: frame.title }))]}
+            />
+          </InspectorRow>
+        </div>
+      )) : null}
+      {action === "navigate" && !byItem ? (
+        <InspectorRow label="Screen" name={`proto:${trigger}:target`}>
+          <RowSelectField aria-label={`${label} screen`} size="sm" disabled={disabled} value={argText} placeholder="—" onValueChange={(next) => write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
+        </InspectorRow>
+      ) : null}
+      {action === "open" && !byItem ? (
         <InspectorRow label="Overlay" name={`proto:${trigger}:target`}>
-          <RowSelectField aria-label={`${trigger} overlay`} size="sm" disabled={disabled || !overlays.length} value={argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => void write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.id }))} />
+          <RowSelectField aria-label={`${label} overlay`} size="sm" disabled={disabled || !overlays.length} value={argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.title }))} />
         </InspectorRow>
       ) : null}
       {action === "toast" || action === "link" ? (
         <InspectorRow label={action === "toast" ? "Title" : "URL"} name={`proto:${trigger}:target`}>
           <RowInputField
-            aria-label={`${trigger} ${action === "toast" ? "toast title" : "link"}`}
+            aria-label={`${label} ${action === "toast" ? "toast title" : "link"}`}
             size="sm"
             disabled={disabled}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            onBlur={() => { if (draft !== argText) void write(action, draft); }}
-            onKeyDown={(event) => { if (event.key === "Enter" && draft !== argText) { event.preventDefault(); void write(action, draft); } }}
+            onBlur={() => { if (draft !== argText) write(action, draft); }}
+            onKeyDown={(event) => { if (event.key === "Enter" && draft !== argText) { event.preventDefault(); write(action, draft); } }}
           />
         </InspectorRow>
       ) : null}
-      {custom ? <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">This handler is code; picking an action replaces it.</Text> : null}
+      {animates ? <AnimationRows trigger={trigger} options={options} disabled={disabled} onChange={writeOptions} /> : null}
+      {target && !selfPlaced ? <OverlayFields node={target} file={layer.file} disabled={disabled} /> : null}
+      {custom ? <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Picking an action replaces the code.</Text> : null}
+    </div>
+  );
+}
+
+const DIRECTION_ICONS = { left: "icon-arrow-left-line", right: "icon-arrow-right-line", up: "icon-arrow-up-line", down: "icon-arrow-down-line" } as const;
+const DURATION_LABELS: Readonly<Record<ProtoDuration, string>> = { fast: "Fast", base: "Base", slow: "Slow" };
+
+/** Figma's Animation for a connection: the kind, which way it moves (an animation that moves), how long (Motion tokens). */
+function AnimationRows({ trigger, options, disabled, onChange }: { trigger: string; options: ProtoOptions; disabled: boolean; onChange: (change: ProtoOptions, label: string) => void }) {
+  const animation = options.animation ?? DEFAULT_ANIMATION;
+  const direction = options.direction ?? DEFAULT_DIRECTION;
+  const duration = options.duration ?? DEFAULT_DURATION;
+  return (
+    <>
+      <InspectorRow label="Animation" name={`proto:${trigger}:animation`}>
+        <RowSelectField aria-label="Animation" size="sm" disabled={disabled} value={animation} onValueChange={(next) => onChange({ animation: next as ProtoAnimation }, `Animation ${ANIMATIONS.find((entry) => entry.value === next)?.label ?? next}`)} options={[...ANIMATIONS]} />
+      </InspectorRow>
+      {moves(animation) ? (
+        <InspectorRow label="Direction" name={`proto:${trigger}:direction`}>
+          <Segmented
+            aria-label="Direction"
+            size="sm"
+            fullWidth
+            disabled={disabled}
+            value={direction}
+            onValueChange={(next) => onChange({ direction: next as ProtoDirection }, `Moves ${next}`)}
+            options={(Object.keys(DIRECTION_ICONS) as ProtoDirection[]).map((id) => ({ id, label: "", leading: DIRECTION_ICONS[id], "aria-label": `Moves ${id}` }))}
+          />
+        </InspectorRow>
+      ) : null}
+      {animation !== "instant" ? (
+        <InspectorRow label="Duration" name={`proto:${trigger}:duration`}>
+          <RowSelectField aria-label="Duration" size="sm" disabled={disabled} value={duration} onValueChange={(next) => onChange({ duration: next as ProtoDuration }, `Duration ${DURATION_LABELS[next as ProtoDuration] ?? next}`)} options={(Object.keys(DURATION_LABELS) as ProtoDuration[]).map((id) => ({ value: id, label: DURATION_LABELS[id] }))} />
+        </InspectorRow>
+      ) : null}
+    </>
+  );
+}
+
+/** Figma's overlay positions; Center is the default (not written). */
+const POSITIONS = [
+  { value: "center", label: "Center" },
+  { value: "top", label: "Top" },
+  { value: "bottom", label: "Bottom" },
+  { value: "top-left", label: "Top left" },
+  { value: "top-right", label: "Top right" },
+  { value: "bottom-left", label: "Bottom left" },
+  { value: "bottom-right", label: "Bottom right" },
+];
+
+/** A selected Overlay frame's settings (a Dialog, Side Panel or Bottom Sheet places itself: one line says so). */
+function OverlaySettings({ node, file, disabled }: { node: PageNode; file: string; disabled: boolean }) {
+  const child = node.children.find((entry): entry is PageNode => entry.kind === "element");
+  const selfPlaced = Boolean(child && placesItself(child.name));
+  return (
+    <InspectorSection title="Overlay" note={selfPlaced && child ? `${child.name} places itself` : undefined}>
+      {selfPlaced ? null : <OverlayFields node={node} file={file} disabled={disabled} />}
+    </InspectorSection>
+  );
+}
+
+/** Where an Overlay shows its layer, whether a press outside closes it, whether the screen dims behind it (Overlay props,
+ *  read by Play). */
+function OverlayFields({ node, file, disabled }: { node: PageNode; file: string; disabled: boolean }) {
+  const layer: ProtoLayer = { file, loc: node.loc, name: "Overlay" };
+  const position = String(literalOf(node, "position") ?? "center");
+  const closes = literalOf(node, "closeOnOutside") !== false;
+  const background = literalOf(node, "background") === true;
+  return (
+    <div className="studio-prototype__overlay" data-overlay={String(literalOf(node, "id") ?? "")}>
+      <InspectorRow label="Position" name="overlay:position">
+        <RowSelectField aria-label="Overlay position" size="sm" disabled={disabled} value={position} onValueChange={(next) => void writeProp(layer, "position", next === "center" ? null : { kind: "string", value: next }, `Overlay at ${POSITIONS.find((entry) => entry.value === next)?.label ?? next}`)} options={POSITIONS} />
+      </InspectorRow>
+      <InspectorFields name="overlay:closeOnOutside" fields={[<Toggle key="close" label="Close on outside press" checked={closes} disabled={disabled} onCheckedChange={(next) => void writeProp(layer, "closeOnOutside", next ? null : { kind: "boolean", value: false }, next ? "Close on outside press" : "Stay open on outside press")} />]} />
+      <InspectorFields name="overlay:background" fields={[<Toggle key="background" label="Dim the screen behind" checked={background} disabled={disabled} onCheckedChange={(next) => void writeProp(layer, "background", next ? { kind: "boolean", value: true } : null, next ? "Dim behind the overlay" : "No dim behind the overlay")} />]} />
     </div>
   );
 }

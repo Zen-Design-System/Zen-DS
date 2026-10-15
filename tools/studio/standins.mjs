@@ -3,7 +3,7 @@
 // function (AiChatField `onSubmit`, TopNavigation `searchAction.onClick`) is missing: the page
 // renderer passes a stand-in so the component renders, and the exported React (compile.mjs) writes one with a TODO(dev).
 // Isomorphic, no imports beyond the generated list (compile-api-build.mjs).
-import { LITERAL_PROPS, OBJECT_FIELDS, REQUIRED_FUNCTIONS } from "./compile-api.generated.mjs";
+import { LITERAL_PROPS, OBJECT_FIELDS, OPENS, REQUIRED_FUNCTIONS } from "./compile-api.generated.mjs";
 
 export { REQUIRED_FUNCTIONS };
 
@@ -40,3 +40,6 @@ export const literalProp = (component, prop) => Boolean(LITERAL_PROPS[component]
 /** Per prop of `component` whose type is closed objects: the fields those objects may have; null for none. */
 export const objectFields = (component) => OBJECT_FIELDS[component] ?? null;
 
+
+/** Does the component open and close itself (an `open` prop: Dialog, SidePanel, BottomSheet…)? */
+export const opensItself = (component) => OPENS.includes(String(component).split(".")[0]);

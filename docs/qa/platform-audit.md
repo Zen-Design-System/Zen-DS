@@ -27,6 +27,7 @@ npm run platform:audit:full -- --pages=…   # thêm 1024 chỉ khi layout 1024 
 | --- | --- | --- |
 | errors | lỗi | Console error hoặc exception, kể cả do smoke-click. Sửa trong component hoặc example. |
 | overflow | lỗi | Trang bị cuộn ngang, hoặc phần tử tràn khỏi stage/preview. Sửa layout responsive; stage có `overflow-x:auto` có chủ đích thì được bỏ qua. |
+| counts | lỗi | Segmented có ít hơn 2 hoặc nhiều hơn 5 item khi render. Rule tĩnh `segmented/option-count` chỉ đếm mảng viết thẳng trong JSX; options tính lúc chạy (mode của token, dữ liệu map) được đếm ở đây. Quá 5 → SelectField hoặc Tabs. |
 | images | lỗi | `<img>` hỏng. |
 | names | lỗi | Control không có accessible name, ví dụ Segmented icon-only hoặc field không label. |
 | nesting | lỗi | Phần tử tương tác lồng trong button hoặc link. |

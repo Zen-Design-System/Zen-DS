@@ -52,7 +52,12 @@ export function allPages(root) {
   const ids = [...nav.matchAll(/id:\s*"([\w-]+)"/g)].map((m) => m[1]);
   let layer = "";
   try { layer = fs.readFileSync(path.join(root, "src/platform/appLayer/types.ts"), "utf8").match(/appLayerPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? ""; } catch { /* older checkout */ }
-  return ["overviews", "installation", "design-tokens", "typography", "iconography", ...new Set([...ids, ...[...layer.matchAll(/"([\w-]+)"/g)].map((m) => m[1])])];
+  return ["overviews", "installation", "design-tokens", ...collectionPages(root), "typography", "iconography", ...new Set([...ids, ...[...layer.matchAll(/"([\w-]+)"/g)].map((m) => m[1])])];
+}
+/** One page per token collection (Design Tokens › <collection>): the id carries the query, so `?page=${id}` opens it. */
+export function collectionPages(root) {
+  const source = JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma.collections.json"), "utf8"));
+  return source.collections.map((collection) => `design-tokens&collection=${collection.slug}`);
 }
 const kebab = (s) => s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 const FOLDER_PAGE = { ListItem: "list-item", MetricWidget: "metric", Icon: "iconography", FileIcon: "uploader", Provider: "installation" };
@@ -61,7 +66,9 @@ export const folderPage = (folder) => FOLDER_PAGE[folder] ?? kebab(folder);
 /** Components that most pages render: a change there is checked on a representative set of pages too. */
 export const CORE = new Set(["_shared", "Portal", "Motion", "Provider", "Icon", "Text", "Button", "Popover", "Layout", "Tooltip", "Input", "ListItem"]);
 export const REPRESENTATIVE = ["button", "card", "dialog", "popover", "list-item", "chat", "templates"];
-const FOUNDATION_PAGE = { FoundationOverview: "overviews", TokenCollectionPage: "design-tokens", TokenTableView: "design-tokens", TextStylesGallery: "typography", PlatformTypographyHierarchy: "typography", IconGallery: "iconography" };
+const FOUNDATION_PAGE = { FoundationOverview: "overviews", TokenCollectionPage: "collections", TokenTableView: "collections", TextStylesGallery: "typography", PlatformTypographyHierarchy: "typography", IconGallery: "iconography" };
+/** The pages a foundation file renders on; "collections" = every token collection page (the token tables). */
+const foundationPages = (root, base) => FOUNDATION_PAGE[base] === "collections" ? collectionPages(root) : FOUNDATION_PAGE[base] ? [FOUNDATION_PAGE[base]] : null;
 /** Custom properties generated from Figma variables / effect styles: an edit is a token value change (scoped by consumers). */
 export const TOKEN_STYLE_FILES = ["src/styles/tokens.css", "src/styles/style-effects.css"];
 /** Typography sources: text styles render on every page (tier L, --all before delivering). */
@@ -139,8 +146,8 @@ function pagesUsingExport(root, rel, name, pages) {
     if (!uses.length) continue;
     const found = new Set(uses.flatMap((at) => pagesAt(s, at, pages)));
     if (!found.size) {
-      const own = FOUNDATION_PAGE[path.basename(f, ".tsx")];
-      (own ? [own] : f.startsWith("appLayer/") ? appLayerPages(s, pages) : []).forEach((p) => found.add(p));
+      const own = foundationPages(root, path.basename(f, ".tsx"));
+      (own ? own : f.startsWith("appLayer/") ? appLayerPages(s, pages) : []).forEach((p) => found.add(p));
     }
     found.forEach((p) => out.add(p));
   }
@@ -194,7 +201,7 @@ export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
   const own = rel.match(/^src\/platform\/examples\/pages\/([\w-]+)\.(?:tsx|css)$/)?.[1];
   if (own && pages.includes(own)) return { pages: [own], notes };
   const base = path.basename(rel).replace(/\.\w+$/, "");
-  if (FOUNDATION_PAGE[base]) return { pages: [FOUNDATION_PAGE[base]], notes };
+  if (FOUNDATION_PAGE[base]) return { pages: foundationPages(root, base), notes };
   const abs = path.join(root, rel);
   const src = fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : "";
   if (rel.endsWith(".css")) {

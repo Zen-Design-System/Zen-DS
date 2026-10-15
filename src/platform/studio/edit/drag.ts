@@ -93,7 +93,9 @@ function toWorld(point: { x: number; y: number }) {
 }
 
 const nameOfHit = (hit: FiberHit) => hit.name.slice(hit.name.lastIndexOf(".") + 1);
-export const isDropContainer = (hit: FiberHit) => Boolean(hit.hosts[0]) && (DROP_COMPONENTS.has(nameOfHit(hit)) || DROP_TAGS.has(hit.name));
+/** An Overlay that holds nothing yet (a page made in the Studio) takes the one layer it will show. */
+const emptyOverlay = (hit: FiberHit) => nameOfHit(hit) === "Overlay" && !hit.hosts.some((host) => host.querySelector("[data-zen-src]"));
+export const isDropContainer = (hit: FiberHit) => Boolean(hit.hosts[0]) && (DROP_COMPONENTS.has(nameOfHit(hit)) || DROP_TAGS.has(hit.name) || emptyOverlay(hit));
 
 type Axis = "row" | "column" | "grid";
 function axisOf(hit: FiberHit): Axis {

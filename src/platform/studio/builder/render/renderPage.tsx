@@ -144,6 +144,26 @@ function withStandIns(name: string, props: Record<string, unknown>) {
   }
 }
 
+/** Board props no component reads (Play reads them from the page): a Screen's After delay. */
+const BOARD_ONLY: Readonly<Record<string, readonly string[]>> = { Screen: ["onDelay"] };
+
+/**
+ * The Studio's prototype props on their way to a component (proto/protoModel.ts): the Board's own are dropped, and While
+ * hovering (Open overlay) becomes the pointer's enter and leave — its overlay shows while the pointer stays — where the
+ * actions take hover (Play's); elsewhere it does nothing.
+ */
+function prototypeProps(node: PageNode, props: Record<string, unknown>, ctx: RenderContext) {
+  for (const prop of BOARD_ONLY[node.name] ?? []) delete props[prop];
+  const hover = node.props.whileHovering;
+  if (!hover) return;
+  delete props.whileHovering;
+  const actions = ctx.proto.hover;
+  if (hover.kind !== "proto" || hover.action !== "open" || typeof hover.args[0] !== "string" || !actions) return;
+  const [overlay, options] = hover.args;
+  props.onPointerEnter = () => actions.enter(overlay, options);
+  props.onPointerLeave = () => actions.leave();
+}
+
 const INITIAL_PROP = /^(default|initial)[A-Z]/;
 
 /** The initial-state props of an element (its own `defaultX` / `initialX`, and those its `overrides` set on nested layers) as one
@@ -185,6 +205,7 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL, in a prop's data too (a
   // Table row's picture).
   for (const [name, value] of Object.entries(node.props)) props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
+  prototypeProps(node, props, ctx);
   withStandIns(node.name, props);
   // A component reads its initial state once, when it mounts (Table defaultSelectedIds, Checkbox defaultChecked, a chart's
   // initialIndex, a nested layer's default in `overrides`): an edit of one starts that component again, so the canvas

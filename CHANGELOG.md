@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio Layers has no Refresh button (2026-10-15, user): the tree already rebuilds on page, source and DOM changes,
+  and now also when a text changes on the canvas (a text layer is named by its words), as Figma's layers follow the
+  canvas.
 - Zen Studio canvas, free frames on a page you made (2026-10-15, user: "canvas tự do hơn, giống Figma"): drag a frame by
   its name (or a selected frame anywhere) to move it, with red snap guides to the other frames (⌘ off, ⇧ one axis, Esc
   back); ⌥-drag drops a copy; ⌘D, ⌘C / ⌘V copy a frame (also onto another page); the arrow keys nudge it. The toolbar's
@@ -33,6 +36,19 @@ removed (four unused colour ramps were, see Removed).
   and shows the page without the AppShell.
 - Zen Studio's HTML export keeps VisuallyHidden's rule, so an AppShell's "Skip to content" link no longer shows on the
   exported page.
+- Zen Studio's prototype works like Figma's prototype mode (2026-10-15, user: "Nâng cấp Usability của tính năng
+  Prototype"): with the Prototype tab open, a selected layer shows a ⊕ — drag it onto a screen or overlay to connect;
+  click an arrow to select its layer, drag an arrow's end to another frame or off to remove it (⌘Z undoes it). A tab bar,
+  Tabs, Segmented or Sidebar leads each item to its own screen (`proto.navigate({ home: "screen-1", … })`; one ⊕ per
+  item, one row per item in the tab; Play, Interact and the React export follow the chosen item). The tab speaks design
+  words (On click / On tap, On change), removes an interaction with −, adds another trigger with +, and lists the flow
+  (Start, overlays by their dialog's title; a row selects its frame, ▷ plays from it). Play flashes the hotspots after a
+  press on nothing clickable and names a screen once. Round 2 (user: "ok"): each connection picks Figma's Animation
+  (Instant · Dissolve · Move in · Push · Slide in, which way it moves, Fast · Base · Slow from the Motion tokens; Back
+  plays it backwards); a Screen takes After delay (ms) and a layer While hovering (its overlay shows while the pointer
+  stays); Add overlay holds a Dialog, Bottom sheet, Side panel or a Card you place (Position, Close on outside press, Dim
+  the screen behind; an empty Overlay takes a layer from Assets). The React export writes After delay as an effect and
+  While hovering as pointer handlers; arrows follow a frame while it is dragged.
 - Zen Studio looks like Figma UI3's floating panels (2026-10-15, user): the canvas fills the window and Pages | Layers
   and the Inspector float over it; the toolbar row is gone (brand menu and Document | Studio head the left panel, role,
   undo/redo and drafts the Inspector, the zoom sits on its tab row, light/dark moved to the brand menu). Inspector rows
@@ -261,6 +277,11 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Design Tokens › Global Colors (2026-10-15, user): the page lists its 960 colours again (it showed "No tokens match" and
+  Zen / Zen-High-Contrast instead of Light / Dark Colors: a sync note had been pasted into the collection's slug).
+  Component Theme picks its 9 modes in a SelectField instead of a Segmented that ran off the page; a Segmented stays for
+  2–5 modes. The platform audit now visits every token collection page and fails a rendered Segmented with more than 5
+  (or fewer than 2) items (kind `counts`), which the static `segmented/option-count` cannot count when options are computed.
 - Zen Studio Interact, zoomed in or out (2026-10-15, user): an example's overlays stay in its frame and zoom with it. A
   Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
   and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole
