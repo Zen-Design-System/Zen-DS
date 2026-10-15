@@ -17,6 +17,7 @@ import { composeEdit, composeUi, extractJson, feedbackFor, buildSystemPrompt, ti
 import { anthropicModel } from "./adapters/anthropic.mjs";
 import { createAiUiHandler } from "./server.mjs";
 import { createLiveComposer, keywordClassifier } from "../../src/ai-ui/live.mjs";
+import { classifierMetric, dryModel, loadPromptSet, renderReport, runEval } from "./eval.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fixture = (name) => JSON.parse(fs.readFileSync(path.join(root, "tools/ai-ui/fixtures", name), "utf8"));
@@ -160,6 +161,17 @@ check("clearing the field clears the preview", live.state.phase === "idle" && li
 await live.submit("anything at all");
 check("submit composes regardless of confidence", live.state.phase === "ready" && live.state.intent === null);
 live.dispose();
+
+// 10. the eval on the scripted model: the metrics it reports, the report, and the classifier on partial prompts (no model)
+const promptSet = loadPromptSet();
+const dry = dryModel();
+const evalRun = await runEval(promptSet, { catalog, makeModel: () => dry, only: ["booking-en", "invoices-overdue", "small-talk"], concurrency: 1 });
+const es = evalRun.summary;
+check("runEval counts valid-first, the retry, the wrong UI, the text answer and the follow-ups", es.cases === 3 && es.validFinal.n === 3 && es.validFirst.n === 2 && es.specAttempts.valid === 2 && es.specAttempts.of === 3 && es.wrongUi.n === 1 && es.textAnswers === 1 && es.problems[0]?.code === "unknown-component" && es.edits.n === 4 && es.edits.ok === 4 && es.edits.expected === 3 && es.msToUi.n === 2 && es.usage.calls === evalRun.records.reduce((n, r) => n + r.calls, 0), JSON.stringify({ ...es, classifier: undefined }));
+const evalMd = renderReport(evalRun, { model: "dry" });
+check("renderReport lists the metrics, the cases and the follow-ups", /\| Valid spec, first attempt \| 2\/3/.test(evalMd) && /\| booking-en \| ui \| 2 \|/.test(evalMd) && /## Follow-ups/.test(evalMd) && /\| invoices-overdue \| sort \| text \|/.test(evalMd), evalMd.slice(0, 600));
+const partial = classifierMetric(promptSet.cases, promptSet.intents);
+check("the keyword classifier names every intent on the full prompt and stays quiet on the rest", partial.fractions.at(-1).correct === partial.fractions.at(-1).of && partial.fractions.at(-1).of === promptSet.cases.length && partial.fractions.at(-1).falsePositives === 0 && partial.details.find((d) => d.id === "booking-en")?.firstConfidentAt === 0.25, JSON.stringify(partial.fractions));
 
 console.log(failed ? `\n${failed} check(s) failed.` : "\nAI UI selftest OK.");
 process.exitCode = failed ? 1 : 0;

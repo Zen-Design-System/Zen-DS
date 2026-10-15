@@ -468,3 +468,19 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   the text being typed; `defaultValue` stays; docs/api, guidelines and the catalog regenerated — the catalog pairs them).
   Example "Composed while typing" on the page.
 - Selftest: adapter request shape and refusal, the handler's routes and errors, the live composer's timeline.
+
+### Eval script (2026-10-15, tier S, user: "Làm mục 1, viết script eval")
+
+- `tools/ai-ui/eval.mjs` (`npm run ai-ui:eval`, also `@zen-ds/react/ai-ui/eval`) and `tools/ai-ui/eval/prompts.json`
+  (20 cases, en + vi, with follow-ups; `intents` for the classifier; shared `data` read with `$ref`). Per case:
+  `composeUi` with the adapter (one model function per case so usage lands on it), then the follow-ups chained on the
+  result; the record keeps every reply, the problem codes, the components used and the ms to the accepted spec. Summary
+  and Markdown report: valid-spec rate (first / within the loop / per attempt), wrong UI against `expect`, text
+  answers, time to first UI (median, p90), tokens, follow-ups, and the keyword classifier on 25–100 % of each prompt
+  (no model). `--dry` runs a scripted model (one broken spec first, text for small talk, ops / state for edits) so the
+  pipeline and the report run without a key; `--classifier-only` is that metric alone. Reports in `.qa/ai-ui-eval/`.
+- Not run live: the sandbox has no key. Dry run: 20/20 valid within the loop, one feedback round (`unknown-component`);
+  the wrong-UI metric flags the 13 cases where the scripted booking form is not the expected UI. Classifier: 19/20 right
+  at 25 % of the prompt, 20/20 from 50 %, no false positives on the 13 cases without an intent.
+- Selftest section 10 covers runEval's counts, the report and the classifier metric. Two expectations tightened after
+  the dry run (delete-project and new-project-form let a plain form pass).

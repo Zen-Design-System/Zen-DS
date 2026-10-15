@@ -294,6 +294,11 @@ removed (four unused colour ramps were, see Removed).
   is set, and `createLiveComposer` / `keywordClassifier` compose while the person types (debounce, on-device classifier,
   Skeleton first, stale answers dropped, no flicker). `AiChatField` takes `value` / `onValueChange`. Patterns › AI UI
   gains "Composed while typing" and uses the model for typed prompts when the server has one.
+- **AI UI eval** (`npm run ai-ui:eval`, `@zen-ds/react/ai-ui/eval`, 2026-10-15): runs a prompt set (20 cases, English
+  and Vietnamese, with follow-ups) through the compose loop on a real model and reports the handoff's metrics: valid-spec
+  rate (first attempt, within the retry loop, per spec attempt), wrong UI against what each case expects, time to first
+  UI, tokens, follow-up edits, and the keyword classifier's intent accuracy on 25–100 % of each prompt; `--dry` and
+  `--classifier-only` run without a key. Reports in `.qa/ai-ui-eval/`.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

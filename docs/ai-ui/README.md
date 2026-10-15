@@ -29,6 +29,7 @@ inside Zen AI with a deterministic composer standing in for the model.
 | `src/ai-ui/live.mjs` | `createLiveComposer`, `keywordClassifier`: composing while typing. |
 | `mcp/server.mjs` | `get_catalog` and `check_spec` tools beside the existing nine. |
 | `tools/ai-ui/selftest.mjs`, `tests/ai-ui/` | `npm run ai-ui:selftest` (no browser) · `npm test -- tests/ai-ui` (renderer, every catalog component from a spec, the 600 / 390 px column). |
+| `tools/ai-ui/eval.mjs` → `@zen-ds/react/ai-ui/eval`, `tools/ai-ui/eval/prompts.json` | `npm run ai-ui:eval`: the compose loop measured on a prompt set with a real model (valid-spec rate, wrong UI, time to first UI, the classifier on partial input); `--dry` and `--classifier-only` need no key. See "Measuring". |
 
 ## The spec
 
@@ -161,6 +162,30 @@ controller for the field (`src/ai-ui/live.mjs`, isomorphic):
 - an unsure guess never clears what is shown; a different intent replaces it only when clearly more likely
   (`switchMargin`) or after `stickMs`; Enter (`submit`) composes regardless;
 - `AiChatField` now takes `value` / `onValueChange` for it (the API convention; `defaultValue` stays).
+
+## Measuring (eval)
+
+`npm run ai-ui:eval` runs `tools/ai-ui/eval/prompts.json` (20 cases: booking, invoices, revenue, a deletion, a status,
+a form, a choice, an upload, a rating, a style request, an unknown widget, a chrome request, prose, small talk; English
+and Vietnamese; follow-ups on the booking, the invoices and the deletion) through `composeUi` / `composeEdit` on a real
+model and writes `.qa/ai-ui-eval/<stamp>-<model>.md` (the summary) and `.json` (every reply, spec and problem). Four of
+the handoff's five metrics:
+
+| Metric | How |
+| --- | --- |
+| Valid-spec rate | first attempt, within the retry loop (3 attempts), and per spec attempt; the problem codes the loop sent back |
+| Wrong UI | a valid answer that is not what the case `expect`s: `kind` (ui / text / any) and `all` / `any` / `none` components |
+| Time to first UI | ms from the request to the accepted spec, the pick call included; median, p90, max |
+| Intent on partial input | the keyword classifier on 25 / 50 / 75 / 100 % of each prompt's words: a case with an `intent` needs the right one at ≥ 0.6, a case with `intent: null` needs silence; no model |
+| Task completion vs plain chat | not measurable here (needs people); the report says so |
+
+Also reported: tokens (input, cache read / write, output) from the adapter's usage, and the follow-ups (right kind, ops
+applied clean, first try). Options: `--only=id,id`, `--repeat=3` (variance), `--effort=low`, `--model=`, `--attempts=`,
+`--pick=false` (compose from tier 1 in one call), `--concurrency=` (default 2), `--prompts=<file>` (an app's own set),
+`--dry` (a scripted model: the pipeline and the report without a key), `--classifier-only` (the partial-input metric
+alone). Otherwise it needs `ANTHROPIC_API_KEY`; a full run is roughly 50–80 model calls. Apps import `runEval` /
+`renderReport` from `@zen-ds/react/ai-ui/eval` with their own cases and `makeModel`. Not run live in this sandbox (no
+key): the dry run and the selftest cover the pipeline; the first live numbers are the user's to produce.
 
 ## Catalog rules
 

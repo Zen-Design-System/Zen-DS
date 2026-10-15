@@ -63,6 +63,11 @@
       "import": "./tools/ai-ui/adapters/anthropic.mjs",
       "default": "./tools/ai-ui/adapters/anthropic.mjs"
     },
+    "./ai-ui/eval": {
+      "types": "./tools/ai-ui/eval.d.mts",
+      "import": "./tools/ai-ui/eval.mjs",
+      "default": "./tools/ai-ui/eval.mjs"
+    },
     "./ai-ui/catalog.json": "./docs/ai-ui/catalog.json",
     "./ai-ui/catalog.index.json": "./docs/ai-ui/catalog.index.json",
     "./eslint": "./tools/usage-guard/eslint.mjs",
@@ -100,7 +105,11 @@
     "tools/ai-ui/server.mjs",
     "tools/ai-ui/server.d.mts",
     "tools/ai-ui/adapters/anthropic.mjs",
-    "tools/ai-ui/adapters/anthropic.d.mts"
+    "tools/ai-ui/adapters/anthropic.d.mts",
+    "tools/ai-ui/eval.mjs",
+    "tools/ai-ui/eval.d.mts",
+    "tools/ai-ui/eval/prompts.json",
+    "tools/ai-ui/fixtures/booking.json"
   ],
   "scripts": {
     "dev": "vite",
@@ -135,6 +144,7 @@
     "ai-ui:build": "node tools/ai-ui/build-catalog.mjs",
     "ai-ui:check": "node tools/ai-ui/build-catalog.mjs --check",
     "ai-ui:selftest": "node tools/ai-ui/selftest.mjs",
+    "ai-ui:eval": "node tools/ai-ui/eval.mjs",
     "ai-kit:build": "node tools/ai-kit/build.mjs",
     "ai-kit:check": "node tools/ai-kit/build.mjs --check",
     "platform:behaviour": "node tools/platform-audit/behaviour.mjs",
