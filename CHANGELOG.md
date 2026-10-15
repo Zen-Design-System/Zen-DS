@@ -19,6 +19,9 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio Layers has no Refresh button (2026-10-15, user): the tree already rebuilds on page, source and DOM changes,
+  and now also when a text changes on the canvas (a text layer is named by its words), as Figma's layers follow the
+  canvas.
 - Zen Studio canvas, free frames on a page you made (2026-10-15, user: "canvas tự do hơn, giống Figma"): drag a frame by
   its name (or a selected frame anywhere) to move it, with red snap guides to the other frames (⌘ off, ⇧ one axis, Esc
   back); ⌥-drag drops a copy; ⌘D, ⌘C / ⌘V copy a frame (also onto another page); the arrow keys nudge it. The toolbar's
@@ -261,6 +264,11 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Design Tokens › Global Colors (2026-10-15, user): the page lists its 960 colours again (it showed "No tokens match" and
+  Zen / Zen-High-Contrast instead of Light / Dark Colors: a sync note had been pasted into the collection's slug).
+  Component Theme picks its 9 modes in a SelectField instead of a Segmented that ran off the page; a Segmented stays for
+  2–5 modes. The platform audit now visits every token collection page and fails a rendered Segmented with more than 5
+  (or fewer than 2) items (kind `counts`), which the static `segmented/option-count` cannot count when options are computed.
 - Zen Studio Interact, zoomed in or out (2026-10-15, user): an example's overlays stay in its frame and zoom with it. A
   Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
   and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole

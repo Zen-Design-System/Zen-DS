@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, startTransition } from "react";
 import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
-import { IconButton } from "../../../components/Button";
 import { Search } from "../../../components/Search";
 import { plural } from "../../../components/Text";
 import { ToggleButton } from "../../../components/Toggle";
@@ -32,7 +31,8 @@ import "./select.css";
 
 /*
  * Layers (spec §5): the annotated JSX tree of the page, grouped by frame. Built from the fibers on demand (page change,
- * HMR update, DOM changes, the refresh button); rows render lazily and never more than MAX_ROWS at once.
+ * HMR update, DOM and text changes), as Figma's layers follow the canvas with no refresh; rows render lazily and never
+ * more than MAX_ROWS at once.
  *
  * Less noise than the raw tree: playground panels are groups named by their title ("Button / Main"), anonymous
  * single-child div/section wrappers and the wrappers around a panel fold away ("Show all layers" brings them back),
@@ -707,6 +707,7 @@ export function LayersPanel() {
     });
   }), []);
   // DOM changes rebuild the tree while the panel is visible; a hidden panel (Pages tab) rebuilds when shown again.
+  // Text changes count too: a text layer is named by its text ("3 items" → "4 items" in Interact).
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const world = canvasApi.getWorldElement();
@@ -724,7 +725,7 @@ export function LayersPanel() {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => { if (visible) refresh(); else dirty = true; }, 700);
     });
-    observer.observe(world, { subtree: true, childList: true });
+    observer.observe(world, { subtree: true, childList: true, characterData: true });
     return () => { observer.disconnect(); visibility.disconnect(); window.clearTimeout(timer); };
   }, [refresh, ready, page]);
   useEffect(() => () => layerHover.set(null), []);
@@ -906,7 +907,6 @@ export function LayersPanel() {
     <div ref={rootRef} className="studio-layers">
       <div className="studio-layers__bar">
         <Search size="sm" value={query} onValueChange={setQuery} onClear={() => setQuery("")} placeholder="Find a layer" aria-label="Find a layer" />
-        <IconButton icon="icon-refresh-cw-01-line" aria-label="Refresh layers" appearance="flat" level="primary" size="sm" onClick={refresh} />
       </div>
       {tree.groups.length ? (
         <div className="studio-layers__meta">

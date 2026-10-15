@@ -225,3 +225,36 @@ the Studio mode; Emphasis Light.
   containing block, since a fixed layer is clipped only from there up (identity on a normal page).
 - Checked (Playwright, 50%): Menu inside its frame; date-range popover and Assign people whole inside a grown frame;
   icon tooltip unchanged; 27 pages scanned at rest: no visible content cut by the clip, no example frame grown at rest.
+
+## Fix: Global Colors empty, Component Theme Segmented overflow (tier S; user: "Bug", "Dùng select input. Nên viết harness về rule item tối đa cho segmented")
+
+- Cause: commit 4771039 (Segmented sync, 2026-10-14) pasted its note into `collections[0].slug` of
+  `tokens/source/figma.collections.json` ("global-colors Live file read …"). The page then found no collection tokens
+  (empty state) and, no longer seeing a scheme collection, showed the modes Zen / Zen-High-Contrast. Slug restored; the
+  note appended to `source.synchronizationNote` where it belonged. No generated file carried the bad slug.
+- TokenTableView: more than 5 view options → SelectField (`.token-table-view__modes`, 3 columns, full width < 760px);
+  2–5 stay a Segmented. Only Component Theme (9 modes) changes.
+- Harness: `segmented/option-count` (static, 2–5) only counts literal option arrays. New audit kind `counts` (error) in
+  `tools/platform-audit/audit.mjs` counts rendered `.zen-segmented` items (Don't visuals skipped). Neither the audit nor
+  the gate rendered a token table before (TokenTableView mapped to `design-tokens`, the overview): both now list
+  `design-tokens&collection=<slug>` pages (the id carries the query, so every `?page=${id}` tool opens it), and
+  `tools/qa/lib.mjs` maps TokenTableView / TokenCollectionPage to the 11 collection pages.
+- Proof: before the fix the audit failed `design-tokens&collection=component-colors-theme@1512: Segmented "Mode" has 9
+  item(s)`; after, 22 runs (11 pages × 1512/390, --quality) clean; screenshots: Global Colors 480 rows per scheme,
+  Component Theme Select picks Neutral - S5.
+- Docs: guideline line (segmented do), `docs/qa/platform-audit.md` kind table, CHANGELOG Fixed.
+- Gate: PASS (the 11 collection pages in scope; segmented and sidebar re-run with --isolated after the shared dev server
+  restarted mid-run, its only errors).
+
+## Studio Layers: Refresh button removed (tier S; user: "Tại sao cần tính năng refresh layer?" → "ok theo đề xuất")
+
+- The button dates from GĐ1 (2026-10-03), when the tree was built on demand. The panel already rebuilt on page change,
+  source updates (edits, undo/redo, HMR), DOM childList changes (700 ms debounce) and when shown again; the only gap was a
+  text-only change (a text part is named by its words, `partRowOf`), which `childList` does not see.
+- `LayersPanel.tsx`: IconButton "Refresh layers" and its import removed; the MutationObserver also watches
+  `characterData`. No E2E, selftest or doc referenced the button.
+- Proof (isolated server, Playwright): Button page, Button / Main › Button › its label part; setting the three "Button"
+  text nodes of the playground frame to a probe string renamed the row in ~840 ms, 9 of 9 runs in a row (the first run on
+  a cold server missed it once, not reproduced). The bar now holds only "Find a layer" at full width.
+- Gate: PASS --isolated: Studio self-tests, TypeScript, Studio E2E 270 works · 0 broken (815 s). An earlier run hit the
+  25 min E2E cap under load 10 with no row failing; the 8 groups that use Layers alone: 176 works · 0 broken.

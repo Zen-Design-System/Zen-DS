@@ -597,6 +597,8 @@
 .token-table-view__toolbar { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
 /* Segmented hugs its items (max-content) and may use every column left of the Search. */
 .token-table-view__schemes { grid-row: 1; grid-column: 1 / 10; justify-self: start; }
+/* Past five modes (Component Theme) the mode is a SelectField, as wide as the Search on the other side. */
+.token-table-view__modes { grid-row: 1; grid-column: 1 / span 3; min-width: 0; }
 .token-table-view__search { grid-row: 1; grid-column: 5 / span 4; min-width: 0; }
 .token-table-view__toolbar[data-layout="end"] .token-table-view__search { grid-column: 10 / span 3; }
 .token-table-view__search .zen-search,
@@ -625,6 +627,7 @@
 .token-table-view__radius { width: 40px; height: 40px; flex: 0 0 40px; box-sizing: border-box; border-top: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); border-left: 2px solid var(--zen-color-border-accent-solid-default, #ff66d4); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); }
 @media (max-width: 760px) {
   .token-table-view__schemes,
+  .token-table-view__modes,
   .token-table-view__search,
   .token-table-view__toolbar[data-layout="end"] .token-table-view__search { grid-column: 1 / -1; grid-row: auto; }
   .token-table-view__table { overflow-x: auto; }

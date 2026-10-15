@@ -13,6 +13,8 @@
  *   surfaces    a Surface/Default box whose backdrop is a Canvas/Alt page (the same colour) without a closed border (§11), or a
  *               container drop shadow (Shadow/Bottom|Top/Level-N: Card, Sidebar, Box effectStyle) cast on a Canvas/Alt page
  *   elevation   (warn) more than one Shadow/Bottom|Top/Level-N elevation level on one screen (an example region; each phone frame)
+ *   counts      a Segmented with fewer than 2 or more than 5 items as rendered: segmented/option-count counts only options
+ *               written out in the JSX, so options computed at run time (token modes, mapped data) reach this check
  *   sizes       a fixed-size visual (Avatar, Dock Icon, Icon) rendered off its declared size or out of square — stretched by a layout rule
  *   edges       text closer than 8px (sides) / 4px (top, bottom) to the inner edge of the box that visibly holds it — missing padding
  *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
@@ -96,6 +98,12 @@ const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))),
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
 
+/** One page per token collection (Design Tokens › <collection>): the id carries the query, so `?page=${id}` opens it. */
+function collectionPages() {
+  const source = JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma.collections.json"), "utf8"));
+  return source.collections.map((collection) => `design-tokens&collection=${collection.slug}`);
+}
+
 /** Every page id the platform routes to (component nav + app-layer pages + foundations). */
 function allPages() {
   const src = fs.readFileSync(path.join(root, "src/platform/PlatformApp.tsx"), "utf8");
@@ -104,7 +112,7 @@ function allPages() {
   // App-layer pages (Layout, Text, Form, Templates…) are registered from src/platform/appLayer, not componentNavigation.
   const appLayer = fs.readFileSync(path.join(root, "src/platform/appLayer/types.ts"), "utf8").match(/appLayerPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? "";
   const layerIds = [...appLayer.matchAll(/"([\w-]+)"/g)].map((m) => m[1]);
-  return ["overviews", "installation", "design-tokens", "typography", "iconography", ...[...new Set([...ids, ...layerIds])].sort()];
+  return ["overviews", "installation", "design-tokens", ...collectionPages(), "typography", "iconography", ...[...new Set([...ids, ...layerIds])].sort()];
 }
 const PAGES = arg("pages", null) ? String(arg("pages")).split(",") : allPages();
 
@@ -112,7 +120,7 @@ const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObse
 
 /** In-page checks, scoped to `scopeSel` (defaults to the whole platform). Runs in the browser. */
 function pageChecks({ scopeSel, mobile }) {
-  const out = { overflow: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [], elevation: [] };
+  const out = { overflow: [], counts: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [], elevation: [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden='true'], [inert], .zen-visually-hidden:not(:focus-within)"); };
@@ -136,6 +144,13 @@ function pageChecks({ scopeSel, mobile }) {
       const r = el.getBoundingClientRect();
       if (r.right > sr.right + 2 || r.left < sr.left - 2) { out.overflow.push(`${label(el)}: ${describe(el)} escapes by ${Math.round(Math.max(r.right - sr.right, sr.left - r.left))}px`); break; }
     }
+  }
+  // Item counts (segmented/option-count, Segmented guideline): 2–5 items; more → SelectField or Tabs. The usage harness
+  // counts only options written out in the JSX, so options computed at run time are counted here, as rendered.
+  for (const el of scope.querySelectorAll(".zen-segmented")) {
+    if (!visible(el) || el.closest(".platform-guideline-visual__dont, [data-verdict='dont']")) continue;
+    const n = [...el.querySelectorAll(".zen-segmented__item")].filter((item) => item.closest(".zen-segmented") === el).length;
+    if (n < 2 || n > 5) out.counts.push(`${label(el)}: Segmented "${el.getAttribute("aria-label") ?? ""}" has ${n} item(s) — keep 2–5 (more → SelectField or Tabs)`);
   }
   // Broken images.
   for (const img of scope.querySelectorAll("img")) if (img.complete && img.naturalWidth === 0 && visible(img)) out.images.push(`${label(img)}: ${img.getAttribute("src")?.slice(0, 60)}`);
@@ -470,7 +485,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
+const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
 
 async function run() {
   const browser = await chromium.launch();
