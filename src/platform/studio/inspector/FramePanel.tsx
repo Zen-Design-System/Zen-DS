@@ -202,16 +202,24 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
             options={widthOptions}
           />
         </InspectorRow>
-        <InspectorRow label="Theme">
-          <Segmented
-            aria-label="Frame theme"
-            size="sm"
-            fullWidth
-            value={override?.theme ?? "page"}
-            onValueChange={(value) => setFrameOverride(key, frameId, { theme: value === "page" ? undefined : (value as "light" | "dark") })}
-            options={[{ id: "page", label: "Page" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }]}
-          />
-        </InspectorRow>
+        {/* The label above and the Segmented across the fields, as a Screen's Canvas (user, 2026-10-15): beside a label
+            its three options were cut ("P… L… D…"). */}
+        <InspectorFields
+          name="theme"
+          labels={["Theme"]}
+          code="Frame theme"
+          fields={[(
+            <Segmented
+              key="theme"
+              aria-label="Frame theme"
+              size="sm"
+              fullWidth
+              value={override?.theme ?? "page"}
+              onValueChange={(value) => setFrameOverride(key, frameId, { theme: value === "page" ? undefined : (value as "light" | "dark") })}
+              options={[{ id: "page", label: "Page" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }]}
+            />
+          )]}
+        />
         <div className="studio-inspector__actions">
           <Button
             level={presentable ? "primary" : "tertiary"}

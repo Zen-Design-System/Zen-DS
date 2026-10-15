@@ -2,7 +2,6 @@ import { useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { Checkbox } from "../../../components/Checkbox";
 import { Icon } from "../../../components/Icon";
-import { Menu } from "../../../components/Menu";
 import { Popover, PopoverItem } from "../../../components/Popover";
 import { Segmented } from "../../../components/Segmented";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -154,7 +153,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   };
 
   /** A gap / padding token field (ScaleField) for a literal or unset prop. */
-  const scale = (name: string, label: string, leading: string, onSet: (key: string) => void, extra?: { value?: string; extras?: Array<{ key: string; label: string }>; onReset?: () => void; placeholder?: string }) => {
+  const scale = (name: string, label: string, leading: string, onSet: (key: string) => void, extra?: { value?: string; extras?: Array<{ key: string; label: string }>; actions?: Array<{ key: string; label: string; run: () => void }>; onReset?: () => void; placeholder?: string }) => {
     const found = spec(name);
     if (!found || found.editor.kind !== "enum") return null;
     handled.add(name);
@@ -171,6 +170,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
           disabled={disabled}
           leading={leading as never}
           extras={extra?.extras}
+          actions={extra?.actions}
           placeholder={extra?.placeholder}
           onSet={onSet}
           onReset={extra?.onReset ?? (value !== undefined ? () => api.removeProp(name) : undefined)}
@@ -188,33 +188,20 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     handled.add("wrap");
     const flow = flowOf(written);
     const wraps = Boolean(spec("wrap"));
+    // Figma UI3: Vertical · Horizontal · Wrap in one Segmented (user, 2026-10-15: Wrap was a toggle in the icon column).
     const items: Array<{ id: Flow; icon: string; name: string }> = [
       { id: "vertical", icon: "icon-arrow-down-line", name: "Vertical" },
       { id: "horizontal", icon: "icon-arrow-right-line", name: component === "FormFieldset" ? "Horizontal (wraps)" : "Horizontal" },
+      ...(wraps ? [{ id: "wrap" as const, icon: "icon-corner-down-left-line", name: "Wrap" }] : []),
     ];
     const anyWritten = written.direction !== undefined || written.wrap !== undefined;
-    // Figma: Wrap is the toggle beside the flow icons; on a vertical flow it turns the flow horizontal and wrapping.
-    const wrapToggle = wraps ? (
-      // zen-allow-secondary: a pressed toolbar toggle (Figma's wrap), as CodeView's "Wrap lines"
-      <IconButton
-        icon="icon-corner-down-left-line"
-        aria-label="Wrap"
-        aria-pressed={flow === "wrap"}
-        appearance="flat"
-        level={flow === "wrap" ? "secondary" : "primary"}
-        size="xs"
-        disabled={disabled}
-        onClick={() => apply(flowOps(written, flow === "wrap" ? "horizontal" : "wrap"), flow === "wrap" ? "wrap off" : "flow → wrap")}
-      />
-    ) : undefined;
     groups.push(
       <InspectorFields
         key="flow"
         name="direction"
         labels={["Flow"]}
         code={wraps ? "Stack direction · wrap" : `${component} direction`}
-        icon={wrapToggle}
-        fields={[<Seg key="flow" label="Flow" value={flow === "wrap" ? "horizontal" : flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), `flow → ${next}`)} />]}
+        fields={[<Seg key="flow" label="Flow" value={wraps ? flow : flow === "wrap" ? "horizontal" : flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), next === "wrap" ? "flow → wrap" : `flow → ${next}`)} />]}
       />,
     );
   } else if (component === "Stack" || component === "FormFieldset") {
@@ -283,23 +270,26 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     if (spec("gap") && plain("gap", "rowGap", "columnGap")) {
       const split = splitView || gapsSplit(written);
       const choices = relinkChoices(written);
-      const relink = split && gapsSplit(written)
-        ? (choices.length > 1
-          ? <Menu aria-label="Use one gap" items={choices.map((key) => ({ id: key, label: `Use ${key} for both`, onSelect: () => { setSplitView(false); apply(relinkOps(written, key), `gap → ${key} for both`); } }))} trigger={<IconButton icon="icon-link-broken-01-line" aria-label="Use one gap" appearance="flat" level="primary" size="xs" disabled={disabled} />} />
-          : <IconButton icon="icon-link-broken-01-line" aria-label="Use one gap" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => { setSplitView(false); if (choices[0]) apply(relinkOps(written, choices[0]), `gap → ${choices[0]} for both`); }} />)
-        : split
-          ? <IconButton icon="icon-link-broken-01-line" aria-label="Use one gap" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => setSplitView(false)} />
-          : <IconButton icon="icon-link-01-line" aria-label="Separate row and column gaps" appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => setSplitView(true)} />;
+      // One gap ↔ separate row and column gaps: a command in the gap fields' own list (as Figma keeps "Auto" in its gap
+      // list), not a link icon in the icon column (user, 2026-10-15, with Wrap in Flow).
+      const useOne = (key: string | undefined) => {
+        setSplitView(false);
+        if (gapsSplit(written) && key) apply(relinkOps(written, key), `gap → ${key} for both`);
+      };
+      const separate = [{ key: "__separate__", label: "Separate row and column gaps", run: () => setSplitView(true) }];
+      const joinWith = (own: unknown) => {
+        const key = typeof own === "string" ? own : choices[0];
+        return [{ key: "__one__", label: key ? `Use ${key} for both` : "Use one gap", run: () => useOne(key) }];
+      };
       groups.push(
         <InspectorFields
           key="grid-gap"
           labels={split ? ["Column gap", "Row gap"] : ["Gap"]}
           code={split ? "Grid columnGap · rowGap" : "Grid gap"}
-          icon={relink}
           fields={split ? [
-            scale("columnGap", "Column gap", "icon-spacing-width-01-line", (key) => apply([{ op: "setProp", name: "columnGap", value: { kind: "string", value: key } }], `column gap → ${key}`)),
-            scale("rowGap", "Row gap", "icon-spacing-height-01-line", (key) => apply([{ op: "setProp", name: "rowGap", value: { kind: "string", value: key } }], `row gap → ${key}`)),
-          ] : [scale("gap", "Gap", "icon-layout-grid-01-line", (key) => apply(gapOps(written, key), `gap → ${key}`)), <span key="none" />]}
+            scale("columnGap", "Column gap", "icon-spacing-width-01-line", (key) => apply([{ op: "setProp", name: "columnGap", value: { kind: "string", value: key } }], `column gap → ${key}`), { actions: joinWith(written.columnGap) }),
+            scale("rowGap", "Row gap", "icon-spacing-height-01-line", (key) => apply([{ op: "setProp", name: "rowGap", value: { kind: "string", value: key } }], `row gap → ${key}`), { actions: joinWith(written.rowGap) }),
+          ] : [scale("gap", "Gap", "icon-layout-grid-01-line", (key) => apply(gapOps(written, key), `gap → ${key}`), { actions: separate }), <span key="none" />]}
         />,
       );
       handled.add("gap");

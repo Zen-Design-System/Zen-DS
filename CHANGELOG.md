@@ -25,6 +25,17 @@ removed (four unused colour ramps were, see Removed).
   draw Figma's Input/Inline-Field (the label inside the field: text, number with − +, select, colour token, icon, a
   read-only value), numbers with a known range use Slider/Field, and the chrome uses Emphasis Light. Fit, zoom and
   keep-in-view aim at the canvas the panels leave visible.
+- Zen Studio Inspector polish (2026-10-15, user): a row's hint reads as its field's Help-Text (Caption/Regular,
+  Content/Neutral/Light, 4px under the field); no-effect warnings are Zen Inline-Messages (Warning, their fix as the
+  Action) ending at the fields' edge, not hand-drawn pills; Frame › Theme puts its label above the Segmented, as a Screen's Canvas
+  (beside the label "Page · Light · Dark" was cut). Field-grid rows without a label above (Screen's Top / Bottom navigation
+  switches) centre their control, so they keep the panel's 8px rhythm. Document | Studio floats at the top centre of the canvas (it was cut to
+  "Docu…" in the left header), with "Zen Studio" back beside the menu mark; document pages start under the floating bars.
+  The alignment box takes the input fill and Figma's vertical insets. An enum prop with no known default shows "Default"
+  as its chosen value (Stack Scroll had nothing selected). Modes move into their controls instead of the icon column: Wrap is Flow's third
+  segment (↓ → ↵, Figma UI3) and a Grid's separate/one gap commands sit in its gap lists. The
+  Inspector header no longer pushes Save all out of a narrow panel (the role button keeps its avatar there) and the role
+  button has no chevron and shows the signed-in person's photo, else their initial on their own hue.
 - Zen Figma library: Input/Inline-Field has Type=Number (the number and − + steppers, `<NumberField layout="inline">`);
   `.Primitives/Input/Number/Trailing`'s − button is bound to Button-Tertiary/Content again, as the + is.
 - Segmented spacing follows the live Figma (2026-10-15, user): the label pads 8px on each side (was 4) and the icon

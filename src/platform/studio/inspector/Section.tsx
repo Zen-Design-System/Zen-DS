@@ -66,7 +66,8 @@ export function InspectorRow({ label, children, action, hint, isDefault, name, l
       </span>
       <div className="studio-inspector__row-control"><InlineLabelContext.Provider value={inlineLabel}>{children}</InlineLabelContext.Provider></div>
       {action ? <div className="studio-inspector__row-action">{action}</div> : null}
-      {hint ? <p className={`studio-inspector__row-hint ${typographyStyles["Body/Small/Regular"]}`}>{typeof hint === "string" ? say(hint) : hint}</p> : null}
+      {/* Under its field as Zen Input's Help-Text: Caption/Regular, Content/Neutral/Light, the Outside-Field-Gap above. */}
+      {hint ? <p className={`studio-inspector__row-hint ${typographyStyles["Caption/Regular"]}`}>{typeof hint === "string" ? say(hint) : hint}</p> : null}
     </div>
   );
 }

@@ -1,8 +1,9 @@
 /* Studio inspector composites (inspector/controls/): the alignment box v2, the Layout groups, the columns field.
    Spec docs/research/studio-inspector-redesign-2026-10-03.md (Phases 3, 4, 6). Tokens only. */
 
-/* ── Alignment box: 3×3 targets of 24×20 on Background/Neutral/Pale (Figma's alignment control) ── */
-.studio-align-box { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, 24px); grid-template-rows: repeat(3, 20px); padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-pale-default); }
+/* ── Alignment box: 3×3 targets of 24×20 on the input fill (Input/Background/Default, as the fields beside it: user,
+   2026-10-15, the paler Neutral/Pale read off next to them) — Figma's alignment control ── */
+.studio-align-box { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, 24px); grid-template-rows: repeat(3, 20px); padding: var(--zen-spacing-padding-3-xsmall, 2px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-input-background-default); }
 .studio-align-box__target { position: relative; display: grid; min-width: 0; min-height: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px); place-items: center; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-light); cursor: pointer; }
 .studio-align-box__target:hover:not(:disabled) { background: var(--zen-color-background-surface-hover); }
 .studio-align-box__target:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--zen-color-focus-neutral-solid); }
@@ -50,7 +51,9 @@
 .studio-layout-group__slot { display: inline-flex; width: var(--zen-button-size-xsmall, 24px); min-width: var(--zen-button-size-xsmall, 24px); align-items: center; justify-content: center; }
 /* The alignment box fills its field column (Figma: the box is as wide as the Gap field beside it); each mark keeps the
    size of the 24 × 20 target it had, centred where its dot is, so a chosen cell's bars sit on the dot's spot. */
-.studio-fields .studio-align-box { width: 100%; box-sizing: border-box; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Figma UI3's insets (user, 2026-10-15): Spacing/Padding/XSmall above and below the rows, so the dots sit about as far
+   from the top and bottom (18px) as from the sides (22px at the 128px column) instead of 12px from the top edge. */
+.studio-fields .studio-align-box { width: 100%; box-sizing: border-box; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-block: var(--zen-spacing-padding-xsmall, 8px); }
 .studio-fields .studio-align-box__bars { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-small, 16px); }
 .studio-layout-cross { display: inline-flex; }
 

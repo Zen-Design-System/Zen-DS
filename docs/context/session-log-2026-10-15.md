@@ -61,3 +61,33 @@ the Studio mode; Emphasis Light.
   from the Segmented tokens, measured against the control column so select ↔ Segmented never flips.
 - E2E selectors: openStudioSpace (`.studio-space`), S-02 (zoom on the tab row), S-03, D-01 (drafts button name), G
   chromeText. Checks: tsc, studio:selftest, style:check, usage:check, screenshots 1512/1100/900/390, dark.
+
+## Studio Inspector polish after UI3 (tier S, user screenshots: hint text, Theme, warning padding)
+
+- Row hints (`InspectorRow hint`) sat flush under the field in Body/Small (= the field's 12px): now Zen Input's Help-Text
+  — Caption/Regular, Content/Neutral/Light, `Input/Spacing/Small/Outside-Field-Gap` (4px) above. The X/Y caption
+  ("Placed by the parent's auto layout") and Position's neutral notes the same.
+- Frame › Theme: the three Segmented labels were cut at 320px ("P… L… D…"). First a select; the user then picked the
+  Screen Canvas pattern: InspectorFields, label above, the Segmented across both field columns. Only this row; other
+  Segmented keep the fit check (a select when the labels would be cut).
+- No-effect warnings (GroupedProperties idle notes, Sizing "Align in parent needs…", Position constraint notes) were
+  hand-drawn pills (2px padding, radius 16): now `InlineMessage theme="warning"` with the fix as `action`, ending at the
+  fields' edge (`.studio-inspector__warning`). Their old CSS removed.
+- Screen panel rhythm (user: the switches under Device felt unevenly spaced): an unlabelled InspectorFields row is
+  28px (its icon cell) but the field grid aligned to the top, so a 20px labelled Toggle had 8px above and 16px below.
+  `.studio-fields:not([data-labelled])` now centres: Device → Sidebar → Page header → Canvas all 8px apart.
+- Document | Studio cut to "Docu…" in the left header (dark, user): `SpaceBar` floats at the top centre of the visible
+  canvas (`.studio-space-bar`, between --studio-inset-left/right); a phone keeps it in the left drawer. The brand button
+  shows "Zen Studio" again (compact in the corner bar and on a phone). Document pages get padding-top 48 + 2 × edge so
+  the floating bars no longer cover the hero (the right bar already did since #63).
+- Alignment box: padding-block Spacing/Padding/XSmall (dots 18px from top/bottom, 22px from the sides, as Figma's), fill
+  Input/Background/Default (Neutral/Pale read paler than the Gap field beside it).
+- EnumControl with no fallback: a leading "Default" choice, selected while unset, picking it resets the prop (Stack
+  Scroll x | y showed no selection; selects showed "—").
+- Action column: the user compared Framer's and Figma's ways (mock shots), kept the column, then asked for Wrap "như cách
+  của bạn" and the same for similar modes: Wrap = Flow's third segment (L-01), Grid gap link = commands at the top of the
+  gap lists (ScaleField `actions`; L-07). Cross axis was tried as a select under Gap; the user kept the ⚙ menu. Position's ignore-auto-layout toggle, the Effects eye and Restore stay (Figma's places).
+- Save all ran out of a 320px Inspector header with drafts: `.studio-right` is container `studio-right`; below 360px with
+  drafts the role badge hides (avatar only). Role button: no chevron; its avatar is the signed-in
+  person's photo, else their initial (2XSmall: one letter) on a solid hue picked from their id (user: "dùng màu"); the
+  person icon only with nobody signed in. Checked with a real draft, then discarded.

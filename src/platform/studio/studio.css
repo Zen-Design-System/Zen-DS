@@ -28,8 +28,10 @@
 
 /* clip: focus inside the canvas must never scroll the work area itself (the canvas turns such scrolls into pans). */
 .studio-canvas-area { position: absolute; inset: 0; min-width: 0; min-height: 0; overflow: clip; }
-/* A document page reads as a normal page beside the left panel. */
+/* A document page reads as a normal page beside the left panel, its content starting under the floating bars at the
+   top (Document | Studio, the right header): their 44px row and Spacing/Padding/XSmall above and below it. */
 .studio-app[data-doc="true"] .studio-canvas-area { left: var(--studio-inset-left); }
+.studio-app[data-doc="true"] .studio-doc__page { padding-top: calc(var(--zen-spacing-padding-4-xlarge, 48px) + 2 * var(--studio-edge)); }
 
 /* The floating panels: Surface/Default with the popover's edge and shadow, so they keep an edge over any canvas. */
 .studio-left,
@@ -51,6 +53,8 @@
 /* The Inspector's body scrolls; its drafts list hangs below the header, so the panel does not clip (its own blocks keep
    inside the corners). */
 .studio-right { right: var(--studio-edge); bottom: var(--studio-edge); width: var(--studio-right-column); }
+/* Its header fits its width (shell.css @container studio-right); the document-page bar hugs, so it is no container. */
+.studio-right:not([data-bar="true"]) { container: studio-right / inline-size; }
 /* A document page: the right panel is its header alone, a bar that hugs its controls. */
 .studio-right[data-bar="true"] { bottom: auto; width: max-content; max-width: calc(100% - var(--studio-inset-left) - 3 * var(--studio-edge)); }
 
