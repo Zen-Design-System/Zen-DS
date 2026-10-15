@@ -5,7 +5,7 @@ import { Icon } from "../components/Icon";
 import { Text } from "../components/Text";
 
 /** Overlays that own Escape while a screen is full screen (Escape closes them first, not the full-screen view). */
-export const fullScreenEscapeOwners = ".zen-side-panel[data-closable='true']:not([data-state='closing']), .zen-popover, .zen-sidebar__submenu, [aria-modal='true'], [role='menu'], [role='listbox'], .platform-fullscreen-bar__panel";
+export const fullScreenEscapeOwners = ".zen-side-panel[data-closable='true']:not([data-state='closing']), .zen-popover, .zen-sidebar__submenu, [aria-modal='true'], [role='menu'], [role='listbox']";
 
 type ButtonRef = { current: HTMLButtonElement | null };
 
@@ -88,14 +88,13 @@ export function FullScreenBarDivider() {
 }
 
 /**
- * The controls a full-screen screen keeps (the classic card and App Shell full screen, the Zen Studio's Present): one
- * floating pill at the bottom centre with the screen's name, the caller's controls (`children`) and Exit with its Esc hint
- * (Escape does the same). It shows on open and on any pointer movement and fades out BAR_IDLE_MS after the pointer stops,
- * so the screen is unobstructed; the pointer resting on it, keyboard focus (:focus-visible) and `hold` (an open panel)
- * keep it. `panel` renders above the pill (give it the class platform-fullscreen-bar__panel; Escape then closes it before
- * it leaves full screen). On a phone the name and the Esc hint step aside.
+ * The controls a full-screen screen keeps (the classic card and App Shell full screen; the Zen Studio's Present has its
+ * own browser-style bar, studio/board/PresentBar): one floating pill at the bottom centre with the screen's name, the
+ * caller's controls (`children`) and Exit with its Esc hint (Escape does the same). It shows on open and on any pointer
+ * movement and fades out BAR_IDLE_MS after the pointer stops, so the screen is unobstructed; the pointer resting on it and
+ * keyboard focus (:focus-visible) keep it. On a phone the name and the Esc hint step aside.
  */
-export function FullScreenBar({ title, onExit, exitRef, hold = false, panel, children }: { title?: string; onExit: () => void; exitRef?: Ref<HTMLButtonElement>; hold?: boolean; panel?: ReactNode; children?: ReactNode }) {
+export function FullScreenBar({ title, onExit, exitRef, children }: { title?: string; onExit: () => void; exitRef?: Ref<HTMLButtonElement>; children?: ReactNode }) {
   const phone = usePhone();
   const [shown, setShown] = useState(true);
   const barRef = useRef<HTMLDivElement>(null);
@@ -109,7 +108,7 @@ export function FullScreenBar({ title, onExit, exitRef, hold = false, panel, chi
       const rect = barRef.current?.getBoundingClientRect();
       return Boolean(pointer && rect && pointer.x >= rect.left - BAR_HOLD_MARGIN && pointer.x <= rect.right + BAR_HOLD_MARGIN && pointer.y >= rect.top - BAR_HOLD_MARGIN && pointer.y <= rect.bottom + BAR_HOLD_MARGIN);
     };
-    const held = () => hold || near() || Boolean(barRef.current?.querySelector(":focus-visible"));
+    const held = () => near() || Boolean(barRef.current?.querySelector(":focus-visible"));
     const schedule = () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => { if (held()) schedule(); else setShown(false); }, BAR_IDLE_MS);
@@ -123,13 +122,10 @@ export function FullScreenBar({ title, onExit, exitRef, hold = false, panel, chi
       window.removeEventListener("pointermove", wake);
       window.removeEventListener("pointerdown", wake);
     };
-  }, [hold]);
+  }, []);
 
   return (
-    // The dock holds the panel beside the pill, not inside it: the pill's backdrop-filter would make it the panel's
-    // backdrop root, and the panel's own blur would then miss the screen behind (its text read through it).
     <div className="platform-fullscreen-dock">
-      {panel}
       <div ref={barRef} className="platform-fullscreen-bar" role="group" aria-label="Full screen controls" data-shown={shown ? "true" : "false"} onFocus={() => setShown(true)}>
         {title && !phone ? (
           <>
@@ -138,11 +134,19 @@ export function FullScreenBar({ title, onExit, exitRef, hold = false, panel, chi
           </>
         ) : null}
         {children ? <>{children}<FullScreenBarDivider /></> : null}
-        <Button ref={exitRef} appearance="main" level="tertiary" size="sm" aria-label="Exit full screen" aria-keyshortcuts="Escape" startIcon={<Icon name="icon-minimize-01-line" decorative />} onClick={onExit}>
-          Exit
-          {phone ? null : <kbd className="platform-fullscreen-bar__key" aria-hidden="true">Esc</kbd>}
-        </Button>
+        <FullScreenExit exitRef={exitRef} onExit={onExit} />
       </div>
     </div>
+  );
+}
+
+/** Exit with its Esc hint (the hint steps aside on a phone): the FullScreenBar's, and the Zen Studio's Present bar. */
+export function FullScreenExit({ onExit, exitRef }: { onExit: () => void; exitRef?: Ref<HTMLButtonElement> }) {
+  const phone = usePhone();
+  return (
+    <Button ref={exitRef} appearance="main" level="tertiary" size="sm" aria-label="Exit full screen" aria-keyshortcuts="Escape" startIcon={<Icon name="icon-minimize-01-line" decorative />} onClick={onExit}>
+      Exit
+      {phone ? null : <kbd className="platform-fullscreen-bar__key" aria-hidden="true">Esc</kbd>}
+    </Button>
   );
 }

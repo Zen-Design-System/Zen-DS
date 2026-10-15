@@ -773,6 +773,36 @@ export function redoEdit(): Promise<boolean> {
   return enqueue(() => inFlight(() => step("redo")));
 }
 
+/**
+ * The newest `count` undo records, written one after the other to one file (an AI call that took several writes, or an
+ * AI batch: mcp/tools.ts), become one step named `label`, so one ⌘Z takes them back together. `before`: the file's text
+ * before the first of them, `after`: its text after the last. False (nothing changed) unless the newest records are
+ * exactly such a chain (a person's edit in between keeps them apart).
+ */
+export function squashEdits(count: number, label: string, before: string, after: string): boolean {
+  const { undo, redo } = studioStore.getState();
+  if (count < 1 || undo.length < count) return false;
+  const records = undo.slice(-count);
+  const file = records[0].file;
+  if (records.some((record, index) => record.file !== file || (index > 0 && record.hashBefore !== records[index - 1].hashAfter))) return false;
+  const patch = makePatch(before, after);
+  const first = patch.hunks[0];
+  const last = records[records.length - 1];
+  const joined: StudioEditRecord = { file, label, hashBefore: records[0].hashBefore, hashAfter: last.hashAfter, patch: patch.hunks.length ? patch : last.patch, changed: first ? rangeAt(after, first.start, first.inserted) : last.changed, at: Date.now() };
+  setHistory([...undo.slice(0, -count), joined], redo);
+  return true;
+}
+
+/** Takes back the newest `count` writes (an AI batch refused part-way, squashed first) as an undo that leaves no redo. */
+export async function revertEdits(count: number, before: string, after: string): Promise<boolean> {
+  if (count < 1) return true;
+  if (!squashEdits(count, "AI batch", before, after)) return false;
+  if (!(await undoEdit())) return false;
+  const latest = studioStore.getState();
+  setHistory(latest.undo, latest.redo.slice(0, -1));
+  return true;
+}
+
 /* ── dev server presence ─────────────────────────────────────────────────────────────────────────────────────────── */
 
 /** `drafts`: this server keeps admin edits as drafts until Save (PingResponse.drafts). */

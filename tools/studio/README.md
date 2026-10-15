@@ -410,18 +410,25 @@ Drafts live on the dev server, so every browser using that server sees them unti
   changed) and keeps the rest as the draft on top of the new disk (`partial: true`); `/discard { frame }` drops the
   frame's changes from the draft (`partial`: files that keep one).
 
-## 5. Studio MCP (`mcp/`, 2026-10-15, M0)
+## 5. Studio MCP (`mcp/`, M0 2026-10-15, M1 2026-10-16)
 
 AI clients design on the open canvas (spec `docs/research/studio-mcp-canvas-2026-10-15.md`). `POST /__zen-studio/mcp` is
 MCP Streamable HTTP (stateless, JSON answers; GET is 405). Each tool call is relayed over Vite's HMR socket to an open
-Studio tab, which runs it as an Inspector edit would (`src/platform/studio/mcp/`: one ⌘Z step per change; the AI chip's
-Stop refuses calls). M0 tools: `get_studio_state`, `get_tree`, `update`, `get_screenshot`, on pages made in the Studio.
+Studio tab, which runs it as an Inspector edit would (`src/platform/studio/mcp/`: one ⌘Z step per call, a `batch`
+included; the AI chip's Stop refuses calls). Tools, on pages made in the Studio: read `get_studio_state`, `list_pages`,
+`get_tree`, `get_node`, `get_code`, `get_screenshot`; write `update`, `insert`, `replace`, `move`, `duplicate`, `delete`,
+`wrap`, `unwrap`, `batch` (ops chained by `as` / `"$name"`; refused part-way = taken back), `create_page`, `add_frame`;
+view `select`, `focus`, `open_page`. Writes by layer id (doc ids); JSX in the page dialect (`dialect.mjs`).
+
+The pages folder is watched (`fs.watch`, also under node_modules for the E2E server): a page file changed outside a tab
+(an editor, an AI's file tools) sends `zen-studio:pages-changed` and the open tabs sync at once
+(`builder/store/mirrors.ts`), the open page getting its layer ids again.
 
 | File | What |
 | --- | --- |
 | `mcp/tools.mjs` | The tool definitions (description, input schema, annotations), whatever carries them |
 | `mcp/server.mjs` | The endpoint: guards, a fresh SDK server + transport per request, answers kept to text and PNG within limits, a log line per call in `node_modules/.cache/zen-studio/mcp-<port>.log` |
-| `mcp/relay.mjs` | Open tabs (`zen-mcp:hello` / `state` / `bye`) and calls (`zen-mcp:call` → `zen-mcp:result`, 20 s); the target is the named tab, else the last focused visible one |
+| `mcp/relay.mjs` | Open tabs (`zen-mcp:hello` / `state` / `bye`) and calls (`zen-mcp:call` → `zen-mcp:result`, 60 s); the target is the named tab, else the last focused visible one |
 | `mcp/token.mjs` | The checkout's bearer token, `node_modules/.cache/zen-studio/mcp-token` (0600), kept across restarts |
 | `mcp/connect.mjs` | `npm run studio:mcp [-- --port=5180] [-- --rotate]`: prints the `claude mcp add` command |
 
@@ -432,6 +439,7 @@ Guards: a loopback Host, no `Origin` header (any browser page is refused, this s
 
 ```sh
 node tools/studio/mcp/mcp.selftest.mjs   # relay, token, endpoint guards, the SDK client through the endpoint to a fake tab, the tab's layer outline
+npm run studio:e2e -- --only=mcp         # AI-01…06: the SDK client on a real tab (read, update + ⌘Z, insert, batch, folder edit live, Stop)
 node tools/studio/selftest.mjs     # pure functions + detach (style-guard/usage-guard on its outputs) + wrap + drafts (rebase fuzz) + history + frame-scope + slots
 node tools/studio/slots.selftest.mjs   # slot ops alone (tsc, style-guard and usage-guard on realistic outputs through src/platform/examples/drafts)
 curl -s http://127.0.0.1:5180/__zen-studio/ping

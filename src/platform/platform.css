@@ -505,11 +505,10 @@
 .pe-card[data-fullscreen="true"] :is(.pe-shell--tall, .pe-chat-desktop, .patpl-frame, .pash-frame, .psp-studio) { flex: 1 1 0; height: auto !important; min-height: 0; max-width: none; border: 0; border-radius: 0; }
 .platform-example-row[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; display: flex; min-height: 0; flex-direction: column; align-items: stretch; justify-content: flex-start; margin: 0; padding: 0; overflow: auto; border-radius: 0; background: var(--official-canvas); }
 .platform-example-row[data-fullscreen="true"] > .pash-frame { flex: 1 1 0; height: auto !important; min-height: 0; border: 0; border-radius: 0; }
-/* The one docs control left on a full-screen page (FullScreenBar; also the Zen Studio's Present): a pill at the bottom
+/* The one docs control left on a full-screen page (FullScreenBar): a pill at the bottom
    centre on the popover surface, above the screen (25) and under its overlays (30). It fades out after a pause of the
    pointer and comes back on movement or keyboard focus; hidden, it takes no presses. */
-/* The dock places the pill and its panel (a sibling, so each blurs the screen behind it); it paints nothing and only its
-   children take presses. */
+/* The dock places the pill; it paints nothing and only the pill takes presses. */
 .platform-fullscreen-dock {
   position: fixed;
   z-index: 26;
@@ -551,28 +550,6 @@
   font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
   font-size: var(--zen-typography-font-size-caption);
   line-height: var(--zen-typography-line-height-caption);
-}
-/* A panel a caller opens above the pill (the Studio's Modes): the popover surface. */
-.platform-fullscreen-bar__panel {
-  position: absolute;
-  bottom: calc(100% + var(--zen-spacing-gap-xsmall, 8px));
-  left: 50%;
-  display: grid;
-  width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
-  pointer-events: auto;
-  box-sizing: border-box;
-  gap: var(--zen-spacing-gap-xsmall, 8px);
-  padding: var(--zen-spacing-padding-small, 12px);
-  border-radius: var(--zen-corner-radius-large, 16px);
-  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
-  background: var(--zen-popover-background, #fff);
-  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
-  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
-  translate: -50% 0;
-  /* It opens as a Zen Popover does (zen-motion-pop-in: fade, a 4px slide from the pill, 2% scale), above its anchor. */
-  --zen-motion-from-y: 1;
-  transform-origin: bottom center;
-  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
 }
 /* The App Shell playground opens full screen from its title row. */
 .platform-playground-screen { display: flex; grid-area: title; align-self: start; justify-self: end; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
@@ -1329,5 +1306,3 @@
 .pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
-/* Reduced motion: the Modes panel above the full-screen pill only fades in. */
-@media (prefers-reduced-motion: reduce) { .platform-fullscreen-bar__panel { animation-name: zen-motion-fade-in; } }

@@ -11,7 +11,8 @@
 // seen one. Pure apart from the timers: `attachRelay(ws, relay)` wires it to a Vite WebSocket server (or a fake one in
 // mcp.selftest.mjs).
 
-const CALL_TIMEOUT = 20_000;
+/** A batch of 50 changes on a large page takes a few seconds; a stuck tab is given up on after this. */
+const CALL_TIMEOUT = 60_000;
 
 export class RelayError extends Error {
   constructor(code, message) { super(message); this.code = code; }

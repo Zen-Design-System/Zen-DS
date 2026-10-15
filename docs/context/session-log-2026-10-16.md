@@ -48,3 +48,41 @@
   `hiddenSlots` from `raw` (the whole attribute) → `slotsOffValue` now reads the list from the expression. The Layers eye
   takes Zen's icon tooltip (`LayerEye`, `useIconTooltip`; harness `button/icon-only-raw`). The widgets page's "9 text
   styles" rhythm warning is not from this change (widgets.tsx untouched): left to its owner.
+## Present / Play bar like a browser's (tier S, user: "thanh bulk action nên đổi thành 1 thanh giống của trình duyệt để view load bên trong khung thì nó sẽ không đè lên UI")
+
+- `PresentBar` (Present + Play) is a top toolbar in the chrome modes: start group (Play's Back/Restart, ‹ n / m ›),
+  the title in an address pill (`minmax(0, 480px)`, truncates first; hidden on a phone), end group (light/dark, Viewport,
+  Modes, Exit + Esc). Never fades. Panels drop down from their button's end edge (`right` measured, clamped in the bar).
+- Layout: `.studio-present` = flex column, bar + `.studio-present__page` (`contain: layout` = containing block and
+  stacking context of the screen's fixed layers; `container-type: size` + `--zen-app-shell-height: 100cqh` for AppShell's
+  sticky columns; `overflow: clip`) > `.studio-present__scroll` > stage. `container-type: size` alone is NOT a fixed
+  containing block: the full-screen card covered the bar until `contain: layout` was added. Stage bottom room (72px for
+  the pill) removed in board.css and builder.css.
+- `FullScreenExit` extracted from `FullScreenBar` (classic card / App Shell full screen keep the pill); its unused `hold`
+  / `panel` and `.platform-fullscreen-bar__panel` CSS removed. Escape owner: `.studio-present-bar__panel`. E2E S-03 /
+  PT-03 selectors follow.
+- Measured (Playwright, :5174): sidebar screen 1512 and 390 — card at y 37 = page top, no overlap, no sideways scroll;
+  Play Expenses — Sidebar 863 px = page height, sticks at 37 after a 600 px scroll; Modes panel below its button, Esc
+  closes it first, then Present.
+- Gate `npm run qa -- --isolated --files=<8 files> --pages=sidebar,table` PASS (report
+  .qa/reports/2026-10-15T19-13-45-310b3ec6.md): static, audit 1512/390, dark, behaviour, Studio E2E 280 works · 0 broken
+  (S-03, PT-03 now reading the real bar title, PT-04…10, B-16/17). Contact sheets: docs pages unchanged. Finished; not
+  committed (the supervisor gathers).
+
+## Studio MCP M1 + live folder sync (tier M, user: "làm M1 đi", "Hiện tại claude chạy xong phải refesh lại mới thấy. Không realtime được")
+
+- Cause of "refresh to see": `mcp-5173.log` had no `update` call — Claude read over MCP, then wrote
+  `.zen-studio/pages/untitled-page.zen.tsx` with its file tools (M0 had no tool to build), and a tab only synced the
+  folder on connect or "Sync with the folder". Fixed at the owner: the plugin `fs.watch`es the pages folder (Vite's
+  watcher skips node_modules, where the E2E server keeps its pages) and sends `zen-studio:pages-changed`; `mirrors.ts`
+  syncs at once and re-documents the open page (ids). Shown ≈ 200–300 ms after the write, no reload. Server
+  instructions now tell the AI never to edit page files.
+- M1 tools (branch `zen/feat/studio-mcp-m1-20261016`, worktree `../Zen-DS-mcp`): list_pages, get_node, get_code, insert,
+  replace, move, duplicate, delete, wrap, unwrap, batch (`as` / `"$name"`, one undo step, refused part-way = reverted),
+  create_page, add_frame, select, focus, open_page (20 in all). `api.ts` gains `squashEdits` / `revertEdits`; relay 60 s.
+- E2E group `mcp` (AI-01…06, `AI-` because `MC-` is Main component's): read, update + ⌘Z, insert + HTML refused, batch +
+  revert, outside file edit live, Stop. 6/6 three runs, in the baseline (AI-05 was flaky once: the tab's own rename push
+  overwrote the test's write; the row now waits for the named page in the folder, as B-36). Live tab run 22/22.
+- Gate found B-36 (old page → master layout) waiting for the unmigrated page after a manual Sync: with the watched
+  folder the page arrives already moved (as opening it does). The row now accepts either text; 2/2.
+- Not done in M1: the change highlight; the real dashboard walk with the user's Claude Code.

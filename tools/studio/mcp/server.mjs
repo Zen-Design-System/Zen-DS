@@ -25,10 +25,12 @@ const MAX_IMAGE = 4_000_000;
 const LOG_DIR = "node_modules/.cache/zen-studio";
 
 const INSTRUCTIONS = [
-  "Zen Studio's canvas: the tools read and change the page the person has open in Zen Studio, live.",
-  "Call get_studio_state first. Read layers with get_tree and change them with update, by layer id.",
-  "Every change shows at once and is one undo step for the person; nothing is saved to the repo by these tools.",
-  "Use only Zen components and their documented props (the zen-ds MCP: get_component, search_icons, get_tokens).",
+  "Zen Studio's canvas: these tools read and change the page the person has open in Zen Studio, live in their tab.",
+  "Call get_studio_state first. Read layers with get_tree / get_node; change them with update, insert, replace, move,",
+  "duplicate, delete, wrap, unwrap, by layer id; use batch for several changes (one undo step). create_page and add_frame",
+  "make pages and frames; select and focus show the person a layer. Every change shows at once and is one undo step.",
+  "Never edit the page files (.zen-studio/pages/*.zen.tsx) with file tools: the canvas only follows them on a sync, and the",
+  "person loses undo. Use only Zen components and their documented props (zen-ds MCP: get_component, search_icons, get_tokens).",
 ].join(" ");
 
 /**

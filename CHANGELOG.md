@@ -37,6 +37,11 @@ removed (four unused colour ramps were, see Removed).
   PageHeader, top bar search and actions, account) to the phone's TopNavigation and BottomNavigation (three trailing
   places, nothing dropped, one h1); new skill `skills/zen-responsive-screens` (code, Studio, Figma) with worked examples;
   the Figma AI kit and `AGENTS.consumer.md` point to it.
+- Zen Studio Present and Play (2026-10-16, user: "thanh … giống của trình duyệt để view load bên trong khung"): the
+  floating bottom pill is now a browser-style bar across the top (navigation, the screen's name in an address pill,
+  light/dark, Viewport, Modes, Exit), and the screen loads in the frame below it, so the bar never covers it; a
+  full-screen page, its Dialogs and AppShell's sticky columns fill that frame. Viewport and Modes drop down below their
+  button.
 - Zen Studio Layers has no Refresh button (2026-10-15, user): the tree already rebuilds on page, source and DOM changes,
   and now also when a text changes on the canvas (a text layer is named by its words), as Figma's layers follow the
   canvas.
@@ -299,6 +304,9 @@ removed (four unused colour ramps were, see Removed).
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
 
 ### Fixed
+- Zen Studio: a page made in the Studio changed outside the tab (an AI's file tools, an editor) now shows on the canvas at
+  once instead of after a reload (user, 2026-10-16: "claude chạy xong phải refresh lại mới thấy"): the dev server watches
+  the pages folder and the open tabs sync with it.
 - Design Tokens › Global Colors (2026-10-15, user): the page lists its 960 colours again (it showed "No tokens match" and
   Zen / Zen-High-Contrast instead of Light / Dark Colors: a sync note had been pasted into the collection's slug).
   Component Theme picks its 9 modes in a SelectField instead of a Segmented that ran off the page; a Segmented stays for
@@ -359,6 +367,10 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio MCP M1 (2026-10-16, user: "làm M1 đi"): an AI client builds and edits the open page live, by layer id —
+  `insert` (JSX in the page dialect), `replace`, `move`, `duplicate`, `delete`, `wrap` / `unwrap`, `batch` (several
+  changes, one ⌘Z; refused part-way = nothing changed), `create_page`, `add_frame`, `select`, `focus`, `open_page`, and
+  the reads `list_pages`, `get_node`, `get_code` beside M0's. E2E rows AI-01…06.
 - Zen Studio MCP, first step (M0, 2026-10-15, user: "kết nối mcp vào studio để Claude hoặc AI khác … design trực tiếp
   trên canvas"): Claude Code (or another MCP client) connects to the dev server at `/__zen-studio/mcp` and reads and
   changes the page made in the Studio that is open in the browser, live: `get_studio_state`, `get_tree` (layers by id),
