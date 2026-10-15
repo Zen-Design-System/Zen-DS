@@ -143,12 +143,14 @@ await check("endpoint guards: token, Origin, Host, method, body", async () => {
 const client = new Client({ name: "zen-selftest-client", version: "1.0.0" });
 await client.connect(new StreamableHTTPClientTransport(new URL(url), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
 
-await check("MCP client: initialize names the server; tools/list is the four M0 tools", async () => {
+await check("MCP client: initialize names the server; tools/list is the M1 set", async () => {
   assert.equal(client.getServerVersion()?.name, "zen-studio");
   assert.equal(client.getServerVersion()?.version, "9.9.9");
   assert.match(client.getInstructions() ?? "", /get_studio_state first/);
   const { tools } = await client.listTools();
-  assert.deepEqual(tools.map((tool) => tool.name), ["get_studio_state", "get_tree", "update", "get_screenshot"]);
+  assert.deepEqual(tools.map((tool) => tool.name), ["get_studio_state", "list_pages", "get_tree", "get_node", "get_code", "get_screenshot", "update", "insert", "replace", "move", "duplicate", "delete", "wrap", "unwrap", "batch", "create_page", "add_frame", "select", "focus", "open_page"]);
+  assert.deepEqual(tools.find((tool) => tool.name === "batch").inputSchema.properties.ops.items.properties.tool.enum, ["update", "insert", "replace", "move", "duplicate", "delete", "wrap", "unwrap"]);
+  assert.match(client.getInstructions() ?? "", /Never edit the page files/);
   assert.equal(tools.find((tool) => tool.name === "update").annotations.readOnlyHint, false);
   assert.deepEqual(tools.find((tool) => tool.name === "update").inputSchema.required, ["id"]);
 });

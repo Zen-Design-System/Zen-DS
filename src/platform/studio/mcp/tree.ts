@@ -75,6 +75,9 @@ const elementChildren = (node: DocNode): Array<{ node: DocNode; label?: string }
   return out;
 };
 
+/** A layer's own children (its children, a list as its template row), not what its slot props hold. */
+export const childLayers = (node: DocNode): DocNode[] => node.children.flatMap((child) => (child.kind === "element" ? [child] : child.kind === "map" ? [child.node] : []));
+
 /** Every layer under `root` (itself first), depth first. */
 export function layers(root: DocNode): DocNode[] {
   const out: DocNode[] = [];

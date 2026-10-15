@@ -814,7 +814,9 @@ export const rows = [
       // The page as the Studio kept it before 2026-10-15 (user: "trang Dashboard tôi vừa tạo từ template bị lỗi").
       fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`), legacyFramePage(name));
       await mineOption(page, /^Sync with the folder/);
-      await until(async () => /<Screen [^>]*\bsidebar=\{/.test((await pageText(page, id)) ?? ""), { message: "the old page in the browser" }).catch(async (error) => { throw new Error(`${error.message} (browser: ${((await pageText(page, id)) ?? "").slice(0, 400).replace(/\s+/g, " ")} · folder: ${(folderText(ctx, id) ?? "").slice(0, 200).replace(/\s+/g, " ")})`); });
+      // The folder is watched (2026-10-16): the old page may already be moved to the master layout when it arrives, as
+      // opening it does (the template's Sidebar, selectedId "dashboard", is how its text shows either way).
+      await until(async () => /<Screen [^>]*\bsidebar=\{|selectedId="dashboard"/.test((await pageText(page, id)) ?? ""), { message: "the old page in the browser" }).catch(async (error) => { throw new Error(`${error.message} (browser: ${((await pageText(page, id)) ?? "").slice(0, 400).replace(/\s+/g, " ")} · folder: ${(folderText(ctx, id) ?? "").slice(0, 200).replace(/\s+/g, " ")})`); });
       await page.reload();
       const text = async () => (await pageText(page, id)) ?? "";
       await until(async () => !/<Screen [^>]*\bsidebar=\{/.test(await text()) && ((await text()).match(/<Sidebar\b/g) ?? []).length === 1 && ((await text()).match(/<PageHeader\b/g) ?? []).length === 1, { message: "the Screen's frame moved into the AppShell, one Sidebar and one Page header left" }).catch(async (error) => { throw new Error(`${error.message} (Sidebars ${((await text()).match(/<Sidebar\b/g) ?? []).length})`); });
