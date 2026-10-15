@@ -602,3 +602,13 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   tertiary button instead of Tab / Esc / Enter hints. New example "Composed while typing, on a phone". Gate
   `--only=ai-ui --isolated` green with one warning (dead click on the empty "Add place" chip once the form is shown;
   fixed in the next change); sheets reviewed.
+- P1-f, listening and free text (the user: "tôi muốn type gì cũng được", then "khi tôi type thì model có hiệu ứng
+  real time listening"): `Orb` takes `beat` (a Web Animations `scale` pulse per keystroke, step × movement, duration
+  from the motion tokens; nothing under reduced motion); `LiveTypingExample` keeps `hearing` for 900 ms after a key
+  and shows the sphere on the type row meanwhile; before any guess the card is one row "Zen AI · listening".
+  `keywordOrFree` wraps the keyword classifier: no known intent and ≥ 3 words → `free` at 0.6 (a known intent, ≥ 0.8,
+  replaces it at once); `compose` sends the sentence as it is to `/ai-ui/compose` when the server is enabled, else
+  the demo answers a Markdown note on what it can build. `intentMeta` gains `free` ("Zen AI", icon-zen) and `keep`
+  labels (phone button / Tab hint). `SlotChips interactive={!showForm}`: heard values stay as plain chips, empty ones
+  go, once the form is shown (the gate's dead-click warning). README: a bullet under "Composing while typing". Gate
+  `--only=ai-ui --isolated` green, no warnings; sheets reviewed.

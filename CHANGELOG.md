@@ -384,7 +384,10 @@ removed (four unused colour ramps were, see Removed).
   band of cyan drifting inside, from the Support tokens) sits in the bubble that waits for the answer and on the
   composer card's type row; reduced motion keeps it still. A new example, "Composed while typing, on a phone": the
   card rises above the docked field (a keyboard would cover nothing, the preview pushes the greeting up, the screen
-  follows the field), with a "Keep as …" button in place of the keys.
+  follows the field), with a "Keep as …" button in place of the keys. The composer listens in real time: from the
+  first character the card shows "Zen AI · listening" with the sphere beating on each keystroke; a sentence the keyword
+  classifier does not know still goes to the composer as it is once a few words are in (the model when one is
+  configured; the demo composer says what it can build), and the slot chips stop being buttons once the form is shown.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

@@ -340,8 +340,18 @@ function Answer({ turn, demo }: { turn: Turn; demo: Demo }) {
 /** The AI at work (the user, 2026-10-15: a sphere after the Dribbble shot "Sphere AI Assistant"): frosted glass with soft
     colour drifting inside (three blurred layers, ai-ui.css), in the bubble that waits for the answer and on the composer
     card while it composes. */
-function Orb({ label, size }: { label: string; size?: "sm" }) {
-  return <span className={size === "sm" ? "px-ai-ui-orb px-ai-ui-orb--sm" : "px-ai-ui-orb"} role="status" aria-label={label}><i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" /></span>;
+function Orb({ label, size, beat = 0 }: { label: string; size?: "sm"; /** Bumps on each keystroke: the sphere beats once (listening). */ beat?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!beat || !el || typeof el.animate !== "function") return;
+    const style = getComputedStyle(el);
+    const movement = Number(style.getPropertyValue("--zen-motion-movement").trim() || 1);
+    if (!movement) return; // reduced motion: no beat, the sphere stays
+    const duration = Number.parseFloat(style.getPropertyValue("--zen-motion-duration-base")) || 200;
+    el.animate([{ scale: "1" }, { scale: String(1 + 0.14 * movement), offset: 0.35 }, { scale: "1" }], { duration, easing: "cubic-bezier(0.2, 0, 0, 1)" });
+  }, [beat]);
+  return <span ref={ref} className={size === "sm" ? "px-ai-ui-orb px-ai-ui-orb--sm" : "px-ai-ui-orb"} role="status" aria-label={label}><i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" /></span>;
 }
 
 function Thread({ demo, label = "Conversation with Zen AI" }: { demo: Demo; label?: string }) {
@@ -421,15 +431,30 @@ function KeyHint({ keys, children }: { keys: string; children: ReactNode }) {
    body (type row · title · slot chips, then the form once the intent is sure or a chip is opened); the keys and the primary
    action are the footer. The host draws the card and the slots; the form stays a spec the renderer draws. ── */
 const intentMeta = {
-  booking: { label: "Booking", icon: "icon-calendar-line" },
-  invoices: { label: "Invoices", icon: "icon-receipt-line" },
-  revenue: { label: "Revenue", icon: "icon-bar-chart-01-line" },
-  confirm: { label: "Confirmation", icon: "icon-trash-line" },
-} as const satisfies Record<string, { label: string; icon: IconName }>;
+  booking: { label: "Booking", icon: "icon-calendar-line", keep: "keep as booking" },
+  invoices: { label: "Invoices", icon: "icon-receipt-line", keep: "keep as invoices" },
+  revenue: { label: "Revenue", icon: "icon-bar-chart-01-line", keep: "keep as revenue" },
+  confirm: { label: "Confirmation", icon: "icon-trash-line", keep: "keep as confirmation" },
+  /** Anything the keyword classifier does not know: the sentence goes to the composer as it is. */
+  free: { label: "Zen AI", icon: "icon-zen", keep: "keep this" },
+} as const satisfies Record<string, { label: string; icon: IconName; keep: string }>;
+const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** Anything the keyword classifier does not know becomes "free" once there are a few words, at the lowest confidence the
+    live composer accepts, so a known intent replaces it the moment its words appear; the composer gets the sentence as it
+    is (the model when one is configured). */
+type Classifier = ReturnType<typeof keywordClassifier>;
+const keywordOrFree = (classify: Classifier): Classifier => (text: string) => {
+  const known = classify(text);
+  if (known?.intent || text.trim().split(/\s+/).length < 3) return known;
+  return { intent: "free", confidence: 0.6, slots: extractSlots(text), skeleton: skeletonOf("text") };
+};
 type SlotKey = "date" | "time" | "people" | "place";
 
 /** The slots as chips: a heard value opens its control in the form; an empty slot says what was not heard ("Add date"). */
-function SlotChips({ slots, keys, onOpen }: { slots: LiveSlots | null; keys: SlotKey[]; onOpen: (slot: SlotKey) => void }) {
+/** The slots as chips. While guessing every chip opens the form (an empty one reads "Add date"); once the form is shown
+    (`interactive` false) only the heard values stay, as plain chips: the form has no field to add the others to. */
+function SlotChips({ slots, keys, onOpen, interactive = true }: { slots: LiveSlots | null; keys: SlotKey[]; onOpen: (slot: SlotKey) => void; interactive?: boolean }) {
   const items: { key: SlotKey; icon: IconName; value: string | null; add: string }[] = [
     { key: "date", icon: "icon-calendar-line", value: slots?.date ? fieldDate(slots.date) : null, add: "Add date" },
     { key: "time", icon: "icon-clock-line", value: slots?.time ?? null, add: "Add time" },
@@ -438,8 +463,10 @@ function SlotChips({ slots, keys, onOpen }: { slots: LiveSlots | null; keys: Slo
   ];
   return (
     <Stack direction="row" gap="xs" wrap>
-      {items.filter((item) => keys.includes(item.key)).map((item) => item.value
-        ? <Chip key={item.key} variant="normal" size="sm" leading={item.icon} dropdown onClick={() => onOpen(item.key)}>{item.value}</Chip>
+      {items.filter((item) => keys.includes(item.key) && (interactive || item.value)).map((item) => item.value
+        ? (interactive
+          ? <Chip key={item.key} variant="normal" size="sm" leading={item.icon} dropdown onClick={() => onOpen(item.key)}>{item.value}</Chip>
+          : <Chip key={item.key} variant="normal" size="sm" leading={item.icon}>{item.value}</Chip>)
         : <Chip key={item.key} variant="normal" size="sm" leading="icon-plus-line" state="placeholder" onClick={() => onOpen(item.key)}>{item.add}</Chip>)}
     </Stack>
   );
@@ -469,14 +496,31 @@ function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "de
   const [done, setDone] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [opened, setOpened] = useState(false);
+  // Listening: each keystroke beats the sphere, and it stays on the type row for a moment after the last one.
+  const [beat, setBeat] = useState(0);
+  const [hearing, setHearing] = useState(false);
+  const hearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heard = () => {
+    setBeat((count) => count + 1);
+    setHearing(true);
+    if (hearTimer.current) clearTimeout(hearTimer.current);
+    hearTimer.current = setTimeout(() => { hearTimer.current = null; setHearing(false); }, 900);
+  };
+  useEffect(() => () => { if (hearTimer.current) clearTimeout(hearTimer.current); }, []);
   const composerRef = useRef<LiveComposer | null>(null);
   const lastSlots = useRef<LiveSlots | null>(null);
   useEffect(() => {
     if (!server) return undefined;
     const composer = createLiveComposer({
-      classify: keywordClassifier(liveIntents, { slots: extractSlots }),
-      compose: async (prompt, { slots, signal }) => {
+      classify: keywordOrFree(keywordClassifier(liveIntents, { slots: extractSlots })),
+      compose: async (prompt, { intent, slots, signal }) => {
         const known = (slots as LiveSlots | null) ?? null;
+        if (intent === "free" && !server.enabled) {
+          // Without a model the demo composer cannot build this: say so, and what it can build.
+          await new Promise((resolve) => setTimeout(resolve, 400));
+          if (signal.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
+          return { text: "", spec: markdownToSpec("The demo composer knows bookings, invoices, revenue and confirmations. With `ANTHROPIC_API_KEY` set before `npm run dev`, Zen AI composes this request too.") };
+        }
         if (server.enabled) {
           const remote = await postJson<{ ok: true; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData(), state: known ? withSlots({}, known, null) : undefined }, signal);
           if (remote.ok) { setServerError(null); return { text: remote.text, spec: remote.spec }; }
@@ -525,24 +569,33 @@ function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "de
   // The field keeps its pill on the canvas; the guess card sits right under it, or over it on a phone (nested corners stay concentric, usage rules §13 / rhythm).
   const field = (
     <AiChatField fieldStyle={fieldStyle} placeholder={placeholder} value={text}
-      onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
+      onValueChange={(next) => { setText(next); heard(); composerRef.current?.input(next); }}
       onSubmit={submit}
       onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
       onClear={text || preview ? clear : undefined} />
   );
-  const card = preview && meta ? (
+  const listening = !preview && text.trim().length > 0;
+  const card = listening ? (
+    <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
+      <Stack direction="row" gap="xs" align="center">
+        <Orb label="Listening" size="sm" beat={beat} />
+        <Text textStyle="Body/Small/Medium">Zen AI</Text>
+        <Text textStyle="Body/Small/Regular" tone="base">listening</Text>
+      </Stack>
+    </Card>
+  ) : preview && meta ? (
           <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
             <Stack gap="md">
               <div className="px-ai-ui-composer__guess" key={intent ?? "none"}>
                 <Stack gap="sm">
                   <Stack direction="row" gap="xs" align="center">
-                    {working ? <Orb label="Composing" size="sm" /> : <Icon name={meta.icon} size={16} />}
+                    {working || hearing ? <Orb label={working ? "Composing" : "Listening"} size="sm" beat={beat} /> : <Icon name={meta.icon} size={16} />}
                     <Text textStyle="Body/Small/Medium">{meta.label}</Text>
                     {live?.pinned ? <Text textStyle="Body/Small/Regular" tone="base">kept</Text> : sure ? null : <Text textStyle="Body/Small/Regular" tone="base">likely</Text>}
                   </Stack>
                   {intent === "booking" && slots?.title ? <Heading level={3} textStyle="Heading/4">{slots.title}</Heading> : null}
                   {/* The chips are the guess; once the form shows it carries the date and the time, so those two step aside and the slots it has no field for (people, place) stay. */}
-                  {intent === "booking" ? <SlotChips slots={slots} keys={showForm ? ["people", "place"] : ["date", "time", "people", "place"]} onOpen={() => setOpened(true)} /> : null}
+                  {intent === "booking" ? <SlotChips slots={slots} keys={showForm ? ["people", "place"] : ["date", "time", "people", "place"]} onOpen={() => setOpened(true)} interactive={!showForm} /> : null}
                   {showForm ? (catalog ? <AiUi spec={composerBody(preview)} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={(call) => { setDone(`${call.name} ${JSON.stringify(call.args)}`); clear(); }} /> : <SkeletonText lines={3} />) : null}
                   {serverError ? <Text textStyle="Body/Small/Regular" tone="base">{`The model failed (${serverError}); the demo composer answered.`}</Text> : null}
                 </Stack>
@@ -550,9 +603,9 @@ function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "de
               {/* The footer: the keys on a desktop; on a phone (no Tab, no Esc) a "Keep as …" button in their place. */}
               <Stack direction="row" gap="md" justify="between" align="center" wrap>
                 {placement === "above"
-                  ? <Stack direction="row" gap="xs" wrap>{!live?.pinned ? <Button level="tertiary" size="sm" onClick={() => composerRef.current?.accept()}>Keep as {meta.label.toLowerCase()}</Button> : null}</Stack>
+                  ? <Stack direction="row" gap="xs" wrap>{!live?.pinned ? <Button level="tertiary" size="sm" onClick={() => composerRef.current?.accept()}>{capitalise(meta.keep)}</Button> : null}</Stack>
                   : <Stack direction="row" gap="sm" wrap>
-                      {!live?.pinned ? <KeyHint keys="Tab">to keep as {meta.label.toLowerCase()}</KeyHint> : null}
+                      {!live?.pinned ? <KeyHint keys="Tab">to {meta.keep}</KeyHint> : null}
                       <KeyHint keys="Esc">to clear</KeyHint>
                       <KeyHint keys="Enter">{action && showForm && actionLabel ? `to ${actionLabel.toLowerCase()}` : "to compose now"}</KeyHint>
                     </Stack>}
@@ -776,7 +829,7 @@ setShared((state) => writePath(state, "review.slot", "16:00"));                 
   },
   {
     title: "Composed while typing",
-    description: "The composer card: the field is the header, the guess is the body, the keys and the primary action are the footer. As the sentence forms, a keyword classifier on the device names the intent and pulls the slots out of it (title, date, time, people, place); the card shows the type row, the title and the slots as chips at once (an empty slot reads 'Add date'), then the form once the intent is sure (Tab, the composer's answer, or a clear match) or a chip is opened; the composer (a model through /ai-ui when one is configured) fills in the real UI. A keystroke during composing drops the stale answer; an unsure guess never clears what is shown. Tab keeps the guessed intent and moves into the card, Escape clears, Enter runs the form's primary action when one is on screen (Schedule) and composes otherwise.",
+    description: "The composer card: the field is the header, the guess is the body, the keys and the primary action are the footer. As the sentence forms, a keyword classifier on the device names the intent and pulls the slots out of it (title, date, time, people, place), and anything it does not know goes to the composer as it is once a few words are in (the model, when one is configured; the demo composer says what it can build); the card shows the type row, the title and the slots as chips at once (an empty slot reads 'Add date'), then the form once the intent is sure (Tab, the composer's answer, or a clear match) or a chip is opened; the composer (a model through /ai-ui when one is configured) fills in the real UI. A keystroke during composing drops the stale answer; an unsure guess never clears what is shown. Tab keeps the guessed intent and moves into the card, Escape clears, Enter runs the form's primary action when one is on screen (Schedule) and composes otherwise.",
     wide: true,
     render: () => <LiveTypingExample initial="Schedule a design review with the banking team tomorrow at 4 pm" />,
     code: `const live = createLiveComposer({
