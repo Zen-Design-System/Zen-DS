@@ -139,6 +139,7 @@ function literalUnion(type, types, seen = new Set()) {
 const result = {};
 const known = {};
 const literals = {};
+const opens = [];
 for (const file of fs.readdirSync(SOURCE).filter((name) => name.endsWith(".json")).sort()) {
   const doc = JSON.parse(fs.readFileSync(path.join(SOURCE, file), "utf8"));
   const types = doc.types ?? {};
@@ -155,6 +156,7 @@ for (const file of fs.readdirSync(SOURCE).filter((name) => name.endsWith(".json"
       if (names) (known[component.name] ??= {})[prop.name] = names;
       if (literalUnion(prop.type, types)) (literals[component.name] ??= []).push(prop.name);
     }
+    if ((component.props ?? []).some((prop) => prop.name === "open" && !prop.deprecated)) opens.push(component.name);
     if (Object.keys(props).length || Object.keys(fields).length) result[component.name] = { ...(Object.keys(props).length ? { props } : {}), ...(Object.keys(fields).length ? { fields } : {}) };
   }
 }
@@ -179,6 +181,12 @@ export const OBJECT_FIELDS = ${JSON.stringify(known)};
  * (core rebuild M4 \`theme={person.theme}\`) is typed as that prop in the exported data type, so the export type-checks.
  */
 export const LITERAL_PROPS = ${JSON.stringify(literals)};
+
+/**
+ * The Zen components that open and close (an \`open\` prop: Dialog, SidePanel, BottomSheet…): an Overlay holding one
+ * shows it with \`open\`; any other layer an Overlay holds is shown or not (prototype overlay settings, 2026-10-15).
+ */
+export const OPENS = ${JSON.stringify(opens.sort())};
 `;
 
 if (process.argv.includes("--check")) {

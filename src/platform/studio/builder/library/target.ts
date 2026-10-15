@@ -14,6 +14,8 @@ import { studioStore } from "../../store";
  */
 
 const EDITABLE_FRAME = /^(?:example|screen):/;
+/** A selected Overlay frame takes a layer too: the one it shows, while it is empty (else into that layer's layout). */
+const SELECTED_FRAME = /^(?:example|screen|overlay):/;
 
 const frameElement = (id: string) => canvasApi.getWorldElement()?.querySelector(`[data-studio-frame="${CSS.escape(id)}"]`) ?? null;
 
@@ -74,8 +76,11 @@ export function insertTarget(): NodeSelection | string {
     return selection;
   }
   const frame = selection?.kind === "frame" ? frameElement(selection.frameId) : frameInView();
-  if (!frame || !EDITABLE_FRAME.test(frame.getAttribute("data-studio-frame") ?? "")) return "Nothing here takes new layers: bring an example or a screen into view, or select a layer";
-  return rootSelection(frame) ?? "This frame has no layer to add into yet";
+  if (!frame || !(selection?.kind === "frame" ? SELECTED_FRAME : EDITABLE_FRAME).test(frame.getAttribute("data-studio-frame") ?? "")) return "Nothing here takes new layers: bring an example or a screen into view, or select a layer";
+  const target = rootSelection(frame);
+  // An Overlay shows one layer: once it has one, a new layer goes inside that layer's layout, never beside it.
+  if (target?.name === "Overlay" && frame.querySelector("[data-zen-src] [data-zen-src]")) return "This overlay shows one layer already: select a layout inside it";
+  return target ?? "This frame has no layer to add into yet";
 }
 
 /** "Into Stack · Checkout", "After Button · Checkout": where `target` takes an item (edit/clipboard.ts's rule). */

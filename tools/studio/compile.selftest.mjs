@@ -145,8 +145,53 @@ ok("studio page: the overrides are written as they are", crewCode.includes('over
 ok("studio page: a row's own value reads its field", /<Badge\s+key=\{index\}\s+theme=\{person\.theme\}/.test(crewCode));
 ok("studio page: that field is typed as the prop (string literals), the rest stay string", crewCode.includes('theme: NonNullable<ComponentProps<typeof Badge>["theme"]>;') && crewCode.includes("name: string;") && crewCode.includes('import type { ComponentProps } from "react";'));
 
+// Prototype by item (2026-10-15): a tab bar leads each tab to its screen, a segmented control opens an overlay per segment;
+// the item the control hands over picks the target, an item without one does nothing.
+const tabs = compileReact(page("Tabs", "BottomNavigation, Dialog, Segmented, Stack, Text", [
+  '<Screen id="home" title="Home" device="phone"',
+  '  bottomNavigation={<BottomNavigation value="home" items={[{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "files", label: "Files", icon: "icon-folder-line" }, { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" }]} onValueChange={proto.navigate({ files: "files", inbox: "inbox" })} />}>',
+  '  <Stack gap="md" padding="lg">',
+  '    <Segmented aria-label="View" value="list" options={[{ id: "list", label: "List" }, { id: "map", label: "Map" }]} onValueChange={proto.open({ map: "map" })} />',
+  "  </Stack>",
+  "</Screen>",
+  '<Screen id="files" title="Files" device="phone"><Text>Files</Text></Screen>',
+  '<Screen id="inbox" title="Inbox" device="phone"><Text>Inbox</Text></Screen>',
+  '<Overlay id="map">',
+  '  <Dialog title="Map" primaryAction={{ label: "Close", onClick: proto.close() }} />',
+  "</Overlay>",
+]), { file: "tabs.zen.tsx" });
+check("by item: compiles", tabs.error ?? null, null);
+const tabsCode = tabs.code ?? "";
+ok("by item: the tab bar navigates by the chosen tab", /onValueChange=\{\(choice: unknown\) => \{ const to = \(\{ files: "files", inbox: "inbox" \} as Record<string, Parameters<typeof navigate>\[0\] \| undefined>\)\[choiceKey\(choice\)\]; if \(to\) navigate\(to\); \}\}/.test(tabsCode));
+ok("by item: the segment opens its overlay", tabsCode.includes('const to = ({ map: "map" } as Record<string, string | undefined>)[choiceKey(choice)]; if (to) setOverlay(to as Parameters<typeof setOverlay>[0]);'));
+ok("by item: choiceKey reads a value or an item's id", tabsCode.includes("const choiceKey = (choice: unknown) =>"));
+check("by item: the actions keep their targets", tabs.actions.filter((entry) => entry.action !== "close").map((entry) => `${entry.where} ${entry.action} ${JSON.stringify(entry.target)}`).sort(), ['<BottomNavigation> onValueChange navigate {"files":"files","inbox":"inbox"}', '<Segmented> onValueChange open {"map":"map"}']);
+
+// Prototype round 2 (2026-10-15): After delay on a Screen, While hovering → an overlay that is not a Dialog (a Card the
+// Overlay places), an animated navigate (options are the handoff's; the code switches screens).
+const splash = compileReact(page("Splash", "Button, Card, Stack, Text", [
+  '<Screen id="splash" title="Splash" device="phone" onDelay={proto.navigate("home", { animation: "push", duration: "slow", delay: 1200 })}>',
+  '  <Text>Zen</Text>',
+  "</Screen>",
+  '<Screen id="home" title="Home" device="phone">',
+  '  <Stack gap="md" padding="lg">',
+  '    <Button whileHovering={proto.open("tip")} onClick={proto.navigate("splash", { animation: "slide", direction: "right" })}>Help</Button>',
+  "  </Stack>",
+  "</Screen>",
+  '<Overlay id="tip" position="top-right" background closeOnOutside={false}>',
+  '  <Card><Text>Tap to start</Text></Card>',
+  "</Overlay>",
+]), { file: "splash.zen.tsx" });
+check("motion: compiles", splash.error ?? null, null);
+const splashCode = splash.code ?? "";
+ok("after delay: an effect on that screen", splashCode.includes('import { useEffect, useState } from "react";') && splashCode.includes('    if (screen !== "splash") return undefined;\n    const timer = setTimeout(() => navigate("home"), 1200);\n    return () => clearTimeout(timer);\n  }, [screen]);'));
+ok("while hovering: the overlay shows while the pointer stays", splashCode.includes('onPointerEnter={() => setOverlay("tip")}') && splashCode.includes("onPointerLeave={() => setOverlay(null)}") && !splashCode.includes("whileHovering"));
+ok("an overlay that is not a Dialog: shown or not, no open prop, where it goes said", /\{overlay === "tip" && \(\n\s+<Card>/.test(splashCode) && !/<Card[^>]*open=/.test(splashCode) && splashCode.includes('{/* Overlay "tip" · top right · dims the screen */}'));
+ok("the board's props stay out", !/position=|closeOnOutside|onDelay|background\b(?!:)/.test(splashCode.replace(/\/\*[\s\S]*?\*\//g, "")));
+check("motion: the handoff hears the animation and the delay", splash.actions.filter((entry) => entry.options).map((entry) => `${entry.action} ${JSON.stringify(entry.options)}`).sort(), ['navigate {"animation":"push","duration":"slow","delay":1200}', 'navigate {"animation":"slide","direction":"right"}']);
+
 // The outputs as app code: the usage harness (consumer mode) and TypeScript with the repo's settings.
-const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode };
+const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode, "Tabs.tsx": tabsCode, "Splash.tsx": splashCode };
 {
   const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
   const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
