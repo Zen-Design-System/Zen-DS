@@ -23,6 +23,10 @@ inside Zen AI with a deterministic composer standing in for the model.
 | `src/ai-ui/` → `@zen-ds/react/ai-ui` | `spec.mjs` (helpers, ids), `validate.mjs`, `print.mjs` (spec → the React it renders), `ops.mjs` (edits by node id), `markdown.mjs`, `render.tsx` (`<AiUi>`), `catalog.ts` (types). The `.mjs` modules run in Node and the browser alike; `.d.mts` beside them type them. |
 | `tools/ai-ui/lint.mjs` → `@zen-ds/react/ai-ui/lint` | `lintSpec` / `checkSpec`: the usage harness on a spec (Node, where the model composes). |
 | `tools/ai-ui/compose.mjs` → `@zen-ds/react/ai-ui/compose` | `composeUi` / `composeEdit`: the prompt in two tiers, the model call (the app's function), parse → validate → lint → feedback until clean. `tools/ai-ui/compact.mjs` formats props for prompts. |
+| `tools/ai-ui/server.mjs` → `@zen-ds/react/ai-ui/server` | `createAiUiHandler` (framework-free request handler), `createNodeListener`, `serve` (standalone). |
+| `tools/ai-ui/adapters/anthropic.mjs` → `@zen-ds/react/ai-ui/adapters/anthropic` | `anthropicModel`: the model function on the Claude API through the official SDK. |
+| `tools/ai-ui/vite-plugin.mjs` | `aiUiDevServer`: the handler at `/ai-ui/*` on the platform's dev server. |
+| `src/ai-ui/live.mjs` | `createLiveComposer`, `keywordClassifier`: composing while typing. |
 | `mcp/server.mjs` | `get_catalog` and `check_spec` tools beside the existing nine. |
 | `tools/ai-ui/selftest.mjs`, `tests/ai-ui/` | `npm run ai-ui:selftest` (no browser) · `npm test -- tests/ai-ui` (renderer, every catalog component from a spec, the 600 / 390 px column). |
 
@@ -118,6 +122,45 @@ const edit = await composeEdit({ prompt: "make it accent", spec: answer.spec, st
   with `$ref`, so the model cannot invent values.
 - **MCP.** `zen-ds-mcp` has `get_catalog` (tier 1, or one component's tier 2) and `check_spec` (validation + lint of a
   spec) so an agent in Claude Code, Cursor or Cowork can compose and check specs with the same contract.
+
+## Where the model connects
+
+The key lives where the loop runs, never in a browser. Three places, same contract:
+
+1. **Your app's server** — any Node runtime (Next.js route handler, Express, Hono, a worker). Mount the handler:
+
+   ```ts
+   import { createAiUiHandler } from "@zen-ds/react/ai-ui/server";
+   import { anthropicModel } from "@zen-ds/react/ai-ui/adapters/anthropic";   // npm i @anthropic-ai/sdk
+   const handle = createAiUiHandler({ model: anthropicModel(), modelName: "claude-opus-5-5", data: (body) => fetchDataFor(body) });
+   app.post("/api/ai-ui/:op", async (req, res) => { const r = await handle({ method: "POST", path: req.params.op, body: req.body }); res.status(r.status).json(r.body); });
+   ```
+
+   Routes: `GET /status`, `GET /catalog?component=`, `POST /compose { prompt, data?, state?, history?, components? }`,
+   `POST /edit { prompt, spec, state? }`, `POST /check { spec }`. `createNodeListener` wraps it for `node:http`;
+   `node tools/ai-ui/server.mjs --port=8787` runs it standalone (`ZEN_AI_MODEL`, `ZEN_AI_EFFORT`).
+2. **The platform's dev server** — `tools/ai-ui/vite-plugin.mjs` mounts the same handler at `/ai-ui/*` when
+   `ANTHROPIC_API_KEY` is set (or an `ant auth login` profile resolves). Set the key, `npm run dev`, open
+   Patterns › AI UI: typed prompts then go to the model; seeded ones keep the demo composer so the page stays deterministic.
+3. **An agent** — `zen-ds-mcp`'s `get_catalog` and `check_spec` give Claude Code, Cursor or Cowork the same contract.
+
+The adapter (`anthropicModel`) uses the official SDK: `claude-opus-5-5`, effort `medium`, the system prompt cached
+(`cache_control`), server-side refusal fallbacks on, a refusal returned as a text-only answer; `onUsage` reports tokens
+and cache reads per call. Other providers: write a `model` function of the same shape. The adapter is tested against a
+fake client; a live call needs a key the sandbox did not have.
+
+## Composing while typing
+
+The user's decision (2026-10-15): the UI appears as the sentence forms, not after Send. `createLiveComposer` is the
+controller for the field (`src/ai-ui/live.mjs`, isomorphic):
+
+- every change is debounced (300 ms), then a cheap `classify` names the likely intent — `keywordClassifier` runs on the
+  device, so no keystroke leaves it until an intent is likely (handoff: consent, or classify on-device);
+- at `minConfidence` (0.6) the intent's Skeleton shows at once (tier 1) and `compose` is asked for the real UI with an
+  `AbortSignal` (tier 2/3); a keystroke during composing drops the stale answer;
+- an unsure guess never clears what is shown; a different intent replaces it only when clearly more likely
+  (`switchMargin`) or after `stickMs`; Enter (`submit`) composes regardless;
+- `AiChatField` now takes `value` / `onValueChange` for it (the API convention; `defaultValue` stays).
 
 ## Catalog rules
 

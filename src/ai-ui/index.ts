@@ -8,5 +8,6 @@ export * from "./validate.mjs";
 export * from "./print.mjs";
 export * from "./ops.mjs";
 export * from "./markdown.mjs";
+export * from "./live.mjs";
 export * from "./render";
 export type { Catalog, CatalogComponent, CatalogGuideline, PropSchema, Binding } from "./catalog";

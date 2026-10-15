@@ -279,6 +279,13 @@ removed (four unused colour ramps were, see Removed).
   compose with their tier 2, parse → validate → lint → send the problems back until the spec is clean) and `composeEdit`
   (a follow-up as ops, a state change or a new spec), provider-agnostic through the app's `model` function;
   `zen-ds-mcp` gains `get_catalog` and `check_spec`.
+- **Where the model connects + composing while typing** (2026-10-15): `@zen-ds/react/ai-ui/server` (a framework-free
+  request handler with `/status`, `/catalog`, `/compose`, `/edit`, `/check`; `node:http` listener; standalone
+  `node tools/ai-ui/server.mjs`), `@zen-ds/react/ai-ui/adapters/anthropic` (the model function on the Claude API through
+  the official SDK, key server-side only), the platform's dev server mounts it at `/ai-ui/*` when `ANTHROPIC_API_KEY`
+  is set, and `createLiveComposer` / `keywordClassifier` compose while the person types (debounce, on-device classifier,
+  Skeleton first, stale answers dropped, no flicker). `AiChatField` takes `value` / `onValueChange`. Patterns › AI UI
+  gains "Composed while typing" and uses the model for typed prompts when the server has one.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

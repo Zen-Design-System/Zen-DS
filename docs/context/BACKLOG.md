@@ -11,6 +11,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P2 · AI UI: `verified` status is a heuristic (2026-10-14, user):** `tools/ai-ui/build-catalog.mjs` marks a component
   `verified` when a Figma contract file or suite name matches its folder (41 components). Confirm the list or set it in
   `tools/ai-ui/catalog.config.mjs` `STATUS_OVERRIDES`. Pointer: docs/ai-ui/README.md "Open decisions".
+- **P3 · AI UI: classifier placement in the product (2026-10-15, user; handoff Q4):** the user chose "UI while typing"
+  (Q1 decided). The kit classifies on the device (`keywordClassifier`) and asks the model only once an intent is likely;
+  a smarter classifier (embeddings or a small model) is the product's choice: on-device keeps keystrokes private, a
+  server one needs consent. Pointer: docs/ai-ui/README.md "Composing while typing".
 - **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
   node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
 - **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls

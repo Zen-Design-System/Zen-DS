@@ -14,6 +14,9 @@ import { assignIds, findNode, nodeIds } from "../../src/ai-ui/spec.mjs";
 import { applyOps } from "../../src/ai-ui/ops.mjs";
 import { markdownToSpec } from "../../src/ai-ui/markdown.mjs";
 import { composeEdit, composeUi, extractJson, feedbackFor, buildSystemPrompt, tier1 } from "./compose.mjs";
+import { anthropicModel } from "./adapters/anthropic.mjs";
+import { createAiUiHandler } from "./server.mjs";
+import { createLiveComposer, keywordClassifier } from "../../src/ai-ui/live.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fixture = (name) => JSON.parse(fs.readFileSync(path.join(root, "tools/ai-ui/fixtures", name), "utf8"));
@@ -109,6 +112,54 @@ check("composeEdit applies ops after a retry on an unknown id and judges the res
 const stateOnly = await composeEdit({ prompt: "4 pm", spec: composed.spec, catalog, model: async () => '{"text":"Set to 16:00.","state":{"slot":"16:00"}}' });
 check("composeEdit returns a state change untouched", stateOnly.ok && stateOnly.kind === "state" && stateOnly.state.slot === "16:00" && stateOnly.spec === composed.spec);
 check("feedbackFor numbers errors and marks warnings", /^1\. \[enum\]/m.test(feedbackFor({ validation: { errors: [{ code: "enum", path: "a", message: "m" }], warnings: [{ code: "missing-id", path: "b", message: "w" }] }, lint: [] })) && /\(warning\) \[missing-id\]/.test(feedbackFor({ validation: { errors: [], warnings: [{ code: "missing-id", path: "b", message: "w" }] }, lint: [] })));
+
+// 7. the Anthropic adapter against a fake SDK client: request shape, text extraction, a refusal as a text-only answer
+const requests = [];
+const fakeClient = { beta: { messages: { create: async (request) => { requests.push(request); return request.messages.at(-1).content.includes("refuse") ? { stop_reason: "refusal", stop_details: { category: "cyber", explanation: "policy" }, content: [], usage: {} } : { stop_reason: "end_turn", content: [{ type: "text", text: "{\"text\":\"hi\"}" }], usage: { input_tokens: 10 } }; } } }, messages: { create: async () => { throw new Error("non-beta path used"); } } };
+const usages = [];
+const adapter = anthropicModel({ client: fakeClient, effort: "low", onUsage: (usage) => usages.push(usage) });
+const reply = await adapter({ system: "SYS", messages: [{ role: "user", content: "hello" }] });
+check("the Anthropic adapter sends the system prompt cached, the effort, the fallback beta and returns the text", reply === "{\"text\":\"hi\"}" && requests[0].model === "claude-opus-5-5" && requests[0].system[0].cache_control?.type === "ephemeral" && requests[0].output_config.effort === "low" && requests[0].fallbacks === "default" && requests[0].betas.includes("server-side-fallback-2026-07-01") && requests[0].messages[0].role === "user" && usages.length === 1, JSON.stringify(requests[0]).slice(0, 300));
+const refused = await adapter({ system: "SYS", messages: [{ role: "user", content: "please refuse" }] });
+check("a refusal comes back as a text-only answer the loop accepts", JSON.parse(refused).text.includes("can't help") && !("spec" in JSON.parse(refused)));
+
+// 8. the request handler: status, catalog, check, compose through a scripted model, edit, errors
+const scriptedModel = async ({ messages }) => (/Which components will the UI/.test(messages.at(-1).content) ? '["Button"]' : /make it accent/.test(messages.at(-1).content) ? '{"text":"Done.","ops":[{"op":"setProp","id":"go","name":"level","value":"accent"}]}' : '{"text":"Here.","spec":{"root":{"type":"Button","id":"go","props":{"level":"primary","onClick":{"$action":"go"}},"children":["Go"]}}}');
+const handle = createAiUiHandler({ model: scriptedModel, modelName: "scripted", data: () => ({ rows: [1] }) });
+const status = await handle({ method: "GET", path: "/status" });
+check("GET /status reports the model", status.status === 200 && status.body.enabled === true && status.body.model === "scripted");
+const catalogRoute = await handle({ method: "GET", path: "/catalog?component=Button" });
+check("GET /catalog?component= returns tier 2", catalogRoute.status === 200 && /## Button/.test(catalogRoute.body.text) && (await handle({ method: "GET", path: "/catalog?component=Nope" })).status === 404);
+const composed2 = await handle({ method: "POST", path: "/compose", body: { prompt: "go", data: { extra: 1 } } });
+check("POST /compose runs the loop and strips the messages", composed2.status === 200 && composed2.body.ok && composed2.body.spec.root.type === "Button" && !("messages" in composed2.body));
+const edited2 = await handle({ method: "POST", path: "/edit", body: { prompt: "make it accent", spec: composed2.body.spec } });
+check("POST /edit applies the ops", edited2.status === 200 && edited2.body.ok && edited2.body.spec.root.props.level === "accent");
+const checked2 = await handle({ method: "POST", path: "/check", body: { spec: { version: 1, root: { type: "Nope" } } } });
+check("POST /check reports problems with feedback", checked2.status === 200 && checked2.body.ok === false && /unknown-component/.test(checked2.body.feedback));
+check("bad requests and unknown routes answer 400 / 404 / 503", (await handle({ method: "POST", path: "/compose", body: {} })).status === 400 && (await handle({ method: "GET", path: "/nope" })).status === 404 && (await createAiUiHandler({ model: null })({ method: "POST", path: "/compose", body: { prompt: "x" } })).status === 503);
+
+// 9. composing while typing: debounce, skeleton first, stale answers dropped, hysteresis, submit
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const skeleton = { version: 1, root: { type: "Stack", id: "sk", children: [{ $pending: "heading" }] } };
+const classify = keywordClassifier([{ intent: "booking", words: ["schedule", "book"], skeleton }, { intent: "invoices", words: ["invoice", "overdue"] }]);
+check("keywordClassifier stays quiet on short text and names the intent with a confidence", classify("sch") === null && classify("schedule a review")?.intent === "booking" && classify("schedule a review").confidence >= 0.6 && classify("hello there") === null);
+const states = [];
+let composeCalls = 0;
+const live = createLiveComposer({ classify, debounceMs: 10, stickMs: 50, onChange: (s) => states.push(s.phase + ":" + (s.intent ?? "-")), compose: async (text, { intent, signal }) => { composeCalls++; await sleep(30); if (signal.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" }); return { text: "ok", spec: { version: 1, root: { type: "Text", id: intent, children: [text] } } }; } });
+live.input("s"); live.input("sch"); live.input("schedule a");
+await sleep(60);
+check("while typing: debounce, then the skeleton, then the composed UI", states.join(" ") === "skeleton:booking ready:booking" && composeCalls === 1 && live.state.spec?.root.id === "booking", states.join(" "));
+live.input("schedule a review"); await sleep(15); live.input("schedule a review for lumen"); await sleep(70);
+check("a keystroke during composing aborts the stale answer; one UI lands for the final text", composeCalls === 3 && live.state.phase === "ready" && live.state.spec.root.children[0] === "schedule a review for lumen", `${composeCalls} ${live.state.phase} ${JSON.stringify(live.state.spec)}`);
+live.input("sched"); await sleep(40);
+check("a weaker guess does not replace the UI on screen while it sticks", live.state.phase === "ready" && live.state.intent === "booking", `${live.state.phase} ${live.state.intent}`);
+await sleep(60); live.input("which invoices are overdue"); await sleep(70);
+check("a confident new intent replaces the old one once it may switch", live.state.intent === "invoices" && live.state.phase === "ready", `${live.state.intent} ${live.state.phase}`);
+live.input(""); await sleep(5);
+check("clearing the field clears the preview", live.state.phase === "idle" && live.state.spec === null);
+await live.submit("anything at all");
+check("submit composes regardless of confidence", live.state.phase === "ready" && live.state.intent === null);
+live.dispose();
 
 console.log(failed ? `\n${failed} check(s) failed.` : "\nAI UI selftest OK.");
 process.exitCode = failed ? 1 : 0;

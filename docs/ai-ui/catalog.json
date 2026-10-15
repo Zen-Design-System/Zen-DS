@@ -411,15 +411,38 @@
           "type": "boolean",
           "default": false
         },
+        "value": {
+          "type": "string",
+          "description": "The prompt text, controlled (pairs with `onValueChange`); leave it out to let the field keep its own."
+        },
         "defaultValue": {
           "type": "string",
-          "default": ""
+          "default": "",
+          "description": "Initial prompt text when uncontrolled."
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "text",
+              "type": "string",
+              "json": true
+            }
+          ],
+          "description": "Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it."
         }
       },
       "requiredActions": [
         "onSubmit"
       ],
-      "bindings": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
       "excluded": [
         "className (not for a generated UI)",
         "overrides (not for a generated UI)",
@@ -17649,6 +17672,7 @@
         "ai-chat/no-actions-while-streaming",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
+        "interaction/controlled-needs-handler",
         "interaction/action-without-handler"
       ]
     },

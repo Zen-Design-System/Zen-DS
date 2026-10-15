@@ -1493,6 +1493,17 @@
                   }
                 ]
               },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The prompt text, controlled (pairs with `onValueChange`); leave it out to let the field keep its own."
+              },
               "defaultValue": {
                 "anyOf": [
                   {
@@ -1501,7 +1512,30 @@
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Initial prompt text when uncontrolled."
+              },
+              "onValueChange": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "$action": {
+                        "type": "string"
+                      },
+                      "args": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "$action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it."
               }
             },
             "required": [],

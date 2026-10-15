@@ -450,3 +450,21 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   `maxAttempts`; text-only; ops retry on an unknown id; state-only). A first assertion read the shared `messages` array
   after the loop had appended to it: fixed to read the first message.
 - Gates: tsc, `ai-ui:selftest`, `mcp:selftest`, `verify:package`.
+
+## Where the model connects, composing while typing, PR #64 (tier M, user: "nối ở đâu, như thế nào" · "Lúc gõ" · "OK")
+
+- PR #64 opened for the branch (the user's OK); merging stays theirs.
+- Connection: `tools/ai-ui/adapters/anthropic.mjs` (official SDK, loaded on first use; `claude-opus-5-5`, effort
+  medium, cached system prompt, `fallbacks: "default"` with its beta header, a refusal returned as a text-only answer;
+  tested against a fake client — no key in the sandbox, so no live call), `tools/ai-ui/server.mjs` (framework-free
+  handler + `node:http` listener + standalone), `tools/ai-ui/vite-plugin.mjs` (the handler at `/ai-ui/*` on the dev
+  server when `ANTHROPIC_API_KEY` resolves; `enabled: false` otherwise, so the QA server and CI are unaffected). The
+  demo page sends typed prompts to `/ai-ui/compose` or `/ai-ui/edit` when `/ai-ui/status` says enabled and falls back
+  to its deterministic composer; seeded prompts stay deterministic (screenshots, gate). `@anthropic-ai/sdk` is a
+  devDependency for the platform; apps install it themselves.
+- "Lúc gõ": `src/ai-ui/live.mjs` `createLiveComposer` (debounce 300, on-device `keywordClassifier`, Skeleton at 60 %
+  confidence, compose with AbortSignal, stale answers dropped, an unsure guess never clears the UI, switch margin /
+  stick time, Enter composes regardless). `AiChatField` gains `value` / `onValueChange` (the field had no way to expose
+  the text being typed; `defaultValue` stays; docs/api, guidelines and the catalog regenerated — the catalog pairs them).
+  Example "Composed while typing" on the page.
+- Selftest: adapter request shape and refusal, the handler's routes and errors, the live composer's timeline.

@@ -13200,11 +13200,27 @@
           "deprecated": null
         },
         {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The prompt text, controlled (pairs with `onValueChange`); leave it out to let the field keep its own.",
+          "deprecated": null
+        },
+        {
           "name": "defaultValue",
           "type": "string",
           "required": false,
           "default": "\"\"",
-          "description": "",
+          "description": "Initial prompt text when uncontrolled.",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(text: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it.",
           "deprecated": null
         },
         {

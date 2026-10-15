@@ -27,8 +27,11 @@ Last updated: 2026-10-14.
   `docs/ai-ui/catalog.json` (generated; `npm run ai-ui:build` / `ai-ui:check` / `ai-ui:selftest`, tests/ai-ui). Read
   `docs/ai-ui/README.md` (files, spec, runtime, catalog rules, findings, the 5 open decisions in BACKLOG "AI UI"). The
   platform page Patterns › AI UI (`?page=ai-ui`, app layer) shows it at work with a deterministic composer;
-  `@zen-ds/react/ai-ui/compose` runs the real loop with the app's model function, and `zen-ds-mcp` has `get_catalog` +
-  `check_spec`. Product decisions still open: UI while typing or after send, where the classifier runs (handoff Q1, Q4).
+  `@zen-ds/react/ai-ui/compose` runs the real loop with the app's model function (`…/ai-ui/server` mounts it,
+  `…/ai-ui/adapters/anthropic` is the Claude API adapter, the dev server serves `/ai-ui/*` with `ANTHROPIC_API_KEY`),
+  `createLiveComposer` composes while typing (the user's decision 2026-10-15: "lúc gõ"), and `zen-ds-mcp` has
+  `get_catalog` + `check_spec`. PR #64 open (the user merges). Still open: where the classifier runs in the product
+  (the kit's default is on-device keywords, the model only once an intent is likely).
 - **Git:** work is on `claude/zen-ds-0.4.0`, pushed to origin (the user allowed direct pushes to it, 2026-10-08); no
   pull request yet, `main` still points at `eafb0de`. Zen Studio (`tools/studio/`, `src/platform/studio/`) is committed
   on the branch since the 2026-10-08 parallel-agent merges. Open a PR only when the user asks.

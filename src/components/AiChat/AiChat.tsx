@@ -39,7 +39,12 @@ export interface AiChatFieldProps {
   busy?: boolean;
   onStop?: () => void;
   disabled?: boolean;
+  /** The prompt text, controlled (pairs with `onValueChange`); leave it out to let the field keep its own. */
+  value?: string;
+  /** Initial prompt text when uncontrolled. */
   defaultValue?: string;
+  /** Every change of the prompt text (typing, dictation, a cleared field after Send): compose while typing reads it. */
+  onValueChange?: (text: string) => void;
   className?: string;
   /** Figma instance overrides: props of the icon buttons it draws, by layer (`{ Submit: { level: "accent" }, Attach: { appearance: "main" } }`). Written by Zen Studio;
    *  app code sets onAttach / onVoice / onVoiceMode. */
@@ -56,13 +61,15 @@ export interface AiChatFieldProps {
  * their handler (`onAttach`, `onVoice` / `onVoiceMode`), so the field never shows a button that does nothing. State=Voice (15114:219):
  * `listening` shows Listening… and turns the microphone into Stop.
  */
-export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, defaultValue = "", className, overrides, ref }: AiChatFieldProps) {
+export function AiChatField({ onSubmit, placeholder: placeholderProp, fieldStyle = "default", model, onModelClick, onAttach, onVoice, onVoiceMode, listening = false, onStopListening, busy = false, onStop, disabled = false, value, defaultValue = "", onValueChange, className, overrides, ref }: AiChatFieldProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   // Dictation (State=Voice) shows Listening… in the prompt; the field's accessible name stays the prompt's own.
   const prompt = placeholderProp ?? t.askAnything;
   const placeholder = listening ? t.listening : prompt;
-  const [text, setText] = useState(defaultValue);
+  const [ownText, setOwnText] = useState(defaultValue);
+  const text = value ?? ownText;
+  const setText = (next: string) => { if (value === undefined) setOwnText(next); onValueChange?.(next); };
   const typing = text.trim().length > 0;
   const long = text.length > 48 || text.includes("\n");
   const submit = (event?: FormEvent) => { event?.preventDefault(); if (!typing || busy) return; onSubmit(text.trim()); setText(""); };

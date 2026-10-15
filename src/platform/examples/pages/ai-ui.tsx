@@ -13,7 +13,7 @@ import { SkeletonText } from "../../../components/Skeleton";
 import { Heading, Text } from "../../../components/Text";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
-import { AiUi, applyOps, markdownToSpec, toJsx, validateSpec, type ActionCall, type Catalog, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
+import { AiUi, applyOps, createLiveComposer, keywordClassifier, markdownToSpec, toJsx, validateSpec, type ActionCall, type Catalog, type LiveComposer, type LiveState, type SpecOp, type StateChange, type UiSpec } from "../../../ai-ui/index";
 import { PreviewWindow } from "../../PlatformFrames";
 import { PlatformPhone } from "../../PlatformPhone";
 import { Panel, PlaygroundFilterChip, option } from "../../appLayer/shared";
@@ -41,6 +41,23 @@ function useCatalog() {
   return catalog;
 }
 
+/* ───────────── The server: /ai-ui/* on the dev server when a model is configured (tools/ai-ui/vite-plugin.mjs) ───────────── */
+
+type ServerStatus = { enabled: boolean; model: string | null };
+let serverStatus: Promise<ServerStatus> | null = null;
+const aiServer = () => (serverStatus ??= fetch("/ai-ui/status").then((response) => (response.ok ? (response.json() as Promise<ServerStatus>) : { enabled: false, model: null })).catch(() => ({ enabled: false, model: null })));
+function useServer() {
+  const [status, setStatus] = useState<ServerStatus | null>(null);
+  useEffect(() => { let live = true; void aiServer().then((loaded) => { if (live) setStatus(loaded); }); return () => { live = false; }; }, []);
+  return status;
+}
+const postJson = async <T,>(url: string, body: unknown, signal?: AbortSignal): Promise<T | null> => {
+  try {
+    const response = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal });
+    return response.ok ? ((await response.json()) as T) : null;
+  } catch (error) { if ((error as Error).name === "AbortError") throw error; return null; }
+};
+
 /* ───────────── What the composer answers with (specs from the studio's data) ───────────── */
 
 const firstName = me.name.split(" ")[0];
@@ -49,6 +66,14 @@ const lumen = projectById("lumen-banking");
 const overdue = invoices.filter((invoice) => invoice.status === "Overdue");
 const quarter = (ids: string[]) => studioMonths.filter((m) => ids.includes(m.id)).reduce((sum, m) => sum + m.invoiced, 0);
 const q2 = quarter(["apr", "may", "jun"]), q3 = quarter(["jul", "aug", "sep"]);
+
+/** What a model may read with { "$ref" } (described to it by shape, never pasted): the studio's data, as the specs below use it. */
+const studioData = () => ({
+  projects: projects.filter((project) => project.status === "Active").map((project) => ({ value: project.id, label: project.name, client: project.client })),
+  slots: slots.map((slot) => ({ value: slot, label: slot })),
+  invoices: invoices.map((invoice) => ({ id: invoice.id, number: invoice.number, client: invoice.client, amount: formatMoney(invoice.amount), status: invoice.status })),
+  months: studioMonths.slice(-6).map((m) => ({ label: m.label, value: m.invoiced })),
+});
 
 /** A form to schedule a design review: project, date, time slot and the two actions. Everything the person picks is `review.*` in the shared state. */
 const bookingSpec = (): UiSpec => ({
@@ -185,6 +210,7 @@ function useComposerDemo(initial: string[]) {
   const [shared, setShared] = useState<Record<string, unknown>>({});
   const [events, setEvents] = useState<Event[]>([]);
   const catalog = useCatalog();
+  const server = useServer();
   const nextId = useRef(1);
   const timers = useRef<number[]>([]);
   const queue = useRef<string[]>([...initial]);
@@ -201,15 +227,34 @@ function useComposerDemo(initial: string[]) {
     const lastWithSpec = [...turnsRef.current].reverse().find((turn) => turn.spec);
     const id = nextId.current++;
     setTurns((all) => [...all, { id: nextId.current++, side: "you", text: prompt }, { id, side: "ai", text: "", thinking: !seeded }]);
-    const reply = () => {
-      const composed = compose(prompt, lastWithSpec?.spec);
+    const apply = (composed: Reply) => {
       if (composed.ops && lastWithSpec) setTurns((all) => all.map((turn) => (turn.id === lastWithSpec.id && turn.spec ? { ...turn, spec: applyOps(turn.spec, composed.ops!) } : turn)));
       if (composed.state) { const [path, value] = composed.state; setShared((state) => writeState(state, path, value)); log("state", `${path} = ${JSON.stringify(value)}`, "Set by the conversation"); }
       patch(id, { text: composed.text, spec: composed.spec, thinking: false });
       if (composed.later) later(1200, () => patch(id, { spec: composed.later }));
       if (queue.current.length) later(seeded ? 250 : 900, () => ask(queue.current.shift()!, seeded));
     };
-    if (seeded) reply(); else later(650, reply);
+    const local = () => apply(compose(prompt, lastWithSpec?.spec));
+    if (seeded) { local(); return; }
+    if (!server?.enabled) { later(650, local); return; }
+    // A typed prompt with a model behind /ai-ui: a follow-up edits the UI on screen (/edit), anything else composes (/compose);
+    // the deterministic composer answers when the server cannot.
+    void (async () => {
+      type ComposeBody = { ok: boolean; text: string; spec: UiSpec | null };
+      type EditBody = { ok: boolean; kind: string; text: string; spec: UiSpec; state: Record<string, unknown> | null };
+      if (lastWithSpec?.spec) {
+        const edit = await postJson<EditBody>("/ai-ui/edit", { prompt, spec: lastWithSpec.spec, state: shared });
+        if (edit?.ok) {
+          if (edit.kind === "ops" || edit.kind === "spec") setTurns((all) => all.map((turn) => (turn.id === lastWithSpec.id ? { ...turn, spec: edit.spec } : turn)));
+          if (edit.state) { for (const [path, value] of Object.entries(edit.state)) { setShared((state) => writeState(state, path, value)); log("state", `${path} = ${JSON.stringify(value)}`, `Set by ${server.model}`); } }
+          patch(id, { text: edit.text || "Done.", thinking: false });
+          return;
+        }
+      }
+      const composed = await postJson<ComposeBody>("/ai-ui/compose", { prompt, data: studioData(), state: shared });
+      if (composed?.ok) { patch(id, { text: composed.text, spec: composed.spec ?? undefined, thinking: false }); return; }
+      local();
+    })();
   };
   // A seeded conversation answers its first prompt at once; the rest follow one by one. The effect starts from a clean
   // conversation and its cleanup drops the timers, so StrictMode's second run (dev) seeds once, not twice.
@@ -240,7 +285,7 @@ function useComposerDemo(initial: string[]) {
       default: break;
     }
   };
-  return { turns, shared, events, catalog, ask, stop, busy: turns.some((turn) => turn.thinking), onStateChange, onAction };
+  return { turns, shared, events, catalog, server, ask, stop, busy: turns.some((turn) => turn.thinking), onStateChange, onAction };
 }
 
 const writeState = (state: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> => {
@@ -291,6 +336,72 @@ function Prompter({ demo, className }: { demo: Demo; className?: string }) {
         {suggestions.map((item) => <Chip key={item.label} variant="normal" size="sm" onClick={() => demo.ask(item.prompt)}>{item.label}</Chip>)}
       </Stack>
       <AiChatField placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} />
+      <Text textStyle="Body/Small/Regular" tone="base">{demo.server?.enabled ? `Typed prompts go to ${demo.server.model} through /ai-ui (tools/ai-ui/vite-plugin.mjs); seeded ones use the demo composer.` : "Demo composer. With ANTHROPIC_API_KEY set, npm run dev answers typed prompts with a model through /ai-ui."}</Text>
+    </Stack>
+  );
+}
+
+/* ───────────── Composing while typing (the user's decision, 2026-10-15: the UI appears as the sentence forms) ───────────── */
+
+const skeletonOf = (kind: "form" | "list" | "chart" | "text"): UiSpec => ({
+  version: 1,
+  root: { type: "Stack", id: `skeleton-${kind}`, props: { gap: "md" }, children: kind === "form" ? [{ $pending: "heading" }, { $pending: "shape" }, { $pending: "shape" }, { $pending: "text" }] : kind === "chart" ? [{ $pending: "heading" }, { $pending: "shape" }] : [{ $pending: "text" }] },
+});
+/** The on-device classifier: trigger words per intent and the Skeleton to show at once. Nothing leaves the device until an intent is likely. */
+const liveIntents = [
+  { intent: "booking", words: ["schedule", "book", "meeting", "review", "appointment", "đặt lịch", "hẹn", "họp"], skeleton: skeletonOf("form") },
+  { intent: "invoices", words: ["invoice", "overdue", "unpaid", "bill", "hoá đơn", "hóa đơn"], skeleton: skeletonOf("list") },
+  { intent: "revenue", words: ["revenue", "invoiced", "chart", "quarter", "doanh thu"], skeleton: skeletonOf("chart") },
+  { intent: "confirm", words: ["delete", "remove", "archive", "xoá", "xóa"], skeleton: skeletonOf("text") },
+];
+
+function LiveTypingExample({ initial = "" }: { initial?: string }) {
+  const catalog = useCatalog();
+  const server = useServer();
+  const [text, setText] = useState(initial);
+  const [live, setLive] = useState<LiveState | null>(null);
+  const [shared, setShared] = useState<Record<string, unknown>>({});
+  const [sent, setSent] = useState<string | null>(null);
+  const composerRef = useRef<LiveComposer | null>(null);
+  useEffect(() => {
+    if (!server) return undefined;
+    const composer = createLiveComposer({
+      classify: keywordClassifier(liveIntents),
+      compose: async (prompt, { signal }) => {
+        if (server.enabled) {
+          const remote = await postJson<{ ok: boolean; text: string; spec: UiSpec | null }>("/ai-ui/compose", { prompt, data: studioData() }, signal);
+          if (remote?.ok) return { text: remote.text, spec: remote.spec };
+        }
+        // The demo composer, after the moment a model would take.
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        if (signal.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
+        const reply = compose(prompt, undefined);
+        return { text: reply.text, spec: reply.spec ?? null };
+      },
+      onChange: setLive,
+    });
+    composerRef.current = composer;
+    if (initial) void composer.submit(initial);
+    return () => { composer.dispose(); composerRef.current = null; };
+  }, [server]); // eslint-disable-line react-hooks/exhaustive-deps
+  const preview = live && live.phase !== "idle" ? live.spec ?? live.skeleton : null;
+  const status = !live || live.phase === "idle" ? "Waiting for an intent" : live.phase === "skeleton" ? `${live.intent}: likely (${Math.round(live.confidence * 100)}%), composing…` : live.phase === "composing" ? `${live.intent}: updating…` : live.phase === "ready" ? `${live.intent}: ready (${Math.round(live.confidence * 100)}%)` : "Could not compose";
+  return (
+    <Stack gap="md">
+      <AiChatField placeholder="Type, don't send: schedule a review, overdue invoices…" value={text}
+        onValueChange={(next) => { setText(next); setSent(null); composerRef.current?.input(next); }}
+        onSubmit={(prompt) => { setSent(prompt); setText(""); void composerRef.current?.submit(prompt); }} />
+      <Text textStyle="Body/Small/Regular" tone="base">{status}{sent ? ` · sent: “${sent}”` : ""}</Text>
+      {preview ? (
+        <AiChatThread aria-label="Preview of the UI being composed">
+          <AiChatBubble side="ai">
+            <Stack gap="md">
+              {live?.answer ? <span>{live.answer}</span> : null}
+              {catalog ? <AiUi spec={preview} catalog={catalog} state={shared} onStateChange={(next) => setShared(next)} onAction={() => undefined} /> : <SkeletonText lines={3} />}
+            </Stack>
+          </AiChatBubble>
+        </AiChatThread>
+      ) : null}
     </Stack>
   );
 }
@@ -432,6 +543,19 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     render: () => <ComposerScreen initial={[suggestions[0].prompt, "Make the button accent", "Let's do it at 4 pm"]} />,
     code: `const next = applyOps(spec, [{ op: "setProp", id: "submit", name: "level", value: "accent" }]);   // "make it accent"
 setShared((state) => writePath(state, "review.slot", "16:00"));                                        // "at 4 pm"`,
+  },
+  {
+    title: "Composed while typing",
+    description: "The UI appears as the sentence forms, before Send. A keyword classifier runs on the device, so no keystroke leaves it until an intent is likely; at that point the intent's Skeleton shows at once and the composer is asked (a model through /ai-ui when one is configured). A keystroke during composing drops the stale answer; an unsure guess never clears what is shown; Enter composes regardless. Type a different request to watch it switch.",
+    wide: true,
+    render: () => <LiveTypingExample initial="Schedule a design review with the banking team" />,
+    code: `const live = createLiveComposer({
+  classify: keywordClassifier([{ intent: "booking", words: ["schedule", "book", "meeting"], skeleton }]),   // on-device
+  compose: (prompt, { signal }) => post("/ai-ui/compose", { prompt, data }, signal),                       // the model, when likely
+  onChange: setLive,                                                                                         // skeleton → composing → ready
+});
+<AiChatField value={text} onValueChange={(next) => { setText(next); live.input(next); }} onSubmit={(prompt) => live.submit(prompt)} />
+{live.spec ?? live.skeleton ? <AiUi spec={live.spec ?? live.skeleton} catalog={catalog} state={shared} onStateChange={setShared} /> : null}`,
   },
   {
     title: "A spec the catalog rejects",
