@@ -8007,7 +8007,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall apart, centred in the period's column; each bar takes its series' C",
+      "description": "Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall apart, centred in the period's column (with room to spare the group",
       "props": {
         "data": {
           "type": "array",
