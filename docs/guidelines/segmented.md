@@ -85,7 +85,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 - Keep labels to one or two words; icon-only items still need a label for assistive tech.
 - Use badges for counts and hide them at zero.
 - Keep the selected segment static: no hover and a default cursor, because one option is always selected and re-clicking it does nothing.
-- Keep 2–5 options (harness: segmented/option-count).
+- Keep 2–5 options (harness: segmented/option-count; options computed at run time are counted on the rendered page by the platform audit, kind counts). Past five, pick with a SelectField.
 - Name icon-only segments with "aria-label" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).
 - On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).
 - On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented.

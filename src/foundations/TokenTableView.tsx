@@ -2,6 +2,7 @@ import { useDeferredValue, useMemo, useState, type CSSProperties } from "react";
 import catalog from "../tokens/catalog.generated.json";
 import { Search } from "../components/Search";
 import { Segmented } from "../components/Segmented";
+import { SelectField } from "../components/Input";
 import { EmptyState } from "../components/EmptyState";
 import { typographyStyles } from "../tokens/typography.generated";
 import { toKebab, type ResolvedToken, type TokenValue } from "./resolvedTokens";
@@ -15,6 +16,8 @@ type ViewOption = { id: string; label: string };
 const aliasPattern = /^\{(.+)\}$/;
 const catalogOrder = new Map(catalog.tokens.map((token, index) => [`${token.collectionSlug}:${token.name}`, index]));
 const valuesByName = new Map(catalog.tokens.map((token) => [token.name, token.valuesByMode as Record<string, TokenValue>]));
+/** A Segmented holds 2–5 items (harness: segmented/option-count); a collection with more modes picks one in a SelectField. */
+const SEGMENTED_MAX = 5;
 /** Global/Base colors are single-mode collections that encode the scheme in the name (`Light/…`, `Dark/…`). */
 const schemeCollections = new Set(["global-colors", "base-colors-project"]);
 
@@ -192,7 +195,9 @@ export function TokenTableView({ collectionSlug, collectionName, modes, tokens }
   return (
     <div className="token-table-view" data-collection={collectionSlug}>
       <div className="token-table-view__toolbar" data-layout={options.length ? "end" : "center"}>
-        {options.length ? (
+        {options.length > SEGMENTED_MAX ? (
+          <SelectField className="token-table-view__modes" size="medium" value={view} onValueChange={setView} aria-label="Mode" options={options.map((option) => ({ value: option.id, label: option.label }))} />
+        ) : options.length ? (
           <Segmented className="token-table-view__schemes" level="secondary" size="medium" value={view} onChange={setView} aria-label={byScheme ? "Color scheme" : "Mode"} options={options} />
         ) : null}
         <div className="token-table-view__search">
