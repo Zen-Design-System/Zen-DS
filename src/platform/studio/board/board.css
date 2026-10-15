@@ -149,6 +149,9 @@
   /* The 1px Pale border stays one screen pixel at every zoom. */
   box-shadow: 0 0 0 calc(1px / var(--studio-zoom, 1)) var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
   color: var(--zen-color-content-neutral-strongest, #111);
+  /* Figma's Clip content (user, 2026-10-15): nothing an example opens spills out of its frame. Popover, Menu and Tooltip
+     measure what is visible (visibleBounds, Menu's bounds) and flip or move to stay inside it instead of being cut. */
+  overflow: clip;
 }
 /* A frame's own overlay layer (StudioFrame): what its example portals (Popover, Tooltip, the toast stack) renders here,
    in the world, so it zooms with the frame and takes its theme. Layout containment makes it the block of their fixed
@@ -157,10 +160,15 @@
    the canvas's capture layer is above the whole world, so overlays stay layers there, as in Figma's design mode. */
 .studio-frame__portal { position: absolute; z-index: 30; inset: 0; contain: layout; pointer-events: none; }
 :where(.studio-frame__portal) > * { pointer-events: auto; }
-/* A frame holding an open modal (a contained Dialog, Modal Form or Side Panel) is at least a laptop screen high, so the
-   modal opens at its own size instead of squeezed into a short example; the board makes room below it (StudioBoard
-   re-measures the frame) and takes it back when the modal closes. */
-.studio-frame:has(> :is(.zen-dialog-overlay, .zen-side-panel-overlay)[data-contained="true"]) { min-height: 720px; }
+/* A frame holding an open overlay is at least a laptop screen high (user, 2026-10-15: keep 720, nothing spills out of
+   the frame): a modal (a contained Dialog, Modal Form or Side Panel) opens at its own size instead of squeezed into a
+   short example, and a Popover, Menu, Date or Colour Picker finds room inside the frame (measured after the frame has
+   grown, the same layout pass) instead of being clipped. The board makes room below (StudioBoard re-measures the frame)
+   and takes it back when the overlay closes. Tooltips and toasts fit where they are and leave the frame as it is. The
+   anchored surfaces count in example frames only (builder Screens are those too): a playground shows open specimens
+   that fit its stage, and must not grow for them. */
+.studio-frame:has(> :is(.zen-dialog-overlay, .zen-side-panel-overlay)[data-contained="true"]),
+.studio-frame[data-kind="example"]:has(:is(.zen-popover[data-side], .zen-menu, .zen-date-picker[data-side], .zen-color-picker[data-side])) { min-height: 720px; }
 /* One selection colour on the canvas: Info blue, as the layer outlines (select.css), never the examples' own accent. */
 .studio-frame[data-hovered="true"] { outline: calc(1px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }
 .studio-frame[data-selected="true"] { outline: calc(2px / var(--studio-zoom, 1)) solid var(--zen-color-border-info-solid-default, #0a85ff); }

@@ -240,12 +240,15 @@ function IconTooltipLayer({ anchor, placement, closing = false, children }: { an
     // Measured in viewport px; written in the layer's own px, which differ inside a scaled frame (layer-space.ts).
     const space = fixedLayerSpace(el.parentElement);
     const rect = anchor.getBoundingClientRect(), gap = 8 * space.scale, edge = 4;
-    const width = el.offsetWidth * space.scale, height = el.offsetHeight * space.scale, viewportWidth = document.documentElement.clientWidth;
+    const width = el.offsetWidth * space.scale, height = el.offsetHeight * space.scale;
+    // Where it can be seen: the viewport, or inside a fixed containing block the part of it nothing clips (a Zen Studio
+    // frame clips its content: the tip flips and moves to stay inside, 2026-10-15).
+    const bounds = space.block ? visibleBounds(space.block) : { top: 0, left: 0, right: document.documentElement.clientWidth, bottom: window.innerHeight };
     let side = placement;
-    if (side === "top" && rect.top - height - gap < edge) side = "bottom";
-    else if (side === "bottom" && rect.bottom + height + gap > window.innerHeight - edge) side = "top";
+    if (side === "top" && rect.top - height - gap < bounds.top + edge) side = "bottom";
+    else if (side === "bottom" && rect.bottom + height + gap > bounds.bottom - edge) side = "top";
     const top = side === "top" ? rect.top - height - gap : rect.bottom + gap;
-    const left = Math.min(Math.max(edge, rect.left + rect.width / 2 - width / 2), viewportWidth - width - edge);
+    const left = Math.min(Math.max(bounds.left + edge, rect.left + rect.width / 2 - width / 2), bounds.right - width - edge);
     setPosition({ top: (top - space.top) / space.scale, left: (left - space.left) / space.scale, side });
   }, [anchor, placement]);
   return (

@@ -213,3 +213,15 @@ the Studio mode; Emphasis Light.
   sheet tooltip-390 "A tip on a phone": the closable tip was cut at the phone screen's left edge, the same in the
   2026-10-14 sheet (pre-existing). Fixed at the owner: an explicit top/bottom Tooltip measures itself against
   visibleBounds (now exported from useAnchoredPosition) and shifts by `--zen-tooltip-shift`, 4px in.
+
+## Clip content: overlays stay inside their frame (tier S, user: 720 → "Có", Popover tràn ra ngoài frame → "Không")
+
+- `.studio-frame { overflow: clip }` (board.css). Clipping alone left popovers in short example frames unusable (the
+  date-range calendar lost its last row and Cancel/Submit; Assign people flipped up and was mostly cut), so the 720px
+  rule now also covers anchored surfaces in example frames (`.zen-popover[data-side]`, `.zen-menu`, Date/Colour Picker
+  `[data-side]`); `:has()` is resolved before the popover measures, so it opens below its anchor, whole. Playground
+  frames are left out (the Popover playground's open specimen made it 720 tall with empty space).
+- IconTooltipLayer flips/clamps against `visibleBounds(space.block)`: `fixedLayerSpace` now returns the fixed
+  containing block, since a fixed layer is clipped only from there up (identity on a normal page).
+- Checked (Playwright, 50%): Menu inside its frame; date-range popover and Assign people whole inside a grown frame;
+  icon tooltip unchanged; 27 pages scanned at rest: no visible content cut by the clip, no example frame grown at rest.
