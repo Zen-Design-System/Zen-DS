@@ -47,6 +47,9 @@
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
  *               Comfortable ("at Comfortable: …")
+ *   card-gap    (--quality) a MetricCard / ChartCard stretched by its row that stops ≥ 12px above its foot beside one that
+ *               fills it (widgetLayout)
+ *   legend-column (--quality) a chart legend of ≥ 3 items one per line under its chart, with room for a row (widgetLayout)
  * These six (and elevation, contrast, targets, outline-*; never surfaces) are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
  * do not fail the run; `--baseline-update` rewrites the entries of the pages and viewports in this run, and
  * `--baseline-update=fit` (a comma list of kinds) only those kinds — seed a new check without accepting the other kinds'
@@ -57,13 +60,14 @@
  * Usage:
  *   node tools/platform-audit/audit.mjs [--url=http://localhost:5173] [--pages=button,chip] [--viewports=1512,390]
  *                                       [--dark] [--no-playground] [--smoke] [--quality] [--density] [--out=report.json]
+ *                                       (the gate runs 1512,390,320; at 320 every kind is baselined, see BASELINE_ALL_KINDS)
  *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
  * Exit code 1 when any error-level finding exists. See docs/qa/platform-audit.md and docs/qa/build-qa-process.md.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { qualityChecks, densitySnapshot, textFit } from "./quality-checks.mjs";
+import { qualityChecks, densitySnapshot, textFit, widgetLayout } from "./quality-checks.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const require = createRequire(path.join(root, "package.json"));
@@ -93,7 +97,11 @@ const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list 
 // them off. --outline is still accepted.
 const OUTLINE = !arg("no-outline", false);
 const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-siblings"];
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
+// 320 joined the gate on 2026-10-16 (the user) with debt on 40 pages (docs section grids that do not shrink, ListItem
+// captions with no ellipsis, a few examples): there every kind is compared with the baseline, so only new findings fail
+// while the recorded ones wait in BACKLOG. 1512 and 390 keep the rule below.
+const BASELINE_ALL_KINDS = new Set([320]);
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -485,7 +493,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
+const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -514,13 +522,14 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
       // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm) and textFit (text wider than its box).
       const quality = async (scopeSel, crash = false) => ({
         ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
+        ...await page.evaluate(widgetLayout, { scopeSel }).catch((e) => (crash ? { "card-gap": [`widget layout check crashed: ${e.message.split("\n")[0]}`] } : null)),
       });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [] });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [] });
       if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
@@ -686,7 +695,7 @@ async function run() {
       // Baseline: pre-existing Build-QA findings (quality-baseline.json) are reported apart and do not fail the run.
       let known = 0;
       if (!OUTLINE) for (const kind of OUTLINE_KINDS) if (entry[kind]) entry[kind] = [];
-      for (const kind of BASELINED) {
+      for (const kind of BASELINE_ALL_KINDS.has(width) ? Object.keys(entry) : BASELINED) {
         if (!entry[kind]) continue;
         const seen = new Map(); const fresh = [];
         for (const item of entry[kind]) { const k = `${key}|${kind}|${item}`; const nth = (seen.get(k) ?? 0) + 1; seen.set(k, nth); (report.current ??= {})[k] = nth; if (nth <= (baseline[k] ?? 0)) { ((report.baselined ??= {})[key] ??= {})[kind] = [...(report.baselined[key][kind] ?? []), item]; known += 1; } else fresh.push(item); }

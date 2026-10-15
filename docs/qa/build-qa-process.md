@@ -169,7 +169,8 @@ Các bước:
      không sửa là ⚠ nêu tên (việc của session khác), không phải lỗi.
 
    `--all` chạy tất cả. Một cổng tĩnh lỗi thì các bước browser bị bỏ qua (báo rõ bước nào), trừ khi có `--keep-going`.
-2. **Runtime** (`audit.mjs --quality --density --smoke` ở 1512 + 390, rồi `--dark` ở 1512). Ngoài các check cũ (edges,
+2. **Runtime** (`audit.mjs --quality --density --smoke` ở 1512 + 390 + 320, rồi `--dark` ở 1512; 320 vào gate ngày
+   2026-10-16 với nợ cũ của 40 trang nên ở 320 mọi loại đều so baseline, BACKLOG P1). Ngoài các check cũ (edges,
    sizes, surfaces, overflow, typography, outline…) có thêm:
 
    | Check | Mức | Ý nghĩa |
@@ -181,6 +182,8 @@ Các bước:
    | `ladder` | cảnh báo | thang spacing (usage rules §13): gap của Stack, Grid hoặc markup example không phải một bậc 2xs·xs·sm·md·lg·xl của density hiện tại; hoặc các nhóm ngang hàng có gap bên trong rộng hơn gap giữa chúng |
    | `density` | lỗi | phần tử Zen bị nội dung tràn ra khi chuyển Comfortable, và lỗi overflow/size/edge mới ở Comfortable |
    | `fit` | lỗi | chữ rộng hơn box của chính nó (label, nút, dòng chữ) mà không có ellipsis, không cuộn: chữ đè sang phần tử bên cạnh hoặc bị cắt ngang, kể cả khi tổ tiên có `overflow: hidden` (check `overflow` bỏ qua vùng đó). Chạy ở Compact và, với `--density`, ở Comfortable. Không báo: vùng cuộn, chữ có ellipsis, mép mờ (mask), chữ chỉ cho screen reader, `data-audit-skip-quality`. Sửa: cho item giữ bề rộng (`flex-shrink: 0`, `min-width: auto`), cho xuống dòng, ellipsis, hoặc cho hàng cuộn ngang |
+   | `card-gap` | lỗi | MetricCard hoặc ChartCard bị hàng kéo cao mà nội dung dừng sớm, chừa một dải trống ≥ 12px ở đáy trong khi thẻ bên cạnh lấp đầy (2026-10-16). Sửa ở component: phần sau tiêu đề bám xuống đáy |
+   | `legend-column` | lỗi | legend chart ≥ 3 mục xếp mỗi mục một dòng dưới (hoặc trên) chart, không có gì bên cạnh, trong khi đủ chỗ cho một hàng (2026-10-16). Sửa: cho legend thành hàng tự xuống dòng như auto layout Wrap của Figma |
 
 3. **Hành vi** (`npm run platform:behaviour`): focus ring nhìn thấy khi Tab, mọi control tới được bằng bàn phím, không
    có phần tử chỉ bấm được bằng chuột, phím APG (tabs, menu button, dialog: focus trap + Escape + trả focus, slider,

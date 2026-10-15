@@ -316,4 +316,44 @@ export const rows = [
       return "Dialog removed · Card from Assets lands in the Overlay";
     },
   },
+  {
+    id: "PT-11", feature: "Play runs an AppShell page as an app: scrolling the page leaves the Sidebar at the top of the scroll box, at its height, its items scrolling inside (the user 2026-10-16: it scrolled away with the page)", wp: "play sidebar 2026-10-16", timeout: 30_000,
+    async run(ctx) {
+      const { page } = await newPage(ctx, { device: "desktop" });
+      const size = page.viewportSize();
+      // A short window: the page (a 900px Screen) scrolls and the Sidebar's rows outgrow their box.
+      await page.setViewportSize({ width: size.width, height: 260 });
+      try {
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Escape");
+        await page.keyboard.press("p");
+        await playing(page).waitFor({ state: "visible", timeout: 5000 });
+        await playing(page).locator(".zen-app-shell__sidebar").waitFor({ state: "visible", timeout: 5000 });
+        // The scroll box is whatever Present/Play scrolls in (the window's layer, or a box under its bar): the nearest
+        // ancestor of the device that really scrolls.
+        const measure = (scroll) => playing(page).evaluate((root, by) => {
+          const device = root.querySelector(".studio-player__device");
+          let box = device;
+          while (box && box !== root.parentElement && !(box.scrollHeight > box.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
+          if (!box || box === root.parentElement) return { error: "nothing scrolls the played page" };
+          if (by) box.scrollTop = by;
+          const side = root.querySelector(".zen-app-shell__sidebar").getBoundingClientRect();
+          const view = box.getBoundingClientRect();
+          const body = root.querySelector(".zen-app-shell__sidebar .zen-sidebar__body");
+          return { top: side.top - view.top, height: side.height, view: box.clientHeight, scrolled: box.scrollTop, bodyScrolls: body.scrollHeight > body.clientHeight + 1, bodyOverflow: getComputedStyle(body).overflowY };
+        }, scroll);
+        const before = await measure(0);
+        if (before.error) throw new Error(before.error);
+        const after = await measure(400);
+        if (after.scrolled < 100) throw new Error(`the page scrolled only ${after.scrolled}px`);
+        if (Math.abs(after.top) > 1) throw new Error(`after a ${after.scrolled}px scroll the Sidebar is ${Math.round(after.top)}px from the top of the scroll box (it should stick at 0)`);
+        if (Math.abs(after.height - after.view) > 2) throw new Error(`the Sidebar is ${Math.round(after.height)}px tall in a ${after.view}px scroll box`);
+        if (!after.bodyScrolls || !/auto|scroll/.test(after.bodyOverflow)) throw new Error(`the Sidebar's rows do not scroll inside it (overflow-y ${after.bodyOverflow})`);
+        await page.keyboard.press("Escape");
+        return `scrolled ${after.scrolled}px: Sidebar at ${Math.round(after.top)}px, ${Math.round(after.height)}px in a ${after.view}px box, its rows scroll inside`;
+      } finally {
+        await page.setViewportSize(size);
+      }
+    },
+  },
 ];

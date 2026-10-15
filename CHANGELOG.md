@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Build-QA gate (2026-10-16, user: "thêm cả 4 kiểm tra luôn"): the platform audit also runs at 320px (a small phone;
+  today's findings there are baselined, BACKLOG P1); two new audit kinds, `card-gap` (a MetricCard or ChartCard stretched
+  by its row leaving an empty band at its foot) and `legend-column` (a chart legend stacked one item per line under its
+  chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
 - GroupedBarChart and ComboChart bars grow with the room they have (2026-10-16, user: "Các cột ốm quá. Khi không gian
@@ -302,8 +306,27 @@ removed (four unused colour ramps were, see Removed).
   Installation page now cover the `.npmrc` scope line, the one-time `npm login` with the licence key, CI tokens and
   the install errors. `npx zen-ds init` adds `@zen-ds:registry=https://npm.dizai.studio/` to `.npmrc`; `npx zen-ds
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
+- ModalForm and Dialog (2026-10-16): a TextAreaField or InputField placed straight in the form fills its width again,
+  whatever order the CSS loads in (in Zen Studio it hugged its content).
+- MetricCard and ChartCard in a grid row (2026-10-16, user): a card stretched by its row no longer leaves an empty band
+  under the shorter one. A Chart Card scales its chart to the free height (plots grow taller, rings larger up to the
+  card's width, bar lists, bullets, funnels and horizontal bars spread their rows, heatmap cells grow); a Metric Card
+  keeps its title at the top and its Spark-Bars, goal bar, comparison columns or stacked KPI number at the foot. The Zen
+  Figma library does the same (Chart-Card, every `Chart/*` set, Metric-Card; placed instances on Chart, Performance and
+  HR-Platform updated), with spacing that never drops under the design's gap (8px at least).
+- Donut and Radial charts (2026-10-16, user): a legend beside the ring that wraps under it in a narrow box becomes a
+  centred row that wraps (Figma auto layout Wrap) instead of a tall column; in a plot under 280px the X label pills
+  take Padding/2XSmall, so six months no longer overlap on a 320px phone.
+- Zen Studio Play and Present (2026-10-16, user): an AppShell's Sidebar sticks while the page scrolls, at the viewport's
+  height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- 320px phones (2026-10-16, user: "sửa"): no docs page scrolls sideways any more (the section grids took their widest
+  unbreakable child as their width; the Form and Input pages also ran 11px wide at 390), and under 375px the docs chrome
+  gives an example 248px instead of 208px (page gutter 16, stage 8 + 12). ListItem: a caption word longer than the row
+  ends in an ellipsis instead of running under the trailing slot (the caption still wraps). Toast: a long run such as an
+  email address breaks instead of spilling. Stepper: the caption breaks like the title. Popover and Tooltip examples wrap
+  their header and toolbar at Comfortable on a 320px phone.
 - Zen Studio: a page made in the Studio changed outside the tab (an AI's file tools, an editor) now shows on the canvas at
   once instead of after a reload (user, 2026-10-16: "claude chạy xong phải refresh lại mới thấy"): the dev server watches
   the pages folder and the open tabs sync with it.

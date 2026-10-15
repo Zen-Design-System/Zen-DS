@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode, type Ref } from "react";
+import { useLayoutEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from "react";
 import { Card, type CardColor, type CardSurface, type CardTheme } from "../Card";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
@@ -234,6 +234,34 @@ export interface ChartCardProps {
 }
 
 /**
+ * A Chart Card stretched by its grid row (Figma's cards hug, so this is code's call; the user 2026-10-16: "scale the
+ * chart"): the free height under the content goes to the chart as `--zen-chart-grow`. Plots add it to their height, rings
+ * to their size, row charts spread their rows (chart.css); what cannot grow sits in the middle of what is left. Measured
+ * with the grow off, so a card that only grew itself shrinks back with its row.
+ */
+function useChartGrow(body: RefObject<HTMLDivElement | null>) {
+  useLayoutEffect(() => {
+    const node = body.current;
+    if (!node || typeof ResizeObserver === "undefined") return undefined;
+    const measure = () => {
+      node.style.setProperty("--zen-chart-grow", "0px");
+      const children = Array.from(node.children) as HTMLElement[];
+      if (children.length < 2) return;
+      const gap = parseFloat(getComputedStyle(node).rowGap) || 0;
+      const natural = children.reduce((sum, child) => sum + child.getBoundingClientRect().height, 0) + gap * (children.length - 1);
+      const free = Math.floor(node.getBoundingClientRect().height - natural);
+      if (free > 0) node.style.setProperty("--zen-chart-grow", `${free}px`);
+    };
+    measure();
+    // The card (its row) and each child (data, a wrapping legend, late fonts): a change in either moves the free height.
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    for (const child of Array.from(node.children)) observer.observe(child);
+    return () => observer.disconnect();
+  });
+}
+
+/**
  * Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.
  * The header row holds an optional icon, the title and the open chevron; a description and the headline value follow it
  * (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·
@@ -244,9 +272,11 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
   const Title = `h${headingLevel}` as const;
+  const body = useRef<HTMLDivElement>(null);
+  useChartGrow(body);
   return (
     <Card ref={ref} theme={theme} color={color} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
-      <div className="zen-chart-card__body">
+      <div ref={body} className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <div className="zen-chart-card__titlebar">
             {icon ? <span className="zen-chart-card__icon" aria-hidden="true">{renderIcon(icon, { size: 20 })}</span> : null}

@@ -81,7 +81,7 @@ export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, 
   const legend = showLegend ? <ChartLegend gap="small" items={[{ id: "bar", label: barLabel, color: BAR }, { id: "line", label: lineLabel, color: LINE }]} /> : undefined;
   return (
     <ChartBlock ref={ref} kind="combo" legend={legend} position={legendPosition}>
-      <div className={["zen-chart-combo", className].filter(Boolean).join(" ")} style={{ "--zen-chart-height": `${height}px` } as CSSProperties}>
+      <div className={["zen-chart-combo", className].filter(Boolean).join(" ")} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
           activeLine="neutral" className="zen-chart--combo" kind="bar" animate={animate} summary={summary}
           tooltip={current ? <SeriesValues items={[{ id: "bar", color: BAR, value: format(current.bar) }, { id: "line", color: LINE, value: lineFormat(current.line) }]} /> : null}>

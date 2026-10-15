@@ -73,7 +73,7 @@ export function GaugeChart({ value: valueProp, max = 100, target: targetProp, ac
     : undefined;
   return (
     <ChartBlock ref={ref} kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round">
-      <div className={["zen-chart", "zen-chart--round", "zen-chart--gauge", className].filter(Boolean).join(" ")} data-kind="gauge" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `${size}px` } as CSSProperties}>
+      <div className={["zen-chart", "zen-chart--round", "zen-chart--gauge", className].filter(Boolean).join(" ")} data-kind="gauge" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${size}px + 2 * var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <div className="zen-chart__gauge" role="meter" aria-label={ariaLabel} aria-valuemin={0} aria-valuemax={max} aria-valuenow={Math.max(0, Math.min(max, value))} aria-valuetext={valueText}>
           <div className="zen-chart__gauge-dial" aria-hidden="true">
             <svg className="zen-chart__gauge-svg" viewBox="0 0 100 50" key={signatureOf([value, max, target ?? null])}>

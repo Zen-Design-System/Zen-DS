@@ -44,7 +44,7 @@ export function BarList({ data, headers, format = defaultFormat, "aria-label": a
   return (
     <ChartBlock ref={ref} kind="bar-list">
       <div className={["zen-chart", "zen-chart--list", className].filter(Boolean).join(" ")} data-kind="bar-list" data-animate={animate ? undefined : "false"}>
-        <div className="zen-chart__list" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown}>
+        <div className="zen-chart__list" style={{ "--zen-chart-count": data.length } as CSSProperties} role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown}>
           {headers ? (
             <div className={`zen-chart__list-head ${typographyStyles["Caption/Medium"]}`} aria-hidden="true">
               <span>{headers.label}</span>

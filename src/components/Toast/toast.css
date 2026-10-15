@@ -31,7 +31,8 @@
 .zen-toast__icon { display: inline-flex; flex: 0 0 auto; }
 .zen-toast__icon > .zen-icon, .zen-toast__close > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .zen-toast__body { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.zen-toast__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* A toast is read in full: a run longer than the line (an email address on a 320px phone) breaks instead of spilling. */
+.zen-toast__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow-wrap: break-word; }
 .zen-toast__action { flex: 0 0 auto; }
 .zen-toast__close {
   display: inline-flex;

@@ -127,6 +127,9 @@
 .zen-modal-form__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-modal-padding, 24px); }
 /* Fields fill the Main-Contents width (Input fields default to align-self: start). */
 .zen-modal-form__body > *, .zen-modal-form__top > *, .zen-dialog__custom > * { align-self: stretch; }
+/* The field's own align-self: start has the same weight, so the file loaded last won (Studio, code-split apps: a
+   TextAreaField hugged its content); name the field, as bottom-sheet.css does. */
+:is(.zen-modal-form__body, .zen-modal-form__top, .zen-dialog__custom) > .zen-input-field { align-self: stretch; }
 .zen-modal-form__footer { margin-top: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-modal-padding, 24px) var(--zen-modal-padding, 24px); }
 .zen-modal-form__close { position: absolute; top: var(--zen-spacing-padding-large, 20px); right: var(--zen-spacing-padding-large, 20px); }
 /* Figma: "DO NOT use for mobile" — below 720px the side column stacks above the form so it still works. */

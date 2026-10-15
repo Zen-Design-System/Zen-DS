@@ -1,6 +1,7 @@
 /* The chart family's shared language (docs/research/chart-family-spec-2026-10-12.md §2–4): palette, scale, legend,
    the cartesian plot frame, keyboard selection and the draw-in motion. Every chart in this folder is built from it. */
-import { useId, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref } from "react";
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
+import { useMergedRefs } from "../_shared/merge-refs";
 import { TooltipSurface } from "../Tooltip";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -137,10 +138,40 @@ export function ChartLegend({ items, className, gap = "xsmall", align = "center"
   );
 }
 
+/**
+ * A round chart's legend (or total column) beside the ring: true once the box is too narrow and the flex row has put it
+ * under or over the ring, so chart.css turns that column into a centred row that wraps (Figma auto layout Wrap) instead
+ * of a tall list beside nothing. The flex basis decides the wrap, not the legend's content, so the switch never loops.
+ */
+function useBesideWrapped(block: RefObject<HTMLDivElement | null>, on: boolean) {
+  const [wrapped, setWrapped] = useState(false);
+  useLayoutEffect(() => {
+    const node = block.current;
+    if (!on || !node || typeof ResizeObserver === "undefined") { setWrapped(false); return; }
+    const measure = () => {
+      const ring = node.querySelector(":scope > .zen-chart--round");
+      const beside = Array.from(node.children).find((child) => child !== ring);
+      if (!ring || !beside) return;
+      const a = ring.getBoundingClientRect();
+      const b = beside.getBoundingClientRect();
+      setWrapped(b.top >= a.bottom - 1 || b.bottom <= a.top + 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [block, on]);
+  return wrapped;
+}
+
 /** A chart with its legend before or after it (top / bottom; start / end beside it for round charts). */
 export function ChartBlock({ legend, position = "bottom", kind, children, className, layout, ref }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string; ref?: Ref<HTMLDivElement> }) {
+  const own = useRef<HTMLDivElement>(null);
+  const merged = useMergedRefs(own, ref);
+  const beside = Boolean(legend && (position === "start" || position === "end")) || layout === "total-start";
+  const wrapped = useBesideWrapped(own, beside);
   return (
-    <div ref={ref} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout}>
+    <div ref={merged} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout} data-wrapped={beside && wrapped ? "true" : undefined}>
       {children}
       {legend}
     </div>
@@ -176,7 +207,7 @@ export function PlotFrame({ labels, ticks, top, format, active, setActive, onKey
 }) {
   const id = useChartId();
   return (
-    <div className={["zen-chart", className].filter(Boolean).join(" ")} data-kind={kind} data-animate={animate ? undefined : "false"} data-dense={labels.length > 8 ? "true" : undefined} style={{ "--zen-chart-height": `${height}px`, "--zen-chart-count": labels.length } as CSSProperties}>
+    <div className={["zen-chart", className].filter(Boolean).join(" ")} data-kind={kind} data-animate={animate ? undefined : "false"} data-dense={labels.length > 8 ? "true" : undefined} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))`, "--zen-chart-count": labels.length } as CSSProperties}>
       <div className="zen-chart__y" aria-hidden="true">
         {ticks.map((tick) => <span key={tick} className={typographyStyles["Label/Small/Medium"]} style={{ bottom: `calc(var(--zen-chart-lane-bottom) + (100% - var(--zen-chart-lane-top) - var(--zen-chart-lane-bottom)) * ${tick / top})` }}>{format(tick)}</span>)}
       </div>
