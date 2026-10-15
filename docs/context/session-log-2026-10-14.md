@@ -594,3 +594,11 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   nothing turns). 56 px (Element-Size/Popular/3-XLarge) in the waiting bubble, 20 px (Popular/Medium) on the composer
   card. Style guard made the rim a gradient (hand-written box-shadow flagged) and the band's shape a transform (a
   percentage inset flagged). Gate `--only=ai-ui --isolated` green; sheets reviewed.
+- P1-e, the composer on a phone (the user: "làm tiếp"; study §4 phone wireframe and F9, the P1 item still open; P2
+  onward need Figma and the Figma MCP does not connect in this session): `LiveTypingExample` takes `placement`
+  ("above" puts the card over the field), `fieldStyle` and `placeholder`; `LiveTypingPhone` is a PlatformPhone with
+  the AiChatBlock greeting filling the screen and the composer at the end of the flow (in flow, not sticky: the card
+  pushes the greeting up and `useScrollToEnd` keeps the field in view). On the phone the footer shows a "Keep as …"
+  tertiary button instead of Tab / Esc / Enter hints. New example "Composed while typing, on a phone". Gate
+  `--only=ai-ui --isolated` green with one warning (dead click on the empty "Add place" chip once the form is shown;
+  fixed in the next change); sheets reviewed.

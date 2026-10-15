@@ -4,7 +4,7 @@
    what Alex picks lands in a shared state the conversation reads, and a follow-up edits the UI in place (ops) instead of
    rebuilding it. Nothing here is styled by hand: every look is a component prop. */
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
-import { AiChatBubble, AiChatField, AiChatThread } from "../../../components/AiChat";
+import { AiChatBlock, AiChatBubble, AiChatField, AiChatThread, type AiChatFieldStyle } from "../../../components/AiChat";
 import { Chip } from "../../../components/Chip";
 import { Tag } from "../../../components/Tag";
 import { InlineMessage } from "../../../components/InlineMessage";
@@ -458,7 +458,9 @@ function composerBody(spec: UiSpec): UiSpec {
   return { ...spec, root: { ...spec.root, children } };
 }
 
-function LiveTypingExample({ initial = "" }: { initial?: string }) {
+/** The live composer: the field and the guess card. `placement="above"` puts the card over the field (a phone: the keyboard
+    covers nothing, the preview pushes the thread; study F9). */
+function LiveTypingExample({ initial = "", placement = "below", fieldStyle = "default", placeholder = "Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" }: { initial?: string; placement?: "below" | "above"; fieldStyle?: AiChatFieldStyle; placeholder?: string }) {
   const catalog = useCatalog();
   const server = useServer();
   const [text, setText] = useState(initial);
@@ -520,16 +522,15 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
     return true;
   };
   const submit = (prompt: string) => { if (runAction()) return; setDone(null); void composerRef.current?.submit(prompt); };
-  return (
-    <Stack gap="md">
-      {/* The field keeps its pill on the canvas; the guess card sits right under it (nested corners stay concentric, usage rules §13 / rhythm). */}
-      <Stack gap="xs">
-        <AiChatField placeholder="Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" value={text}
-          onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
-          onSubmit={submit}
-          onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
-          onClear={text || preview ? clear : undefined} />
-        {preview && meta ? (
+  // The field keeps its pill on the canvas; the guess card sits right under it, or over it on a phone (nested corners stay concentric, usage rules §13 / rhythm).
+  const field = (
+    <AiChatField fieldStyle={fieldStyle} placeholder={placeholder} value={text}
+      onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
+      onSubmit={submit}
+      onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
+      onClear={text || preview ? clear : undefined} />
+  );
+  const card = preview && meta ? (
           <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
             <Stack gap="md">
               <div className="px-ai-ui-composer__guess" key={intent ?? "none"}>
@@ -546,12 +547,15 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
                   {serverError ? <Text textStyle="Body/Small/Regular" tone="base">{`The model failed (${serverError}); the demo composer answered.`}</Text> : null}
                 </Stack>
               </div>
+              {/* The footer: the keys on a desktop; on a phone (no Tab, no Esc) a "Keep as …" button in their place. */}
               <Stack direction="row" gap="md" justify="between" align="center" wrap>
-                <Stack direction="row" gap="sm" wrap>
-                  {!live?.pinned ? <KeyHint keys="Tab">to keep as {meta.label.toLowerCase()}</KeyHint> : null}
-                  <KeyHint keys="Esc">to clear</KeyHint>
-                  <KeyHint keys="Enter">{action && showForm && actionLabel ? `to ${actionLabel.toLowerCase()}` : "to compose now"}</KeyHint>
-                </Stack>
+                {placement === "above"
+                  ? <Stack direction="row" gap="xs" wrap>{!live?.pinned ? <Button level="tertiary" size="sm" onClick={() => composerRef.current?.accept()}>Keep as {meta.label.toLowerCase()}</Button> : null}</Stack>
+                  : <Stack direction="row" gap="sm" wrap>
+                      {!live?.pinned ? <KeyHint keys="Tab">to keep as {meta.label.toLowerCase()}</KeyHint> : null}
+                      <KeyHint keys="Esc">to clear</KeyHint>
+                      <KeyHint keys="Enter">{action && showForm && actionLabel ? `to ${actionLabel.toLowerCase()}` : "to compose now"}</KeyHint>
+                    </Stack>}
                 {action && showForm ? (
                   <Stack direction="row" gap="xs">
                     <Button level="tertiary" size="sm" onClick={clear}>Cancel</Button>
@@ -561,10 +565,35 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
               </Stack>
             </Stack>
           </Card>
-        ) : null}
+        ) : null;
+  return (
+    <Stack gap="md">
+      <Stack gap="xs">
+        {placement === "above" ? card : field}
+        {placement === "above" ? field : card}
       </Stack>
       {done ? <Text textStyle="Body/Small/Regular">{done}</Text> : null}
     </Stack>
+  );
+}
+
+/** The composer on a phone: the greeting fills the screen, the card rises above the docked field as the sentence forms and
+    pushes the greeting up; the screen follows the field (useScrollToEnd), so the keyboard would cover nothing. */
+function LiveTypingPhone({ initial = "" }: { initial?: string }) {
+  const screenRef = useRef<HTMLDivElement>(null);
+  useScrollToEnd(screenRef, null, null);
+  return (
+    <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
+      <div className="px-ai-ui-phone-flow">
+        <Box className="px-ai-ui-phone-home">
+          <AiChatBlock greeting={`What do you need, ${firstName}?`}>
+            <Text textStyle="Body/Base/Regular" tone="base">Type it: the form takes shape above the field as you go.</Text>
+          </AiChatBlock>
+        </Box>
+        <Box className="px-ai-ui-phone-composer"><LiveTypingExample initial={initial} placement="above" fieldStyle="liquid-glass" placeholder="Ask Zen AI" /></Box>
+      </div>
+    </PlatformPhone>
   );
 }
 
@@ -767,6 +796,18 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
   {sure || opened ? <AiUi spec={composerBody(live.spec ?? live.skeleton)} catalog={catalog} state={shared} onStateChange={setShared} /> : null}
   <Footer hints={[["Tab", "keep as booking"], ["Esc", "clear"], ["Enter", "schedule"]]} primary={action} />
 </Card>`,
+  },
+  {
+    title: "Composed while typing, on a phone",
+    description: "The same composer on a phone: the card rises above the docked field, so a keyboard would cover nothing and the preview pushes the greeting up (study F9); the slots become chips, the form shows once the intent is sure, and the footer's keys and buttons wrap in the 390 px column.",
+    render: () => <LiveTypingPhone initial="Schedule a design review with Gia tomorrow at 4 pm" />,
+    code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />}>
+  <AiChatBlock greeting="What do you need, Alex?">…</AiChatBlock>
+  <Stack gap="xs">                                                    {/* docked: the card, then the field */}
+    <Card theme="flat" spacing="sm" width="fill">…the guess…</Card>
+    <AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" value={text} onValueChange={…} onAccept={…} onClear={…} onSubmit={…} />
+  </Stack>
+</PlatformPhone>`,
   },
   {
     title: "A spec the catalog rejects",

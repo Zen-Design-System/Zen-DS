@@ -26,6 +26,10 @@
    on phones); the docked field is a strip whose bottom clears the home indicator, as the AI Chat page's phone. */
 .px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; }
 .px-ai-ui-phone-body { flex: 1 0 auto; padding: var(--zen-margin-comfortable, 20px); }
+/* The composer phone: the greeting fills the screen inside the margin (as the AI Chat phone's home), the composer sits at
+   the end of the flow (in flow, not sticky: the card above the field pushes the greeting up and the screen follows). */
+.px-ai-ui-phone-home { display: flex; flex: 1 0 auto; box-sizing: border-box; align-items: center; padding: var(--zen-margin-comfortable, 20px); }
+.px-ai-ui-phone-composer { padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
 .px-ai-ui-phone-dock { position: sticky; z-index: 1; bottom: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
 /* PlatformPhone pads a screen without a footer by the safe area; the dock already clears the home indicator, so that
    padding floated the field twice as high (the user, 2026-10-15: "chat box nằm hơi cao trên mobile"). */

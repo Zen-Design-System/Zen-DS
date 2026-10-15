@@ -382,7 +382,9 @@ removed (four unused colour ramps were, see Removed).
   a JSON column. The conversation scrolls to its end once an answer's UI renders, on the phone too. While the AI works,
   a frosted glass sphere (after the Dribbble shot "Sphere AI Assistant": a pink pool, a lavender haze and an aurora
   band of cyan drifting inside, from the Support tokens) sits in the bubble that waits for the answer and on the
-  composer card's type row; reduced motion keeps it still.
+  composer card's type row; reduced motion keeps it still. A new example, "Composed while typing, on a phone": the
+  card rises above the docked field (a keyboard would cover nothing, the preview pushes the greeting up, the screen
+  follows the field), with a "Keep as …" button in place of the keys.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.
