@@ -29,9 +29,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Keycap component (2026-10-15, designer):** keyboard hints ("Tab to keep as booking") need a Kbd; the AI UI demo
   uses Tag for now.
 - **P2 · AI UI: "AI glow" gradient tokens (2026-10-15, designer):** the Zen AI screen on Patterns › AI UI draws the
-  "AI is working" ring around the field from Support Pink/Violet/Cyan Solid (demo CSS; a page tint was tried and
-  dropped at the user's word); the product's own gradient for it (ring, card edge, thinking dots) needs colours in Figma first, then `tokens:build` —
-  `tokens.css` has no gradient token today. Pointer: `src/platform/examples/pages/ai-ui.css` (`.px-ai-ui-glow`).
+  "AI is working" orb from Support Pink/Violet/Cyan Solid + Violet Rich (demo CSS; a page tint and a ring around
+  the field were tried and dropped at the user's word); the product's own gradient for it (ring, card edge, thinking dots) needs colours in Figma first, then `tokens:build` —
+  `tokens.css` has no gradient token today. Pointer: `src/platform/examples/pages/ai-ui.css` (`.px-ai-ui-orb`); if the orb stays, it becomes a
+  component (AiChatBubble `thinking="orb"`?) with Figma first.
 - **P2 · AI UI: spec format, this tree or A2UI / json-render (2026-10-14, user; handoff Q2):** the runtime uses Zen's own
   node tree (Studio dialect shape). An A2UI exporter is possible on top; decide before a native renderer is needed.
 - **P2 · AI UI: a 4-column Table in a 600 / 390 px chat column (2026-10-14, designer):** needs ~608 px and scrolls

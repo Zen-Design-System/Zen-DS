@@ -571,3 +571,17 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   gradient đi" — the P1-d page tint and its breathing layer are gone (screens on their Canvas, the phone back to
   `TopNavigation type="compact-alt"`); the Liquid Glass field and the ring stay. Gate `--only=ai-ui --isolated`
   green; sheets 390 / 1512 reviewed.
+- The orb (the user: "màu cho thanh xấu quá. Tôi nghĩ có thể thử 1 cục tròn như siri"): the ring around the field is
+  gone; `Orb` (`.px-ai-ui-orb`, a span with role="status") is a sphere of Support Cyan/Violet/Pink Solid + Violet Rich
+  (conic) under a Surface/Default highlight (radial), with a blurred halo (`::after`, Padding/XSmall out); sphere and
+  halo turn in opposite directions on the `@property` angle × `--zen-motion-movement`, the sphere breathes by a
+  registered number × movement (still under reduced motion). 28 px (Element-Size/Popular/Large) in the AI bubble that
+  waits for the answer (instead of the component's dots, demo only), 16 px (Popular/Base) in the composer card's type
+  row while `skeleton` / `composing`. `useScrollToEnd` now takes the scroller's ref, so the phone's screen follows the
+  conversation too (the orb sat under the dock). Style guard: the halo's reach through a token (raw -40% flagged).
+  Phone dock (the user: "chat box nằm hơi cao trên mobile"): PlatformPhone pads a footer-less screen by the safe
+  area and the dock cleared the home indicator again, so the field floated 64 px up; the page zeroes that padding
+  for its own flow (`:has`), the field sits 36 px from the bottom as the AI Chat phone's. Gate `--only=ai-ui
+  --isolated` green; sheets reviewed. Next (the user): the orb should follow the Dribbble "Sphere AI Assistant"
+  shot; `dribbble.com` / `cdn.dribbble.com` are refused by the sandbox's network policy, a screenshot or the
+  domain allowed is needed first.

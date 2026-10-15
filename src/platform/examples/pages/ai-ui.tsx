@@ -3,7 +3,7 @@
    (examples/data.ts), the spec is validated against the catalog and rendered in the AI bubble with the real components,
    what Alex picks lands in a shared state the conversation reads, and a follow-up edits the UI in place (ops) instead of
    rebuilding it. Nothing here is styled by hand: every look is a component prop. */
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import { AiChatBubble, AiChatField, AiChatThread } from "../../../components/AiChat";
 import { Chip } from "../../../components/Chip";
 import { Tag } from "../../../components/Tag";
@@ -337,12 +337,18 @@ function Answer({ turn, demo }: { turn: Turn; demo: Demo }) {
   );
 }
 
+/** The AI at work (the user, 2026-10-15: "thử 1 cục tròn như Siri"): a sphere of the Support hues swirling around a bright
+    core, in the bubble that waits for the answer and on the composer card while it composes (ai-ui.css). */
+function Orb({ label, size }: { label: string; size?: "sm" }) {
+  return <span className={size === "sm" ? "px-ai-ui-orb px-ai-ui-orb--sm" : "px-ai-ui-orb"} role="status" aria-label={label} />;
+}
+
 function Thread({ demo, label = "Conversation with Zen AI" }: { demo: Demo; label?: string }) {
   return (
     <AiChatThread aria-label={label}>
       {demo.turns.map((turn) => turn.side === "you"
         ? <AiChatBubble key={turn.id} side="you" className="px-ai-ui-enter">{turn.text}</AiChatBubble>
-        : <AiChatBubble key={turn.id} side="ai" thinking={turn.thinking} className="px-ai-ui-enter"><Answer turn={turn} demo={demo} /></AiChatBubble>)}
+        : <AiChatBubble key={turn.id} side="ai" className="px-ai-ui-enter">{turn.thinking ? <Orb label="Zen AI is thinking" /> : <Answer turn={turn} demo={demo} />}</AiChatBubble>)}
     </AiChatThread>
   );
 }
@@ -497,6 +503,7 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
   const meta = intent && intent in intentMeta ? intentMeta[intent as keyof typeof intentMeta] : null;
   // Sure: kept with Tab or answered by the composer; until then the body is a guess (the keyword classifier's confidence is not calibrated enough to decide it).
   const sure = Boolean(live && (live.pinned || (live.phase === "ready" && live.spec)));
+  const working = live?.phase === "skeleton" || live?.phase === "composing"; // a template shown and the answer on its way, or an edit of a kept spec
   const showForm = Boolean(preview && (sure || opened || intent !== "booking"));
   const action = preview ? primaryActionOf(preview) : null;
   const actionLabel = action ? buttonLabel(preview?.root, action.id) ?? action.action : null;
@@ -516,21 +523,18 @@ function LiveTypingExample({ initial = "" }: { initial?: string }) {
     <Stack gap="md">
       {/* The field keeps its pill on the canvas; the guess card sits right under it (nested corners stay concentric, usage rules §13 / rhythm). */}
       <Stack gap="xs">
-        {/* The live composer is at work in "skeleton" (a template shown, the answer on its way) and "composing" (an edit of a kept spec). */}
-        <div className="px-ai-ui-glow" data-busy={live?.phase === "skeleton" || live?.phase === "composing" || undefined}>
-          <AiChatField placeholder="Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" value={text}
-            onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
-            onSubmit={submit}
-            onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
-            onClear={text || preview ? clear : undefined} />
-        </div>
+        <AiChatField placeholder="Type, don't send: schedule a review tomorrow at 4 pm, overdue invoices…" value={text}
+          onValueChange={(next) => { setText(next); composerRef.current?.input(next); }}
+          onSubmit={submit}
+          onAccept={intent && !live?.pinned ? () => { composerRef.current?.accept(); } : undefined}
+          onClear={text || preview ? clear : undefined} />
         {preview && meta ? (
           <Card theme="flat" spacing="sm" width="fill" className="px-ai-ui-composer">
             <Stack gap="md">
               <div className="px-ai-ui-composer__guess" key={intent ?? "none"}>
                 <Stack gap="sm">
                   <Stack direction="row" gap="xs" align="center">
-                    <Icon name={meta.icon} size={16} />
+                    {working ? <Orb label="Composing" size="sm" /> : <Icon name={meta.icon} size={16} />}
                     <Text textStyle="Body/Small/Medium">{meta.label}</Text>
                     {live?.pinned ? <Text textStyle="Body/Small/Regular" tone="base">kept</Text> : sure ? null : <Text textStyle="Body/Small/Regular" tone="base">likely</Text>}
                   </Stack>
@@ -599,9 +603,8 @@ function Aside({ demo, onClose }: { demo: Demo; onClose?: () => void }) {
 
 /** Keeps the end of the conversation in view: on a new turn, once the catalog lets an answer render its UI, and while
     that UI still grows (lazy icons, fonts) as long as the reader was at the end; a reader who scrolled up stays put. */
-function useScrollToEnd(turns: unknown, catalog: unknown) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { ref.current?.scrollTo({ top: ref.current.scrollHeight }); }, [turns, catalog]);
+function useScrollToEnd(ref: RefObject<HTMLDivElement | null>, turns: unknown, catalog: unknown) {
+  useEffect(() => { ref.current?.scrollTo({ top: ref.current.scrollHeight }); }, [ref, turns, catalog]);
   useEffect(() => {
     const el = ref.current;
     const flow = el?.firstElementChild;
@@ -614,8 +617,7 @@ function useScrollToEnd(turns: unknown, catalog: unknown) {
     });
     observer.observe(flow);
     return () => observer.disconnect();
-  }, []);
-  return ref;
+  }, [ref]);
 }
 
 /** Zen AI on the desktop: a bar (title, who answers, the panel's button), the conversation with its composed UIs scrolling
@@ -624,7 +626,8 @@ function useScrollToEnd(turns: unknown, catalog: unknown) {
 function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: boolean }) {
   const demo = useComposerDemo(initial);
   const screenRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useScrollToEnd(demo.turns, demo.catalog);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useScrollToEnd(scrollRef, demo.turns, demo.catalog);
   const [open, setOpen] = useState(false);
   const panelId = useId();
   return (
@@ -642,7 +645,7 @@ function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: 
         <Box ref={scrollRef} scroll="y" className="px-ai-ui-screen__scroll">
           <div className="px-ai-ui-screen__flow">
             <div className="px-ai-ui-screen__thread"><Stack gap="lg" className="px-ai-ui-column"><Thread demo={demo} /><Suggestions demo={demo} /></Stack></div>
-            <div className="px-ai-ui-screen__dock"><div className="px-ai-ui-glow px-ai-ui-column" data-busy={demo.busy || undefined}><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></div></div>
+            <div className="px-ai-ui-screen__dock"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></div>
           </div>
         </Box>
         {aside && open ? <Box id={panelId} role="region" aria-label="What Zen AI sees" surface="surface" effectStyle="Shadow/Bottom/Level-3" scroll="y" className="px-ai-ui-aside"><Aside demo={demo} onClose={() => setOpen(false)} /></Box> : null}
@@ -655,12 +658,13 @@ function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: 
 function ComposerPhone({ initial }: { initial: string[] }) {
   const demo = useComposerDemo(initial);
   const screenRef = useRef<HTMLDivElement>(null);
+  useScrollToEnd(screenRef, demo.turns, demo.catalog); // the phone's screen is the scroller; the flow is its first child
   return (
     <PlatformPhone label="Zen AI" headerOverlay screenRef={screenRef}
       header={<TopNavigation type="compact-alt" title="Zen AI" scrollRef={screenRef} />}>
       <div className="px-ai-ui-phone-flow">
         <Box className="px-ai-ui-phone-body"><Thread demo={demo} /></Box>
-        <Box className="px-ai-ui-phone-dock"><div className="px-ai-ui-glow" data-busy={demo.busy || undefined}><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></div></Box>
+        <Box className="px-ai-ui-phone-dock"><AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} /></Box>
       </div>
     </PlatformPhone>
   );

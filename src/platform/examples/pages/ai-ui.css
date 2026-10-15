@@ -27,6 +27,9 @@
 .px-ai-ui-phone-flow { display: flex; min-height: 100%; flex-direction: column; }
 .px-ai-ui-phone-body { flex: 1 0 auto; padding: var(--zen-margin-comfortable, 20px); }
 .px-ai-ui-phone-dock { position: sticky; z-index: 1; bottom: 0; padding: var(--zen-spacing-padding-small, 12px) var(--zen-margin-comfortable, 20px) calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+/* PlatformPhone pads a screen without a footer by the safe area; the dock already clears the home indicator, so that
+   padding floated the field twice as high (the user, 2026-10-15: "chat box nằm hơi cao trên mobile"). */
+.platform-phone:has(> .platform-phone__screen > .px-ai-ui-phone-flow) > .platform-phone__screen { padding-bottom: 0; }
 
 /* The composer card (docs/research/ai-ui-live-composer-ux-2026-10-15.md §4): the guess card and each new guess fade
    in (opacity only, so reduced motion needs no fallback). A height transition would need a settled state before the
@@ -34,18 +37,18 @@
 .px-ai-ui-composer, .px-ai-ui-composer__guess { animation: px-ai-ui-fade var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease) both; }
 @keyframes px-ai-ui-fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* While the AI works (the field is busy, the composer card is composing): a 2 px gradient ring around the field in the
-   three Support hues (Pink · Violet · Cyan Solid, the hues of the AI Chat playground's Liquid Glass stage), turning slowly; it fades in and
-   out (Motion/Duration/Base). The turn is an angle multiplied by --zen-motion-movement, so reduced motion keeps the
-   ring still and its colour. The ring is a masked pseudo-element on a wrapper: the field itself is untouched. */
+/* The AI at work, a Siri-like orb (the user, 2026-10-15: "thử 1 cục tròn như Siri"; the ring around the field read as
+   an ugly outline): a sphere of the three Support hues (Pink · Violet · Cyan Solid, Violet Rich) swirling around a
+   bright core (Surface/Default), with a soft blurred halo. The sphere and the halo turn in opposite directions on an
+   @property angle, and the sphere breathes by a scale step, both multiplied by --zen-motion-movement, so reduced motion
+   keeps a still orb with its colours. Element-Size/Popular/Large (28, the thinking dots' height) in the bubble that waits
+   for the answer, Element-Size/Popular/Base (16, the icon's size) on the composer card's type row. */
 @property --px-ai-ui-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-.px-ai-ui-glow { position: relative; border-radius: var(--zen-ai-chat-field-corner-radius, 32px); }
-.px-ai-ui-glow { --px-ai-ui-ring: var(--zen-spacing-padding-3-xsmall, 2px); }
-.px-ai-ui-glow::before { position: absolute; z-index: 2; inset: calc(-1 * var(--px-ai-ui-ring)); box-sizing: border-box; padding: var(--px-ai-ui-ring); border-radius: calc(var(--zen-ai-chat-field-corner-radius, 32px) + var(--zen-corner-radius-2-xsmall, 2px)); background: conic-gradient(from calc(var(--px-ai-ui-angle) * var(--zen-motion-movement, 1)), var(--zen-color-background-support-pink-solid, #ff66d4), var(--zen-color-background-support-violet-solid, #7a5af8), var(--zen-color-background-support-cyan-solid, #21b8d8), var(--zen-color-background-support-pink-solid, #ff66d4)); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; opacity: 0; transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); content: ""; pointer-events: none; }
-/* A soft halo under the ring: the same gradient, blurred, at a quarter of the opacity. */
-.px-ai-ui-glow::after { position: absolute; z-index: 0; inset: calc(-1 * var(--px-ai-ui-ring)); border-radius: calc(var(--zen-ai-chat-field-corner-radius, 32px) + var(--zen-corner-radius-2-xsmall, 2px)); background: conic-gradient(from calc(var(--px-ai-ui-angle) * var(--zen-motion-movement, 1)), var(--zen-color-background-support-pink-solid, #ff66d4), var(--zen-color-background-support-violet-solid, #7a5af8), var(--zen-color-background-support-cyan-solid, #21b8d8), var(--zen-color-background-support-pink-solid, #ff66d4)); filter: blur(var(--zen-spacing-padding-xsmall, 8px)); opacity: 0; transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); content: ""; pointer-events: none; }
-.px-ai-ui-glow > * { position: relative; z-index: 1; }
-.px-ai-ui-glow[data-busy="true"]::before, .px-ai-ui-glow[data-busy="true"]::after { animation: px-ai-ui-turn 2.4s var(--zen-motion-ease-linear, linear) infinite; }
-.px-ai-ui-glow[data-busy="true"]::before { opacity: 1; }
-.px-ai-ui-glow[data-busy="true"]::after { opacity: .35; }
+@property --px-ai-ui-pulse { syntax: "<number>"; inherits: false; initial-value: 0; }
+.px-ai-ui-orb { --px-ai-ui-orb: var(--zen-element-size-popular-large, 28px); position: relative; display: inline-block; width: var(--px-ai-ui-orb); height: var(--px-ai-ui-orb); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); vertical-align: middle; transform: scale(calc(1 + var(--px-ai-ui-pulse) * var(--zen-motion-movement, 1))); animation: px-ai-ui-pulse 2.4s var(--zen-motion-ease-standard, ease-in-out) infinite; }
+.px-ai-ui-orb--sm { --px-ai-ui-orb: var(--zen-element-size-popular-base, 16px); }
+.px-ai-ui-orb::before, .px-ai-ui-orb::after { position: absolute; border-radius: inherit; content: ""; }
+.px-ai-ui-orb::before { z-index: 1; inset: 0; background: radial-gradient(circle at 35% 30%, var(--zen-color-background-surface-default, #fff) 0%, transparent 48%), conic-gradient(from calc(var(--px-ai-ui-angle) * var(--zen-motion-movement, 1)), var(--zen-color-background-support-cyan-solid, #21b8d8), var(--zen-color-background-support-violet-solid, #7a5af8), var(--zen-color-background-support-pink-solid, #ff66d4), var(--zen-color-background-support-violet-rich, #5b3fd6), var(--zen-color-background-support-cyan-solid, #21b8d8)); animation: px-ai-ui-turn 3.2s var(--zen-motion-ease-linear, linear) infinite; }
+.px-ai-ui-orb::after { z-index: 0; inset: calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); background: conic-gradient(from calc(var(--px-ai-ui-angle) * -1 * var(--zen-motion-movement, 1)), var(--zen-color-background-support-pink-solid, #ff66d4), var(--zen-color-background-support-cyan-solid, #21b8d8), var(--zen-color-background-support-violet-solid, #7a5af8), var(--zen-color-background-support-pink-solid, #ff66d4)); filter: blur(var(--zen-spacing-padding-xsmall, 8px)); opacity: .45; animation: px-ai-ui-turn 5s var(--zen-motion-ease-linear, linear) infinite reverse; }
 @keyframes px-ai-ui-turn { to { --px-ai-ui-angle: 360deg; } }
+@keyframes px-ai-ui-pulse { 0%, 100% { --px-ai-ui-pulse: 0; } 50% { --px-ai-ui-pulse: 0.08; } }
