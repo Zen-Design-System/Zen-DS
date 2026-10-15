@@ -13,8 +13,9 @@ export function aiUiDevServer({ prefix = "/ai-ui" } = {}) {
         try {
           const { anthropicModel, DEFAULT_MODEL } = await import("./adapters/anthropic.mjs");
           modelName = process.env.ZEN_AI_MODEL ?? DEFAULT_MODEL;
-          model = anthropicModel({ model: modelName, effort: process.env.ZEN_AI_EFFORT ?? "medium" });
-          server.config.logger.info(`[zen ai-ui] ${prefix}/compose answers with ${modelName}`);
+          const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID || null;
+          model = anthropicModel({ model: modelName, effort: process.env.ZEN_AI_EFFORT ?? "medium", workspaceId });
+          server.config.logger.info(`[zen ai-ui] ${prefix}/compose answers with ${modelName}${workspaceId ? ` in workspace ${workspaceId}` : ""}`);
         } catch (error) {
           server.config.logger.warn(`[zen ai-ui] no model: ${error.message} (npm i -D @anthropic-ai/sdk)`);
         }

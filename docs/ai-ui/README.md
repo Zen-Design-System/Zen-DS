@@ -143,10 +143,20 @@ The key lives where the loop runs, never in a browser. Three places, same contra
 2. **The platform's dev server** — `tools/ai-ui/vite-plugin.mjs` mounts the same handler at `/ai-ui/*` when
    `ANTHROPIC_API_KEY` is set (or an `ant auth login` profile resolves). Set the key, `npm run dev`, open
    Patterns › AI UI: typed prompts then go to the model; seeded ones keep the demo composer so the page stays deterministic.
+   A failed call shows its reason in the answer and in the dev server's terminal (`[zen ai-ui] POST /ai-ui/compose → 500: …`).
+
+   **Which key.** The Console (platform.claude.com → API keys → Create key) shows the full key once, at creation; the
+   list only shows `sk-ant-…1hA...KwAA`, which is not the key. The simplest key for Zen is a personal key **scoped to
+   one workspace** (pick the Default Workspace when creating it): it needs no other setting. A key with scope
+   Organization (multi-workspace) must send `anthropic-workspace-id` on every request: set `ANTHROPIC_WORKSPACE_ID=wrkspc_…`
+   (Settings → Workspaces, ID column) beside the key and the adapter adds the header; without it the API answers
+   400 "anthropic-workspace-id is required". A 401 "invalid x-api-key" means the value itself is wrong, expired or
+   deleted, and the model never ran.
 3. **An agent** — `zen-ds-mcp`'s `get_catalog` and `check_spec` give Claude Code, Cursor or Cowork the same contract.
 
 The adapter (`anthropicModel`) uses the official SDK: `claude-opus-5-5`, effort `medium`, the system prompt cached
-(`cache_control`), server-side refusal fallbacks on, a refusal returned as a text-only answer; `onUsage` reports tokens
+(`cache_control`), server-side refusal fallbacks on, a refusal returned as a text-only answer; `workspaceId` (default
+`ANTHROPIC_WORKSPACE_ID`) sends the `anthropic-workspace-id` header a multi-workspace key needs; `onUsage` reports tokens
 and cache reads per call. Other providers: write a `model` function of the same shape. The adapter is tested against a
 fake client; a live call needs a key the sandbox did not have.
 

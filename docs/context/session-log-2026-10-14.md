@@ -516,3 +516,8 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   server's reason, the answer bubble shows "Zen AI could not reach the model: …" before the fallback, the live example's
   status line says it too, and the Vite plugin logs every ≥ 500 answer (`[zen ai-ui] POST /ai-ui/compose → 500: …`).
   Verified with Chromium against a dev server: a faked model answer renders; a failing one shows the reason.
+- The user's key is a personal key with Organization scope (the Console's new key types): such keys need
+  `anthropic-workspace-id` on every request (docs: Authentication → Select a workspace), which the adapter did not send.
+  Added `workspaceId` / `ANTHROPIC_WORKSPACE_ID` (per-request header, so an injected client works too; selftest). Their
+  401 "invalid x-api-key" is the value itself: the Console lists keys masked (`sk-ant-usr-1hA...KwAA`), the full key
+  shows once at creation. README: create a key scoped to one workspace, or set the workspace id.
