@@ -15,6 +15,7 @@ import { presentFrame, zoomToFrame } from "../board/presentFrame";
 import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
 import { toggleSidePanels } from "./layout";
+import { presentShortcut } from "./modKey";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -132,7 +133,7 @@ export function CanvasMenu() {
   const frame = menu?.target.kind === "frame" ? findFrame(menu.target.frameId) : null;
   const frameItems: MenuEntry[] = frame ? [
     { id: "frame-zoom", label: "Zoom to frame", icon: "icon-zoom-in-line", shortcut: "⇧2", onSelect: () => zoomToFrame(frame.element) },
-    { id: "frame-present", label: "Present", icon: "icon-play-line", shortcut: "F", onSelect: () => presentFrame(frame.id) },
+    { id: "frame-present", label: "Present", icon: "icon-play-line", shortcut: presentShortcut, onSelect: () => presentFrame(frame.id) },
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
     ...(frame.id.startsWith("example:") ? [{ id: "frame-new-page", label: "New page from this frame", icon: "icon-file-plus-line" as const, onSelect: () => { void newPageFromFrame(frame); } }] : []),
     { type: "separator", id: "frame-separator" },

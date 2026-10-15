@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Icon } from "../../../components/Icon";
 import { Heading, Text } from "../../../components/Text";
 import { StudioFrame } from "../board/StudioFrame";
@@ -10,6 +10,11 @@ import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
 import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
 import { frameOf } from "./render/frames";
+import { placeFrames } from "./render/framePlace";
+import { livePlace, settleLivePlace } from "./frameMove";
+import { useFrameKeys } from "./frameKeys";
+import { notifyFramesMoved } from "../board/frames";
+import { notifyCanvas } from "../canvas/viewport";
 import { assetIdsOf, missingAssets, useUploadsVersion } from "./assets/uploads";
 import { cacheGeneration, renderCache, renderFrame, type PageNode, type RenderCache } from "./render/renderPage";
 import { engineNow, zenComponents } from "./engine";
@@ -20,7 +25,7 @@ const protoKeys = new WeakMap<object, number>();
 let protoCount = 0;
 const protoKey = (proto: object) => { if (!protoKeys.has(proto)) protoKeys.set(proto, (protoCount += 1)); return protoKeys.get(proto); };
 import { Button } from "../../../components/Button";
-import { useStudio } from "../store";
+import { studioStore, useStudio } from "../store";
 import { pageFile, pagesPersist, restorePage, usePage, useStorage, useTrash } from "./store/pageStore";
 import "./builder.css";
 
@@ -104,6 +109,8 @@ export function BuilderBoard({ id }: { id: string }) {
     try { return engine.locsOf(page.doc, text, { components: new Set(zenComponents) }) as { idAt: Map<string, string>; locOf: Map<string, string> }; } catch { return null; }
   }, [page?.doc, text]);
   if (places) setPlaces(file, places.locOf);
+  const framesRef = useRef<HTMLDivElement>(null);
+  useFrameKeys(id, text);
   const frames = useMemo(() => {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
@@ -114,6 +121,44 @@ export function BuilderBoard({ id }: { id: string }) {
       return { ...frame, example };
     });
   }, [tree, file, text, proto, places]);
+  // Free frames (Figma-like): each at its x / y from the page, the others in the row (render/framePlace.ts); a frame being
+  // dragged or nudged keeps its live place until the page has it (frameMove.ts). Written before the browser paints, as
+  // the component board places its examples; the box spans the frames for the board's size.
+  const framePlaces = useMemo(() => placeFrames(frames), [frames]);
+  // A selected frame the page no longer has (⌘Z took back the copy or the drawn frame): nothing stays selected.
+  useEffect(() => {
+    if (!tree?.board || tree.errors.length) return;
+    const selection = studioStore.getState().selection;
+    if (selection?.kind === "frame" && /^(screen|overlay):/.test(selection.frameId) && !frames.some((frame) => frame.id === selection.frameId)) studioStore.setState({ selection: null });
+  }, [tree, frames]);
+  useLayoutEffect(() => {
+    const container = framesRef.current;
+    if (!container) return;
+    let moved = false;
+    let right = 0;
+    let bottom = 0;
+    frames.forEach((frame, index) => {
+      const element = container.querySelector<HTMLElement>(`:scope > [data-studio-frame="${CSS.escape(frame.id)}"]`);
+      if (!element) return;
+      settleLivePlace(frame.id, framePlaces[index]);
+      const place = livePlace(frame.id) ?? framePlaces[index];
+      const left = `${place.x}px`;
+      const top = `${place.y}px`;
+      if (element.style.left !== left || element.style.top !== top) {
+        element.style.left = left;
+        element.style.top = top;
+        moved = true;
+      }
+      right = Math.max(right, place.x + element.offsetWidth);
+      bottom = Math.max(bottom, place.y + element.offsetHeight);
+    });
+    container.style.width = `${right}px`;
+    container.style.height = `${bottom}px`;
+    if (moved) {
+      notifyFramesMoved();
+      notifyCanvas();
+    }
+  });
 
   if (!page) {
     return (
@@ -142,7 +187,7 @@ export function BuilderBoard({ id }: { id: string }) {
             <Text textStyle="Body/Small/Regular">{`Line ${tree.errors[0].line}: ${tree.errors[0].message}${tree.errors.length > 1 ? ` (+${tree.errors.length - 1} more)` : ""}`}</Text>
           </div>
         ) : null}
-        <div className="studio-builder-board__frames">
+        <div ref={framesRef} className="studio-builder-board__frames">
           {frames.map((frame) => (
             <StudioFrame key={frame.id} id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example}>
               {frame.example.render()}

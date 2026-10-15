@@ -62,14 +62,21 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   topNavigation?: ReactNode;
   bottomNavigation?: ReactNode;
   children?: ReactNode;
+  /** The frame's place on the board (the canvas reads it from the page, render/framePlace.ts); nothing on the screen. */
+  x?: number;
+  y?: number;
+  /** A drawn Screen's width (the frame takes it, render/frames.ts) and height (the screen's least height). */
+  width?: number;
+  height?: number;
 };
 
-export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, ...rest }: ScreenProps) {
+export function Screen({ id, title, device = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width: _width, height, ...rest }: ScreenProps) {
   const phone = device === "phone";
   // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
   const os = useContext(PageOsContext);
   const bars = device === "desktop" ? null : SAFE_AREAS[os][device];
   const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
+  const drawn = typeof height === "number" ? ({ "--studio-screen-height": `${height}px` } as CSSProperties) : null;
   const active = screenLayoutOf(device, layout);
   // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
   const inset = bars ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
@@ -91,7 +98,7 @@ export function Screen({ id, title, device = "desktop", layout, canvas = "defaul
       data-typography={phone ? "mobile" : undefined}
       data-os={bars ? os : undefined}
       data-inset={inset || undefined}
-      style={safe ? { ...safe, ...style } : style}
+      style={safe || drawn ? { ...safe, ...drawn, ...style } : style}
       aria-label={title}
     >
       {!chrome ? content : desktop ? (
@@ -123,7 +130,7 @@ function withoutMasterLayout(children: ReactNode): ReactNode {
 }
 
 /** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. */
-export function Overlay({ id, children, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode }) {
+export function Overlay({ id, children, x: _x, y: _y, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode; x?: number; y?: number }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   return (
     // The frame is the overlay's device frame (data-zen-overlay-root): a Dialog opens contained, its scrim fills this frame

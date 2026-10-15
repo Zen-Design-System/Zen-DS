@@ -1,7 +1,7 @@
 import { redoEdit, undoEdit } from "../../api";
 import { presentFrame } from "../../board/presentFrame";
 import { canvasApi, zoomIn, zoomOut } from "../../canvas/viewport";
-import { modKey } from "../../shell/modKey";
+import { modKey, presentShortcut } from "../../shell/modKey";
 import { detachSelection, detachShortcut, offersDetach } from "../../inspector/detach";
 import { autoLayoutShortcut, frameSelectionShortcut, wrapCheck, wrapSelection } from "../../select/wrapSelection";
 import { openShortcuts } from "../../shell/shortcutsOpen";
@@ -74,7 +74,7 @@ export function commands(): Command[] {
     { id: "zoom-100", group: "View", label: "Zoom to 100%", shortcut: "⇧0", run: () => canvasApi.setZoom(1) },
     { id: "zoom-fit", group: "View", label: "Zoom to fit", shortcut: "⇧1", run: () => canvasApi.fit() },
     { id: "zoom-selection", group: "View", label: "Zoom to selection", shortcut: "⇧2", disabled: selection ? undefined : "Select a layer or frame first", run: () => press({ key: "@", code: "Digit2", shiftKey: true }) },
-    { id: "present", group: "View", label: "Present the frame", shortcut: "F", keywords: "full screen", disabled: frameId ? undefined : "Select a frame or a layer in one", run: () => { if (frameId) presentFrame(frameId); } },
+    { id: "present", group: "View", label: "Present the frame", shortcut: presentShortcut, keywords: "full screen", disabled: frameId ? undefined : "Select a frame or a layer in one", run: () => { if (frameId) presentFrame(frameId); } },
     { id: "panels", group: "View", label: "Show / hide the side panels", shortcut: `${modKey}\\`, keywords: "ui", run: toggleSidePanels },
     { id: "theme", group: "View", label: state.chromeTheme === "dark" ? "Light mode" : "Dark mode", keywords: "theme dark light interface canvas mode", run: toggleStudioTheme },
     { id: "pages", group: "Panels", label: "Show Pages", run: () => studioStore.setState({ leftTab: "pages" }) },

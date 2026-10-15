@@ -96,11 +96,11 @@ export const rows = [
     },
   },
   {
-    id: "O-03", feature: "Present (F) shows the frame full screen; Esc exits", wp: "GĐ0",
+    id: "O-03", feature: "Present (⌥⌘↵, Figma's) shows the frame full screen; Esc exits", wp: "GĐ0, keys 2026-10-15",
     async run(ctx) {
       const { page } = await ctx.studio();
       await focusFrame(page, 3);
-      await page.keyboard.press("KeyF");
+      await page.keyboard.press(process.platform === "darwin" ? "Alt+Meta+Enter" : "Control+Alt+Enter");
       const exit = page.getByRole("button", { name: /Exit full screen/i });
       await exit.waitFor({ state: "visible", timeout: 4000 });
       await page.keyboard.press("Escape");

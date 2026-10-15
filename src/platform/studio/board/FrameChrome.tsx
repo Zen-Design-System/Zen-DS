@@ -14,8 +14,10 @@ import { confirmFrameDiscard, requestFrameSave, useFrameDrafts, useStudioDrafts 
 import { canEdit, pageKey, setFrameOverride, studioStore, useStudio } from "../store";
 import type { FrameDraft, StudioFrameWidth } from "../types";
 import { FRAME_MAX_WIDTH, FRAME_MIN_WIDTH, frameWidthPresets, isCustomFrameWidth, resolveFrameWidth } from "./frameLayout";
-import { getStudioFrames, getStudioSections, useStudioFrames, useStudioSections, type StudioFrameEntry } from "./frames";
+import { getStudioFrames, getStudioSections, onFramesMoved, useStudioFrames, useStudioSections, type StudioFrameEntry } from "./frames";
 import { presentFrame, zoomToFrame } from "./presentFrame";
+import { pressFrame } from "../builder/frameMove";
+import { presentKeys, presentShortcut } from "../shell/modKey";
 import "./board.css";
 
 /** The toolbar needs this much screen width above a frame; narrower frames show it only while selected. */
@@ -235,6 +237,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   useLayoutEffect(() => {
     measure();
     const off = canvasApi.onChange(layout);
+    // A free frame moved (builder/frameMove.ts): its size did not change, so no ResizeObserver tells.
+    const offMoved = onFramesMoved(measure);
     const observer = new ResizeObserver(() => measure());
     const world = canvasApi.getWorldElement();
     if (world) {
@@ -244,7 +248,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     }
     for (const frame of frames) observer.observe(frame.element);
     for (const section of sections) observer.observe(section.element);
-    return () => { off(); observer.disconnect(); };
+    return () => { off(); offMoved(); observer.disconnect(); };
   }, [frames, sections, layout, measure]);
 
   // Label, toolbar and tab sizes: measured when they mount or change size, not per pan.
@@ -370,6 +374,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           aria-pressed={frameSelected && selectedFrame === frame.id}
           title={frame.label}
           onClick={() => studioStore.setState({ selection: { kind: "frame", frameId: frame.id } })}
+          // A frame on a page you made moves by its name (⌥ drops a copy; builder/frameMove.ts); a click still selects.
+          onPointerDown={(event) => { pressFrame(event.nativeEvent, frame.id); }}
           onFocus={(event) => revealLabel(event.currentTarget)}
           onDoubleClick={() => zoomToFrame(frame.element)}
         >
@@ -495,8 +501,8 @@ function FrameToolbar({ frame, selected, menuOpen, tools, draft, setRef, setTool
             level="primary"
             size="sm"
             aria-label={example ? "Present" : "Zoom to frame"}
-            aria-keyshortcuts="F"
-            tooltip={example ? "Present full screen (F)" : "Zoom to frame (F)"}
+            aria-keyshortcuts={presentKeys}
+            tooltip={example ? `Present full screen (${presentShortcut})` : `Zoom to frame (${presentShortcut})`}
             icon={<Icon name={example ? "icon-play-line" : "icon-zoom-in-line"} />}
             onClick={() => presentFrame(frame.id)}
           />

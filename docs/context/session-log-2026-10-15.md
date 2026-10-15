@@ -117,3 +117,32 @@ the Studio mode; Emphasis Light.
   templates: 1 AppShell, 1 Sidebar, no Screen props each, the toggles reading the template's parts.
 - Found on the way, fixed: the HTML export dropped VisuallyHidden's rule (htmlExport.tsx usedBy stripped `:focus-within`
   inside `:not(…)`, inverting it), so AppShell's "Skip to content" showed and shifted the page 20px (HO-08 0.50% → 0.00%).
+
+## Studio free frames: move, ⌥-copy, draw (tier M, user: "canvas của studio tự do hơn. Giống Figma. Có thể vẽ frame, kéo frame đi mọi nơi", "cho phép copy", "bấm option và hold kéo để duplicate frame giống figma")
+
+- Scope: pages you made (Studio space). Component (Document) pages keep their generated layout (StudioBoard
+  auto layout; StudioFrame.tsx / board.css were held by the Preview session) — not free yet, asked the user.
+- Data: `x` / `y` on a Board's Screen / Overlay, `width` / `height` on a drawn Screen (dialect.mjs validates them, numbers,
+  x and y together, no size on an Overlay; frameCode writes them; Screen/Overlay runtime drops them, `height` = least
+  height). Export/compile never read them. Frames without a place keep the old row (96 apart) right of the placed
+  ones (`builder/render/framePlace.ts` placeFrames + snapBox, selftest 12); a move pins the row in the same edit
+  (`many setProps`), an added frame (copy, Frame tool) pins it first (one more undo step, old pages only).
+- Gestures (`builder/frameMove.ts`): drag by the name label (FrameChrome) or on a selected frame (SelectionLayer, a
+  click there still picks the layer); 3 px threshold, red smart guides (edges/centres, 6 screen px; ⌘ off), ⇧ one
+  axis, ⌥ copy (switches mid-drag), Esc back, edge pan. Toolbar Screen → Frame: drag = Screen of that size (device
+  from its width, no app frame; ⇧ square, ⌥ from centre), click = device Screen at the point. Keys
+  (`builder/frameKeys.ts`, capture phase, frame selection only): ⌘D beside (past frames in the way), ⌘C / ⌘V (other
+  pages too), arrows 1 / 10 px settled in one edit after 400 ms. Writes in `builder/frameEdit.ts`. A selected frame
+  the page lost (⌘Z of a copy) is deselected. `board/frames.ts onFramesMoved` tells FrameChrome (and ProtoLinks in
+  the Prototype session's branch) to re-measure.
+- Bug met on the way: the live drag notified the canvas, whose listeners re-entered the drag update (stack overflow);
+  guarded.
+- Probes (Playwright, own Vite on 5186 without the Studio plugin, pages in the browser only): move + row pins, ⌥ copy
+  at the drop, draw 270×371 phone Screen, ⌘D, nudge 10+1, ⌘C ⌘V, ⌘Z; label click selects only, click inside a selected
+  frame selects the layer, body drag moves, Esc restores with no write, ⇧ keeps y, component page label drag moves
+  nothing; 0 page errors. Selftests: builder 50/50 (new free-frame block), framePlace 12/12. E2E B-20 now drives Frame; new row B-37 (move by name, ⌥ copy, ⌘Z).
+- Gate PASS (`--isolated --files=…`, 19 files): style, usage, Studio selftests, guidelines, tsc; Studio E2E 268 works ·
+  0 broken.
+- User's answers: F = Frame tool (Present → ⌥⌘↵, Figma's: StudioApp keys, labels via `shell/modKey.ts presentShortcut`,
+  CanvasMenu, ShortcutsDialog, FrameChrome / FramePanel aria-keyshortcuts, Quick actions, E2E O-03 / S-03); component
+  pages stay as they are; ship as a PR (worktree `../Zen-DS-freeframes`, branch from main 8471be9).
