@@ -146,3 +146,30 @@ the Studio mode; Emphasis Light.
 - User's answers: F = Frame tool (Present → ⌥⌘↵, Figma's: StudioApp keys, labels via `shell/modKey.ts presentShortcut`,
   CanvasMenu, ShortcutsDialog, FrameChrome / FramePanel aria-keyshortcuts, Quick actions, E2E O-03 / S-03); component
   pages stay as they are; ship as a PR (worktree `../Zen-DS-freeframes`, branch from main 8471be9).
+
+## Self-managed state for template pages in Studio (tier M, user: "chip advance, date input… hoạt động như bình thường trong studio"; chose B + the lock fix)
+
+- Cause: "New page from this frame" keeps literals only (handlers go), so state a parent held froze; and a controlled
+  prop without a `default…` twin stayed a literal that locked the control (snapshot.ts twin rule).
+- Chip: `popoverItems` without `onPopoverSelect`/`onPopoverCreate` = the chip keeps the choice (start: items marked
+  `selected`; key = the start props, so a Studio edit restarts it): label = the one picked value (+ its photo/icon),
+  count for multiple, × / Delete clear; placeholder = children, or `popoverLabel` when the label was the start value.
+  Picks make it Selected only for a filter chip (`selected`/`defaultSelected` given, or nothing picked at first): the
+  Dashboard's Period chip starts on a value without `selected` and only changes it (SP-15 caught the first version).
+  `defaultSelected` (Normal/Number-only toggle themselves, Advanced clears itself), `defaultPopoverOpen`. No
+  `onSelectedChange`: the harness pairs on<P>Change with P and would flag every `selected` + onClick chip.
+- Pagination `page` optional + `defaultPage`, `defaultPageSize` (resize keeps the first row, as the examples do);
+  Stepper `defaultCurrent` (Passed steps go back); SelectField `defaultPopoverOpen`.
+- Found on the way, fixed: DateField's API had no `extends` (`type DateFieldProps = InputFieldProps & {…}`), so the
+  snapshot kept `value=""` and a picked day never showed. build-api `extendsOf` follows a same-file props type (only
+  DateField changed). figma-push reads the twin (`defaultChecked`/`defaultSelected` → Select=Yes; Checkbox had it too).
+- part-props-build: after `??` own state in front of a prop (an Identifier) passes the prop on (`usedItems ??
+  popoverItems`), so Chip Popover items / Avatar src and Pagination pageSize keep their part mapping; adds ColorPicker
+  ChannelField value (`draft ?? value`, same meaning). A broader alias/`||` version was tried and dropped: it added ~15
+  mappings, one harmful (Popover open → popoverOpen would lock it).
+- Harness `chip/multiple-needs-count` skips a chip that counts itself (fixtures updated). Guidelines rows for the three.
+- Tests: tests/interaction/self-managed-state.test.tsx (11); Studio E2E SP-23 (Admin list filter chip in Interact:
+  "Role" → "Owner" → "Role, 2 applied" → cleared), SP-24 (Dashboard New project DateField: calendar, 15th fills it);
+  part-props and figma-push selftests; starters coverage 46/46 with compile; npm test 910 passed.
+- Still needs option C (not built): links between components (a chip that opens a DatePicker or BottomSheet, a filter
+  that filters a Table, Next on a Stepper).

@@ -110,7 +110,7 @@ export const Bad = () => <>
   {/* expect: segmented/option-count */}
   <Segmented aria-label="Range" options={[{ id: "d", label: "D" }, { id: "w", label: "W" }, { id: "m", label: "M" }, { id: "q", label: "Q" }, { id: "y", label: "Y" }, { id: "all", label: "All" }]} />
   {/* expect: chip/multiple-needs-count */}
-  <Chip variant="advanced" selectionMode="multiple" popoverItems={items} popoverMultiple>Owner</Chip>
+  <Chip variant="advanced" selectionMode="multiple" popoverItems={items} onPopoverSelect={toggleOwner} popoverMultiple>Owner</Chip>
   {/* expect: dialog/no-nested */}
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><Dialog open title="Confirm" /></Dialog>
   {/* expect: accordion/no-nested */}

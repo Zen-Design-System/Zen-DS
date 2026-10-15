@@ -21,6 +21,12 @@ check("Dialog passes actionsDirection to ModalActions' direction", PART_PROPS.Di
 check("SidePanel passes no direction (its actions stay horizontal)", PART_PROPS.SidePanel?.ModalActions?.direction, undefined);
 // Plumbing is left out: DOM attributes, handlers, refs.
 check("no data-, aria-, on…, className or ref entries", Object.values(PART_PROPS).flatMap((parts) => Object.values(parts).flatMap((props) => Object.keys(props))).filter((prop) => /^(?:data-|aria-|on[A-Z])|^(?:className|style|ref|key|id|children)$/.test(prop)), []);
+// Own state in front of the prop (`usedItems ?? popoverItems`: a Chip that keeps its choice) still passes it on; another
+// object's field in front of it (`entry.emphasis ?? emphasis`) does not.
+check("Chip passes popoverItems to Popover's items behind its own choice", PART_PROPS.Chip?.Popover?.items, "popoverItems");
+check("Chip passes photoSrc to Avatar's src behind its own choice", PART_PROPS.Chip?.Avatar?.src, "photoSrc");
+check("Pagination passes pageSize to PageSizeChip (pageSize ?? its own)", PART_PROPS.Pagination?.PageSizeChip?.pageSize, "pageSize");
+check("Breadcrumbs' per-crumb emphasis is not the owner's", PART_PROPS.Breadcrumbs?.BreadcrumbItem?.emphasis, undefined);
 // A capitalised local that names an element (`const Tag = … ? "button" : "div"`) is not a part.
 check("Card's polymorphic Tag is not a part", PART_PROPS.Card?.Tag, undefined);
 

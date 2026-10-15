@@ -21,6 +21,7 @@ Compact, selectable tokens. Advanced chips are the Zen filter control: each owns
 | --- | --- | --- |
 | Single choice | `ChipGroup options · value · onValueChange` | a radio group of Normal chips when exactly one value applies: one Tab stop, arrow keys move the choice, the picked chip is Selected (composed; no Figma master yet) |
 | Variant | `variant` | advanced (default) · normal · number-only |
+| Own state | `popoverItems without onPopoverSelect · defaultSelected · defaultPopoverOpen` | uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it |
 | Size | `size` | xsmall (normal only) · small · medium |
 | Level | `level` | primary · secondary (normal only) |
 | Theme | `leading / photoSrc` | text-only · leading-icon · leading-photo |
@@ -47,6 +48,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `theme` | `"text-only" \| "leading-icon" \| "leading-photo"` | — |  |
 | `state` | `"default" \| "hover" \| "press" \| "focused" \| "placeholder" \| "disabled"` | `"default"` |  |
 | `selected` | `boolean` | — | Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling. |
+| `defaultSelected` | `boolean` | — | Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's close affordance clears it. Leave `selected` out to use it. |
 | `select` | `boolean` | — | **Deprecated:** Use selected. Figma's Select property. Selected chips show the close affordance in Advanced. |
 | `dropdown` | `boolean` | — | Figma's Dropdown property. Advanced chips show a chevron when enabled. |
 | `selectionMode` | `"single" \| "multiple"` | — | Filter behavior: single keeps the dropdown affordance; multiple uses the Figma Chip/Trailing counter and changes to remove on hover. |
@@ -57,8 +59,9 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `photoSrc` | `string` | — | Leading-Photo theme: image rendered through the shared Avatar/Single (Photo, Subtle) primitive, sized per Figma (XSmall → 2XSmall 20, Small → XSmall 24, Medium → Small 32). |
 | `photoAlt` | `string` | `""` |  |
 | `trailing` | `IconName \| ReactNode` | — | Trailing slot: an icon name or a node; replaces the dropdown chevron / remove affordance. |
-| `popoverItems` | `PopoverItemData[]` | — | Items rendered by the shared Figma Popover/Default composition. |
+| `popoverItems` | `PopoverItemData[]` | — | Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the chip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles) and the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or nothing picked at first) is then Selected, counts several for `selectionMode` "multiple" and clears them with its close affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice in your own state. |
 | `popoverOpen` | `boolean` | — | Controlled open state for the advanced chip menu. |
+| `defaultPopoverOpen` | `boolean` | `false` | Uncontrolled start for `popoverOpen` (default false). |
 | `popoverMultiple` | `boolean` | `false` | Keep the shared Popover open while selected options are toggled. |
 | `onPopoverOpenChange` | `(open: boolean) => void` | — |  |
 | `onPopoverSelect` | `(item: PopoverItemData) => void` | — |  |
@@ -147,7 +150,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | `button/filter-is-chip` | error | Filter, sort and scope pickers are Chip (variant=advanced), never buttons. | `zen-allow-filter-button: <reason>` |
 | `chip/popover-needs-advanced` | error | Only Chip variant=advanced opens a Popover. | `zen-allow-chip-variant: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
-| `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount. | `zen-allow-chip-count: <reason>` |
+| `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount (a chip that keeps its own choice, popoverItems without onPopoverSelect, counts them itself). | `zen-allow-chip-count: <reason>` |
 | `chip/radio-is-chip-group` | warn | Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role="radio" by hand. | `zen-allow-chip-radio: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |

@@ -388,6 +388,14 @@
           "deprecated": null
         },
         {
+          "name": "defaultPopoverOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Uncontrolled start for `popoverOpen` (default false).",
+          "deprecated": null
+        },
+        {
           "name": "onPopoverOpenChange",
           "type": "(open: boolean) => void",
           "required": false,
@@ -418,7 +426,7 @@
       "file": "src/components/Input/Input.tsx",
       "description": "",
       "deprecated": null,
-      "extends": null,
+      "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\">",
       "props": [
         {
           "name": "label",

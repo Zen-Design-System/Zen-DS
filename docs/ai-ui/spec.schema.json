@@ -8823,6 +8823,17 @@
                 ],
                 "description": "Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling."
               },
+              "defaultSelected": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's close affordance clears it."
+              },
               "dropdown": {
                 "anyOf": [
                   {
@@ -9000,6 +9011,17 @@
                   }
                 ],
                 "description": "Controlled open state for the advanced chip menu."
+              },
+              "defaultPopoverOpen": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Uncontrolled start for `popoverOpen` (default false)."
               },
               "popoverMultiple": {
                 "anyOf": [
@@ -11456,6 +11478,176 @@
                   }
                 ],
                 "description": "The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty."
+              },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-labelledby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "aria-describedby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "disabled": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "readOnly": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "required": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "placeholder": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "autoComplete": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "inputMode": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "none",
+                      "text",
+                      "decimal",
+                      "numeric",
+                      "tel",
+                      "search",
+                      "email",
+                      "url"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "maxLength": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "min": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "max": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "step": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
               },
               "value": {
                 "anyOf": [
@@ -22970,7 +23162,18 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "1-based current page."
+                "description": "1-based current page (controlled)."
+              },
+              "defaultPage": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Uncontrolled start for `page` (default 1): ‹ › and the page items then move it themselves."
               },
               "onValueChange": {
                 "anyOf": [
@@ -23053,6 +23256,16 @@
                   }
                 ],
                 "description": "Items per page and total items (Inline/Manually)."
+              },
+              "defaultPageSize": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
               },
               "total": {
                 "anyOf": [
@@ -23148,9 +23361,7 @@
                 "description": "Initial value when uncontrolled."
               }
             },
-            "required": [
-              "page"
-            ],
+            "required": [],
             "additionalProperties": false
           },
           "children": {
@@ -26094,6 +26305,17 @@
                   }
                 ],
                 "description": "Opens the option list from outside (controlled, as on Chip); leave it out and the field opens and closes itself."
+              },
+              "defaultPopoverOpen": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Uncontrolled start for `popoverOpen` (default false)."
               },
               "onPopoverOpenChange": {
                 "anyOf": [
@@ -29219,6 +29441,17 @@
                   }
                 ],
                 "description": "Index of the current step (State=Focused)."
+              },
+              "defaultCurrent": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Uncontrolled start for `current` (default 0)."
               },
               "orientation": {
                 "anyOf": [
