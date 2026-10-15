@@ -265,6 +265,9 @@ removed (four unused colour ramps were, see Removed).
   Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
   and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole
   canvas.
+- Zen Studio frames clip their content, as Figma's Clip content (2026-10-15, user): nothing an example opens spills out
+  of its frame. An open Popover, Menu, Date or Colour Picker grows its example frame to 720px, as a modal does, and
+  flips or moves to open whole inside it; icon tooltips stay inside the frame too.
 - Tooltip (above or below its trigger) stays whole near the edge of the window or of a frame that clips it, such as a
   phone preview: it moves along instead of being cut off ("A tip on a phone" lost its first words).
 - Popover placement (useAnchoredPosition), Tooltip, the Sidebar rail tooltip and the Table editor's error bubble now
