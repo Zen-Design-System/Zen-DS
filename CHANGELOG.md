@@ -393,6 +393,10 @@ removed (four unused colour ramps were, see Removed).
 - `anthropicModel` sends `anthropic-workspace-id` (option `workspaceId`, default `ANTHROPIC_WORKSPACE_ID`) for a
   personal or service-account key with Organization scope (2026-10-15); a key scoped to one workspace needs nothing.
   The AI UI README says which key to create and what a 401 means.
+- Patterns › AI UI (2026-10-15, user: "các form nên bỏ vô card cho dễ nhìn"): a composed UI with bound controls (a
+  form, chips, a table) renders on a flat Card inside the answer, so it reads as one object; prose, a chart or a lone
+  button stay in the flow. The host frames it, the model never adds the Card. Study of the live composer's layout and
+  interaction against the ShapeShift reference: `docs/research/ai-ui-live-composer-ux-2026-10-15.md`.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.
