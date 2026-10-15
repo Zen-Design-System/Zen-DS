@@ -585,3 +585,12 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   --isolated` green; sheets reviewed. Next (the user): the orb should follow the Dribbble "Sphere AI Assistant"
   shot; `dribbble.com` / `cdn.dribbble.com` are refused by the sandbox's network policy, a screenshot or the
   domain allowed is needed first.
+- The sphere (the user: https://dribbble.com/shots/27218429-Sphere-AI-Assistant, "nên làm giống vầy"; the user
+  allowed `cdn.dribbble.com` in the environment's network policy, the mp4 was read as frames with ffmpeg): the conic
+  Siri-style orb is replaced by a frosted glass sphere — base Surface/Default → Cyan Soft at the rim, a pink pool low
+  (Pink Solid → Pink Soft), a lavender haze high right (Violet Soft), an aurora band of Violet Soft → white → Cyan
+  Solid with a white crest sweeping across the middle, a highlight top-left — three blurred `<i>` layers (blur as a
+  share of the size) that drift and slide on `--zen-motion-movement`-scaled distances (still under reduced motion;
+  nothing turns). 56 px (Element-Size/Popular/3-XLarge) in the waiting bubble, 20 px (Popular/Medium) on the composer
+  card. Style guard made the rim a gradient (hand-written box-shadow flagged) and the band's shape a transform (a
+  percentage inset flagged). Gate `--only=ai-ui --isolated` green; sheets reviewed.

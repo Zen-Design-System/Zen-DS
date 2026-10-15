@@ -380,8 +380,9 @@ removed (four unused colour ramps were, see Removed).
   answers fading in from the motion tokens, and the shared state / events
   panel ("What Zen AI sees", a `DescriptionList` and the event list) opened from the bar over the screen's edge instead of
   a JSON column. The conversation scrolls to its end once an answer's UI renders, on the phone too. While the AI works,
-  a Siri-like orb (a sphere of the Support hues swirling around a bright core, with a soft halo) sits in the bubble
-  that waits for the answer and on the composer card's type row; reduced motion keeps it still.
+  a frosted glass sphere (after the Dribbble shot "Sphere AI Assistant": a pink pool, a lavender haze and an aurora
+  band of cyan drifting inside, from the Support tokens) sits in the bubble that waits for the answer and on the
+  composer card's type row; reduced motion keeps it still.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

@@ -337,10 +337,11 @@ function Answer({ turn, demo }: { turn: Turn; demo: Demo }) {
   );
 }
 
-/** The AI at work (the user, 2026-10-15: "thử 1 cục tròn như Siri"): a sphere of the Support hues swirling around a bright
-    core, in the bubble that waits for the answer and on the composer card while it composes (ai-ui.css). */
+/** The AI at work (the user, 2026-10-15: a sphere after the Dribbble shot "Sphere AI Assistant"): frosted glass with soft
+    colour drifting inside (three blurred layers, ai-ui.css), in the bubble that waits for the answer and on the composer
+    card while it composes. */
 function Orb({ label, size }: { label: string; size?: "sm" }) {
-  return <span className={size === "sm" ? "px-ai-ui-orb px-ai-ui-orb--sm" : "px-ai-ui-orb"} role="status" aria-label={label} />;
+  return <span className={size === "sm" ? "px-ai-ui-orb px-ai-ui-orb--sm" : "px-ai-ui-orb"} role="status" aria-label={label}><i aria-hidden="true" /><i aria-hidden="true" /><i aria-hidden="true" /></span>;
 }
 
 function Thread({ demo, label = "Conversation with Zen AI" }: { demo: Demo; label?: string }) {
