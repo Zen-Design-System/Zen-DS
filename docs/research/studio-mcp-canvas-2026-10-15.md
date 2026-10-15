@@ -1,7 +1,7 @@
 # Zen Studio MCP: AI thiết kế trực tiếp trên canvas (nghiên cứu, 2026-10-15)
 
-**Trạng thái: M0 đã làm (2026-10-15, user duyệt "có"; nhánh `zen/feat/studio-mcp-m0-20261015`, worktree
-`Zen-CodeBase/Zen-DS-mcp`), xem §9 M0.** Các mốc sau cần user duyệt riêng (Scope lock, `AGENTS.md`). Tài liệu này
+**Trạng thái: M0 đã merge (#72, 2026-10-15); M1 đã làm (2026-10-16, user: "làm M1 đi", nhánh
+`zen/feat/studio-mcp-m1-20261016`), xem §9.** Các mốc sau cần user duyệt riêng (Scope lock, `AGENTS.md`). Tài liệu này
 cập nhật mục A4 ("MCP bridge") của `docs/research/studio-agent-spec-2026-10-05.md`: spec đó viết trước khi trang tự tạo
 chuyển vào trình duyệt (GĐ2) và có ID cố định (lõi tài liệu M2/M3), nên cách nối ở đó không còn tới được canvas.
 
@@ -275,9 +275,24 @@ phải trả lời cả hai (§10).
 
 - Mọi tool ở §5 trừ trang code; `batch` một bước undo; highlight; log.
 - E2E không gọi API: client SDK trong `tools/studio/e2e` phát kịch bản tool call cố định (fixture JSON) vào tab thật;
-  thêm dòng `MC-*` vào ma trận `studio:e2e`.
+  thêm dòng `AI-*` vào ma trận `studio:e2e` (`MC-*` đã là nhóm Main component).
 - Bài thử thật: Claude Code dựng một dashboard trên trang trống chỉ bằng tool (đếm lệnh bị từ chối, số bước, thời gian),
   so với bài dashboard 27 bước của người (`studio-doc-engine-plan-2026-10-10.md` "Phần còn lại").
+
+**Đã làm (2026-10-16):**
+
+- **Lỗi user gặp sau M0** ("claude chạy xong phải refresh lại mới thấy"): log MCP cho thấy Claude chỉ đọc qua MCP rồi sửa
+  thẳng `.zen-studio/pages/*.zen.tsx` bằng file tool (M0 chưa có tool dựng trang), mà tab chỉ đồng bộ thư mục khi kết
+  nối hoặc bấm "Sync with the folder". Sửa ở chủ: plugin `fs.watch` thư mục trang → sự kiện HMR
+  `zen-studio:pages-changed` → `builder/store/mirrors.ts` đồng bộ ngay (≈ 200–300 ms, không reload) và dựng lại ID layer
+  cho trang đang mở. Server instructions dặn AI không sửa file trang.
+- **Tool:** 20 tool (§5): thêm `list_pages`, `get_node`, `get_code`, `insert`, `replace`, `move`, `duplicate`, `delete`,
+  `wrap`, `unwrap`, `batch` (`as` / `"$tên"`, một bước undo, lỗi giữa chừng thì hoàn tác cả lô), `create_page`,
+  `add_frame`, `select`, `focus`, `open_page`. `api.ts`: `squashEdits` (gộp N bản ghi liên tiếp của một file),
+  `revertEdits`. Hạn chờ relay 60 s.
+- **Chưa làm trong M1:** highlight layer AI vừa đổi; bài dashboard thật bằng Claude Code (cần user chạy).
+- **Kiểm:** `mcp.selftest` 13/13; E2E nhóm `mcp` AI-01…06 (đọc, update + ⌘Z, insert + từ chối thẻ HTML, batch + hoàn tác,
+  sửa file realtime, Stop) 6/6 ba lần, đã vào baseline; bài thử trên tab thật 22/22.
 
 ### M2 · Trang code + kết nối dễ (M, 2–3 ngày)
 

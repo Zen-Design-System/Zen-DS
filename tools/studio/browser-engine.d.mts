@@ -14,7 +14,7 @@ export function originsOf(code: string, file: string, loc: string, targets: Arra
 export type DialectError = { line: number; column: number; message: string };
 export function parsePage(text: string, options?: { components?: Set<string> }): { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown; errors: DialectError[] };
 export function validateDialect(text: string, options?: { components?: Set<string> }): DialectError[];
-export function newPageText(options?: { title?: string; device?: string }): string;
+export function newPageText(options?: { title?: string; device?: string; chrome?: boolean }): string;
 export function pageHeader(text: string): Record<string, unknown> | null;
 export type BoardFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device?: string; x?: number; y?: number; loc: string };
 export function boardFrames(tree: unknown): BoardFrame[];
