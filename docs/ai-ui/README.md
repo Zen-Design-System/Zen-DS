@@ -22,6 +22,8 @@ inside Zen AI with a deterministic composer standing in for the model.
 | `tools/ai-ui/types.mjs` | Type text → schema; shared aliases (`ZenScaleInput`, `ContentTone`, text style names) read from the TypeScript source. |
 | `src/ai-ui/` → `@zen-ds/react/ai-ui` | `spec.mjs` (helpers, ids), `validate.mjs`, `print.mjs` (spec → the React it renders), `ops.mjs` (edits by node id), `markdown.mjs`, `render.tsx` (`<AiUi>`), `catalog.ts` (types). The `.mjs` modules run in Node and the browser alike; `.d.mts` beside them type them. |
 | `tools/ai-ui/lint.mjs` → `@zen-ds/react/ai-ui/lint` | `lintSpec` / `checkSpec`: the usage harness on a spec (Node, where the model composes). |
+| `tools/ai-ui/compose.mjs` → `@zen-ds/react/ai-ui/compose` | `composeUi` / `composeEdit`: the prompt in two tiers, the model call (the app's function), parse → validate → lint → feedback until clean. `tools/ai-ui/compact.mjs` formats props for prompts. |
+| `mcp/server.mjs` | `get_catalog` and `check_spec` tools beside the existing nine. |
 | `tools/ai-ui/selftest.mjs`, `tests/ai-ui/` | `npm run ai-ui:selftest` (no browser) · `npm test -- tests/ai-ui` (renderer, every catalog component from a spec, the 600 / 390 px column). |
 
 ## The spec
@@ -86,6 +88,36 @@ const next = applyOps(spec, [{ op: "setProp", id: "book", name: "level", value: 
 - **Markdown** (`markdownToSpec`): headings → `Heading` (h1 of an answer renders as level 2), paragraphs → `Text` with
   `**bold**`, `*em*`, `` `code` `` and `[links](url)` as nested `Text` / `Link`, lists → `List` + `ListItem`, pipe tables →
   `Table`, fenced code → `Text as="code"`, quotes → light `Text`, rules → `Divider`.
+
+## Composing with a model (server)
+
+`@zen-ds/react/ai-ui/compose` is the loop the handoff asked for, provider-agnostic: the app passes `model`, a function
+`({ system, messages }) => Promise<string>` over whatever API it uses.
+
+```ts
+import { composeUi, composeEdit } from "@zen-ds/react/ai-ui/compose";
+
+const answer = await composeUi({ prompt, catalog, model, data: { slots }, state: shared });
+// answer.ok · answer.text · answer.spec (ids assigned, validated, linted) · answer.components · answer.attempts
+const edit = await composeEdit({ prompt: "make it accent", spec: answer.spec, state: shared, catalog, model });
+// edit.kind: "ops" | "state" | "spec" | "text" · edit.spec (the ops applied) · edit.state (a state change to apply)
+```
+
+- **Two tiers in the prompt.** `composeUi` first asks the model to pick at most 8 components from tier 1 (`tier1`: one
+  line each, ~41 KB with prop names), then composes with tier 2 of the picked ones (`tier2`: props with types, defaults
+  and descriptions, shared types, bindings, Do / Don't; Stack, Text, Heading and Button always there in brief). Pass
+  `components` to skip the pick, `pick: false` to compose from tier 1 in one call. `buildSystemPrompt` gives the prompt
+  alone (the rules come from `composer-rules.md`).
+- **The loop.** Each reply is parsed (`extractJson` tolerates fences and prose), ids are assigned, the spec is validated
+  and linted (`judge`); a rejected one goes back as a numbered list of problems with paths and hints (`feedbackFor`) until
+  it is clean or `maxAttempts` (3) is spent. `attempts` keeps every round for the metrics the handoff names (valid-spec
+  rate, time to first UI). A reply with `text` and no `spec` is a prose answer.
+- **Follow-ups.** `composeEdit` sends the spec on screen, its components' tier 2 and an ops reference; the model answers
+  with `ops` (applied with `applyOps`, then judged), a `state` change, a new `spec`, or text only.
+- **Data.** `data` is described to the model by shape (keys and a sample item), never pasted in full; the spec reads it
+  with `$ref`, so the model cannot invent values.
+- **MCP.** `zen-ds-mcp` has `get_catalog` (tier 1, or one component's tier 2) and `check_spec` (validation + lint of a
+  spec) so an agent in Claude Code, Cursor or Cowork can compose and check specs with the same contract.
 
 ## Catalog rules
 

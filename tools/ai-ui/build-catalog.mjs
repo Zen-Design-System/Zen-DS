@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AUTO_BIND_PROPS, BINDING_ALIASES, CHROME_COMPONENTS, EXCLUDED_PROP_NAMES, EXCLUDED_TYPE_RE, HTML_ATTRIBUTES, STATUS_OVERRIDES } from "./catalog.config.mjs";
+import { compactProps, compactType } from "./compact.mjs";
 import { typeSchema } from "./types.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -175,26 +176,7 @@ export function buildIndex(catalog) {
   };
 }
 
-/** One component's props in short form (`level?: primary|accent|…`), for a prompt that already picked it. */
-export function compactProps(entry, catalog) {
-  return Object.entries(entry.props).map(([name, schema]) => `${name}${schema["x-required"] ? "" : "?"}: ${compactType(schema, catalog)}`);
-}
-
-function compactType(schema, catalog, depth = 0) {
-  if (!schema || depth > 3) return "any";
-  if (schema.$ref) return schema.$ref.split("/").pop();
-  if (schema["x-kind"] === "action") return `action(${(schema.params ?? []).map((p) => `${p.name}: ${p.type}`).join(", ")})`;
-  if (schema["x-kind"] === "node") return schema["x-icon"] ? "icon|node" : "node";
-  if (schema["x-kind"] === "element") return "element";
-  if (schema["x-kind"] === "icon") return "icon";
-  if (schema["x-kind"] === "date") return "date";
-  if (schema.enum) return schema.enum.map((v) => (typeof v === "string" ? v : JSON.stringify(v))).join("|");
-  if (schema.anyOf) return schema.anyOf.map((s) => compactType(s, catalog, depth + 1)).join(" | ");
-  if (schema.type === "array") return `${compactType(schema.items, catalog, depth + 1)}[]`;
-  if (schema.type === "object") return schema.properties ? `{ ${Object.keys(schema.properties).join(", ")} }` : "object";
-  if (schema.type) return schema.type;
-  return "any";
-}
+export { compactProps };
 
 /** JSON Schema (draft 2020-12) of a spec document: for Ajv, Zod or another tool; src/ai-ui/validate.mjs reads catalog.json instead. */
 export function buildSpecSchema(catalog) {

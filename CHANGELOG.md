@@ -275,6 +275,10 @@ removed (four unused colour ramps were, see Removed).
   confirmation Dialog and a prose answer, each validated against the catalog and rendered in the AI bubble; what Alex picks
   shows in a "shared state" panel, follow-ups edit the UI in place, a rejected spec shows its errors; a phone example and a
   playground whose code is the React the renderer runs (`toJsx`).
+- **Compose loop and MCP tools** (`@zen-ds/react/ai-ui/compose`, 2026-10-15): `composeUi` (pick components from tier 1,
+  compose with their tier 2, parse → validate → lint → send the problems back until the spec is clean) and `composeEdit`
+  (a follow-up as ops, a state change or a new spec), provider-agnostic through the app's `model` function;
+  `zen-ds-mcp` gains `get_catalog` and `check_spec`.
 - Accordion `size="sm"` (Figma Accordion/Text and .Primitives/Accordion/Content Size=Small, added 2026-10-15, user):
   for dense panels and cards — title Body/Base/Bold, content Body/Small/Regular, Padding/Small and Gap/Small, the 20px
   chevron on the title's line, Box Corner-Radius/Base. Example: Accordion › Layer settings.

@@ -48,6 +48,11 @@
       "import": "./tools/ai-ui/lint.mjs",
       "default": "./tools/ai-ui/lint.mjs"
     },
+    "./ai-ui/compose": {
+      "types": "./tools/ai-ui/compose.d.mts",
+      "import": "./tools/ai-ui/compose.mjs",
+      "default": "./tools/ai-ui/compose.mjs"
+    },
     "./ai-ui/catalog.json": "./docs/ai-ui/catalog.json",
     "./ai-ui/catalog.index.json": "./docs/ai-ui/catalog.index.json",
     "./eslint": "./tools/usage-guard/eslint.mjs",
@@ -78,7 +83,10 @@
     "docs/ai-ui/composer-rules.md",
     "src/ai-ui",
     "tools/ai-ui/lint.mjs",
-    "tools/ai-ui/lint.d.mts"
+    "tools/ai-ui/lint.d.mts",
+    "tools/ai-ui/compose.mjs",
+    "tools/ai-ui/compose.d.mts",
+    "tools/ai-ui/compact.mjs"
   ],
   "scripts": {
     "dev": "vite",
