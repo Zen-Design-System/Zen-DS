@@ -361,6 +361,13 @@ export function StudioApp() {
         void detachSelection(selection);
         return;
       }
+      // ⌥⌘↵ / Ctrl+Alt+Enter presents the selected frame (Figma's Present; it was F until 2026-10-15).
+      if (mod && event.altKey && !event.shiftKey && event.key === "Enter") {
+        if (doc || inExample) return;
+        const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
+        if (frameId) { event.preventDefault(); presentFrame(frameId); }
+        return;
+      }
       // ⌘/Ctrl+D duplicates the selected layer (Figma's Duplicate) in the Select tool. On the canvas the browser's bookmark
       // dialog never opens, whatever is selected; a held key does not go on duplicating the copy.
       if (mod && !event.altKey && !event.shiftKey && key === "d") {
@@ -471,8 +478,8 @@ export function StudioApp() {
         const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
         startPlay(frameId?.startsWith("screen:") ? frameId.split(":")[1] : null);
       } else if (key === "f") {
-        const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
-        if (frameId) { event.preventDefault(); presentFrame(frameId); }
+        // Figma's F: the Frame tool, on a page you made (user, 2026-10-15; Present moved to ⌥⌘↵).
+        if (state.localPage) studioStore.setState({ tool: "frame" });
       } else return;
     };
     // Ctrl/⌘ + wheel over the chrome must never zoom the page itself (the canvas zooms its own content).

@@ -25,6 +25,7 @@ import { clipBox, clipInside, clipRectOf, type ClipCache } from "./clip";
 import { MAIN_FRAME, variantKey } from "../mainComponent/model";
 import { pickVariant } from "../mainComponent/select";
 import { variantHover } from "../mainComponent/hover";
+import { pressFrame } from "../builder/frameMove";
 import "./select.css";
 
 /*
@@ -641,6 +642,14 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       // Normally unreachable (the layer lets chrome events through); forward the press to the control.
       picked.element.closest<HTMLElement>("button, a[href], [role='button'], [tabindex]")?.click();
       return;
+    }
+    // A selected frame on a page you made moves with a drag anywhere on it, ⌥ drops a copy (Figma; builder/frameMove.ts);
+    // a click without moving picks as it would have (the frame's background: the frame; a layer: its outermost).
+    const current = studioStore.getState().selection;
+    if (current?.kind === "frame" && !event.shiftKey && !event.metaKey && !event.ctrlKey && (picked.kind === "frame" || picked.kind === "node")) {
+      const frame = picked.kind === "frame" ? picked.frame : picked.hit.hosts[0]?.closest("[data-studio-frame]");
+      const pickNode = () => { if (picked.kind === "node") choose(targetOf(picked, false), false); };
+      if (frame?.getAttribute("data-studio-frame") === current.frameId && pressFrame(event.nativeEvent, current.frameId, pickNode)) return;
     }
     if (picked.kind === "node") {
       if (event.detail <= 1) pressSelectionRef.current = studioStore.getState().selection;

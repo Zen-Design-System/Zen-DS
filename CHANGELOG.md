@@ -19,6 +19,12 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed).
 
 ### Changed
+- Zen Studio canvas, free frames on a page you made (2026-10-15, user: "canvas tự do hơn, giống Figma"): drag a frame by
+  its name (or a selected frame anywhere) to move it, with red snap guides to the other frames (⌘ off, ⇧ one axis, Esc
+  back); ⌥-drag drops a copy; ⌘D, ⌘C / ⌘V copy a frame (also onto another page); the arrow keys nudge it. The toolbar's
+  Screen tool is now Frame (F, as in Figma): drag a box for a Screen of that size, or click for one on the page's device.
+  Present the selected frame moved from F to ⌥⌘↵ (Figma's). Places are written in the page (`x` / `y` on Screen and
+  Overlay, `width` / `height` on a drawn Screen); one ⌘Z per gesture.
 - Zen Studio: a Screen's desktop frame is its master layout (2026-10-15, user: "Khung Screen = Master-Layout đầy đủ"):
   one AppShell at the Screen's root, as Figma's ◇ Master-Layout. Screen › Sidebar, Top bar, Top bar actions, Page header,
   Side panel, Floating action and Footer each switch one of its parts (Page header also reads the one a template keeps in

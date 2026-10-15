@@ -10,10 +10,10 @@ import "./canvas.css";
 export const CANVAS_STATUS_ID = "studio-canvas-status";
 
 const hints: Record<StudioTool, string> = {
-  select: "Select · click a layer to inspect · ⌘/Ctrl-click a nested part · I to interact",
+  select: "Select · click a layer to inspect · ⌘/Ctrl-click a nested part · drag a frame's name to move it, ⌥ to copy · I to interact",
   interact: "Interact · use the examples · V to select",
   hand: "Hand · drag to pan",
-  screen: "Screen · click the canvas to add a Screen · Esc for Move",
+  frame: "Frame (F) · drag a box for a Screen of that size, or click for one on the page's device · Esc for Move",
   stack: "Stack · point where it goes, click to place · Esc for Move",
   text: "Text · point where it goes, click to place · Esc for Move",
   image: "Image · point where it goes, click to place · Esc for Move",

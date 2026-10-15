@@ -106,6 +106,10 @@ Last updated: 2026-10-15.
   (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
   `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
   keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push).
+- **Zen Studio free frames (2026-10-15, user):** on a page you made, Screens / Overlays sit at `x` / `y` from the page
+  (frames without them keep the old row, `builder/render/framePlace.ts`); drag by name or a selected frame, ⌥ copies,
+  ⌘D / ⌘C ⌘V / arrows (`builder/frameMove.ts`, `frameKeys.ts`, writes in `frameEdit.ts`); toolbar Frame (F) draws a
+  Screen (`width` / `height`); Present is ⌥⌘↵. Component (Document) pages keep their generated layout (user: not free).
 - **Zen Studio UI3 shell (2026-10-15, user):** Figma UI3 floating panels — no toolbar row; the canvas fills the window
   under the panels (`canvas/viewport.ts` `setCanvasInsets` / `getSafeBox`: fit, zoom, keep-in-view, frame chrome and
   edge pan aim at the visible part); headers in `shell/PanelHeaders.tsx`; corner bars when a panel is not docked.

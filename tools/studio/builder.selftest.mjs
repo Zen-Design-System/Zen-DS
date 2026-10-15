@@ -149,6 +149,27 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("a new phone page has no AppShell", [/\bAppShell\b/.test(newPageText({ title: "P", device: "phone" })), validateDialect(newPageText({ title: "P", device: "phone" }), { components })], [false, []]);
 }
 
+// Free frames (2026-10-15): a frame's place (x, y) and a drawn Screen's size (width, height) on the Board.
+{
+  let free = newPageText({ title: "Free", device: "phone", chrome: false });
+  const board = () => parsePage(free).board;
+  const placed = applyOps(free, board().loc, "Board", [{ op: "insertChild", code: frameCode({ kind: "screen", id: "screen-2", title: "Drawn", device: "tablet", chrome: false, x: -120.4, y: 480, width: 800, height: 600 }) }], options(free));
+  check("insert a placed, drawn Screen", placed.error ?? null, null);
+  free = placed.code ?? free;
+  check("written as whole px", /<Screen id="screen-2" title="Drawn" device="tablet" x=\{-120\} y=\{480\} width=\{800\} height=\{600\}>/.test(free), true);
+  check("a placed page is valid", validateDialect(free, { components }), []);
+  check("boardFrames reads the place", boardFrames(parsePage(free)).map((frame) => [frame.id, frame.x ?? null, frame.y ?? null]), [["screen-1", null, null], ["screen-2", -120, 480]]);
+  const overlay = applyOps(free, board().loc, "Board", [{ op: "insertChild", code: frameCode({ kind: "overlay", id: "confirm", x: 10, y: 20 }) }], options(free));
+  check("an Overlay takes a place", [overlay.error ?? null, /<Overlay id="confirm" x=\{10\} y=\{20\}>/.test(overlay.code ?? "")], [null, true]);
+  const moved = applyOps(free, board().children[0].loc, "Screen", [{ op: "setProp", name: "x", value: { kind: "number", value: 64 } }, { op: "setProp", name: "y", value: { kind: "number", value: -32 } }], options(free));
+  check("setProp places a frame", [moved.error ?? null, validateDialect(moved.code ?? "", { components })], [null, []]);
+  const errors = (text) => validateDialect(text, { components }).map((error) => error.message);
+  check("x alone is refused", errors(free.replace(' x={-120} y={480}', ' x={-120}')), ["<Screen> takes x and y together"]);
+  check("a place is a number", errors(free.replace("x={-120}", 'x="left"')), ["x is a number from -100000 to 100000"]);
+  check("a size has limits", errors(free.replace("width={800}", "width={40}")), ["width is a number from 120 to 4096"]);
+  check("an Overlay has no size", errors((overlay.code ?? "").replace('<Overlay id="confirm" x={10} y={20}>', '<Overlay id="confirm" width={400}>')), ["An Overlay takes its dialog's size (no width or height)"]);
+}
+
 if (failures.length) {
   console.error(`builder selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);
   process.exit(1);
