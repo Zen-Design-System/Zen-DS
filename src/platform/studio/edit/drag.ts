@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { canvasApi, getViewport, getViewportBox, panBy } from "../canvas/viewport";
+import { canvasApi, getSafeBox, getViewport, getViewportBox, panBy } from "../canvas/viewport";
 import { annotatedAt, childHits, findBySrc, frameOf, panelOf, parentHit, rectOf, type FiberHit } from "../select/picker";
 import { multiSelection, selectedLayers, type ExtraLayer } from "../select/multiSelection";
 import { canStructurallyEdit, structuralBlock } from "../slots/actions";
@@ -351,7 +351,10 @@ function edgePan(current: Session) {
   cancelAnimationFrame(current.pan);
   const tick = () => {
     if (session !== current || !current.dragging) return;
-    const box = getViewportBox();
+    // Edge pan at the edges of the visible canvas (the floating side panels cover the rest).
+    const client = getViewportBox();
+    const safe = getSafeBox();
+    const box = { left: client.left + safe.x, top: client.top + safe.y, width: safe.width, height: safe.height };
     const { x, y } = current.pointer;
     const speed = (distance: number) => (distance < EDGE ? Math.ceil((EDGE - distance) / 3) : 0);
     const dx = speed(x - box.left) ? -speed(x - box.left) : speed(box.left + box.width - x);

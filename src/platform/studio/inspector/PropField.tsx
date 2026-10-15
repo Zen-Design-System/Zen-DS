@@ -1,9 +1,12 @@
 import { useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useWords } from "../useWords";
 import { Button, IconButton } from "../../../components/Button";
+import { Icon } from "../../../components/Icon";
+import { ColorSwatch } from "../../../components/ColorSwatch";
 import { InputField, NumberField, SelectField, TextAreaField } from "../../../components/Input";
 import { Popover, PopoverItem } from "../../../components/Popover";
 import { Segmented } from "../../../components/Segmented";
+import { SliderField } from "../../../components/SliderField";
 import { ToggleButton } from "../../../components/Toggle";
 import { contentToneGroups, contentTones, contentToneToken, contentToneVar, resolveContentTone, type ContentTone } from "../../../components/_shared/contentTone";
 import type { IconName } from "../../../icons/generated/names";
@@ -18,7 +21,8 @@ import { useObjectStarter } from "./useObjectStarter";
 import { PhotoControl } from "./controls/PhotoControl";
 import { ScaleField } from "./controls/ScaleField";
 import { scaleOfType } from "./controls/scale";
-import { InspectorRow } from "./Section";
+import { InspectorRow, NoInlineLabel, useInlineLabel } from "./Section";
+import { numberRange, type NumberRange } from "./numberRanges";
 import { toneWarning } from "./toneRules";
 
 /*
@@ -39,6 +43,7 @@ type ControlProps<T extends Literal> = { label: string; value: T | undefined; fa
  * on the canvas unmounts the field before blur). Escape restores the source value and keeps focus in the field.
  */
 export function TextControl({ label, value, fallback, disabled, onSet, multiline = false, autoFocusToken, numeric = false }: ControlProps<string | number> & { multiline?: boolean; autoFocusToken?: number; numeric?: boolean }) {
+  const inlineLabel = useInlineLabel();
   const source = value === undefined ? "" : String(value);
   const [draft, setDraft] = useState(source);
   const committed = useRef<string | null>(null);
@@ -81,11 +86,57 @@ export function TextControl({ label, value, fallback, disabled, onSet, multiline
   };
   const placeholder = fallback === undefined ? "" : String(fallback);
   if (multiline) return <TextAreaField ref={ref} aria-label={label} size="sm" value={draft} rows={3} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
-  return <InputField ref={ref} aria-label={label} size="sm" value={draft} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
+  return <InputField ref={ref} aria-label={label} size="sm" layout={inlineLabel ? "inline" : undefined} label={inlineLabel ?? undefined} value={draft} disabled={disabled} placeholder={placeholder} onValueChange={change} onBlur={commit} onKeyDown={onKeyDown} />;
+}
+
+/**
+ * A number with a known range (numberRanges.ts): Figma's Slider/Field — drag to scrub, click to type, ↑/↓ step. It writes
+ * once the scrub pauses, on blur or on a selection change, never on every pixel of a drag.
+ */
+function NumberSliderControl({ label, value, fallback, disabled, onSet, range }: ControlProps<number> & { range: NumberRange }) {
+  const inlineLabel = useInlineLabel();
+  const start = value ?? fallback ?? range.min;
+  const [draft, setDraft] = useState(start);
+  const edited = useRef(false);
+  const timer = useRef(0);
+  useEffect(() => {
+    setDraft(start);
+    edited.current = false;
+  }, [start]);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const commit = (next: number = draft) => {
+    window.clearTimeout(timer.current);
+    if (disabled || !edited.current || next === value) return;
+    edited.current = false;
+    onSet(next);
+  };
+  usePendingDraft(() => commit());
+  return (
+    <div className="studio-slider-control" onBlur={() => commit()}>
+      <SliderField
+        label={inlineLabel ?? label}
+        aria-label={label}
+        size="sm"
+        min={range.min}
+        max={range.max}
+        step={range.step}
+        formatValue={range.format}
+        value={draft}
+        disabled={disabled}
+        onValueChange={(next) => {
+          edited.current = true;
+          setDraft(next);
+          window.clearTimeout(timer.current);
+          timer.current = window.setTimeout(() => commit(next), 400);
+        }}
+      />
+    </div>
+  );
 }
 
 /** A number committed once per value, on Enter, blur or a selection change (as TextControl). */
 export function NumberControl({ label, value, fallback, disabled, onSet }: ControlProps<number>) {
+  const inlineLabel = useInlineLabel();
   const [draft, setDraft] = useState<number | null>(value ?? null);
   const committed = useRef<number | null>(null);
   /** Typed by the user (see TextControl): a stale draft is never written back. */
@@ -105,6 +156,8 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
     <NumberField
       aria-label={label}
       size="sm"
+      layout={inlineLabel ? "inline" : undefined}
+      label={inlineLabel ?? undefined}
       value={draft}
       placeholder={fallback === undefined ? "" : String(fallback)}
       disabled={disabled}
@@ -124,12 +177,23 @@ export function NumberControl({ label, value, fallback, disabled, onSet }: Contr
   );
 }
 
-/* Small full-width Segmented: equal items, each its label plus 2 × (item padding + label padding), in a padded track. */
-const SEGMENT_CHROME = 16;
-/** 2 × the track's Spacing/Padding/3XSmall. */
-const TRACK_PADDING = 4;
+/* Small full-width Segmented: equal items, each its label plus 2 × (item padding + label padding), in a padded track.
+   Read from the Segmented tokens where it renders (Segmented/Spacing Small Horizontal-Padding and Text-Wrapper-Padding,
+   Spacing/Padding/3XSmall for the track), so a token change never leaves a cut label ("Stac…", 2026-10-15). */
+function segmentedChrome(host: HTMLElement) {
+  const style = getComputedStyle(host);
+  const px = (name: string, fallback: number) => parseFloat(style.getPropertyValue(name)) || fallback;
+  return {
+    item: 2 * (px("--zen-segmented-spacing-small-horizontal-padding", 4) + px("--zen-segmented-spacing-small-text-wrapper-padding", 8)),
+    track: 2 * px("--zen-spacing-padding-3-xsmall", 2),
+  };
+}
 
-/** Whether a small full-width Segmented shows every label whole at the wrapper's current width. */
+/**
+ * Whether a small full-width Segmented shows every label whole at the wrapper's current width. In a label-left row the
+ * Segmented has the control column, while a select takes the label inside and both columns (Inline-Field): the check
+ * uses the control column's width either way, so the choice never flips with the row it causes.
+ */
 function useSegmentedFits(labels: string[]) {
   const ref = useRef<HTMLDivElement>(null);
   const [fits, setFits] = useState(true);
@@ -143,14 +207,23 @@ function useSegmentedFits(labels: string[]) {
     host.appendChild(probe);
     const measureText = () => names.map((name) => { probe.textContent = name; return probe.getBoundingClientRect().width; });
     let widths = measureText();
+    const row = host.closest<HTMLElement>(".studio-inspector__row");
+    const column = () => {
+      if (!row || row.dataset.stacked === "true" || row.dataset.compact === "true") return host.clientWidth;
+      const style = getComputedStyle(row);
+      const gap = parseFloat(style.columnGap) || 0;
+      const action = parseFloat(style.gridTemplateColumns.split(" ").pop() ?? "") || 0;
+      return (row.clientWidth - action - gap * 2) / 2;
+    };
     const check = () => {
-      const available = host.clientWidth;
+      const available = column();
       if (!available || !names.length) return;
-      setFits((available - TRACK_PADDING) / names.length >= Math.max(...widths) + SEGMENT_CHROME);
+      const chrome = segmentedChrome(host);
+      setFits((available - chrome.track) / names.length >= Math.max(...widths) + chrome.item);
     };
     check();
     const observer = new ResizeObserver(check);
-    observer.observe(host);
+    observer.observe(row ?? host);
     let alive = true;
     void document.fonts?.ready.then(() => { if (!alive) return; widths = measureText(); check(); });
     return () => { alive = false; observer.disconnect(); probe.remove(); };
@@ -167,6 +240,7 @@ export function EnumControl({ label, value, fallback, disabled, onSet, options, 
   const current = matched ?? (fallback === undefined ? "" : matchOption(fallback, all));
   const text = (option: string) => labels?.[option] ?? option;
   const [ref, fits] = useSegmentedFits(all.length <= 4 ? all.map(text) : []);
+  const inlineLabel = useInlineLabel();
   return (
     <div ref={ref} className="studio-enum">
       {all.length <= 4 && fits ? (
@@ -183,6 +257,8 @@ export function EnumControl({ label, value, fallback, disabled, onSet, options, 
         <SelectField
           aria-label={label}
           size="sm"
+          layout={inlineLabel ? "inline" : undefined}
+          label={inlineLabel ?? undefined}
           disabled={disabled}
           value={current}
           placeholder="—"
@@ -236,6 +312,7 @@ export function TextAlignControl({ label, value, fallback, disabled, onSet, opti
  * keeps no focus then); typing writes on Enter, blur, an arrow key's release or a selection change (as NumberControl).
  */
 function LinesControl({ label, value, disabled, onSet }: { label: string; value: number; disabled: boolean; onSet: (value: number) => void }) {
+  const inlineLabel = useInlineLabel();
   const [draft, setDraft] = useState<number | null>(value);
   const committed = useRef<number | null>(null);
   /** Typed or stepped by the user (see TextControl): a stale draft is never written back. */
@@ -259,6 +336,8 @@ function LinesControl({ label, value, disabled, onSet }: { label: string; value:
       ref={ref}
       aria-label={label}
       size="sm"
+      layout={inlineLabel ? "inline" : undefined}
+      label={inlineLabel ?? undefined}
       min={1}
       step={1}
       value={draft}
@@ -285,11 +364,14 @@ function LinesControl({ label, value, disabled, onSet }: { label: string; value:
 }
 
 function NumberEnumControl({ label, value, fallback, disabled, onSet, options }: ControlProps<number> & { options: number[] }) {
+  const inlineLabel = useInlineLabel();
   const all = value !== undefined && !options.includes(value) ? [...options, value] : options;
   return (
     <SelectField
       aria-label={label}
       size="sm"
+      layout={inlineLabel ? "inline" : undefined}
+      label={inlineLabel ?? undefined}
       disabled={disabled}
       value={value !== undefined ? String(value) : fallback !== undefined ? String(fallback) : ""}
       placeholder="—"
@@ -317,6 +399,7 @@ function textStyleGroups(keys: readonly string[]) {
  * says while nothing is set ("None"); `onClear` adds a "None" row that removes the style.
  */
 export function TypographyControl({ label, value, fallback, disabled, onSet, emptyLabel, onClear }: ControlProps<string> & { emptyLabel?: string; onClear?: () => void }) {
+  const inlineLabel = useInlineLabel();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -355,6 +438,8 @@ export function TypographyControl({ label, value, fallback, disabled, onSet, emp
       <SelectField
         aria-label={label}
         size="sm"
+        layout={inlineLabel ? "inline" : undefined}
+        label={inlineLabel ?? undefined}
         disabled={disabled}
         value={shown ?? ""}
         placeholder={emptyLabel ?? "—"}
@@ -402,6 +487,12 @@ function ToneSwatch({ tone }: { tone: string | undefined }) {
   return <span className="studio-tone-swatch" data-swatch={token ? undefined : "none"} style={token ? { color: `var(${token})` } : undefined} aria-hidden="true" />;
 }
 
+/** The value's swatch at the end of an inline tone field: Figma Inline-Field Type=Color's Color-Swatch. */
+function InlineToneSwatch({ tone }: { tone: string | undefined }) {
+  const token = tone && toneSet.has(tone) ? contentToneVar(tone as ContentTone) : null;
+  return token ? <ColorSwatch color={`var(${token})`} size="sm" /> : <ToneSwatch tone={tone} />;
+}
+
 /**
  * A `tone` prop (Text, Heading, Icon, Link): like a select, but the trigger and every option lead with a swatch of the
  * colour the tone paints, named after its Color/Content token. The list groups the tones by token family (Neutral,
@@ -409,6 +500,7 @@ function ToneSwatch({ tone }: { tone: string | undefined }) {
  * tone they paint with. The SelectField's own list stays closed (as in TypographyControl).
  */
 export function ToneControl({ label, value, fallback, disabled, onSet, options, component }: ControlProps<string> & { options: string[]; component?: string }) {
+  const inlineLabel = useInlineLabel();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -447,13 +539,17 @@ export function ToneControl({ label, value, fallback, disabled, onSet, options, 
   };
   return (
     <div ref={anchorRef} className="studio-tone-control">
+      {/* Inline (Figma Inline-Field Type=Color): the label left, the token and its swatch at the end. */}
       <SelectField
         aria-label={label}
         size="sm"
+        layout={inlineLabel ? "inline" : undefined}
+        label={inlineLabel ?? undefined}
         disabled={disabled}
         value={shown ?? ""}
         placeholder="—"
-        leading={<ToneSwatch tone={shown} />}
+        leading={inlineLabel ? undefined : <ToneSwatch tone={shown} />}
+        trailing={inlineLabel ? <InlineToneSwatch tone={shown} /> : undefined}
         options={shown ? [{ value: shown, label: shown }] : []}
         popoverOpen={false}
         onPopoverOpenChange={(next) => { if (next) setOpen((was) => !was); }}
@@ -547,6 +643,7 @@ function wordsNear(host: Element | null): string {
  * typing). `emptyLabel`: what the field reads with no icon ("None").
  */
 export function IconControl({ label, value, fallback, disabled, onSet, emptyLabel = "None", defaultIcon }: ControlProps<string> & { emptyLabel?: string; defaultIcon?: string }) {
+  const inlineLabel = useInlineLabel();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -575,20 +672,23 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
     if (name !== value) onSet(name);
   };
   return (
-    <div ref={anchorRef} className="studio-icon-control" data-empty={shown ? undefined : "true"}>
+    <div ref={anchorRef} className="studio-icon-control" data-empty={shown ? undefined : "true"} data-inline={inlineLabel ? "true" : undefined}>
       {/* zen-allow-filter-button: an inspector value picker (an icon name for a prop), not a filter or sort control; it
           wears a field's frame like the selects around it (Design panel UI3) */}
       <Button
         level="tertiary"
         size="sm"
         disabled={disabled}
-        startIcon={asIcon(shown)}
+        startIcon={inlineLabel ? undefined : asIcon(shown)}
         endIcon="icon-chevron-down-line"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${label}: ${shown ?? emptyLabel.toLowerCase()}`}
         onClick={() => setOpen((current) => !current)}
       >
+        {/* Inline (Figma Inline-Field): the row's label left, the icon and its name at the end. */}
+        {inlineLabel ? <span className={`studio-inline-label ${typographyStyles["Body/Small/Medium"]}`}>{inlineLabel}</span> : null}
+        {inlineLabel && asIcon(shown) ? <Icon name={asIcon(shown) as IconName} size="sm" decorative /> : null}
         <span className={`studio-icon-control__label ${typographyStyles["Body/Small/Medium"]}`}>{shown ?? emptyLabel}</span>
       </Button>
       <Popover
@@ -637,7 +737,7 @@ export function IconToggleControl({ label, value, fallback, disabled, onSet, onR
   return (
     <div className="studio-icon-toggle">
       <ToggleButton aria-label={`Show ${inSentence(label)}`} size="sm" checked={on} disabled={disabled} onCheckedChange={(next) => { if (!next) onSet(false); else switchOn(); }} />
-      {on ? <IconControl label={label} value={typeof value === "string" ? value : undefined} fallback={icon} emptyLabel="Default" defaultIcon={defaultIcon} disabled={disabled} onSet={onSet} /> : null}
+      {on ? <NoInlineLabel><IconControl label={label} value={typeof value === "string" ? value : undefined} fallback={icon} emptyLabel="Default" defaultIcon={defaultIcon} disabled={disabled} onSet={onSet} /></NoInlineLabel> : null}
     </div>
   );
 }
@@ -647,8 +747,11 @@ export function IconToggleControl({ label, value, fallback, disabled, onSet, onR
  * place in the column, so a read-only row reads like the editable rows around it. `code`: the text is an expression.
  */
 function StaticField({ text, code = false, placeholder = false, title }: { text: string; code?: boolean; placeholder?: boolean; title?: string }) {
+  // In a label-left row it reads as an Inline-Field: the label left, the value at the end.
+  const inlineLabel = useInlineLabel();
   return (
-    <span className={`studio-inspector__static ${typographyStyles["Body/Small/Medium"]}`} data-code={code || undefined} data-placeholder={placeholder || undefined} title={title ?? text}>
+    <span className={`studio-inspector__static ${typographyStyles["Body/Small/Medium"]}`} data-code={code || undefined} data-placeholder={placeholder || undefined} data-inline={inlineLabel ? "true" : undefined} title={title ?? text}>
+      {inlineLabel ? <span className={`studio-inline-label ${typographyStyles["Body/Small/Medium"]}`}>{inlineLabel}</span> : null}
       <span className="studio-inspector__static-text">{text}</span>
     </span>
   );
@@ -697,8 +800,11 @@ function dataControl(spec: PropSpec, live: unknown, label: string, disabled: boo
       return <EnumControl {...common} {...namedOptions(editor.options, optionLabels)} value={typeof live === "string" ? live : undefined} onSet={onSet} />;
     case "number-enum":
       return <NumberEnumControl {...common} options={editor.options} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
-    case "number":
-      return <NumberControl {...common} value={typeof live === "number" ? live : undefined} onSet={onSet} />;
+    case "number": {
+      const shown = typeof live === "number" ? live : undefined;
+      const range = numberRange(component, spec.name, shown);
+      return range ? <NumberSliderControl {...common} range={range} value={shown} onSet={onSet} /> : <NumberControl {...common} value={shown} onSet={onSet} />;
+    }
     case "string":
     case "node":
       return typeof live === "string" || typeof live === "number" || live === undefined
@@ -736,8 +842,13 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       const checked = typeof literal === "boolean" ? literal : fallback === true;
       return <ToggleButton aria-label={common.label} size="sm" checked={checked} disabled={common.disabled || (literal !== undefined && typeof literal !== "boolean")} onCheckedChange={(next) => onSet(next)} />;
     }
-    case "number":
-      return <NumberControl {...common} value={typeof literal === "number" ? literal : undefined} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;
+    case "number": {
+      const shown = typeof literal === "number" ? literal : undefined;
+      const range = numberRange(extra.component, spec.name, shown ?? (typeof fallback === "number" ? fallback : undefined));
+      return range
+        ? <NumberSliderControl {...common} range={range} value={shown} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />
+        : <NumberControl {...common} value={shown} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;
+    }
     case "string":
     case "node":
       if (literal !== undefined && typeof literal !== "string" && !(editor.kind === "string" && editor.numeric)) return null;

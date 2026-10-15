@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
-import { InputField, SelectField } from "../../../../components/Input";
 import { Text } from "../../../../components/Text";
 import api from "../../../api.generated.json";
 import { applyEdit, parseSrc } from "../../api";
 import { addFrame as addBoardFrame } from "./addFrame";
 import { InspectorRow, InspectorSection } from "../../inspector/Section";
+import { RowInputField, RowSelectField } from "../../inspector/rowFields";
 import { useStudio } from "../../store";
 import type { EditOp } from "../../types";
 import { loadEngine } from "../engine";
@@ -162,21 +162,21 @@ function TriggerRow({ trigger, value, node, file, loc, frames, home, disabled }:
   return (
     <div className="studio-prototype__trigger" data-trigger={trigger}>
       <InspectorRow label={trigger} name={`proto:${trigger}`}>
-        <SelectField aria-label={`${trigger} action`} size="sm" disabled={disabled} value={custom ? "" : action} placeholder="Code" onValueChange={(next) => void write(next as Action)} options={ACTIONS} />
+        <RowSelectField aria-label={`${trigger} action`} size="sm" disabled={disabled} value={custom ? "" : action} placeholder="Code" onValueChange={(next) => void write(next as Action)} options={ACTIONS} />
       </InspectorRow>
       {action === "navigate" ? (
         <InspectorRow label="Screen" name={`proto:${trigger}:target`}>
-          <SelectField aria-label={`${trigger} screen`} size="sm" disabled={disabled} value={argText} placeholder="—" onValueChange={(next) => void write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
+          <RowSelectField aria-label={`${trigger} screen`} size="sm" disabled={disabled} value={argText} placeholder="—" onValueChange={(next) => void write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
         </InspectorRow>
       ) : null}
       {action === "open" ? (
         <InspectorRow label="Overlay" name={`proto:${trigger}:target`}>
-          <SelectField aria-label={`${trigger} overlay`} size="sm" disabled={disabled || !overlays.length} value={argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => void write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.id }))} />
+          <RowSelectField aria-label={`${trigger} overlay`} size="sm" disabled={disabled || !overlays.length} value={argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => void write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.id }))} />
         </InspectorRow>
       ) : null}
       {action === "toast" || action === "link" ? (
         <InspectorRow label={action === "toast" ? "Title" : "URL"} name={`proto:${trigger}:target`}>
-          <InputField
+          <RowInputField
             aria-label={`${trigger} ${action === "toast" ? "toast title" : "link"}`}
             size="sm"
             disabled={disabled}

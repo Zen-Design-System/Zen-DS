@@ -1,5 +1,5 @@
-/* Zen Studio chrome: toolbar, side panels, Pages panel, preview-modes panel, shortcuts dialog. Neutral-S7 · Compact ·
-   Dashboard (ChromeScope); panels are Surface/Default with a Pale hairline toward the canvas. */
+/* Zen Studio chrome: panel headers, corner bars, side panels, Pages panel, preview-modes panel, shortcuts dialog.
+   Neutral-S7 · Studio sizes · Emphasis Light (ChromeScope); the panels float over the canvas (studio.css). */
 .studio-chrome {
   color: var(--zen-color-content-neutral-strongest, #111);
   font-family: var(--zen-typography-font-family-sans, Inter), ui-sans-serif, system-ui, sans-serif;
@@ -10,67 +10,61 @@
    2026-10-09). Dialogs portal into .studio-chrome-portal, which carries the chrome's modes. */
 :is(.studio-chrome, .studio-chrome-portal) :is(.zen-modal-actions, .zen-modal-actions__main) { gap: var(--zen-spacing-gap-xsmall, 8px); }
 
-/* ── Toolbar ── */
-.studio-toolbar {
+/* ── Panel headers (Figma UI3: the left panel's brand row, the right panel's actions row) ── */
+.studio-panel-head {
   display: flex;
   min-width: 0;
+  flex: 0 0 auto;
   align-items: center;
-  padding: 0 var(--zen-spacing-padding-xsmall, 8px);
-  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
-  background: var(--zen-color-background-surface-default, #fff);
+  gap: var(--zen-spacing-gap-2-xsmall, 4px);
+  padding: var(--zen-spacing-padding-xsmall, 8px);
 }
-/* Start · breadcrumb · end: the two side tracks share the free space equally, so the breadcrumb sits on the window's
-   centre (not the centre of the room between the groups) and only shifts when a side group needs more than its half. */
-.studio-toolbar__inner {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  align-items: center;
-  gap: var(--zen-spacing-gap-small, 12px);
-  grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
-}
-.studio-toolbar__start,
-.studio-toolbar__end { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.studio-toolbar__start { justify-self: start; }
-.studio-toolbar__end { justify-self: end; }
-/* The Document | Studio switch sits where the breadcrumb was, centred on the window. */
-.studio-toolbar__space { display: flex; min-width: 0; justify-content: center; }
-/* Toolbar groups are told apart by space, not rules: 4px inside a group, 8px (Gap/XSmall) between groups. */
-.studio-toolbar__group-start,
-.studio-toolbar__end > .studio-drafts { margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-panel-head > .studio-space { min-width: 0; flex: 1 1 auto; }
+/* Groups are told apart by space, not rules: 4px inside a group, 8px (Gap/XSmall) between groups. */
+.studio-panel-head__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-panel-head__end { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-inline-start: auto; }
 .studio-brand .zen-icon { color: var(--zen-color-content-neutral-strongest, #111); }
 .studio-role .zen-badge { pointer-events: none; }
 
-/* ── Side panels ── */
-.studio-left,
-.studio-right {
+/* ── Corner bars: what stays of a panel that is not docked (narrow window, or hidden with ⌘\) ── */
+.studio-bar-scope { display: contents; }
+.studio-bar {
+  position: absolute;
+  z-index: 22;
+  top: var(--studio-edge);
   display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-large, 12px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
   background: var(--zen-color-background-surface-default, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
-.studio-left { border-right: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-.studio-right { overflow: auto; border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.studio-bar--left { left: var(--studio-edge); }
+.studio-bar--right { right: var(--studio-edge); }
+
+/* ── Side panels ── */
 /* The Tabs bar draws its own Pale track line. */
-.studio-left__tabs { flex: 0 0 auto; padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.studio-left__tabs { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 .studio-left__panel { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; overflow: auto; }
 .studio-left__panel[hidden] { display: none; }
 .studio-left__panel:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
 
-/* ── Resize handles (on the border line between a docked panel and the canvas) ── */
-/* zen-allow-slot-size: an 8px hit strip centred on the 1px border (structural, not component spacing). */
+/* ── Resize handles (on a docked panel's inner edge) ── */
+/* zen-allow-slot-size: an 8px hit strip centred on the panel's edge (structural, not component spacing). */
 .studio-resizer {
-  position: relative;
-  z-index: 6;
+  position: absolute;
+  z-index: 23;
+  top: var(--studio-edge);
+  bottom: var(--studio-edge);
   width: 8px;
-  align-self: stretch;
   cursor: col-resize;
   touch-action: none;
   outline: none;
 }
-.studio-resizer[data-side="left"] { grid-area: left; justify-self: end; margin-right: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
-.studio-resizer[data-side="right"] { grid-area: right; justify-self: start; margin-left: calc(-1 * var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-resizer[data-side="left"] { left: calc(var(--studio-edge) + var(--studio-left-width) - var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-resizer[data-side="right"] { right: calc(var(--studio-edge) + var(--studio-right-column) - var(--zen-spacing-gap-2-xsmall, 4px)); }
 .studio-resizer::after {
   position: absolute;
   inset: 0 3px;

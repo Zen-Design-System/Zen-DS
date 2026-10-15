@@ -47,11 +47,12 @@ function DraftRow({ row, disabled }: { row: DraftInfo; disabled: boolean }) {
 }
 
 /**
- * Unsaved · Discard · Save for admins (rendered only while drafts exist). `density`: how much room the toolbar has —
- * wide "Unsaved · 2 files", compact "2 unsaved" (Pages panel in a drawer), narrow the count alone (< 1024px).
+ * Unsaved · Discard · Save for admins (rendered only while drafts exist). `density`: how much room there is —
+ * wide "Unsaved · 2 files", compact "2 unsaved", panel the count and Save all (the Inspector's header), narrow the count
+ * alone (the collapsed Inspector bar).
  */
-/** `phone`: the count only; Save all stays in its list and on ⌘S (no room in a phone toolbar, E2E S-07). */
-export function DraftsControls({ density }: { density: "wide" | "compact" | "narrow" | "phone" }) {
+/** `phone`: the count only; Save all stays in its list and on ⌘S (no room on a phone, E2E S-07). */
+export function DraftsControls({ density }: { density: "wide" | "compact" | "panel" | "narrow" | "phone" }) {
   const { drafts, busy } = useStudioDrafts();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -105,7 +106,7 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "nar
     if (!studioDrafts.get().drafts.length) setOpen(false);
   };
 
-  const label = density === "narrow" || density === "phone" ? `${count}` : density === "compact" ? `${count} unsaved` : `Unsaved · ${plural(count, "file")}`;
+  const label = density === "narrow" || density === "phone" || density === "panel" ? `${count}` : density === "compact" ? `${count} unsaved` : `Unsaved · ${plural(count, "file")}`;
   const description = `${plural(count, "file")} with unsaved drafts${staleCount ? `, ${staleCount} changed on disk` : ""}`;
   const saving = busy === "save" ? "Saving…" : "Save all";
   return (

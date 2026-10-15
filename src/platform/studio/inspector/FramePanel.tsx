@@ -1,7 +1,6 @@
 import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { SelectField } from "../../../components/Input";
 import { Segmented } from "../../../components/Segmented";
 import { Toggle } from "../../../components/Toggle";
 import { SCREEN_CHROME, screenChromeCode, screenLayout, type ScreenChromeLayout } from "../../../../tools/studio/screen-chrome.mjs";
@@ -21,6 +20,7 @@ import type { StudioFrameWidth } from "../types";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
 import { copyText, exampleOf, frameKind, frameLabel } from "./frames";
 import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
+import { RowSelectField } from "./rowFields";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 
 /*
@@ -194,7 +194,7 @@ export function FramePanel({ frameId, controlsSlot }: { frameId: string; control
       {frameId.startsWith("screen:") ? <ScreenSection frameId={frameId} /> : null}
       <InspectorSection title="Frame">
         <InspectorRow label="Width">
-          <SelectField
+          <RowSelectField
             aria-label="Frame width"
             size="sm"
             value={width}

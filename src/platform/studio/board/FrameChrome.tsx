@@ -7,7 +7,7 @@ import { Menu, type MenuEntry, type MenuItemData } from "../../../components/Men
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudioServer } from "../api";
-import { canvasApi, getViewport, getViewportBox } from "../canvas/viewport";
+import { canvasApi, getSafeBox, getViewport, getViewportBox } from "../canvas/viewport";
 import { frameIcon } from "../inspector/frames";
 import { ChromeScope } from "../shell/ChromeScope";
 import { confirmFrameDiscard, requestFrameSave, useFrameDrafts, useStudioDrafts } from "../sourceDrafts";
@@ -89,6 +89,9 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   const layout = useCallback(() => {
     const { x, y, zoom } = getViewport();
     const view = getViewportBox();
+    // The part of the canvas the floating side panels leave visible (viewport-local): labels and toolbars stay in it.
+    const safe = getSafeBox();
+    const minX = safe.x, maxX = safe.x + safe.width, minY = safe.y, maxY = safe.y + safe.height;
     const screen = (rect: Rect): Rect => ({ x: rect.x * zoom + x, y: rect.y * zoom + y, width: rect.width * zoom, height: rect.height * zoom });
     const sizeOf = (key: string, fallback: Size) => sizes.current.get(key) ?? fallback;
     const placed = getStudioFrames().flatMap((frame) => {
@@ -96,8 +99,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       return world ? [{ frame, rect: screen(world) }] : [];
     });
     const hitsFrame = (box: Rect, except?: string) => placed.some(({ frame, rect }) => frame.id !== except && overlaps(box, rect));
-    const onCanvas = (box: Rect) => box.x >= 0 && box.y >= 0 && box.x + box.width <= view.width && box.y + box.height <= view.height;
-    const visible = (rect: Rect) => rect.x < view.width && rect.x + rect.width > 0 && rect.y < view.height && rect.y + rect.height > 0;
+    const onCanvas = (box: Rect) => box.x >= minX && box.y >= minY && box.x + box.width <= maxX && box.y + box.height <= maxY;
+    const visible = (rect: Rect) => rect.x < maxX && rect.x + rect.width > minX && rect.y < maxY && rect.y + rect.height > minY;
     // 1. Frame labels.
     const labelBoxes = new Map<string, Rect>();
     const labelHidden = new Map<string, boolean>();
@@ -109,10 +112,10 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       let hidden = rect.width < 32 || (!selected && hitsFrame(box, frame.id));
       if (selected) {
         // Across: from the frame's left edge, but never left of the canvas or past the frame's visible right end.
-        box.x = Math.max(EDGE, Math.min(Math.max(rect.x, EDGE), Math.min(rect.x + rect.width, view.width - EDGE) - box.width));
+        box.x = Math.max(minX + EDGE, Math.min(Math.max(rect.x, minX + EDGE), Math.min(rect.x + rect.width, maxX - EDGE) - box.width));
         // No room above: inside the frame's top (pinned to the canvas top while the frame runs above it).
-        if (box.y < EDGE) {
-          box.y = Math.max(EDGE, rect.y + LABEL_GAP);
+        if (box.y < minY + EDGE) {
+          box.y = Math.max(minY + EDGE, rect.y + LABEL_GAP);
           labelInside.set(frame.id, true);
         }
         hidden = hidden || !visible(rect) || box.y + box.height > rect.y + rect.height;
@@ -125,7 +128,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     // 2. Toolbars, then the labels' room beside them.
     for (const { frame, rect } of placed) {
       const labelBox = labelBoxes.get(frame.id);
-      let labelRight = labelBox && labelInside.get(frame.id) ? Math.min(rect.x + rect.width, view.width - EDGE) : rect.x + rect.width;
+      let labelRight = labelBox && labelInside.get(frame.id) ? Math.min(rect.x + rect.width, maxX - EDGE) : rect.x + rect.width;
       const toolbar = elements.current.get(`toolbar:${frame.id}`);
       if (toolbar) {
         const size = sizeOf(`toolbar:${frame.id}`, { width: 0, height: 0 });
@@ -143,23 +146,23 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           if (beside) {
             // Beside a narrow frame; with no room on the canvas's right, under the frame (its right ends lined up), or
             // above its name when there is no room below either. Then held on the canvas.
-            if (box.x + box.width > view.width - EDGE) {
+            if (box.x + box.width > maxX - EDGE) {
               box.x = rect.x + rect.width - box.width;
               box.y = rect.y + rect.height + TOOLBAR_GAP;
               place = "below";
-              if (box.y + box.height > view.height - EDGE) {
+              if (box.y + box.height > maxY - EDGE) {
                 box.y = rect.y - LABEL_GAP - sizeOf(`label:${frame.id}`, { width: 0, height: 16 }).height - TOOLBAR_GAP - box.height;
                 place = "above";
               }
             }
-            box.x = Math.max(EDGE, Math.min(box.x, view.width - EDGE - box.width));
-            box.y = Math.max(EDGE, Math.min(box.y, view.height - EDGE - box.height));
+            box.x = Math.max(minX + EDGE, Math.min(box.x, maxX - EDGE - box.width));
+            box.y = Math.max(minY + EDGE, Math.min(box.y, maxY - EDGE - box.height));
           } else {
             // Its right end at the frame's visible right end, never past the canvas's left edge.
-            box.x = Math.max(EDGE, Math.min(rect.x + rect.width, view.width - EDGE) - box.width);
-            if (box.y < EDGE) {
+            box.x = Math.max(minX + EDGE, Math.min(rect.x + rect.width, maxX - EDGE) - box.width);
+            if (box.y < minY + EDGE) {
               // No room above: inside the frame's top; a frame whose visible part is too short takes it below.
-              box.y = Math.max(EDGE, rect.y + TOOLBAR_GAP);
+              box.y = Math.max(minY + EDGE, rect.y + TOOLBAR_GAP);
               place = "inside";
               if (box.y + box.height > rect.y + rect.height - TOOLBAR_GAP) { box.y = rect.y + rect.height + TOOLBAR_GAP; place = "below"; }
             }
@@ -192,7 +195,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       const top = Math.max(rect.y, 0);
       const bottom = Math.min(rect.y + rect.height, view.height);
       const right = rect.x + rect.width;
-      edge.dataset.hidden = bottom - top < 16 || right < 0 || right > view.width ? "true" : "false";
+      edge.dataset.hidden = bottom - top < 16 || right < minX || right > maxX ? "true" : "false";
       edge.style.transform = `translate(${Math.round(right)}px, ${Math.round(top)}px)`;
       edge.style.height = `${Math.max(0, Math.round(bottom - top))}px`;
     }
