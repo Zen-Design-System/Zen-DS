@@ -2454,6 +2454,66 @@
                 ],
                 "description": "A sticky bar at the bottom of the main column, e.g."
               },
+              "topNavigation": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma Top-Navigation/Mobile 12014:45167)."
+              },
+              "bottomNavigation": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the first 4 + More)."
+              },
               "canvas": {
                 "anyOf": [
                   {
@@ -2594,7 +2654,8 @@
                     "enum": [
                       "auto",
                       "sidebar",
-                      "drawer"
+                      "drawer",
+                      "phone"
                     ]
                   },
                   {

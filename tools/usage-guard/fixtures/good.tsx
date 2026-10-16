@@ -136,6 +136,8 @@ export const Good = () => <>
   {/* Figma's Trailing-Slot takes three: three trailing actions, and three beside the large title. */}
   <TopNavigation title="Files" trailing={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <TopNavigation title="Ava Chen" trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: callAudio }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: callVideo }, { icon: "icon-star-01-line", label: "Favourite", onClick: favourite }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
+  {/* A shell that also runs on phones: the page title in sections and the bar, the same words (component-usage-rules §17). */}
+  <AppShell sidebar={nav} sections={<PageHeader title="Invoices" />} topNavigation={<TopNavigation title="Invoices" largeTitle="Invoices" />} bottomNavigation={<BottomNavigation value="invoices" onValueChange={go} items={roots} />}><Container>{page}</Container></AppShell>
   <TopNavigation title="Files" largeTitle="Files" largeTitleAction={[{ icon: "icon-plus-line", label: "Add", onClick: add }, { icon: "icon-share-01-line", label: "Share", onClick: share }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   <BottomNavigation value="a" onValueChange={go} items={[{ id: "a", label: "Home", icon: "icon-home-smile-line" }, { id: "b", label: "Search", icon: "icon-search-medium-line" }, { id: "c", label: "Me", icon: "icon-user-line" }]} />
   <BottomSheet open={open} onOpenChange={setOpen} type="action" title="Share" items={shareItems} onSelect={share} />

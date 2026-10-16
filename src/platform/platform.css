@@ -1073,6 +1073,10 @@
 /* Keyboard focus never lands under the overlaid header: scrolling a focused row into view keeps it below the part of the
    header that stays put (the bar, its status bar and a pinned control bar; the fold slides away). WCAG 2.2 SC 2.4.11. */
 .platform-phone[data-header-overlay="true"] .platform-phone__screen { scroll-padding-top: var(--platform-phone-header-pinned, 0px); }
+/* An AppShell drawing its own phone chrome (layout "phone", AppShell › Desktop and phone): its TopNavigation and
+   BottomNavigation pad by the safe areas themselves, so the screen does not; the shell fills the screen. */
+.platform-phone .platform-phone__screen:has(> .zen-app-shell[data-layout="phone"]) { padding-top: 0; padding-bottom: 0; }
+.platform-phone__screen > .zen-app-shell { --zen-app-shell-height: 100%; }
 .platform-phone[data-canvas="media"] .platform-phone__screen { padding-top: 0; }
 .platform-phone__footer:has(> .zen-bottom-nav:not([data-type="default"])) { position: absolute; right: 0; bottom: 0; left: 0; }
 /* zen-allow-raw-spacing: room for the floating Bottom Navigation row, 64px in Figma (9017:26128). */

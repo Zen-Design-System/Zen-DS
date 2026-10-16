@@ -8,7 +8,7 @@ The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcru
 
 ## Use it for
 - Every signed-in web app screen (dashboards, admin, HR and settings).
-- Desktop and tablet app frames: below 1024px the Sidebar becomes a drawer; on phones the same page takes a TopNavigation + BottomNavigation instead (see Do).
+- One app frame for desktop, tablet and phone: below 1024px the Sidebar becomes a drawer; under 744px topNavigation and bottomNavigation take over from the top bar (see Do).
 - Top-bar icon actions with an unread dot or count → AppShellAction.
 - The account menu → Menu with an AppShellAccount trigger.
 
@@ -30,14 +30,15 @@ The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcru
 | Side-Panel | `aside` | a <SidePanel type="standard"> docked beside the page while the page keeps 744px (a Tablet width); otherwise it opens as the modal panel |
 | Floating-Item | `floatingAction` | one floating button bottom-right, Margin-Comfortable from the edges; the end of the page keeps room for it |
 | Canvas | `canvas` | default · alt (white page) · flat (pair with Sidebar background="flat") |
-| Breakpoint | `layout` | auto (the shell's own width: < 1024px → drawer) · sidebar · drawer (previews and tests only) |
+| Phone (Top-Navigation/Mobile, Bottom-Navigation) | `topNavigation · bottomNavigation` | under 744px they replace the top bar and sections: the TopNavigation holds the page title (the h1), Back and up to three actions, the BottomNavigation the roots; the Sidebar still opens as the drawer (useAppShell().openNav()); tablets and desktops ignore them |
+| Breakpoint | `layout` | auto (the shell's own width: < 1024px → drawer, < 744px with topNavigation / bottomNavigation → phone) · sidebar · drawer · phone (previews and tests only) |
 | — | `navOpen · onNavOpenChange · navLabel · mainId · footer · useAppShell()` | controlled drawer · its name · the skip-link target · a sticky bottom bar · the layout and navigation state for your own controls |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/app-shell.json`.
 
 ### AppShell
-The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform): Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer. Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots, `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on desktop, as Figma's Navigation row). <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}> `<Container>`<PageHeader title="Team members" /> …`</Container>` `</AppShell>`
+The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform): Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar collapses it to its rail; narrower, it opens as a modal drawer. On phones (under 744px) a shell given `topNavigation` and `bottomNavigation` draws those instead of its top bar and `sections` (docs/component-usage-rules.md §17). Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots, `headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually DashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar pads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on desktop, as Figma's Navigation row). <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}> `<Container>`<PageHeader title="Team members" /> …`</Container>` `</AppShell>`
 
 Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 
@@ -52,6 +53,8 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `aside` | `ReactNode` | — | A right panel docked beside the content (Figma Side-Panel), usually <SidePanel type="standard">. It docks while the page keeps at least a Tablet width (744px) beside it; otherwise a SidePanel opens as the modal panel and other content stacks under the page. |
 | `floatingAction` | `ReactNode` | — | One floating button in the bottom-right corner of the page (Figma Floating-Item), e.g. an assistant IconButton. The end of the page keeps room for it. On phones it hides while the page scrolls down and comes back on a scroll up. |
 | `footer` | `ReactNode` | — | A sticky bar at the bottom of the main column, e.g. an ActionBar. |
+| `topNavigation` | `ReactNode` | — | Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma Top-Navigation/Mobile 12014:45167). With it, or `bottomNavigation`, a phone draws neither the top bar nor `sections`: the bar holds the page's title (its h1), Back on a child screen and at most three actions, mapped from the desktop header (docs/component-usage-rules.md §17). The Sidebar stays reachable as the drawer (`useAppShell().openNav()`, e.g. from a BottomNavigation More). Tablets and desktops ignore it. |
+| `bottomNavigation` | `ReactNode` | — | Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the first 4 + More). Pinned to the bottom under the footer; give it on root screens only. Tablets and desktops ignore it. |
 | `canvas` | `"default" \| "alt" \| "flat"` | `"default"` | Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). |
 | `sidebarCollapsed` | `boolean` | — | Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. |
 | `defaultSidebarCollapsed` | `boolean` | — | Initial rail state when uncontrolled. Default: the Sidebar's own `collapsed`, else expanded; a later change to the Sidebar's `collapsed` moves the rail too. |
@@ -62,7 +65,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | `onNavOpenChange` | `(open: boolean) => void` | — |  |
 | `navLabel` | `string` | — | Accessible name of the navigation drawer. Default: the locale's “Navigation”. |
 | `mainId` | `string` | — | id of `<main>`, the target of the "Skip to content" link. Default: a generated unique id. |
-| `layout` | `"auto" \| "sidebar" \| "drawer"` | `"auto"` | Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests. |
+| `layout` | `"auto" \| "sidebar" \| "drawer" \| "phone"` | `"auto"` | Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer, and narrower than 744px the phone chrome (`topNavigation` / `bottomNavigation`) when the shell has one. Force it only for previews and tests. |
 | `children` | `ReactNode` | — | The page. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio; app code keeps the defaults. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the shell's root `<div>`. |
@@ -113,7 +116,7 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 - Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.
 - Store the rail state from onSidebarCollapsedChange so the Sidebar opens the way people left it.
 - Let layout follow the shell's width; force it only for previews and tests.
-- On phones (useZen()?.breakpoint === "mobile"), draw the page's content between a TopNavigation and a BottomNavigation instead of the AppShell, mapped from it: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable, and the title stays in sections so each layout has one h1 (component-usage-rules §17, skill zen-responsive-screens).
+- For an app that runs on phones, give the shell topNavigation and bottomNavigation mapped from its header: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable (component-usage-rules §17, skill zen-responsive-screens).
 
 ## ❌ Don't
 - Don't build your own sidebar + main flex layout or your own drawer.
@@ -122,6 +125,8 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 - Don't repeat the Breadcrumbs in the PageHeader when the top bar shows them (harness: app-shell/breadcrumbs-once).
 - Don't force layout in an app (harness: app-shell/forced-layout).
 - Don't hand-build a bell with a red dot; use AppShellAction.
+- Don't put the page's PageHeader in the content when the shell has a topNavigation: on a phone it stays beside the bar's title, two h1s; it belongs in sections (harness: app-shell/page-header-in-sections).
+- Don't give the phone bar other words than the PageHeader title (harness: app-shell/top-navigation-title).
 
 ## Accessibility
 - The first Tab stop is a "Skip to content" link: it moves focus to `<main>` (tabindex=-1) without touching the URL, so hash routers keep working.
@@ -141,7 +146,9 @@ type AvatarTheme = "photo" | "accent" | "blue" | "brown" | "crimson" | "cyan" | 
 | `app-shell/primary-in-top-bar` | warn | The top bar (header, headerActions) holds utilities: Breadcrumbs or a Search, a plan Badge, AppShellAction buttons and the account menu. A Primary or Accent page action belongs in the PageHeader actions. | `zen-allow-top-bar-primary: <reason>` |
 | `app-shell/nested` | error | One AppShell per screen: a shell inside another shell repeats the navigation, the top bar and <main>. | `zen-allow-nested-shell: <reason>` |
 | `app-shell/breadcrumbs-once` | warn | Breadcrumbs appear once: in the top bar (header, the HR-Platform pattern) or in the PageHeader, never both. | `zen-allow-breadcrumbs-twice: <reason>` |
-| `app-shell/forced-layout` | warn | An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px); layout="sidebar" or "drawer" is for previews and tests. (App mode only.) | `zen-allow-forced-layout: <reason>` |
+| `app-shell/forced-layout` | warn | An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px, the phone chrome under 744px); layout="sidebar", "drawer" or "phone" is for previews and tests. (App mode only.) | `zen-allow-forced-layout: <reason>` |
+| `app-shell/page-header-in-sections` | warn | With a phone TopNavigation (topNavigation), the page's PageHeader goes in sections: in the content a phone keeps it beside the bar's title, two h1s (component-usage-rules §17). | `zen-allow-page-header-in-content: <reason>` |
+| `app-shell/top-navigation-title` | warn | The phone bar (topNavigation's TopNavigation title) and the page header (sections' PageHeader title) say the same words (component-usage-rules §17). | `zen-allow-phone-title: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

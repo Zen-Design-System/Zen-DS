@@ -64,6 +64,10 @@ export const Bad = () => <>
   <AppShell sidebar={nav}><AppShell sidebar={nav}><Container>{page}</Container></AppShell></AppShell>
   {/* expect: app-shell/breadcrumbs-once */}
   <AppShell sidebar={nav} header={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />}><PageHeader title="Invoices" breadcrumbs={<Breadcrumbs items={crumbs} onNavigate={go} />} /></AppShell>
+  {/* expect: app-shell/page-header-in-sections */}
+  <AppShell sidebar={nav} topNavigation={<TopNavigation title="Invoices" />}><Container><PageHeader title="Invoices" /></Container></AppShell>
+  {/* expect: app-shell/top-navigation-title */}
+  <AppShell sidebar={nav} sections={<PageHeader title="Invoices" />} topNavigation={<TopNavigation title="Billing" />}><Container>{page}</Container></AppShell>
   {/* expect: form/actions-order */}
   <FormActions><Button level="primary" type="submit">Save changes</Button><Button level="tertiary" onClick={cancel}>Cancel</Button></FormActions>
   {/* expect: form/submit-button */}

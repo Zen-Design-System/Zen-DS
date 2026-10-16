@@ -6,7 +6,7 @@
     {
       "name": "AppShell",
       "file": "src/components/AppShell/AppShell.tsx",
-      "description": "The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):\nSidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a\n\"Skip to content\" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar\ncollapses it to its rail; narrower, it opens as a modal drawer.\n\nEach part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader\ntype=\"navigation\" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,\n`headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually\nDashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar\npads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on\ndesktop, as Figma's Navigation row).\n\n  <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>\n    <Container><PageHeader title=\"Team members\" /> …</Container>\n  </AppShell>",
+      "description": "The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):\nSidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a\n\"Skip to content\" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar\ncollapses it to its rail; narrower, it opens as a modal drawer. On phones (under 744px) a shell given `topNavigation`\nand `bottomNavigation` draws those instead of its top bar and `sections` (docs/component-usage-rules.md §17).\n\nEach part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader\ntype=\"navigation\" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,\n`headerCenter` in Center-Slots, `headerActions` in Trailing-Slots), `sections` the rows of Header/Dashboard (usually\nDashboardHeader / PageHeader), the account an Avatar (AppShellAccount), the docked `aside` a SidePanel. The top bar\npads Margin-Comfortable above and at the sides and Spacing/Padding/XSmall below a Button/Size/Medium row (72px on\ndesktop, as Figma's Navigation row).\n\n  <AppShell sidebar={<Sidebar … />} header={<Breadcrumbs … />} headerActions={<AppShellAction … />}>\n    <Container><PageHeader title=\"Team members\" /> …</Container>\n  </AppShell>",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
       "props": [
@@ -80,6 +80,22 @@
           "required": false,
           "default": null,
           "description": "A sticky bar at the bottom of the main column, e.g. an ActionBar.",
+          "deprecated": null
+        },
+        {
+          "name": "topNavigation",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma\nTop-Navigation/Mobile 12014:45167). With it, or `bottomNavigation`, a phone draws neither the top bar nor\n`sections`: the bar holds the page's title (its h1), Back on a child screen and at most three actions, mapped from the\ndesktop header (docs/component-usage-rules.md §17). The Sidebar stays reachable as the drawer\n(`useAppShell().openNav()`, e.g. from a BottomNavigation More). Tablets and desktops ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "bottomNavigation",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the\nfirst 4 + More). Pinned to the bottom under the footer; give it on root screens only. Tablets and desktops ignore it.",
           "deprecated": null
         },
         {
@@ -164,10 +180,10 @@
         },
         {
           "name": "layout",
-          "type": "\"auto\" | \"sidebar\" | \"drawer\"",
+          "type": "\"auto\" | \"sidebar\" | \"drawer\" | \"phone\"",
           "required": false,
           "default": "\"auto\"",
-          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests.",
+          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer, and\nnarrower than 744px the phone chrome (`topNavigation` / `bottomNavigation`) when the shell has one. Force it only\nfor previews and tests.",
           "deprecated": null
         },
         {
