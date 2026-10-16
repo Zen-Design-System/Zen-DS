@@ -61,11 +61,16 @@
 .zen-metric-card__title { min-width: 0; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-metric-card__columns { display: flex; min-width: 0; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-metric-card__column { display: flex; min-width: 0; flex: 1 1 0; }
+/* A column's figure is Heading/1 (the user 2026-10-16), the Small Metric's label and trend unchanged. */
+.zen-metric-card__column-value { display: block; }
 .zen-metric-card__column + .zen-metric-card__column { padding-inline-start: var(--zen-spacing-padding-medium, 16px); border-inline-start: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(0 0 0 / 13%)); }
 /* A narrow card (a phone) stacks the columns, the rule above each instead. The body is the query container; where the
-   card hugs its content it is as wide as Figma's Comparison content (512px = 32rem). */
-.zen-metric-card[data-type="comparison"] .zen-metric-card__body { container-type: inline-size; contain-intrinsic-inline-size: 32rem; }
-@container (max-width: 440px) {
+   card hugs its content it is as wide as Figma's Comparison content (512px = 32rem). The stack point follows the
+   figures' Heading/1 size, so three "$105,700" fit side by side in every typography: the body's font-size is that size
+   (every text inside sets its own text style), and 16.5em is 462px in Dashboard, 528px in Mobile, 594px in Popular.
+   zen-allow-raw-typography: the font-size only sizes the container query's em; no text inherits it. */
+.zen-metric-card[data-type="comparison"] .zen-metric-card__body { container-type: inline-size; contain-intrinsic-inline-size: 32rem; font-size: var(--zen-typography-font-size-heading-1, 28px); }
+@container (max-width: 16.5em) {
   .zen-metric-card__columns { flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
   .zen-metric-card__column + .zen-metric-card__column { padding-block-start: var(--zen-spacing-padding-small, 12px); padding-inline-start: 0; border-block-start: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(0 0 0 / 13%)); border-inline-start: 0; }
 }

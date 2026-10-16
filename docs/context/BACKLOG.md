@@ -20,7 +20,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   DatePicker "October 2026" (2), Small Pagination 216px (1), Rating "Freelance illustrators" + Sort chip (1), Settings form
   Avatar 2XL + FileUpload (1) — a `wrap` there changes 390/1512, so stack them on phones or accept. Not 320 layout:
   templates "Show all" target (1, the audit counts a link clipped inside a template's scroll frame), text-style
-  rhythm/scale debt also recorded at 390/1512 (8) and widgets "9 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too: 9 widget types in one
+  rhythm/scale debt also recorded at 390/1512 (8) and widgets "8 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too, 9 → 8 after the user's Heading/1 call: 7 widget types in one
   example, a designer call whether a gallery may exceed 7 styles).
 - **P3 · Designer question: Navigation-Mobile/Top/Action-Icon-Gap is 20 (2026-10-15):** Component Size spacing now aliases
   Spacing/Gap|Padding, but the Gap ladder has no 20 (16 Medium, 24 Large), so this one stays on `dm-20`. Keep, or move it to a

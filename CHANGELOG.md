@@ -23,6 +23,10 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- MetricCard comparison (2026-10-16, user): the columns' figures are Heading/1 (were Heading/4), in code and in the
+  Figma Metric-Card Type=Comparison; the columns stack at a width that follows the Heading/1 size, so three figures never
+  overflow side by side in any typography. The Widgets page's KPI card is Title-Highlight, Large, like the widgets
+  beside it (the Studio palette's KPI card too).
 - GroupedBarChart and ComboChart bars grow with the room they have (2026-10-16, user: "Các cột ốm quá. Khi không gian
   còn khá nhiều"): Figma's 12px / 20px at Figma's size, then a grouped bar's group takes up to 70% of its period's
   column (each bar up to 32px) and a combo bar half its column (up to 40px, as a bar chart's bar).
