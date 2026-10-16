@@ -35,6 +35,10 @@
 //   text/shifted             error    left-aligned text with a fixed width, narrower than a centred or end-aligned
 //                                     column, pushed in from its edge (a slot's default text kept after a resize)
 //   copy/placeholder         warning  lorem ipsum or a bare default label left in the screen
+//   list-box/footer-text-action  error  a List-Box footer action ("Open calendar", "Go to Inbox") written as text, not
+//                                     a Button/Main Tertiary (fills the box on desktop and tablet, hugs on mobile)
+//   list-box/footer-action-hug   error  a List-Box footer Button that hugs its label on a desktop or tablet screen
+//                                     (wider than 600px): it fills the box there and hugs only on mobile
 //   theme/box-on-canvas      error    a box (Card, List-Box) whose fill does not belong to the
 //                                     page's Canvas: Default → Surface/Default (Flat, Shadow, Border); Alt → Pale,
 //                                     Surface/Default with a Pale border, Surface/Alt; Flat → Pale, Surface/Flat with a
@@ -416,6 +420,24 @@ async function checkModeOverrides(root) {
 }
 
 const PLACEHOLDER = /lorem|ipsum|dolor sit/i;
+// A List-Box footer action's label (user rule 2026-10-16, code harness listbox/footer-action-tertiary).
+const ACTION_LABEL = /^(open|go to|view|see|show|manage|browse|all)\b/i;
+/** True when `node` is text in a List-Box's Footer-Slot that no Button instance holds. */
+function footerTextAction(node) {
+  for (let current = node.parent; current && current.type !== "PAGE"; current = current.parent) {
+    if (current.type === "INSTANCE" && /^Button\//.test(current.name)) return false;
+    if (current.type === "SLOT" && current.name === "Footer-Slot") return true;
+  }
+  return false;
+}
+/** True when `node` is a Button instance placed in a List-Box's Footer-Slot that hugs on a screen wider than a phone. */
+function footerActionHugs(node) {
+  if (!/^Button\//.test(node.name) || node.parent?.type !== "SLOT" || node.parent.name !== "Footer-Slot") return false;
+  if (node.layoutSizingHorizontal !== "HUG") return false;
+  let screen = node;
+  while (screen.parent && screen.parent.type !== "PAGE" && screen.parent.type !== "SECTION") screen = screen.parent;
+  return screen.width > 600;
+}
 const DEFAULT_LABELS = new Set(["Text", "Label", "Title", "Heading", "Subheading", "Description", "Caption", "Button", "Value", "Placeholder text"]);
 
 /** The line height of `node` in px (Auto ≈ 1.2 × the size). */
@@ -442,6 +464,7 @@ function checkText(node, instanceRoot) {
     report("text/overflow", ERROR, node, `text runs ${Math.round(node.absoluteRenderBounds.height - own.height)}px below its box`);
   }
   if (instanceRoot && ink && sticksOut(ink, box(instanceRoot), INK_TOLERANCE)) report("text/overflow", ERROR, node, `${side(ink, box(instanceRoot), INK_TOLERANCE)} past the ${instanceRoot.name} instance`);
+  if (ACTION_LABEL.test(characters) && footerTextAction(node)) report("list-box/footer-text-action", ERROR, node, `“${characters.slice(0, 24)}” is text: use a Button/Main Tertiary (Fill on desktop and tablet, Hug on mobile)`);
   if (PLACEHOLDER.test(characters)) report("copy/placeholder", WARNING, node, `“${characters.slice(0, 24)}”`);
   else if (!instanceRoot && DEFAULT_LABELS.has(characters)) report("copy/placeholder", WARNING, node, `“${characters}”`);
 }
@@ -534,6 +557,7 @@ async function walk(node, instanceRoot, isRoot) {
   }
   if (node.type === "INSTANCE") {
     if (!inInstance) await checkInstanceOverrides(node);
+    if (!inInstance && footerActionHugs(node)) report("list-box/footer-action-hug", ERROR, node, "the footer Button hugs on a desktop or tablet screen: set its width to Fill (Hug only on mobile)");
   } else if (!inInstance) {
     checkPaints(node);
     checkSpacing(node);

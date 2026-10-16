@@ -30,7 +30,7 @@ export const page: PlatformPage = "widgets";
 
 function KpiWidget() {
   return (
-    <MetricCard theme="flat" variant="title-highlight" size="large" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"
+    <MetricCard theme="flat" size="large" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"
       trend={{ direction: "positive", label: "+4% vs. August" }} />
   );
 }

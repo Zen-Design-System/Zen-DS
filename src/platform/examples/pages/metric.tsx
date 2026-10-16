@@ -540,7 +540,7 @@ function RevenueByChannel() {
     <Stack gap="lg">
       <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
         {channels.map((channel) => (
-          <MetricCard key={channel.id} theme="flat" size="sm" icon={false} label={channel.label} value={channel.value}
+          <MetricCard variant="icon-highlight" key={channel.id} theme="flat" size="sm" icon={false} label={channel.label} value={channel.value}
             metricColor={channel.color} counter={channel.invoices} />
         ))}
       </Grid>
@@ -853,7 +853,7 @@ const paid = sumOf(rows, ["Paid"]);
     title: "Revenue by channel",
     description: "Metric-Color puts each channel's chart colour before its label, and the Counter after it says how many invoices the total covers. The payout tile is Title-Highlight with a Label-Icon before its title and a Hint after it, which explains how the number is worked out on hover and focus.",
     render: () => <RevenueByChannel />,
-    code: `<MetricCard theme="flat" size="sm" icon={false} label="Projects" value="$18,240"
+    code: `<MetricCard variant="icon-highlight" theme="flat" size="sm" icon={false} label="Projects" value="$18,240"
   metricColor="var(--zen-color-background-support-blue-solid)" counter={6} />
 
 <MetricCard theme="flat" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"

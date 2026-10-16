@@ -185,9 +185,7 @@ function MoodboardUploads() {
         <Text role="status" textStyle="Body/Small/Regular" tone="base">{`Brand refresh · ${plural(uploads.length, "photo")}`}</Text>
       </Stack>}
       footer={uploads.length && next ? (
-        <Stack align="start">
-          <Button level="tertiary" startIcon="icon-upload-01-line" onClick={upload}>Upload photo</Button>
-        </Stack>
+        <Button level="tertiary" startIcon="icon-upload-01-line" onClick={upload}>Upload photo</Button>
       ) : null}>
       {uploads.length ? (
         <List aria-labelledby={titleId}>
@@ -471,9 +469,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     <Heading level={4} id={titleId} textStyle="Heading/Subheading">Moodboard photos</Heading>
     <Text role="status" textStyle="Body/Small/Regular" tone="base">{\`Brand refresh · \${plural(uploads.length, "photo")}\`}</Text>
   </Stack>}
-  footer={<Stack align="start">
-    <Button level="tertiary" startIcon="icon-upload-01-line" onClick={upload}>Upload photo</Button>
-  </Stack>}>
+  footer={<Button level="tertiary" startIcon="icon-upload-01-line" onClick={upload}>Upload photo</Button>}>
   <List aria-labelledby={titleId}>
     {uploads.map((item) => (
       <ListItem key={item.id} title={item.name}

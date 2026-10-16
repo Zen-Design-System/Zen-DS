@@ -172,6 +172,14 @@ export const Bad = () => <>
   <ChartCard title="Revenue" theme="pale" surface="alt"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
   {/* expect: listbox/on-container-in-overlay */}
   <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
+  {/* expect: listbox/footer-action-tertiary */}
+  <ListBox footer={<Link href="/time-off/calendar">Open calendar</Link>}><List aria-label="Out this week"><ListItem title="Sarah Kim" /></List></ListBox>
+  {/* expect: listbox/footer-action-tertiary */}
+  <ListBox footer={<Text textStyle="Body/Base/Regular" tone="base">Go to Inbox</Text>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
+  {/* expect: listbox/footer-action-tertiary */}
+  <ListBox footer={<Button level="primary" onClick={openInbox}>Go to Inbox</Button>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
+  {/* expect: listbox/footer-action-tertiary */}
+  <ListBox footer={<Stack align="start"><Button level="tertiary" onClick={showAll}>Show all files</Button></Stack>}><List aria-label="Recent files"><ListItem title="Brief.pdf" /></List></ListBox>
   {/* expect: list-item/switch-row */}
   <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
   {/* expect: chip/radio-is-chip-group */}
