@@ -29,8 +29,8 @@ export interface DashboardHeaderProps extends Omit<HTMLAttributes<HTMLElement>, 
   /** Control-Bar · Figma Control-Slots: filter Chips (`<Chip variant="advanced">`), Spacing/Gap/XSmall apart. */
   controls?: ReactNode;
   /**
-   * Figma Subheading. Control-Bar: what the filters leave, e.g. "96 results" (Heading/Subheading). Main: one line under
-   * the title (the PageHeader description).
+   * Figma Subheading. Control-Bar: what the filters leave, e.g. "96 results" (Body/Base/Regular: a count, not a title;
+   * user 2026-10-16). Main: one line under the title (the PageHeader description).
    */
   subheading?: ReactNode;
   /**
@@ -82,8 +82,8 @@ export function DashboardHeader({ type = "control-bar", leading, center, trailin
         <>
           {search ? <div className="zen-dashboard-header__search">{nest.slot(search)}</div> : null}
           {controls ? <div className="zen-dashboard-header__controls">{nest.slot(controls)}</div> : null}
-          {/* zen-allow-visual-heading: Figma's Subheading here is the result count ("96 results"), a value, not a title. */}
-          {subheading ? <Text as="span" className="zen-dashboard-header__subheading" textStyle="Heading/Subheading">{subheading}</Text> : null}
+          {/* Figma's Subheading here is the result count ("96 results"): body text beside the filters, not a title. */}
+          {subheading ? <Text as="span" className="zen-dashboard-header__subheading" textStyle="Body/Base/Regular">{subheading}</Text> : null}
           {actions ? <div className="zen-dashboard-header__actions">{nest.slot(actions)}</div> : null}
         </>
       ) : (

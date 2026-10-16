@@ -802,7 +802,7 @@ export const componentDescriptions = {
   "Primitives/Dashboard/Header": card({
     what: "One row of Header/Dashboard.",
     props: [["Type", "Main: the page title (Heading/1) and page actions · Control-Bar: Search, Chip/Advanced filters, a result count, the period and view switches · Navigation: breadcrumbs, notifications and the account · Custom: your own row"]],
-    rules: ["Filters and the period picker live in the Control-Bar row, never in the content."],
+    rules: ["Filters and the period picker live in the Control-Bar row, never in the content.", "The Control-Bar's result count (Subheading, \"96 results\") is Body/Base/Regular, plain text beside the filters, never a heading style."],
     code: "`<DashboardHeader type>`",
   }),
   "Primitives/Dashboard/Header/Action-Item": part("A header icon action with a notification dot or count (Tertiary or Flat).", "Primitives/Dashboard/Header", "in its trailing slots"),

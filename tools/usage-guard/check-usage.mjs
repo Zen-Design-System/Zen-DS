@@ -795,6 +795,18 @@ export const rules = [
       const unused = slots.filter((name) => has(topLevel(attrs), name) && !drawn.includes(name));
       return unused.length ? `sets ${unused.map((name) => `\`${name}\``).join(", ")}, which a type="${type}" row does not draw — move ${unused.length > 1 ? "them" : "it"} to the row type that does, or change \`type\`.` : null;
     } },
+  // The Control-Bar's result count is body text (user 2026-10-16: "hơi bự, nên đưa về body"): the row draws it in
+  // Body/Base/Regular, so a heading or display style passed in outweighs the filters beside it.
+  { id: "dashboard-header/count-body", components: ["DashboardHeader"], severity: "error", allow: "dashboard-header-count", guideline: "docs/guidelines/dashboard-header.md",
+    summary: "A control-bar DashboardHeader's result count (subheading) is plain text, drawn in Body/Base/Regular: no Heading, no heading or display text style (user rule 2026-10-16).",
+    check: ({ attrs }) => {
+      if ((literal(attrs, "type") ?? (has(attrs, "type") ? null : "control-bar")) !== "control-bar") return false;
+      const count = ownExpr(attrs, "subheading");
+      if (count == null) return false;
+      const style = count.match(/textStyle=["'`]((?:Heading|Display)\/[^"'`]+)/)?.[1];
+      if (style) return `styles its result count ${style}: pass the count as plain text ("86 expenses"); the row draws it in Body/Base/Regular.`;
+      return /<Heading\b/.test(count) && "puts a <Heading> in its result count: pass the count as plain text; the row draws it in Body/Base/Regular, and a count is not a title.";
+    } },
   { id: "dashboard-header/one-primary", components: ["DashboardHeader"], severity: "error", allow: "dashboard-header-primary", guideline: "docs/guidelines/dashboard-header.md",
     summary: "DashboardHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones.",
     check: ({ attrs }) => { const actions = expr(attrs, "actions") ?? ""; const primaries = (actions.match(/level="primary"/g) ?? []).length; return primaries > 1 ? `has ${primaries} Primary buttons in actions — keep one Primary; the rest are Tertiary.` : null; } },

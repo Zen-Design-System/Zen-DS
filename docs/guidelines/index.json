@@ -4560,17 +4560,20 @@
         "Give the Search a placeholder that names what it searches (\"Search leave requests\").",
         "Make filters Chip variant=\"advanced\" in controls, each opening its own Popover (harness: dashboard-header/filters-are-chips).",
         "Write the result count with plural() and update it with the filters (\"96 results\", \"1 result\").",
+        "Pass the result count as plain text in subheading: the row draws it in Body/Base/Regular, the size of the text around it (user rule 2026-10-16; harness: dashboard-header/count-body).",
         "Order actions Tertiary first and keep one Primary, last (harness: dashboard-header/one-primary).",
         "Use only the props of the row's type: search on a navigation row does nothing (harness: dashboard-header/props-of-type)."
       ],
       "dont": [
         "Don't use Buttons as filters in controls.",
+        "Don't make the result count a Heading or give it a heading or display text style: a count beside the filters is body text, not a title.",
         "Don't put more than one Primary in actions.",
         "Don't stack two navigation rows, or a navigation row under AppShell's top bar.",
         "Don't leave type=\"main\" without a title (harness: dashboard-header/main-needs-title)."
       ],
       "rules": [
         "dashboard-header/props-of-type",
+        "dashboard-header/count-body",
         "dashboard-header/one-primary",
         "dashboard-header/main-needs-title",
         "dashboard-header/filters-are-chips",

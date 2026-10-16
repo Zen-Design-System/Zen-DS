@@ -239,3 +239,15 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
 - Figma rings beside a legend: no auto-layout setting sizes a ring to min(free width, free height) (tried: locked
   FILL/FILL follows the width and overflows a short row; FILL height overflows a narrow one; maxWidth breaks the 1:1). Left
   as is (fills its half up to its size, centred in a taller card); a choice for the user.
+
+## DashboardHeader result count is body text (user: "phần chữ đếm bao nhiêu expense hơi bự. nên đưa về body thôi", "viết lại vào rule để ghi nhớ")
+
+- Seen on the Studio Expenses page re-check: the control-bar count ("86 expenses") was Heading/Subheading. Now
+  Body/Base/Regular in code (JSDoc, CSS comment) and Figma (4122:33764; no placed instances override it); contract
+  `dashboard-header.json` patched to the Figma values (suite 64/64). Rule: guideline Do/Don't + api row, harness
+  `dashboard-header/count-body` (bad ×2, good ×1), Figma set description (written in Figma).
+- Expenses page (gitignored): today's rules flagged it; DashboardHeader `headingLevel` dropped, Donut `size="large"`,
+  Menu items and Clear filters got proto toasts; phone screen-2 has one h1 (the large title; PageHeader → description +
+  actions), a sideways-scrolling filter row (Stack scroll="x"), and expense rows as a ListBox of ListItems (value +
+  status) instead of a clipped Table. Left: Table sort / BottomNavigation value have no Studio state (warnings).
+

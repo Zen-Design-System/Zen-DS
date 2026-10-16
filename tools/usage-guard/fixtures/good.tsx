@@ -33,6 +33,7 @@ export const Good = () => <>
   <Popover open={open} onOpenChange={setOpen} items={items} onSelect={pick} />
   <PageHeader title="Members" actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
   <DashboardHeader search={<Search placeholder="Search leave requests" />} controls={<Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>} subheading="12 leave requests" actions={<><Button level="tertiary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={submitLeave}>Submit leave</Button></>} />
+  <DashboardHeader search={<Search placeholder="Search expenses" />} subheading={plural(count, "expense")} />
   <DashboardHeader type="navigation" leading={<Breadcrumbs items={crumbs} onNavigate={go} />} trailing={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />} />
   <DashboardHeader type="main" title="My leaves" subheading="12 days left this year." actions={<Button level="primary" onClick={submitLeave}>Submit leave</Button>} />
   <Popover open items={items} onSelect={pick} />

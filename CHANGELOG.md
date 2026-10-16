@@ -23,6 +23,9 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- DashboardHeader control-bar result count (2026-10-16, user: "hơi bự, nên đưa về body"): "86 expenses" is Body/Base/Regular
+  (was Heading/Subheading), in code and in Figma Primitives/Dashboard/Header Type=Control-Bar (its description says so);
+  harness `dashboard-header/count-body` (error) flags a Heading or a heading/display text style passed as the count.
 - ListBox footer actions (2026-10-16, user): a footer action ("Open calendar", "Go to Inbox") is a Tertiary Button,
   never plain text or a Link: harness `listbox/footer-action-tertiary` (error; AI UI specs and `check_usage` too), the
   Figma audit `list-box/footer-text-action`. A Button in the footer fills the box on desktop and tablet and hugs its
