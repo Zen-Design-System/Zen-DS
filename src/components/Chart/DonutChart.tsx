@@ -2,15 +2,17 @@ import { useId, type CSSProperties, type ReactNode, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, ChartSummary, colourAt, defaultFormat, signatureOf, useChartId, useChartSelection, type ChartLegendPosition, type ChartSlice } from "./chartCore";
+import { ChartBlock, ChartLegend, ChartSummary, colourAt, defaultFormat, ringSize, signatureOf, useChartId, useChartSelection, type ChartLegendPosition, type ChartRingSize, type ChartSlice } from "./chartCore";
 
 export interface DonutChartProps {
   /** The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices. */
   data: ChartSlice[];
   /** Formats the centre figure and the summary. */
   format?: (value: number) => string;
-  /** Diameter in px (default 200). The ring is 22% of it; it never grows past its box. */
-  size?: number;
+  /** Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling
+   *  (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card
+   *  grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3. */
+  size?: ChartRingSize | number;
   /** What the chart shows ("Spending by category, September 2026"). */
   "aria-label": string;
   /** The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked. */
@@ -67,16 +69,17 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
  * — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as
  * the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump
  * to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365
- * (Legend=Bottom · Start).
+ * (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320).
  */
-export function DonutChart({ data, format = defaultFormat, size = 200, "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, ref }: DonutChartProps) {
+export function DonutChart({ data, format = defaultFormat, size = "medium", "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, ref }: DonutChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const sweepId = `${useId().replace(/:/g, "")}-sweep`;
   const { active, setActive, onKeyDown } = useChartSelection(data.length, null);
   const total = data.reduce((sum, d) => sum + Math.max(0, d.value), 0);
   const r = 50 - RING / 2;
-  const unit = 100 / size; // px → viewBox units (100 = the diameter)
+  const { px, step } = ringSize(size);
+  const unit = 100 / px; // px → viewBox units (100 = the diameter)
   let start = 0;
   const slices = data.map((d, i) => {
     const share = total > 0 ? (Math.max(0, d.value) / total) * 100 : 0;
@@ -93,7 +96,7 @@ export function DonutChart({ data, format = defaultFormat, size = 200, "aria-lab
   const figure = current ? format(current.d.value) : value ?? format(total);
   const caption = current ? current.d.label : label ?? t.total;
   const ring = (
-    <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="donut" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${size}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
+    <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="donut" data-size={step} data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${px}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
       <div className="zen-chart__round" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
         onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}
         data-picked={current ? "true" : undefined}>
@@ -127,8 +130,8 @@ export function DonutChart({ data, format = defaultFormat, size = 200, "aria-lab
         }) : null}
         {totalPosition === "centre" ? (
           <span className="zen-chart__centre" aria-hidden="true">
-            <span className={`zen-chart__centre-value ${typographyStyles["Heading/4"]}`}>{figure}</span>
-            <span className={`zen-chart__centre-label ${typographyStyles["Caption/Regular"]}`}>{caption}</span>
+            <span className={`zen-chart__centre-value ${typographyStyles[step === "small" ? "Body/Base/Bold" : step === "xlarge" ? "Heading/3" : "Heading/4"]}`}>{figure}</span>
+            {step !== "small" ? <span className={`zen-chart__centre-label ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
           </span>
         ) : null}
         <ChartSummary id={`${id}-summary`}>{summary}</ChartSummary>

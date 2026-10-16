@@ -242,7 +242,7 @@ function TopClientsWidget() {
 function RevenueByClientWidget() {
   return (
     <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line" description="Invoiced in Q3 2026">
-      <DonutChart aria-label="Revenue by client, Q3 2026" size={168} legendPosition="start" format={(value) => (value ? `$${value / 1000}K` : "$0")}
+      <DonutChart aria-label="Revenue by client, Q3 2026" legendPosition="start" format={(value) => (value ? `$${value / 1000}K` : "$0")}
         data={[
           { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },
           { id: "mekong", label: "Mekong Freight", value: 53400 }, { id: "bookfair", label: "Hanoi Book Fair", value: 50500 },

@@ -270,6 +270,8 @@ export const Bad = () => <>
   <BarChart data={data} />
   {/* expect: chart/shares-need-legend */}
   <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} showLegend={false} />
+  {/* expect: chart/ring-size-named */}
+  <RadialChart aria-label="Budget used by project" data={slices} size={200} />
   {/* expect: chart/shares-need-legend */}
   <LineChart aria-label="Invoiced and collected, Apr – Sep 2026" data={data} compare={compare} showLegend={false} />
   {/* expect: chart/heatmap-needs-scale */}

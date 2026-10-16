@@ -345,7 +345,7 @@
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -367,10 +367,10 @@
         },
         {
           "name": "size",
-          "type": "number",
+          "type": "ChartRingSize | number",
           "required": false,
-          "default": "200",
-          "description": "Diameter in px (default 200). The ring is 22% of it; it never grows past its box.",
+          "default": "\"medium\"",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card\n grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3.",
           "deprecated": null
         },
         {
@@ -458,7 +458,7 @@
     {
       "name": "RadialChart",
       "file": "src/components/Chart/RadialChart.tsx",
-      "description": "Radial chart (ring gauges) in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): concentric\n10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure\n(Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump\nto the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End).",
+      "description": "Radial chart (ring gauges) in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): concentric\n10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure\n(Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump\nto the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 ·\nLarge 240 · XLarge 320).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -488,10 +488,10 @@
         },
         {
           "name": "size",
-          "type": "number",
+          "type": "ChartRingSize | number",
           "required": false,
-          "default": "200",
-          "description": "Diameter in px (default 200). Rings are 10px with 8px between them; the chart never grows past its box.",
+          "default": "\"medium\"",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);\n the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone\n (Body/Base/Bold), XLarge in Heading/3.",
           "deprecated": null
         },
         {
@@ -1489,6 +1489,7 @@
     "ChartDatum": "interface ChartDatum { label: string; values: Record<string, number> }",
     "ChartLegendPosition": "type ChartLegendPosition = \"top\" | \"bottom\" | \"start\" | \"end\"",
     "ChartPoint": "interface ChartPoint { label: string; value: number; projected?: boolean; target?: number; }",
+    "ChartRingSize": "type ChartRingSize = \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"sm\" | \"md\" | \"lg\" | \"xl\"",
     "ChartSeries": "interface ChartSeries { id: string; label: string; color?: string; }",
     "ChartSlice": "interface ChartSlice { id: string; label: string; value: number; color?: string }",
     "SegmentedOption": "type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; \"aria-label\"?: string; }",

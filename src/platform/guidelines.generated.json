@@ -6969,12 +6969,12 @@
       ],
       [
         "Donut",
-        "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)",
+        "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)",
         "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/2 figure)"
       ],
       [
         "Radial",
-        "RadialChart data[] {id, label, value} · max · value · label · size · legendPosition",
+        "RadialChart data[] {id, label, value} · max · value · label · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition",
         "10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first"
       ],
       [
@@ -7052,6 +7052,7 @@
       ]
     ],
     "do": [
+      "Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.",
       "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
       "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
       "Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend, chart/series-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).",
@@ -7131,6 +7132,12 @@
         "severity": "error",
         "summary": "Donut slices, radial rings and a line chart's comparison keep their legend so colour is never the only key.",
         "allow": "chart-legend"
+      },
+      {
+        "id": "chart/ring-size-named",
+        "severity": "warn",
+        "summary": "A ring chart takes a named size (Figma Size): small 120 · medium 168 · large 240 · xlarge 320, not a number of px.",
+        "allow": "ring-size-px"
       },
       {
         "id": "chart/heatmap-needs-scale",
