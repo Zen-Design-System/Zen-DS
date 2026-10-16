@@ -340,7 +340,7 @@
       "name": "EmptyState",
       "status": "stable",
       "purpose": "Explains why a screen or region has nothing to show and what the user can do next.",
-      "props": "title headingLevel? compactTitle? children? illustration? icon? primaryAction? secondaryAction? aria-label? aria-labelledby? aria-describedby?"
+      "props": "title headingLevel? compactTitle? children? size? illustration? icon? primaryAction? secondaryAction? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "FileIcon",

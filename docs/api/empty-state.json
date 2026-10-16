@@ -6,7 +6,7 @@
     {
       "name": "EmptyState",
       "file": "src/components/EmptyState/EmptyState.tsx",
-      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.\nInside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or\noutsizes the card title (see `headingLevel`).",
+      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size=\"sm\"`), gap XSmall, then the content wrapper\n(gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Primary + Tertiary, gap Small); padding-bottom 4XLarge.\nInside a ChartCard the title sits one level below the card title in Body/Extra/Bold, so it never outranks or\noutsizes the card title (see `headingLevel`).",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">",
       "props": [
@@ -51,11 +51,19 @@
           "deprecated": null
         },
         {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": null,
+          "description": "Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main\ncontent (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows\nother content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside\na ChartCard (set for you).",
+          "deprecated": null
+        },
+        {
           "name": "illustration",
           "type": "boolean | ReactNode",
           "required": false,
           "default": "true",
-          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it.",
+          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art. `false` hides it —\navoid it: where space is short use `size=\"sm\"` (harness: empty-state/keep-illustration).",
           "deprecated": null
         },
         {
@@ -103,7 +111,7 @@
     {
       "name": "EmptyStateIllustration",
       "file": "src/components/EmptyState/EmptyState.tsx",
-      "description": "Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.",
+      "description": "Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed and a solid circle, and an icon.\nMedium 240 with a Popular/2XLarge icon; Small 120, the same art at half scale with a Popular/Medium icon and the\nsame 1px grid and 2px rings.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -113,6 +121,14 @@
           "required": false,
           "default": "\"icon-user-circle-line\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "`md` 240 (default) · `sm` 120.",
           "deprecated": null
         },
         {

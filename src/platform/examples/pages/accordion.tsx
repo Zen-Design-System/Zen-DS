@@ -153,7 +153,7 @@ function HelpSearchExample() {
             ))}
           </Stack>
         ) : (
-          <EmptyState illustration={false} headingLevel={4} title="No articles match"
+          <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No articles match"
             secondaryAction={{ label: "Clear search", onClick: clear }}>
             Try another word, or ask People Ops in the studio chat.
           </EmptyState>
@@ -493,7 +493,7 @@ const clear = () => { search(""); searchRef.current?.focus(); };
         {article.body}
       </Accordion>
     )) : (
-      <EmptyState illustration={false} headingLevel={4} title="No articles match"
+      <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No articles match"
         secondaryAction={{ label: "Clear search", onClick: clear }}>
         Try another word, or ask People Ops in the studio chat.
       </EmptyState>

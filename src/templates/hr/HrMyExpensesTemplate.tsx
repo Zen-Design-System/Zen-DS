@@ -288,10 +288,10 @@ export function HrMyExpensesTemplate() {
   const check = <Icon name="icon-check-line" size="base" decorative />;
 
   const emptyState = !claims.length
-    ? <EmptyState title="No expenses yet" headingLevel={2} illustration={false} icon="icon-receipt-line" primaryAction={{ label: "New expense", onClick: () => startExpense() }}>Add a work cost you paid yourself to get it back.</EmptyState>
+    ? <EmptyState title="No expenses yet" headingLevel={2} icon="icon-receipt-line" primaryAction={{ label: "New expense", onClick: () => startExpense() }}>Add a work cost you paid yourself to get it back.</EmptyState>
     : statusFilter.length || categoryFilter.length || !query.trim()
-      ? <EmptyState title="No expenses match" headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another status or category.</EmptyState>
-      : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by description, merchant or expense number.</EmptyState>;
+      ? <EmptyState title="No expenses match" headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another status or category.</EmptyState>
+      : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by description, merchant or expense number.</EmptyState>;
 
   const panel = opened ? (() => {
     const category = expenseCategories[opened.category];

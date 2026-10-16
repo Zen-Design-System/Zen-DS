@@ -91,7 +91,7 @@ function UndoDeleteExample() {
           ))}
         </List>
       ) : (
-        <EmptyState illustration={false} icon="icon-folder-line" title="No recent files" primaryAction={{ label: "Restore files", onClick: restoreAll }}>
+        <EmptyState size="sm" icon="icon-folder-line" title="No recent files" primaryAction={{ label: "Restore files", onClick: restoreAll }}>
           Files you open in any project show up here.
         </EmptyState>
       )}
@@ -345,7 +345,7 @@ function PhoneToastExample() {
           </List>
         </Box>
       ) : (
-        <EmptyState illustration={false} headingLevel={2} icon="icon-bookmark-line" title="No saved offers yet" primaryAction={{ label: "Browse offers", onClick: () => openTab("offers") }}>
+        <EmptyState headingLevel={2} icon="icon-bookmark-line" title="No saved offers yet" primaryAction={{ label: "Browse offers", onClick: () => openTab("offers") }}>
           Save an offer to find it here at the counter.
         </EmptyState>
       )}

@@ -29,7 +29,7 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
 - **Nội dung dài**: dùng `BottomSheet size="max"` với `actionsDirection="vertical"`. Phần thân cuộn, header và footer đứng yên.
 - **Thread chat**: tin mới nhất nằm dưới cùng nhờ `margin-top:auto` ở phần tử đầu tiên, không dùng `justify-content:flex-end`. Gửi lỗi thì dùng `failed` + `onRetry` ("Not delivered · Retry" → "Sending…" → "Sent").
 - **AI trả lời lỗi**: giữ lại câu hỏi và hiện InlineMessage Negative với hành động "Try again". Khi thử lại, câu trả lời stream như bình thường.
-- **Chart chưa có dữ liệu**: ChartCard giữ tiêu đề, hiện `EmptyState illustration={false}` với hành động tạo ra dữ liệu. Không vẽ lưới trống.
+- **Chart chưa có dữ liệu**: ChartCard giữ tiêu đề, hiện `EmptyState` (ChartCard tự đặt size Small) với hành động tạo ra dữ liệu. Không vẽ lưới trống.
 
 ## 3. Pattern desktop
 
@@ -111,7 +111,7 @@ Harness `chat/no-locked-interaction` cảnh báo handler rỗng, và `ChatMessag
 | Cần | Dùng |
 | --- | --- |
 | Hàng có leading, tiêu đề, caption, trailing | `List` + `ListItem` (không dựng `div.pe-row` + Text + Badge) |
-| Không có dữ liệu / không có kết quả | `EmptyState` (thêm `illustration={false}` khi đặt trong card) |
+| Không có dữ liệu / không có kết quả | `EmptyState`: size Medium khi nó chiếm cả nội dung trang; `size="sm"` trong widget, card, bảng, list, tab, panel. Luôn giữ illustration (không dùng `illustration={false}`) |
 | Icon file | `FileIcon format={fileIconFormatOf(name)}` |
 | Filter, sort, scope, owner | `Chip variant="advanced"` |
 | Số đếm | `BadgeCounter`; Badge dành cho chữ và trạng thái |

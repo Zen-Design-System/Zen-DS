@@ -81,7 +81,7 @@ function LeaveRequests() {
       />
       {/* The page's table sits on the Canvas: no Card */}
       <Table aria-label="Leave requests" rows={rows} columns={columns}
-        empty={<EmptyState illustration={false} title="No leave requests match" secondaryAction={filtered ? { label: "Clear filters", onClick: clear } : undefined}>Try another name, or clear the filters.</EmptyState>} />
+        empty={<EmptyState size="sm" icon="icon-search-medium-line" title="No leave requests match" secondaryAction={filtered ? { label: "Clear filters", onClick: clear } : undefined}>Try another name, or clear the filters.</EmptyState>} />
     </Stack>
   );
 }
@@ -210,7 +210,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   />
   {/* The page's table sits on the Canvas: no Card */}
   <Table aria-label="Leave requests" rows={rows} columns={columns}
-    empty={<EmptyState illustration={false} title="No leave requests match" secondaryAction={{ label: "Clear filters", onClick: clear }}>Try another name, or clear the filters.</EmptyState>} />
+    empty={<EmptyState size="sm" icon="icon-search-medium-line" title="No leave requests match" secondaryAction={{ label: "Clear filters", onClick: clear }}>Try another name, or clear the filters.</EmptyState>} />
 </Stack>`,
   },
   {

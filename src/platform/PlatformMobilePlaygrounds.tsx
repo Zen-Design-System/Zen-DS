@@ -70,7 +70,7 @@ function ScreenList({ extra = [], query = "", sort = "recent", onClearQuery }: {
   const rows = projects.filter((project) => project.title.toLowerCase().includes(q)).sort(projectOrder[sort]);
   if (!created.length && !rows.length) {
     return (
-      <EmptyState illustration={false} headingLevel={2} title={`No projects match “${query.trim()}”`}
+      <EmptyState headingLevel={2} icon="icon-search-medium-line" title={`No projects match “${query.trim()}”`}
         secondaryAction={onClearQuery ? { label: "Clear search", onClick: onClearQuery } : undefined}>
         Try another name, such as Zen website.
       </EmptyState>

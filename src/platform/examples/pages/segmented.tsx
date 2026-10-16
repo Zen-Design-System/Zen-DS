@@ -72,7 +72,7 @@ function FileViewsExample() {
           ]} />
         </Stack>
         {!shown.length ? (
-          <EmptyState illustration={false} headingLevel={5} title="No files match" secondaryAction={{ label: "Show all files", onClick: () => setQuery("") }}>
+          <EmptyState size="sm" headingLevel={5} icon="icon-search-medium-line" title="No files match" secondaryAction={{ label: "Show all files", onClick: () => setQuery("") }}>
             {`No file name in Brand refresh contains “${query.trim()}”.`}
           </EmptyState>
         ) : view === "list" ? (
@@ -225,11 +225,11 @@ function OpenResolvedExample() {
             })}
           </List>
         ) : view === "open" ? (
-          <EmptyState illustration={false} headingLevel={5} title="No open comments" secondaryAction={{ label: "Show resolved", onClick: () => setView("resolved") }}>
+          <EmptyState size="sm" headingLevel={5} icon="icon-message-chat-circle-line" title="No open comments" secondaryAction={{ label: "Show resolved", onClick: () => setView("resolved") }}>
             Every comment on this screen is resolved.
           </EmptyState>
         ) : (
-          <EmptyState illustration={false} headingLevel={5} title="No resolved comments yet" secondaryAction={{ label: "Show open", onClick: () => setView("open") }}>
+          <EmptyState size="sm" headingLevel={5} icon="icon-message-chat-circle-line" title="No resolved comments yet" secondaryAction={{ label: "Show open", onClick: () => setView("open") }}>
             Comments you resolve move here.
           </EmptyState>
         )}

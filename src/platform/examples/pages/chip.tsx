@@ -89,7 +89,7 @@ function TaskFiltersExample() {
       </Stack>
       <Text role="status" textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "task")}</Text>
       <Table aria-label="Tasks" columns={filterColumns} rows={rows}
-        empty={<EmptyState illustration={false} headingLevel={4} title="No tasks match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>
+        empty={<EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No tasks match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>
           Try another status, priority or project.
         </EmptyState>} />
     </Stack>
@@ -140,7 +140,7 @@ function OwnerFilterExample() {
         </ListBox>
       ) : (
         <Card theme="flat">
-          <EmptyState illustration={false} headingLevel={4} title="No files match" secondaryAction={{ label: "Show all files", onClick: () => setOwnerId(null) }}>
+          <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No files match" secondaryAction={{ label: "Show all files", onClick: () => setOwnerId(null) }}>
             {`${owner?.name} doesn't own any files yet.`}
           </EmptyState>
         </Card>
@@ -308,7 +308,7 @@ function PhoneFiltersExample() {
               </List>
             </Box>
           ) : (
-            <EmptyState illustration={false} headingLevel={2} title="No people match" secondaryAction={{ label: "Clear filters", onClick: () => setOn([]) }}>
+            <EmptyState headingLevel={2} icon="icon-search-medium-line" title="No people match" secondaryAction={{ label: "Clear filters", onClick: () => setOn([]) }}>
               Turn off a filter to see more of the team.
             </EmptyState>
           )}
@@ -350,7 +350,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {active >= 2 ? <Button level="tertiary" onClick={clearAll}>Clear all</Button> : null}
 </Stack>
 <Table aria-label="Tasks" columns={columns} rows={rows}
-  empty={<EmptyState illustration={false} title="No tasks match"
+  empty={<EmptyState size="sm" icon="icon-search-medium-line" title="No tasks match"
     secondaryAction={{ label: "Clear filters", onClick: clearAll }}>Try another status, priority or project.</EmptyState>} />`,
   },
   {

@@ -232,10 +232,10 @@ export function HrLeaveTypesTemplate() {
   );
 
   const empty = !types.length
-    ? <EmptyState title="No leave types yet" headingLevel={2} illustration={false} icon="icon-calendar-heart-line" primaryAction={{ label: "Add leave type", onClick: addType }}>Add the kinds of time off people can request.</EmptyState>
+    ? <EmptyState title="No leave types yet" headingLevel={2} icon="icon-calendar-heart-line" primaryAction={{ label: "Add leave type", onClick: addType }}>Add the kinds of time off people can request.</EmptyState>
     : pay || status || !query.trim()
-      ? <EmptyState title="No leave types match" headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another name, pay or status.</EmptyState>
-      : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by name or description.</EmptyState>;
+      ? <EmptyState title="No leave types match" headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another name, pay or status.</EmptyState>
+      : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>Search by name or description.</EmptyState>;
 
   return (
     <HrShell module="time-off" page="leave-types" onNavigate={navigate}>

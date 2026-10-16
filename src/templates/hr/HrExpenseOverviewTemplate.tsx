@@ -319,7 +319,7 @@ export function HrExpenseOverviewTemplate() {
   };
   const sheetFilter = sheet === "status" || sheet === "team" ? filters[sheet] : null;
   const check = <Icon name="icon-check-line" size="base" decorative />;
-  const noClaims = <EmptyState title="No claims match" headingLevel={3} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another status or team.</EmptyState>;
+  const noClaims = <EmptyState title="No claims match" headingLevel={3} size="sm" icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another status or team.</EmptyState>;
 
   const claimPanel = opened ? (() => {
     const person = people[opened.person];

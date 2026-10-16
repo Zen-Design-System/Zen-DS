@@ -391,7 +391,7 @@ function PeopleDirectoryApp() {
         <PageHeader title="People" description={q ? `${plural(shown.length, "person", "people")} match “${query.trim()}”` : `${plural(rows.length, "person", "people")} at ${studio.name}`}
           actions={<Button level="primary" startIcon="icon-user-plus-line" onClick={() => setInviting(true)}>Invite person</Button>} />
         <Table aria-label="People" rows={shown} columns={columns}
-          empty={<EmptyState headingLevel={2} illustration={false} title="No people match" secondaryAction={{ label: "Show everyone", onClick: () => setQuery("") }}>Try a name, a role or a team.</EmptyState>} />
+          empty={<EmptyState headingLevel={2} icon="icon-search-medium-line" title="No people match" secondaryAction={{ label: "Show everyone", onClick: () => setQuery("") }}>Try a name, a role or a team.</EmptyState>} />
       </Page>
     );
   }
@@ -931,7 +931,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       <PageHeader title="People" description={\`\${plural(shown.length, "person", "people")} match “\${query}”\`}
         actions={<Button level="primary" startIcon="icon-user-plus-line" onClick={invite}>Invite person</Button>} />
       <Table aria-label="People" rows={shown} columns={columns}
-        empty={<EmptyState headingLevel={2} illustration={false} title="No people match"
+        empty={<EmptyState headingLevel={2} icon="icon-search-medium-line" title="No people match"
           secondaryAction={{ label: "Show everyone", onClick: () => setQuery("") }}>Try a name, a role or a team.</EmptyState>} />
     </Stack>
   </Container>

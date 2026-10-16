@@ -416,8 +416,8 @@ export function DashboardTemplate() {
 
   const filtered = statusFilter.length > 0;
   const noRows = filtered || !q
-    ? <EmptyState title="No projects match" headingLevel={3} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: () => { setStatusFilter([]); statusRef.current?.focus(); } }}>Try another status.</EmptyState>
-    : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={3} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>Search by project or client name.</EmptyState>;
+    ? <EmptyState title="No projects match" headingLevel={3} size="sm" icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: () => { setStatusFilter([]); statusRef.current?.focus(); } }}>Try another status.</EmptyState>
+    : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={3} size="sm" icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>Search by project or client name.</EmptyState>;
   const check = <Icon name="icon-check-line" size="base" decorative />;
   // Desktop: the chips' Popovers. Phone: each chip opens a Bottom Sheet with the same choices.
   const statusChip = { variant: "advanced", size: phone ? "md" : "sm", dropdown: true, selectionMode: "multiple", selected: filtered, selectionCount: statusFilter.length, onClearSelection: () => setStatusFilter([]) } as const;

@@ -70,7 +70,7 @@ function DirectoryExample() {
           </List>
         </Box>
       ) : (
-        <EmptyState illustration={false} headingLevel={5} title={`No people match “${query.trim()}”`}
+        <EmptyState size="sm" headingLevel={5} icon="icon-search-medium-line" title={`No people match “${query.trim()}”`}
           secondaryAction={{ label: "Clear search", onClick: clear }}>
           Try a first name, a team such as Design, or a city.
         </EmptyState>
@@ -138,7 +138,7 @@ function InvoiceToolbarExample() {
         <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{`${plural(rows.length, "invoice")} · ${formatMoney(total, true)}`}</Text>
       </Stack>
       <Table aria-label="Invoices" columns={invoiceColumns} rows={rows}
-        empty={<EmptyState illustration={false} headingLevel={4} title="No invoices match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>
+        empty={<EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No invoices match" secondaryAction={{ label: "Clear filters", onClick: clearAll }}>
           Try another invoice number, client or status.
         </EmptyState>} />
     </Stack>
@@ -200,7 +200,7 @@ function ClientFilesExample() {
           </List>
         </Box>
       ) : (
-        <EmptyState illustration={false} headingLevel={5} title={`No files match “${query.trim()}”`}
+        <EmptyState size="sm" headingLevel={5} icon="icon-search-medium-line" title={`No files match “${query.trim()}”`}
           secondaryAction={all ? { label: "Clear search", onClick: clear } : { label: "Search all clients", onClick: widen }}>
           {all ? "Try part of the file name or the project." : `Nothing from ${scope} matches. Files of other clients might.`}
         </EmptyState>
@@ -247,7 +247,7 @@ function ProjectJumpExample() {
                 ))}
               </List>
             ) : (
-              <EmptyState illustration={false} headingLevel={4} title={`No projects match “${q}”`}
+              <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title={`No projects match “${q}”`}
                 secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
                 Search by project or client name.
               </EmptyState>
@@ -340,7 +340,7 @@ function PhoneFilesExample() {
             </List>
           </Box>
         ) : (
-          <EmptyState illustration={false} headingLevel={2} title={query.trim() ? `No files match “${query.trim()}”` : `No ${kindLabel.toLowerCase()} yet`}
+          <EmptyState headingLevel={2} icon="icon-search-medium-line" title={query.trim() ? `No files match “${query.trim()}”` : `No ${kindLabel.toLowerCase()} yet`}
             secondaryAction={{ label: "Clear filters", onClick: reset }}>
             Search by file name, client or project.
           </EmptyState>
@@ -441,7 +441,7 @@ function ContactImportExample() {
           </List>
         </Box>
       ) : (
-        <EmptyState illustration={false} headingLevel={5} title={`No contacts match “${query.trim()}”`}
+        <EmptyState size="sm" headingLevel={5} icon="icon-search-medium-line" title={`No contacts match “${query.trim()}”`}
           secondaryAction={{ label: "Clear search", onClick: () => setQuery("") }}>
           Search by name, role or company.
         </EmptyState>
@@ -471,7 +471,7 @@ const rows = people.filter((p) => matches(query, p.name, p.role, p.team, p.locat
       {rows.map((p) => <ListItem key={p.id} title={p.name} caption={\`\${p.role} · \${p.location}\`} leading={<Avatar {...avatarOf(p)} />} />)}
     </List>
   ) : (
-    <EmptyState illustration={false} title={\`No people match “\${query}”\`}
+    <EmptyState size="sm" icon="icon-search-medium-line" title={\`No people match “\${query}”\`}
       secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
       Try a first name, a team such as Design, or a city.
     </EmptyState>
@@ -504,7 +504,7 @@ const rows = people.filter((p) => matches(query, p.name, p.role, p.team, p.locat
     <Text as="span" role="status" tone="base">{\`\${plural(rows.length, "invoice")} · \${formatMoney(total, true)}\`}</Text>
   </Stack>
   <Table aria-label="Invoices" columns={columns} rows={rows}
-    empty={<EmptyState illustration={false} title="No invoices match"
+    empty={<EmptyState size="sm" icon="icon-search-medium-line" title="No invoices match"
       secondaryAction={{ label: "Clear filters", onClick: clearAll }} />} />
 </Stack>`,
   },
@@ -530,7 +530,7 @@ const rows = people.filter((p) => matches(query, p.name, p.role, p.team, p.locat
   {rows.length ? (
     <List aria-label="Files">{rows.map((file) => <ListItem key={file.id} title={file.name} titleLines={2} … />)}</List>
   ) : (
-    <EmptyState illustration={false} title={\`No files match “\${query}”\`}
+    <EmptyState size="sm" icon="icon-search-medium-line" title={\`No files match “\${query}”\`}
       secondaryAction={scope === "all"
         ? { label: "Clear search", onClick: clear }
         : { label: "Search all clients", onClick: () => setScope("all") }}>

@@ -326,8 +326,8 @@ export function HrTasksTemplate() {
     </Grid>
   );
   const noMatch = query.trim() && !assigneeFilter.length && !priorityFilter.length && !spaceFilter.length
-    ? <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: clearSearch }}>Search by title, key, project or assignee.</EmptyState>
-    : <EmptyState title="No tasks match" headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another assignee, priority or space.</EmptyState>;
+    ? <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: clearSearch }}>Search by title, key, project or assignee.</EmptyState>
+    : <EmptyState title="No tasks match" headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another assignee, priority or space.</EmptyState>;
 
   /* ── List: one table per status, each under a collapsible h2 ── */
   const columns: TableColumn<WorkTask>[] = [

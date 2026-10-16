@@ -128,7 +128,7 @@ function DeleteProject() {
             ))}
           </CardList>
         ) : (
-          <EmptyState illustration={false} headingLevel={5} title="No completed projects">Projects move here when they're marked Completed.</EmptyState>
+          <EmptyState size="sm" headingLevel={5} icon="icon-folder-line" title="No completed projects">Projects move here when they're marked Completed.</EmptyState>
         )}
       </Stack>
       <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete this project?"

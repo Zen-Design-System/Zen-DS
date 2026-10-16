@@ -89,7 +89,7 @@ export function App() {
   const emptyState = () => {
     if (tasks.length === 0) {
       return (
-        <EmptyState title="No tasks yet" icon="icon-check-done-line" illustration={false} headingLevel={2}>
+        <EmptyState title="No tasks yet" icon="icon-check-done-line" headingLevel={2}>
           Add your first task above to get started.
         </EmptyState>
       );
@@ -99,7 +99,6 @@ export function App() {
         <EmptyState
           title="All tasks are done"
           icon="icon-check-done-line"
-          illustration={false}
           headingLevel={2}
           secondaryAction={{ label: "Show all tasks", onClick: () => setFilter("all") }}
         >
@@ -111,7 +110,6 @@ export function App() {
       <EmptyState
         title="No completed tasks"
         icon="icon-clipboard-line"
-        illustration={false}
         headingLevel={2}
         secondaryAction={{ label: "Show all tasks", onClick: () => setFilter("all") }}
       >

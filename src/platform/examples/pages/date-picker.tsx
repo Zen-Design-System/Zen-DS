@@ -246,7 +246,7 @@ function InvoiceFilterExample() {
       </Stack>
       <Table aria-labelledby={titleId} columns={invoiceColumns} rows={rows} getRowId={(row) => row.id}
         empty={
-          <EmptyState title="No invoices match" headingLevel={5} illustration={false} secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>
+          <EmptyState icon="icon-search-medium-line" title="No invoices match" headingLevel={5} size="sm" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>
             No invoice was issued in these dates with this status.
           </EmptyState>
         } />
@@ -594,7 +594,7 @@ const [month, setMonth] = useState(august);
   showActions onApply={(_, range) => setPeriod(range)} />
 {/* No container: the table lies on the page under its heading and toolbar. */}
 <Table aria-labelledby={titleId} columns={columns} rows={invoices.filter(inPeriod)}
-  empty={<EmptyState title="No invoices match" illustration={false}
+  empty={<EmptyState icon="icon-search-medium-line" title="No invoices match" size="sm"
     secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>…</EmptyState>} />`,
   },
   {

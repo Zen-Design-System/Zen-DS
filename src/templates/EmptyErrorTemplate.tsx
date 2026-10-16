@@ -371,8 +371,8 @@ export function EmptyErrorTemplate() {
     );
   } else {
     const noMatch = filtered || !query.trim()
-      ? <EmptyState headingLevel={2} illustration={false} icon="icon-search-medium-line" title="No projects match" secondaryAction={{ label: "Clear filters", onClick: () => { focusSearch.current = true; clearFilters(); } }}>{query.trim() ? "Try another search, status or lead." : "Try another status or lead."}</EmptyState>
-      : <EmptyState headingLevel={2} illustration={false} icon="icon-search-medium-line" title={`No results for “${query.trim()}”`} secondaryAction={{ label: "Clear search", onClick: () => { focusSearch.current = true; setQuery(""); } }}>Search by project or client name.</EmptyState>;
+      ? <EmptyState headingLevel={2} icon="icon-search-medium-line" title="No projects match" secondaryAction={{ label: "Clear filters", onClick: () => { focusSearch.current = true; clearFilters(); } }}>{query.trim() ? "Try another search, status or lead." : "Try another status or lead."}</EmptyState>
+      : <EmptyState headingLevel={2} icon="icon-search-medium-line" title={`No results for “${query.trim()}”`} secondaryAction={{ label: "Clear search", onClick: () => { focusSearch.current = true; setQuery(""); } }}>Search by project or client name.</EmptyState>;
     content = (
       <Stack gap="md">
         {toolbar}

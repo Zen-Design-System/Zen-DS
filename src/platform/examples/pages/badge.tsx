@@ -76,7 +76,7 @@ function TaskStatusTable() {
         <Text as="span" textStyle="Body/Small/Regular" tone="base" role="status">{plural(rows.length, "task")}</Text>
       </Stack>
       <Table aria-label="Studio tasks" columns={columns} rows={rows}
-        empty={<EmptyState illustration={false} headingLevel={4} title="No tasks match"
+        empty={<EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No tasks match"
           secondaryAction={{ label: "Clear filters", onClick: () => { setStatus(null); setPriority(null); } }}>Try another status or priority.</EmptyState>} />
     </Stack>
   );
@@ -359,7 +359,7 @@ const columns = [
     {status ?? "Status"}
   </Chip>
   {/* The table lies on the page: no Card or Box around it */}
-  <Table aria-label="Studio tasks" columns={columns} rows={rows} empty={<EmptyState title="No tasks match" … />} />
+  <Table aria-label="Studio tasks" columns={columns} rows={rows} empty={<EmptyState icon="icon-search-medium-line" title="No tasks match" … />} />
 </Stack>`,
   },
   {

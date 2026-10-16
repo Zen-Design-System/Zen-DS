@@ -128,7 +128,7 @@ function InvoiceRowActions() {
         <Text as="span" role="status" textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "invoice")}</Text>
       </Stack>
       <Table aria-labelledby={headingId} columns={columns} rows={rows} onRowClick={(row) => setOpenId(row.id)}
-        empty={<EmptyState illustration={false} headingLevel={5} title="No invoices yet">Invoices you send to clients show here.</EmptyState>} />
+        empty={<EmptyState size="sm" headingLevel={5} icon="icon-receipt-line" title="No invoices yet">Invoices you send to clients show here.</EmptyState>} />
       <SidePanel type="modal" size="small" open={Boolean(opened)} onOpenChange={(open) => { if (!open) setOpenId(null); }}
         title={opened?.number ?? ""} description={opened?.client}
         primaryAction={opened ? panelAction(opened) : undefined} secondaryAction={{ label: "Close" }}>
@@ -281,7 +281,7 @@ function ProjectActions() {
                 </List>
               </ListBox>
             ) : (
-              <EmptyState illustration={false} headingLevel={3} title="No open tasks">Every task on this project is done.</EmptyState>
+              <EmptyState size="sm" headingLevel={3} icon="icon-check-done-line" title="No open tasks">Every task on this project is done.</EmptyState>
             )}
           </Stack>
         </Stack>

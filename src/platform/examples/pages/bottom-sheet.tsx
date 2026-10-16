@@ -106,7 +106,7 @@ function FileActionsExample() {
             </List>
           </Box>
         ) : (
-          <EmptyState illustration={false} headingLevel={2} title="No files yet">Files your team adds to Brand refresh show up here.</EmptyState>
+          <EmptyState headingLevel={2} icon="icon-folder-line" title="No files yet">Files your team adds to Brand refresh show up here.</EmptyState>
         )}
       </Stack>
       {/* Action type: one tap runs the item and closes the sheet; the destructive item comes last. */}
@@ -239,7 +239,7 @@ function PickOneExample() {
             ))}
           </List>
         ) : (
-          <EmptyState illustration={false} headingLevel={3} title="No cities match" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
+          <EmptyState size="sm" headingLevel={3} icon="icon-search-medium-line" title="No cities match" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
             {`No city or offset contains “${query.trim()}”.`}
           </EmptyState>
         )}
@@ -390,7 +390,7 @@ function FiltersExample() {
             </List>
           </Box>
         ) : (
-          <EmptyState illustration={false} headingLevel={2} title="No tasks match" secondaryAction={{ label: "Clear filters", onClick: () => { setApplied(noFilters); chipRef.current?.focus(); } }}>
+          <EmptyState headingLevel={2} icon="icon-search-medium-line" title="No tasks match" secondaryAction={{ label: "Clear filters", onClick: () => { setApplied(noFilters); chipRef.current?.focus(); } }}>
             Turn off a filter to see more tasks.
           </EmptyState>
         )}

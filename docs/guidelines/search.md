@@ -82,7 +82,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 - Debounce remote search (~250ms) and keep the query when results refresh.
 - Show the result count in an aria-live region ("12 results").
 - When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup ("dialog", "menu", "listbox") and filterExpanded={open}; aria-expanded on Search itself lands on the input.
-- When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (illustration={false} in narrow panels such as sidebars and pickers).
+- When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (size="sm" in narrow panels such as sidebars and pickers).
 
 ## ❌ Don't
 - Don't hide search behind an icon on desktop when search is a primary task.

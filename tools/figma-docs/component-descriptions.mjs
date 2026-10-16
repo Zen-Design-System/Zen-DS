@@ -207,7 +207,7 @@ export const componentDescriptions = {
     what: "Explains why a screen or region has nothing to show and what to do next.",
     use: ["First run: one Primary action that creates the first item.", "No results: echo the query and offer to clear the filters.", "No permission: explain and offer to request access."],
     instead: ["Loading → Skeleton.", "An error that needs a retry → Inline-Message (Negative) with an action.", "A single empty cell → a short line of text."],
-    rules: ["One clear action at most; the title says what is missing, the text says why or what next.", "It sits on the canvas, not in a card."],
+    rules: ["One clear action at most; the title says what is missing, the text says why or what next.", "Size Medium (240 illustration) when it fills a page; Small (120) in a widget, card, table, panel or dialog.", "Keep the illustration; where space is short use Small, never hide it."],
     code: "`<EmptyState>`",
   }),
   "Empty-State/Illustration/Placeholder": part("The icon illustration at the top of an Empty-State (swap the icon to match the missing content).", "Empty-State"),

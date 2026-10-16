@@ -199,16 +199,20 @@ const OVERLAYS = ["Dialog", "ModalForm", "SidePanel", "BottomSheet"];
 const BOX_TAGS = ["Card", "ListBox", "MetricCard", "ChartCard", ...OVERLAYS];
 /** The nearest enclosing box or overlay of the element at `start` (children or a prop={…} of it), or null. Tags in
  *  another template string (a code sample) and self-closing tags that end before `start` don't count. */
-const nearestBox = (src, start) => {
+const nearestBox = (src, start, tags = BOX_TAGS) => {
   const sameString = (i) => ((src.slice(i, start).match(/(?<!\\)`/g) ?? []).length) % 2 === 0;
   const stack = [];
-  for (const m of src.slice(0, start).matchAll(new RegExp(`<(/?)(${BOX_TAGS.join("|")})\\b`, "g"))) {
-    if (!sameString(m.index) || /[\w$)\]]/.test(src[m.index - 1] ?? "")) continue;
+  for (const m of src.slice(0, start).matchAll(new RegExp(`<(/?)(${tags.join("|")})\\b`, "g"))) {
+    if (!sameString(m.index)) continue;
     if (m[1]) { const at = stack.lastIndexOf(m[2]); if (at >= 0) stack.length = at; continue; }
+    if (/[\w$)\]]/.test(src[m.index - 1] ?? "")) continue; // a type argument (Array<Card>), not a tag; text may end before a closing tag
     let i = m.index + m[0].length, depth = 0, quote = null;
     for (; i < src.length; i++) {
       const c = src[i];
       if (quote) { if (c === quote) quote = null; continue; }
+      // A comment between props (`// the body's …`): its apostrophes are not quotes.
+      if (depth === 0 && c === "/" && src[i + 1] === "/") { i = src.indexOf("\n", i); if (i < 0) i = src.length; continue; }
+      if (depth === 0 && c === "/" && src[i + 1] === "*") { i = src.indexOf("*/", i + 2) + 1 || src.length; continue; }
       if (c === '"' || c === "'") { if (depth === 0) quote = c; continue; }
       if (c === "{") depth += 1; else if (c === "}") depth -= 1; else if (c === ">" && depth === 0) break;
     }
@@ -217,6 +221,8 @@ const nearestBox = (src, start) => {
   }
   return stack.at(-1) ?? null;
 };
+/** Regions of a page where an Empty State is Small (empty-state/small-in-box): widgets, lists, panels and overlays. */
+const EMPTY_STATE_BOXES = [...BOX_TAGS, "Popover", "Sidebar"];
 /** A Card or ListBox right inside an overlay takes theme="on-container": message, or false. */
 const onContainerFinding = (attrs, src, start, end, fallback) => {
   if (inCodeSample(src, end) || opaque(attrs)) return false;
@@ -968,6 +974,21 @@ export const rules = [
   { id: "empty-state/way-out-tertiary", components: ["EmptyState"], severity: "warn", allow: "way-out-primary", guideline: "docs/guidelines/empty-state.md",
     summary: "A way out of an empty result (Clear filters, Clear search, Reset) is secondaryAction (Tertiary); primaryAction is the next step (\"Create project\").",
     check: ({ attrs }) => { const label = value(attrs, "primaryAction")?.match(/label:\s*["'`]([^"'`]*)["'`]/)?.[1]; return Boolean(label) && /^(clear|reset|show all)\b/i.test(label) && `puts "${label}" in primaryAction — a way out of an empty result is secondaryAction (Tertiary); keep primaryAction for the next step.`; } },
+  { id: "empty-state/keep-illustration", components: ["EmptyState"], severity: "warn", allow: "no-illustration", guideline: "docs/guidelines/empty-state.md",
+    summary: "Keep the illustration: where space is short use size=\"sm\" (the 120 illustration), never illustration={false}.",
+    check: ({ attrs }) => /(^|\s)illustration=\{\s*false\s*\}/.test(attrs) && 'hides the illustration (illustration={false}) — keep it; in a widget, card or section use size="sm".' },
+  { id: "empty-state/small-in-box", components: ["EmptyState"], severity: "warn", allow: "medium-in-box", guideline: "docs/guidelines/empty-state.md",
+    summary: "Size Medium (240) is for an Empty State that fills a page; in a Card, ChartCard, MetricCard, ListBox, Sidebar, Popover, Dialog, Modal Form, Side Panel or Bottom Sheet use size=\"sm\" (ChartCard sets it for you).",
+    check: ({ attrs, src, start, end }) => {
+      if (inCodeSample(src, end) || opaque(attrs)) return false;
+      // Its own art or no art: the size does not apply (empty-state/keep-illustration reports illustration={false}).
+      if (has(attrs, "illustration") && !/(^|\s)illustration(=\{\s*true\s*\})?(\s|$)/.test(attrs)) return false;
+      const size = literal(attrs, "size");
+      if (size === "sm" || size === "small" || (size === undefined && has(attrs, "size"))) return false;
+      const host = nearestBox(src, start, EMPTY_STATE_BOXES);
+      if (!host || (host === "ChartCard" && size === undefined)) return false;
+      return `sits in a ${host} at size ${size ?? "md"} — use size="sm"; Medium is for an Empty State that fills a page.`;
+    } },
   { id: "table/actions-flat", components: ["TableActions"], severity: "warn", allow: "table-action-style", guideline: "docs/guidelines/table.md",
     summary: "Row actions in TableActions are Button/Icon-Flat Medium (IconButton appearance=\"flat\" level=\"primary\"), so rows don't fill with outlined buttons.",
     check: ({ children }) => { const plain = openingTags(children, "IconButton").filter((a) => literal(topLevel(a), "appearance") !== "flat"); return plain.length > 0 && `holds ${plain.length} IconButton(s) without appearance="flat" — row actions are Button/Icon-Flat Medium (appearance="flat" level="primary").`; } },

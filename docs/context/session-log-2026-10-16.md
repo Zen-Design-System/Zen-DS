@@ -327,6 +327,31 @@ Worktree `../Zen-DS-copyfig`, branch `zen/feat/studio-copy-figma-20261016`; plug
   `seededPage` (builder.mjs) is exported. Matrix baseline: PT-12, PT-13 works. PT-13 needs session Bug's Present
   scroller fix (stage that scrolls); with it both pass (PT-11 too).
 
+## EmptyState sizes + illustration rule (session "Empty state illustration sizes", tier M)
+
+- User: add a Small illustration size (Medium = today's), Medium for a page's Empty State, Small for a widget, box or
+  section; then "hạn chế/không dùng empty state không có illustration".
+- Figma read (read-only): `Empty-State` 6085:25796 and `…/Illustration/Placeholder` 6085:25816 are single components, no
+  Size; the widget mock-ups hide the illustration. Code-only Small → BACKLOG P2.
+- `EmptyState size` (`sm`/`md`, long spellings via scaleKey; default `md`, `sm` inside a ChartCard through
+  EmptyStateCardContext) → `EmptyStateIllustration size`; CSS `--sm` 120px, `vector-effect: non-scaling-stroke` keeps
+  the 1px grid and 2px rings, icon `--zen-element-size-popular-medium` (24).
+- Harness: `empty-state/keep-illustration` (warn, allow `no-illustration`), `empty-state/small-in-box` (warn, allow
+  `medium-in-box`; nearestBox now takes a tag list: BOX_TAGS + Popover, Sidebar). Two nearestBox bugs fixed at the
+  owner: a closing tag after text (`Body text</Card>`) was skipped as a type argument, and an apostrophe in a `//`
+  comment between props opened a quote (sidebar.tsx read as inside a Sidebar).
+- Migration of 102 `illustration={false}`: 64 → `size="sm"` (in a box or a sub-section), 34 → Medium (headingLevel 2
+  outside any box: the Empty State fills the page), 4 dropped in ChartCards; 4 ListBox examples that were Medium → Small.
+  Playground: Size chip (Medium · page / Small · widget, section) replaces the Illustration toggle. Guideline visuals: a
+  second Do/Don't pair (Small kept in a Card vs no illustration). Docs: guideline source, AGENTS.consumer, example
+  patterns, figma-docs rules, Studio palette ("Small").
+- The 80 Empty States that now show the art and had no `icon` would draw the default person icon: each got one from its
+  title (match → search, files/projects → folder, invoices → receipt, hours → clock, people → users, …; app-layer pages
+  per page). Rebuilt `tools/studio/compile-api.generated.mjs` (studio:selftest). Checked by hand: the phone search
+  "No files match" at Medium, the ChartCard "No hours logged yet" at Small.
+- Gate: `npm run qa -- --isolated --files=…` (Bash edits) PASS — static, audit 1512/390/320 + dark + density, behaviour,
+  Studio E2E 296/0; contact sheets read (empty-state, chart, card, bottom-sheet). Figma untouched (read-only).
+
 ## Studio → Figma import matches the page, part A (tier M, session "Figma và Studio import chính xác"; user: "Bản import ở figma và bản studio còn chưa chính xác", chose "Sửa thư viện Figma")
 - Compared the Expenses import (Zen file, Studio exports 15854:70173) with the Studio frame. Import gaps fixed in the
   push (tools/studio) and the plugin's importer (local repo, e8a0b94 + cee00d1, dist rebuilt, backups in `backups/`):

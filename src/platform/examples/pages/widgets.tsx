@@ -370,7 +370,7 @@ function NoDataExample() {
         // The card keeps its title and description while there is nothing to draw.
         <ChartCard title="Billable hours by team" icon="icon-clock-line" description="Logged per month, Apr – Sep 2026">
           {load === "loading" ? <SkeletonShape className="pe-widgets-skeleton" /> : (
-            <EmptyState illustration={false} title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
+            <EmptyState icon="icon-clock-line" title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
               Hours your teams log show here month by month.
             </EmptyState>
           )}
@@ -440,7 +440,7 @@ ${indent(jsxOf("widget-top-clients"), 4)}
   ) : (
     <ChartCard title="Billable hours by team" icon="icon-clock-line" description="Logged per month, Apr – Sep 2026">
       {load === "loading" ? <SkeletonShape className="chart-skeleton" /> /* width: 100%; height: 236px (the chart's height) */ : (
-        <EmptyState illustration={false} title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
+        <EmptyState icon="icon-clock-line" title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
           Hours your teams log show here month by month.
         </EmptyState>
       )}
