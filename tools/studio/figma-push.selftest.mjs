@@ -1346,13 +1346,14 @@ export default function Page() {
 
 // MetricCard type (metric-types, 2026-10-14; figma-metric.mjs): a typed MetricCard is Figma's Metric-Card of that Type
 // (6643:64008) — its title and number, trend, Card Theme / Color / Sub-Action, Comparison's three columns, the Hero's
-// button words; Figma draws its own marks (a note). The pull gives the type, texts and Card back and takes the marks' data
-// from the Studio palette's widget of that type; a fresh Figma Hero (Solid Brand, its fill overridden Pale) is the code's
+// button words, and the marks from the page's data in its slot content (line and area, bar shares, the goal's
+// Progress-Bar, the footer under them). The pull gives the type, texts and Card back and takes the marks' data from the
+// Studio palette's widget of that type; a fresh Figma Hero (Solid Brand, its fill overridden Pale) is the code's
 // Hero default. A KPI MetricCard keeps its Card + Metric-Inline push.
 {
   const TYPED = `// @zen-page {"format":1,"title":"Metric types"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { Button, MetricCard, Stack } from "@zen-ds/react";
+import { Button, MetricCard, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1365,6 +1366,9 @@ export default function Page() {
           <MetricCard type="comparison" label="Cash flow · October" comparison={[{ id: "in", label: "Invoiced", value: "$98,100", trend: { direction: "negative", label: "−7% vs. September" } }, { id: "out", label: "Collected", value: "$91,000" }]} />
           <MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300" series={[1, 2]} footer={<Button size="sm" appearance="overlay" level="inverse">Open report</Button>} />
           <MetricCard theme="flat" label="Billable hours" value="5,900 h" />
+          <MetricCard type="spark-bars" label="Awaiting approval" value="$6,340" series={[2, 0, 4]} />
+          <MetricCard type="goal-progress" label="October budget" value="$26,480" goal={{ value: 26480, target: 72000, label: "of $72,000 budget", valueLabel: "37%" }} footer={<Text textStyle="Body/Small/Regular" tone="base">On pace for $51,300 by Oct 31</Text>} />
+          <MetricCard type="goal-progress" label="Q4 revenue" value="$108,400" goal={{ value: 108400, target: 135000 }} />
         </Stack>
       </Screen>
     </Board>
@@ -1375,8 +1379,22 @@ export default function Page() {
   const found = [];
   const walk = (node) => { if (node.set?.name === "Metric-Card" || node.set?.name === "Card") found.push(node); else [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
   walk(frame);
-  const [spark, compare, hero, kpi] = found;
-  check("metric type: a typed MetricCard is one Metric-Card instance of its Type; KPI stays a Card", found.map((node) => [node.set.name, node.props.Type ?? node.props.Theme]), [["Metric-Card", "Sparkline"], ["Metric-Card", "Comparison"], ["Metric-Card", "Hero"], ["Card", "Flat"]]);
+  const [spark, compare, hero, kpi, bars, goal, goalDefault] = found;
+  check("metric type: a typed MetricCard is one Metric-Card instance of its Type; KPI stays a Card", found.map((node) => [node.set.name, node.props.Type ?? node.props.Theme]), [["Metric-Card", "Sparkline"], ["Metric-Card", "Comparison"], ["Metric-Card", "Hero"], ["Card", "Flat"], ["Metric-Card", "Spark-Bars"], ["Metric-Card", "Goal-Progress"], ["Metric-Card", "Goal-Progress"]]);
+  // MetricMarks.tsx in the slot content (the Expenses import, 2026-10-16: Figma's sample marks): the line 4px inside the
+  // 64px frame (min at 60, max at 4), its area closed at the bottom; no footer drops an earlier one.
+  check("metric marks: Sparkline's line and area from its series, in the code's 100 × 64 box", spark.edits, [
+    { layer: "Sparkline/Line", vector: { d: "M 0 60 L 50 32 L 100 4", w: 100, h: 64 } },
+    { layer: "Sparkline/Area", vector: { d: "M 0 60 L 50 32 L 100 4 L 100 64 L 0 64 Z", w: 100, h: 64 } },
+    { layer: "Metric-Body", append: [] },
+  ]);
+  check("metric marks: Spark-Bars right-aligned shares of the largest, the first bars hidden, the last one current", [bars.edits.slice(0, 2), bars.edits.slice(9)], [
+    [{ layer: "Spark-Bars/Bar[0]", visible: false }, { layer: "Spark-Bars/Bar[1]", visible: false }],
+    [{ layer: "Spark-Bars/Bar[9]", visible: true, share: 0.5 }, { layer: "Spark-Bars/Bar[10]", visible: true, share: 0 }, { layer: "Spark-Bars/Bar-Active", share: 1 }, { layer: "Metric-Body", append: [] }],
+  ]);
+  check("metric marks: the goal's Progress-Bar (label, value text, nearest step: 37% → Medium 40%)", goal.nested.find((entry) => entry.path === "Progress-Bar"), { path: "Progress-Bar", props: { Text: "of $72,000 budget", Progress: "Medium" }, texts: { Value: "37%" } });
+  check("metric marks: a goal without words takes the code's (of 135K goal, 80%)", goalDefault.nested.find((entry) => entry.path === "Progress-Bar"), { path: "Progress-Bar", props: { Text: "of 135K goal", Progress: "Good" }, texts: { Value: "80%" } });
+  check("metric marks: the goal's exact fill, then the footer under the drawing, across the card", goal.edits.map((edit) => [edit.layer, edit.columns?.map(Math.round), edit.append?.map((layer) => [layer.type, layer.characters, layer.textStyle, layer.fillW])]), [["Progress-Bar/Container", [37, 63], undefined], ["Metric-Body", undefined, [["TEXT", "On pace for $51,300 by Oct 31", "Body/Small/Regular", true]]]]);
   check("metric type: Sparkline's title, number, trend and Card (Flat, no ⋮)", [spark.texts, spark.nested], [{ Label: "Revenue", "Metric-Number": "$105,700" }, [{ path: "Card", props: { "Sub-Action": false, Theme: "Flat" } }, { path: "Title-Highlight", props: { Trend: true } }, { path: "Title-Highlight/Trend", props: { Trend: "Positive" }, textList: ["+9% vs. August"] }]]);
   check("metric type: Comparison's title and its columns (one without a trend), the variant's Shadow left alone", [compare.texts, compare.nested], [{ "Cash flow · September": "Cash flow · October" }, [
     { path: "Card", props: { "Sub-Action": false } },
@@ -1384,7 +1402,7 @@ export default function Page() {
     { path: "Title-Highlight[1]", props: { Trend: false }, texts: { Label: "Collected", "Metric-Number": "$91,000" } },
   ]]);
   check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button", textList: ["Open report"] }]);
-  ok("metric type: notes say Figma draws its own marks and keeps three comparison columns", typedNotes.some((note) => /Metric-Card Sparkline draws its own sample line/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
+  ok("metric type: notes say Figma keeps three comparison columns, and no sample marks where the page has data", !typedNotes.some((note) => /draws its own sample/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
   ok("metric type: KPI keeps its Metric-Inline", kpi.slots?.[0]?.children?.[0]?.set?.name === "Primitives/Metric/Metric-Inline/Icon-Highlight");
   const { text: back } = pageFromFigma(frame, { mapping });
   ok("metric type round trip: Sparkline comes back typed, its texts, trend and theme, its series the Studio sample's", /<MetricCard theme="flat" type="sparkline" label="Revenue" value="\$105,700" trend=\{\{ direction: "positive", label: "\+9% vs\. August" \}\} series=\{\[71200,/.test(back));
@@ -1395,6 +1413,45 @@ export default function Page() {
   const { text: freshBack, notes: freshNotes } = pageFromFigma(fresh, { mapping });
   ok("metric type pull: Figma's own Hero is the code's default Hero (no theme or color written)", /<MetricCard type="hero" label="Invoiced this year" value="\$798,300" series=/.test(freshBack) && !/<MetricCard type="hero"[^>]*theme=/.test(freshBack));
   ok("metric type pull: Figma's ⋮ on is a note (subAction needs its handler)", freshNotes.some((note) => /Sub-Action shows in Figma; set subAction/.test(note)));
+}
+
+// The Expenses import (2026-10-16): a sidebar row's counter, the top bar's Search at the bar's width (400 at most), a
+// stacked ProgressBar's value text and Pagination's range and page size, where Figma kept its own.
+{
+  const PAGE = `// @zen-page {"format":1,"title":"Expenses"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, Pagination, ProgressBar, Search, Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Expenses" device="desktop">
+        <AppShell header={<Search aria-label="Search" placeholder="Search expenses, merchants or people" />} sidebar={<Sidebar aria-label="Main" selectedId="approvals"><SidebarMenuItem id="home" label="Overview" icon="icon-home-03-line" /><SidebarMenuItem id="approvals" label="Approvals" icon="icon-check-circle-line" counter="12" /></Sidebar>}>
+          <Stack gap="md">
+            <ProgressBar layout="stacked" theme="accent" value={38} label="Engineering" valueLabel="$9,120 of $24,000" />
+            <ProgressBar layout="stacked" theme="accent" value={9} label="Operations" />
+            <Pagination theme="inline" total={86} defaultPageSize={10} pageSizeOptions={[10, 25, 50]} aria-label="Expense pages" />
+          </Stack>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(PAGE);
+  const all = [];
+  const walk = (node) => { all.push(node); [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
+  walk(frame);
+  const row = (name) => all.find((node) => node.name === name && node.set?.name === "Primitives/Side-Bar/Menu-Item/Master");
+  check("sidebar counter: Counter on with its number; none off", [row("Approvals").props.Counter, row("Approvals").nested, row("Overview").props.Counter], [true, [{ path: "Counter", props: {}, text: "12" }], false]);
+  const search = all.find((node) => /^Search\//.test(node.set?.name ?? ""));
+  check("top bar Search: fills the bar up to 400px", [search.fillW, search.maxW], [true, 400]);
+  const bars = all.filter((node) => node.set?.name === "Progress-Bar");
+  check("stacked ProgressBar: its value text (valueLabel, else the percentage), the nearest step and the exact fill (Container's columns)", bars.map((node) => [node.props.Text, node.props.Progress, node.texts?.Value, node.edits]), [["Engineering", "Medium", "$9,120 of $24,000", [{ layer: "Container", columns: [38, 62] }]], ["Operations", "Low", "9%", [{ layer: "Container", columns: [9, 91] }]]]);
+  const pages = all.find((node) => node.name === "Expense pages");
+  check("Pagination Inline: the range and the page size as the code counts them", [pages.textList, pages.nested], [["1–10 of 86 results"], [{ path: "Page-Size", props: {}, text: "10 results" }]]);
 }
 
 // A component of a set size in a column that stretches (Stack's default) hugs in Figma, as CSS passes it by; a Button

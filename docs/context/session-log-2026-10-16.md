@@ -326,3 +326,26 @@ Worktree `../Zen-DS-copyfig`, branch `zen/feat/studio-copy-figma-20261016`; plug
   title folds, the status bar stays at 0, the home indicator ≤ 40px from the bottom, then open again at 0.
   `seededPage` (builder.mjs) is exported. Matrix baseline: PT-12, PT-13 works. PT-13 needs session Bug's Present
   scroller fix (stage that scrolls); with it both pass (PT-11 too).
+
+## Studio → Figma import matches the page, part A (tier M, session "Figma và Studio import chính xác"; user: "Bản import ở figma và bản studio còn chưa chính xác", chose "Sửa thư viện Figma")
+- Compared the Expenses import (Zen file, Studio exports 15854:70173) with the Studio frame. Import gaps fixed in the
+  push (tools/studio) and the plugin's importer (local repo, e8a0b94 + cee00d1, dist rebuilt, backups in `backups/`):
+  Metric-Card marks from the page's data through a new `edits` step on slot content (Sparkline/Hero line + area in
+  the code's 100 × 64 box, Spark-Bars shares, footer appended to Metric-Body), goal Progress-Bar label/value/step,
+  SidebarMenuItem Counter (+ the rail's Noti-Dot), top-bar Search fill + maxW 400, ProgressBar Value text, Pagination
+  range (textList) and page size, `progressStep` nearest (37% → Medium). Grid rows: Figma's Hug row gave Fill cards
+  their shrunk height (208, Sparkline clipped); `settleGridRows` sets each card's minHeight after the build (a measure
+  during placement read 1000px, the grid had no width yet).
+- Library (user-approved): Progress-Bar 1536:260, all 30 variants: Container NONE → GRID 1 × 2 FLEX [share, rest]
+  (None 0.01, Low 20, Medium 40, Good 80, Done 100; FLEX 0 is clamped to 1, so 0.01); placed instances kept their
+  step; an instance overrides the columns (probe: proportional on resize, padding is not). Push `columns` edit for
+  ProgressBar, MetricCard goal, uploading file. Undo record in that session's scratchpad.
+- Code: Pagination Inline / Manually range `flex: 1 1 auto; text-align: end` (Figma Label Fill, right-aligned).
+- Live test bed (QA page 15872:3, frame 15907:3, plugin data `zenqa879`): fresh + re-import (251 updated, 0 removed),
+  frame 2050 vs Studio 2046; fills 36.8/38/47/77/33/9 %. Base64-compressed importer code was refused by the auto-mode
+  classifier; the readable (whitespace-minified) importer source runs as is.
+- "Mất master layout" (user, mid-session) = Copy frame → paste outside the Zen file from a Studio without library keys:
+  placeholders. Owner session "Copy frame vào Figma" diagnosed it; fixed by PR #94 (keys) + a plugin note.
+- Gates: figma-push 257, widgets, pull, diff selftests; plugin npm test; `npm run qa --files=…` PASS (Studio E2E 297/0,
+  pagination sheets read). Open: Stack-Bar (fixed 4 columns), Donut (fixed slices, legend Start/Bottom only, Total
+  props not wired to the centre text) — part B, library slots/sectors.

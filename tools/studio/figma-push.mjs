@@ -14,13 +14,14 @@
 // draws it (a frame of Data-Rows, header and content cells) and pictures (`images`, filled by the caller: the plugin has
 // no network).
 import { docFromText } from "./doc.mjs";
-import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
+import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
+import { zenLabels } from "../../src/components/_shared/labels.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
 import { libraryKeysFor } from "./library-keys.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
@@ -167,8 +168,6 @@ function cardVariant(props, notes, where) {
 const CHILD_SLOT = { DashboardHeader: "Custome-Elements", Sidebar: "Body-Content" };
 const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
 const ITEM_ICON = { Segmented: "leading" };
-/** A 0–100 value as Figma Progress-Bar's fill step (None, Low, Medium, Good, Done). */
-const progressStep = (value) => (value <= 0 ? "None" : value < 40 ? "Low" : value < 70 ? "Medium" : value < 100 ? "Good" : "Done");
 /** Components whose text prop is a plain text layer of their set (no Figma text property): it is the instance's text. */
 const TEXT_PROP = { InputConditionItem: "label" };
 /** Components whose `src` is a picture the plugin fills in (the instance's image layer). */
@@ -193,6 +192,8 @@ const PAGE_HEADER_PROPS = { title: "title", childTitle: "childTitle", descriptio
 const SHELL_ROW_PADDING = [12, 24, 12, 24];
 /** AppShell's top bar, as Figma's Navigation row: Margin-Comfortable above and on the sides, Padding/XSmall below. */
 const TOP_BAR_PADDING = [24, 24, 8, 24];
+/** The top bar's Search at its widest (app-shell.css). */
+const HEADER_SEARCH_MAX = 400;
 /** Container's content width by maxWidth (layout.css .zen-container[data-width]). */
 const CONTAINER_MAX = { sm: 640, md: 960, lg: 1280, xl: 1440 };
 /** AiChatBlock: Figma's Say-Hi text layer (its greeting) and the block's widest (ai-chat.css .zen-ai-block max-width). */
@@ -400,7 +401,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
     else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
     else if (element.name === "Flag" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: SETS.flag, props: { Name: code.name }, ...(FLAG_SIZE[scaleOf(code.size)] ? { sizeVar: FLAG_SIZE[scaleOf(code.size)] } : {}) };
-    else if (element.name === "SidebarMenuItem") node = itemNode(SETS.menuItem, code, { id });
+    else if (element.name === "SidebarMenuItem") node = sidebarItemNode(code, id);
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id, parent);
     else if (element.name === "AppShell") node = appShellNode(element, code, id, parent);
@@ -448,6 +449,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const props = onlyOwn(set, { Label: label !== "", Icon: Boolean(icon), ...(icon ? { "Icon-Src": icon } : {}), Select: selected ? "Yes" : "No", ...look });
     const name = typeof fields["aria-label"] === "string" ? fields["aria-label"] : label || set.name;
     return { type: "INSTANCE", ...(id ? { id } : {}), ...(key ? { key } : {}), name, set, props, ...(label ? { text: label } : {}) };
+  }
+
+  /** SidebarMenuItem as Figma's Menu-Item: its row, and its counter (Sidebar.tsx: a Badge-Counter after the label) in
+   *  the Counter it shows; the rail's rows mark it with their Noti-Dot (sidebarRail). */
+  function sidebarItemNode(code, id) {
+    const node = itemNode(SETS.menuItem, code, { id });
+    const counter = typeof code.counter === "number" || typeof code.counter === "string" ? String(code.counter).trim() : "";
+    Object.assign(node.props, onlyOwn(node.set, { Counter: counter !== "" }));
+    if (counter) node.nested = [...(node.nested ?? []), { path: "Counter", props: {}, text: counter }];
+    return node;
   }
 
   /** A Segmented's Level and Size on its items (Segmented.tsx: secondary, md), as Figma's item options. */
@@ -524,6 +535,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       center: element.props.headerCenter?.kind === "element" ? element.props.headerCenter : null,
       trailing: element.props.headerActions?.kind === "element" ? element.props.headerActions : null,
     }), { type: "navigation" }) : null;
+    // The header's Search fills the bar up to 400px (app-shell.css .zen-app-shell__header-content > .zen-search), where
+    // Figma's Search keeps its own 250px and cut the placeholder short.
+    for (const slot of topBar?.slots ?? []) {
+      if (slot.name === "Leading-Slots") slot.children = slot.children.map((layer) => (/^Search\//.test(layer.set?.name ?? "") ? { ...layer, fillW: true, maxW: HEADER_SEARCH_MAX } : layer));
+    }
     // The column's width: the shell's less the open Sidebar (another sidebar, a collapsed one or an aside: unknown).
     const aside = layerOf(element, "aside") ? convert(layerOf(element, "aside"), { direction: "row", stretch: true }) : null;
     const sideWidth = !sidebar ? 0 : sidebarWidth(sidebar, collapsed);
@@ -650,7 +666,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const values = Object.fromEntries(Object.entries(element.props).map(([name, value]) => [name, plain(value) ?? (value ? true : undefined)]));
     const footer = element.props.footer?.kind === "element" ? element.props.footer.node : null;
     const footerText = footer?.name === "Button" ? deepText(footer).trim() : "";
-    const drawn = metricCardFigma(values, { notes, where, footerText: footerText || null });
+    // Any type but the Hero (its Button) draws its footer under the marks, across the card (.zen-metric-card__footer).
+    const footerLayers = footer && literalOf(element.props.type) !== "hero" ? [convert(footer, { direction: "column", stretch: true })].filter(Boolean).map((layer) => ({ ...layer, fillW: true })) : [];
+    const drawn = metricCardFigma(values, { notes, where, footerText: footerText || null, footerLayers });
     return { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.label === "string" ? code.label : "MetricCard", ...drawn };
   }
 
@@ -806,6 +824,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const error = state === "alert" ? textValue(file.error) : "";
     const nested = [...(error ? [{ path: "Help-Text", props: {}, text: error }] : []), ...(state === "uploading" ? [{ path: "Progress-Bar", props: { Progress: progressStep(Number(file.progress) || 0) } }] : [])];
     if (nested.length) node.nested = [...(node.nested ?? []), ...nested];
+    if (state === "uploading") node.edits = [...(node.edits ?? []), { layer: `Progress-Bar/${PROGRESS_TRACK}`, columns: progressColumns(file.progress) }];
     // Its buttons show only with their handler (Uploader.tsx): Remove (onRemove), Retry (an alert's onRetry).
     const hide = [...(element.props.onRemove ? [] : ["Remove"]), ...(state === "alert" && !element.props.onRetry ? ["Retry"] : [])];
     if (hide.length) node.hide = [...(node.hide ?? []), ...hide];
@@ -1190,8 +1209,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // layer's name (no text to write).
     const iconOnly = (layer) => {
       if (layer?.set?.id !== SETS.menuItem.id) return layer;
-      const { text, fillW, ...row } = layer;
-      return { ...row, props: { ...layer.props, Label: false }, hugW: true, hugLayers: [{ name: "Element", w: true }] };
+      const { text, fillW, nested, ...row } = layer;
+      // Its counter has no room in the rail: the Noti-Dot marks it (Sidebar.tsx railCount; a "0" shows nothing).
+      const count = nested?.find((entry) => entry.path === "Counter")?.text;
+      const kept = (nested ?? []).filter((entry) => entry.path !== "Counter");
+      const counted = layer.props.Counter === true ? { Counter: false, ...onlyOwn(layer.set, { "Noti-Dot": count !== "0" }) } : {};
+      return { ...row, ...(kept.length ? { nested: kept } : {}), props: { ...layer.props, Label: false, ...counted }, hugW: true, hugLayers: [{ name: "Element", w: true }] };
     };
     for (const slot of slots) {
       if (slot.name === "Header-Content") continue;
@@ -1453,6 +1476,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const value = Math.max(0, Math.min(100, Number(code.value) || 0));
       const label = typeof code.label === "string" ? code.label : code.label ? `${Math.round(value)}%` : null;
       Object.assign(node.props, onlyOwn(node.set, { ...(label ? { Text: label } : {}), ...(element.name === "ProgressBar" ? { Progress: progressStep(value) } : {}) }));
+      // Stacked: the Value at the header's end is valueLabel, else the rounded percentage (Progress.tsx).
+      if (element.name === "ProgressBar" && code.layout === "stacked") node.texts = { ...(node.texts ?? {}), Value: typeof code.valueLabel === "string" || typeof code.valueLabel === "number" ? String(code.valueLabel) : `${Math.round(value)}%` };
+      // The fill at its exact share: the step is the nearest look, the Container's columns the value itself.
+      if (element.name === "ProgressBar") node.edits = [...(node.edits ?? []), { layer: PROGRESS_TRACK, columns: progressColumns(value) }];
+    }
+    // Pagination Inline / Manually: the range (its own text layer, so textList) and Inline's page size chip, as
+    // Pagination.tsx counts them (labels.ts en), where Figma kept "1 - 50 of 100 results" and "50 results".
+    if (element.name === "Pagination" && (code.theme === "inline" || code.theme === "manually")) {
+      const perPage = Math.max(1, Number(code.pageSize ?? code.defaultPageSize ?? 50) || 50);
+      const total = Math.max(0, Number(code.total ?? 0) || 0);
+      const pages = Math.max(1, Math.ceil(total / perPage));
+      const current = Math.min(Math.max(1, Number(code.page ?? code.defaultPage ?? 1) || 1), pages);
+      const first = total === 0 ? 0 : (current - 1) * perPage + 1;
+      node.textList = [zenLabels.en.resultsRange(first, Math.min(total, current * perPage), total)];
+      if (code.theme === "inline") node.nested = [...(node.nested ?? []), { path: "Page-Size", props: {}, text: zenLabels.en.results(perPage) }];
     }
     if (element.name === "AiChatField" && typeof code.placeholder === "string") node.texts = { ...(node.texts ?? {}), Text: code.placeholder };
     // Its model switch shows only with `model` (Figma's Model starts on).
@@ -1597,6 +1635,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     node.key ??= `${parentKey}/${place}`;
     (node.children ?? []).forEach((child, index) => keyed(child, node.key, index));
     (node.slots ?? []).forEach((slot) => slot.children.forEach((child, index) => keyed(child, node.key, `${slot.name}.${index}`)));
+    (node.edits ?? []).forEach((edit) => (edit.append ?? []).forEach((child, index) => keyed(child, node.key, `${edit.layer}.${index}`)));
   };
   keyed(frame, "page", 0);
   // An icon the code names plainly ("icon-chevron-right-line") is a cut in Figma ("…-medium", icons/generated/aliases.ts).
@@ -1610,6 +1649,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     for (const nested of node.nested ?? []) if (nested.set && !nested.set.id && nested.set.name) nested.set = { ...nested.set, name: figmaIcon(nested.set.name) };
     (node.children ?? []).forEach(cutIcons);
     (node.slots ?? []).forEach((slot) => slot.children.forEach(cutIcons));
+    (node.edits ?? []).forEach((edit) => (edit.append ?? []).forEach(cutIcons));
   };
   cutIcons(frame);
   if (tabular.length) notes.push(`${tabular.length} text${tabular.length > 1 ? "s" : ""} with tabularNumbers: set Numbers: Tabular by hand in Figma (Type details; a plugin cannot)`);

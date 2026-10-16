@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
+  Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
+  exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its
+  `valueLabel`; a sidebar row shows its counter; the top bar's Search fills up to 400px; Pagination writes its range and
+  page size; cards in a grid row stay as tall as the tallest (none clipped). Pagination Inline / Manually: the range
+  fills the row and ends at the arrows, as in Figma. Charts (Stack-Bar, Donut) still draw Figma's sample (next step).
 - Build-QA gate (2026-10-16, user: "thêm cả 4 kiểm tra luôn"): the platform audit also runs at 320px (a small phone;
   today's findings there are baselined, BACKLOG P1); two new audit kinds, `card-gap` (a MetricCard or ChartCard stretched
   by its row leaving an empty band at its foot) and `legend-column` (a chart legend stacked one item per line under its

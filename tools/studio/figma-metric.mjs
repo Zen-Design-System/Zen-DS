@@ -3,11 +3,15 @@
 // Spark-Bars · Goal-Progress · Comparison · Category-Bar · Hero: each variant a Card whose Content slot holds a
 // Title-Highlight Metric-Inline and the type's own drawing. The push (figma-push.mjs) writes a typed MetricCard as that
 // set: its Type, the title and number (Label, Metric-Number), the trend badge, the Card's Theme / Color / Sub-Action and,
-// for Comparison, each column's title, number and trend. The marks are Figma's own sample (no property carries a series,
-// a goal or the categories), as for the charts (figma-charts.mjs): the pull takes them from the matching Studio palette
-// sample (src/platform/studio/slots/palette.ts, the Widgets group). A KPI MetricCard keeps its Card + Metric-Inline push.
-// Isomorphic: the Studio loads it in the browser too.
+// for Comparison, each column's title, number and trend. The drawing is slot content, the instance's own, so the push
+// draws the page's data in it as MetricMarks.tsx does (the plugin's `edits`; 2026-10-16, the Expenses import showed
+// Figma's sample marks): the Sparkline's and the Hero's line and area, the Spark-Bars' heights, the goal's Progress-Bar
+// (label, value text, nearest fill step) and the footer under the drawing. Category-Bar keeps Figma's sample. The pull
+// takes the data from the matching Studio palette sample (src/platform/studio/slots/palette.ts, the Widgets group). A
+// KPI MetricCard keeps its Card + Metric-Inline push. Isomorphic: the Studio loads it in the browser too.
 import { docFromText } from "./doc.mjs";
+import { PROGRESS_TRACK, progressColumns, progressStep } from "./figma-steps.mjs";
+import { zenLabels } from "../../src/components/_shared/labels.ts";
 import { paletteItem } from "../../src/platform/studio/slots/palette.ts";
 
 /** The set; the plugin finds it by id, then by name. */
@@ -37,14 +41,70 @@ const words = (value) => (typeof value === "string" || typeof value === "number"
 /** Whether a MetricCard of these plain props is pushed as the Metric-Card set (a type other than KPI). */
 export const metricCardTyped = (values) => typeof values.type === "string" && values.type !== "kpi" && values.type in METRIC_CARD_TYPE;
 
+/** The drawing's layers in a Metric-Card (Card › Content slot › Metric-Body; the live file, 2026-10-16). */
+const BODY = "Metric-Body";
+/** Sparkline and Hero: a 64px Sparkline frame, its Line 4px inside the top and bottom, its Area down to the bottom. */
+const SPARK = { line: "Sparkline/Line", area: "Sparkline/Area", height: 64, inset: 4 };
+/** Spark-Bars: eleven Bar layers, then the current one, Bar-Active. */
+const BARS = { bar: "Spark-Bars/Bar", current: "Spark-Bars/Bar-Active", count: 12 };
+const finite = (list) => (Array.isArray(list) ? list.filter((value) => typeof value === "number" && Number.isFinite(value)) : []);
+const round = (value) => Math.round(value * 100) / 100;
+/** chartCore defaultFormat: a number as MetricCard writes it without `format` (the goal's target). */
+const defaultFormat = (value) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`);
+
+/** MetricMarks.tsx Sparkline: the line and its area, in the 100 × 64 box the code draws them in. */
+function sparkEdits(series) {
+  const values = finite(series);
+  if (!values.length) return [];
+  const drawn = values.length === 1 ? [values[0], values[0]] : values;
+  const min = Math.min(...drawn);
+  const span = Math.max(...drawn) - min;
+  const y = (value) => SPARK.inset + (span > 0 ? 1 - (value - min) / span : 0.5) * (SPARK.height - 2 * SPARK.inset);
+  const line = drawn.map((value, index) => `${index ? "L" : "M"} ${round((index / Math.max(1, drawn.length - 1)) * 100)} ${round(y(value))}`).join(" ");
+  const box = { w: 100, h: SPARK.height };
+  return [{ layer: SPARK.line, vector: { d: line, ...box } }, { layer: SPARK.area, vector: { d: `${line} L 100 ${SPARK.height} L 0 ${SPARK.height} Z`, ...box } }];
+}
+
+/** MetricMarks.tsx SparkBars: each bar a share of the largest value, the last one current, right-aligned (fewer values
+ *  than Figma's twelve hide the first bars; more keep the last twelve). */
+function barEdits(series, notes, where) {
+  const values = finite(series);
+  if (!values.length) return [];
+  const max = Math.max(0, ...values);
+  const share = (value) => (max > 0 ? round(Math.max(0, value) / max) : 0);
+  if (values.length > BARS.count) notes.push(`${where}: ${values.length} bars; Figma's Spark-Bars draws ${BARS.count} (the last ${BARS.count} are written)`);
+  const shown = values.slice(-BARS.count);
+  const before = shown.slice(0, -1);
+  const plain = BARS.count - 1;
+  const edits = Array.from({ length: plain }, (_, index) => {
+    const value = before[index - (plain - before.length)];
+    return value === undefined ? { layer: `${BARS.bar}[${index}]`, visible: false } : { layer: `${BARS.bar}[${index}]`, visible: true, share: share(value) };
+  });
+  return [...edits, { layer: BARS.current, share: share(shown[shown.length - 1]) }];
+}
+
+/** MetricWidget.tsx goal-progress: value / target as a percentage, null without a numeric target. */
+const goalPercent = (goal) => (goal && typeof goal === "object" && typeof goal.target === "number" ? (goal.target > 0 ? (Number(goal.value) / goal.target) * 100 : 0) : null);
+
+/** The goal's stacked accent ProgressBar: its label, value text and nearest step (its exact fill is an edit). */
+function goalNested(goal) {
+  const percent = goalPercent(goal);
+  if (percent === null) return [];
+  const label = words(goal.label) ?? zenLabels.en.metricGoalOf(defaultFormat(goal.target));
+  const value = words(goal.valueLabel) ?? `${Math.round(percent)}%`;
+  return [{ path: "Progress-Bar", props: { Text: label, Progress: progressStep(Math.max(0, Math.min(100, percent))) }, texts: { Value: value } }];
+}
+
 /**
- * A typed MetricCard (its props as plain data; `footerText` the words of a Button footer) as the Metric-Card instance:
- * { set, props, texts, nested }. Notes say what Figma draws from its own sample.
+ * A typed MetricCard (its props as plain data; `footerText` the words of a Button footer, `footerLayers` the footer as
+ * pushed layers) as the Metric-Card instance: { set, props, texts, nested, edits }. Notes say what Figma draws from its
+ * own sample.
  */
-export function metricCardFigma(values, { notes, where, footerText = null }) {
+export function metricCardFigma(values, { notes, where, footerText = null, footerLayers = [] }) {
   const type = values.type;
   const nested = [];
   const texts = {};
+  const edits = [];
   // The Card: its Theme and Color when they are not the variant's (Shadow; the Hero's Solid Brand drawn Pale), and its
   // ⋮ Sub-Action only when the code has one.
   const theme = values.theme ?? (type === "hero" ? "pale" : "shadow");
@@ -74,14 +134,21 @@ export function metricCardFigma(values, { notes, where, footerText = null }) {
     if (words(values.label)) texts.Label = words(values.label);
     if (words(values.value)) texts["Metric-Number"] = words(values.value);
     nested.push(...trendOf(values.trend, `${METRIC}/Trend`));
-    notes.push(`${where}: Figma's Metric-Card ${METRIC_CARD_TYPE[type]} draws its own sample ${DRAWING[type]}`);
+    // The drawing from the page's data; Category-Bar keeps Figma's sample.
+    if (type === "sparkline" || type === "hero") edits.push(...sparkEdits(values.series));
+    if (type === "spark-bars") edits.push(...barEdits(values.series, notes, where));
+    if (type === "goal-progress") nested.push(...goalNested(values.goal));
+    if (type === "goal-progress" && goalPercent(values.goal) !== null) edits.push({ layer: `Progress-Bar/${PROGRESS_TRACK}`, columns: progressColumns(goalPercent(values.goal)) });
+    const drawn = { sparkline: "series", hero: "series", "spark-bars": "series", "goal-progress": "goal" }[type];
+    if (!drawn || (drawn === "series" ? !finite(values.series).length : !goalNested(values.goal).length)) notes.push(`${where}: Figma's Metric-Card ${METRIC_CARD_TYPE[type]} draws its own sample ${DRAWING[type]}`);
   }
-  // The Hero's button: its words on Figma's Button/Main.
+  // The Hero's button: its words on Figma's Button/Main. Any other type's footer goes under its drawing (the code's
+  // .zen-metric-card__footer, the Metric-Body's last layer); none drops the one an earlier import added.
   if (type === "hero") {
     if (footerText) nested.push({ path: "Button", textList: [footerText] });
     else if (values.footer) notes.push(`${where}: its footer is not a Button with words (Figma's Hero keeps its "View report" button)`);
-  }
-  return { set: METRIC_CARD_SET, props: { Type: METRIC_CARD_TYPE[type] }, ...(Object.keys(texts).length ? { texts } : {}), nested };
+  } else edits.push({ layer: BODY, append: footerLayers });
+  return { set: METRIC_CARD_SET, props: { Type: METRIC_CARD_TYPE[type] }, ...(Object.keys(texts).length ? { texts } : {}), nested, ...(edits.length ? { edits } : {}) };
 }
 
 /* ── pull ── */
