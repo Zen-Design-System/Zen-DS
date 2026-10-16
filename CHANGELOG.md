@@ -374,6 +374,7 @@ removed (four unused colour ramps were, see Removed).
 - Zen Studio Present and Play (2026-10-16, user: "Có"): a phone Screen's Top Navigation with a large title folds under
   its bar as the page scrolls, as on iOS (TopNavigation `scrollRef`, unless the page sets `scrollRef` or `collapsed`),
   and the status bar and home indicator stay at the window's edges instead of scrolling away. The canvas is unchanged.
+  Studio E2E PT-12 (Play) and PT-13 (Present) scroll a phone Screen and check the fold and the bars.
 - ProgressBar Inline shows its bar in a box that sizes to its content (2026-10-16, user: Zen Studio's Main component
   frame drew only the label): the track prefers 112px (Figma's Inline track is 119 of 163px) and still grows and shrinks
   to fill a sized row as before.

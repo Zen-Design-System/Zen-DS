@@ -292,3 +292,11 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   canvas, its name or its selected Layers row. E2E B-44 (recorded in the baseline); S-03, O-03, B-34, B-37 still work.
 - Told the Expenses session: its phone Screens use `TopNavigation type="compact"` (white) on Canvas/Alt; the guideline
   wants `compact-alt`.
+
+## Studio E2E for the large-title fold (user: "có, thêm case E2E")
+
+- `tools/studio/e2e/scenarios/prototype.mjs`: PT-12 plays, PT-13 presents (Inspector › Present) a seeded phone Screen
+  (`largeTitlePage`: a compact-alt large title over 40 rows) and `checkFold` scrolls whatever scrolls it 400px: the
+  title folds, the status bar stays at 0, the home indicator ≤ 40px from the bottom, then open again at 0.
+  `seededPage` (builder.mjs) is exported. Matrix baseline: PT-12, PT-13 works. PT-13 needs session Bug's Present
+  scroller fix (stage that scrolls); with it both pass (PT-11 too).
