@@ -252,9 +252,9 @@ function StudioApp({ narrowWindow = false, notice = false }: { narrowWindow?: bo
         <PageHeader title="Home" description={`${plural(dueThisWeek.length, "task")} due this week across ${plural(new Set(dueThisWeek.map((task) => task.project)).size, "project")}`} />
         {/* Three peers share the neutral tile; a phone puts them two across. */}
         <Grid columns={{ mobile: 2, desktop: 3 }} gap="md">
-          <MetricCard label="Active projects" value={String(list.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
-          <MetricCard label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
-          <MetricCard label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
+          <MetricCard variant="icon-highlight" label="Active projects" value={String(list.filter((project) => project.status === "Active").length)} icon="icon-folder-line" theme="shadow" />
+          <MetricCard variant="icon-highlight" label="Due this week" value={String(dueThisWeek.length)} icon="icon-calendar-line" theme="shadow" />
+          <MetricCard variant="icon-highlight" label="Outstanding" value={formatCompactMoney(outstanding)} icon="icon-coins-line" theme="shadow" />
         </Grid>
         <Stack as="section" gap="md" aria-labelledby={dueId}>
           <Heading level={2} id={dueId} textStyle="Heading/4">Due this week</Heading>

@@ -197,7 +197,12 @@ export interface MetricComparisonItem {
 }
 
 /** MetricProps (minus a required `value`) and the card's own props. */
-export type MetricCardProps = Omit<MetricProps, "value"> & {
+export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
+  /** A KPI card's Figma Metric-Inline type (`type="kpi"`): `title-highlight` (default since 2026-10-16, the user: a KPI
+   *  card is laid out like the typed widgets, its title on top, the number and trend at its foot, the Dock-Icon in the
+   *  bottom-right corner) or `icon-highlight` (the Dock-Icon leads, the label over the number). A KPI card's `size`
+   *  defaults to Large in Title-Highlight and XLarge in Icon-Highlight. The typed cards are always Title-Highlight. */
+  variant?: "icon-highlight" | "title-highlight";
   /** Figma Metric-Number — pass it already formatted ("$1,680.68"). Every type shows it but `comparison`, whose columns
    *  carry the numbers. */
   value?: ReactNode;
@@ -210,7 +215,8 @@ export type MetricCardProps = Omit<MetricProps, "value"> & {
   /** Forwarded to the Card's root `<div>` (not to the Metric inside it). */
   ref?: Ref<HTMLDivElement>;
   /**
-   * Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): an Icon-Highlight Metric, as before. Every other
+   * Figma Metric-Card Type (6643:64008). `kpi` (default, 6643:64007): a Title-Highlight Metric, Large (`variant` picks
+   * Icon-Highlight). Every other
    * type draws a Title-Highlight Metric (no Dock-Icon unless `icon` is set) over its own content, Spacing/Gap/Medium apart
    * (Figma Metric-Body): `sparkline` (15480:89548, Large) a trend line from `series`; `spark-bars` (15480:89594, Large)
    * bars from `series`, the last one current; `goal-progress` (15481:1803, Large) a stacked ProgressBar from `goal`;
@@ -252,7 +258,7 @@ const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison">, MetricSize
  * Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an
  * XLarge Icon-Highlight Metric; the other types (see `type`) put their marks, bar or columns under a Title-Highlight one.
  */
-export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
+export function MetricCard({ theme: themeProp, color: colorProp, subAction, className, overrides, type = "kpi", variant = "title-highlight", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
   const t = useZenLabels();
   // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a trend badge
   // Theme=On-Color, Background=Solid (a white pill) on that fill; Solid Neutral (15487:89034) is the dark Hero. Written
@@ -271,7 +277,10 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, clas
     </Card>
   );
   const foot = footer ? <div className="zen-metric-card__footer">{nest.slot(footer)}</div> : null;
-  if (type === "kpi") return card(foot ? <div className="zen-metric-card__body">{nest("Metric", <Metric {...metric} value={metric.value} />)}{foot}</div> : nest("Metric", <Metric {...metric} value={metric.value} />));
+  if (type === "kpi") {
+    const kpi = { ...metric, variant, size: metric.size ?? (variant === "title-highlight" ? "lg" : "xl") } as const;
+    return card(foot ? <div className="zen-metric-card__body">{nest("Metric", <Metric {...kpi} value={metric.value} />)}{foot}</div> : nest("Metric", <Metric {...kpi} value={metric.value} />));
+  }
   if (type === "comparison") {
     // The title heads the columns under it, as a ChartCard's title: a heading (the outline), Heading/Subheading (the look).
     const Title = `h${headingLevel}` as const;

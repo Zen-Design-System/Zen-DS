@@ -23,10 +23,21 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- ListBox footer actions (2026-10-16, user): a footer action ("Open calendar", "Go to Inbox") is a Tertiary Button,
+  never plain text or a Link: harness `listbox/footer-action-tertiary` (error; AI UI specs and `check_usage` too), the
+  Figma audit `list-box/footer-text-action`. A Button in the footer fills the box on desktop and tablet and hugs its
+  label on mobile; the Figma List-Box's default footer is a Button/Main Tertiary (Fill) instead of a "Footer" text. A
+  `<Stack align="start">` around the Button (it hugged on every device) is flagged by the same rule, and the Figma audit
+  `list-box/footer-action-hug` flags a footer Button set to Hug on a screen wider than 600px; the ListItem, Image and
+  Skeleton examples' footers (Invite people, Show all files, Upload photo, Show older activity) now fill on desktop.
 - MetricCard comparison (2026-10-16, user): the columns' figures are Heading/1 (were Heading/4), in code and in the
   Figma Metric-Card Type=Comparison; the columns stack at a width that follows the Heading/1 size, so three figures never
   overflow side by side in any typography. The Widgets page's KPI card is Title-Highlight, Large, like the widgets
   beside it (the Studio palette's KPI card too).
+- MetricCard KPI (2026-10-16, user): `type="kpi"` (the default) now draws a Title-Highlight Metric, Large: the title
+  on top, the number and trend at its foot, the Dock-Icon in the bottom-right corner, laid out like the typed cards.
+  `variant="icon-highlight"` keeps the old look (XLarge by default). Figma: Metric-Card Type=KPI holds a Title-Highlight
+  Large, and Title-Highlight's Contents fills a stretched metric (title on top, number at the foot) in every size.
 - GroupedBarChart and ComboChart bars grow with the room they have (2026-10-16, user: "Các cột ốm quá. Khi không gian
   còn khá nhiều"): Figma's 12px / 20px at Figma's size, then a grouped bar's group takes up to 70% of its period's
   column (each bar up to 32px) and a combo bar half its column (up to 40px, as a bar chart's bar).

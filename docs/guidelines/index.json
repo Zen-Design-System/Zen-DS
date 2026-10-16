@@ -2519,6 +2519,7 @@
         ]
       },
       "do": [
+        "Give a ListBox footer action (\"Open calendar\", \"Go to Inbox\") as a Tertiary Button (the Button default), straight in the footer: it fills the box on desktop and tablet and hugs its label on mobile (harness: listbox/footer-action-tertiary).",
         "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
@@ -2537,6 +2538,7 @@
         "A kicker above a ListBox lines up with the row text: Box paddingX=\"xl\" (24px) on desktop, paddingX=\"lg\" (20px) on a phone, xs (8px) above the box."
       ],
       "dont": [
+        "Don't write a footer action as plain text or a Link: it reads as a caption and has no button target. Don't wrap its Button in a <Stack align=\"start\">: it would hug on desktop and tablet too.",
         "Don't make only the chevron or a trailing button the way to open the row — the whole row is the target.",
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
@@ -2555,6 +2557,7 @@
         "flag/no-emoji-flag",
         "list-item/inset-not-padding",
         "listbox/on-container-in-overlay",
+        "listbox/footer-action-tertiary",
         "list-item/clickable-row-toggle",
         "list-item/switch-row",
         "list-item/trailing-button-medium",
@@ -2924,6 +2927,7 @@
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ],
         "MetricCard": [
+          "variant?: icon-highlight|title-highlight = title-highlight",
           "value?: ReactNode",
           "theme?: shadow|flat|pale|border|on-container|solid|semi-pale",
           "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple",
@@ -2943,7 +2947,6 @@
           "iconBackground?: solid|subtle",
           "iconEmoji?: ReactNode",
           "size?: xs|sm|md|lg|xl|xsmall|small|medium|large|xlarge",
-          "variant?: icon-highlight|title-highlight",
           "action?: ReactNode",
           "iconSize?: md|lg|medium|large",
           "custom?: ReactNode",

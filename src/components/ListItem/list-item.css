@@ -114,3 +114,6 @@
 .zen-list-box__header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-card-padding-medium, 24px) var(--zen-card-padding-medium, 24px) var(--zen-spacing-padding-xsmall, 8px); }
 .zen-list-box__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-list-container-vertical-padding, 12px) var(--zen-card-padding-medium, 24px); }
 .zen-list-box__footer { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-card-padding-medium, 24px); }
+/* A footer action is a Tertiary Button (harness listbox/footer-action-tertiary, user rule 2026-10-16): it fills the box on
+   desktop and tablet (the column stretches it) and hugs its label on mobile. */
+[data-breakpoint="mobile"] .zen-list-box__footer > .zen-button { align-self: flex-start; }

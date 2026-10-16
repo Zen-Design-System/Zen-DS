@@ -124,6 +124,7 @@ type ContentTone = (typeof contentTones)[number]
 | Enter / Space | Activate a clickable row |
 
 ## ✅ Do
+- Give a ListBox footer action ("Open calendar", "Go to Inbox") as a Tertiary Button (the Button default), straight in the footer: it fills the box on desktop and tablet and hugs its label on mobile (harness: listbox/footer-action-tertiary).
 - Make a settings row that is one on/off switch a `<ToggleListItem>`, not a ListItem with a Toggle in its trailing slot.
 - Wrap rows in <List aria-label> so the group is named.
 - Put a box of List-Item rows in `<ListBox>` (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.
@@ -142,6 +143,7 @@ type ContentTone = (typeof contentTones)[number]
 - A kicker above a ListBox lines up with the row text: Box paddingX="xl" (24px) on desktop, paddingX="lg" (20px) on a phone, xs (8px) above the box.
 
 ## ❌ Don't
+- Don't write a footer action as plain text or a Link: it reads as a caption and has no button target. Don't wrap its Button in a <Stack align="start">: it would hug on desktop and tablet too.
 - Don't make only the chevron or a trailing button the way to open the row — the whole row is the target.
 - Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).
 - Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).
@@ -169,6 +171,7 @@ type ContentTone = (typeof contentTones)[number]
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `list-item/inset-not-padding` | warn | List rows keep the padding Figma sets inside List-Item (Padding/Small 12px above and below, none at the sides, for Interactive=Yes and No alike), never a padding override on .zen-list-item — the layout around the List decides where it sits (leave 12px around clickable rows for their fill). | `zen-allow-list-inset: <reason>` |
 | `listbox/on-container-in-overlay` | warn | A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme="on-container": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12). | `zen-allow-overlay-theme: <reason>` |
+| `listbox/footer-action-tertiary` | error | A ListBox footer action ("Open calendar", "Go to Inbox") is a Tertiary Button, the Button default: it fills the box on desktop and tablet and hugs its label on mobile, never plain text or a Link (user rule 2026-10-16). | `zen-allow-footer-action: <reason>` |
 | `list-item/clickable-row-toggle` | warn | A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions). | `zen-allow-row-toggle: <reason>` |
 | `list-item/switch-row` | warn | A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch. | `zen-allow-switch-row: <reason>` |
 | `list-item/trailing-button-medium` | warn | Buttons in a List-Item trailing slot are size Medium (md). | `zen-allow-trailing-size: <reason>` |

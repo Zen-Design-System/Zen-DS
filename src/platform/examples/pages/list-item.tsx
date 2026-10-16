@@ -249,9 +249,7 @@ function PendingInvites() {
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">Pending invites</Heading>
         <Text textStyle="Body/Small/Regular" tone="base">Invites expire 14 days after they're sent.</Text>
       </Stack>}
-      footer={<Stack align="start">
-        <Button level="tertiary" startIcon="icon-user-plus-line" data-invite-people="" onClick={() => setInviting(true)}>Invite people</Button>
-      </Stack>}>
+      footer={<Button level="tertiary" startIcon="icon-user-plus-line" data-invite-people="" onClick={() => setInviting(true)}>Invite people</Button>}>
       {invites.length ? (
         <List aria-labelledby={titleId}>
           {invites.map((invite) => (
@@ -308,11 +306,9 @@ function RecentFiles() {
     {/* A ListBox: the title in its Header-Slot, the files in its Body-Slot, Show all in its Footer-Slot. */}
     <ListBox as="section" aria-labelledby={titleId}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Recent files</Heading>}
-      footer={<Stack align="start">
-        <Button level="tertiary" onClick={() => setShowAll((all) => !all)}>
-          {showAll ? "Show fewer" : `Show all ${recentFiles.length} files`}
-        </Button>
-      </Stack>}>
+      footer={<Button level="tertiary" onClick={() => setShowAll((all) => !all)}>
+        {showAll ? "Show fewer" : `Show all ${recentFiles.length} files`}
+      </Button>}>
       <List aria-labelledby={titleId}>
         {rows.map((file) => (
           // The title wraps to a second line and is cut only after that; the side panel repeats the whole name.
@@ -686,11 +682,9 @@ const revoke = (invite) => {
     render: () => <RecentFiles />,
     code: `<ListBox as="section" aria-labelledby={titleId}
   header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Recent files</Heading>}
-  footer={<Stack align="start">
-    <Button level="tertiary" onClick={() => setShowAll(!showAll)}>
-      {showAll ? "Show fewer" : \`Show all \${files.length} files\`}
-    </Button>
-  </Stack>}>
+  footer={<Button level="tertiary" onClick={() => setShowAll(!showAll)}>
+    {showAll ? "Show fewer" : \`Show all \${files.length} files\`}
+  </Button>}>
   <List aria-labelledby={titleId}>
     {rows.map((file) => (
       <ListItem key={file.id} title={file.name} titleLines={2}

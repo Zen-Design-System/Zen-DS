@@ -153,3 +153,27 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   with no overflow; Figma Metric-Card Type=Comparison set to the Heading/1 style, no placed comparison cards to sweep), and
   the gallery's first widget (KPI) to Title-Highlight Large (`widgets.tsx`, Studio palette). The gallery now has 8 styles
   (Display/4 only in the Hero). Docs margins under 375px kept (user: "ok").
+- KPI to Title-Highlight (user: "có"): `MetricCard` declares its own `variant` (default `title-highlight`, docs/api
+  default too, so Studio push/pull follow); a KPI's size defaults to Large in Title-Highlight, XLarge in Icon-Highlight.
+  51 default KPI cards across 11 files follow; the two `counter` cards (metric "Revenue by channel") set
+  `variant="icon-highlight"`. Palette/widgets KPI: `size="large"` only (the figma-widgets round trip reads Figma's
+  spelling). `compile-api.generated.mjs` rebuilt. Figma: Metric-Card Type=KPI's Icon-Highlight XLarge replaced by a
+  Title-Highlight Large (texts kept); 96 placed KPI cards were already Title-Highlight. The user then picked "number at
+  the foot" when stretched: Title-Highlight's Contents is FILL + SPACE_BETWEEN with a minHeight in every size (the CSS
+  comment had claimed this; Figma was HUG/MIN). Metric-Card description rewritten (backup frame on ARCHIVED).
+- App Shell's narrow-window KPI tiles keep `variant="icon-highlight"` (Title-Highlight reserves 64px beside the number for
+  the corner icon; in ~130px tiles "$33.9K" overflowed: 41 audit errors). Axe baseline: MetricCard's color-contrast entry
+  is gone (the Icon-Highlight default carried it).
+
+## ListBox footer actions (user: "bổ sung rule, harness …", screenshot of text footers "Open calendar" / "Go to Inbox")
+
+- Code: harness `listbox/footer-action-tertiary` (error, `zen-allow-footer-action`), fixtures bad ×3 / good ×3, guideline
+  Do/Don't on list-item; AI UI lint reuses it (docs/ai-ui rebuilt). `list-item.css`: a footer Button fills the box (the
+  column stretches it) and hugs on `[data-breakpoint="mobile"]`. No violation in the repo; the screenshot's source was
+  not found in code, HR-Platform or Studio pages.
+- Figma: List-Box's 32 Footer=Yes variants hold a Button/Main Tertiary Medium "View all" (Fill) instead of the "Footer"
+  text; the audit harness gains `list-box/footer-text-action` (audit-rules.md), checked on a temporary frame (deleted).
+- Contact sheets showed the footers still hugging at 1512: five examples (list-item ×2 + its code, image, skeleton ×2)
+  wrapped the Button in `<Stack align="start">`. Unwrapped; the harness rule now flags a column Stack aligned
+  start/center/end around a footer Button (bad/good fixtures), and the Figma audit gains `list-box/footer-action-hug`
+  (a Footer-Slot Button at Hug on a screen wider than 600px), checked on temporary 1440/390 frames (deleted).

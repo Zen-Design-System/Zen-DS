@@ -265,7 +265,7 @@ export const componentDescriptions = {
     what: "A dashboard KPI tile: one key number with its label, an identifying icon and how it changed.",
     use: ["KPI rows at the top of a dashboard, next to Chart cards."],
     instead: ["A series over time → Chart.", "Many comparable numbers → Table.", "Progress toward a goal → Progress-Bar."],
-    rules: ["Theme follows the screen's pairing (Flat on Canvas/Default, Shadow beside a default Sidebar).", "Its Dock-Icon is Background=Solid.", "The value is not a heading; the trend says up or down in text, not only colour."],
+    rules: ["Theme follows the screen's pairing (Flat on Canvas/Default, Shadow beside a default Sidebar).", "Type=KPI is a Title-Highlight Metric (Large), laid out like the other types: the title on top, the number and trend at the foot, the Dock-Icon in the corner.", "Its Dock-Icon is Background=Solid.", "The value is not a heading; the trend says up or down in text, not only colour."],
     code: "`<MetricCard>`",
   }),
   "Primitives/Metric/Metric-Inline/Icon-Highlight": card({
