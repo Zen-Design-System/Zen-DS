@@ -23,6 +23,9 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- DashboardHeader control-bar result count (2026-10-16, user: "hơi bự, nên đưa về body"): "86 expenses" is Body/Base/Regular
+  (was Heading/Subheading), in code and in Figma Primitives/Dashboard/Header Type=Control-Bar (its description says so);
+  harness `dashboard-header/count-body` (error) flags a Heading or a heading/display text style passed as the count.
 - DonutChart and RadialChart take a named `size` (2026-10-16, user: "Có nên cho chọn các cỡ pie chart không?", "thêm
   XLarge 320px"): `small` 120 · `medium` 168 (the new default, was 200) · `large` 240 · `xlarge` 320, in either spelling;
   a number still sets px, and the harness warns (`chart/ring-size-named`). Small shows the centre figure alone

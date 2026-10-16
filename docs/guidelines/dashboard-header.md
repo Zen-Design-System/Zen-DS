@@ -22,7 +22,7 @@ One row of a dashboard page's header: a control bar (Search, filter Chips, a res
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Type | `type` | control-bar (default) · navigation · main · custom |
-| Control-Bar | `search · controls · subheading · actions` | a Search (320px) · filter Chips · the result count (Heading/Subheading) · Tertiary buttons then one Primary, right-aligned |
+| Control-Bar | `search · controls · subheading · actions` | a Search (320px) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned |
 | Navigation | `leading · center · trailing` | Breadcrumbs (fills the start) · up to 400px in the middle · AppShellAction buttons then the account, right-aligned |
 | Main | `title · childTitle · subheading · actions · trailing · headingLevel` | a PageHeader: h1 Heading/1, a second title in Light, one line under it, the actions, icon actions |
 | Custom | `children` | your own row, Gap/Medium apart, centred |
@@ -43,7 +43,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `trailing` | `ReactNode` | — | Navigation and Main · Figma Trailing-Slots (Nav-Trailing-Block): icon actions then the account, right-aligned, Spacing/Gap/Small apart — `<AppShellAction>` buttons (notifications with a dot or count) and an Avatar or account menu. |
 | `search` | `ReactNode` | — | Control-Bar · Figma Search: a <Search size="md"> that filters the page, 320px wide. |
 | `controls` | `ReactNode` | — | Control-Bar · Figma Control-Slots: filter Chips (`<Chip variant="advanced">`), Spacing/Gap/XSmall apart. |
-| `subheading` | `ReactNode` | — | Figma Subheading. Control-Bar: what the filters leave, e.g. "96 results" (Heading/Subheading). Main: one line under the title (the PageHeader description). |
+| `subheading` | `ReactNode` | — | Figma Subheading. Control-Bar: what the filters leave, e.g. "96 results" (Body/Base/Regular: a count, not a title; user 2026-10-16). Main: one line under the title (the PageHeader description). |
 | `actions` | `ReactNode` | — | Control-Bar and Main · Figma Action-Slots: the page's buttons, right-aligned — Tertiary first, then at most one Primary. |
 | `title` | `ReactNode` | — | Main · Figma Header-Text: the page title (Heading/1, an h1 unless `headingLevel` is 2). |
 | `childTitle` | `ReactNode` | — | Main · Figma Child-Heading: a second title after the title, in Content/Neutral/Light (PageHeader `childTitle`). |
@@ -57,11 +57,13 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 - Give the Search a placeholder that names what it searches ("Search leave requests").
 - Make filters Chip variant="advanced" in controls, each opening its own Popover (harness: dashboard-header/filters-are-chips).
 - Write the result count with plural() and update it with the filters ("96 results", "1 result").
+- Pass the result count as plain text in subheading: the row draws it in Body/Base/Regular, the size of the text around it (user rule 2026-10-16; harness: dashboard-header/count-body).
 - Order actions Tertiary first and keep one Primary, last (harness: dashboard-header/one-primary).
 - Use only the props of the row's type: search on a navigation row does nothing (harness: dashboard-header/props-of-type).
 
 ## ❌ Don't
 - Don't use Buttons as filters in controls.
+- Don't make the result count a Heading or give it a heading or display text style: a count beside the filters is body text, not a title.
 - Don't put more than one Primary in actions.
 - Don't stack two navigation rows, or a navigation row under AppShell's top bar.
 - Don't leave type="main" without a title (harness: dashboard-header/main-needs-title).
@@ -79,6 +81,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `dashboard-header/props-of-type` | error | A DashboardHeader draws only its type's slots: control-bar search · controls · subheading · actions; navigation leading · center · trailing; main title · childTitle · subheading · actions · trailing; custom its children. | `zen-allow-dashboard-header-type: <reason>` |
+| `dashboard-header/count-body` | error | A control-bar DashboardHeader's result count (subheading) is plain text, drawn in Body/Base/Regular: no Heading, no heading or display text style (user rule 2026-10-16). | `zen-allow-dashboard-header-count: <reason>` |
 | `dashboard-header/one-primary` | error | DashboardHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones. | `zen-allow-dashboard-header-primary: <reason>` |
 | `dashboard-header/main-needs-title` | error | A type="main" DashboardHeader is the page title row: it needs a title (the page's h1). | `zen-allow-dashboard-header-title: <reason>` |
 | `dashboard-header/filters-are-chips` | warn | Filters in a DashboardHeader's controls are Chip variant="advanced" (each opens its own Popover), not Buttons. | `zen-allow-dashboard-header-filter-button: <reason>` |

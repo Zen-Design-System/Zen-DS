@@ -50,6 +50,10 @@ export const Bad = () => <>
   <Popover items={items} label="Assignee" onSelect={pick} />
   {/* expect: page-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}
   <PageHeader title="Members" actions={<><Button level="primary" onClick={exportCsv}>Export</Button><Button level="primary" onClick={invite}>Invite member</Button></>} />
+  {/* expect: dashboard-header/count-body */}
+  <DashboardHeader search={<Search placeholder="Search expenses" />} subheading={<Text textStyle="Heading/Subheading">86 expenses</Text>} />
+  {/* expect: dashboard-header/count-body */}
+  <DashboardHeader search={<Search placeholder="Search expenses" />} subheading={<Heading level={2}>86 expenses</Heading>} />
   {/* expect: dashboard-header/props-of-type */}
   <DashboardHeader type="navigation" leading={<Breadcrumbs items={crumbs} onNavigate={go} />} search={<Search placeholder="Search leave requests" />} />
   {/* expect: dashboard-header/one-primary — also expect: button/one-primary (the two Primaries are siblings) */}

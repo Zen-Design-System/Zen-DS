@@ -63,7 +63,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Subheading. Control-Bar: what the filters leave, e.g. \"96 results\" (Heading/Subheading). Main: one line under\nthe title (the PageHeader description).",
+          "description": "Figma Subheading. Control-Bar: what the filters leave, e.g. \"96 results\" (Body/Base/Regular: a count, not a title;\nuser 2026-10-16). Main: one line under the title (the PageHeader description).",
           "deprecated": null
         },
         {

@@ -10,7 +10,7 @@
 /* Trailing never shrinks below its icon actions (Comfortable makes them 48px): the leading side gives way first. */
 .zen-dashboard-header__trailing { display: flex; min-width: max-content; flex: 1 1 0; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-small, 12px); }
 
-/* Control-Bar: Search FIXED 320, Control-Slots Gap/XSmall, the count in Heading/Subheading, Action-Slots FILL to the end
+/* Control-Bar: Search FIXED 320, Control-Slots Gap/XSmall, the count in Body/Base/Regular, Action-Slots FILL to the end
    (Gap/Small). */
 .zen-dashboard-header__search { display: flex; min-width: 0; flex: 0 1 var(--zen-dashboard-header-search-basis, 320px); }
 .zen-dashboard-header__search > * { width: 100%; min-width: 0; }

@@ -430,7 +430,7 @@ Live file `9nZv4uW2LT21yuHabMTCh1`, page ◇ Master-Layout (1128:29541), read on
 | Trailing-Slots + Nav-Trailing-Block (Navigation, Main) | on | `trailing` |
 | Search (Control-Bar) | on | `search` (a Search, 320px) |
 | Control-Slots + Controls (Control-Bar) | on | `controls` |
-| Subheading (Control-Bar: Heading/Subheading count; Main: Body/Base/Regular line) | off | `subheading` |
+| Subheading (Control-Bar: Body/Base/Regular count; Main: Body/Base/Regular line) | off | `subheading` |
 | Action-Slots + Actions (Control-Bar, Main) | on | `actions` |
 | Header-Text (Main) | — | `title` (Heading/1) |
 | Child-Heading (Main) | off | `childTitle` (Heading/1, Content/Neutral/Light, Gap/XSmall after the title) |
