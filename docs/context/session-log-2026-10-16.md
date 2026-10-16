@@ -277,3 +277,10 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   (`.studio-builder-screen__pin`, top / bottom) inside `__main`; `DeviceBars` takes `part`. Canvas frames unchanged
   (Playwright: no pin, no link). Checked in Play at 430 × 932: 80px folds the title, 30px settles open, bars stay.
 
+## Studio E2E for the large-title fold (user: "có, thêm case E2E")
+
+- `tools/studio/e2e/scenarios/prototype.mjs`: PT-12 plays, PT-13 presents (Inspector › Present) a seeded phone Screen
+  (`largeTitlePage`: a compact-alt large title over 40 rows) and `checkFold` scrolls whatever scrolls it 400px: the
+  title folds, the status bar stays at 0, the home indicator ≤ 40px from the bottom, then open again at 0.
+  `seededPage` (builder.mjs) is exported. Matrix baseline: PT-12, PT-13 works. PT-13 needs session Bug's Present
+  scroller fix (stage that scrolls); with it both pass (PT-11 too).

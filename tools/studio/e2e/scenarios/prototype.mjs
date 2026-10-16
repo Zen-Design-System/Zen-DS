@@ -1,9 +1,9 @@
 // Prototype rows (Figma's prototype mode on pages made in the Studio, 2026-10-15): connect by dragging a layer's ⊕ onto a
 // frame, click an arrow to select its layer, drag an arrow's end to another frame or off to remove it, one target per
 // tab of a tab bar, the Flow list, and Play's hotspot hints. Each row makes its own page (builder.mjs newPage).
-import { openAssetLibrary, selectAt, sleep, until } from "../lib/studio.mjs";
+import { openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
-import { clickNamed, newPage, pageText, selectStack } from "./builder.mjs";
+import { clickNamed, newPage, pageText, seededPage, selectStack } from "./builder.mjs";
 
 const text = async (page, id) => (await pageText(page, id)) ?? "";
 const center = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
@@ -55,6 +55,57 @@ async function protoPage(ctx, { screens = 2, overlay = false, button = false, de
   await page.keyboard.press("Shift+Digit1");
   await sleep(400);
   return made;
+}
+
+/** A phone Screen whose content outgrows the device under a large-title Top Navigation (PT-12, PT-13). */
+const largeTitlePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="phone" topNavigation={<TopNavigation type="compact-alt" largeTitle="Expenses" />}>
+        <Stack gap="md" padding="lg">
+${Array.from({ length: 40 }, (_, index) => `          <Text>Expense ${index + 1}</Text>`).join("\n")}
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Scrolls what scrolls the shown Screen (the nearest ancestor of its Top Navigation that scrolls its overflow) and checks
+ *  the large title folds, the system bars stay at that box's edges, and the title opens again at the top. */
+async function checkFold(root) {
+  const nav = root.locator(".zen-top-nav").first();
+  await nav.waitFor({ state: "visible", timeout: 5000 });
+  const measure = (by) => root.evaluate((el, by) => {
+    const top = el.querySelector(".zen-top-nav");
+    let box = top;
+    while (box && box !== el.parentElement && !(box.scrollHeight > box.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
+    if (!box || box === el.parentElement) return { error: "nothing scrolls the shown screen" };
+    if (by !== null) box.scrollTop = by;
+    const view = box.getBoundingClientRect();
+    const status = el.querySelector(".studio-device-status")?.getBoundingClientRect();
+    const home = el.querySelector(".studio-device-home")?.getBoundingClientRect();
+    return { scrolled: box.scrollTop, linked: top.getAttribute("data-scroll-linked") === "true", collapsed: top.getAttribute("data-collapsed") === "true", status: status ? status.top - view.top : null, home: home ? view.bottom - home.bottom : null };
+  }, by);
+  const start = await measure(null);
+  if (start.error) throw new Error(start.error);
+  if (!start.linked) throw new Error("the Top Navigation does not follow the scroll (no data-scroll-linked)");
+  if (start.collapsed) throw new Error("the large title starts folded");
+  await measure(400);
+  await until(async () => (await measure(null)).collapsed, { message: "the large title folded after a 400px scroll" });
+  const down = await measure(null);
+  if (down.scrolled < 100) throw new Error(`the screen scrolled only ${down.scrolled}px`);
+  if (down.status === null || Math.abs(down.status) > 1) throw new Error(`after a ${down.scrolled}px scroll the status bar is ${down.status === null ? "gone" : `${Math.round(down.status)}px from the top`} (it should stay at 0)`);
+  if (down.home === null || down.home < 0 || down.home > 40) throw new Error(`after a ${down.scrolled}px scroll the home indicator is ${down.home === null ? "gone" : `${Math.round(down.home)}px from the bottom`} (it should stay at the bottom edge)`);
+  await measure(0);
+  await until(async () => !(await measure(null)).collapsed, { message: "the large title open again at the top" });
+  return `scrolled ${down.scrolled}px: title folded, status bar at ${Math.round(down.status)}px, home indicator ${Math.round(down.home)}px from the bottom; open again at 0`;
 }
 
 export const rows = [
@@ -355,6 +406,34 @@ export const rows = [
       } finally {
         await page.setViewportSize(size);
       }
+    },
+  },
+  {
+    id: "PT-12", feature: "Play scrolls a phone Screen as a phone: its large title folds under the bar (TopNavigation scrollRef, iOS) and the status bar and home indicator stay at the window's edges (the user 2026-10-16: the large title stayed open over a white band)", wp: "play large title 2026-10-16", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, largeTitlePage, /largeTitle="Expenses"/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("p");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const result = await checkFold(playing(page));
+      await page.keyboard.press("Escape");
+      return result;
+    },
+  },
+  {
+    id: "PT-13", feature: "Present shows a phone Screen the same way: scrolling folds the large title under the bar and keeps the status bar and home indicator at the edges of what scrolls (the user 2026-10-16, the Expenses phone screen in Present)", wp: "play large title 2026-10-16", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, largeTitlePage, /largeTitle="Expenses"/);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      // The selected Screen's Present button (Inspector › Frame), as a person starts it.
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      const result = await checkFold(present);
+      await page.keyboard.press("Escape");
+      return result;
     },
   },
 ];

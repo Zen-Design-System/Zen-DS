@@ -231,7 +231,7 @@ export default function Page() {
 `;
 
 /** A new page whose text is `text(name)`, written to the pages folder and synced into the browser (as B-36 does). */
-async function seededPage(ctx, text, has) {
+export async function seededPage(ctx, text, has) {
   const { page, id, name } = await newPage(ctx, { device: "desktop" });
   await until(async () => (folderText(ctx, id) ?? "").includes(JSON.stringify(name)), { message: "the named page in the folder" });
   await sleep(500);
