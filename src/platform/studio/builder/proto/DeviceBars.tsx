@@ -21,10 +21,11 @@ export const SAFE_AREAS: Readonly<Record<DeviceOs, Readonly<Record<BarsDevice, {
   android: { phone: { top: 24, bottom: 24 }, tablet: { top: 24, bottom: 24 } },
 };
 
-export function DeviceBars({ os, device }: { os: DeviceOs; device: BarsDevice }) {
+/** Both bars, or one (`part`): Present and Play pin each to its edge of the scrolled page (runtime.tsx Screen). */
+export function DeviceBars({ os, device, part }: { os: DeviceOs; device: BarsDevice; part?: "status" | "home" }) {
   return (
     <>
-      <div className="studio-device-status" data-os={os} data-device={device} aria-hidden="true">
+      {part === "home" ? null : <div className="studio-device-status" data-os={os} data-device={device} aria-hidden="true">
         <span className={`studio-device-status__time ${typographyStyles[os === "ios" && device === "phone" ? "Body/Base/Bold" : "Body/Small/Medium"]}`}>{os === "ios" ? "9:41" : "12:30"}</span>
         {os === "ios" && device === "phone" ? <span className="studio-device-status__island" /> : null}
         {os === "android" && device === "phone" ? <span className="studio-device-status__camera" /> : null}
@@ -33,8 +34,8 @@ export function DeviceBars({ os, device }: { os: DeviceOs; device: BarsDevice })
           <span className="studio-device-status__square" />
           <span className="studio-device-status__battery" />
         </span>
-      </div>
-      <span className="studio-device-home" data-os={os} data-device={device} aria-hidden="true" />
+      </div>}
+      {part === "status" ? null : <span className="studio-device-home" data-os={os} data-device={device} aria-hidden="true" />}
     </>
   );
 }

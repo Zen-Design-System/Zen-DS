@@ -33,6 +33,10 @@
 .studio-builder-screen__header { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 .studio-builder-screen__top { position: sticky; z-index: 1; top: 0; }
 .studio-builder-screen__bottom { position: sticky; z-index: 1; bottom: 0; }
+/* Present and Play: the system bars ride 0-high sticky boxes at the window's top and bottom edges (runtime.tsx). */
+.studio-builder-screen__pin { position: sticky; z-index: 20; height: 0; }
+.studio-builder-screen__pin[data-edge="top"] { top: 0; }
+.studio-builder-screen__pin[data-edge="bottom"] { bottom: 0; }
 /* An AppShell on a Screen is a drawing of the whole page, as Figma's frame is: it fills the Screen, and its Sidebar and
    docked aside span the page's height instead of the browser window's (their sticky 100dvh is for an app that scrolls). */
 .studio-builder-screen:has(> .zen-app-shell) { display: flex; flex-direction: column; }
