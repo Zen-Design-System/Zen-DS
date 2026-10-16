@@ -7,6 +7,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
+  AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
+  `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its
+  PageHeader moved into `sections` (a small desktop spacing change to review at 1512 / 390) and its phone parts by
+  `docs/component-usage-rules.md` §17. Zen Studio pages made from them already get the phone parts (P4).
 - **P2 · Figma Stack-Bar segments don't scale in proportion (2026-10-16):** charts now fill a stretched Chart-Card in
   Figma (every `Chart/*` set, Chart-Card, Metric-Card), but in `Chart/Stack-Bar-Chart` only the bottom segment of each
   column takes the extra height: `.Primitives/Chart/Column/Stack-Bar/Single`'s Value slot is a vertical auto layout,
