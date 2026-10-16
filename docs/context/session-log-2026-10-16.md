@@ -177,3 +177,22 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   `flex-basis` did not help: Chromium sizes a hugging flex container from its items' widths. Studio Main component: the
   Inline bar shows (94px at the canvas zoom); platform rows measured unchanged (track = row − label − gap).
   Gate PASS (--isolated, progress: audit 1512/390/320, dark, behaviour, 69 browser tests).
+
+## Chart X labels pinned, rings beside a legend grow (session "Bug"; user: "ghim nhãn dưới baseline cả code và figma", "Chart nên scale ra" on a Donut Legend=Start in a tall card)
+
+- Code: `PlotFrame` sets `--zen-chart-base` (the `height` prop, no grow); line/stack lanes are
+  `min(base / 7, 40px)` (280 → 40, 236 → 33.7: defaults unchanged), so grow and taller heights go to the plot. Probe
+  (isolated server, chart page, every Chart Card +220px): plots +220, the X-label gap below the baseline unchanged
+  (17 / 14 / 11 / 11 / 11px).
+- Code: the `--zen-chart-grow: 0` rule for rings beside a legend is gone; the ring box gets
+  `max-width: max(its own size, 100% − legend basis (100px, total column 160px) − gap)`, so a grown ring never pushes
+  the legend under it and the old wrap threshold holds. Probe: 168 → 300, 200 → 300, 220 → 300, 240 → 302, legend still
+  beside; a 319px block stays at 195 (width-bound). Gate ⚠ card-gap (Studio analytics, "Revenue by client" 25px above its
+  foot beside a Radial that now fills): a width-bound beside-legend chart block takes `margin-block: auto 0`, so it ends
+  at the card's foot; card-gap clean.
+- Figma: 33 Sector instances in `.Chart/Line-Chart/Trend` (4/6/7/12) and Stack-Bar-Chart have Container MIN with a top
+  padding at today's label offset; Line and Multi-Line ×4 override it to their own 18.86 (Stack 11.43). The primitive
+  (171 direct placements on screens) is unchanged. Checked at default and 1.6× height: labels under the baseline.
+- Figma rings beside a legend: no auto-layout setting sizes a ring to min(free width, free height) (tried: locked
+  FILL/FILL follows the width and overflows a short row; FILL height overflows a narrow one; maxWidth breaks the 1:1). Left
+  as is (fills its half up to its size, centred in a taller card); a choice for the user.

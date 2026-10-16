@@ -878,3 +878,8 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   column takes the extra height: `.Primitives/Chart/Column/Stack-Bar/Single`'s Value slot is a vertical auto layout,
   which can't share height by ratio. Proportional needs that slot rebuilt as a GRID with FLEX rows per segment value
   (every sample column). Code scales correctly.
+- [fixed 2026-10-16, user: "ghim nhãn dưới baseline cả code và figma": code lanes min(base / 7, 40px); Figma Sector Containers top-aligned at today's offset] **P2 · Line / Stack-Bar / Multi-Line X labels drift from the baseline in a taller chart (2026-10-16, user's
+  responsive check):** code (`--zen-chart-lane-bottom: height / 7`, the label at the lane's bottom) and Figma (a FLEX
+  label row in the 14-row Trend grid) agree, so at 1.6× height the labels sit ~40px under the baseline. Fixing it pins
+  the label lane in both (code: a fixed lane; Figma: the label row FIXED, Y labels re-anchored). Waits for the user:
+  change both, or keep. Session log 2026-10-16 "Figma chart sizing".

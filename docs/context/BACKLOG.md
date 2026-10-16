@@ -7,11 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P2 · Line / Stack-Bar / Multi-Line X labels drift from the baseline in a taller chart (2026-10-16, user's
-  responsive check):** code (`--zen-chart-lane-bottom: height / 7`, the label at the lane's bottom) and Figma (a FLEX
-  label row in the 14-row Trend grid) agree, so at 1.6× height the labels sit ~40px under the baseline. Fixing it pins
-  the label lane in both (code: a fixed lane; Figma: the label row FIXED, Y labels re-anchored). Waits for the user:
-  change both, or keep. Session log 2026-10-16 "Figma chart sizing".
 - **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
   chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
   examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read

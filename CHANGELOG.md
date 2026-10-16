@@ -23,6 +23,12 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- Line and stack charts keep their X labels right under the baseline when they grow (2026-10-16, user: "ghim nhãn dưới
+  baseline cả code và figma"): their lanes are a seventh of the chart's own height, at most 40px, so a stretched card
+  or a larger `height` gives the plot all the extra. A Donut or Radial beside its legend now grows with a stretched card
+  too (user: "Chart nên scale ra"), up to the width its legend leaves it; once the width stops it, the chart sits at the
+  card's foot so a row's charts end together. Figma: the X labels of the Trend set
+  (Line, Multi-Line, Chart-Card) and Stack-Bar-Chart are top-aligned at today's offset.
 - MetricCard comparison (2026-10-16, user): the columns' figures are Heading/1 (were Heading/4), in code and in the
   Figma Metric-Card Type=Comparison; the columns stack at a width that follows the Heading/1 size, so three figures never
   overflow side by side in any typography. The Widgets page's KPI card is Title-Highlight, Large, like the widgets
