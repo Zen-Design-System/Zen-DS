@@ -1117,7 +1117,7 @@
         "name": "Segmented/Spacing/Small/Horizontal-Padding",
         "type": "FLOAT",
         "valuesByMode": {
-          "Compact": "{Spacing/Padding/2XSmall}",
+          "Compact": 6,
           "Comfortable": 6,
           "Studio": "{Spacing/Padding/2XSmall}"
         }
