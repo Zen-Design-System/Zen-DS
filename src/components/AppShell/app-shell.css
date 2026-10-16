@@ -77,6 +77,11 @@
 /* Bottom: the sticky footer, with the floating action riding above it (Figma Floating-Actions 6040:72809:
    Margin-Comfortable from the page's right and bottom edges). */
 .zen-app-shell__bottom { position: sticky; z-index: 20; bottom: 0; }
+/* Phones with their own chrome (layout "phone", component-usage-rules §17): the TopNavigation sticks under the banner
+   as the top bar does; the BottomNavigation closes the sticky bottom, under the footer (the floating action sits above
+   both). */
+.zen-app-shell__top-nav { position: sticky; z-index: 20; top: var(--zen-app-shell-top); min-width: 0; }
+.zen-app-shell__bottom-nav { min-width: 0; }
 /* zen-allow-raw-shadow: Figma Floating-Actions (6040:72809) carries a local effect, not an Effect style: 0 12 28 and
    0 4 8 −4 in Color/Shadow/Neutral/Base. drop-shadow takes half the blur (a standard deviation) and follows the button's shape. */
 .zen-app-shell__floating { position: absolute; right: var(--zen-margin-comfortable, 24px); bottom: calc(100% + var(--zen-margin-comfortable, 24px)); display: flex; filter: drop-shadow(0 12px 14px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%))) drop-shadow(0 4px 4px var(--zen-color-shadow-neutral-base, rgb(0 0 0 / 8%))); }

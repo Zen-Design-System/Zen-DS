@@ -145,6 +145,25 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
 - Visual diff 1512 + 390 (1006 panels): changes are the Form/Input width fix, 1–37px of glyph edge from the caption clip,
   and other sessions' / timing ones (ai-ui skeleton, image loads).
 
+## Responsive header P3 + P4: AppShell phone chrome, the Studio draws the phone header (tier L, same session)
+
+- User: "làm tiếp P3 + P4 luôn". Branch zen/feat/responsive-header-p3p4-20261016 from main 63785331.
+- P3: AppShell `topNavigation` / `bottomNavigation`, layout `phone` (auto under 744px when given; `compact` covers drawer
+  and phone, so openNav works), CSS `.zen-app-shell__top-nav` (sticky) / `__bottom-nav` (in the sticky bottom);
+  tests/interaction/app-shell 20 ✓ (4 new); story Phone; example AppShell › Desktop and phone (StudioAppOnPhone: the
+  account as an action sheet); platform.css lets a phone-chrome shell fill PlatformPhone. Harness: page-header-in-sections
+  (`has`, not `present`: an opaque attrs list made it fire on SettingsForm), top-navigation-title; forced-layout knows
+  `phone`. Guideline, §17, skill, AGENTS.consumer rule 13 back on the props.
+- P4: `tools/studio/responsive-header.mjs` + selftest 25 (root / child / data Sidebar / over budget / link, follow,
+  unlink, reset, older page); localApi `withPhoneSync` (one Screen request per round; a new part is an insertChild alone
+  — setProp adds no import), `linkPhoneChrome` on open; FramePanel caption + Reset to desktop; compile: a Screen on its
+  master layout exports one AppShell with the phone parts (compile selftest updated); `phoneLinked` Studio-only.
+- E2E B-42, B-43 works. Templates: BACKLOG P2 (their PageHeader into sections).
+- Gate 1 (P3/P4): static, Vitest 70, audit 1512 + 390 + 320, dark, behaviour ✓; E2E 5 rows asserted the old phone
+  parts: B-41 (the account counted in the whole page: the linked bar has its copy → count in headerActions), PT-02/PT-03
+  (a new page's tabs are now the Sidebar's Home · Projects · People, not the seed's four), HO-01 (the export is one
+  AppShell with its phone parts), NO-16 (a photo on the desktop account shows in the linked bar's copy too). Updated
+  and green alone; gate rerun.
 ## Widgets gallery text styles (user: "cho xem trước", then two calls)
 
 - Previewed the Widgets gallery (9 text styles across 7 MetricCard types; each card uses 3–5). The user's calls:

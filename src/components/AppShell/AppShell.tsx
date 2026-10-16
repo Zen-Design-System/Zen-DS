@@ -22,10 +22,11 @@ import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effe
 import { useStableCallback } from "../_shared/use-stable-callback";
 import { useMergedRefs } from "../_shared/merge-refs";
 
-export type AppShellLayout = "sidebar" | "drawer";
+export type AppShellLayout = "sidebar" | "drawer" | "phone";
 
 export interface AppShellContextValue {
-  /** `sidebar`: the Sidebar sits beside the content (the shell is 1024px or wider) · `drawer`: it opens over the page. */
+  /** `sidebar`: the Sidebar sits beside the content (the shell is 1024px or wider) · `drawer`: it opens over the page ·
+   *  `phone`: under 744px with a `topNavigation` / `bottomNavigation`, which replace the top bar (the drawer still opens). */
   layout: AppShellLayout;
   /** Whether the Sidebar is collapsed to its icon rail (sidebar layout). */
   sidebarCollapsed: boolean;
@@ -89,6 +90,19 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   floatingAction?: ReactNode;
   /** A sticky bar at the bottom of the main column, e.g. an ActionBar. */
   footer?: ReactNode;
+  /**
+   * Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma
+   * Top-Navigation/Mobile 12014:45167). With it, or `bottomNavigation`, a phone draws neither the top bar nor
+   * `sections`: the bar holds the page's title (its h1), Back on a child screen and at most three actions, mapped from the
+   * desktop header (docs/component-usage-rules.md §17). The Sidebar stays reachable as the drawer
+   * (`useAppShell().openNav()`, e.g. from a BottomNavigation More). Tablets and desktops ignore it.
+   */
+  topNavigation?: ReactNode;
+  /**
+   * Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the
+   * first 4 + More). Pinned to the bottom under the footer; give it on root screens only. Tablets and desktops ignore it.
+   */
+  bottomNavigation?: ReactNode;
   /** Page background layer: default Canvas, alt (a white page) or flat (pair it with Sidebar background="flat"). */
   canvas?: "default" | "alt" | "flat";
   /** Sidebar rail state when controlled; pair it with `onSidebarCollapsedChange`. */
@@ -112,8 +126,12 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   navLabel?: string;
   /** id of <main>, the target of the "Skip to content" link. Default: a generated unique id. */
   mainId?: string;
-  /** Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests. */
-  layout?: "auto" | "sidebar" | "drawer";
+  /**
+   * Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer, and
+   * narrower than 744px the phone chrome (`topNavigation` / `bottomNavigation`) when the shell has one. Force it only
+   * for previews and tests.
+   */
+  layout?: "auto" | "sidebar" | "drawer" | "phone";
   /** The page. */
   children?: ReactNode;
   /** Figma instance overrides: props of the navigation buttons it draws, by layer (`{ Menu: { level: "secondary" }, Collapse: { appearance: "main" } }`). Written by Zen Studio;
@@ -229,7 +247,8 @@ const NAVIGATION_TARGET = "a[href], button.zen-sidebar__item, .zen-sidebar__foot
  * The frame of a web app (Figma ◇ Master-Layout Patterns/Pages/Density-Medium 4122:41886, as used by ◆ HR-Platform):
  * Sidebar navigation, a sticky top bar, the page, and optional banner, docked side panel and floating action, with a
  * "Skip to content" link. From 1024px the Sidebar sits beside the page and the toggle at the start of the top bar
- * collapses it to its rail; narrower, it opens as a modal drawer.
+ * collapses it to its rail; narrower, it opens as a modal drawer. On phones (under 744px) a shell given `topNavigation`
+ * and `bottomNavigation` draws those instead of its top bar and `sections` (docs/component-usage-rules.md §17).
  *
  * Each part is the Zen component Figma's Master-Layout uses: the Sidebar, the top bar a DashboardHeader
  * type="navigation" (Primitives/Dashboard/Header Type=Navigation 4122:33400: the toggle and `header` in Leading-Slots,
@@ -252,6 +271,8 @@ export function AppShell({
   aside,
   floatingAction,
   footer,
+  topNavigation,
+  bottomNavigation,
   canvas = "default",
   sidebarCollapsed: collapsedProp,
   defaultSidebarCollapsed,
@@ -291,12 +312,18 @@ export function AppShell({
   const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
   const shellWidth = useElementSize(rootEl, "width");
   const guessedDesktop = useGuessedDesktop();
-  // `auto` follows the shell's own width: narrower than 1024px uses the drawer.
-  const layout: AppShellLayout = layoutProp === "sidebar" || layoutProp === "drawer" ? layoutProp : (shellWidth ? shellWidth >= SIDEBAR_MIN_SHELL_WIDTH : guessedDesktop) ? "sidebar" : "drawer";
-  const compact = layout === "drawer";
+  const zenBreakpoint = useZen()?.breakpoint;
+  // `auto` follows the shell's own width: narrower than 1024px uses the drawer, narrower than 744px (before it is
+  // measured: the provider's Mobile breakpoint) the phone chrome when there is one (component-usage-rules §17).
+  const phoneChrome = Boolean(topNavigation || bottomNavigation);
+  const autoLayout: AppShellLayout = (shellWidth ? shellWidth >= SIDEBAR_MIN_SHELL_WIDTH : guessedDesktop) ? "sidebar"
+    : phoneChrome && (shellWidth ? shellWidth < TABLET_MIN_WIDTH : zenBreakpoint === "mobile") ? "phone" : "drawer";
+  const layout: AppShellLayout = layoutProp === "auto" ? autoLayout : layoutProp === "phone" && !phoneChrome ? "drawer" : layoutProp;
+  // The drawer and the phone chrome are both narrow: the Sidebar opens as a modal drawer (openNav) in either.
+  const compact = layout !== "sidebar";
+  const phoneLayout = layout === "phone";
   const bannerHeight = useElementSize(banner ? bannerEl : null, "height");
   const floatingHeight = useElementSize(floatingAction ? floatingEl : null, "height");
-  const zenBreakpoint = useZen()?.breakpoint;
   const phone = zenBreakpoint === "mobile" || rootEl?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") === "mobile";
   const floatingHidden = useHideOnScroll(rootEl, Boolean(floatingAction) && phone);
   const sidebarWidth = useElementSize(sidebar && !compact ? sidebarEl : null, "width");
@@ -364,10 +391,11 @@ export function AppShell({
     closeNav: () => setNavOpen(false),
   }), [layout, sidebarCollapsed, setSidebarCollapsed, open, setNavOpen]);
 
-  const hasTopBar = Boolean(header || headerCenter || headerActions);
+  // A phone with its TopNavigation draws no top bar.
+  const hasTopBar = !phoneLayout && Boolean(header || headerCenter || headerActions);
   const stackedHeader = useStackedHeader(headerEl, header ? contentEl : null, toggleEl, headerActions ? actionsEl : null);
   const showCollapseToggle = !compact && hasTopBar && sidebarToggle && canCollapse && !ownCollapse;
-  const showMenuButton = compact && Boolean(sidebar);
+  const showMenuButton = compact && !phoneLayout && Boolean(sidebar);
   // Sidebar reads these through SidebarShellContext, so a Sidebar wrapped in an app component follows the rail too. The
   // drawer always shows the whole navigation: never the rail, and no collapse control inside a modal.
   const inlineShell = useMemo(() => ({ collapsed: canCollapse && !ownCollapse ? sidebarCollapsed : undefined, expand: canCollapse && !ownCollapse ? () => setSidebarCollapsed(false) : undefined }), [canCollapse, ownCollapse, sidebarCollapsed, setSidebarCollapsed]);
@@ -406,6 +434,7 @@ export function AppShell({
         <div className="zen-app-shell__frame">
           {sidebar && !compact ? <div ref={setSidebarEl} id={sidebarId} className="zen-app-shell__sidebar">{inlineSidebar}</div> : null}
           <div className="zen-app-shell__column">
+            {phoneLayout && topNavigation ? <div className="zen-app-shell__top-nav">{nest.slot(topNavigation)}</div> : null}
             {hasTopBar || showMenuButton ? (
               <header ref={setHeaderEl} className="zen-app-shell__header" data-stacked={stackedHeader || undefined}>
                 {/* The bar is Figma's Primitives/Dashboard/Header Type=Navigation (4122:33400): the toggle and the
@@ -420,14 +449,16 @@ export function AppShell({
               </header>
             ) : null}
             <main ref={mainRef} id={mainId} className="zen-app-shell__main" tabIndex={-1}>
-              {sections ? <div className="zen-app-shell__sections">{nest.slot(sections)}</div> : null}
+              {/* On a phone the TopNavigation holds the page title (its h1): the header rows move into it (§17). */}
+              {sections && !phoneLayout ? <div className="zen-app-shell__sections">{nest.slot(sections)}</div> : null}
               {nest.slot(children)}
             </main>
             {aside && !asideDocked && !asideElement ? <div className="zen-app-shell__aside" data-stacked="true">{aside}</div> : null}
-            {floatingAction || footer ? (
+            {floatingAction || footer || (phoneLayout && bottomNavigation) ? (
               <div className="zen-app-shell__bottom">
                 {floatingAction ? <div ref={setFloatingEl} className="zen-app-shell__floating" data-hidden={floatingHidden ? "true" : undefined}>{floatingAction}</div> : null}
                 {footer ? <div className="zen-app-shell__footer">{nest.slot(footer)}</div> : null}
+                {phoneLayout && bottomNavigation ? <div className="zen-app-shell__bottom-nav">{nest.slot(bottomNavigation)}</div> : null}
               </div>
             ) : null}
           </div>

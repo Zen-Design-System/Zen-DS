@@ -823,8 +823,24 @@ export const rules = [
       return openingTags(children ?? "", "PageHeader").some((a) => has(a, "breadcrumbs")) && "shows Breadcrumbs in the top bar and again in the PageHeader — keep the top bar's and drop the PageHeader's breadcrumbs.";
     } },
   { id: "app-shell/forced-layout", components: ["AppShell"], consumerOnly: true, severity: "warn", allow: "forced-layout", guideline: "docs/guidelines/app-shell.md",
-    summary: "An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px); layout=\"sidebar\" or \"drawer\" is for previews and tests. (App mode only.)",
-    check: ({ attrs }) => { const layout = literal(attrs, "layout"); return layout === "sidebar" || layout === "drawer" ? `forces layout="${layout}" — leave it on auto so narrow screens get the drawer and wide ones the Sidebar.` : null; } },
+    summary: "An app lets AppShell pick its layout from its own width (auto: the drawer under 1024px, the phone chrome under 744px); layout=\"sidebar\", \"drawer\" or \"phone\" is for previews and tests. (App mode only.)",
+    check: ({ attrs }) => { const layout = literal(attrs, "layout"); return layout === "sidebar" || layout === "drawer" || layout === "phone" ? `forces layout="${layout}" — leave it on auto so narrow screens get the drawer (or the phone chrome) and wide ones the Sidebar.` : null; } },
+  { id: "app-shell/page-header-in-sections", components: ["AppShell"], severity: "warn", allow: "page-header-in-content", guideline: "docs/guidelines/app-shell.md",
+    summary: "With a phone TopNavigation (topNavigation), the page's PageHeader goes in sections: in the content a phone keeps it beside the bar's title, two h1s (component-usage-rules §17).",
+    check: ({ attrs, children, src, end }) => {
+      if (inCodeSample(src, end) || !has(attrs, "topNavigation")) return null;
+      return openingTags(children ?? "", "PageHeader").length > 0 && "has a topNavigation and a PageHeader in its content — move the PageHeader into sections, which a phone leaves to the TopNavigation (one h1).";
+    } },
+  { id: "app-shell/top-navigation-title", components: ["AppShell"], severity: "warn", allow: "phone-title", guideline: "docs/guidelines/app-shell.md",
+    summary: "The phone bar (topNavigation's TopNavigation title) and the page header (sections' PageHeader title) say the same words (component-usage-rules §17).",
+    check: ({ attrs }) => {
+      const bar = expr(attrs, "topNavigation");
+      const rows = expr(attrs, "sections");
+      if (!bar || !rows) return null;
+      const barTitle = literal(openingTags(bar, "TopNavigation")[0] ?? "", "title");
+      const pageTitle = literal(openingTags(rows, "PageHeader")[0] ?? "", "title");
+      return Boolean(barTitle && pageTitle && barTitle !== pageTitle) && `titles the phone bar "${barTitle}" and the page "${pageTitle}" — use the same words on both layouts.`;
+    } },
   { id: "toast/needs-title", components: ["Toast"], severity: "error", allow: "toast-title", guideline: "docs/guidelines/toast.md",
     summary: "A toast states its outcome in a title.",
     check: ({ attrs }) => !present(attrs, "title") && "has no title." },

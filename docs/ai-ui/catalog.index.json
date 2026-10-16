@@ -49,7 +49,7 @@
       "status": "stable",
       "chrome": true,
       "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
-      "props": "sidebar? header? headerCenter? sections? headerActions? banner? aside? floatingAction? footer? canvas? sidebarCollapsed? defaultSidebarCollapsed? onSidebarCollapsedChange? sidebarToggle? navOpen? defaultNavOpen? onNavOpenChange? navLabel? mainId? layout? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "sidebar? header? headerCenter? sections? headerActions? banner? aside? floatingAction? footer? topNavigation? bottomNavigation? canvas? sidebarCollapsed? defaultSidebarCollapsed? onSidebarCollapsedChange? sidebarToggle? navOpen? defaultNavOpen? onNavOpenChange? navLabel? mainId? layout? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "AppShellAccount",

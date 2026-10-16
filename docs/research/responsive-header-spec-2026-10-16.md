@@ -138,7 +138,15 @@ Figma push draws Top-Navigation/Mobile with the matching booleans.
   `zen-responsive-screens`), P1 (fragment props, `hidden` / `hiddenSlots` in `tools/studio/visibility.mjs`, Layers eye,
   ⇧⌘H, new slots, Figma names) and, asked mid-session, New page › Empty page. A click on the top bar's empty area already
   selected the AppShell, so P1.3's last point needed no change. E2E B-38…B-41.
-- **Next:** P3 + P4 on a follow-up branch.
+- **Done 2026-10-16** (branch `zen/feat/responsive-header-p3p4-20261016`): P3 — AppShell `topNavigation` /
+  `bottomNavigation` (layout `phone` under 744px), tests, story, example AppShell › Desktop and phone, harness
+  `app-shell/page-header-in-sections` and `app-shell/top-navigation-title` (the third candidate, `app-shell/mobile-header`
+  on every AppShell without a phone bar, was left out: it would warn on every desktop-only page); P4 —
+  `tools/studio/responsive-header.mjs` (derivePhoneChrome, planPhoneSync), the sync in `builder/localApi.ts` (each edit,
+  and as a page opens), Screen › Follows the desktop header / Reset to desktop, the export's AppShell with its phone
+  parts; E2E B-42, B-43. Studio search becomes a trailing Search action (a builder page cannot write the
+  `searchAction` handler a Search control bar needs).
+- **Open (BACKLOG P2):** the code templates take the phone chrome (their PageHeader moves into `sections`).
 
 ## 4. The user's decisions (2026-10-16)
 

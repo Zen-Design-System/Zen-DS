@@ -243,6 +243,48 @@ async function seededPage(ctx, text, has) {
   return { page, id, name, text: async () => (await pageText(page, id)) ?? "" };
 }
 
+
+/** A page whose desktop and phone Screens share a master layout and have no phone parts yet (user, 2026-10-16: the
+ *  phone header drawn from the desktop's, component-usage-rules §17). */
+const phoneHeaderPage = (title) => {
+  const shell = (indent) => [
+    `${indent}<AppShell`,
+    `${indent}  sidebar={<Sidebar aria-label="Main" selectedId="invoices">`,
+    `${indent}    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
+    `${indent}    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
+    `${indent}    <SidebarMenuItem id="invoices" label="Invoices" icon="icon-receipt-line" />`,
+    `${indent}  </Sidebar>}`,
+    `${indent}  headerActions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={2} /><AppShellAccount name="Khoa Dang" /></>}`,
+    `${indent}  sections={<PageHeader title="Invoices" actions={<Button level="primary">New invoice</Button>} />}`,
+    `${indent}>`,
+    `${indent}  <Stack gap="md" padding="xl">`,
+    `${indent}    <Text>INV-1024</Text>`,
+    `${indent}  </Stack>`,
+    `${indent}</AppShell>`,
+  ].join("\n");
+  return `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, AppShellAction, Button, PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">
+${shell("        ")}
+      </Screen>
+      <Screen id="screen-2" title="Phone" device="phone">
+${shell("        ")}
+      </Screen>
+    </Board>
+  );
+}
+`;
+};
+/** One Screen's code in the page text. */
+const screenCode = (text, id) => { const at = text.indexOf(`<Screen id="${id}"`); return at < 0 ? "" : text.slice(at, text.indexOf("</Screen>", at)); };
+
 export const rows = [
   {
     id: "B-01", feature: "New page: a blank phone page opens on the canvas, listed under My pages", wp: "GĐ2 M1",
@@ -1129,8 +1171,61 @@ export const rows = [
       await until(async () => (await desktop.locator(".zen-app-shell__header-actions").count()) === 0, { message: "the actions not drawn" });
       await toggle.click();
       await until(async () => !/hiddenSlots/.test(await text()) && (await desktop.locator(".zen-app-shell__header-actions [data-zen-name]").count()) === 3, { message: "the same three layers back" });
-      if (((await text()).match(/<AppShellAccount\b/g) ?? []).length !== 1) throw new Error("switching on added a starting account");
+      // In the AppShell's actions (the linked phone bar keeps its own copy of the account, component-usage-rules §17).
+      const actions = async () => (await text()).match(/headerActions=\{<>[^]*?<\/>\}/)?.[0] ?? "";
+      if (((await actions()).match(/<AppShellAccount\b/g) ?? []).length !== 1) throw new Error("switching on added a starting account");
       return "off → hiddenSlots, layers kept; on → the same three";
+    },
+  },
+  {
+    id: "B-42", feature: "A Screen on its master layout gets its phone header drawn from the desktop's as the page opens (component-usage-rules §17): the PageHeader title as the large title, the account in leading, New invoice as +, Notifications with its dot; the Sidebar's rows as the Bottom Navigation; both linked", wp: "responsive header 2026-10-16",
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, phoneHeaderPage, /<Screen id="screen-2"/);
+      await until(async () => (screenCode(await text(), "screen-1").match(/phoneLinked=/g) ?? []).length === 1 && /phoneLinked=\{\["topNavigation", ?"bottomNavigation"\]\}/.test(screenCode(await text(), "screen-2")), { message: "both Screens' phone parts linked" }).catch(async (error) => { throw new Error(`${error.message} (${screenCode(await text(), "screen-2").slice(0, 300).replace(/\s+/g, " ")})`); });
+      const code = screenCode(await text(), "screen-2");
+      if (!/topNavigation=\{<TopNavigation type="alt" title="Invoices" largeTitle="Invoices" leading=\{<AppShellAccount name="Khoa Dang" \/>\}/.test(code)) throw new Error(`the bar is not the desktop's: ${code.slice(0, 400).replace(/\s+/g, " ")}`);
+      if (!/label: "New invoice"/.test(code) || !/label: "Notifications", dot: true/.test(code)) throw new Error("the + action or the notifications dot is missing");
+      if (!/bottomNavigation=\{<BottomNavigation value="invoices" showLabels items=\{\[\{ id: "home"[^\]]*\{ id: "projects"[^\]]*\{ id: "invoices"/.test(code)) throw new Error("the Bottom Navigation is not the Sidebar's rows");
+      const phone = page.locator('[data-studio-frame="screen:screen-2"]');
+      await until(async () => (await phone.locator(".zen-top-nav").count()) === 1 && /Invoices/.test(await phone.locator(".zen-top-nav").innerText()) && (await phone.locator(".zen-bottom-nav, nav[aria-label]").count()) > 0, { message: "the phone draws its bar and its Bottom Navigation" });
+      const desktop = page.locator('[data-studio-frame="screen:screen-1"]');
+      if (await desktop.locator(".zen-top-nav").count()) throw new Error("the desktop Screen draws the phone bar");
+      return "phone parts drawn from the desktop header, linked; the phone shows them, the desktop does not";
+    },
+  },
+  {
+    id: "B-43", feature: "Linked phone parts follow the desktop: a new PageHeader title redraws the bar; the bar edited on the phone becomes its own (off the linked list, the desktop leaves it alone); Screen › Reset to desktop links it again", wp: "responsive header 2026-10-16",
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, phoneHeaderPage, /<Screen id="screen-2"/);
+      await until(async () => /phoneLinked=/.test(screenCode(await text(), "screen-2")), { message: "the phone parts linked" });
+      // The desktop's title: the desktop Screen's PageHeader (a phone draws none: its bar holds the title).
+      await focusScreen(page);
+      if (await page.locator(`[data-studio-frame="screen:screen-2"] [data-zen-name="PageHeader"]`).count()) throw new Error("the phone draws the PageHeader beside its bar");
+      await clickNamed(page, id, "PageHeader");
+      await until(async () => (await selectedName(page)) === "PageHeader", { message: "the PageHeader selected" });
+      const title = inspectorRow(page, "title").locator("input, textarea").first();
+      await title.waitFor({ state: "visible", timeout: 5000 }).catch(async () => { throw new Error(`no title field for the PageHeader (rows: ${(await page.locator("#studio-right [data-prop]").evaluateAll((els) => els.map((el) => el.getAttribute("data-prop")))).join(", ")})`); });
+      await title.fill("Billing");
+      await title.press("Enter");
+      const barOf = async (screen) => screenCode(await text(), screen).match(/topNavigation=\{<TopNavigation[^]*?\/>\}/)?.[0] ?? "";
+      await until(async () => /title="Billing" largeTitle="Billing"/.test(await barOf("screen-1")), { message: "the linked bar follows the desktop title" }).catch(async (error) => { throw new Error(`${error.message} (${(await barOf("screen-1")).slice(0, 200)})`); });
+      const phoneBar = () => barOf("screen-2");
+      // The bar edited on the phone (its Layers row).
+      await showLeftTab(page, "layers");
+      const navRow = page.locator('.studio-layers__row[data-kind="node"]').filter({ hasText: /^TopNavigation/ }).first();
+      await navRow.waitFor({ state: "visible", timeout: 5000 }).catch(async () => { throw new Error(`no TopNavigation row in Layers (rows: ${(await page.locator(".studio-layers__row").allInnerTexts()).slice(0, 30).join(" · ").replace(/\s+/g, " ")})`); });
+      await navRow.click();
+      await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      // Its type set on the phone (compact): the person's own bar from now on.
+      await pickOption(page, "type", /^compact$/).catch(async (error) => { throw new Error(`Type › Compact: ${error.message.split("\n")[0]} (row: ${(await inspectorRow(page, "type").innerText().catch(() => "?")).replace(/\s+/g, " ").slice(0, 120)}; options: ${(await page.getByRole("option").allInnerTexts().catch(() => [])).join(" · ").slice(0, 200)})`); });
+      await until(async () => /type="compact"/.test(await phoneBar()) && /phoneLinked=\{\["bottomNavigation"\]\}/.test(screenCode(await text(), "screen-2")), { message: "the bar is the person's own (off the linked list)" }).catch(async (error) => { throw new Error(`${error.message} (${screenCode(await text(), "screen-2").match(/phoneLinked=\{[^}]*\}/)?.[0]}; bar ${(await phoneBar()).slice(0, 80)})`); });
+      // Reset to desktop (Screen section).
+      await page.locator('[data-layer-id="frame:screen:screen-2"]').click();
+      const reset = page.locator("#studio-right").getByRole("button", { name: "Reset to desktop" }).first();
+      await reset.waitFor({ state: "visible", timeout: 5000 }).catch(() => { throw new Error("no Reset to desktop in the Screen section"); });
+      await reset.click();
+      await until(async () => /title="Invoices" largeTitle="Invoices"/.test(await phoneBar()) && /phoneLinked=\{\[[^\]]*"topNavigation"/.test(screenCode(await text(), "screen-2")), { message: "Reset to desktop: the bar follows its desktop again" });
+      return "desktop title → its bar; the phone's bar set to Compact → its own; Reset to desktop → linked again";
     },
   },
 ];

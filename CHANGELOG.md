@@ -23,6 +23,18 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- AppShell on phones (2026-10-16, user: "làm tiếp P3 + P4"): new props `topNavigation` and `bottomNavigation`; under
+  744px the shell draws them instead of its top bar and `sections` (the Sidebar still opens as the drawer through
+  `useAppShell().openNav()`); `layout` takes `"phone"`, the context's layout too. Example AppShell › Desktop and phone.
+  Harness `app-shell/page-header-in-sections` (a PageHeader in the content beside a phone bar: two h1s) and
+  `app-shell/top-navigation-title` (the bar and the page header say the same words).
+- Zen Studio draws a Screen's phone header from its desktop AppShell (component-usage-rules §17): the PageHeader title
+  as the large title (or Back and the bar title on a child screen), the account in leading, Search, the Primary as +,
+  notifications, then More (three places); the Sidebar's rows as the Bottom Navigation (4 + More past five). The parts
+  stay linked to the desktop (`phoneLinked`): a desktop edit redraws them in the same ⌘Z, an edit on the phone makes
+  that part your own, Screen › Reset to desktop links it again. Pages link as they open (new, template and older pages
+  whose phone parts were still the starting ones). The export writes one AppShell with the phone parts as its
+  `topNavigation` / `bottomNavigation`.
 - MetricCard comparison (2026-10-16, user): the columns' figures are Heading/1 (were Heading/4), in code and in the
   Figma Metric-Card Type=Comparison; the columns stack at a width that follows the Heading/1 size, so three figures never
   overflow side by side in any typography. The Widgets page's KPI card is Title-Highlight, Large, like the widgets
