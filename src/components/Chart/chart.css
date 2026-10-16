@@ -3,12 +3,14 @@
 
 /* Lanes: the Tooltip lane above the grid and the X-label lane below it. Line and stack charts follow Figma's Trend grid
    (.Chart/Line-Chart/Trend and the Stack-Chart grid, 14 equal rows with the gridlines on rows 2 … 12, the user's
-   2026-10-13 edit), so each lane is a seventh of the plot and the Y labels sit in a 32px column, left-aligned, with no
-   gap; the bar chart keeps Figma Bar-Chart's 36px / 28px lanes and its right-aligned labels.
+   2026-10-13 edit), so each lane is a seventh of the chart's own height (at most 40px, a 280px chart's) and the Y
+   labels sit in a 32px column, left-aligned, with no gap; the bar chart keeps Figma Bar-Chart's 36px / 28px lanes and
+   its right-aligned labels. A taller chart (a stretched card's grow, a larger height) gives the extra to the plot: the X
+   labels stay pinned under the baseline (the user 2026-10-16: "ghim nhãn dưới baseline").
    zen-allow-raw-spacing: plot lanes and Figma's fixed 32px axis track, not spacing between elements. */
 .zen-chart { --zen-chart-lane-top: 36px; --zen-chart-lane-bottom: 28px; }
 /* zen-allow-raw-spacing: Figma's FIXED 32 axis column of the Trend grid. */
-.zen-chart:is([data-kind="line"], [data-kind="stack"]) { --zen-chart-lane-top: calc(var(--zen-chart-height, 280px) / 7); --zen-chart-lane-bottom: calc(var(--zen-chart-height, 280px) / 7); grid-template-columns: 32px minmax(0, 1fr); column-gap: 0; }
+.zen-chart:is([data-kind="line"], [data-kind="stack"]) { --zen-chart-lane-top: min(calc(var(--zen-chart-base, 280px) / 7), 40px); --zen-chart-lane-bottom: min(calc(var(--zen-chart-base, 280px) / 7), 40px); grid-template-columns: 32px minmax(0, 1fr); column-gap: 0; }
 .zen-chart:is([data-kind="line"], [data-kind="stack"]) .zen-chart__y { min-width: 0; text-align: left; }
 .zen-chart:is([data-kind="line"], [data-kind="stack"]) .zen-chart__y > span { right: auto; left: 0; }
 
@@ -210,8 +212,13 @@
    cannot grow more: the chart sits in the middle of what is left. */
 .zen-chart-card > .zen-card__content { flex: 1 1 auto; }
 .zen-chart-card__body > :last-child:not(.zen-chart-card__header) { margin-block: auto; }
-/* Beside its legend (start / end, total start) a ring keeps its size: a wider ring would push the legend under it. */
-.zen-chart-round:is([data-legend="start"], [data-legend="end"], [data-layout="total-start"]):not([data-wrapped="true"]) { --zen-chart-grow: 0px; }
+/* Beside its legend (start / end, total start) a ring grows with the card too (the user 2026-10-16: "Chart nên scale
+   ra"), up to the width the row leaves it: the legend keeps its 100px basis (the total column 160px) and the gap, so a
+   grown ring never pushes it under. Below its own size it wraps as before. Once the width stops it, what is left of the
+   card's height goes above the chart, so it ends at the card's foot with its row (audit card-gap). */
+.zen-chart-card__body > .zen-chart-round:is([data-legend="start"], [data-legend="end"], [data-layout="total-start"]):not([data-wrapped="true"]):last-child { margin-block: auto 0; }
+.zen-chart-round:is([data-legend="start"], [data-legend="end"]):not([data-wrapped="true"]) > .zen-chart--round { max-width: max(calc(var(--zen-chart-size, 200px) - var(--zen-chart-grow, 0px)), calc(100% - 100px - var(--zen-spacing-gap-large, 24px))); }
+.zen-chart-round[data-layout="total-start"]:not([data-wrapped="true"]) > .zen-chart--round { max-width: max(calc(var(--zen-chart-size, 200px) - var(--zen-chart-grow, 0px)), calc(100% - 160px - var(--zen-spacing-gap-large, 24px))); }
 .zen-chart-card__header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart-card__titlebar { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart-card__icon { display: inline-flex; flex: none; color: var(--zen-color-content-neutral-strongest, #111); }
