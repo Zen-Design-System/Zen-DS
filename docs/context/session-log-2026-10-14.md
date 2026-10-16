@@ -612,3 +612,11 @@ open-source libraries. Tier L (every component), done in a worktree so other ses
   labels (phone button / Tab hint). `SlotChips interactive={!showForm}`: heard values stay as plain chips, empty ones
   go, once the form is shown (the gate's dead-click warning). README: a bullet under "Composing while typing". Gate
   `--only=ai-ui --isolated` green, no warnings; sheets reviewed.
+- 2026-10-16, verification and state (the user: "làm tiếp"): the free path checked against a route-faked model
+  (`/ai-ui/status` enabled, `/ai-ui/compose` answering a small spec for any prompt): "Draft a client update for
+  Lumen Bank" reaches `/ai-ui/compose` as it is and the card shows the model's field and button, the bar's Tag the
+  model's name (`.qa/preview/free-model.mjs`). PR #74 turned out merged by the user on 2026-10-15 16:48Z (head
+  8cad3db); the seven commits since (cea2b95 … f23a27f) sit on the branch with no PR, 39 behind `main`, no
+  conflicts (`git merge-tree`). They reached `main` through PR #83 (the supervisor's, merged 2026-10-16, f420bb8: main
+  merged in, the "On a phone" description combined with #76's edge case, the bar label marked zen-allow-visual-heading).
+  PR #87 (the user: "mở PR đi") then carried only these notes, corrected to say so.

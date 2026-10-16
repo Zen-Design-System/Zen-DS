@@ -36,11 +36,14 @@ Last updated: 2026-10-15.
   `get_catalog` + `check_spec`; `npm run ai-ui:eval` measures the loop on 20 prompts (valid-spec rate, wrong UI, time
   to first UI, the classifier on partial input; `--dry` and `--classifier-only` need no key; the first live run needs
   `ANTHROPIC_API_KEY`). PR #64 merged 2026-10-15; the follow-ups (`anthropic-workspace-id` for multi-workspace
-  keys, a visible reason when the model call fails) are PR #74 on the same branch, with the live-composer UX study
+  keys, a visible reason when the model call fails) were PR #74, merged by the user 2026-10-15 16:48Z. The commits
+  since then (cea2b95 … f23a27f) are in `main` through PR #83 (merged 2026-10-16, f420bb8): the live-composer UX study
   (`docs/research/ai-ui-live-composer-ux-2026-10-15.md`: ShapeShift reference, plan P1 … P4) and its P1 steps on the
   page: composed forms on a flat Card, "Composed while typing" as the composer card (type row, slot chips, form once
   sure, key hints + primary action), and the Zen AI screen as the product (bar, Liquid Glass field the thread scrolls
-  under, bubbles fading in, the tinted stage, "What Zen AI sees" panel). P2 … P4 wait for Figma (tentative look,
+  under, bubbles fading in, "What Zen AI sees" panel, a frosted sphere while the AI works), the composer on a phone
+  (card above the field), real-time listening and the free intent (any sentence reaches the composer; the model when
+  configured). P2 … P4 wait for Figma (tentative look,
   dashed add-chip, Kbd, AI-glow gradient tokens, the Composer-Preview pattern) and the user's three open questions in
   the study. Still open: where the classifier runs in the product (the kit's default is on-device keywords, the model
   only once an intent is likely).
