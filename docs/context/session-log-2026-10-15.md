@@ -92,6 +92,23 @@ the Studio mode; Emphasis Light.
   person's photo, else their initial (2XSmall: one letter) on a solid hue picked from their id (user: "dùng màu"); the
   person icon only with nobody signed in. Checked with a real draft, then discarded.
 
+## Component Size spacing → Spacing/Gap and Spacing/Padding (tier XS, user: "đổi dm-# thành các biến gap và padding tương ứng, trừ raw … update lại cho studio luôn")
+
+- Figma (9nZv4uW2LT21yuHabMTCh1, Component Size): every Gap / Padding variable (by its last name segment; Badge
+  `Customize` counts as padding) that aliased `dm-N` now aliases the `Spacing/Gap|Padding` step of the same px: 175 mode
+  values on 94 variables, resolved values read back equal. Raw values (0, 5, 6, 10) and sizes stay. Left on `dm-20`:
+  `Navigation-Mobile/Top/Action-Icon-Gap` (no Gap 20 step; BACKLOG P3). Segmented Medium had already been aliased in
+  Figma, its Compact H/V padding to Padding/XSmall = 8 (repo had raw 6).
+- Repo: `component-size.json` Compact/Comfortable from the live read (179 alias swaps, 2 value changes: Segmented Medium
+  Compact padding 6 → 8); the Studio mode follows the same rule (84 swaps; its raw values and dm-20 stay). tokens:build
+  (web + native), tokens:check ✓, `segmented.css` fallbacks 8px. Contract Primitives/Segmented/Item + Segmented
+  re-captured (mcp-capture, 1 chunk; __DIGEST equals live d23b5e58 / 16d1df66), lock rebuilt; run-all ✓.
+- Gate (`--files`, 35 pages): PASS; one new ⚠ fixed at its owner: card@390 Settings section, the cards' 16px inset
+  nested in the frame's 12px corner (card.css's 20px radius had never applied over `.pe-shell`): on a phone the
+  example's frame is square, as screen examples are (`card.css`); `--only=card` PASS, 0 warnings. Contact sheets
+  segmented-390 (Medium segments 8px) and card-390 checked. Unsaved Studio draft of chart.tsx is another session's.
+
+
 ## Studio Screen = master layout (tier M, user: "một số [template] làm sai thành bị duplicate 2 sidebar", "trang Dashboard tôi vừa tạo từ template bị lỗi"; chose "Template dùng khung của Screen", "Khung Screen = Master-Layout đầy đủ")
 
 - Cause: the Screen's own app-frame props (`sidebar`, `header`, drawn by builder/proto/runtime.tsx) sat beside a
@@ -213,6 +230,52 @@ the Studio mode; Emphasis Light.
   sheet tooltip-390 "A tip on a phone": the closable tip was cut at the phone screen's left edge, the same in the
   2026-10-14 sheet (pre-existing). Fixed at the owner: an explicit top/bottom Tooltip measures itself against
   visibleBounds (now exported from useAnchoredPosition) and shifts by `--zen-tooltip-shift`, 4px in.
+## Studio Prototype usability (tier M, user: "Nâng cấp Usability của tính năng Prototype của Studio")
+
+- Walk first (private E2E-style server on the worktree, Playwright): a Button → Screen 2 took select + tab + 2 picks;
+  no drag to connect, arrows not clickable, the tab read `onClick`, Flow rows inert, a tab bar's tabs could not lead to
+  different screens (one `onValueChange` for the bar; a SidebarMenuItem "takes no clicks"), Play gave no hint where to
+  press and named the screen twice.
+- Branch `zen/feat/prototype-usability-20261015`, worktree `../Zen-DS-proto` (the shared checkout had the Canvas session's
+  frame-placement work in progress: frames stacked mid-edit). `builder/proto/`: `protoModel.ts` (pure: frames, links,
+  trigger words, choice items, per-item code; selftest 18 in studio:selftest), `protoTriggers.ts` (API triggers,
+  `protoSubject`: an item layer edits its control), `protoEdit.ts` (one edit per action), `protoDom.ts` (item elements
+  by label, layer elements through React — BottomNavigation keeps the mark off its DOM — selected-item store).
+- Canvas (`ProtoLinks.tsx`): a screen-space layer portalled into the viewport (z 15: above Select, below frame chrome);
+  ⊕ drag → Navigate to / Open overlay; arrow click selects its layer; selected arrows' ends drag to retarget, off every
+  frame to remove; a press on ⊕ opens the action list; Esc cancels. Items in a row (tabs) get ⊕ inside by their right
+  edge and arrows from their top.
+- Per item: `proto.navigate|open({ item: target })`; `runtime.tsx protoHandler` picks by the value or the item's id
+  (`onItemClick(item)`); `compile.mjs` writes `choiceKey` + a typed map (compile selftest "by item", tsc-checked);
+  handoff.md lists each item. Play hotspots (`Player.tsx`): what leads somewhere (a tab bar's linked tabs only), the
+  control's own corners, fade = Motion/Duration/Slow × 3.
+- E2E: new group `prototype` PT-01…PT-05 (⊕, arrow click, end drag/remove, ⌘Z; tab bar by item; hints; Flow; Sidebar
+  row); B-17 picks the overlay by its title. Not merged with the Canvas session's `onFramesMoved` (not on main yet):
+  ProtoLinks re-measures on frame style/size changes; subscribe to `onFramesMoved` once it lands.
+
+## Studio Prototype, round 2 (tier M, user approved the P2 list: "ok")
+
+- Branch brought up to origin/main b20fe50 (#68 free frames, #69 Present/Play viewport): stash, fast-forward, pop;
+  conflicts in Player.tsx (viewport + hotspots kept), package.json, docs (both sides kept). ProtoLinks now follows
+  `onFramesMoved`; Overlay frames are named by what they show (render/frames.ts via protoModel `overlayTitleOf`).
+- Options as the action's second argument (`proto.navigate("x", { animation, direction, duration, delay })`; close / back
+  take them first); defaults (Dissolve, left, base) are not written. `protoModel` ANIMATIONS / optionsOf /
+  protoActionCode (protoEdit no longer goes through the engine's protoCode). Play (`Player.tsx`, `playMotion.ts`): the
+  frame going away stays drawn until its motion ends (onAnimationEnd, 700 ms fallback); distances × Motion/Movement,
+  durations Motion/Duration/*; Back runs the popped step backwards.
+- After delay: Screen `onDelay` (stripped in renderPage; Play runs it per visit). While hovering: `whileHovering` on a
+  layer that takes DOM props, Open overlay only; renderPage turns it into pointer enter / leave only where the actions
+  carry `hover` (Play), so the canvas never opens overlays under the pointer; a hover overlay lets the pointer through.
+- Overlay settings on the Overlay element (`position`, `closeOnOutside`, `background`), for layers that do not open
+  themselves (`placesItself` = an `open` prop; compile-api-build writes OPENS for the export). Canvas and Play place the
+  layer the same way (`.studio-builder-overlay__place`, `.studio-player__overlay`). Add overlay is a menu (Dialog ·
+  Bottom sheet · Side panel · Card; dialect `frameCode` `holds`); an empty Overlay is a drop target (drag.ts) and a
+  selected Overlay frame an insert target (target.ts; refuses when it already shows a layer).
+- Export: After delay → useEffect per screen, While hovering → onPointerEnter / onPointerLeave, a custom overlay →
+  `{overlay === "x" && (…)}` with its place in a comment and a TODO line; handoff lists animation and delay.
+- Tests: protoModel selftest 26, compile selftest 50 (tsc on the outputs), E2E PT-06…PT-10 (Push options + backwards,
+  After delay 300 ms, While hovering, Card overlay top right + dim + outside press, emptied Overlay takes a Card);
+  B-14/B-17, PT-01/PT-04 pick "Dialog" from Add overlay.
 
 ## Clip content: overlays stay inside their frame (tier S, user: 720 → "Có", Popover tràn ra ngoài frame → "Không")
 
@@ -225,3 +288,67 @@ the Studio mode; Emphasis Light.
   containing block, since a fixed layer is clipped only from there up (identity on a normal page).
 - Checked (Playwright, 50%): Menu inside its frame; date-range popover and Assign people whole inside a grown frame;
   icon tooltip unchanged; 27 pages scanned at rest: no visible content cut by the clip, no example frame grown at rest.
+
+## Fix: Global Colors empty, Component Theme Segmented overflow (tier S; user: "Bug", "Dùng select input. Nên viết harness về rule item tối đa cho segmented")
+
+- Cause: commit 4771039 (Segmented sync, 2026-10-14) pasted its note into `collections[0].slug` of
+  `tokens/source/figma.collections.json` ("global-colors Live file read …"). The page then found no collection tokens
+  (empty state) and, no longer seeing a scheme collection, showed the modes Zen / Zen-High-Contrast. Slug restored; the
+  note appended to `source.synchronizationNote` where it belonged. No generated file carried the bad slug.
+- TokenTableView: more than 5 view options → SelectField (`.token-table-view__modes`, 3 columns, full width < 760px);
+  2–5 stay a Segmented. Only Component Theme (9 modes) changes.
+- Harness: `segmented/option-count` (static, 2–5) only counts literal option arrays. New audit kind `counts` (error) in
+  `tools/platform-audit/audit.mjs` counts rendered `.zen-segmented` items (Don't visuals skipped). Neither the audit nor
+  the gate rendered a token table before (TokenTableView mapped to `design-tokens`, the overview): both now list
+  `design-tokens&collection=<slug>` pages (the id carries the query, so every `?page=${id}` tool opens it), and
+  `tools/qa/lib.mjs` maps TokenTableView / TokenCollectionPage to the 11 collection pages.
+- Proof: before the fix the audit failed `design-tokens&collection=component-colors-theme@1512: Segmented "Mode" has 9
+  item(s)`; after, 22 runs (11 pages × 1512/390, --quality) clean; screenshots: Global Colors 480 rows per scheme,
+  Component Theme Select picks Neutral - S5.
+- Docs: guideline line (segmented do), `docs/qa/platform-audit.md` kind table, CHANGELOG Fixed.
+- Gate: PASS (the 11 collection pages in scope; segmented and sidebar re-run with --isolated after the shared dev server
+  restarted mid-run, its only errors).
+
+## Studio Layers: Refresh button removed (tier S; user: "Tại sao cần tính năng refresh layer?" → "ok theo đề xuất")
+
+- The button dates from GĐ1 (2026-10-03), when the tree was built on demand. The panel already rebuilt on page change,
+  source updates (edits, undo/redo, HMR), DOM childList changes (700 ms debounce) and when shown again; the only gap was a
+  text-only change (a text part is named by its words, `partRowOf`), which `childList` does not see.
+- `LayersPanel.tsx`: IconButton "Refresh layers" and its import removed; the MutationObserver also watches
+  `characterData`. No E2E, selftest or doc referenced the button.
+- Proof (isolated server, Playwright): Button page, Button / Main › Button › its label part; setting the three "Button"
+  text nodes of the playground frame to a probe string renamed the row in ~840 ms, 9 of 9 runs in a row (the first run on
+  a cold server missed it once, not reproduced). The bar now holds only "Find a layer" at full width.
+- Gate: PASS --isolated: Studio self-tests, TypeScript, Studio E2E 270 works · 0 broken (815 s). An earlier run hit the
+  25 min E2E cap under load 10 with no row failing; the 8 groups that use Layers alone: 176 works · 0 broken.
+
+## Research: Studio MCP for AI clients on the live canvas (research only, user: "Nghiên cứu trước tính năng kết nối mcp vào studio … Nghiên cứu chứ chưa làm ngay")
+
+- No code changed. Write-up: `docs/research/studio-mcp-canvas-2026-10-15.md` (updates A4 of
+  `studio-agent-spec-2026-10-05.md`). Finding: AI calls must run in the open Studio tab (builder pages, their ids and undo
+  live in the browser; the dev server's `.zen-studio/pages/` mirror is only synced on connect or "Sync with the folder").
+  Proposed: MCP Streamable HTTP in the Vite plugin, relayed to the tab over Vite's HMR WebSocket (`server.ws` ↔
+  `import.meta.hot`), executed through `api.ts applyEdit` (one undo step per AI call). Milestones M0–M3 and 5 questions
+  wait for the user's approval.
+- User's answers (same day, §11 of the write-up): Claude Code first; dev server on this machine only (deploy = M3);
+  M0–M1 builder pages only; AI edits directly (Stop + ⌘Z, no per-call approval); the embedded Zen Agent is still wanted,
+  after M1, on the same MCP. M0 not started: waits for the user's go.
+- M0 built (user: "có"), branch `zen/feat/studio-mcp-m0-20261015`, worktree `../Zen-DS-mcp` (node_modules symlinked per
+  entry, own server on 5186 via launch config `zen-mcp-worktree-5186`). Server `tools/studio/mcp/` (SDK v1 stateless JSON,
+  guards: loopback Host, no Origin, Bearer token from `npm run studio:mcp`), relay over Vite's HMR socket, tab runtime
+  `src/platform/studio/mcp/` (writes through `applyEdit`), AI chip with Stop/Resume; `htmlExport.tsx` picture code split
+  into `drawFrame` + `framePicture` (handoff unchanged). Checks: mcp.selftest 13/13, studio:selftest, tsc, a live
+  Playwright + SDK-client run 14/14 (selection, update, one ⌘Z step, screenshot, Stop/Resume, closed tab). Not yet tried
+  with the user's own Claude Code (needs `claude mcp add`).
+- Gate: `npm run qa -- --isolated --files=<the 14 edited files>` PASS (static gates, Studio self-tests, tsc, Studio E2E
+  270 works · 0 broken).
+
+## Studio placement tool stuck on the toolbar (tier S, user screenshot: "Lỗi kẹt tool … chỉ đổi được bằng phím tắt")
+
+- Cause: `edit/place.ts` (Stack · Text · Image) caught every press inside the canvas box (capture on window, stopped,
+  click swallowed). Since the UI3 floating shell the toolbar, side panels and their menus sit inside that box, so a
+  click on another tool never reached it. The Frame tool (`builder/frameMove.ts`) already skipped `.studio-chrome`.
+- Fix: `onCanvas(event)` = inside the box and the target not in `.studio-chrome` / `.studio-chrome-portal`; used for
+  move, down and up (hovering the chrome hides the insertion line).
+- Probe (Playwright on :5173, toolbar clicks only): Image/Stack/Text → click Move, Hand, Interact, Image: 11/11 switch;
+  hover on the canvas still shows the placement label; 0 page errors.

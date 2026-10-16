@@ -13,6 +13,8 @@
  *   surfaces    a Surface/Default box whose backdrop is a Canvas/Alt page (the same colour) without a closed border (§11), or a
  *               container drop shadow (Shadow/Bottom|Top/Level-N: Card, Sidebar, Box effectStyle) cast on a Canvas/Alt page
  *   elevation   (warn) more than one Shadow/Bottom|Top/Level-N elevation level on one screen (an example region; each phone frame)
+ *   counts      a Segmented with fewer than 2 or more than 5 items as rendered: segmented/option-count counts only options
+ *               written out in the JSX, so options computed at run time (token modes, mapped data) reach this check
  *   sizes       a fixed-size visual (Avatar, Dock Icon, Icon) rendered off its declared size or out of square — stretched by a layout rule
  *   edges       text closer than 8px (sides) / 4px (top, bottom) to the inner edge of the box that visibly holds it — missing padding
  *   outline     heading outline per example (Typography › Content hierarchy): more than one h1 on a page (each phone frame is
@@ -45,6 +47,9 @@
  *   fit         (--quality) text wider than its own box with no ellipsis and no scroll: it runs into its neighbours or is
  *               cut off, even inside an `overflow: hidden` ancestor (which `overflow` skips). With --density also at
  *               Comfortable ("at Comfortable: …")
+ *   card-gap    (--quality) a MetricCard / ChartCard stretched by its row that stops ≥ 12px above its foot beside one that
+ *               fills it (widgetLayout)
+ *   legend-column (--quality) a chart legend of ≥ 3 items one per line under its chart, with room for a row (widgetLayout)
  * These six (and elevation, contrast, targets, outline-*; never surfaces) are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
  * do not fail the run; `--baseline-update` rewrites the entries of the pages and viewports in this run, and
  * `--baseline-update=fit` (a comma list of kinds) only those kinds — seed a new check without accepting the other kinds'
@@ -55,13 +60,14 @@
  * Usage:
  *   node tools/platform-audit/audit.mjs [--url=http://localhost:5173] [--pages=button,chip] [--viewports=1512,390]
  *                                       [--dark] [--no-playground] [--smoke] [--quality] [--density] [--out=report.json]
+ *                                       (the gate runs 1512,390,320; at 320 every kind is baselined, see BASELINE_ALL_KINDS)
  *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
  * Exit code 1 when any error-level finding exists. See docs/qa/platform-audit.md and docs/qa/build-qa-process.md.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { qualityChecks, densitySnapshot, textFit } from "./quality-checks.mjs";
+import { qualityChecks, densitySnapshot, textFit, widgetLayout } from "./quality-checks.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const require = createRequire(path.join(root, "package.json"));
@@ -91,10 +97,20 @@ const BASELINE_UPDATE = arg("baseline-update", false); // true, or a comma list 
 // them off. --outline is still accepted.
 const OUTLINE = !arg("no-outline", false);
 const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-siblings"];
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
+// 320 joined the gate on 2026-10-16 (the user) with debt on 40 pages (docs section grids that do not shrink, ListItem
+// captions with no ellipsis, a few examples): there every kind is compared with the baseline, so only new findings fail
+// while the recorded ones wait in BACKLOG. 1512 and 390 keep the rule below.
+const BASELINE_ALL_KINDS = new Set([320]);
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
+
+/** One page per token collection (Design Tokens › <collection>): the id carries the query, so `?page=${id}` opens it. */
+function collectionPages() {
+  const source = JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma.collections.json"), "utf8"));
+  return source.collections.map((collection) => `design-tokens&collection=${collection.slug}`);
+}
 
 /** Every page id the platform routes to (component nav + app-layer pages + foundations). */
 function allPages() {
@@ -104,7 +120,7 @@ function allPages() {
   // App-layer pages (Layout, Text, Form, Templates…) are registered from src/platform/appLayer, not componentNavigation.
   const appLayer = fs.readFileSync(path.join(root, "src/platform/appLayer/types.ts"), "utf8").match(/appLayerPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? "";
   const layerIds = [...appLayer.matchAll(/"([\w-]+)"/g)].map((m) => m[1]);
-  return ["overviews", "installation", "design-tokens", "typography", "iconography", ...[...new Set([...ids, ...layerIds])].sort()];
+  return ["overviews", "installation", "design-tokens", ...collectionPages(), "typography", "iconography", ...[...new Set([...ids, ...layerIds])].sort()];
 }
 const PAGES = arg("pages", null) ? String(arg("pages")).split(",") : allPages();
 
@@ -112,7 +128,7 @@ const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObse
 
 /** In-page checks, scoped to `scopeSel` (defaults to the whole platform). Runs in the browser. */
 function pageChecks({ scopeSel, mobile }) {
-  const out = { overflow: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [], elevation: [] };
+  const out = { overflow: [], counts: [], images: [], names: [], ids: [], nesting: [], targets: [], contrast: [], surfaces: [], edges: [], sizes: [], typography: [], device: [], outline: [], "outline-h1": [], "outline-start": [], "outline-card": [], "outline-siblings": [], elevation: [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden='true'], [inert], .zen-visually-hidden:not(:focus-within)"); };
@@ -136,6 +152,13 @@ function pageChecks({ scopeSel, mobile }) {
       const r = el.getBoundingClientRect();
       if (r.right > sr.right + 2 || r.left < sr.left - 2) { out.overflow.push(`${label(el)}: ${describe(el)} escapes by ${Math.round(Math.max(r.right - sr.right, sr.left - r.left))}px`); break; }
     }
+  }
+  // Item counts (segmented/option-count, Segmented guideline): 2–5 items; more → SelectField or Tabs. The usage harness
+  // counts only options written out in the JSX, so options computed at run time are counted here, as rendered.
+  for (const el of scope.querySelectorAll(".zen-segmented")) {
+    if (!visible(el) || el.closest(".platform-guideline-visual__dont, [data-verdict='dont']")) continue;
+    const n = [...el.querySelectorAll(".zen-segmented__item")].filter((item) => item.closest(".zen-segmented") === el).length;
+    if (n < 2 || n > 5) out.counts.push(`${label(el)}: Segmented "${el.getAttribute("aria-label") ?? ""}" has ${n} item(s) — keep 2–5 (more → SelectField or Tabs)`);
   }
   // Broken images.
   for (const img of scope.querySelectorAll("img")) if (img.complete && img.naturalWidth === 0 && visible(img)) out.images.push(`${label(img)}: ${img.getAttribute("src")?.slice(0, 60)}`);
@@ -470,7 +493,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error" };
+const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -499,13 +522,14 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
       // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm) and textFit (text wider than its box).
       const quality = async (scopeSel, crash = false) => ({
         ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
+        ...await page.evaluate(widgetLayout, { scopeSel }).catch((e) => (crash ? { "card-gap": [`widget layout check crashed: ${e.message.split("\n")[0]}`] } : null)),
       });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [] });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [] });
       if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
@@ -671,7 +695,7 @@ async function run() {
       // Baseline: pre-existing Build-QA findings (quality-baseline.json) are reported apart and do not fail the run.
       let known = 0;
       if (!OUTLINE) for (const kind of OUTLINE_KINDS) if (entry[kind]) entry[kind] = [];
-      for (const kind of BASELINED) {
+      for (const kind of BASELINE_ALL_KINDS.has(width) ? Object.keys(entry) : BASELINED) {
         if (!entry[kind]) continue;
         const seen = new Map(); const fresh = [];
         for (const item of entry[kind]) { const k = `${key}|${kind}|${item}`; const nth = (seen.get(k) ?? 0) + 1; seen.set(k, nth); (report.current ??= {})[k] = nth; if (nth <= (baseline[k] ?? 0)) { ((report.baselined ??= {})[key] ??= {})[kind] = [...(report.baselined[key][kind] ?? []), item]; known += 1; } else fresh.push(item); }

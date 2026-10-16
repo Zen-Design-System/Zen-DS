@@ -38,6 +38,13 @@
 .studio-builder-screen:has(> .zen-app-shell) { display: flex; flex-direction: column; }
 .studio-builder-screen > .zen-app-shell { flex: 1 0 auto; min-height: 0; }
 .studio-builder-screen .zen-app-shell__sidebar, .studio-builder-screen .zen-app-shell__aside:not([data-stacked="true"]) { height: auto; }
+/* Play and Present run the page as an app (Figma's prototype, the user 2026-10-16): the Sidebar and docked aside stick
+   to the scroll box at its height again and their items scroll inside when they outgrow it. Auto viewport: the device
+   clips (no scroll box of its own), so they stick to the window's scroll at AppShell's 100dvh; a fixed W × H viewport is
+   the scroll box, and its height is the shell's. */
+.studio-player .studio-builder-screen :is(.zen-app-shell__sidebar, .zen-app-shell__aside:not([data-stacked="true"])) { height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); }
+.studio-present__fit[data-viewport="fixed"] > .studio-player__device { container-type: size; }
+.studio-present__fit[data-viewport="fixed"] > .studio-player__device .studio-builder-screen > .zen-app-shell { --zen-app-shell-height: 100cqh; }
 /* Screen › Canvas (as AppShell's canvas): Canvas/Alt, a white page; Canvas/Flat. */
 .studio-builder-screen[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt); }
 .studio-builder-screen[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat); }
@@ -45,6 +52,15 @@
 /* An Overlay frame holds its overlay open; its portal node is where the overlay renders, inside the frame. */
 .studio-builder-overlay { position: relative; min-height: 640px; overflow: hidden; border-radius: inherit; }
 .studio-builder-overlay__portal { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+/* A layer the Overlay places (a Card; a Dialog portals out and places itself): where its position says, as in Play. Lets
+   the pointer through where it is empty. */
+.studio-builder-overlay__place { position: absolute; inset: 0; display: flex; box-sizing: border-box; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-medium, 16px); pointer-events: none; }
+.studio-builder-overlay__place > * { min-width: 0; max-width: 100%; pointer-events: auto; }
+.studio-builder-overlay__place[data-position^="top"] { align-items: flex-start; }
+.studio-builder-overlay__place[data-position^="bottom"] { align-items: flex-end; }
+.studio-builder-overlay__place[data-position$="left"] { justify-content: flex-start; }
+.studio-builder-overlay__place[data-position$="right"] { justify-content: flex-end; }
+.studio-builder-overlay__place[data-background="true"] { background: var(--zen-color-background-overlay); }
 
 /* Pages panel: the "My pages" kicker with its New page button (shell/PagesPanel.tsx). */
 .studio-pages__kicker-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
@@ -74,27 +90,80 @@
 .studio-page-list__text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Play (proto/Player.tsx): the page's current Screen at its device width, its overlays inside that device. */
-/* zen-allow-raw-spacing: room below the device for the floating Play bar (40 + its 16 inset + 16), as Present's stage. */
-.studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 72px; }
-.studio-player__device { position: relative; overflow: hidden; align-self: flex-start; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
-.studio-player__screen { animation: studio-player-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease) both; }
-@keyframes studio-player-in { from { opacity: 0; } to { opacity: 1; } }
+.studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
+.studio-player__device { position: relative; overflow: clip; align-self: flex-start; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+/* Animations between frames (proto/playMotion.ts): the frame going away stays drawn over or under the one coming in until
+   its motion ends. Distances are fractions of the frame's size times Motion/Movement (0 with reduced motion: the fades
+   stay); durations are Motion tokens. */
+.studio-player__screens { position: relative; }
+.studio-player__screen[data-leaving] { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; }
+.studio-player__screen[data-top] { position: relative; z-index: 1; }
+.studio-player__screen[data-leaving][data-top] { position: absolute; }
+.studio-player__screen[data-motion],
+.studio-player__overlay-content[data-motion] { animation: studio-play-motion var(--studio-play-duration, var(--zen-motion-duration-base, 200ms)) var(--zen-motion-ease-emphasized, ease) both; }
+@keyframes studio-play-motion {
+  from { opacity: var(--studio-play-from-opacity, 1); translate: calc(var(--studio-play-from-x, 0%) * var(--zen-motion-movement, 1)) calc(var(--studio-play-from-y, 0%) * var(--zen-motion-movement, 1)); }
+  to { opacity: var(--studio-play-to-opacity, 1); translate: calc(var(--studio-play-to-x, 0%) * var(--zen-motion-movement, 1)) calc(var(--studio-play-to-y, 0%) * var(--zen-motion-movement, 1)); }
+}
+/* An overlay the Overlay places (not a Dialog, Side Panel…: those place themselves): Figma's overlay position, inside the
+   device's safe areas, over Background/Overlay when the Overlay asks for a background. One shown While hovering lets the
+   pointer through, so the layer under it keeps the hover. */
+.studio-player__overlay { position: absolute; z-index: 4; inset: 0; display: flex; box-sizing: border-box; align-items: center; justify-content: center; padding: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-top, 0px)) var(--zen-spacing-padding-medium, 16px) max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-bottom, 0px)); }
+.studio-player__overlay[data-position^="top"] { align-items: flex-start; }
+.studio-player__overlay[data-position^="bottom"] { align-items: flex-end; }
+.studio-player__overlay[data-position$="left"] { justify-content: flex-start; }
+.studio-player__overlay[data-position$="right"] { justify-content: flex-end; }
+.studio-player__overlay[data-background="true"] { background: var(--zen-color-background-overlay); }
+.studio-player__overlay-content { min-width: 0; max-width: 100%; max-height: 100%; overflow: auto; }
+.studio-player__overlay[data-hover="true"],
+.studio-player__overlay[data-hover="true"] *,
+.studio-player__device[data-hover-overlay="true"] > :not(.studio-player__screens),
+.studio-player__device[data-hover-overlay="true"] > :not(.studio-player__screens) * { pointer-events: none; }
 .studio-player__empty { margin: 0; padding: var(--zen-spacing-padding-xlarge, 24px); }
+/* Hotspot hints (Figma's): a press on nothing clickable outlines what has an action, fading out (a colour change only, so
+   it stays with reduced motion). */
+.studio-player__hotspots { position: absolute; z-index: 40; inset: 0; pointer-events: none; animation: studio-player-hints calc(var(--zen-motion-duration-slow, 300ms) * 3) var(--zen-motion-ease-exit, ease-in) forwards; }
+.studio-player__hotspot { position: absolute; top: 0; left: 0; box-sizing: border-box; border: 2px solid var(--zen-color-border-info-solid-default); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-info-subtle-default, transparent); }
+@keyframes studio-player-hints { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
 
 /* Prototype tab (proto/PrototypePanel.tsx). */
 .studio-prototype__frames { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
 .studio-prototype__frame { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-prototype__frame > .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); }
-.studio-prototype__frame-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-prototype__add { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-prototype__trigger + .studio-prototype__trigger { margin-top: var(--zen-spacing-gap-small, 12px); }
 .studio-prototype__note { margin: 0; }
+/* A choice control's items, one row each; the item selected on the canvas is ringed. */
+.studio-prototype__item { border-radius: var(--zen-corner-radius-base, 12px); }
+.studio-prototype__item[data-current="true"] { box-shadow: 0 0 0 1px var(--zen-color-border-accent-solid-default); }
+/* A flow row's ▷ shows on hover and focus (always on touch screens). */
+.studio-prototype__frame .studio-prototype__play { flex: 0 0 auto; }
+@media (hover: hover) {
+  .studio-prototype__frame:not(:hover, :focus-within) .studio-prototype__play { opacity: 0; }
+}
 
-/* Prototype links (proto/ProtoLinks.tsx): arrows from an action to its frame, in board coordinates, while the Prototype tab is open. */
+/* Prototype connections (proto/ProtoLinks.tsx) while the Prototype tab is open: a screen-space layer in the canvas
+   viewport, above the Select layer (10) and below the frame chrome (20). Only the arrows' hit strokes and the handles
+   take the pointer. */
 .studio-builder-board { position: relative; }
-.studio-proto-links { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.studio-proto-links path { fill: none; stroke: var(--zen-color-border-accent-solid-default); stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
-.studio-proto-links circle { fill: var(--zen-color-background-accent-solid-default); }
+.studio-proto-layer { position: absolute; z-index: 15; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-proto-links { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.studio-proto-link { transition: opacity var(--zen-motion-duration-fast, 150ms) var(--zen-motion-ease-standard, ease); }
+.studio-proto-link[data-dim="true"] { opacity: 0.35; }
+.studio-proto-link__line { fill: none; stroke: var(--zen-color-border-accent-solid-default); stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+.studio-proto-link:is([data-selected="true"], [data-hover="true"]) .studio-proto-link__line { stroke-width: 3; }
+.studio-proto-link circle { fill: var(--zen-color-background-accent-solid-default); }
+/* zen-allow-raw-spacing: a 12px stroke under the 2px line is what a click on a connection hits (Figma's). */
+.studio-proto-link__hit { fill: none; stroke: transparent; stroke-width: 12; cursor: pointer; pointer-events: stroke; }
+/* The frame a drop would connect to. */
+.studio-proto-target { position: absolute; top: 0; left: 0; box-sizing: border-box; border: 2px solid var(--zen-color-border-accent-solid-default); border-radius: var(--zen-corner-radius-2-xsmall, 2px); pointer-events: none; }
+/* The selected layer's ⊕ and the end of its arrows: 16px rounds centred on their point. */
+.studio-proto-plus,
+.studio-proto-end { position: absolute; top: 0; left: 0; display: inline-flex; width: 16px; height: 16px; box-sizing: border-box; align-items: center; justify-content: center; translate: -50% -50%; border-radius: var(--zen-corner-radius-rounded, 1000px); cursor: grab; pointer-events: auto; touch-action: none; }
+.studio-proto-plus { border: 1.5px solid var(--zen-color-border-accent-solid-default); background: var(--zen-color-background-surface-default); color: var(--zen-color-content-accent-base, currentColor); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+.studio-proto-plus:hover { border-color: transparent; background: var(--zen-color-background-accent-solid-default); color: var(--zen-color-content-on-accent-default); }
+.studio-proto-end { border: 2px solid var(--zen-color-background-surface-default); background: var(--zen-color-background-accent-solid-default); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+/* While a connection is dragged the whole canvas shows the grab (and nothing under it hovers). */
+.studio-proto-cover { position: absolute; inset: 0; cursor: grabbing; pointer-events: auto; }
 
 /* Export (GĐ5): a side panel wide enough to read the code. */
 .studio-export { --zen-side-panel-width: 760px; }

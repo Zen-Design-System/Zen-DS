@@ -398,6 +398,66 @@ function htmlOf(rendered: Rendered, { id, title }: { id: string; title: string }
   return { files: [{ path: "index.html", text: index }, ...files, { path: "styles.css", text: css }], assets: [...assets.values()], screens };
 }
 
+type Fetched = Map<string, { bytes: Uint8Array; dataUrl: string }>;
+
+/** The screens' CSS (styles.css of the export) with its fonts inside as data URLs: an SVG image loads nothing. */
+function pictureCssOf(html: HtmlExport, fetched: Fetched): string {
+  const styles = html.files.find((file) => file.path === "styles.css")?.text ?? "";
+  return styles.replace(/url\((['"]?)(fonts\/[^'")]+)\1\)/g, (match, quote: string, path: string) => { const file = fetched.get(path); return file ? `url(${quote}${file.dataUrl}${quote})` : match; });
+}
+
+/**
+ * One rendered frame as a PNG at its width on the canvas, `scale(width, height)`×; `photos` (url → data URL) carries
+ * across frames. What the picture lacks goes to `notes`. Null when the frame did not render or the browser could not draw it.
+ */
+async function drawFrame(entry: RenderedFrame, pictureCss: string, photos: Map<string, string>, notes: string[], scale: (width: number, height: number) => number): Promise<{ blob: Blob; width: number; height: number } | null> {
+  if (!entry.root) { notes.push(`${entry.title}: the frame did not render`); return null; }
+  for (const image of entry.root.querySelectorAll("img")) {
+    const url = absolute(image.currentSrc || image.src);
+    if (!url || photos.has(url) || url.startsWith("data:")) continue;
+    const file = await fetchFile(url);
+    if (file) photos.set(url, file.dataUrl);
+    else notes.push(`${entry.title}: a photo did not load (${url})`);
+  }
+  const copy = exportCopy(entry.root, (url) => photos.get(absolute(url)) ?? absolute(url));
+  for (const image of copy.querySelectorAll("img, source")) { image.removeAttribute("srcset"); image.removeAttribute("sizes"); }
+  const box = entry.root.getBoundingClientRect();
+  const width = entry.frame.width;
+  const height = Math.max(1, Math.ceil(box.height));
+  // An SVG image is drawn once, at the start of every animation: the picture shows the resting state instead.
+  const css = `${pictureCss}\n*, *::before, *::after { animation: none !important; transition: none !important; }\n.zen-provider { min-height: ${height}px; }\n.screen, .overlay { box-sizing: border-box; width: ${width}px; min-height: ${height}px; }\n.screen { display: flow-root; }\n.overlay { position: relative; overflow: hidden; }\n.overlay__portal { position: absolute; inset: 0; overflow: hidden; }`;
+  for (const note of undrawable(entry.root)) notes.push(`${entry.title}: ${note} (not in the picture)`);
+  const blob = await drawPng(copy, css, { width, height, scale: scale(width, height) });
+  if (!blob) { notes.push(`${entry.title}: the browser could not draw it`); return null; }
+  return { blob, width, height };
+}
+
+/**
+ * A picture of one frame of the page `text` (the Studio MCP's get_screenshot, src/platform/studio/mcp): drawn as the
+ * handoff draws its pictures, its longer side at most `maxSide` px. `frame`: a PageFrame id ("screen:screen-1"); the
+ * first frame when absent.
+ */
+export async function framePicture({ id, title, text, frame, maxSide = 1568 }: { id: string; title: string; text: string; frame?: string; maxSide?: number }): Promise<{ png: Blob; frame: string; title: string; width: number; height: number; scale: number; notes: string[] } | { error: string }> {
+  const rendered = await renderFrames(id, text);
+  if ("error" in rendered) return rendered;
+  try {
+    const entry = frame ? rendered.frames.find((item) => item.frame.id === frame) : rendered.frames[0];
+    if (!entry) return { error: `The page has no frame ${frame}` };
+    const html = htmlOf(rendered, { id, title });
+    const fetched: Fetched = new Map();
+    await Promise.all(html.assets.filter((asset) => asset.path.startsWith("fonts/")).map(async (asset) => {
+      const file = await fetchFile(asset.url);
+      if (file) fetched.set(asset.path, file);
+    }));
+    const notes: string[] = [];
+    let used = 1;
+    const picture = await drawFrame(entry, pictureCssOf(html, fetched), new Map(), notes, (width, height) => (used = Math.min(1, maxSide / Math.max(width, height))));
+    return picture ? { png: picture.blob, frame: entry.frame.id, title: entry.title, width: picture.width, height: picture.height, scale: used, notes } : { error: notes.join("; ") || "The browser could not draw the frame" };
+  } finally {
+    rendered.dispose();
+  }
+}
+
 /** The page `text` (id `id`, titled `title`) as static HTML files and the assets they use. */
 export async function exportHtml({ id, title, text }: { id: string; title: string; text: string }): Promise<HtmlExport | { error: string }> {
   const rendered = await renderFrames(id, text);
@@ -514,8 +574,7 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
       else missing.push(`html/${asset.path}`);
     }));
     // The pictures: the screens' CSS with the fonts inside, each photo as a data URL, at the frame's size on the canvas.
-    const styles = html.files.find((file) => file.path === "styles.css")?.text ?? "";
-    const pictureCss = styles.replace(/url\((['"]?)(fonts\/[^'")]+)\1\)/g, (match, quote: string, path: string) => { const file = fetched.get(path); return file ? `url(${quote}${file.dataUrl}${quote})` : match; });
+    const pictureCss = pictureCssOf(html, fetched);
     const photos = new Map<string, string>();
     const pictureNotes: string[] = [];
     const frames: HandoffFrame[] = [];
@@ -524,25 +583,9 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
       const png = entry.file.replace(/\.html$/, ".png");
       const handoffFrame: HandoffFrame = { frame: entry.frame.id, title: entry.title, kind: entry.frame.kind, device: entry.frame.device, png: null, html: `html/${entry.file}`, focus: entry.root ? focusStops(entry.root) : [] };
       frames.push(handoffFrame);
-      if (!entry.root) { pictureNotes.push(`${entry.title}: the frame did not render`); continue; }
-      for (const image of entry.root.querySelectorAll("img")) {
-        const url = absolute(image.currentSrc || image.src);
-        if (!url || photos.has(url) || url.startsWith("data:")) continue;
-        const file = await fetchFile(url);
-        if (file) photos.set(url, file.dataUrl);
-        else pictureNotes.push(`${entry.title}: a photo did not load (${url})`);
-      }
-      const copy = exportCopy(entry.root, (url) => photos.get(absolute(url)) ?? absolute(url));
-      for (const image of copy.querySelectorAll("img, source")) { image.removeAttribute("srcset"); image.removeAttribute("sizes"); }
-      const box = entry.root.getBoundingClientRect();
-      const width = entry.frame.width;
-      const height = Math.max(1, Math.ceil(box.height));
-      // An SVG image is drawn once, at the start of every animation: the picture shows the resting state instead.
-      const css = `${pictureCss}\n*, *::before, *::after { animation: none !important; transition: none !important; }\n.zen-provider { min-height: ${height}px; }\n.screen, .overlay { box-sizing: border-box; width: ${width}px; min-height: ${height}px; }\n.screen { display: flow-root; }\n.overlay { position: relative; overflow: hidden; }\n.overlay__portal { position: absolute; inset: 0; overflow: hidden; }`;
-      for (const note of undrawable(entry.root)) pictureNotes.push(`${entry.title}: ${note} (not in the picture)`);
-      const blob = await drawPng(copy, css, { width, height, scale: 2 });
-      if (!blob) { pictureNotes.push(`${entry.title}: the browser could not draw it`); continue; }
-      pictures.push({ path: png, data: new Uint8Array(await blob.arrayBuffer()) });
+      const picture = await drawFrame(entry, pictureCss, photos, pictureNotes, () => 2);
+      if (!picture) continue;
+      pictures.push({ path: png, data: new Uint8Array(await picture.blob.arrayBuffer()) });
       handoffFrame.png = png;
     }
     // The photos the React code imports (./assets/<file>).

@@ -17,14 +17,48 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Build-QA gate (2026-10-16, user: "thêm cả 4 kiểm tra luôn"): the platform audit also runs at 320px (a small phone;
+  today's findings there are baselined, BACKLOG P1); two new audit kinds, `card-gap` (a MetricCard or ChartCard stretched
+  by its row leaving an empty band at its foot) and `legend-column` (a chart legend stacked one item per line under its
+  chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- GroupedBarChart and ComboChart bars grow with the room they have (2026-10-16, user: "Các cột ốm quá. Khi không gian
+  còn khá nhiều"): Figma's 12px / 20px at Figma's size, then a grouped bar's group takes up to 70% of its period's
+  column (each bar up to 32px) and a combo bar half its column (up to 40px, as a bar chart's bar).
+- Zen Studio headers edit as Figma's slots (2026-10-16, user: "Các header là Slot nên có thể tự do thêm bớt element"): a
+  slot prop holds several layers for real (`<>…</>` on a page you made), so a top bar, its actions or a page header's
+  actions take a second layer (⌘D, paste, Assets) instead of refusing, and a template's header actions copy in as
+  separate layers (no wrapping row Stack). Hide and show any layer as Figma's eye (⇧⌘H, the eye in Layers, the layer
+  menu), also on one layout only (Hide on mobile / Hide on desktop): the canvas, the export and the Figma push leave it
+  out, Layers lists it dimmed. Slot switches (the Inspector's booleans, the Screen section's parts) hide a slot and keep
+  its layers (`hiddenSlots`), so switching back on brings the same content. New slots: DashboardHeader Leading-Slots
+  and Custom, AppShell Banner; the Screen section adds Banner and Top bar center; AppShell and PageHeader switches use
+  Figma's names (Nav-Trailing-Block, Nav-Center-Block, Subheading…).
+- Zen Studio New page › Empty page (2026-10-16, user: "cho phép tạo trang frame trống hoàn toàn"): one Screen with
+  nothing in it; a frame drawn with the Frame tool (F) is empty too, as Figma's.
+- Rules: `docs/component-usage-rules.md` §17 "One page, two layouts" maps the desktop header (Sidebar, Breadcrumbs,
+  PageHeader, top bar search and actions, account) to the phone's TopNavigation and BottomNavigation (three trailing
+  places, nothing dropped, one h1); new skill `skills/zen-responsive-screens` (code, Studio, Figma) with worked examples;
+  the Figma AI kit and `AGENTS.consumer.md` point to it.
+- Zen Studio Present and Play (2026-10-16, user: "thanh … giống của trình duyệt để view load bên trong khung"): the
+  floating bottom pill is now a browser-style bar across the top (navigation, the screen's name in an address pill,
+  light/dark, Viewport, Modes, Exit), and the screen loads in the frame below it, so the bar never covers it; a
+  full-screen page, its Dialogs and AppShell's sticky columns fill that frame. Viewport and Modes drop down below their
+  button.
+- Zen Studio Layers has no Refresh button (2026-10-15, user): the tree already rebuilds on page, source and DOM changes,
+  and now also when a text changes on the canvas (a text layer is named by its words), as Figma's layers follow the
+  canvas.
 - Zen Studio canvas, free frames on a page you made (2026-10-15, user: "canvas tự do hơn, giống Figma"): drag a frame by
   its name (or a selected frame anywhere) to move it, with red snap guides to the other frames (⌘ off, ⇧ one axis, Esc
   back); ⌥-drag drops a copy; ⌘D, ⌘C / ⌘V copy a frame (also onto another page); the arrow keys nudge it. The toolbar's
   Screen tool is now Frame (F, as in Figma): drag a box for a Screen of that size, or click for one on the page's device.
   Present the selected frame moved from F to ⌥⌘↵ (Figma's). Places are written in the page (`x` / `y` on Screen and
   Overlay, `width` / `height` on a drawn Screen); one ⌘Z per gesture.
+- Component Size spacing tokens (padding and gap of Button, Input, Text-Area, Chip, Badge, Tag, Checkbox, Radio,
+  Segmented, Tab-Item, Navigation) alias `Spacing/Padding/*` and `Spacing/Gap/*` instead of the `dm-#` dimensions
+  (2026-10-15, user, Figma and repo, the Studio mode too); same pixels. Segmented Medium in Compact takes 8px padding
+  (was 6), as in Figma.
 - Zen Studio: a Screen's desktop frame is its master layout (2026-10-15, user: "Khung Screen = Master-Layout đầy đủ"):
   one AppShell at the Screen's root, as Figma's ◇ Master-Layout. Screen › Sidebar, Top bar, Top bar actions, Page header,
   Side panel, Floating action and Footer each switch one of its parts (Page header also reads the one a template keeps in
@@ -33,6 +67,19 @@ removed (four unused colour ramps were, see Removed).
   and shows the page without the AppShell.
 - Zen Studio's HTML export keeps VisuallyHidden's rule, so an AppShell's "Skip to content" link no longer shows on the
   exported page.
+- Zen Studio's prototype works like Figma's prototype mode (2026-10-15, user: "Nâng cấp Usability của tính năng
+  Prototype"): with the Prototype tab open, a selected layer shows a ⊕ — drag it onto a screen or overlay to connect;
+  click an arrow to select its layer, drag an arrow's end to another frame or off to remove it (⌘Z undoes it). A tab bar,
+  Tabs, Segmented or Sidebar leads each item to its own screen (`proto.navigate({ home: "screen-1", … })`; one ⊕ per
+  item, one row per item in the tab; Play, Interact and the React export follow the chosen item). The tab speaks design
+  words (On click / On tap, On change), removes an interaction with −, adds another trigger with +, and lists the flow
+  (Start, overlays by their dialog's title; a row selects its frame, ▷ plays from it). Play flashes the hotspots after a
+  press on nothing clickable and names a screen once. Round 2 (user: "ok"): each connection picks Figma's Animation
+  (Instant · Dissolve · Move in · Push · Slide in, which way it moves, Fast · Base · Slow from the Motion tokens; Back
+  plays it backwards); a Screen takes After delay (ms) and a layer While hovering (its overlay shows while the pointer
+  stays); Add overlay holds a Dialog, Bottom sheet, Side panel or a Card you place (Position, Close on outside press, Dim
+  the screen behind; an empty Overlay takes a layer from Assets). The React export writes After delay as an effect and
+  While hovering as pointer handlers; arrows follow a frame while it is dragged.
 - Zen Studio looks like Figma UI3's floating panels (2026-10-15, user): the canvas fills the window and Pages | Layers
   and the Inspector float over it; the toolbar row is gone (brand menu and Document | Studio head the left panel, role,
   undo/redo and drafts the Inspector, the zoom sits on its tab row, light/dark moved to the brand menu). Inspector rows
@@ -259,8 +306,37 @@ removed (four unused colour ramps were, see Removed).
   Installation page now cover the `.npmrc` scope line, the one-time `npm login` with the licence key, CI tokens and
   the install errors. `npx zen-ds init` adds `@zen-ds:registry=https://npm.dizai.studio/` to `.npmrc`; `npx zen-ds
   doctor` requires it and fails on a registry token written into the project's `.npmrc`.
+- ModalForm and Dialog (2026-10-16): a TextAreaField or InputField placed straight in the form fills its width again,
+  whatever order the CSS loads in (in Zen Studio it hugged its content).
+- MetricCard and ChartCard in a grid row (2026-10-16, user): a card stretched by its row no longer leaves an empty band
+  under the shorter one. A Chart Card scales its chart to the free height (plots grow taller, rings larger up to the
+  card's width, bar lists, bullets, funnels and horizontal bars spread their rows, heatmap cells grow); a Metric Card
+  keeps its title at the top and its Spark-Bars, goal bar, comparison columns or stacked KPI number at the foot. The Zen
+  Figma library does the same (Chart-Card, every `Chart/*` set, Metric-Card; placed instances on Chart, Performance and
+  HR-Platform updated), with spacing that never drops under the design's gap (8px at least).
+- Donut and Radial charts (2026-10-16, user): a legend beside the ring that wraps under it in a narrow box becomes a
+  centred row that wraps (Figma auto layout Wrap) instead of a tall column; in a plot under 280px the X label pills
+  take Padding/2XSmall, so six months no longer overlap on a 320px phone.
+- Zen Studio Play and Present (2026-10-16, user): an AppShell's Sidebar sticks while the page scrolls, at the viewport's
+  height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- 320px phones (2026-10-16, user: "sửa"): no docs page scrolls sideways any more (the section grids took their widest
+  unbreakable child as their width; the Form and Input pages also ran 11px wide at 390), and under 375px the docs chrome
+  gives an example 248px instead of 208px (page gutter 16, stage 8 + 12). ListItem: a caption word longer than the row
+  ends in an ellipsis instead of running under the trailing slot (the caption still wraps). Toast: a long run such as an
+  email address breaks instead of spilling. Stepper: the caption breaks like the title. Popover and Tooltip examples wrap
+  their header and toolbar at Comfortable on a 320px phone.
+- Zen Studio: a page made in the Studio changed outside the tab (an AI's file tools, an editor) now shows on the canvas at
+  once instead of after a reload (user, 2026-10-16: "claude chạy xong phải refresh lại mới thấy"): the dev server watches
+  the pages folder and the open tabs sync with it.
+- Design Tokens › Global Colors (2026-10-15, user): the page lists its 960 colours again (it showed "No tokens match" and
+  Zen / Zen-High-Contrast instead of Light / Dark Colors: a sync note had been pasted into the collection's slug).
+  Component Theme picks its 9 modes in a SelectField instead of a Segmented that ran off the page; a Segmented stays for
+  2–5 modes. The platform audit now visits every token collection page and fails a rendered Segmented with more than 5
+  (or fewer than 2) items (kind `counts`), which the static `segmented/option-count` cannot count when options are computed.
+- Zen Studio toolbar (2026-10-15, user): with Stack, Text or Image on, a click on another tool switches to it again;
+  before, the floating toolbar sat over the canvas, the placement took the click, and only the shortcut keys worked.
 - Zen Studio Interact, zoomed in or out (2026-10-15, user): an example's overlays stay in its frame and zoom with it. A
   Dialog, Side Panel or Menu opens inside the frame (the frame grows to a laptop screen's height while a modal is open),
   and Popover, Tooltip and the toast stack render in the frame's own layer; before, they opened at 100% over the whole
@@ -314,6 +390,16 @@ removed (four unused colour ramps were, see Removed).
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio MCP M1 (2026-10-16, user: "làm M1 đi"): an AI client builds and edits the open page live, by layer id —
+  `insert` (JSX in the page dialect), `replace`, `move`, `duplicate`, `delete`, `wrap` / `unwrap`, `batch` (several
+  changes, one ⌘Z; refused part-way = nothing changed), `create_page`, `add_frame`, `select`, `focus`, `open_page`, and
+  the reads `list_pages`, `get_node`, `get_code` beside M0's. E2E rows AI-01…06.
+- Zen Studio MCP, first step (M0, 2026-10-15, user: "kết nối mcp vào studio để Claude hoặc AI khác … design trực tiếp
+  trên canvas"): Claude Code (or another MCP client) connects to the dev server at `/__zen-studio/mcp` and reads and
+  changes the page made in the Studio that is open in the browser, live: `get_studio_state`, `get_tree` (layers by id),
+  `update` (props and text), `get_screenshot`. Each change is one ⌘Z step; an AI chip bottom-left of the canvas shows
+  the client and holds Stop / Resume. `npm run studio:mcp` prints the `claude mcp add` command with this checkout's
+  token. Spec: `docs/research/studio-mcp-canvas-2026-10-15.md`.
 - Zen Studio Present and Play: a **Viewport** button on the bar (2026-10-15, user) — Auto (as before), Desktop
   1440 × 900, Tablet 768 × 1024, Phone 390 × 844, or any W × H typed in px (an empty H fills the window). The screen
   renders in a box of that size (its dialogs and menus open inside it) and scales down to fit the window, never up; the

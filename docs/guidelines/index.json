@@ -590,7 +590,7 @@
         "Keep labels to one or two words; icon-only items still need a label for assistive tech.",
         "Use badges for counts and hide them at zero.",
         "Keep the selected segment static: no hover and a default cursor, because one option is always selected and re-clicking it does nothing.",
-        "Keep 2–5 options (harness: segmented/option-count).",
+        "Keep 2–5 options (harness: segmented/option-count; options computed at run time are counted on the rendered page by the platform audit, kind counts). Past five, pick with a SelectField.",
         "Name icon-only segments with \"aria-label\" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).",
         "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).",
         "On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented."
@@ -4371,7 +4371,7 @@
       "purpose": "The frame of a web app: Sidebar navigation, a sticky top bar (a toggle, Breadcrumbs or a Search, then actions and the account menu), the page, and an optional banner, docked side panel and floating action, with a skip link. When the shell is 1024px or wider the Sidebar sits beside the page and the top-bar toggle collapses it to its icon rail; narrower, it opens as a modal drawer from the menu button.",
       "use": [
         "Every signed-in web app screen (dashboards, admin, HR and settings).",
-        "Apps that must work from phone to desktop with one navigation.",
+        "Desktop and tablet app frames: below 1024px the Sidebar becomes a drawer; on phones the same page takes a TopNavigation + BottomNavigation instead (see Do).",
         "Top-bar icon actions with an unread dot or count → AppShellAction.",
         "The account menu → Menu with an AppShellAccount trigger."
       ],
@@ -4433,7 +4433,8 @@
         "Give the page a Container with a PageHeader as its first child; page actions (one Primary) go in the PageHeader.",
         "Show unread items on the action itself (AppShellAction count or dot) so the count is also in its accessible name.",
         "Store the rail state from onSidebarCollapsedChange so the Sidebar opens the way people left it.",
-        "Let layout follow the shell's width; force it only for previews and tests."
+        "Let layout follow the shell's width; force it only for previews and tests.",
+        "On phones (useZen()?.breakpoint === \"mobile\"), draw the page's content between a TopNavigation and a BottomNavigation instead of the AppShell, mapped from it: Sidebar rows → BottomNavigation (up to 5; more → the first 4 + More), Breadcrumbs → the Back chevron on a child screen, the PageHeader title → the bar's title (large on a root), at most 3 trailing actions (Search, +, notifications, then ⋯ More), the account → the avatar in leading on a root. Every desktop header action stays reachable, and the title stays in sections so each layout has one h1 (component-usage-rules §17, skill zen-responsive-screens)."
       ],
       "dont": [
         "Don't build your own sidebar + main flex layout or your own drawer.",

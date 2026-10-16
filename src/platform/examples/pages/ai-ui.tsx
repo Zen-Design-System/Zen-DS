@@ -880,7 +880,7 @@ const action = primaryActionOf(live.spec ?? live.skeleton);                     
   },
   {
     title: "On a phone",
-    description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column, the Liquid Glass field docks above the home indicator and the conversation scrolls under it.",
+    description: "The same composer and specs in a phone frame: Comfortable density and Mobile typography come from the frame, the form stacks in one column on its Card, in the narrow bubble the time chips and the actions wrap onto another row instead of overflowing, the Liquid Glass field docks above the home indicator and the conversation scrolls under it.",
     render: () => <ComposerPhone initial={[suggestions[0].prompt]} />,
     code: `<PlatformPhone label="Zen AI" header={<TopNavigation type="compact-alt" title="Zen AI" />} footer={<AiChatField fieldStyle="liquid-glass" placeholder="Ask Zen AI" onSubmit={ask} />}>
   <AiChatThread aria-label="Conversation with Zen AI">

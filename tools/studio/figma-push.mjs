@@ -15,6 +15,7 @@
 import { docFromText } from "./doc.mjs";
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, PADDING_PX, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
+import { pruneHidden } from "./visibility.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
@@ -305,10 +306,33 @@ function codeProps(element) {
  * `text`: print the page with its ids (doc.mjs printPage(doc, { ids: true })) so the keys stay the same from one export to
  * the next; an element without one takes `newId()` (doc.mjs's random id by default, a counter in the CLI).
  */
+/**
+ * A slot prop holding several layers (`<>…</>`, user 2026-10-16) as the row Stack pages wrote before (a Stack of layout
+ * props alone is the slot's layers for slotLayers / layersOf), so every Figma mapping below reads one element. Its id is
+ * the owner's id and the prop, the same from one export to the next.
+ */
+function fragmentsAsRows(doc) {
+  const value = (owner, name, entry) => {
+    if (entry.kind === "fragment") return { kind: "element", node: { kind: "element", id: `${owner.id}~${name}`, name: "Stack", props: { direction: { kind: "literal", value: "row" }, gap: { kind: "literal", value: "xs" }, align: { kind: "literal", value: "center" } }, children: entry.children.map(child) } };
+    if (entry.kind === "element") return { kind: "element", node: node(entry.node) };
+    if (entry.kind === "array") return { kind: "array", items: entry.items.map((item) => value(owner, name, item)) };
+    if (entry.kind === "object") return { kind: "object", fields: Object.fromEntries(Object.entries(entry.fields).map(([key, field]) => [key, value(owner, name, field)])) };
+    return entry;
+  };
+  const child = (entry) => (entry.kind === "element" ? node(entry) : entry.kind === "map" ? { ...entry, node: node(entry.node) } : entry);
+  const node = (element) => ({ ...element, props: Object.fromEntries(Object.entries(element.props).map(([name, entry]) => [name, value(element, name, entry)])), children: element.children.map(child) });
+  return { ...doc, board: doc.board ? node(doc.board) : doc.board };
+}
+
 export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) {
   const notes = [];
-  const { doc, errors } = docFromText(text, newId ? { newId } : {});
-  if (!doc) return { frame: null, notes: errors.map((error) => error.message) };
+  const read = docFromText(text, newId ? { newId } : {});
+  const { errors } = read;
+  if (!read.doc) return { frame: null, notes: errors.map((error) => error.message) };
+  // Each frame as its layout draws it: hidden layers and switched-off slots are not pushed (tools/studio/visibility.mjs).
+  const lit = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
+  const shown = { ...read.doc, board: { ...read.doc.board, children: read.doc.board.children.map((node) => (node.kind === "element" ? pruneHidden(node, node.name === "Screen" ? screenLayout(lit(node, "device") ?? "desktop", lit(node, "layout")) : undefined) : node)).filter(Boolean) } };
+  const doc = fragmentsAsRows(shown);
   const byCode = setsByCode(mapping);
   const screen = doc.board.children.find((child) => child.kind === "element" && child.name === "Screen");
   if (!screen) return { frame: null, notes: ["the page has no Screen"] };

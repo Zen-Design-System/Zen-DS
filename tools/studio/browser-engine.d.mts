@@ -14,12 +14,12 @@ export function originsOf(code: string, file: string, loc: string, targets: Arra
 export type DialectError = { line: number; column: number; message: string };
 export function parsePage(text: string, options?: { components?: Set<string> }): { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown; errors: DialectError[] };
 export function validateDialect(text: string, options?: { components?: Set<string> }): DialectError[];
-export function newPageText(options?: { title?: string; device?: string }): string;
+export function newPageText(options?: { title?: string; device?: string; chrome?: boolean; empty?: boolean }): string;
 export function pageHeader(text: string): Record<string, unknown> | null;
 export type BoardFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device?: string; x?: number; y?: number; loc: string };
 export function boardFrames(tree: unknown): BoardFrame[];
 export function freeFrameId(base: string, taken: Iterable<string>): string;
-export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string; chrome?: boolean; x?: number; y?: number; width?: number; height?: number }): string;
+export function frameCode(options: { kind: "screen" | "overlay"; id: string; title?: string; device?: string; chrome?: boolean; empty?: boolean; x?: number; y?: number; width?: number; height?: number; holds?: "dialog" | "sheet" | "panel" | "card" }): string;
 export function protoCode(action: string, arg?: string): string;
 /** The builder page as a JSON document (doc.mjs): the dialect's neutral tree with a stable id on every element. */
 export type PageDoc = { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: unknown };

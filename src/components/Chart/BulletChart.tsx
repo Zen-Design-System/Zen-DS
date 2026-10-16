@@ -77,7 +77,7 @@ export function BulletChart({ data, actualLabel, targetLabel, showLegend = true,
         <div className="zen-chart__bullets" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}
           data-picked={current ? "true" : undefined}>
-          <div className="zen-chart__bullet-rows" key={signatureOf(rows.map((row) => [row.actual, row.target]))}>
+          <div className="zen-chart__bullet-rows" style={{ "--zen-chart-count": rows.length } as CSSProperties} key={signatureOf(rows.map((row) => [row.actual, row.target]))}>
             {rows.map((row) => (
               <div key={row.d.label + row.i} className="zen-chart__bullet" data-active={row.i === active ? "true" : undefined} aria-hidden="true" onPointerEnter={() => setActive(row.i)} onClick={() => setActive(row.i)}>
                 <span className="zen-chart__bullet-head">

@@ -4659,7 +4659,7 @@
   "name": "Segmented/Spacing/Medium/Vertical-Padding",
   "context": {},
   "type": "FLOAT",
-  "expected": 6
+  "expected": 8
  },
  {
   "name": "Segmented/Spacing/Medium/Vertical-Padding",
@@ -4667,7 +4667,7 @@
    "mode-colors-semantic": "Dark"
   },
   "type": "FLOAT",
-  "expected": 6
+  "expected": 8
  },
  {
   "name": "Segmented/Spacing/Medium/Vertical-Padding",
@@ -4678,7 +4678,7 @@
    "corner-radius": "Smooth"
   },
   "type": "FLOAT",
-  "expected": 6
+  "expected": 8
  },
  {
   "name": "Segmented/Spacing/Medium/Vertical-Padding",
@@ -4688,7 +4688,7 @@
    "corner-radius": "Standard"
   },
   "type": "FLOAT",
-  "expected": 6
+  "expected": 8
  },
  {
   "name": "Segmented/Spacing/Medium/Vertical-Padding",

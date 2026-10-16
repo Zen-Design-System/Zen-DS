@@ -321,8 +321,10 @@
 .platform-code { display: grid; gap: var(--zen-spacing-gap-small, 12px); min-width: 0; }
 .foundation-shell--embedded .section-heading { margin-top: 0; }
 .platform-example-page { padding: 0 0 0; }
-.platform-component-sections { display: grid; gap: var(--zen-spacing-gap-3-xlarge, 48px); }
-.platform-component-section { display: grid; gap: var(--zen-spacing-gap-medium, 16px); }
+/* The docs grids take one minmax(0, 1fr) column: an implicit auto column grows to its widest unbreakable child (a long
+   type in the props reference, a page title), and at 320px that scrolled the whole page sideways. */
+.platform-component-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-3-xlarge, 48px); }
+.platform-component-section { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-component-section__heading { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .platform-component-section__heading h2 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-4, 20px)/var(--zen-typography-line-height-heading-4, 28px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-4, -.6px); }
 .platform-component-section__heading p:last-child { max-width: 720px; margin: 0; color: var(--official-muted); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
@@ -461,8 +463,8 @@
 .platform-date-picker-summary { margin: 0; color: var(--official-muted); }
 
 /* ── Examples: real-world compositions under each playground ── */
-.pe-section { display: grid; gap: var(--zen-spacing-gap-large, 24px); margin-top: var(--zen-spacing-gap-3-xlarge, 48px); }
-.pe-section__head { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.pe-section { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-large, 24px); margin-top: var(--zen-spacing-gap-3-xlarge, 48px); }
+.pe-section__head { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .pe-section__head h2 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
 .pe-section__head p { margin: 0; color: var(--official-muted); }
 .pe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-large, 24px); align-items: stretch; }
@@ -505,11 +507,10 @@
 .pe-card[data-fullscreen="true"] :is(.pe-shell--tall, .pe-chat-desktop, .patpl-frame, .pash-frame, .psp-studio) { flex: 1 1 0; height: auto !important; min-height: 0; max-width: none; border: 0; border-radius: 0; }
 .platform-example-row[data-fullscreen="true"] { position: fixed; z-index: 25; inset: 0; display: flex; min-height: 0; flex-direction: column; align-items: stretch; justify-content: flex-start; margin: 0; padding: 0; overflow: auto; border-radius: 0; background: var(--official-canvas); }
 .platform-example-row[data-fullscreen="true"] > .pash-frame { flex: 1 1 0; height: auto !important; min-height: 0; border: 0; border-radius: 0; }
-/* The one docs control left on a full-screen page (FullScreenBar; also the Zen Studio's Present): a pill at the bottom
+/* The one docs control left on a full-screen page (FullScreenBar): a pill at the bottom
    centre on the popover surface, above the screen (25) and under its overlays (30). It fades out after a pause of the
    pointer and comes back on movement or keyboard focus; hidden, it takes no presses. */
-/* The dock places the pill and its panel (a sibling, so each blurs the screen behind it); it paints nothing and only its
-   children take presses. */
+/* The dock places the pill; it paints nothing and only the pill takes presses. */
 .platform-fullscreen-dock {
   position: fixed;
   z-index: 26;
@@ -551,28 +552,6 @@
   font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
   font-size: var(--zen-typography-font-size-caption);
   line-height: var(--zen-typography-line-height-caption);
-}
-/* A panel a caller opens above the pill (the Studio's Modes): the popover surface. */
-.platform-fullscreen-bar__panel {
-  position: absolute;
-  bottom: calc(100% + var(--zen-spacing-gap-xsmall, 8px));
-  left: 50%;
-  display: grid;
-  width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-medium, 16px)));
-  pointer-events: auto;
-  box-sizing: border-box;
-  gap: var(--zen-spacing-gap-xsmall, 8px);
-  padding: var(--zen-spacing-padding-small, 12px);
-  border-radius: var(--zen-corner-radius-large, 16px);
-  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
-  background: var(--zen-popover-background, #fff);
-  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
-  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
-  translate: -50% 0;
-  /* It opens as a Zen Popover does (zen-motion-pop-in: fade, a 4px slide from the pill, 2% scale), above its anchor. */
-  --zen-motion-from-y: 1;
-  transform-origin: bottom center;
-  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
 }
 /* The App Shell playground opens full screen from its title row. */
 .platform-playground-screen { display: flex; grid-area: title; align-self: start; justify-self: end; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
@@ -634,6 +613,14 @@
   .pe-card__head { flex-direction: column; }
   .pe-card__stage { padding: var(--zen-spacing-padding-medium, 16px); margin-inline: var(--zen-spacing-padding-medium, 16px); }
   .pe-shell { flex-direction: column; }
+}
+/* Small phones (under 375px): the docs chrome took 56px a side (page 24 + stage margin 16 + stage padding 16), leaving an
+   example 208px of a 320px screen, narrower than any phone it shows. The page keeps the top bar's 16px gutter and the
+   stage and playground preview inset 8 + 12, so an example gets 248px. 390px and wider are unchanged. */
+@media (max-width: 374px) {
+  .official-page { width: calc(100% - 2 * var(--zen-spacing-padding-medium, 16px)); }
+  .pe-card__stage { padding: var(--zen-spacing-padding-small, 12px); margin-inline: var(--zen-spacing-padding-xsmall, 8px); }
+  .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: var(--zen-spacing-padding-xsmall, 8px); padding-inline: var(--zen-spacing-padding-small, 12px); }
 }
 
 /* ── New component pages ── */
@@ -713,7 +700,8 @@
 .pg-meta > div { display: grid; align-content: start; gap: var(--zen-spacing-gap-small, 12px); min-width: 0; }
 .pg-meta ul { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; list-style: none; }
 .pg-meta h3 code { text-transform: none; letter-spacing: 0; }
-.pg-rules li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: start; }
+/* A rule names props like radiusTopLeft/TopRight/BottomRight/BottomLeft: break such a run rather than spill past a phone's edge. */
+.pg-rules li { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: start; overflow-wrap: break-word; }
 /* zen-allow-raw-spacing: centres the 8px dot on the first 20px Body/Base line. */
 .pg-rules__dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; }
 .pg-rules__dot[data-severity="error"] { background: var(--zen-color-background-negative-solid-default); }
@@ -921,7 +909,7 @@
 
 /* ───────────── Component page template: sticky "On this page" (Figma Codebase Platform 14260:96953) ───────────── */
 .platform-component-page { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--zen-spacing-gap-medium, 16px); }
-.platform-component-page__content { display: grid; min-width: 0; gap: inherit; }
+.platform-component-page__content { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: inherit; }
 .platform-component-page__content > .platform-anchor:empty { display: none; }
 /* Anchored sections stop under the 72px sticky topbar. */
 .platform-anchor { scroll-margin-top: calc(72px + var(--zen-spacing-padding-xlarge, 24px)); }
@@ -950,7 +938,7 @@
 .platform-ref__sep { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 .platform-ref__code { color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
 /* Props reference: one titled table per component; long unions and signatures wrap inside their cell. */
-.platform-ref__component { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-large, 24px); }
+.platform-ref__component { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-large, 24px); }
 .platform-ref__component h3, .platform-ref__component p { margin: 0; }
 /* Narrow screens scroll the table sideways (.zen-table overflow-x) instead of squeezing four columns into 342px. */
 .platform-ref__component .zen-table__table { min-width: 680px; }
@@ -1329,5 +1317,3 @@
 .pth-outline__tag { min-width: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px); background: var(--zen-color-background-accent-subtle-default, rgb(255 2 152 / 9%)); color: var(--zen-color-content-accent-base, #95197b); text-align: center; }
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
-/* Reduced motion: the Modes panel above the full-screen pill only fades in. */
-@media (prefers-reduced-motion: reduce) { .platform-fullscreen-bar__panel { animation-name: zen-motion-fade-in; } }

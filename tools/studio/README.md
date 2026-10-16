@@ -179,20 +179,27 @@ Unwrap (a one-layer wrap undone: the Position section's Ignore auto layout off o
 - `unwrapped.loc` is the element's opening tag (the wrapper's old place, moved up when an import line went); the
   example snippet is unwrapped the same way when the wrapper's code occurs exactly once in it.
 
+Slots holding several layers and hidden layers (user, 2026-10-16; `visibility.mjs`): a prop of a builder page may hold
+a fragment (`headerActions={<><Badge … /><AppShellAccount … /></>}`), its layers straight in the slot as Figma's. Any
+layer takes `hidden` (every layout), `hidden="mobile"` or `hidden="desktop"`; a component takes `hiddenSlots={["prop"]}`
+(Figma's boolean on a slot). Both are Studio-only: the canvas does not draw them (Layers lists a hidden layer dimmed),
+`pruneHidden` leaves them out of the code export and the Figma push.
+
 A Screen's master layout (user, 2026-10-15: the Screen section's desktop parts edit one root AppShell, Figma
 ◇ Master-Layout, so a page from a template never shows a second Sidebar; `{ op: "screenFrame", prop, on, code }`,
 `screen-frame.mjs`):
 
-- Alone in its request, on a `<Screen>`. `prop` is a part of `FRAME_PARTS` (`sidebar`, `header`, `headerActions`,
-  `sections`, `aside`, `floatingAction`, `footer`; `screen-chrome.mjs`), `code` the component it starts with
-  (`screenFrameCode`).
+- Alone in its request, on a `<Screen>`. `prop` is a part of `FRAME_PARTS` (`banner`, `sidebar`, `header`,
+  `headerCenter`, `headerActions`, `sections`, `aside`, `floatingAction`, `footer`; `screen-chrome.mjs`), `code` the
+  component it starts with (`screenFrameCode`). The Screen section switches a part that holds layers off and on through
+  the AppShell's `hiddenSlots` instead (above), so its layers come back as they were.
+- The mobile layout keeps the Screen's Top and Bottom Navigation: the canvas, the code export and the Figma push draw
+  the AppShell's content without its frame there.
 - On: the prop joins the Screen's root AppShell, or an AppShell is made around the Screen's content. Off: the prop goes;
   an AppShell left without a frame part is taken away again. The page's import follows (new components in, the ones
   nothing reads any more out). On twice or off twice changes nothing.
 - Builder pages made before (the Screen's own `sidebar` / `header` props) are moved into the AppShell when they open
   (`migrateScreenFrame`, `builder/localApi.ts`), a second Sidebar or Page header dropped, every element's id kept.
-- The mobile layout keeps the Screen's Top and Bottom Navigation: the canvas, the code export and the Figma push draw
-  the AppShell's content without its frame there.
 
 Wrap several layers (Figma's Frame selection ⌥⌘G / Add auto layout ⇧A on a multi-selection, 2026-10-03;
 `{ op: "wrap", tag: "Stack", props: { direction: …, gap: … }, with: ["14:6", "18:6"] }`, `applyWrapMany`):
@@ -403,9 +410,36 @@ Drafts live on the dev server, so every browser using that server sees them unti
   changed) and keeps the rest as the draft on top of the new disk (`partial: true`); `/discard { frame }` drops the
   frame's changes from the draft (`partial`: files that keep one).
 
+## 5. Studio MCP (`mcp/`, M0 2026-10-15, M1 2026-10-16)
+
+AI clients design on the open canvas (spec `docs/research/studio-mcp-canvas-2026-10-15.md`). `POST /__zen-studio/mcp` is
+MCP Streamable HTTP (stateless, JSON answers; GET is 405). Each tool call is relayed over Vite's HMR socket to an open
+Studio tab, which runs it as an Inspector edit would (`src/platform/studio/mcp/`: one ⌘Z step per call, a `batch`
+included; the AI chip's Stop refuses calls). Tools, on pages made in the Studio: read `get_studio_state`, `list_pages`,
+`get_tree`, `get_node`, `get_code`, `get_screenshot`; write `update`, `insert`, `replace`, `move`, `duplicate`, `delete`,
+`wrap`, `unwrap`, `batch` (ops chained by `as` / `"$name"`; refused part-way = taken back), `create_page`, `add_frame`;
+view `select`, `focus`, `open_page`. Writes by layer id (doc ids); JSX in the page dialect (`dialect.mjs`).
+
+The pages folder is watched (`fs.watch`, also under node_modules for the E2E server): a page file changed outside a tab
+(an editor, an AI's file tools) sends `zen-studio:pages-changed` and the open tabs sync at once
+(`builder/store/mirrors.ts`), the open page getting its layer ids again.
+
+| File | What |
+| --- | --- |
+| `mcp/tools.mjs` | The tool definitions (description, input schema, annotations), whatever carries them |
+| `mcp/server.mjs` | The endpoint: guards, a fresh SDK server + transport per request, answers kept to text and PNG within limits, a log line per call in `node_modules/.cache/zen-studio/mcp-<port>.log` |
+| `mcp/relay.mjs` | Open tabs (`zen-mcp:hello` / `state` / `bye`) and calls (`zen-mcp:call` → `zen-mcp:result`, 60 s); the target is the named tab, else the last focused visible one |
+| `mcp/token.mjs` | The checkout's bearer token, `node_modules/.cache/zen-studio/mcp-token` (0600), kept across restarts |
+| `mcp/connect.mjs` | `npm run studio:mcp [-- --port=5180] [-- --rotate]`: prints the `claude mcp add` command |
+
+Guards: a loopback Host, no `Origin` header (any browser page is refused, this server's own included) and
+`Authorization: Bearer <token>`; 403 otherwise, with the reason.
+
 ## Checks
 
 ```sh
+node tools/studio/mcp/mcp.selftest.mjs   # relay, token, endpoint guards, the SDK client through the endpoint to a fake tab, the tab's layer outline
+npm run studio:e2e -- --only=mcp         # AI-01…06: the SDK client on a real tab (read, update + ⌘Z, insert, batch, folder edit live, Stop)
 node tools/studio/selftest.mjs     # pure functions + detach (style-guard/usage-guard on its outputs) + wrap + drafts (rebase fuzz) + history + frame-scope + slots
 node tools/studio/slots.selftest.mjs   # slot ops alone (tsc, style-guard and usage-guard on realistic outputs through src/platform/examples/drafts)
 curl -s http://127.0.0.1:5180/__zen-studio/ping

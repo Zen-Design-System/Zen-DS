@@ -81,7 +81,10 @@
 /* titleLines={2} (code-only; Figma's Title is one line): the title wraps to a second line before it truncates, for titles
    that must be read in full. Same text style and colour; the row grows and Leading/Trailing stay centred on it. */
 .zen-list-item[data-title-lines="2"] .zen-list-item__title { display: -webkit-box; white-space: normal; overflow-wrap: break-word; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-.zen-list-item__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* The caption wraps between words; a word longer than the Contents (a narrow row beside wide trailing actions) ends in
+   an ellipsis like the title instead of running under the trailing slot. Clip sideways only, so nothing is cut above or
+   below the line. */
+.zen-list-item__caption { overflow-x: clip; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; }
 /* Value (code-only; in Figma a text stack in the Trailing slot): a second Info-Content mirrored to the right — the value
    Body/Base/Bold level with the title, its caption Body/Small/Regular Light level with the caption, Spacing/Gap/3XSmall
    apart. It keeps its width (one line each, tabular figures so amounts line up down the list) and the title truncates.

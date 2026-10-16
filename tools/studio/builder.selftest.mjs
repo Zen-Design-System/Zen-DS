@@ -15,7 +15,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
@@ -134,7 +134,7 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("all off: no AppShell, the Stack is the Screen's content", [kids(screen(all)).map((child) => child.name), packageImport(all).filter((name) => FRAME_PARTS.some((part) => part.component === name) || name === "AppShell" || name === "SidebarMenuItem"), validateDialect(all, { components })], [["Stack"], [], []]);
   const back = frame(all, "sections", true);
   check("a part on a Screen without an AppShell wraps its content", [kids(screen(back.code)).map((child) => child.name), kids(shell(back.code)).map((child) => child.name), validateDialect(back.code ?? "", { components })], [["AppShell"], ["Stack"], []]);
-  check("not a part: refused", applyOps(framed, screen().loc, "Screen", [{ op: "screenFrame", prop: "banner", on: true, code: "<AlertBanner />" }], options(framed)).code ?? null, "invalid");
+  check("not a part: refused", applyOps(framed, screen().loc, "Screen", [{ op: "screenFrame", prop: "children", on: true, code: "<Text>Hi</Text>" }], options(framed)).code ?? null, "invalid");
   const stack = kids(shell())[0];
   check("sent on another element: refused", applyOps(framed, stack.loc, "Stack", [{ op: "screenFrame", prop: "aside", on: true }], options(framed)).code ?? null, "invalid");
   check("layouts", [screenLayout("phone"), screenLayout("desktop", "mobile"), screenLayout("tablet"), screenLayout("tablet", "desktop")], ["mobile", "desktop", "mobile", "desktop"]);

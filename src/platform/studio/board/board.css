@@ -205,22 +205,79 @@
 .studio-frame[data-kind="example"] > .pe-card[data-screen="true"] > .pe-card__stage { margin: 0; border-top: 0; }
 
 /* ── Present (full screen at 100%) ── */
+/* A browser window (user, 2026-10-16): the bar across the top (PresentBar), the presented page under it. */
 /* zen-allow-canvas-layer: Present is a page of its own. */
 .studio-present {
   position: fixed;
   z-index: 30;
   inset: 0;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--zen-color-background-canvas-default, #f7f7f7);
   color: var(--zen-color-content-neutral-strongest, #111);
   font-family: var(--zen-typography-font-family-sans, Inter), Arial, sans-serif;
 }
-/* zen-allow-raw-spacing: room below a presented card for the floating Present bar (40 + its 16 inset + 16), so the card's end scrolls clear of it. */
-.studio-present__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 72px; }
+/* The page under the bar is the presented screen's window: layout containment makes it the containing block (and the
+   stacking context) of the screen's fixed layers (a full-screen card, Dialogs, Tooltips: _shared/layer-space.ts places
+   them from it), and it clips them, so nothing of the screen covers the bar. As a size container, it gives AppShell's
+   sticky columns its height (100cqh resolves at the shell against the nearest size container: this page in Auto, a fixed
+   viewport's box otherwise). It scrolls in __scroll, so its fixed layers keep their place while the page scrolls. */
+.studio-present__page { position: relative; flex: 1 1 auto; min-height: 0; overflow: clip; contain: layout; container-type: size; --zen-app-shell-height: 100cqh; }
+.studio-present__scroll { height: 100%; overflow: auto; }
+.studio-present__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
+/* The bar, in the chrome's modes: navigation | the screen's name in an address pill (centred while the window has room,
+   truncating first) | the view controls and Exit. It sits above the page, so its panels drop over the screen. */
+.studio-present-bar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, 480px) minmax(max-content, 1fr);
+  align-items: center;
+  column-gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
+  border-bottom: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  background: var(--zen-color-background-surface-default, #fff);
+}
+.studio-present-bar__group { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-present-bar__group[data-end] { grid-column: 3; justify-content: flex-end; }
+.studio-present-bar__address {
+  display: flex;
+  min-width: 0;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+}
+.studio-present-bar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Viewport's and Modes' panel: the popover surface, hanging from its button's end edge (PresentBar sets `right`) and
+   opening downward as a Zen Popover does below its anchor. */
+.studio-present-bar__panel {
+  position: absolute;
+  top: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px));
+  right: var(--zen-spacing-padding-xsmall, 8px);
+  display: grid;
+  width: min(320px, calc(100vw - 2 * var(--zen-spacing-padding-xsmall, 8px)));
+  box-sizing: border-box;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 6%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  backdrop-filter: var(--zen-style-effect-popover-backdrop-filter);
+  --zen-motion-from-y: -1;
+  transform-origin: top right;
+  animation: zen-motion-pop-in var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) { .studio-present-bar__panel { animation-name: zen-motion-fade-in; } }
 /* zen-allow-focus-ring: the full-window Present dialog takes focus when it opens so Escape and Tab start inside it; it is
    not a control (a ring would frame the whole window), and every control in it (PresentBar first) keeps its own ring. */
 .studio-present:focus-visible { outline: none; }
-/* Present's ‹ 3 / 7 › counter (PresentBar, inside the platform's full-screen bar): steady width while it counts. */
+/* Present's ‹ 3 / 7 › counter (PresentBar): steady width while it counts. */
 .studio-present-bar__count { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
 /* A card presented at its frame width (a desktop screen instead fills the window: the card's own full-screen rules). */
 /* Present's canvas is the stage: the card and its grey stage step aside, so the example sits on the page directly (never
@@ -290,7 +347,7 @@
 }
 /* The Viewport panel's W and H fields, side by side. */
 .studio-viewport-size { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px); }
-/* The presented example's overlays stack above its full-screen card (25) and the Exit pill (26), like the classic portal (z ≥ 30). */
+/* The presented example's overlays stack above its full-screen card (25), like the classic portal (z ≥ 30), inside the page. */
 .studio-present .studio-portal-root { position: relative; z-index: 30; }
 /* A presented desktop screen stays full screen while focus is inside it. platform.css raises a focused card
    (`.pe-card:is(:focus-within, …) { position: relative }`, specificity 0,3,0), which beat the full-screen rule (0,2,0): the

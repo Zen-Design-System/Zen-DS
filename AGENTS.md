@@ -8,7 +8,7 @@ then [`CHANGELOG.md`](CHANGELOG.md).
 
 ## A. Building UI with Zen (examples, templates, apps)
 
-Follow [`AGENTS.consumer.md`](AGENTS.consumer.md): setup, the 12 rules that go wrong most often, API facts, icons,
+Follow [`AGENTS.consumer.md`](AGENTS.consumer.md): setup, the 13 rules that go wrong most often, API facts, icons,
 styling. Then, for each component you use:
 
 1. `docs/guidelines/index.json` — pick by `purpose` / `use` / `avoid`; compact props per component.

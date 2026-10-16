@@ -76,7 +76,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || layerRef.current?.querySelector(presentEscapeOwners)) return;
-        const free = target === layerRef.current || target === document.body || Boolean(target?.closest(".platform-fullscreen-bar button"));
+        const free = target === layerRef.current || target === document.body || Boolean(target?.closest(".studio-present-bar button"));
         if (!free) return;
         event.preventDefault();
         stepPresent(event.key === "ArrowLeft" ? -1 : 1);
@@ -106,23 +106,28 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   return (
     <div ref={layerRef} className="studio-present" role="dialog" aria-label={`${example.title}, full screen`} tabIndex={-1} data-screen={example.screen ? "true" : undefined} {...modes}>
       <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={viewport} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} />
-      <ZenPortalProvider container={portalRoot}>
-        <PlatformTypographyContext value={preview.typography}>
-          <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
-            <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
-              {/* The same two wrappers in Auto (they take no box) and in a fixed viewport, so a change keeps the example's state. */}
-              <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
-                <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
-                  <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+      {/* The page under the bar, as a browser's: a full-screen card and the example's overlays fill it, never the bar. */}
+      <div className="studio-present__page">
+        <ZenPortalProvider container={portalRoot}>
+          <PlatformTypographyContext value={preview.typography}>
+            <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
+              <div className="studio-present__scroll">
+                <div ref={stageRef} className="studio-present__stage" style={{ "--studio-frame-width": `${width}px` } as CSSProperties}>
+                  {/* The same two wrappers in Auto (they take no box) and in a fixed viewport, so a change keeps the example's state. */}
+                  <div className="studio-present__fit" data-viewport={fit.mode} style={fit.fitStyle}>
+                    <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
+                      <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
+                    </div>
+                    <ViewportHandles viewport={viewport} fit={fit} onChange={onViewportChange} />
+                  </div>
                 </div>
-                <ViewportHandles viewport={viewport} fit={fit} onChange={onViewportChange} />
               </div>
-            </div>
-          </PlatformPhoneModesContext>
-        </PlatformTypographyContext>
-      </ZenPortalProvider>
-      {/* The presented example's overlays (Dialog, Menu, Tooltip…) stay above it and in its modes. */}
-      <div ref={setPortalRoot} className="official-portal-root studio-portal-root" {...modes} />
+            </PlatformPhoneModesContext>
+          </PlatformTypographyContext>
+        </ZenPortalProvider>
+        {/* The presented example's overlays (Dialog, Menu, Tooltip…) stay above it and in its modes. */}
+        <div ref={setPortalRoot} className="official-portal-root studio-portal-root" {...modes} />
+      </div>
     </div>
   );
 }

@@ -65,7 +65,7 @@ export function HeatmapChart({ rows, columns, values, format = defaultFormat, ma
   ) : undefined;
   return (
     <ChartBlock ref={ref} kind="heatmap" legend={legend} position="bottom">
-      <div className={["zen-chart", "zen-chart--heatmap", className].filter(Boolean).join(" ")} data-kind="heatmap" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-columns": columns.length } as CSSProperties}>
+      <div className={["zen-chart", "zen-chart--heatmap", className].filter(Boolean).join(" ")} data-kind="heatmap" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-columns": columns.length, "--zen-chart-rows": rows.length } as CSSProperties}>
         <div className="zen-chart__heat" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}>
           <span aria-hidden="true" />

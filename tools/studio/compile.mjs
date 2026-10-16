@@ -7,7 +7,8 @@
 // - Each Screen is a branch on the current screen (history, so Back works); a Screen with a `state` is the variant shown
 //   while the `state` prop names it. Board / Screen / Overlay are the design's runtime: they do not reach the output.
 // - proto.navigate("x") → navigate("x") (and onNavigate), open / close → an `overlay` state, back → the history (then
-//   onBack), toast → useToast, link → window.open. A TODO(dev) block names every handler to wire.
+//   onBack), toast → useToast, link → window.open. A TODO(dev) block names every handler to wire. A choice control's
+//   per-item action (proto.navigate({ home: "screen-1" })) picks its target by the item the control hands over.
 // - Each Overlay frame's overlay renders with open={overlay === "x"} and onOpenChange.
 // - The mock becomes `export const mock` with a type inferred from it; `{mock.x}` reads the `data` prop (default: mock).
 // - `zen-media:` / `zen-asset:` photos become imports from ./assets (the handoff zip carries the files; `mediaFile(kind,
@@ -15,7 +16,8 @@
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
 //   Table column shows its row's field named by its id. Fields a component's object type lacks are left out.
 import { SCREEN_CHROME, parsePage, screenLayout } from "./dialect.mjs";
-import { literalProp, objectFields, requiredFunctions, standInKind } from "./standins.mjs";
+import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
+import { pruneHidden } from "./visibility.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -116,7 +118,22 @@ const refCode = (value) => [value.root === "mock" ? "data" : value.root, ...valu
 /** A proto action as the handler code a prop receives. */
 function protoCode(value, ctx, where) {
   const [arg] = value.args;
-  ctx.actions.push({ frame: ctx.frame, where, action: value.action, target: arg === undefined ? null : arg });
+  // Its options (animation, After delay's delay) go to the handoff; the code switches screens without animating.
+  const options = value.args[value.action === "close" || value.action === "back" ? 0 : 1];
+  ctx.actions.push({ frame: ctx.frame, where, action: value.action, target: arg === undefined || arg === options ? null : arg, ...(options && typeof options === "object" ? { options } : {}) });
+  // One target per item of a choice control (`proto.navigate({ home: "screen-1" })`): the item the control hands over
+  // (its value, or the item with its id) picks the entry; an item without one does nothing.
+  if ((value.action === "navigate" || value.action === "open") && arg && typeof arg === "object" && !Array.isArray(arg)) {
+    ctx.uses.add("choice");
+    const entries = Object.entries(arg).map(([item, target]) => `${item} → ${target}`).join(", ");
+    if (value.action === "navigate") {
+      ctx.uses.add("navigate");
+      ctx.handlers.push(`${where} navigates by the chosen item (${entries})`);
+      return `(choice: unknown) => { const to = (${dataLiteral(arg, "")} as Record<string, Parameters<typeof navigate>[0] | undefined>)[choiceKey(choice)]; if (to) navigate(to); }`;
+    }
+    ctx.uses.add("overlay");
+    return `(choice: unknown) => { const to = (${dataLiteral(arg, "")} as Record<string, string | undefined>)[choiceKey(choice)]; if (to) setOverlay(to as Parameters<typeof setOverlay>[0]); }`;
+  }
   switch (value.action) {
     case "navigate": ctx.uses.add("navigate"); ctx.handlers.push(`${where} navigates to "${arg}"`); return `() => navigate(${json(String(arg))})`;
     case "open": ctx.uses.add("overlay"); return `() => setOverlay(${json(String(arg))})`;
@@ -148,6 +165,12 @@ function valueCode(value, ctx, indent, where) {
       return !flat.includes("\n") && indent.length + flat.length <= WIDTH ? flat : `{\n${fields.map((field) => `${indent}${UNIT}${field},`).join("\n")}\n${indent}}`;
     }
     case "element": return elementCode(value.node, ctx, indent);
+    case "fragment": {
+      // A slot holding several layers (Figma's slot): they stay side by side in the prop, the component lays them out.
+      const kids = value.children.map((child) => childCode(child, ctx, indent + UNIT));
+      const flat = `<>${kids.join("")}</>`;
+      return !flat.includes("\n") && indent.length + flat.length <= WIDTH ? flat : `<>\n${kids.map((kid) => `${indent}${UNIT}${kid}`).join("\n")}\n${indent}</>`;
+    }
     case "proto": return protoCode(value, ctx, where);
     case "ref": return refCode(value);
     case "code": return value.code;
@@ -234,8 +257,19 @@ function elementCode(node, ctx, indent, extra = []) {
     const path = value.kind === "ref" && literalProp(node.name, name) ? dataPath(value, ctx) : null;
     if (path) ctx.typed.set(path.join("."), { component: node.name, prop: name });
   }
+  // While hovering (Open overlay): the overlay shows while the pointer stays.
+  const hover = node.props.whileHovering;
+  const hovering = [];
+  if (hover) {
+    node = { ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "whileHovering")) };
+    if (hover.kind === "proto" && hover.action === "open" && typeof hover.args[0] === "string") {
+      ctx.uses.add("overlay");
+      ctx.actions.push({ frame: ctx.frame, where: `<${node.name}> whileHovering`, action: "hover", target: hover.args[0] });
+      hovering.push(["onPointerEnter", `() => setOverlay(${json(hover.args[0])})`], ["onPointerLeave", "() => setOverlay(null)"]);
+    }
+  }
   const props = [
-    ...extra.map(([name, code]) => `${name}={${code}}`),
+    ...[...extra, ...hovering].map(([name, code]) => `${name}={${code}}`),
     ...Object.entries(withStandIns(knownFieldsOnly(node), ctx)).map(([name, value]) => attribute(name, value, ctx, inner, `<${node.name}> ${name}`)),
   ];
   const oneLine = props.every((prop) => !prop.includes("\n")) && indent.length + node.name.length + 2 + props.join(" ").length <= WIDTH;
@@ -285,7 +319,8 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   if (page.errors.length || !page.board) return { error: page.errors[0] ? `line ${page.errors[0].line}: ${page.errors[0].message}` : "The page has no board" };
   const title = String(page.header?.title ?? "Untitled");
   const name = componentName(title);
-  const frames = page.board.children.filter((child) => child.kind === "element");
+  // Each frame as its layout draws it: hidden layers and switched-off slots left out (tools/studio/visibility.mjs).
+  const frames = page.board.children.filter((child) => child.kind === "element").map((node) => pruneHidden(node, node.name === "Screen" ? screenLayout(literalOf(node, "device") ?? "desktop", literalOf(node, "layout")) : undefined)).filter(Boolean);
   const screens = frames.filter((node) => node.name === "Screen");
   const overlays = frames.filter((node) => node.name === "Overlay");
   if (!screens.length) return { error: "The page has no Screen" };
@@ -325,8 +360,38 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     const props = { ...root.props };
     delete props.open;
     delete props.defaultOpen;
-    return `${body}{/* Overlay "${id}" */}\n${body}${elementCode({ ...root, props }, ctx, body, [["open", `overlay === ${json(id)}`], ["onOpenChange", "(open: boolean) => { if (!open) setOverlay(null); }"]])}`;
+    if (opensItself(root.name)) return `${body}{/* Overlay "${id}" */}\n${body}${elementCode({ ...root, props }, ctx, body, [["open", `overlay === ${json(id)}`], ["onOpenChange", "(open: boolean) => { if (!open) setOverlay(null); }"]])}`;
+    // Any other layer: shown while the overlay is open, where the design places it (the developer positions it).
+    const position = String(literalOf(node, "position") ?? "center").replace("-", " ");
+    const closes = literalOf(node, "closeOnOutside") !== false;
+    const dim = literalOf(node, "background") === true;
+    ctx.handlers.push(`Overlay "${id}" (<${root.name}>): show it at the ${position} of the screen${dim ? " over a dimmed screen (Background/Overlay)" : ""}${closes ? "; a press outside closes it" : ""}`);
+    const inner = body + UNIT;
+    return `${body}{/* Overlay "${id}" · ${position}${dim ? " · dims the screen" : ""}${closes ? " · closes on an outside press" : ""} */}\n${body}{overlay === ${json(id)} && (\n${inner}${elementCode({ ...root, props }, ctx, inner)}\n${body})}`;
   }).filter(Boolean);
+
+  // After delay (a Screen's onDelay): once that screen shows, its action runs when the delay is over.
+  const delayEffects = screens.flatMap((node) => {
+    const value = node.props.onDelay;
+    if (value?.kind !== "proto") return [];
+    const id = String(literalOf(node, "id"));
+    const state = literalOf(node, "state");
+    ctx.frame = `screen:${id}${typeof state === "string" ? `:${state}` : ""}`;
+    const handler = protoCode(value, ctx, `Screen "${id}" after its delay`);
+    const options = value.args[value.action === "close" || value.action === "back" ? 0 : 1];
+    const delay = options && typeof options === "object" && Number.isFinite(options.delay) ? options.delay : 800;
+    const tests = [...(many ? [`screen !== ${json(id)}`] : []), ...(typeof state === "string" ? [`state !== ${json(state)}`] : [])];
+    const deps = [...(many ? ["screen"] : []), ...(typeof state === "string" ? ["state"] : [])];
+    ctx.uses.add("effect");
+    return [
+      `  // After delay: ${delay} ms on Screen "${id}"${typeof state === "string" ? ` (${state})` : ""}.`,
+      "  useEffect(() => {",
+      ...(tests.length ? [`    if (${tests.join(" || ")}) return undefined;`] : []),
+      `    const timer = setTimeout(${handler}, ${delay});`,
+      "    return () => clearTimeout(timer);",
+      `  }, [${deps.join(", ")}]);`,
+    ];
+  });
 
   const screenLines = branches.flatMap((branch) => {
     // A Screen on another background layer says so: the app's page (AppShell canvas, or its own) sets it.
@@ -344,7 +409,8 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   const lines = [];
   lines.push(`// Generated by Zen Studio from ${file ?? `${name}.zen.tsx`}. Edit the design, then export again.`);
   const typesProps = hasMock && ctx.typed.size > 0;
-  if (usesState) lines.push(`import { useState${typesProps ? ", type ComponentProps" : ""} } from "react";`);
+  const reactHooks = [...(ctx.uses.has("effect") ? ["useEffect"] : []), ...(usesState ? ["useState"] : [])];
+  if (reactHooks.length) lines.push(`import { ${reactHooks.join(", ")}${typesProps ? ", type ComponentProps" : ""} } from "react";`);
   else if (typesProps) lines.push(`import type { ComponentProps } from "react";`);
   const zen = [...ctx.components, ...(ctx.uses.has("toast") ? ["useToast"] : [])].sort((a, b) => a.localeCompare(b));
   lines.push(`import { ${zen.join(", ")} } from "@zen-ds/react";`);
@@ -396,9 +462,13 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   if (ctx.uses.has("navigate")) {
     lines.push(`  const navigate = (next: ${screenType}) => {`, ...(overlayState ? ["    setOverlay(null);"] : []), "    setHistory((stack) => [...stack, next]);", "    onNavigate?.(next);", "  };");
   }
+  if (ctx.uses.has("choice")) {
+    lines.push("  /** The item a choice control hands over (its value, or the item with its id), as the key of a per-item action. */", "  const choiceKey = (choice: unknown) => String(choice && typeof choice === \"object\" ? (choice as { id?: unknown; value?: unknown }).id ?? (choice as { value?: unknown }).value : choice);");
+  }
   if (ctx.uses.has("back")) {
     lines.push("  const back = () => {", ...(overlayState ? ["    if (overlay) { setOverlay(null); return; }"] : []), "    if (history.length > 1) setHistory((stack) => stack.slice(0, -1));", "    else onBack?.();", "  };");
   }
+  lines.push(...delayEffects);
   lines.push("  return (");
   lines.push("    <>");
   lines.push(...screenLines);

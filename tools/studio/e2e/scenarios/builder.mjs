@@ -194,6 +194,55 @@ async function setAction(page, action, target) {
 const playing = (page) => page.locator(".studio-player");
 const playScreen = (page) => playing(page).locator(".studio-player__device").getAttribute("data-screen-id");
 
+
+/** A header page (user, 2026-10-16: header slots as Figma's): a root AppShell whose top bar holds one Search and whose
+ *  actions are a fragment of three layers, and a phone Screen with a desktop-only and a phone-only Text. */
+const headerSlotsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, AppShellAction, Badge, Search, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">
+        <AppShell
+          header={<Search aria-label="Search" placeholder="Search expenses" />}
+          headerActions={<><Badge theme="neutral">Pro</Badge><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><AppShellAccount name="Khoa Dang" /></>}
+        >
+          <Stack gap="md" padding="xl">
+            <Text>Always</Text>
+            <Text hidden="mobile">Desktop only</Text>
+            <Text hidden="desktop">Phone only</Text>
+          </Stack>
+        </AppShell>
+      </Screen>
+      <Screen id="screen-2" title="Phone" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Always</Text>
+          <Text hidden="mobile">Desktop only</Text>
+          <Text hidden="desktop">Phone only</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** A new page whose text is `text(name)`, written to the pages folder and synced into the browser (as B-36 does). */
+async function seededPage(ctx, text, has) {
+  const { page, id, name } = await newPage(ctx, { device: "desktop" });
+  await until(async () => (folderText(ctx, id) ?? "").includes(JSON.stringify(name)), { message: "the named page in the folder" });
+  await sleep(500);
+  fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`), text(name));
+  await mineOption(page, /^Sync with the folder/);
+  await until(async () => has.test((await pageText(page, id)) ?? ""), { message: "the seeded page in the browser" });
+  await page.reload();
+  await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 10000 });
+  return { page, id, name, text: async () => (await pageText(page, id)) ?? "" };
+}
+
 export const rows = [
   {
     id: "B-01", feature: "New page: a blank phone page opens on the canvas, listed under My pages", wp: "GĐ2 M1",
@@ -449,6 +498,7 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await flowPage(ctx);
       await page.getByRole("button", { name: "Add overlay" }).click();
+      await page.getByRole("menuitem", { name: "Dialog" }).click(); // Add overlay asks what it holds
       await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1 in the page" });
       const text = await pageText(page, id);
       if (!/import \{ Board, Overlay, Screen, proto \} from "@zen-ds\/react\/builder";/.test(text)) throw new Error("Overlay not imported");
@@ -506,11 +556,12 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await flowPage(ctx);
       await page.getByRole("button", { name: "Add overlay" }).click();
+      await page.getByRole("menuitem", { name: "Dialog" }).click(); // Add overlay asks what it holds
       await until(async () => /<Overlay id="overlay-1">/.test((await pageText(page, id)) ?? ""), { message: "overlay-1" });
       await sleep(400);
       await clickNamed(page, id, "Button");
       await prototypeTab(page);
-      await setAction(page, "Open overlay", "overlay-1");
+      await setAction(page, "Open overlay", "Are you sure?"); // an Overlay is listed by its dialog's title
       await until(async () => /onClick=\{proto\.open\("overlay-1"\)\}/.test((await pageText(page, id)) ?? ""), { message: "the open action" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("p");
@@ -685,7 +736,7 @@ export const rows = [
     },
   },
   {
-    id: "B-25", feature: "A blank page comes with its app frame (desktop: Sidebar + Page header); Screen › Sidebar (a toggle) switches it off and on", wp: "app frame 2026-10-09",
+    id: "B-25", feature: "A blank page comes with its app frame (desktop: Sidebar + Page header); Screen › Sidebar (a toggle) switches it off and on, keeping its rows (hiddenSlots, 2026-10-16)", wp: "app frame 2026-10-09",
     async run(ctx) {
       const { page, id, name } = await newPage(ctx, { device: "desktop" });
       const frame = page.locator('[data-studio-frame="screen:screen-1"]');
@@ -698,10 +749,11 @@ export const rows = [
       // The Toggle's label (it switches the part like the switch itself).
       const toggle = inspectorRow(page, "sidebar").getByText("Sidebar", { exact: true });
       await toggle.click();
-      await until(async () => !/\bsidebar=\{/.test((await pageText(page, id)) ?? ""), { message: "the sidebar prop removed" });
+      // Off hides the part and keeps its rows (user, 2026-10-16: as Figma's boolean), so on brings the same Sidebar back.
+      await until(async () => /hiddenSlots=\{\["sidebar"\]\}/.test((await pageText(page, id)) ?? "") && /\bsidebar=\{<Sidebar /.test((await pageText(page, id)) ?? ""), { message: "the sidebar hidden, its rows kept" });
       await until(async () => (await frame.locator(".zen-sidebar").count()) === 0, { message: "no Sidebar on the Screen" });
       await toggle.click();
-      await until(async () => /\bsidebar=\{<Sidebar /.test((await pageText(page, id)) ?? ""), { message: "the Sidebar back in the page" });
+      await until(async () => !/hiddenSlots/.test((await pageText(page, id)) ?? "") && /\bsidebar=\{<Sidebar /.test((await pageText(page, id)) ?? ""), { message: "the Sidebar shown again" });
       await until(async () => (await frame.locator(".zen-sidebar").count()) > 0, { message: "the Sidebar back on the Screen" });
       return "Sidebar + Page header; Sidebar off → on";
     },
@@ -812,7 +864,9 @@ export const rows = [
       // The page as the Studio kept it before 2026-10-15 (user: "trang Dashboard tôi vừa tạo từ template bị lỗi").
       fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`), legacyFramePage(name));
       await mineOption(page, /^Sync with the folder/);
-      await until(async () => /<Screen [^>]*\bsidebar=\{/.test((await pageText(page, id)) ?? ""), { message: "the old page in the browser" }).catch(async (error) => { throw new Error(`${error.message} (browser: ${((await pageText(page, id)) ?? "").slice(0, 400).replace(/\s+/g, " ")} · folder: ${(folderText(ctx, id) ?? "").slice(0, 200).replace(/\s+/g, " ")})`); });
+      // The folder is watched (2026-10-16): the old page may already be moved to the master layout when it arrives, as
+      // opening it does (the template's Sidebar, selectedId "dashboard", is how its text shows either way).
+      await until(async () => /<Screen [^>]*\bsidebar=\{|selectedId="dashboard"/.test((await pageText(page, id)) ?? ""), { message: "the old page in the browser" }).catch(async (error) => { throw new Error(`${error.message} (browser: ${((await pageText(page, id)) ?? "").slice(0, 400).replace(/\s+/g, " ")} · folder: ${(folderText(ctx, id) ?? "").slice(0, 200).replace(/\s+/g, " ")})`); });
       await page.reload();
       const text = async () => (await pageText(page, id)) ?? "";
       await until(async () => !/<Screen [^>]*\bsidebar=\{/.test(await text()) && ((await text()).match(/<Sidebar\b/g) ?? []).length === 1 && ((await text()).match(/<PageHeader\b/g) ?? []).length === 1, { message: "the Screen's frame moved into the AppShell, one Sidebar and one Page header left" }).catch(async (error) => { throw new Error(`${error.message} (Sidebars ${((await text()).match(/<Sidebar\b/g) ?? []).length})`); });
@@ -996,6 +1050,87 @@ export const rows = [
       await pickOption(page, "variant", "Subtle");
       await until(async () => /<Tabs [^<]*variant="subtle"/.test(await text()), { message: '<Tabs … variant="subtle"> in the page' }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       return "crumb › Emphasis medium + Dash off → that crumb · tab › Label History → its item · tab › Variant Subtle → Tabs variant";
+    },
+  },
+  {
+    id: "B-38", feature: "New page › Empty page: one Screen with nothing in it (no app frame, no Stack), as Figma's new frame (user: \"cho phép tạo trang frame trống hoàn toàn\")", wp: "header slots 2026-10-16",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const from = page.url();
+      await showLeftTab(page, "pages");
+      await openStudioSpace(page);
+      await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: "New page" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await dialog.getByText("Empty page", { exact: true }).click();
+      await dialog.getByRole("button", { name: "Create page" }).click();
+      await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
+      const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+      const text = (await pageText(page, id)) ?? "";
+      if (!/<Screen [^>]*device="desktop" \/>/.test(text)) throw new Error(`the Screen is not empty: ${text.slice(text.indexOf("<Board>"), text.indexOf("</Board>")).replace(/\s+/g, " ")}`);
+      if (/<AppShell|<Stack|<Text|topNavigation|bottomNavigation/.test(text)) throw new Error("the empty page came with an app frame or content");
+      const frame = page.locator('[data-studio-frame^="screen:"]').first();
+      if (await frame.locator('[data-zen-name]:not([data-zen-name="Screen"])').count()) throw new Error("the empty Screen draws layers");
+      return "Empty page → <Screen … />, nothing drawn";
+    },
+  },
+  {
+    id: "B-39", feature: "A header slot holding one layer takes a second one (a prop holds several layers, <>…</>): ⌘D on the top bar's Search makes two Searches in the bar; ⌘Z takes the copy back", wp: "header slots 2026-10-16",
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, headerSlotsPage, /headerActions=\{<>/);
+      await focusScreen(page);
+      await clickNamed(page, id, "Search");
+      await until(async () => (await selectedName(page)) === "Search", { message: "the Search selected" });
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => /header=\{<>\s*<Search[^]*<Search[^]*<\/>\}/.test(await text()), { message: "two Searches in the top bar's prop" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      const bar = page.locator('[data-studio-frame="screen:screen-1"] .zen-app-shell__header');
+      await until(async () => (await bar.locator(".zen-search").count()) === 2, { message: "two Searches drawn in the bar" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => ((await text()).match(/<Search\b/g) ?? []).length === 1, { message: "⌘Z: one Search again" });
+      return "⌘D in a one-layer slot → <>Search Search</> in the bar; ⌘Z → one";
+    },
+  },
+  {
+    id: "B-40", feature: "Hide a layer as Figma's eye: ⇧⌘H on the Badge in the top bar's actions writes hidden, the canvas leaves it out and Layers lists it dimmed; its eye shows it again. hidden=\"mobile\" / \"desktop\" draw on the other layout only", wp: "header slots 2026-10-16",
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, headerSlotsPage, /headerActions=\{<>/);
+      const desktop = page.locator('[data-studio-frame="screen:screen-1"]');
+      const phone = page.locator('[data-studio-frame="screen:screen-2"]');
+      const words = async (frame) => (await frame.innerText()).replace(/\s+/g, " ");
+      await until(async () => (await words(desktop)).includes("Desktop only") && !(await words(desktop)).includes("Phone only") && (await words(phone)).includes("Phone only") && !(await words(phone)).includes("Desktop only"), { message: "each layout draws its own Text" });
+      await focusScreen(page);
+      await clickNamed(page, id, "Badge");
+      await until(async () => (await selectedName(page)) === "Badge", { message: "the Badge selected" });
+      await page.keyboard.press("ControlOrMeta+Shift+KeyH");
+      await until(async () => /<Badge [^>]*\bhidden\b/.test(await text()), { message: "<Badge … hidden> in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => (await desktop.locator('[data-zen-name="Badge"]').count()) === 0, { message: "the Badge not drawn" });
+      await showLeftTab(page, "layers");
+      const row = page.locator('.studio-layers__row[data-hidden="true"]').filter({ hasText: "Badge" }).first();
+      await row.waitFor({ state: "visible", timeout: 5000 }).catch(() => { throw new Error("no dimmed Badge row in Layers"); });
+      await row.hover();
+      await row.locator(".studio-layers__eye").click();
+      await until(async () => !/<Badge [^>]*\bhidden\b/.test(await text()) && (await desktop.locator('[data-zen-name="Badge"]').count()) === 1, { message: "the eye shows the Badge again" });
+      return "⇧⌘H → hidden, not drawn, dimmed row in Layers; eye → back; mobile/desktop-only Texts on their layout";
+    },
+  },
+  {
+    id: "B-41", feature: "Screen › Top bar actions off hides the slot and keeps its three layers (hiddenSlots, Figma's boolean); on brings the same layers back, not a starting AppShellAccount", wp: "header slots 2026-10-16",
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, headerSlotsPage, /headerActions=\{<>/);
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      const toggle = inspectorRow(page, "headerActions").getByRole("switch");
+      await toggle.waitFor({ state: "visible", timeout: 5000 });
+      if ((await toggle.getAttribute("aria-checked")) !== "true") throw new Error("Top bar actions reads off");
+      await toggle.click();
+      await until(async () => /hiddenSlots=\{\["headerActions"\]\}/.test(await text()), { message: "hiddenSlots on the AppShell" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      if (!/<Badge[^>]*>Pro<\/Badge>/.test(await text()) || !/<AppShellAccount name="Khoa Dang"/.test(await text())) throw new Error("switching off removed the layers");
+      const desktop = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await desktop.locator(".zen-app-shell__header-actions").count()) === 0, { message: "the actions not drawn" });
+      await toggle.click();
+      await until(async () => !/hiddenSlots/.test(await text()) && (await desktop.locator(".zen-app-shell__header-actions [data-zen-name]").count()) === 3, { message: "the same three layers back" });
+      if (((await text()).match(/<AppShellAccount\b/g) ?? []).length !== 1) throw new Error("switching on added a starting account");
+      return "off → hiddenSlots, layers kept; on → the same three";
     },
   },
 ];

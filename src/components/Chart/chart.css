@@ -64,6 +64,11 @@
   .zen-chart[data-dense="true"] .zen-chart__sector[data-active] + .zen-chart__sector .zen-chart__x,
   .zen-chart[data-dense="true"] .zen-chart__sector:has(+ .zen-chart__sector[data-active]) .zen-chart__x { visibility: hidden; }
 }
+/* A plot under 280px (a card on a 320px phone): six month pills with Padding/XSmall no longer fit their sectors and
+   overlapped; Padding/2XSmall keeps "Apr … Sep" apart. */
+@container zen-chart-plot (max-width: 280px) {
+  .zen-chart__x { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
+}
 .zen-chart__sector[data-active] .zen-chart__x, .zen-chart__hlabel[data-active] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); }
 /* The Tooltip hangs from its sector by the sector's place along the plot (chartCore anchorStyle), so it stays inside. */
 .zen-chart__tooltip { position: absolute; top: 2px; left: 50%; z-index: 1; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
@@ -92,7 +97,7 @@
 /* Horizontal bars: category pills · 24px bars on a dashed vertical grid · a value column · the value axis below
    (Label/Small/Medium); the last axis label reaches into the value column's gap, so it stays inside the chart. */
 .zen-chart--horizontal { display: block; }
-.zen-chart__hplot { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: repeat(var(--zen-chart-count, 4), 24px) auto; gap: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-gap-xsmall, 8px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__hplot { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: repeat(var(--zen-chart-count, 4), 24px) auto; gap: calc(var(--zen-spacing-gap-medium, 16px) + var(--zen-chart-grow, 0px) / max(1, var(--zen-chart-count, 4))) var(--zen-spacing-gap-xsmall, 8px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
 .zen-chart__hgrid { position: relative; grid-column: 2; grid-row: 1 / -2; }
 /* zen-allow-dashed-color: the vertical gridlines of horizontal bars, the same dashed Border/Neutral/Pale data guide as the plot grid. */
 .zen-chart__hgrid > span { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
@@ -132,12 +137,17 @@
 .zen-chart-round[data-legend="start"] { flex-wrap: wrap-reverse; }
 .zen-chart-round[data-legend="start"] > .zen-chart__legend { order: -1; }
 .zen-chart-round[data-legend="start"] > .zen-chart__legend, .zen-chart-round[data-legend="end"] > .zen-chart__legend { flex: 1 1 100px; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Wrapped under (or over) the ring in a narrow box (ChartBlock data-wrapped): the legend is a centred row that wraps, as
+   the legend under any chart (Figma auto layout Wrap), not a tall column beside nothing. */
+.zen-chart-round[data-wrapped="true"] > .zen-chart__legend { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); }
 /* Total beside the ring (DonutChart totalPosition="start"): a start column with the total on top and the legend at its
    foot, the ring at the end; once they no longer share a row the column comes first and the ring under it. The total
    reads like the Chart Card's description and value. */
 .zen-chart-round[data-layout="total-start"] { flex-direction: row; flex-wrap: wrap; align-items: stretch; gap: var(--zen-spacing-gap-large, 24px); }
 .zen-chart__side { display: flex; min-width: 0; flex: 1 1 160px; flex-direction: column; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-chart__side > .zen-chart__legend { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The column above the ring once they no longer share a row: its legend wraps in a row under the total, from the start. */
+.zen-chart-round[data-wrapped="true"] .zen-chart__side > .zen-chart__legend { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart-round[data-layout="total-start"] > .zen-chart--round { flex: 0 1 var(--zen-chart-size, 200px); align-self: center; margin-inline-start: auto; }
 .zen-chart__total { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart__total-label { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
@@ -167,7 +177,7 @@
 .zen-chart__heat-label[data-axis="column"] { justify-self: center; }
 .zen-chart__heat-label[data-axis="row"] { justify-self: end; padding-inline-end: var(--zen-spacing-padding-2-xsmall, 4px); }
 .zen-chart__heat-label[data-active="true"] { color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-chart__cell { position: relative; height: 24px; border-radius: var(--zen-corner-radius-small, 8px); cursor: pointer; }
+.zen-chart__cell { position: relative; height: calc(24px + var(--zen-chart-grow, 0px) / var(--zen-chart-rows, 1)); border-radius: var(--zen-corner-radius-small, 8px); cursor: pointer; }
 .zen-chart__cell[data-active="true"] { z-index: 1; box-shadow: 0 0 0 2px var(--zen-color-border-neutral-solid-default, #111); }
 .zen-chart__cell-tip { position: absolute; bottom: calc(100% + var(--zen-spacing-gap-2-xsmall, 4px)); left: 50%; pointer-events: none; transform: translateX(calc(var(--zen-chart-anchor, .5) * -100%)); }
 .zen-chart__cell[data-level="0"], .zen-chart__scale-step[data-level="0"] { background: var(--zen-color-background-support-brand-pale, rgb(255 2 152 / 4%)); }
@@ -193,7 +203,15 @@
 .zen-chart__swatch { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); }
 
 /* Chart card: header (title bar · description · value) · Segmented · chart, gap 16. */
-.zen-chart-card__body { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-chart-card__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+/* A Chart Card stretched by its grid row (the user 2026-10-16: "scale the chart", Figma Chart-Card: the chart fills): the
+   free height reaches the chart as --zen-chart-grow (ChartCard useChartGrow), so the charts of a row end together
+   instead of leaving an empty band under the shorter one (audit card-gap). A ring that already fills the card's width
+   cannot grow more: the chart sits in the middle of what is left. */
+.zen-chart-card > .zen-card__content { flex: 1 1 auto; }
+.zen-chart-card__body > :last-child:not(.zen-chart-card__header) { margin-block: auto; }
+/* Beside its legend (start / end, total start) a ring keeps its size: a wider ring would push the legend under it. */
+.zen-chart-round:is([data-legend="start"], [data-legend="end"], [data-layout="total-start"]):not([data-wrapped="true"]) { --zen-chart-grow: 0px; }
 .zen-chart-card__header { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart-card__titlebar { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart-card__icon { display: inline-flex; flex: none; color: var(--zen-color-content-neutral-strongest, #111); }
@@ -240,7 +258,7 @@
 .zen-chart__list { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
 .zen-chart__list:focus-visible, .zen-chart__bullets:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
 .zen-chart__list-head, .zen-chart__list-rows, .zen-chart__list-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
-.zen-chart__list-rows { row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-chart__list-rows { row-gap: calc(var(--zen-spacing-gap-xsmall, 8px) + var(--zen-chart-grow, 0px) / max(1, var(--zen-chart-count, 2) - 1)); }
 .zen-chart__list-head { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-chart__list-head > :last-child, .zen-chart__list-value { justify-self: end; text-align: end; }
 .zen-chart__list-row { align-items: center; }
@@ -260,7 +278,7 @@
    align="start"). */
 .zen-chart--bullet { display: block; }
 .zen-chart__bullets { border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
-.zen-chart__bullet-rows { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-chart__bullet-rows { display: flex; flex-direction: column; gap: calc(var(--zen-spacing-gap-medium, 16px) + var(--zen-chart-grow, 0px) / max(1, var(--zen-chart-count, 2) - 1)); }
 .zen-chart__bullet { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart__bullet-head { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart__bullet-name { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
@@ -315,7 +333,7 @@
 .zen-chart__funnel { position: relative; border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
 .zen-chart__funnel:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
 /* zen-allow-raw-spacing: Figma's FIXED 84px label and 40px share columns, not spacing between elements. */
-.zen-chart__stages { display: grid; grid-template-columns: minmax(84px, max-content) minmax(0, 1fr) minmax(40px, max-content); gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); }
+.zen-chart__stages { display: grid; grid-template-columns: minmax(84px, max-content) minmax(0, 1fr) minmax(40px, max-content); gap: calc(var(--zen-spacing-gap-xsmall, 8px) + var(--zen-chart-grow, 0px) / max(1, var(--zen-chart-count, 2) - 1)) var(--zen-spacing-gap-small, 12px); }
 .zen-chart__stage { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; cursor: pointer; }
 .zen-chart__stage-label { display: flex; min-width: 0; flex-direction: column; }
 .zen-chart__stage-name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
@@ -364,11 +382,13 @@
    after it on the start half, centred on the point and kept inside the plot's height (16px = half the Tooltip). */
 .zen-chart__point-tip { position: absolute; z-index: 1; top: clamp(calc(16px - var(--zen-chart-lane-top)), var(--zen-chart-y, 50%), calc(100% - 16px)); pointer-events: none; transform: translate(calc(-100% - var(--zen-element-size-popular-2-xsmall, 12px)), -50%); }
 .zen-chart__point-tip[data-side="end"] { transform: translate(var(--zen-element-size-popular-2-xsmall, 12px), -50%); }
-/* Grouped bars: per period a centred group of 12px bars Spacing/Gap/2XSmall apart (narrower when the column can't hold
-   them), Corner-Radius/XSmall on the top corners; the groups that aren't active ease to 88%, as stacked columns. */
+/* Grouped bars: per period a centred group of bars Spacing/Gap/2XSmall apart, Corner-Radius/XSmall on the top corners;
+   the groups that aren't active ease to 88%, as stacked columns. 12px at Figma's size; with room to spare (user,
+   2026-10-16: "Các cột ốm quá. Khi không gian còn khá nhiều") the group grows to 70% of its column, each bar up to
+   32px, and narrower than 12px only when the column can't hold them (--zen-chart-series: the bars in a group). */
 .zen-chart__group, .zen-chart__combo-column { display: flex; height: 100%; min-width: 0; align-items: flex-end; justify-content: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
 .zen-chart__group { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.zen-chart__group-bar { display: block; min-width: 2px; min-height: 2px; flex: 0 1 12px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
+.zen-chart__group-bar { display: block; min-width: 2px; min-height: 2px; flex: 0 1 clamp(12px, calc((70% - (var(--zen-chart-series, 2) - 1) * var(--zen-spacing-gap-2-xsmall, 4px)) / var(--zen-chart-series, 2)), 32px); border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
 .zen-chart__group:not([data-active="true"]) .zen-chart__group-bar, .zen-chart__combo-column:not([data-active="true"]) .zen-chart__combo-bar { opacity: .88; }
 /* Combo: 20px Color Chart Sector/Primary bars (Corner-Radius/XSmall top corners) on the start axis, a Color Chart
    Sector/Secondary line on the end axis (Figma Y-Axis-End: left-aligned, Spacing/Padding/XSmall after the plot). The end
@@ -378,7 +398,8 @@
 .zen-chart-combo .zen-chart__sector::before { content: none; }
 .zen-chart__y-end { box-sizing: content-box; padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); text-align: left; }
 .zen-chart__y-end > span { right: auto; left: var(--zen-spacing-padding-xsmall, 8px); }
-.zen-chart__combo-bar { display: block; width: min(100%, 20px); min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-sector-primary, #ff66d4); }
+/* 20px at Figma's size, half its column with room to spare (up to 40px, as a bar chart's bar), never wider than it. */
+.zen-chart__combo-bar { display: block; width: min(100%, clamp(20px, 50%, 40px)); min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-sector-primary, #ff66d4); }
 .zen-chart__combo-line { stroke: var(--zen-chart-sector-secondary, #111); }
 /* Motion: grouped and combo bars rise from the baseline under their top corners (clip, Slow, Emphasized, staggered per
    period); areas and the combo line wipe in from the left with their dots (.zen-chart__marks, as the line chart); the

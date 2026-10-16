@@ -20,13 +20,17 @@ export const screenLayoutOf = (device: PageDevice, layout?: ScreenLayout): Scree
 /** Width of a device frame (CSS px). */
 export const DEVICE_WIDTH: Readonly<Record<PageDevice, number>> = { phone: 390, tablet: 768, desktop: 1440 };
 
+/** What a page's `proto.*` calls do. `options` is the action's own (protoModel.ts ProtoOptions: animation, delay);
+ *  `hover`: what runs While hovering triggers, an overlay shown while the pointer stays (Play's; the canvas never opens
+ *  one under the pointer). */
 export type ProtoActions = {
-  navigate: (screen: string) => void;
-  open: (overlay: string) => void;
+  navigate: (screen: string, options?: unknown) => void;
+  open: (overlay: string, options?: unknown) => void;
   close: () => void;
   back: () => void;
   toast: (options: unknown) => void;
   link: (url: string) => void;
+  hover?: { enter: (overlay: string, options?: unknown) => void; leave: () => void };
 };
 const inert: ProtoActions = { navigate: () => undefined, open: () => undefined, close: () => undefined, back: () => undefined, toast: () => undefined, link: () => undefined };
 export const ProtoContext = createContext<ProtoActions>(inert);
@@ -36,10 +40,23 @@ export const ProtoContext = createContext<ProtoActions>(inert);
 export const PageOsContext = createContext<DeviceOs>("ios");
 export const pageOsOf = (header: Record<string, unknown> | null | undefined): DeviceOs => (header?.os === "android" ? "android" : "ios");
 
-/** A page's `proto.<action>(…args)`: the handler a prop receives (it runs the context's action when called). */
-export function protoHandler(actions: ProtoActions, action: string, args: unknown[]): () => void {
-  return () => {
-    const run = (actions as Record<string, (...rest: unknown[]) => void>)[action];
+/** The item a choice control hands its handler, as the key of a per-item action: the value itself, or the item's id. */
+const itemKey = (choice: unknown): string => {
+  if (choice && typeof choice === "object") { const item = choice as { id?: unknown; value?: unknown }; return String(item.id ?? item.value ?? ""); }
+  return String(choice ?? "");
+};
+
+/** A page's `proto.<action>(…args)`: the handler a prop receives (it runs the context's action when called). A
+ *  navigate / open with one target per item (`proto.navigate({ home: "screen-1" })`) runs for the chosen item's entry. */
+export function protoHandler(actions: ProtoActions, action: string, args: unknown[]): (...event: unknown[]) => void {
+  return (...event) => {
+    const run = (actions as unknown as Record<string, ((...rest: unknown[]) => void) | undefined>)[action];
+    const [first] = args;
+    if ((action === "navigate" || action === "open") && first && typeof first === "object" && !Array.isArray(first)) {
+      const target = (first as Record<string, unknown>)[itemKey(event[0])];
+      if (typeof target === "string") run?.(target, args[1]);
+      return;
+    }
     run?.(...args);
   };
 }
@@ -129,15 +146,21 @@ function withoutMasterLayout(children: ReactNode): ReactNode {
   return nodes.length === 1 && isValidElement<{ children?: ReactNode }>(only) && only.type === AppShell ? only.props.children : children;
 }
 
-/** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. */
-export function Overlay({ id, children, x: _x, y: _y, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode; x?: number; y?: number }) {
+/** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. A layer that does not
+ *  place itself (a Card, not a Dialog) sits where the Overlay's `position` says, over a dimmed frame with `background`,
+ *  as Play shows it; `closeOnOutside` is Play's only. */
+export function Overlay({ id, children, x: _x, y: _y, position = "center", background = false, closeOnOutside: _closeOnOutside, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode; x?: number; y?: number; position?: string; background?: boolean; closeOnOutside?: boolean }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   return (
     // The frame is the overlay's device frame (data-zen-overlay-root): a Dialog opens contained, its scrim fills this frame
     // only (the world's transform would otherwise make its fixed scrim cover the whole board).
     <div {...rest} className="studio-builder-overlay" data-overlay={id} data-zen-overlay-root="">
       <div ref={setHost} className="studio-builder-overlay__portal" />
-      {host ? <ZenPortalProvider container={host}>{children}</ZenPortalProvider> : null}
+      {host ? (
+        <ZenPortalProvider container={host}>
+          <div className="studio-builder-overlay__place" data-position={position} data-background={background || undefined}>{children}</div>
+        </ZenPortalProvider>
+      ) : null}
     </div>
   );
 }

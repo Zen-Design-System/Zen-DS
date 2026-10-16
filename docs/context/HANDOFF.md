@@ -70,6 +70,9 @@ Last updated: 2026-10-15.
   2026-10-14 (live Figma read): Component Size `Segmented/Size` Medium 36 / 44, Small 28 / 36, XSmall deleted (Studio
   mode kept at 28 / 24); Segmented track padding 3XSmall, Primary track outlined. 2026-10-15: `Segmented/Spacing`
   Gap 0 and Text-Wrapper-Padding 8 (Medium and Small), Spacing/XSmall deleted; Studio mode follows Compact.
+  2026-10-15 (user, Figma + repo): every Component Size Gap/Padding variable aliases `Spacing/Gap|Padding/*`, not
+  `dm-#` (raw values and sizes stay; Action-Icon-Gap stays dm-20, BACKLOG P3); the Studio mode follows the same rule.
+  A new Component Size spacing value aliases a Spacing step. Segmented Medium Compact padding 8 (was 6).
   2026-10-13 (user, repo + Figma): Component Theme `Chart/Sector/Primary` = Support/Brand/Solid and `Secondary` =
   Support/Neutral/Deep in every mode (as Brand - S1).
   2026-10-08 (user, repo + Figma): Accent and Neutral `Color/Background/*/Flat/Hover` → step 2 (Alpha/2,
@@ -106,17 +109,28 @@ Last updated: 2026-10-15.
   and the registry; `PlatformMobileShowcases.tsx` only ChartReportPanel); the 12 app-layer pages (action-bar, app-shell, description-list, form, image, layout, link, menu, page-header, side-panel, text, visually-hidden) were rebuilt the same way on 2026-10-02 by the session "Add audit check for text overflowing its box". Their old examples in `src/platform/appLayer/*.tsx` no longer render (dead code, Backlog); the playgrounds there still do.
 - **Figma re-sync kit:** `tools/figma-kit/` (README there) hashes the live sets through `use_figma`, names only the changed variants, fetches them and patches `docs/figma-contracts/`; `contracts.lock.json` holds the hashes. Use it instead of re-reading sets or spawning one agent per set.
 - **Ship:** `npm run ship` (`tools/ship/README.md`) runs the gate for a small branch, pushes and opens the PR link/API. Pushing needs a GitHub token with Contents, Pull requests and Workflows write (or `gh auth login`); the sandbox cannot reach github.com, run it on the Mac.
-- **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min).
+- **Gate is parallel:** `tools/qa/run.mjs` runs tsc, contract suites and Vitest side by side, and audit + dark audit + behaviour side by side (`ZEN_QA_SHARDS`, `--serial` to opt out). Contract suites run 4 at a time (`ZEN_QA_SUITES`), each in its own `.out/<suite>-<pid>` folder; on the Mac (2026-09-30) all 23 passed that way on a token change. A token sync takes the fast path by itself (56 pages ≈ 10 min). Since 2026-10-16 (user) the audit runs at 1512 + 390 + 320 (320: every kind baselined, debt in BACKLOG P1) and has `card-gap` / `legend-column`; Studio E2E PT-11 checks Play's sticky Sidebar.
 - **Native tokens:** `npm run tokens:native` (also part of `tokens:build`) writes `platforms/swift` and `platforms/flutter` (tokens + text styles, mode-aware resolver, shared vectors; see `platforms/README.md`). Swift/Dart were never compiled: run `swift test` and `flutter test` first. Not done: shadows, components.
 - **Dev server:** `npm run dev`, port 5173. Since 2026-10-03 it answers on `localhost`, `127.0.0.1` and `[::1]` alike: Node 24 binds "localhost" to `::1` only, so `tools/dev/loopback-both-families.mjs` (in `vite.config.ts`) forwards the other loopback family. Any of the three works for `--url=` in `npm run qa`, audit, behaviour and shoot.
 - **Zen Studio Screen = master layout (2026-10-15, user):** a builder Screen's desktop frame is one root `<AppShell>`
   (`tools/studio/screen-frame.mjs`, op `screenFrame`; parts in `screen-chrome.mjs` FRAME_PARTS); the Screen's own
   `sidebar`/`header` props are legacy, moved into it when a page opens (`localApi.ts` moveScreenFrame). The mobile layout
   keeps the Screen's Top/Bottom navigation and draws the AppShell's content only (runtime, compile, push).
+- **Zen Studio MCP M0 (2026-10-15, user):** AI clients (Claude Code first) read and edit the open Studio page live
+  through `/__zen-studio/mcp` (relayed to the tab over Vite's HMR socket, one ⌘Z per change, AI chip Stop/Resume).
+  Merged in #72 (baafbf8). Tools: get_studio_state, get_tree, update, get_screenshot, on pages made in the Studio;
+  `npm run studio:mcp` prints the `claude mcp add` command. Not yet tried from the user's own Claude Code. Next, each
+  waiting for the user's go: M1 full write set, then the embedded Zen Agent, M2 code pages; spec
+  `docs/research/studio-mcp-canvas-2026-10-15.md`.
 - **Zen Studio free frames (2026-10-15, user):** on a page you made, Screens / Overlays sit at `x` / `y` from the page
   (frames without them keep the old row, `builder/render/framePlace.ts`); drag by name or a selected frame, ⌥ copies,
   ⌘D / ⌘C ⌘V / arrows (`builder/frameMove.ts`, `frameKeys.ts`, writes in `frameEdit.ts`); toolbar Frame (F) draws a
   Screen (`width` / `height`); Present is ⌥⌘↵. Component (Document) pages keep their generated layout (user: not free).
+- **Zen Studio prototype = Figma's prototype mode (2026-10-15, branch `zen/feat/prototype-usability-20261015`, worktree
+  `../Zen-DS-proto`):** ⊕ drag to connect, clickable arrows with draggable ends, per-item targets for tab bars / Tabs /
+  Segmented / Sidebar (`proto.navigate({ item: screen })`), design-word triggers, Flow rows, Play hotspot hints; round 2:
+  Animation per connection, After delay, While hovering, overlay position / outside press / dim, Add overlay menu. Code
+  in `builder/proto/` (protoModel/protoTriggers/protoEdit/protoDom/playMotion), E2E group `prototype` (PT-01…10).
 - **Zen Studio UI3 shell (2026-10-15, user):** Figma UI3 floating panels — no toolbar row; the canvas fills the window
   under the panels (`canvas/viewport.ts` `setCanvasInsets` / `getSafeBox`: fit, zoom, keep-in-view, frame chrome and
   edge pan aim at the visible part); headers in `shell/PanelHeaders.tsx`; corner bars when a panel is not docked.

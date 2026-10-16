@@ -57,8 +57,9 @@ function PhotoReview() {
             <Heading level={4} textStyle="Heading/Subheading">{storePhoto.name}</Heading>
             <Text as="span" textStyle="Body/Small/Regular" tone="base">Loyalty app · 4.2 MB</Text>
           </Stack>
-          {/* A dense viewer toolbar beside the title: Small buttons, so it fits a narrow card at Comfortable density too. */}
-          <Stack direction="row" align="center" gap="xs" role="group" aria-label="Photo view">
+          {/* A dense viewer toolbar beside the title: Small buttons, so it fits a narrow card at Comfortable density too;
+              on a 320px phone at Comfortable it wraps rather than run past the card. */}
+          <Stack direction="row" align="center" gap="xs" wrap role="group" aria-label="Photo view">
             <Tooltip content="Zoom out · −" placement="bottom">
               <IconButton appearance="flat" size="sm" icon="icon-zoom-out-line" aria-label="Zoom out" onClick={() => step(-1)} />
             </Tooltip>

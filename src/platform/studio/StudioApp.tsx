@@ -21,6 +21,7 @@ import { Inspector } from "./inspector/Inspector";
 import { LayersPanel } from "./select/LayersPanel";
 import { AssetsPanel } from "./edit/assets/AssetsPanel";
 import { duplicateLayers, removeLayers } from "./edit/multi";
+import { canHide, toggleLayerHidden } from "./edit/visibility";
 import { multiSelection } from "./select/multiSelection";
 import { wrapSelection } from "./select/wrapSelection";
 import { duplicateSelection, editDataGroup, editDataItem, editDataItems, removeSelection } from "./slots/actions";
@@ -52,6 +53,8 @@ import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
 import { ensurePageDoc } from "./builder/localApi";
+import { AiChip } from "./mcp/AiChip";
+import { startMcpRuntime } from "./mcp/runtime";
 import "./studio.css";
 
 /** An open overlay owns Escape (it closes first): a popover, menu, listbox, dialog, or an expanded combobox/trigger. */
@@ -107,6 +110,8 @@ function useRouting() {
     const play = new URLSearchParams(window.location.search).get("play");
     if (play !== null && studioStore.getState().localPage && !isPlaying(studioStore.getState().presenting)) startPlay(play || null);
   }, []);
+  // The Studio MCP (mcp/runtime.ts): AI clients' calls to the dev server's /__zen-studio/mcp run in this tab.
+  useEffect(() => startMcpRuntime(), []);
   // A builder page is a document (core rebuild M2): an older page, an import or a restored version gets one as it opens,
   // before anything on it is selected.
   useEffect(() => {
@@ -368,6 +373,15 @@ export function StudioApp() {
         if (frameId) { event.preventDefault(); presentFrame(frameId); }
         return;
       }
+      // ⇧⌘H hides the selected layer or shows it again (Figma's Show/Hide), on a page made in the Studio (edit/visibility.ts).
+      if (mod && event.shiftKey && !event.altKey && event.code === "KeyH") {
+        if (doc || inExample) return;
+        const selection = state.selection;
+        if (!canHide(selection)) return;
+        event.preventDefault();
+        if (!event.repeat) void toggleLayerHidden(selection.src, selection.name);
+        return;
+      }
       // ⌘/Ctrl+D duplicates the selected layer (Figma's Duplicate) in the Select tool. On the canvas the browser's bookmark
       // dialog never opens, whatever is selected; a held key does not go on duplicating the copy.
       if (mod && !event.altKey && !event.shiftKey && key === "d") {
@@ -551,6 +565,7 @@ export function StudioApp() {
           <div ref={setPreviewPortal} className="official-portal-root studio-portal-root" data-zen-isolation-root="" {...previewAttributes(preview)} />
           {/* Zoom, tools and tip float above that layer: an overlay left open never covers them (canvas/CanvasChrome). */}
           {docPage ? null : <CanvasChrome />}
+          {docPage ? null : <AiChip />}
         </main>
 
         {/* A document page has no Inspector: the right panel is its header alone, a small bar in the corner. */}

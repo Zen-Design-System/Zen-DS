@@ -1,5 +1,7 @@
-import { createElement, isValidElement, type ReactNode } from "react";
+import { createElement, Fragment, isValidElement, type ReactNode } from "react";
+import { screenLayout } from "../../../../../tools/studio/screen-chrome.mjs";
 import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
+import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
 import * as Zen from "../../../../index";
 import { resolveMediaDeep } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, type ProtoActions } from "../proto/runtime";
@@ -16,6 +18,7 @@ export type PageValue =
   | { kind: "array"; items: PageValue[] }
   | { kind: "object"; fields: Record<string, PageValue> }
   | { kind: "element"; node: PageNode }
+  | { kind: "fragment"; children: PageChild[] }
   | { kind: "proto"; action: string; args: unknown[] }
   | { kind: "ref"; root: string; path: string[] };
 export type PageNode = { kind: "element"; name: string; loc: string; props: Record<string, PageValue>; children: PageChild[] };
@@ -46,6 +49,9 @@ export type RenderContext = {
   /** Each element's document id by its place ("line:col" → id, doc.mjs locsOf): the canvas marks it `<file>:@<id>`
    *  (select/srcIds.ts), which an edit keeps; without one, by its place. */
   ids?: ReadonlyMap<string, string>;
+  /** The layout of the frame being drawn (a Screen's device and `layout`): a layer `hidden="mobile"` is left out on a
+   *  mobile Screen only (tools/studio/visibility.mjs). Overlays have none: only `hidden` alone hides there. */
+  layout?: "mobile" | "desktop";
 };
 
 type Scope = Record<string, unknown>;
@@ -90,11 +96,21 @@ const signatures = new WeakMap<object, string>();
 function signatureOf(node: PageNode, ids: ReadonlyMap<string, string> | undefined): string {
   const known = signatures.get(node);
   if (known) return known;
-  const props = JSON.stringify(node.props, (_key, value: unknown) => (value && typeof value === "object" && (value as { kind?: unknown }).kind === "element" && (value as { node?: unknown }).node ? `@${signatureOf((value as { node: PageNode }).node, ids)}` : value));
-  const children = node.children.map((child) => (child.kind === "element" ? signatureOf(child, ids) : child.kind === "map" ? `map:${JSON.stringify(child.source)}:${child.item}:${signatureOf(child.node, ids)}` : JSON.stringify(child))).join("\u0002");
+  const props = JSON.stringify(node.props, (_key, value: unknown) => {
+    if (!value || typeof value !== "object") return value;
+    const kind = (value as { kind?: unknown }).kind;
+    if (kind === "element" && (value as { node?: unknown }).node) return `@${signatureOf((value as { node: PageNode }).node, ids)}`;
+    if (kind === "fragment") return `@<>${childrenSignature((value as { children: PageChild[] }).children, ids)}`;
+    return value;
+  });
+  const children = childrenSignature(node.children, ids);
   const signature = hash(`${node.name}\u0001${ids?.get(node.loc) ?? node.loc}\u0001${props}\u0001${children}`);
   signatures.set(node, signature);
   return signature;
+}
+
+function childrenSignature(children: PageChild[], ids: ReadonlyMap<string, string> | undefined): string {
+  return children.map((child) => (child.kind === "element" ? signatureOf(child, ids) : child.kind === "map" ? `map:${JSON.stringify(child.source)}:${child.item}:${signatureOf(child.node, ids)}` : JSON.stringify(child))).join("\u0002");
 }
 
 /** The element's mark: `<file>:@<id>` when its document gives it one (stable through edits), else `<file>:<line>:<col>`. */
@@ -109,6 +125,8 @@ function valueOf(value: PageValue, scope: Scope, ctx: RenderContext): unknown {
     case "array": return value.items.map((item) => valueOf(item, scope, ctx));
     case "object": return Object.fromEntries(Object.entries(value.fields).map(([key, field]) => [key, valueOf(field, scope, ctx)]));
     case "element": return renderNode(value.node, scope, ctx);
+    // A slot holding several layers: they sit straight in the slot (no wrapper), as Figma's slot.
+    case "fragment": return createElement(Fragment, null, ...renderChildren(value.children, scope, ctx));
     case "proto": return protoHandler(ctx.proto, value.action, value.args);
     case "ref": return read(scope[value.root], value.path);
   }
@@ -144,6 +162,26 @@ function withStandIns(name: string, props: Record<string, unknown>) {
   }
 }
 
+/** Board props no component reads (Play reads them from the page): a Screen's After delay. */
+const BOARD_ONLY: Readonly<Record<string, readonly string[]>> = { Screen: ["onDelay"] };
+
+/**
+ * The Studio's prototype props on their way to a component (proto/protoModel.ts): the Board's own are dropped, and While
+ * hovering (Open overlay) becomes the pointer's enter and leave — its overlay shows while the pointer stays — where the
+ * actions take hover (Play's); elsewhere it does nothing.
+ */
+function prototypeProps(node: PageNode, props: Record<string, unknown>, ctx: RenderContext) {
+  for (const prop of BOARD_ONLY[node.name] ?? []) delete props[prop];
+  const hover = node.props.whileHovering;
+  if (!hover) return;
+  delete props.whileHovering;
+  const actions = ctx.proto.hover;
+  if (hover.kind !== "proto" || hover.action !== "open" || typeof hover.args[0] !== "string" || !actions) return;
+  const [overlay, options] = hover.args;
+  props.onPointerEnter = () => actions.enter(overlay, options);
+  props.onPointerLeave = () => actions.leave();
+}
+
 const INITIAL_PROP = /^(default|initial)[A-Z]/;
 
 /** The initial-state props of an element (its own `defaultX` / `initialX`, and those its `overrides` set on nested layers) as one
@@ -165,7 +203,7 @@ function initialStateOf(props: Record<string, unknown>): string {
 export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   // In the page's own scope (not a list row's) and without extra props, an unchanged node gives its last element.
   const cache = ctx.cache && scope.mock === ctx.mock && Object.keys(scope).length === 1 && !extra ? ctx.cache : null;
-  const cacheKey = cache ? `${key ?? ""}|${signatureOf(node, ctx.ids)}` : "";
+  const cacheKey = cache ? `${key ?? ""}|${ctx.layout ?? ""}|${signatureOf(node, ctx.ids)}` : "";
   if (cache) {
     const reused = cache.current.get(cacheKey) ?? cache.previous.get(cacheKey);
     if (reused !== undefined) {
@@ -181,17 +219,31 @@ export function renderNode(node: PageNode, scope: Scope, ctx: RenderContext, key
 function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: string | number, extra?: Record<string, unknown>): ReactNode {
   const component = componentOf(node.name);
   if (!component) return null;
+  // A hidden layer (Figma's eye; on one layout only with "mobile" / "desktop") is not drawn: the page keeps it and Layers
+  // lists it, dimmed (BuilderBoard's hidden layers, select/LayersPanel.tsx).
+  if (hiddenOn(node.props[HIDDEN_PROP], ctx.layout)) return null;
+  // Slots switched off (Figma's slot boolean): the component draws without them; their layers stay in the page.
+  const slotsOff = new Set(hiddenSlotsOf(node.props[HIDDEN_SLOTS_PROP]));
   const props: Record<string, unknown> = { key, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": node.name, ...extra };
   // A builder page's photo is `zen-media:<key>` (builder/library/media.ts): this build's URL, in a prop's data too (a
   // Table row's picture).
-  for (const [name, value] of Object.entries(node.props)) props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
+  for (const [name, value] of Object.entries(node.props)) {
+    if (name === HIDDEN_PROP || name === HIDDEN_SLOTS_PROP || slotsOff.has(name)) continue;
+    props[name] = resolveMediaDeep(valueOf(value, scope, ctx));
+  }
+  prototypeProps(node, props, ctx);
   withStandIns(node.name, props);
   // A component reads its initial state once, when it mounts (Table defaultSelectedIds, Checkbox defaultChecked, a chart's
   // initialIndex, a nested layer's default in `overrides`): an edit of one starts that component again, so the canvas
   // shows the new state at once instead of after a reload (user, 2026-10-11).
   const initial = initialStateOf(props);
   if (initial) props.key = `${key ?? ""}~${initial}`;
-  const children = node.children.flatMap((child, index): ReactNode[] => {
+  return createElement(component as never, props, ...renderChildren(node.children, scope, ctx));
+}
+
+/** An element's children, or a slot fragment's: text, mock fields, lists (one element per row) and elements. */
+function renderChildren(children: PageChild[], scope: Scope, ctx: RenderContext): ReactNode[] {
+  return children.flatMap((child, index): ReactNode[] => {
     if (child.kind === "text") return [child.value];
     if (child.kind === "ref") { const value = read(scope[child.root], child.path); return value === undefined || value === null ? [] : [String(value)]; }
     if (child.kind === "map") {
@@ -200,13 +252,15 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
     }
     return [renderNode(child, scope, ctx, index)];
   });
-  return createElement(component as never, props, ...children);
 }
 
 /** A Screen or Overlay of the board, with the mock data in scope. An overlay frame shows its overlay open. */
 export function renderFrame(node: PageNode, ctx: RenderContext): ReactNode {
   const scope: Scope = { mock: ctx.mock };
-  if (node.name !== "Overlay") return renderNode(node, scope, ctx);
+  if (node.name !== "Overlay") {
+    const literalProp = (name: string) => { const value = node.props[name]; return value?.kind === "literal" && typeof value.value === "string" ? value.value : undefined; };
+    return renderNode(node, scope, { ...ctx, layout: screenLayout(literalProp("device") ?? "desktop", literalProp("layout")) as "mobile" | "desktop" });
+  }
   const [first, ...rest] = node.children;
   const opened: PageNode = first && first.kind === "element" && !("open" in first.props) ? { ...first, props: { ...first.props, open: { kind: "literal", value: true } } } : (first as PageNode);
   return renderNode({ ...node, children: first ? [opened, ...rest] : [] }, scope, ctx);
