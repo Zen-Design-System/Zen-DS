@@ -215,3 +215,21 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
 - Figma rings beside a legend: no auto-layout setting sizes a ring to min(free width, free height) (tried: locked
   FILL/FILL follows the width and overflows a short row; FILL height overflows a narrow one; maxWidth breaks the 1:1). Left
   as is (fills its half up to its size, centred in a taller card); a choice for the user.
+
+## Named ring sizes for Donut and Radial (tier M, session "Bug"; user: "Có nên cho chọn các cỡ pie chart không?", "thêm XLarge 320px")
+
+- Code: `chartCore` `ringSize()` / `chartRingSizes` / `ChartRingSize` (small 120 · medium 168 · large 240 · xlarge 320,
+  `scaleKey` spellings; a number keeps px and picks the nearest step for the centre). DonutChart / RadialChart default
+  `medium` (was 200), `data-size`; Small: the figure alone in Body/Base/Bold, XLarge Heading/3; Radial Small rings 6px,
+  4px apart. Harness `chart/ring-size-named` (warn on a px size) + fixtures; guideline line; platform examples, guideline
+  visuals and the Studio palette use names (the palette Donut drops its 168: the default); `figma-charts.mjs` push/pull
+  maps `size` ↔ Size (a px size: nearest step, with a note). Regenerated: guidelines, docs/api, ai-ui, compile-api.
+- Figma: Chart/Donut-Chart 3 → 12 variants (Legend × Total × Size), Chart/Radial-Chart 2 → 8 (Legend × Size), cloned
+  with property refs re-set (signatures match, no slots on their own layers). The old variants are Size=Medium (Donut
+  Total=Start: Large, its 240) so placed instances keep their node. Rings FIXED at the size; Donut slices regenerated
+  with code's slicePath (4px gaps at every size, Figma corner radius 4), % pills at 39% radius; Radial tracks and arcs
+  scaled about the centre to code's radii (Medium 79/61/43), arc stroke 10 (Small 6). Chart frames re-hugged (HUG →
+  FILL); Total=Start's Legend has a 16px top padding (Spacing/Padding/Medium) so the total never touches it. Set
+  descriptions mention Size (Radial's stacked `&amp;#39;` escape fixed).
+- Not done: Gauge keeps its 240 (not asked); the Figma rings no longer grow with a stretched card (a Size is picked
+  instead; code still grows them).

@@ -6361,9 +6361,25 @@
           "description": "The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order."
         },
         "size": {
-          "type": "number",
-          "default": 200,
-          "description": "Diameter in px (default 200)."
+          "anyOf": [
+            {
+              "enum": [
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "sm",
+                "md",
+                "lg",
+                "xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "default": "medium",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px."
         },
         "aria-label": {
           "type": "string",
@@ -11679,9 +11695,25 @@
           "description": "The value a full ring stands for (default 100: the values are percentages)."
         },
         "size": {
-          "type": "number",
-          "default": 200,
-          "description": "Diameter in px (default 200)."
+          "anyOf": [
+            {
+              "enum": [
+                "small",
+                "medium",
+                "large",
+                "xlarge",
+                "sm",
+                "md",
+                "lg",
+                "xl"
+              ]
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "default": "medium",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px."
         },
         "aria-label": {
           "type": "string",
@@ -17814,6 +17846,7 @@
       "title": "Chart",
       "file": "docs/guidelines/chart.md",
       "do": [
+        "Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.",
         "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
         "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
         "Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend, chart/series-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).",
@@ -17838,6 +17871,7 @@
         "chart/stack-needs-legend",
         "chart/needs-name",
         "chart/shares-need-legend",
+        "chart/ring-size-named",
         "chart/heatmap-needs-scale",
         "chart/bar-list-rows",
         "chart/bar-list-ranked",

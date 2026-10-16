@@ -23,6 +23,12 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- DonutChart and RadialChart take a named `size` (2026-10-16, user: "Có nên cho chọn các cỡ pie chart không?", "thêm
+  XLarge 320px"): `small` 120 · `medium` 168 (the new default, was 200) · `large` 240 · `xlarge` 320, in either spelling;
+  a number still sets px, and the harness warns (`chart/ring-size-named`). Small shows the centre figure alone
+  (Body/Base/Bold), XLarge in Heading/3, and a Small Radial draws 6px rings 4px apart so four still fit. Figma:
+  Chart/Donut-Chart (12 variants) and Chart/Radial-Chart (8) have a Size variant drawn like code (4px slice gaps, fixed
+  ring widths); Studio's push / pull maps it.
 - Line and stack charts keep their X labels right under the baseline when they grow (2026-10-16, user: "ghim nhãn dưới
   baseline cả code và figma"): their lanes are a seventh of the chart's own height, at most 40px, so a stretched card
   or a larger `height` gives the plot all the extra. A Donut or Radial beside its legend now grows with a stretched card

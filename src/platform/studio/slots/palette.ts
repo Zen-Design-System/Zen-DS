@@ -788,7 +788,7 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-revenue-by-client", label: "Revenue by client", caption: "Donut chart", root: "ChartCard", components: ["ChartCard", "DonutChart"],
     code: (ctx, fmt) => lines(
       `<ChartCard title="Revenue by client"${cardLevel(ctx)} icon="icon-pie-chart-01-line" description="Invoiced in Q3 2026">`,
-      `  <DonutChart aria-label="Revenue by client, Q3 2026" size={168} legendPosition="start"${fmt("format", MONEY_K)}`,
+      `  <DonutChart aria-label="Revenue by client, Q3 2026" legendPosition="start"${fmt("format", MONEY_K)}`,
       `    data={[`,
       `      { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },`,
       `      { id: "mekong", label: "Mekong Freight", value: 53400 }, { id: "bookfair", label: "Hanoi Book Fair", value: 50500 },`,

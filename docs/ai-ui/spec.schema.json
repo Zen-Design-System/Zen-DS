@@ -13675,13 +13675,29 @@
               "size": {
                 "anyOf": [
                   {
-                    "type": "number"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl"
+                        ]
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Diameter in px (default 200)."
+                "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px."
               },
               "aria-label": {
                 "anyOf": [
@@ -24098,13 +24114,29 @@
               "size": {
                 "anyOf": [
                   {
-                    "type": "number"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl"
+                        ]
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Diameter in px (default 200)."
+                "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px."
               },
               "aria-label": {
                 "anyOf": [

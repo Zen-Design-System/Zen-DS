@@ -51,8 +51,8 @@ One chart family in one style: how a value changes over time (Line, Area), compa
 | Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (area · none) · showLegend · legendPosition` | Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle (at 30%, as Figma's Line-Chart) from the plot's left edge to the last period's centre; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart: pick its Sector 4 · 6 · 7 · 12 to match the periods); lanes a seventh of the height above and below the grid, Y labels in a 32px column; only the active period draws its sector rule |
 | Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); Corner-Radius/Small |
 | Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Red Soft); the column cut to Corner-Radius/Small |
-| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/2 figure) |
-| Radial | `RadialChart data[] {id, label, value} · max · value · label · size · legendPosition` | 10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first |
+| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition="start": Body/Small caption, Heading/2 figure) |
+| Radial | `RadialChart data[] {id, label, value} · max · value · label · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition` | 10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first |
 | Heatmap | `HeatmapChart rows · columns · values[row][column] · max · showLegend` | 24px cells on Support/Brand Pale · Soft · Solid · Rich · Deep, Less → More scale |
 | Bar list | `BarList data[] {label, value} · headers {label, value} · initialIndex` | 32px rows Spacing/Gap/XSmall apart: Color Chart Sector/Primary bars at 24% (the active row 48%) as long as their share of the leader, Corner-Radius/Small, the name inside (Body/Small/Medium), the values in an end column Spacing/Gap/Small after the bars; column labels Caption/Medium, Neutral/Light |
 | Bullet | `BulletChart data[] {label, value, target, max} · actualLabel · targetLabel · showLegend · legendPosition (bottom · top) · format(value, row)` | Label (Body/Small/Medium) and "actual of target" (Body/Small/Regular, Neutral/Base) over a 16px rounded track (Border/Neutral/Subtle/Pressed at 50%), an 8px Sector/Primary bar inset 4px and a 3px Sector/Secondary target tick; each row on its own scale (max, default a round number above value and target); a legend names the bar and the tick |
@@ -126,13 +126,13 @@ Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side paddin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the column totals, tagged "Avg 5.9K h" (Figma Show Average). |
 
 ### DonutChart
-Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start).
+Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `data` (required) | `ChartSlice[]` | — | The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices. |
 | `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the centre figure and the summary. |
-| `size` | `number` | `200` | Diameter in px (default 200). The ring is 22% of it; it never grows past its box. |
+| `size` | `ChartRingSize \| number` | `"medium"` | Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3. |
 | `aria-label` (required) | `string` | — | What the chart shows ("Spending by category, September 2026"). |
 | `value` | `ReactNode` | — | The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked. |
 | `label` | `ReactNode` | — | The caption of the total ("Invoiced in Q3"). Default: the locale's “Total”. |
@@ -145,14 +145,14 @@ Donut chart in the shared chart language (docs/research/chart-family-spec-2026-1
 | `animate` | `boolean` | `true` | Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades). |
 
 ### RadialChart
-Radial chart (ring gauges) in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): concentric 10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure (Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump to the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End).
+Radial chart (ring gauges) in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): concentric 10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure (Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump to the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 · Large 240 · XLarge 320).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `data` (required) | `ChartSlice[]` | — | One ring per measure, outermost first (`{ id, label, value }`), each measured against `max`. Keep 1–4 rings. |
 | `max` | `number` | `100` | The value a full ring stands for (default 100: the values are percentages). |
 | `format` | `(value: number) => string` | — | Formats the centre figure and the summary. Default: the share of `max` in whole percent ("43%"). |
-| `size` | `number` | `200` | Diameter in px (default 200). Rings are 10px with 8px between them; the chart never grows past its box. |
+| `size` | `ChartRingSize \| number` | `"medium"` | Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit); the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3. |
 | `aria-label` (required) | `string` | — | What the chart shows ("Budget used by area, September 2026"). |
 | `value` | `ReactNode` | — | The centre figure. Default: the outer ring's value, formatted. The active ring's value replaces it while one is picked. |
 | `label` | `ReactNode` | — | The caption under the centre figure. Default: the outer ring's label. |
@@ -331,6 +331,7 @@ interface ChartCompare { label: string; values: number[] }
 interface ChartDatum { label: string; values: Record<string, number> }
 type ChartLegendPosition = "top" | "bottom" | "start" | "end"
 interface ChartPoint { label: string; value: number; projected?: boolean; target?: number; }
+type ChartRingSize = "small" | "medium" | "large" | "xlarge" | "sm" | "md" | "lg" | "xl"
 interface ChartSeries { id: string; label: string; color?: string; }
 interface ChartSlice { id: string; label: string; value: number; color?: string }
 type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; "aria-label"?: string; }
@@ -346,6 +347,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | Home / End | First / last item (the heatmap: first / last cell of the row) |
 
 ## ✅ Do
+- Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.
 - Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).
 - Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.
 - Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend, chart/series-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).
@@ -383,6 +385,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | `chart/stack-needs-legend` | error | Stack-bar charts keep their legend so colour is never the only key. | `zen-allow-chart-legend: <reason>` |
 | `chart/needs-name` | error | Every chart is named by an aria-label that says what it shows and over which range. | `zen-allow-chart-name: <reason>` |
 | `chart/shares-need-legend` | error | Donut slices, radial rings and a line chart's comparison keep their legend so colour is never the only key. | `zen-allow-chart-legend: <reason>` |
+| `chart/ring-size-named` | warn | A ring chart takes a named size (Figma Size): small 120 · medium 168 · large 240 · xlarge 320, not a number of px. | `zen-allow-ring-size-px: <reason>` |
 | `chart/heatmap-needs-scale` | warn | A heatmap keeps its Less → More scale so the five steps can be read. | `zen-allow-heatmap-scale: <reason>` |
 | `chart/bar-list-rows` | warn | A BarList ranks 3–8 items; past 8, keep the top 7 and fold the rest into an "Other" row, or use a Table. | `zen-allow-bar-list-rows: <reason>` |
 | `chart/bar-list-ranked` | warn | A BarList never reorders its data: pass it ranked, largest first (an "Other" row may close the list). | `zen-allow-bar-list-ranked: <reason>` |

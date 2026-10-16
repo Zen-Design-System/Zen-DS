@@ -2,6 +2,7 @@
    the cartesian plot frame, keyboard selection and the draw-in motion. Every chart in this folder is built from it. */
 import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { scaleKey } from "../_shared/scale";
 import { TooltipSurface } from "../Tooltip";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
@@ -85,6 +86,20 @@ export function ChartFade({ id, top, bottom, bottomOpacity }: { id: string; top:
 
 /** "1.2K" from 1,000 up, else the value to one decimal at most (a mean of 306.666… reads "306.7"). */
 export const defaultFormat = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`);
+
+/** A ring chart's diameter steps (Figma Donut-Chart / Radial-Chart Size; the user 2026-10-16). */
+export const chartRingSizes = ["small", "medium", "large", "xlarge"] as const;
+/** Small 120 · Medium 168 (default) · Large 240 · XLarge 320 px, in either spelling (`sm` … `xl`). */
+export type ChartRingSize = (typeof chartRingSizes)[number] | "sm" | "md" | "lg" | "xl";
+const RING_SIZE_PX: Record<(typeof chartRingSizes)[number], number> = { small: 120, medium: 168, large: 240, xlarge: 320 };
+
+/** A ring's diameter in px and its step (which centre text it fits): a named size, or a number of px (the nearest step). */
+export function ringSize(size: ChartRingSize | number | undefined): { px: number; step: (typeof chartRingSizes)[number] } {
+  if (typeof size === "number") return { px: size, step: size < 144 ? "small" : size < 204 ? "medium" : size < 280 ? "large" : "xlarge" };
+  const key = scaleKey(size ?? "medium", chartRingSizes);
+  const step = (chartRingSizes as readonly string[]).includes(key) ? key : "medium";
+  return { px: RING_SIZE_PX[step], step };
+}
 
 /** Round the axis max up to a nice scale: the smallest top a 1 · 2 · 2.5 · 5 step reaches in at most 5 steps, so the
  *  marks use the plot (Figma shows up to 6 labels: 0 … max). */
