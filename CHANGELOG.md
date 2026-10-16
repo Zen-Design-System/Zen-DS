@@ -22,6 +22,10 @@ removed (four unused colour ramps were, see Removed).
   `Tab-Item/Size|Spacing/Large/*` (Figma Tab-Item `Size=Large`, 24 variants). The hover/selected fill is 40px high and
   bleeds 16px past the label; a Large Indicator list draws no baseline of its own (the bar's Divider is it). Small and
   Medium are unchanged.
+- Figma charts `Color = Primary | Secondary` (2026-10-17, user: "thêm variant để đổi lại dùng secondary trước, hover là
+  primary"): Secondary draws the marks in Color Chart Sector/Secondary and the active bar (or second series) in Primary.
+  Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut, Radial; Gauge, Funnel and Bullet became sets (same component keys).
+  Existing instances stay Primary. Code and Studio follow after review.
 - Figma audit `navigation/back-chevron` (2026-10-17, user: "chúng ta có chốt rule về button back. nhưng lúc này build
   trong figma lại sai … đảm bảo không bị lại lỗi này"): `skills/zen-figma-design` now fails a phone or tablet screen
   whose Back (Top-Navigation, Nav-Action, Button) is a left arrow; Back is `icon-chevron-left-line-medium`, the same
