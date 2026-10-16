@@ -3617,6 +3617,10 @@
   --zen-tab-item-spacing-small-horizontal-padding: 0px;
   --zen-tab-item-spacing-small-vertical-padding: var(--zen-spacing-padding-xsmall);
   --zen-tab-item-spacing-small-gap: var(--zen-spacing-gap-xsmall);
+  --zen-tab-item-size-large-min-width: var(--zen-dm-64);
+  --zen-tab-item-spacing-large-horizontal-padding: 0px;
+  --zen-tab-item-spacing-large-vertical-padding: var(--zen-spacing-padding-xsmall);
+  --zen-tab-item-spacing-large-gap: var(--zen-spacing-gap-xsmall);
   --zen-table-cell-size: var(--zen-dm-52);
   --zen-table-header-size: var(--zen-dm-36);
   --zen-image-size-medium: var(--zen-dm-40);
@@ -3642,6 +3646,7 @@
   --zen-navigation-action-text-spacing-gap: 0px;
   --zen-tab-item-size-small-height: var(--zen-dm-32);
   --zen-tab-item-size-medium-height: var(--zen-dm-40);
+  --zen-tab-item-size-large-height: var(--zen-dm-64);
   --zen-tag-spacing-medium-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-badge-spacing-medium-customize: var(--zen-spacing-padding-3-xsmall);
@@ -3811,6 +3816,10 @@
   --zen-tab-item-spacing-small-horizontal-padding: 0px;
   --zen-tab-item-spacing-small-vertical-padding: var(--zen-spacing-padding-xsmall);
   --zen-tab-item-spacing-small-gap: var(--zen-spacing-gap-xsmall);
+  --zen-tab-item-size-large-min-width: var(--zen-dm-72);
+  --zen-tab-item-spacing-large-horizontal-padding: 0px;
+  --zen-tab-item-spacing-large-vertical-padding: var(--zen-spacing-padding-xsmall);
+  --zen-tab-item-spacing-large-gap: var(--zen-spacing-gap-xsmall);
   --zen-table-cell-size: var(--zen-dm-56);
   --zen-table-header-size: var(--zen-dm-40);
   --zen-image-size-medium: var(--zen-dm-48);
@@ -3836,6 +3845,7 @@
   --zen-navigation-action-text-spacing-gap: 0px;
   --zen-tab-item-size-small-height: var(--zen-dm-40);
   --zen-tab-item-size-medium-height: var(--zen-dm-48);
+  --zen-tab-item-size-large-height: var(--zen-dm-72);
   --zen-tag-spacing-medium-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-badge-spacing-medium-customize: var(--zen-spacing-padding-3-xsmall);
@@ -4005,6 +4015,10 @@
   --zen-tab-item-spacing-small-horizontal-padding: 0px;
   --zen-tab-item-spacing-small-vertical-padding: 6px;
   --zen-tab-item-spacing-small-gap: var(--zen-spacing-gap-xsmall);
+  --zen-tab-item-size-large-min-width: var(--zen-dm-64);
+  --zen-tab-item-spacing-large-horizontal-padding: 0px;
+  --zen-tab-item-spacing-large-vertical-padding: var(--zen-spacing-padding-xsmall);
+  --zen-tab-item-spacing-large-gap: var(--zen-spacing-gap-xsmall);
   --zen-table-cell-size: var(--zen-dm-40);
   --zen-table-header-size: var(--zen-dm-32);
   --zen-image-size-medium: var(--zen-dm-40);
@@ -4030,6 +4044,7 @@
   --zen-navigation-action-text-spacing-gap: 0px;
   --zen-tab-item-size-small-height: var(--zen-dm-28);
   --zen-tab-item-size-medium-height: var(--zen-dm-32);
+  --zen-tab-item-size-large-height: var(--zen-dm-64);
   --zen-tag-spacing-medium-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-tag-spacing-small-minimum-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-badge-spacing-medium-customize: var(--zen-spacing-padding-3-xsmall);

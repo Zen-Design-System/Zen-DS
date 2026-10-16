@@ -17,6 +17,15 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Tabs `size="lg"` (`large`), the desktop top-navigation tab (2026-10-17, user: "Thêm size tab large giữ nguyên font
+  size tăng size lên 64"): 64px items (72 in Comfortable density) with Medium's label and icon, tokens
+  `Tab-Item/Size|Spacing/Large/*` (Figma Tab-Item `Size=Large`, 24 variants). The hover/selected fill is 40px high and
+  bleeds 16px past the label; a Large Indicator list draws no baseline of its own (the bar's Divider is it). Small and
+  Medium are unchanged.
+- Figma audit `navigation/back-chevron` (2026-10-17, user: "chúng ta có chốt rule về button back. nhưng lúc này build
+  trong figma lại sai … đảm bảo không bị lại lỗi này"): `skills/zen-figma-design` now fails a phone or tablet screen
+  whose Back (Top-Navigation, Nav-Action, Button) is a left arrow; Back is `icon-chevron-left-line-medium`, the same
+  rule as the code harness.
 - Segmented `size="sm"` follows the live Figma (2026-10-17, user: "Update token của component size Segmented"):
   Segmented/Spacing/Small/Horizontal-Padding is 6 in Compact too (was 4), so each Small segment is 4px wider; Medium,
   Comfortable and the Studio mode are unchanged.

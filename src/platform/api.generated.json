@@ -6067,10 +6067,10 @@
         },
         {
           "name": "size",
-          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "type": "\"md\" | \"sm\" | \"lg\" | \"medium\" | \"small\" | \"large\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md, lg) or Figma (small, medium, large) spelling. `lg` is the desktop top-navigation size (64px).",
           "deprecated": null
         },
         {
@@ -6177,10 +6177,10 @@
         },
         {
           "name": "size",
-          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "type": "\"md\" | \"sm\" | \"lg\" | \"medium\" | \"small\" | \"large\"",
           "required": false,
           "default": "\"md\"",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling.",
+          "description": "Short (sm, md, lg) or Figma (small, medium, large) spelling. `lg` (Figma Size=Large, 64px in Compact) is the\n desktop top-navigation tab: same label, a taller item whose indicator meets the bar's bottom border.",
           "deprecated": null
         },
         {

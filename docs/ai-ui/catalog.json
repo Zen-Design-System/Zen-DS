@@ -14332,7 +14332,8 @@
       "purpose": "Switch between related panels of content at the same level.",
       "use": [
         "Settings pages, detail views with sections (Indicator).",
-        "Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow)."
+        "Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow).",
+        "The desktop top-navigation bar (size large, Indicator): the 64px items fill the bar and the indicator sits on its bottom border."
       ],
       "avoid": [
         "Filtering → Chip.",
@@ -14372,11 +14373,13 @@
           "enum": [
             "md",
             "sm",
+            "lg",
             "medium",
-            "small"
+            "small",
+            "large"
           ],
           "default": "md",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+          "description": "Short (sm, md, lg) or Figma (small, medium, large) spelling."
         },
         "variant": {
           "enum": [
@@ -14592,7 +14595,8 @@
       "purpose": "Switch between related panels of content at the same level.",
       "use": [
         "Settings pages, detail views with sections (Indicator).",
-        "Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow)."
+        "Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow).",
+        "The desktop top-navigation bar (size large, Indicator): the 64px items fill the bar and the indicator sits on its bottom border."
       ],
       "avoid": [
         "Filtering → Chip.",
@@ -14633,11 +14637,13 @@
           "enum": [
             "md",
             "sm",
+            "lg",
             "medium",
-            "small"
+            "small",
+            "large"
           ],
           "default": "md",
-          "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+          "description": "Short (sm, md, lg) or Figma (small, medium, large) spelling."
         },
         "variant": {
           "enum": [
@@ -16939,7 +16945,7 @@
       "title": "Tabs",
       "file": "docs/guidelines/tabs.md",
       "do": [
-        "Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.",
+        "Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page; large only as the desktop top-navigation bar (64px, Indicator), never inside page content.",
         "Give the tablist an aria-label and pair each tab with a TabPanel.",
         "Keep 2–7 tabs with short labels.",
         "Show counts with badges; hide at zero.",

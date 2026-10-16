@@ -2041,10 +2041,15 @@ export const tokens = {
   "Spacing/Padding/Small": "var(--zen-spacing-padding-small)",
   "Spacing/Padding/XLarge": "var(--zen-spacing-padding-xlarge)",
   "Spacing/Padding/XSmall": "var(--zen-spacing-padding-xsmall)",
+  "Tab-Item/Size/Large/Height": "var(--zen-tab-item-size-large-height)",
+  "Tab-Item/Size/Large/Min-Width": "var(--zen-tab-item-size-large-min-width)",
   "Tab-Item/Size/Medium/Height": "var(--zen-tab-item-size-medium-height)",
   "Tab-Item/Size/Medium/Min-Width": "var(--zen-tab-item-size-medium-min-width)",
   "Tab-Item/Size/Small/Height": "var(--zen-tab-item-size-small-height)",
   "Tab-Item/Size/Small/Min-Width": "var(--zen-tab-item-size-small-min-width)",
+  "Tab-Item/Spacing/Large/Gap": "var(--zen-tab-item-spacing-large-gap)",
+  "Tab-Item/Spacing/Large/Horizontal-Padding": "var(--zen-tab-item-spacing-large-horizontal-padding)",
+  "Tab-Item/Spacing/Large/Vertical-Padding": "var(--zen-tab-item-spacing-large-vertical-padding)",
   "Tab-Item/Spacing/Medium/Gap": "var(--zen-tab-item-spacing-medium-gap)",
   "Tab-Item/Spacing/Medium/Horizontal-Padding": "var(--zen-tab-item-spacing-medium-horizontal-padding)",
   "Tab-Item/Spacing/Medium/Vertical-Padding": "var(--zen-tab-item-spacing-medium-vertical-padding)",
@@ -2275,7 +2280,7 @@ export const tokenCollections = {
       "Comfortable",
       "Studio"
     ],
-    "variableCount": 190
+    "variableCount": 195
   },
   "spacing": {
     "name": "Spacing",

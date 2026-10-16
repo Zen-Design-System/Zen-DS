@@ -2036,6 +2036,10 @@ abstract final class ZenToken {
   static const String tabItemSpacingSmallHorizontalPadding = 'Tab-Item/Spacing/Small/Horizontal-Padding';
   static const String tabItemSpacingSmallVerticalPadding = 'Tab-Item/Spacing/Small/Vertical-Padding';
   static const String tabItemSpacingSmallGap = 'Tab-Item/Spacing/Small/Gap';
+  static const String tabItemSizeLargeMinWidth = 'Tab-Item/Size/Large/Min-Width';
+  static const String tabItemSpacingLargeHorizontalPadding = 'Tab-Item/Spacing/Large/Horizontal-Padding';
+  static const String tabItemSpacingLargeVerticalPadding = 'Tab-Item/Spacing/Large/Vertical-Padding';
+  static const String tabItemSpacingLargeGap = 'Tab-Item/Spacing/Large/Gap';
   static const String tableCellSize = 'Table/Cell/Size';
   static const String tableHeaderSize = 'Table/Header/Size';
   static const String imageSizeMedium = 'Image-Size/Medium';
@@ -2061,6 +2065,7 @@ abstract final class ZenToken {
   static const String navigationActionTextSpacingGap = 'Navigation-Action/Text/Spacing/Gap';
   static const String tabItemSizeSmallHeight = 'Tab-Item/Size/Small/Height';
   static const String tabItemSizeMediumHeight = 'Tab-Item/Size/Medium/Height';
+  static const String tabItemSizeLargeHeight = 'Tab-Item/Size/Large/Height';
   static const String tagSpacingMediumMinimumPadding = 'Tag/Spacing/Medium/Minimum-Padding';
   static const String tagSpacingSmallMinimumPadding = 'Tag/Spacing/Small/Minimum-Padding';
   static const String badgeSpacingMediumCustomize = 'Badge/Spacing/Medium/Customize';

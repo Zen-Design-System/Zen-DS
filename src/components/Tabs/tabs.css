@@ -1,5 +1,5 @@
 /* Figma Primitives/Tab-Item (1576:2090) + Tab-Bar (1577:5477).
-   Indicator: item height Tab-Item/Size (40/32) with 4/2 block padding; the hover Fill bleeds 8px past the
+   Indicator: item height Tab-Item/Size (Large 64 · Medium 40 · Small 32) with 12/4/2 block padding; the hover Fill bleeds 8px past the
    label (radius Base); Select=Yes draws a 2px Tab/Border/Selected line on the bar's 1px Border/Neutral/Pale.
    Subtle: filled 40/32 container, padding 12/8 inline, radius Base, Tab/Background Default|Hover|Selected.
    Label Body/Base/Medium → Body/Base/Bold when selected; icon Element-Size/Popular/Base (20). */
@@ -7,6 +7,9 @@
 .zen-tabs::-webkit-scrollbar { display: none; }
 .zen-tabs[data-variant="indicator"] { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default); padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-tabs[data-variant="subtle"] { gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Large is the desktop top-navigation bar: the bar's own bottom border (a Divider under it) is the baseline, so the list
+   draws none, and its inline padding is the Large hover fill's 16px bleed (the list scrolls, so it would clip it). */
+.zen-tabs[data-variant="indicator"][data-size="large"] { box-shadow: none; padding-inline: var(--zen-spacing-padding-medium, 16px); }
 /* Full width (a code-only extension — Figma Tab-Bar items hug): the bar fills its container and the items share it
    equally, the mobile "fixed tabs" pattern. Labels stay centred in each item. */
 .zen-tabs[data-full-width="true"] { width: 100%; }
@@ -16,6 +19,8 @@
   --zen-tab-height: var(--zen-tab-item-size-medium-height, 40px);
   --zen-tab-block: var(--zen-spacing-padding-2-xsmall, 4px);
   --zen-tab-gap: var(--zen-tab-item-spacing-medium-gap, 8px);
+  /* Indicator Fill bleed past the label (Figma ABS x=-8); Large overrides it. */
+  --zen-tab-fill-bleed: var(--zen-spacing-padding-xsmall, 8px);
   --zen-tab-fill: var(--zen-tab-background-default);
   --zen-tab-content: var(--zen-tab-content-default);
   position: relative;
@@ -37,9 +42,20 @@
   --zen-tab-gap: var(--zen-tab-item-spacing-small-gap, 8px);
   min-width: var(--zen-tab-item-size-small-min-width, 32px);
 }
+/* Figma Size=Large (2026-10-17, the desktop top-navigation tab): Tab-Item/Size/Large 64 (Compact) · 72 (Comfortable),
+   Spacing/Padding/Small above and below so the hover/active fill is a 40px band centred in the item (Subtle: the filled
+   container), bleeding 16px past the label; label and icon as Medium; the indicator sits on the bar's bottom border. */
+.zen-tab[data-size="large"] {
+  --zen-tab-height: var(--zen-tab-item-size-large-height, 64px);
+  --zen-tab-block: var(--zen-spacing-padding-small, 12px);
+  --zen-tab-gap: var(--zen-tab-item-spacing-large-gap, 8px);
+  --zen-tab-fill-bleed: var(--zen-spacing-padding-medium, 16px);
+  min-width: var(--zen-tab-item-size-large-min-width, 64px);
+  padding-inline: var(--zen-tab-item-spacing-large-horizontal-padding, 0px);
+}
 .zen-tab__container { position: relative; display: inline-flex; width: 100%; height: 100%; box-sizing: border-box; align-items: center; justify-content: center; gap: var(--zen-tab-gap); border-radius: var(--zen-corner-radius-base, 12px); }
-/* Indicator Fill: background layer wider than the content (Figma ABS x=-8). */
-.zen-tab[data-variant="indicator"] .zen-tab__container::before { position: absolute; inset: 0 calc(-1 * var(--zen-spacing-padding-xsmall, 8px)); z-index: 0; border-radius: inherit; background: var(--zen-tab-fill); content: ""; }
+/* Indicator Fill: background layer wider than the content (Figma ABS x=-8; Large x=-16). */
+.zen-tab[data-variant="indicator"] .zen-tab__container::before { position: absolute; inset: 0 calc(-1 * var(--zen-tab-fill-bleed)); z-index: 0; border-radius: inherit; background: var(--zen-tab-fill); content: ""; }
 /* Icon-only items keep the Fill flush with the 40/32 square (Figma x=0). */
 .zen-tab[data-variant="indicator"][data-icon-only="true"] .zen-tab__container::before { inset: 0; }
 .zen-tab__container > * { position: relative; z-index: 1; }
@@ -59,6 +75,7 @@
 .zen-tab:disabled, .zen-tab[data-state="disabled"] { --zen-tab-fill: var(--zen-tab-background-default); --zen-tab-content: var(--zen-color-content-disabled); cursor: not-allowed; }
 
 .zen-tab[data-variant="subtle"] { padding: 0; }
+.zen-tab[data-variant="subtle"][data-size="large"] { padding-block: var(--zen-tab-block); }
 .zen-tab[data-variant="subtle"] .zen-tab__container { padding-inline: var(--zen-spacing-padding-small, 12px); background: var(--zen-tab-fill); }
 .zen-tab[data-variant="subtle"][data-size="small"] .zen-tab__container { padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-tab[data-variant="subtle"][data-selected="true"] { --zen-tab-fill: var(--zen-tab-background-selected); }

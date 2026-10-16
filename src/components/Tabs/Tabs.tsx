@@ -10,13 +10,13 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
 
-export const tabSizes = ["medium", "small"] as const;
+export const tabSizes = ["medium", "small", "large"] as const;
 export const tabVariants = ["indicator", "subtle"] as const;
 export const tabStates = ["default", "hover", "disabled"] as const;
 /** CSS / Figma key (the `data-size` value). */
 type TabSizeKey = (typeof tabSizes)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
-export type TabSize = "md" | "sm" | "medium" | "small";
+export type TabSize = "md" | "sm" | "lg" | "medium" | "small" | "large";
 export type TabVariant = (typeof tabVariants)[number];
 export type TabState = (typeof tabStates)[number];
 
@@ -31,7 +31,8 @@ export interface TabItemProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
   /** Figma Badge=Yes: Badge-Counter XSmall · Neutral · Subtle after the label. */
   badge?: number | string;
   selected?: boolean;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Short (sm, md, lg) or Figma (small, medium, large) spelling. `lg` (Figma Size=Large, 64px in Compact) is the
+   *  desktop top-navigation tab: same label, a taller item whose indicator meets the bar's bottom border. */
   size?: TabSize;
   /** Figma Style: Indicator (underline) or Subtle (filled). */
   variant?: TabVariant;
@@ -93,7 +94,7 @@ export interface TabsProps {
   onValueChange?: (id: string) => void;
   /** @deprecated Use onValueChange (same arguments). */
   onChange?: (id: string) => void;
-  /** Short (sm, md…) or Figma (small, medium…) spelling. */
+  /** Short (sm, md, lg) or Figma (small, medium, large) spelling. `lg` is the desktop top-navigation size (64px). */
   size?: TabSize;
   variant?: TabVariant;
   /** Stretch the bar to its container (Indicator style keeps its bottom border full width). */

@@ -9,6 +9,7 @@ Switch between related panels of content at the same level.
 ## Use it for
 - Settings pages, detail views with sections (Indicator).
 - Compact switches inside cards (Subtle; still medium unless the card is genuinely narrow).
+- The desktop top-navigation bar (size large, Indicator): the 64px items fill the bar and the indicator sits on its bottom border.
 
 ## Use something else for
 - Filtering → Chip.
@@ -19,7 +20,7 @@ Switch between related panels of content at the same level.
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Style | `variant` | indicator · subtle |
-| Size | `size` | medium · small |
+| Size | `size` | medium · small · large (desktop top navigation, 64px) |
 | Items | `items[] {id,label,icon,badge,disabled}` | icon: a name ("icon-home-02-line") or a node; Badge-Counter xsmall |
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
 | Panels | `idPrefix + TabPanel` | aria-controls wiring |
@@ -41,7 +42,7 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 | `defaultValue` | `string` | — |  |
 | `onValueChange` | `(id: string) => void` | — | Called with the selected tab's id. |
 | `onChange` | `(id: string) => void` | — | **Deprecated:** Use onValueChange (same arguments).  |
-| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `size` | `"md" \| "sm" \| "lg" \| "medium" \| "small" \| "large"` | `"md"` | Short (sm, md, lg) or Figma (small, medium, large) spelling. `lg` is the desktop top-navigation size (64px). |
 | `variant` | `"indicator" \| "subtle"` | `"indicator"` |  |
 | `fullWidth` | `boolean` | `false` | Stretch the bar to its container (Indicator style keeps its bottom border full width). |
 | `aria-label` | `string` | — |  |
@@ -62,7 +63,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "value"
 | `icon` | `IconName \| ReactNode` | — | Leading icon (Element-Size/Popular/Base 20): an icon name (`"icon-home-03-line"`) or a node. |
 | `badge` | `number \| string` | — | Figma Badge=Yes: Badge-Counter XSmall · Neutral · Subtle after the label. |
 | `selected` | `boolean` | `false` |  |
-| `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
+| `size` | `"md" \| "sm" \| "lg" \| "medium" \| "small" \| "large"` | `"md"` | Short (sm, md, lg) or Figma (small, medium, large) spelling. `lg` (Figma Size=Large, 64px in Compact) is the desktop top-navigation tab: same label, a taller item whose indicator meets the bar's bottom border. |
 | `variant` | `"indicator" \| "subtle"` | `"indicator"` | Figma Style: Indicator (underline) or Subtle (filled). |
 | `state` | `"default" \| "hover" \| "disabled"` | `"default"` | Deterministic Figma State for matrices; real hover/disabled apply natively. |
 | `type` | _HTML attribute_ | `"button"` |  |
@@ -94,7 +95,7 @@ type TabOption = { id: string; label?: ReactNode; icon?: IconName | ReactNode; b
 | Tab | Move into the active panel |
 
 ## ✅ Do
-- Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page.
+- Use size medium (the default) on desktop and on phones; small only inside a genuinely narrow component space (a dense card header or table toolbar), never just to save room on a page; large only as the desktop top-navigation bar (64px, Indicator), never inside page content.
 - Give the tablist an aria-label and pair each tab with a TabPanel.
 - Keep 2–7 tabs with short labels.
 - Show counts with badges; hide at zero.
