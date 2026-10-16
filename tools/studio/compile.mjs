@@ -287,6 +287,14 @@ function screenContent(screen, ctx, indent) {
   const shown = SCREEN_CHROME.filter((entry) => entry.layout === layout && part(entry.prop));
   const blank = (child) => child.kind === "text" && !child.value.trim();
   const all = screen.children.filter((child) => !blank(child));
+  // A Screen on its master layout (a root AppShell) exports one AppShell for every width: the Screen's phone parts
+  // become its topNavigation / bottomNavigation, which it draws under 744px (component-usage-rules §17).
+  const shell = all.length === 1 && all[0].kind === "element" && all[0].name === "AppShell" ? all[0] : null;
+  if (shell) {
+    const props = { ...shell.props };
+    for (const prop of ["topNavigation", "bottomNavigation"]) if (!props[prop] && part(prop)) props[prop] = screen.props[prop];
+    return elementCode({ ...shell, props }, ctx, indent);
+  }
   // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: a phone shows its content only.
   const kids = layout === "mobile" && all.length === 1 && all[0].kind === "element" && all[0].name === "AppShell" ? all[0].children.filter((child) => !blank(child)) : all;
   if (!shown.length) {

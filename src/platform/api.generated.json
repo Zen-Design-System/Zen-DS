@@ -16240,6 +16240,22 @@
           "deprecated": null
         },
         {
+          "name": "topNavigation",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Phones (the shell narrower than 744px, Zen's Mobile breakpoint): the screen's TopNavigation (Figma\nTop-Navigation/Mobile 12014:45167). With it, or `bottomNavigation`, a phone draws neither the top bar nor\n`sections`: the bar holds the page's title (its h1), Back on a child screen and at most three actions, mapped from the\ndesktop header (docs/component-usage-rules.md §17). The Sidebar stays reachable as the drawer\n(`useAppShell().openNav()`, e.g. from a BottomNavigation More). Tablets and desktops ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "bottomNavigation",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Phones: the root navigation (Figma Bottom-Navigation 7042:38507), usually the Sidebar's rows (up to 5; more → the\nfirst 4 + More). Pinned to the bottom under the footer; give it on root screens only. Tablets and desktops ignore it.",
+          "deprecated": null
+        },
+        {
           "name": "canvas",
           "type": "\"default\" | \"alt\" | \"flat\"",
           "required": false,
@@ -16321,10 +16337,10 @@
         },
         {
           "name": "layout",
-          "type": "\"auto\" | \"sidebar\" | \"drawer\"",
+          "type": "\"auto\" | \"sidebar\" | \"drawer\" | \"phone\"",
           "required": false,
           "default": "\"auto\"",
-          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer. Force it only for previews and tests.",
+          "description": "Force the layout. By default (`auto`) the shell's own width decides: narrower than 1024px uses the drawer, and\nnarrower than 744px the phone chrome (`topNavigation` / `bottomNavigation`) when the shell has one. Force it only\nfor previews and tests.",
           "deprecated": null
         },
         {

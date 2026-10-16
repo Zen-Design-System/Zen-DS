@@ -29,11 +29,36 @@ const remember = (hash: string, doc: PageDoc) => {
   if (documents.size > 400) documents.delete(documents.keys().next().value as string);
 };
 
+type Engine = Awaited<ReturnType<typeof loadEngine>>;
+type Edited = { doc: PageDoc; text: string; locs: Record<string, string | null> | null };
+
+/**
+ * After an edit (`before` → `edited`): each Screen's phone parts linked to its desktop header follow it, and a part the
+ * edit changed on the phone becomes the person's own (tools/studio/responsive-header.mjs, component-usage-rules §17).
+ * The Screens' edits join this one (one ⌘Z); `locs` carry the elements from `before` to the final text.
+ */
+function withPhoneSync(engine: Engine, before: string | null, edited: Edited, file: string, options: Record<string, unknown>): Edited {
+  const components = new Set(zenComponents);
+  let current = edited;
+  // One Screen request per round, planned again on the new text (an edit above a Screen moves its place); a Screen takes
+  // up to three (each new part alone, then the rest), a page seldom has more than a few Screens.
+  for (let round = 0; round < 24; round++) {
+    const [plan] = engine.planPhoneSync(before, current.text, { components });
+    if (!plan) break;
+    const next = engine.editDoc(current.doc, current.text, { file, loc: plan.loc, name: plan.name, ops: plan.ops }, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options: { ...options, hash: engine.sha1(current.text) } });
+    if ("error" in next) break;
+    const locs = current.locs && next.locs ? Object.fromEntries(Object.entries(current.locs).map(([from, at]) => [from, at === null ? null : next.locs![at] ?? at])) : current.locs ?? next.locs;
+    current = { doc: next.doc, text: next.text, locs };
+  }
+  return current;
+}
+
 /** Gives an open page its document (a text written without one: an older page, an import, a restored version). */
 export async function ensurePageDoc(id: string): Promise<void> {
   const page = await getPage(id);
   if (!page) return;
   if (LEGACY_FRAME.test(page.text) && (await moveScreenFrame(id, page))) return;
+  if (await linkPhoneChrome(id, page)) return;
   if (page.doc) return;
   const engine = await loadEngine();
   const { doc, errors } = engine.docFromText(page.text, { components: new Set(zenComponents) });
@@ -66,6 +91,25 @@ async function moveScreenFrame(id: string, page: { text: string; doc?: PageDoc }
   }
   await putPage(id, moved.text, { doc });
   remember(engine.sha1(moved.text), doc);
+  return true;
+}
+
+/**
+ * A Screen whose phone parts are not decided yet (a new or template page, or one made before 2026-10-16) gets them drawn
+ * from its desktop AppShell and linked, once, as it opens (component-usage-rules §17). True when the page was rewritten.
+ */
+async function linkPhoneChrome(id: string, page: { text: string; doc?: PageDoc }): Promise<boolean> {
+  const engine = await loadEngine();
+  const components = new Set(zenComponents);
+  if (!engine.planPhoneSync(null, page.text, { components }).length) return false;
+  const doc = page.doc ?? engine.docFromText(page.text, { components }).doc;
+  if (!doc) return false;
+  const file = pageFile(id);
+  const options = { ...(await engineOptions()), typographyKeys: Object.keys(typographyStyles), file };
+  const linked = withPhoneSync(engine, null, { doc, text: page.text, locs: null }, file, options);
+  if (linked.text === page.text) return false;
+  await putPage(id, linked.text, { doc: linked.doc });
+  remember(engine.sha1(linked.text), linked.doc);
   return true;
 }
 
@@ -141,8 +185,11 @@ export async function localEdit(request: EditRequest): Promise<EditResponse> {
   // Op "detach" runs once the recipes have registered with the engine.
   if (request.ops.some((op) => op.op === "detach")) await loadDetach();
   const options = { ...(await engineOptions()), typographyKeys: Object.keys(typographyStyles), file: request.file, hash: request.hash, shared: request.shared };
-  const result = engine.editDoc(doc, before, request, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options });
-  if ("error" in result) return { ok: false, code: result.code === "stale" || result.code === "not-found" || result.code === "forbidden" ? result.code : "invalid", error: result.error };
+  const edited = engine.editDoc(doc, before, request, { components, applyOps: engine.applyOps, dataFieldEdit: engine.dataFieldEdit, sha1: engine.sha1, options });
+  if ("error" in edited) return { ok: false, code: edited.code === "stale" || edited.code === "not-found" || edited.code === "forbidden" ? edited.code : "invalid", error: edited.error };
+  // The Screens' linked phone parts follow the edit (one ⌘Z with it).
+  const synced = withPhoneSync(engine, before, { doc: edited.doc, text: edited.text, locs: edited.locs }, request.file, options);
+  const result = { ...edited, ...synced };
   const after = result.text;
   if (after !== before) {
     remember(hashBefore, doc);

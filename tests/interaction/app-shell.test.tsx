@@ -7,7 +7,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { AppShell, AppShellAccount, AppShellAction, Avatar, Breadcrumbs, Menu, Sidebar, Stack, Text, ZenProvider, useAppShell, type SidebarSection } from "../../src/index";
+import { AppShell, AppShellAccount, AppShellAction, Avatar, BottomNavigation, Breadcrumbs, Button, Menu, PageHeader, Sidebar, Stack, Text, TopNavigation, ZenProvider, useAppShell, type SidebarSection } from "../../src/index";
 
 const sections: SidebarSection[] = [
   { items: [{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "members", label: "Members", icon: "icon-users-line" }] },
@@ -101,6 +101,69 @@ describe("AppShell drawer", () => {
     const screen = await render(<div style={{ width: 1440, transform: "scale(0.5)", transformOrigin: "0 0" }}><Shell /></div>);
     await expect.element(screen.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();
     expect(document.querySelector(".zen-app-shell")?.getAttribute("data-layout")).toBe("sidebar");
+  });
+});
+
+/** A page that runs on desktop and phones (component-usage-rules §17): the desktop header and its phone chrome. */
+function Responsive({ width }: { width: number }) {
+  return (
+    <div style={{ width }}>
+      <ZenProvider>
+        <AppShell mainId="phone-main"
+          sidebar={<Sidebar sections={sections} selectedId="members" />}
+          header={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }]} />}
+          headerActions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} />}
+          sections={<PageHeader title="Members" actions={<Button level="primary">Invite member</Button>} />}
+          topNavigation={<TopNavigation title="Members" largeTitle="Members" trailing={[{ icon: "icon-plus-line", label: "Invite member" }, { icon: "icon-bell-01-line", label: "Notifications", dot: true }]} />}
+          bottomNavigation={<BottomNavigation value="members" onValueChange={() => undefined} items={[{ id: "home", label: "Home", icon: "icon-home-03-line" }, { id: "members", label: "Members", icon: "icon-users-line" }, { id: "billing", label: "Billing", icon: "icon-credit-card-line" }]} />}
+        >
+          <MoreButton />
+          <p>Page members</p>
+        </AppShell>
+      </ZenProvider>
+    </div>
+  );
+}
+
+/** A control of the page's own that opens the drawer (a BottomNavigation More does the same). */
+function MoreButton() {
+  const shell = useAppShell();
+  return <button type="button" onClick={() => shell?.openNav()}>All pages</button>;
+}
+
+describe("AppShell phone chrome", () => {
+  it("draws the TopNavigation and BottomNavigation under 744px, without the top bar or the header rows", async () => {
+    const screen = await render(<Responsive width={390} />);
+    await expect.element(screen.getByRole("heading", { level: 1, name: "Members" })).toBeVisible();
+    const shell = document.querySelector(".zen-app-shell");
+    expect(shell?.getAttribute("data-layout")).toBe("phone");
+    expect(shell?.querySelector(".zen-app-shell__header")).toBeNull();
+    expect(shell?.querySelector(".zen-page-header")).toBeNull();
+    expect(shell?.querySelector(".zen-app-shell__top-nav .zen-top-nav")).toBeTruthy();
+    expect(shell?.querySelector(".zen-app-shell__bottom-nav .zen-bottom-nav, .zen-app-shell__bottom-nav nav")).toBeTruthy();
+    // One h1 on the phone: the bar's title.
+    expect(document.querySelectorAll("h1").length).toBe(1);
+  });
+
+  it("keeps the drawer and the header rows on a tablet", async () => {
+    const screen = await render(<Responsive width={900} />);
+    await expect.element(screen.getByRole("button", { name: "Open navigation" })).toBeVisible();
+    expect(document.querySelector(".zen-app-shell")?.getAttribute("data-layout")).toBe("drawer");
+    expect(document.querySelector(".zen-top-nav")).toBeNull();
+    expect(document.querySelector(".zen-page-header")).toBeTruthy();
+  });
+
+  it("keeps the full header on a desktop", async () => {
+    const screen = await render(<Responsive width={1280} />);
+    await expect.element(screen.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();
+    expect(document.querySelector(".zen-app-shell")?.getAttribute("data-layout")).toBe("sidebar");
+    expect(document.querySelector(".zen-app-shell__bottom-nav, .zen-top-nav")).toBeNull();
+  });
+
+  it("still opens the Sidebar as the drawer from the page (openNav)", async () => {
+    const screen = await render(<Responsive width={390} />);
+    await screen.getByRole("button", { name: "All pages" }).click();
+    await expect.element(screen.getByRole("dialog", { name: "Navigation" })).toBeVisible();
   });
 });
 
