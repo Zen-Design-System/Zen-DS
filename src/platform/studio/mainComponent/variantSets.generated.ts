@@ -207,13 +207,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Inverse",
             "White",
             "White Overlay",
-            "Black Overlay"
+            "Black Overlay",
+            "Inverse Subtle"
           ],
           "values": [
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ],
           "default": "inverse"
         },
@@ -433,13 +435,15 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
             "Inverse",
             "White",
             "White Overlay",
-            "Black Overlay"
+            "Black Overlay",
+            "Inverse Subtle"
           ],
           "values": [
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ],
           "default": "inverse"
         },

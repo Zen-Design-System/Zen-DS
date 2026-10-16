@@ -53,7 +53,7 @@ Object shapes the props above refer to.
 
 ```ts
 interface ActionBarAction { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; startIcon?: ReactNode; type?: "button" | "submit"; form?: string; }
-type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay" | "inverse-subtle"
 ```
 
 ## Keyboard

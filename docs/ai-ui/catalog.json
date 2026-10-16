@@ -1975,7 +1975,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -2025,7 +2026,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -2881,7 +2883,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ],
           "description": "Canonical Figma prop."
         },
@@ -5993,7 +5996,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -6044,7 +6048,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -6095,7 +6100,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -8696,7 +8702,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ],
           "description": "Default `tertiary` for Icon-Main (toolbar and row actions) and `primary` for Icon-Flat (close/dismiss in headers)."
         },
@@ -10662,7 +10669,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -10712,7 +10720,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -10762,7 +10771,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -13271,7 +13281,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -13321,7 +13332,8 @@
                 "inverse",
                 "white",
                 "white-overlay",
-                "black-overlay"
+                "black-overlay",
+                "inverse-subtle"
               ]
             },
             "disabled": {
@@ -18310,7 +18322,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ]
         },
         "disabled": {
@@ -19066,7 +19079,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ]
         }
       },
@@ -19813,7 +19827,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ]
         },
         "onClick": {

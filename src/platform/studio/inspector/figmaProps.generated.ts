@@ -71,7 +71,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Inverse": "inverse",
           "White": "white",
           "White Overlay": "white-overlay",
-          "Black Overlay": "black-overlay"
+          "Black Overlay": "black-overlay",
+          "Inverse Subtle": "inverse-subtle"
         }
       },
       {
@@ -148,7 +149,8 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
           "Inverse": "inverse",
           "White": "white",
           "White Overlay": "white-overlay",
-          "Black Overlay": "black-overlay"
+          "Black Overlay": "black-overlay",
+          "Inverse Subtle": "inverse-subtle"
         }
       },
       {

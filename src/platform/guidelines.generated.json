@@ -20,7 +20,7 @@
       [
         "Level",
         "level",
-        "primary · tertiary (default pair) · secondary (rare) · accent (promoted) · danger · danger-subtle · positive · positive-subtle · surface"
+        "primary · tertiary (default pair) · secondary (rare) · accent (promoted) · danger · danger-subtle · positive · positive-subtle · surface; overlay: inverse · white · white-overlay · black-overlay · inverse-subtle"
       ],
       [
         "Size",

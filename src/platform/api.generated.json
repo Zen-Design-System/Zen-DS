@@ -6,7 +6,7 @@
       "props": [
         {
           "name": "level",
-          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\"",
           "required": false,
           "default": null,
           "description": "Canonical Figma prop. `variant` remains as a compatibility alias.",
@@ -14,7 +14,7 @@
         },
         {
           "name": "variant",
-          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\"",
           "required": false,
           "default": null,
           "description": "",
@@ -124,7 +124,7 @@
         },
         {
           "name": "level",
-          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\"",
           "required": false,
           "default": null,
           "description": "Default `tertiary` for Icon-Main (toolbar and row actions) and `primary` for Icon-Flat (close/dismiss in headers).\nAccent is only for a promoted action (docs/guidelines/button.md).",
@@ -132,7 +132,7 @@
         },
         {
           "name": "variant",
-          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+          "type": "\"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\"",
           "required": false,
           "default": null,
           "description": "Compatibility alias of `level`.",

@@ -24,6 +24,7 @@ export const buttonLevels = [
   "white",
   "white-overlay",
   "black-overlay",
+  "inverse-subtle",
 ] as const;
 
 export const buttonAppearances = ["main", "flat", "overlay"] as const;
@@ -31,7 +32,7 @@ export const buttonMainLevels = ["primary", "accent", "secondary", "tertiary", "
 export const buttonIconMainLevels = ["primary", "accent", "secondary", "tertiary", "danger", "danger-secondary", "positive", "positive-secondary", "surface"] as const;
 export const buttonFlatLevels = ["primary", "accent"] as const;
 export const buttonIconFlatLevels = ["primary", "secondary", "accent", "danger", "positive"] as const;
-export const buttonOverlayLevels = ["inverse", "white", "white-overlay", "black-overlay"] as const;
+export const buttonOverlayLevels = ["inverse", "white", "white-overlay", "black-overlay", "inverse-subtle"] as const;
 
 /** Backwards-compatible name used by the original Storybook stories. */
 export const buttonVariants = buttonLevels;

@@ -87,6 +87,6 @@
   ],
   "types": {
     "ActionBarAction": "interface ActionBarAction { label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; startIcon?: ReactNode; type?: \"button\" | \"submit\"; form?: string; }",
-    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\""
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\""
   }
 }

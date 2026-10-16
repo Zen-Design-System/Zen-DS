@@ -41,7 +41,7 @@ export const componentDescriptions = {
     what: "A labelled button for imagery, video and dark media: its fills stay legible over photos.",
     use: ["Actions over hero images, media players and photo cards."],
     instead: ["Any plain Canvas or Surface → Button/Main."],
-    props: [["Level", "Inverse · White · White Overlay · Black Overlay — pick by the image underneath"], ["State", STATE_REAL]],
+    props: [["Level", "Inverse · White · White Overlay · Black Overlay · Inverse Subtle — pick by the image underneath"], ["State", STATE_REAL]],
     code: "`<Button appearance=\"overlay\">`",
   }),
   "Button/Icon-Main": card({
@@ -63,7 +63,7 @@ export const componentDescriptions = {
   "Button/Icon-Overlay": card({
     what: "An icon-only button for imagery, video and dark media (play, close a viewer, fullscreen).",
     instead: ["Plain Canvas or Surface → Button/Icon-Main or Button/Icon-Flat."],
-    props: [["Level", "Inverse · White · White Overlay · Black Overlay — pick by the image underneath"], ["State", STATE_REAL]],
+    props: [["Level", "Inverse · White · White Overlay · Black Overlay · Inverse Subtle — pick by the image underneath"], ["State", STATE_REAL]],
     code: "`<IconButton appearance=\"overlay\">`",
   }),
 

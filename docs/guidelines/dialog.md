@@ -108,7 +108,7 @@ Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual 
 Object shapes the props above refer to.
 
 ```ts
-type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay" | "inverse-subtle"
 ```
 
 ## Keyboard

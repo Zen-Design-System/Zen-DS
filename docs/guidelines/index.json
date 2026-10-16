@@ -20,8 +20,8 @@
       ],
       "props": {
         "Button": [
-          "level?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay",
-          "variant?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay (deprecated)",
+          "level?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay|inverse-subtle",
+          "variant?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay|inverse-subtle (deprecated)",
           "size?: 2xs|xs|sm|md|lg|xl|2xsmall|xsmall|small|medium|large|xlarge = md",
           "appearance?: main|flat|overlay = main",
           "state?: default|hover|pressed|focused|disabled",
@@ -35,8 +35,8 @@
         ],
         "IconButton": [
           "icon: IconName|ReactNode",
-          "level?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay",
-          "variant?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay (deprecated)",
+          "level?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay|inverse-subtle",
+          "variant?: primary|accent|secondary|tertiary|danger|danger-subtle|positive|positive-subtle|surface|danger-secondary|positive-secondary|inverse|white|white-overlay|black-overlay|inverse-subtle (deprecated)",
           "size?: 2xs|xs|sm|md|lg|xl|2xsmall|xsmall|small|medium|large|xlarge = md",
           "appearance?: main|flat|overlay = main",
           "state?: default|hover|pressed|focused|disabled",

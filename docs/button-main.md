@@ -72,6 +72,7 @@ and content are audited independently. In particular:
 | Overlay / Inverse | `Color/Content/Neutral/Strongest` | `Color/Background/Inverse-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
 | Overlay / White | global `Black` | `Color/Background/White-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
 | Overlay / White Overlay, Black Overlay | global `White` | `Color/Background/White-Disabled` / `Inverse-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
+| Overlay / Inverse Subtle (background `Color/Background/Inverse/Subtle/*`, Effect/Overlay blur on both sets) | `Color/Content/Inverse/Strongest` | `Color/Background/Inverse-Disabled` | `Color/Content/Inverse/Disabled` |
 
 The label and the shared `Icon` primitive must resolve the same computed
 content color. Any future button token change must update this matrix and run a

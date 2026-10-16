@@ -19,7 +19,7 @@ Triggers an action on the current surface (save, submit, open, delete). Navigati
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Appearance | `appearance` | main · flat · overlay (overlay only on imagery/dark media) |
-| Level | `level` | primary · tertiary (default pair) · secondary (rare) · accent (promoted) · danger · danger-subtle · positive · positive-subtle · surface |
+| Level | `level` | primary · tertiary (default pair) · secondary (rare) · accent (promoted) · danger · danger-subtle · positive · positive-subtle · surface; overlay: inverse · white · white-overlay · black-overlay · inverse-subtle |
 | Size | `size` | 2xs · xs · sm · md · lg · xl |
 | Leading/Trailing icon | `startIcon / endIcon · icon (IconButton)` | an icon name ("icon-plus-line") or a node (<Icon name size />) |
 | State=Disabled | `disabled` | Hover/Pressed/Focused come from real interaction |
@@ -33,8 +33,8 @@ Also accepts `ButtonHTMLAttributes<HTMLButtonElement>`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `level` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | Canonical Figma prop. `variant` remains as a compatibility alias. |
-| `variant` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | **Deprecated:** Use level.  |
+| `level` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay" \| "inverse-subtle"` | — | Canonical Figma prop. `variant` remains as a compatibility alias. |
+| `variant` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay" \| "inverse-subtle"` | — | **Deprecated:** Use level.  |
 | `size` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `appearance` | `"main" \| "flat" \| "overlay"` | `"main"` | Figma component set: Button/Main, Button/Flat or Button/Overlay. |
 | `state` | `"default" \| "hover" \| "pressed" \| "focused" \| "disabled"` | — | Optional deterministic state for component matrices; native interaction states still work. |
@@ -55,8 +55,8 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `icon` (required) | `IconName \| ReactNode` | — | Figma Button/Icon-Main glyph: an icon name (`"icon-plus-line"`) or a node. The icon-only primitive is intentionally separate from Button/Main. |
-| `level` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | Default `tertiary` for Icon-Main (toolbar and row actions) and `primary` for Icon-Flat (close/dismiss in headers). Accent is only for a promoted action (docs/guidelines/button.md). |
-| `variant` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay"` | — | **Deprecated:** Use level. Compatibility alias of `level`. |
+| `level` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay" \| "inverse-subtle"` | — | Default `tertiary` for Icon-Main (toolbar and row actions) and `primary` for Icon-Flat (close/dismiss in headers). Accent is only for a promoted action (docs/guidelines/button.md). |
+| `variant` | `"primary" \| "accent" \| "secondary" \| "tertiary" \| "danger" \| "danger-subtle" \| "positive" \| "positive-subtle" \| "surface" \| "danger-secondary" \| "positive-secondary" \| "inverse" \| "white" \| "white-overlay" \| "black-overlay" \| "inverse-subtle"` | — | **Deprecated:** Use level. Compatibility alias of `level`. |
 | `size` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"md"` | Short (sm, md…) or Figma (small, medium…) spelling. |
 | `appearance` | `"main" \| "flat" \| "overlay"` | `"main"` | Figma component set: Button/Icon-Main, Button/Icon-Flat or Button/Icon-Overlay. |
 | `state` | `"default" \| "hover" \| "pressed" \| "focused" \| "disabled"` | — |  |
