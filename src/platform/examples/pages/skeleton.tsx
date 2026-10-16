@@ -224,7 +224,7 @@ function LoadingMoreExample() {
     <ListBox as="section" aria-labelledby={titleId}
       header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Activity</Heading>}
       footer={shown < allActivity.length
-        ? <Stack align="start"><Button level="tertiary" onClick={showOlder}>Show older activity</Button></Stack>
+        ? <Button level="tertiary" onClick={showOlder}>Show older activity</Button>
         : <Text ref={endRef} tabIndex={-1} textStyle="Body/Small/Regular" tone="base">That’s everything from the last 30 days.</Text>}>
       <List aria-labelledby={titleId} aria-busy={loadingMore}>
         {allActivity.slice(0, shown).map((item) => (
@@ -467,7 +467,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `<ListBox as="section" aria-labelledby={titleId}
   header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Activity</Heading>}
   footer={hasMore
-    ? <Stack align="start"><Button level="tertiary" onClick={showOlder}>Show older activity</Button></Stack>
+    ? <Button level="tertiary" onClick={showOlder}>Show older activity</Button>
     : <Text ref={endRef} tabIndex={-1} textStyle="Body/Small/Regular" tone="base">That’s everything from the last 30 days.</Text>}>
   <List aria-labelledby={titleId} aria-busy={loadingMore}>
     {items.map((item) => <ListItem key={item.id} leading={avatar(item.actor)} title={item.name} caption={item.caption} />)}

@@ -514,7 +514,7 @@
       "name": "MetricCard",
       "status": "stable",
       "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
-      "props": "value? theme? color? subAction? type? series? seriesLabel? goal? comparison? categories? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? variant? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
+      "props": "variant? value? theme? color? subAction? type? series? seriesLabel? goal? comparison? categories? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
     },
     {
       "name": "ModalForm",

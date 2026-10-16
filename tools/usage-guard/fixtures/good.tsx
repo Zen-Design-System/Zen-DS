@@ -71,6 +71,10 @@ export const Good = () => <>
   <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>
   <BottomSheet open={open} onOpenChange={setOpen} title="Members"><ListBox theme="on-container"><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></BottomSheet>
   <ListBox><List aria-label="Recent"><ListItem title="Brief.pdf" /></List></ListBox>
+  <ListBox footer={<Button level="tertiary" onClick={openCalendar}>Open calendar</Button>}><List aria-label="Out this week"><ListItem title="Sarah Kim" /></List></ListBox>
+  <ListBox footer={<Button onClick={openInbox}>Go to Inbox</Button>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
+  <ListBox footer={<Stack direction="row" gap="xs" align="center"><Button onClick={openInbox}>Go to Inbox</Button><Button onClick={archiveAll}>Archive all</Button></Stack>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
+  <ListBox footer={<Text textStyle="Body/Small/Regular" tone="light">Updated 2 minutes ago</Text>}><List aria-label="Activity"><ListItem title="Brief shared" /></List></ListBox>
   <Accordion title="Billing">Invoices are emailed monthly.</Accordion>
   <Pagination page={1} onPageChange={setPage} pageCount={10} />
   <ProgressBar value={100} label />

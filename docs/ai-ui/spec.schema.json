@@ -20856,6 +20856,20 @@
           "props": {
             "type": "object",
             "properties": {
+              "variant": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "icon-highlight",
+                      "title-highlight"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A KPI card's Figma Metric-Inline type (`type=\"kpi\"`): `title-highlight` (default since 2026-10-16, the user: a KPI card is laid out like the typed widgets, its title on top, the nu"
+              },
               "value": {
                 "anyOf": [
                   {
@@ -21287,20 +21301,6 @@
                   }
                 ],
                 "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left."
-              },
-              "variant": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "icon-highlight",
-                      "title-highlight"
-                    ]
-                  },
-                  {
-                    "$ref": "#/$defs/marker"
-                  }
-                ],
-                "description": "Figma Metric-Inline type."
               },
               "action": {
                 "anyOf": [

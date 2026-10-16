@@ -1012,6 +1012,23 @@ export const rules = [
   { id: "listbox/on-container-in-overlay", components: ["ListBox"], severity: "warn", allow: "overlay-theme", guideline: "docs/guidelines/list-item.md",
     summary: "A ListBox right inside a Dialog, ModalForm, SidePanel or BottomSheet takes theme=\"on-container\": Surface/Flat on their Container fill (usage rules §16, user rule 2026-10-12).",
     check: ({ attrs, src, start, end }) => onContainerFinding(attrs, src, start, end, "flat") },
+  { id: "listbox/footer-action-tertiary", components: ["ListBox"], severity: "error", allow: "footer-action", guideline: "docs/guidelines/list-item.md",
+    summary: "A ListBox footer action (\"Open calendar\", \"Go to Inbox\") is a Tertiary Button, the Button default: it fills the box on desktop and tablet and hugs its label on mobile, never plain text or a Link (user rule 2026-10-16).",
+    check: ({ attrs }) => {
+      const footer = ownExpr(attrs, "footer");
+      if (footer == null) return false;
+      const buttons = openingTags(footer, "Button").map(topLevel);
+      if (buttons.length) {
+        const off = buttons.filter((a) => (literal(a, "level") ?? "tertiary") !== "tertiary" || (literal(a, "appearance") ?? "main") !== "main");
+        if (off.length) return `holds a footer Button that is not Tertiary (${off.map((a) => literal(a, "level") ?? literal(a, "appearance")).join(", ")}): a footer action is Button level="tertiary" (the default).`;
+        // A column Stack aligned start/center/end makes the Button hug on every device; the footer stretches it itself.
+        const hug = openingTags(footer, "Stack").map(topLevel).find((a) => literal(a, "direction") !== "row" && ["start", "center", "end"].includes(literal(a, "align")));
+        return Boolean(hug) && `wraps its footer Button in a <Stack align="${literal(hug, "align")}">, so it hugs on desktop and tablet too: put the Button straight in the footer (it fills the box on desktop and tablet, hugs on mobile).`;
+      }
+      if (/<Link\b/.test(footer)) return "puts a Link in its footer: a footer action is a Tertiary Button (it fills the box on desktop and tablet, hugs on mobile).";
+      const label = footer.match(/<Text\b[^>]*>\s*([^<{]+)/)?.[1] ?? footer.match(/^\s*["'`]([^"'`]+)/)?.[1];
+      return Boolean(label) && /^(open|go to|view|see|show|manage|browse|all)\b/i.test(label.trim()) && `writes the footer action "${label.trim()}" as text: use a Tertiary Button (it fills the box on desktop and tablet, hugs on mobile).`;
+    } },
   { id: "list-item/clickable-row-toggle", components: ["ListItem"], severity: "warn", allow: "row-toggle", guideline: "docs/guidelines/list-item.md",
     summary: "A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions).",
     check: ({ attrs }) => (has(topLevel(attrs), "onClick") || has(topLevel(attrs), "href")) && !opaque(attrs) && /<(Toggle|ToggleButton|Checkbox|RadioButton)\b/.test(`${value(attrs, "trailing") ?? ""} ${value(attrs, "leading") ?? ""}`) && "is clickable and also holds a Toggle/Checkbox/Radio (leading or trailing) — an input inside the row button is invalid; keep the row static and let the control own the click." },

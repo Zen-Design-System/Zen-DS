@@ -10277,6 +10277,14 @@
       ],
       "description": "Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action.",
       "props": {
+        "variant": {
+          "enum": [
+            "icon-highlight",
+            "title-highlight"
+          ],
+          "default": "title-highlight",
+          "description": "A KPI card's Figma Metric-Inline type (`type=\"kpi\"`): `title-highlight` (default since 2026-10-16, the user: a KPI card is laid out like the typed widgets, its title on top, the nu"
+        },
         "value": {
           "x-kind": "node",
           "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\")."
@@ -10461,13 +10469,6 @@
             "xlarge"
           ],
           "description": "Figma Size: XLarge/Large stack the icon above the text; Medium–XSmall put it on the left."
-        },
-        "variant": {
-          "enum": [
-            "icon-highlight",
-            "title-highlight"
-          ],
-          "description": "Figma Metric-Inline type."
         },
         "action": {
           "x-kind": "node",
@@ -17341,6 +17342,7 @@
       "title": "List Item",
       "file": "docs/guidelines/list-item.md",
       "do": [
+        "Give a ListBox footer action (\"Open calendar\", \"Go to Inbox\") as a Tertiary Button (the Button default), straight in the footer: it fills the box on desktop and tablet and hugs its label on mobile (harness: listbox/footer-action-tertiary).",
         "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
@@ -17359,6 +17361,7 @@
         "A kicker above a ListBox lines up with the row text: Box paddingX=\"xl\" (24px) on desktop, paddingX=\"lg\" (20px) on a phone, xs (8px) above the box."
       ],
       "dont": [
+        "Don't write a footer action as plain text or a Link: it reads as a caption and has no button target. Don't wrap its Button in a <Stack align=\"start\">: it would hug on desktop and tablet too.",
         "Don't make only the chevron or a trailing button the way to open the row — the whole row is the target.",
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
@@ -17377,6 +17380,7 @@
         "flag/no-emoji-flag",
         "list-item/inset-not-padding",
         "listbox/on-container-in-overlay",
+        "listbox/footer-action-tertiary",
         "list-item/clickable-row-toggle",
         "list-item/switch-row",
         "list-item/trailing-button-medium",
