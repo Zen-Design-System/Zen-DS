@@ -122,7 +122,7 @@ Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned 
 Object shapes the props above refer to.
 
 ```ts
-type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay" | "inverse-subtle"
 type ButtonSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge"
 type TableAlign = "left" | "right"
 interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }

@@ -4955,7 +4955,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -5041,7 +5042,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -6384,7 +6386,8 @@
                       "inverse",
                       "white",
                       "white-overlay",
-                      "black-overlay"
+                      "black-overlay",
+                      "inverse-subtle"
                     ]
                   },
                   {
@@ -13127,7 +13130,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -13214,7 +13218,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -13301,7 +13306,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -17572,7 +17578,8 @@
                       "inverse",
                       "white",
                       "white-overlay",
-                      "black-overlay"
+                      "black-overlay",
+                      "inverse-subtle"
                     ]
                   },
                   {
@@ -21877,7 +21884,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -21963,7 +21971,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -22049,7 +22058,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -27986,7 +27996,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -28072,7 +28083,8 @@
                           "inverse",
                           "white",
                           "white-overlay",
-                          "black-overlay"
+                          "black-overlay",
+                          "inverse-subtle"
                         ]
                       },
                       "disabled": {
@@ -34257,7 +34269,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ]
         },
         "disabled": {
@@ -35289,7 +35302,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ]
         }
       },
@@ -36501,7 +36515,8 @@
             "inverse",
             "white",
             "white-overlay",
-            "black-overlay"
+            "black-overlay",
+            "inverse-subtle"
           ]
         },
         "onClick": {

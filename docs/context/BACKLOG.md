@@ -140,6 +140,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   so a Sector switch keeps the Y labels in order). Studio has no copy of that set: `chartCardNode` in
   tools/studio/figma-push.mjs leaves Figma's sample data. Next, once the user confirms the scope: pick Sector 4/6/7/12 by
   the point count and write X labels, the six Y ticks and the active tooltip (push; pull has no chart mapping yet).
+  Stack-Bar and Donut draw the page's data since 2026-10-17 (session log); Line, Bar, Area, Grouped and Combo remain.
 - **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
   auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
   `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.

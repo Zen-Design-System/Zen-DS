@@ -512,10 +512,10 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
         <div className="platform-component-sections">
           <ButtonSetPlayground title="Button / Main" appearance="main" levels={["primary", "accent", "secondary", "tertiary", "danger", "danger-subtle", "positive", "positive-subtle", "surface"]} sizes={["xs", "sm", "md", "lg", "xl"]} />
           <ButtonSetPlayground title="Button / Flat" appearance="flat" levels={["primary", "accent"]} sizes={["xs", "sm", "md", "lg", "xl"]} />
-          <ButtonSetPlayground title="Button / Overlay" appearance="overlay" levels={["inverse", "white", "white-overlay", "black-overlay"]} sizes={["xs", "sm", "md", "lg", "xl"]} />
+          <ButtonSetPlayground title="Button / Overlay" appearance="overlay" levels={["inverse", "white", "white-overlay", "black-overlay", "inverse-subtle"]} sizes={["xs", "sm", "md", "lg", "xl"]} />
           <ButtonSetPlayground title="Button / Icon-Main" appearance="main" iconOnly levels={["primary", "accent", "secondary", "tertiary", "danger", "danger-secondary", "positive", "positive-secondary", "surface"]} sizes={["2xs", "xs", "sm", "md", "lg", "xl"]} />
           <ButtonSetPlayground title="Button / Icon-Flat" appearance="flat" iconOnly levels={["primary", "secondary", "accent", "danger", "positive"]} sizes={["xs", "sm", "md", "lg", "xl"]} />
-          <ButtonSetPlayground title="Button / Icon-Overlay" appearance="overlay" iconOnly levels={["inverse", "white", "white-overlay", "black-overlay"]} sizes={["2xs", "xs", "sm", "md", "lg", "xl"]} />
+          <ButtonSetPlayground title="Button / Icon-Overlay" appearance="overlay" iconOnly levels={["inverse", "white", "white-overlay", "black-overlay", "inverse-subtle"]} sizes={["2xs", "xs", "sm", "md", "lg", "xl"]} />
         </div>
       </ExamplePage>
     );

@@ -372,7 +372,7 @@
     }
   ],
   "types": {
-    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\"",
+    "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\"",
     "ButtonSize": "type ButtonSize = \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
     "TableAlign": "type TableAlign = \"left\" | \"right\"",
     "TableBulkAction": "interface TableBulkAction { id: string; icon: IconName | ReactElement; label: string; onClick: () => void; disabled?: boolean; group?: string; }",

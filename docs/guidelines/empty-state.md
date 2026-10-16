@@ -62,7 +62,7 @@ Figma Empty-State/Illustration/Placeholder (6085:25816): a faded grid, a dashed 
 Object shapes the props above refer to.
 
 ```ts
-type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay"
+type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay" | "inverse-subtle"
 interface EmptyStateAction { label: ReactNode; onClick?: () => void; level?: ButtonLevel; }
 ```
 

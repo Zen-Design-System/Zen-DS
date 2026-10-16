@@ -72,3 +72,8 @@
 /* A 1px focus-within ring is a border (a skip link pill), and a focus pseudo inside :not() is no focus state. */
 .x-skip:focus-within { box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default); }
 .x-reveal .x-hidden:not(:focus-within) { outline: 1px solid var(--zen-color-border-neutral-subtle-default); }
+/* Content on Background/White/Solid takes On-White-Overlay (white in both modes); its knob-only fills have no content. */
+.x-pill--white { background: var(--zen-color-background-white-solid-default); color: var(--zen-color-content-on-white-overlay-strongest); }
+.x-knob { --x-knob-fill: var(--zen-color-background-white-solid-default); --x-knob-icon: var(--zen-color-content-on-white-overlay-placeholder); }
+/* Each state is judged on its own fill: a white Button's Disabled sits on White-Disabled with On-Black-Overlay content (Figma). */
+.x-white-btn { --x-btn-background: var(--zen-color-background-white-solid-default); --x-btn-background-disabled: var(--zen-color-background-white-disabled); --x-btn-content: var(--zen-color-content-on-white-overlay-strongest); --x-btn-content-disabled: var(--zen-color-content-on-black-overlay-disabled); }

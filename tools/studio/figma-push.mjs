@@ -590,10 +590,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const values = Object.fromEntries(Object.entries(element.props).map(([name, value]) => [name, chartValue(value)]));
     const drawn = chartFigma(element.name, values, notes, where);
     if (!drawn) return null;
-    notes.push(`${element.name}: Figma's ${drawn.set.name} draws its own sample data`);
+    if (!drawn.drawn) notes.push(`${element.name}: Figma's ${drawn.set.name} draws its own sample data`);
     const { set } = drawn;
-    if (!header) return { type: "INSTANCE", ...(id ? { id } : {}), name: set.name, set, props: { ...BARE_HEADER, ...drawn.props }, hide: [HEADING_LAYER] };
-    return { type: "INSTANCE", ...(id ? { id } : {}), name: set.name, set, props: { ...header.props, ...drawn.props }, ...(header.nested ? { nested: header.nested } : {}), ...(header.slots ? { slots: header.slots } : {}) };
+    // The page's data in the set's slots, nested instances and own layers (Stack-Bar, Donut: figma-charts.mjs marks).
+    const marks = { ...(drawn.edits ? { edits: drawn.edits } : {}) };
+    const nested = [...(header?.nested ?? []), ...(drawn.nested ?? [])];
+    const slots = [...(header?.slots ?? []), ...(drawn.slots ?? [])];
+    if (!header) return { type: "INSTANCE", ...(id ? { id } : {}), name: set.name, set, props: { ...BARE_HEADER, ...drawn.props }, hide: [HEADING_LAYER], ...(nested.length ? { nested } : {}), ...(slots.length ? { slots } : {}), ...marks };
+    return { type: "INSTANCE", ...(id ? { id } : {}), name: set.name, set, props: { ...header.props, ...drawn.props }, ...(nested.length ? { nested } : {}), ...(slots.length ? { slots } : {}), ...marks };
   }
 
   /**
@@ -1634,7 +1638,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   const keyed = (node, parentKey, place) => {
     node.key ??= `${parentKey}/${place}`;
     (node.children ?? []).forEach((child, index) => keyed(child, node.key, index));
-    (node.slots ?? []).forEach((slot) => slot.children.forEach((child, index) => keyed(child, node.key, `${slot.name}.${index}`)));
+    // A slot named in several layers (a chart's columns, each its own Value) keys its content by the layer it is in.
+    (node.slots ?? []).forEach((slot) => slot.children.forEach((child, index) => keyed(child, node.key, `${slot.name}${Array.isArray(slot.within) ? `@${slot.within.join(">")}` : ""}.${index}`)));
     (node.edits ?? []).forEach((edit) => (edit.append ?? []).forEach((child, index) => keyed(child, node.key, `${edit.layer}.${index}`)));
   };
   keyed(frame, "page", 0);
