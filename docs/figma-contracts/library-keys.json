@@ -149,14 +149,16 @@
       "key": "2783f1a2777510c4ab6a12670a6529bf2ece8706"
     },
     "15485:2457": {
-      "name": "Chart/Grouped-Bar-Chart",
+      "name": "Sector=6-Sectors",
       "type": "COMPONENT",
-      "key": "def81331065d9ac025eefbb92b9abc321f23cf57"
+      "key": "def81331065d9ac025eefbb92b9abc321f23cf57",
+      "set": "15933:120083"
     },
     "15485:2519": {
-      "name": "Chart/Combo-Chart",
+      "name": "Sector=6-Sectors",
       "type": "COMPONENT",
-      "key": "54673118afe3e7fe6c399b66bf7c766ac616f5de"
+      "key": "54673118afe3e7fe6c399b66bf7c766ac616f5de",
+      "set": "15934:7580"
     },
     "15486:2467": {
       "name": "Chart/Gauge-Chart",
@@ -257,6 +259,26 @@
       "name": "Primitives/Uploader/DragDrop-Field",
       "type": "COMPONENT_SET",
       "key": "8253873459d42c43dd96ecdf80c1d6f108a3a258"
+    },
+    "15929:120139": {
+      "name": "Chart/Line-Chart",
+      "type": "COMPONENT_SET",
+      "key": "e91ce789ec8f86428ca879d64730da4168809504"
+    },
+    "15930:4271": {
+      "name": "Chart/Stack-Bar-Chart",
+      "type": "COMPONENT_SET",
+      "key": "580af9fb477544cf539457b0ff871e88103bbd46"
+    },
+    "15933:120083": {
+      "name": "Chart/Grouped-Bar-Chart",
+      "type": "COMPONENT_SET",
+      "key": "3b5e862b2d7f9dca4916704a119e677d7f438455"
+    },
+    "15934:7580": {
+      "name": "Chart/Combo-Chart",
+      "type": "COMPONENT_SET",
+      "key": "e1b20f9a32f8e2b73dd681a907f0803c2faad6d9"
     },
     "1595:2220": {
       "name": "Tooltip",
@@ -754,9 +776,10 @@
       "key": "58ccb271cea56d4838ae0b0f26c18dbd78c5ee29"
     },
     "6643:63324": {
-      "name": "Chart/Line-Chart",
+      "name": "Sector=4-Sectors",
       "type": "COMPONENT",
-      "key": "bcfc9b17df854b455bc0c4d9561f34339a3eaee0"
+      "key": "bcfc9b17df854b455bc0c4d9561f34339a3eaee0",
+      "set": "15929:120139"
     },
     "6643:63528": {
       "name": "Chart/Chart-Card",
@@ -769,9 +792,10 @@
       "key": "9945b0851f81821c610cc09de04bd1849002b27e"
     },
     "6643:73471": {
-      "name": "Chart/Stack-Bar-Chart",
+      "name": "Sector=4-Sectors",
       "type": "COMPONENT",
-      "key": "8f80cbd2f02e24164558d045bceb027372b414f4"
+      "key": "8f80cbd2f02e24164558d045bceb027372b414f4",
+      "set": "15930:4271"
     },
     "6828:9393": {
       "name": "Alert-Banner",

@@ -26,7 +26,9 @@ removed (four unused colour ramps were, see Removed).
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its
   `valueLabel`; a sidebar row shows its counter; the top bar's Search fills up to 400px; Pagination writes its range and
   page size; cards in a grid row stay as tall as the tallest (none clipped). Pagination Inline / Manually: the range
-  fills the row and ends at the arrows, as in Figma. Charts (Stack-Bar, Donut) still draw Figma's sample (next step).
+  fills the row and ends at the arrows, as in Figma. Charts: a Stack-Bar draws the page's columns, segments, Y axis,
+  tooltip and legend (the Sector set by column count); a Donut draws its slices, percent pills, centre total and legend
+  (Start, Bottom or End) at its size. Line, Bar, Area, Grouped and Combo still draw Figma's sample.
 - EmptyState `size` (2026-10-16, user): `md` (default, 240 illustration) when the Empty State fills a page, `sm` (120,
   the same art at half scale, 1px / 2px lines kept, Popular/Medium icon) in a widget, card, table, list, tab panel,
   sidebar, panel, sheet or dialog; ChartCard makes it `sm` for you. `EmptyStateIllustration` takes `size` too. New

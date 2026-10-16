@@ -1488,6 +1488,58 @@ export default function Page() {
   check("a plain Stack around wrapping text fills a centred column; a Box with a surface hugs", [Boolean(tagline?.fillW), Boolean(boxed?.fillW)], [true, false]);
 }
 
+// Charts draw the page's data (the Expenses import, part B, 2026-10-17): Stack-Bar's Sector holds every period, each
+// column's segments are Flex rows of the axis (Chart.tsx niceScale: 46.3K → 0 … 50K), the active period's label and
+// tooltip, six axis labels, the legend; Donut's slices and pills in its Ring-Slot, its total, Legend=End.
+{
+  const PAGE = `// @zen-page {"format":1,"title":"Charts"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ChartCard, DonutChart, StackBarChart, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Charts" device="desktop">
+        <Stack gap="md">
+          <ChartCard title="Spend by month">
+            <StackBarChart initialIndex={4} aria-label="Spend" series={[{ id: "a", label: "Travel" }, { id: "b", label: "Software" }]} data={[{ label: "Apr", values: { a: 10000, b: 5000 } }, { label: "May", values: { a: 12000, b: 0 } }, { label: "Jun", values: { a: 9000, b: 8000 } }, { label: "Jul", values: { a: 20000, b: 6000 } }, { label: "Aug", values: { a: 30000, b: 16300 } }]} />
+          </ChartCard>
+          <ChartCard title="Spend by category">
+            <DonutChart size="large" legendPosition="end" aria-label="Category" data={[{ id: "a", label: "Travel", value: 75 }, { id: "b", label: "Software", value: 25 }]} />
+          </ChartCard>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(PAGE);
+  const all = [];
+  const walk = (node) => { all.push(node); [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
+  walk(frame);
+  const bar = all.find((node) => node.set?.name === "Chart/Stack-Bar-Chart");
+  const donut = all.find((node) => node.set?.name === "Chart/Donut-Chart");
+  check("stack-bar: 5 periods take the 6-Sectors variant", bar.props.Sector, "6-Sectors");
+  const columns = bar.slots.filter((slot) => slot.name === "Value");
+  check("stack-bar: one Value slot per column, by its column", columns.map((slot) => slot.within[0]), Array.from({ length: 6 }, (_, k) => `.Primitives/Chart/Column/Stack-Bar/Single[${k}]`));
+  const aug = columns[4].children[0];
+  check("stack-bar: a column's segments are Flex rows of the axis (rest, then the series top to bottom), painted by style", [aug.layout.grid.rowSizes.map((size) => Math.round(size.value * 10) / 10), aug.children.map((segment) => [segment.name, segment.fillStyle, segment.cell.row])], [[7.4, 32.6, 60], [["Software", "Color Chart Sector/Secondary", 1], ["Travel", "Color Chart Sector/Primary", 2]]]);
+  check("stack-bar: a zero value draws no segment; the column past the data is empty", [columns[1].children[0].children.length, columns[5].children[0].children.length, columns[5].children[0].layout.grid.rowSizes.map((size) => size.value)], [1, 0, [100]]);
+  const sectors = bar.nested.filter((entry) => /^Sector-/.test(entry.path));
+  check("stack-bar: period labels, the active period selected with its tooltip", [sectors.slice(3, 6).map((entry) => [entry.path, entry.props.Label, entry.props.Select, entry.props.Tooltip]), sectors[sectors.length - 1]], [[["Sector-4", "Jul", "Default", false], ["Sector-5", "Aug", "Selected", true], ["Sector-6", "", "Default", false]], { path: "Sector-5/Tooltip/Text", props: { Text: "46.3K" } }]);
+  check("stack-bar: six axis labels, top to bottom", bar.edits.filter((edit) => edit.characters && edit.layer[1].startsWith(">Label")).map((edit) => edit.characters), ["50K", "40K", "30K", "20K", "10K", "0"]);
+  check("stack-bar: the legend names the series, the rest hidden", bar.edits.filter((edit) => edit.layer[0] === "Legend").slice(0, 5).map((edit) => edit.visible ?? edit.characters), [true, "Travel", true, "Software", false]);
+  check("donut: Legend=End, its total from the data", [donut.props.Legend, donut.props.Size, donut.props["Total Value"], donut.props["Total Label"]], ["End", "Large", "100", "Total"]);
+  const ring = donut.slots.find((slot) => slot.name === "Ring-Slot").children;
+  const round2 = (place) => Object.fromEntries(Object.entries(place).map(([name, value]) => [name, typeof value === "number" ? Math.round(value * 100) / 100 : value]));
+  check("donut: slices as styled paths over the slot, then a pill per slice of 6% and up at the ring's middle", ring.map((node) => [node.type, node.fillStyle ?? node.children?.[0]?.characters, round2(node.place)]), [["VECTOR", "Color Chart Sector/Primary", { x: 0, y: 0, w: 1, h: 1 }], ["VECTOR", "Color Chart Sector/Secondary", { x: 0, y: 0, w: 1, h: 1 }], ["FRAME", "75%", { x: 0.78, y: 0.78, center: true }], ["FRAME", "25%", { x: 0.22, y: 0.22, center: true }]]);
+  ok("donut: a slice path has no arcs (cubic Béziers), corners rounded by a stroke of its style", ring[0].d.startsWith("M ") && !/A/.test(ring[0].d) && /C /.test(ring[0].d) && ring[0].strokeStyle === ring[0].fillStyle && ring[0].strokeWeight === 8);
+  check("donut: the legend's items by instance, the rest hidden", [donut.nested.filter((entry) => /^Legend-Item/.test(entry.path)).map((entry) => entry.props.Label), donut.edits.filter((edit) => edit.visible === false).length], [["Travel", "Software"], 5]);
+  ok("charts with data drawn say nothing about Figma's sample", !notes.some((note) => /StackBarChart|DonutChart/.test(note) && /sample data/.test(note)));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
