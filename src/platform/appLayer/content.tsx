@@ -270,7 +270,7 @@ function InvoiceTable({ archiveNote = true }: { archiveNote?: boolean }) {
       {archiveNote && archived ? <InlineMessage theme="neutral" title={`${archived.id} archived`} action={{ label: "Undo", onClick: undo }} onClose={() => setArchived(null)} /> : null}
       {/* A page's table sits straight on the page, no Card (usage rules §14). */}
       <Table aria-label="Invoices" rows={rows} getRowId={(row) => row.id}
-        empty={<EmptyState illustration={false} title="No invoices" primaryAction={{ label: "Restore invoices", onClick: () => { setRows(invoicesInitial); setArchived(null); } }}>Archived invoices leave this list.</EmptyState>}
+        empty={<EmptyState size="sm" icon="icon-receipt-line" title="No invoices" primaryAction={{ label: "Restore invoices", onClick: () => { setRows(invoicesInitial); setArchived(null); } }}>Archived invoices leave this list.</EmptyState>}
         columns={[
           { id: "starred", header: <VisuallyHidden>Starred</VisuallyHidden>, width: "64px", cell: (row) => {
             const on = starred.includes(row.id);

@@ -87,7 +87,7 @@ function PeopleDirectory() {
               </List>
             </Box>
           ) : (
-            <EmptyState illustration={false} headingLevel={4} title="No people match" secondaryAction={{ label: "Clear filters", onClick: clear }}>
+            <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No people match" secondaryAction={{ label: "Clear filters", onClick: clear }}>
               Try another name or team.
             </EmptyState>
           )}
@@ -117,7 +117,7 @@ function PeopleDirectory() {
                   ))}
                 </List>
               ) : (
-                <EmptyState illustration={false} headingLevel={6} title="No projects yet">
+                <EmptyState size="sm" headingLevel={6} icon="icon-folder-line" title="No projects yet">
                   {`${person.name.split(" ")[0]} isn't on a project team right now.`}
                 </EmptyState>
               )}
@@ -270,7 +270,7 @@ function PendingInvites() {
           ))}
         </List>
       ) : (
-        <EmptyState illustration={false} headingLevel={5} title="No pending invites">
+        <EmptyState size="sm" headingLevel={5} icon="icon-users-line" title="No pending invites">
           People you invite show here until they join.
         </EmptyState>
       )}
@@ -567,7 +567,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </List>
     </Box>
   ) : (
-    <EmptyState illustration={false} headingLevel={4} title="No people match" secondaryAction={{ label: "Clear filters", onClick: clear }}>
+    <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No people match" secondaryAction={{ label: "Clear filters", onClick: clear }}>
       Try another name or team.
     </EmptyState>
   )}

@@ -192,7 +192,7 @@ function CollapseOnScrollExample() {
           </List>
         </Box>
       ) : (
-        <EmptyState illustration={false} headingLevel={2} title="No people match" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
+        <EmptyState headingLevel={2} icon="icon-search-medium-line" title="No people match" secondaryAction={{ label: "Clear search", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
           {`No name, role or team contains “${query.trim()}”.`}
         </EmptyState>
       )}
@@ -334,7 +334,7 @@ function InboxControlBarExample() {
           </List>
         </Box>
       ) : (
-        <EmptyState illustration={false} headingLevel={2} title="No unread notifications" secondaryAction={{ label: "Show all", onClick: () => {
+        <EmptyState headingLevel={2} icon="icon-bell-01-line" title="No unread notifications" secondaryAction={{ label: "Show all", onClick: () => {
           setView("all");
           requestAnimationFrame(() => screenRef.current?.querySelector<HTMLElement>(".zen-list-item__wrapper")?.focus());
         } }}>

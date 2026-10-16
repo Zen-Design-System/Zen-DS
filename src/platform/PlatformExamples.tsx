@@ -389,7 +389,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [emptyCaption, setEmptyCaption] = useState(true);
   const [emptyPrimary, setEmptyPrimary] = useState(true);
   const [emptySecondary, setEmptySecondary] = useState(true);
-  const [emptyIllustration, setEmptyIllustration] = useState(true);
+  const [emptySize, setEmptySize] = useState<"md" | "sm">("md");
   const [stepperOrientation, setStepperOrientation] = useState<string | undefined>("horizontal");
   const [stepperCurrent, setStepperCurrent] = useState(1);
   const [stepperError, setStepperError] = useState(false);
@@ -2148,7 +2148,7 @@ ${code}`} />
                 { id: "archive", group: "Manage", icon: "icon-archive-line", label: `Archive ${count}`, onClick: () => logAction(`Archive ${count}`) },
               ];
             } : undefined}
-            empty={<EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
+            empty={<EmptyState icon="icon-folder-line" title="No projects yet" size="sm" primaryAction={{ label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") }}>Projects you create show up here.</EmptyState>}
             columns={[
               { id: "name", header: "Project", sortable: true, width: "34%", cell: (row) => <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia> },
               { id: "status", header: "Status", cell: (row) => <Badge size="medium" theme={row.status === "Live" ? "green" : row.status === "Blocked" ? "red" : "yellow"} background="subtle">{row.status}</Badge> },
@@ -2174,7 +2174,7 @@ ${code}`} />
   ]}` : ""}
   sort={sort}
   onSortChange={setSort}
-  empty={<EmptyState title="No projects yet" illustration={false} />}
+  empty={<EmptyState icon="icon-folder-line" title="No projects yet" size="sm" />}
   columns={[
     { id: "name", header: "Project", sortable: true, cell: (row) => (
       <TableMedia bold media={<DockIcon icon={row.icon} theme={row.theme} background="subtle" size="small" />} caption={row.owner}>{row.name}</TableMedia>
@@ -2257,21 +2257,21 @@ ${code}`} />
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Empty State</h2>
         <PlaygroundControls aria-label="Empty state playground controls">
-          <PlaygroundToggle label="Illustration" selected={emptyIllustration} onChange={setEmptyIllustration} />
+          <PlaygroundFilterChip label="Size" value={emptySize} onChange={(value) => setEmptySize(value === "sm" ? "sm" : "md")} options={[{ id: "md", label: "Medium · page" }, { id: "sm", label: "Small · widget, section" }]} />
           <PlaygroundToggle label="Caption" selected={emptyCaption} onChange={setEmptyCaption} />
           <PlaygroundToggle label="Primary CTA" selected={emptyPrimary} onChange={setEmptyPrimary} />
           <PlaygroundToggle label="Secondary CTA" selected={emptySecondary} onChange={setEmptySecondary} />
         </PlaygroundControls>
         <div data-typography={previewTypography} className="platform-example-row platform-empty-state-preview">
-          <EmptyState title="No projects yet" illustration={emptyIllustration} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma", onClick: () => logAction("Import from Figma", "secondaryAction.onClick") } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
+          <EmptyState title="No projects yet" size={emptySize} icon="icon-folder-line" primaryAction={emptyPrimary ? { label: "Create project", onClick: () => logAction("Create project", "primaryAction.onClick") } : undefined} secondaryAction={emptySecondary ? { label: "Import from Figma", onClick: () => logAction("Import from Figma", "secondaryAction.onClick") } : undefined}>{emptyCaption ? "Projects you create or join will show up here." : undefined}</EmptyState>
         </div>
         {actionNote}
         <PlatformCode code={`import { EmptyState } from "@zen-ds/react";
 
 <EmptyState
-  title="No projects yet"${emptyIllustration ? `
-  icon="icon-folder-line"` : `
-  illustration={false}`}${emptyPrimary ? `
+  title="No projects yet"${emptySize === "sm" ? `
+  size="sm"` : ""}
+  icon="icon-folder-line"${emptyPrimary ? `
   primaryAction={{ label: "Create project", onClick: create }}` : ""}${emptySecondary ? `
   secondaryAction={{ label: "Import from Figma", onClick: importFile }}` : ""}
 >${emptyCaption ? `

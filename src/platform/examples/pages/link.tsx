@@ -288,7 +288,7 @@ function ReadingList() {
             ))}
           </List>
         ) : (
-          <EmptyState illustration={false} headingLevel={5} title="No articles match" secondaryAction={{ label: "Clear filters", onClick: clear }}>
+          <EmptyState size="sm" headingLevel={5} icon="icon-search-medium-line" title="No articles match" secondaryAction={{ label: "Clear filters", onClick: clear }}>
             Try another word or topic.
           </EmptyState>
         )}

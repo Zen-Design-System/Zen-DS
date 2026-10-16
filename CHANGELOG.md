@@ -17,6 +17,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- EmptyState `size` (2026-10-16, user): `md` (default, 240 illustration) when the Empty State fills a page, `sm` (120,
+  the same art at half scale, 1px / 2px lines kept, Popular/Medium icon) in a widget, card, table, list, tab panel,
+  sidebar, panel, sheet or dialog; ChartCard makes it `sm` for you. `EmptyStateIllustration` takes `size` too. New
+  harness rules `empty-state/keep-illustration` (warn on `illustration={false}`: use `size="sm"`) and
+  `empty-state/small-in-box` (a Medium Empty State in a Card, ChartCard, MetricCard, ListBox, Sidebar, Popover, Dialog,
+  Modal Form, Side Panel or Bottom Sheet). Every example, template and the Studio palette now keep the illustration.
+  The harness's box finder no longer loses a closing `</Card>` after text or an apostrophe in a comment between props.
+  Figma has no Size=Small yet (BACKLOG).
 - Build-QA gate (2026-10-16, user: "thêm cả 4 kiểm tra luôn"): the platform audit also runs at 320px (a small phone;
   today's findings there are baselined, BACKLOG P1); two new audit kinds, `card-gap` (a MetricCard or ChartCard stretched
   by its row leaving an empty band at its foot) and `legend-column` (a chart legend stacked one item per line under its
@@ -29,8 +37,6 @@ removed (four unused colour ramps were, see Removed).
   follows the stage that scrolls, not the page around it). The Modes panel draws the Inspector's rows (Inline-Field,
   the mode's name inside). On a page you made, Delete removes the selected Screen or Overlay (also from its name on the
   canvas or its row in Layers), one ⌘Z brings it back (E2E B-44).
-
-### Changed
 - DashboardHeader control-bar result count (2026-10-16, user: "hơi bự, nên đưa về body"): "86 expenses" is Body/Base/Regular
   (was Heading/Subheading), in code and in Figma Primitives/Dashboard/Header Type=Control-Bar (its description says so);
   harness `dashboard-header/count-body` (error) flags a Heading or a heading/display text style passed as the count.

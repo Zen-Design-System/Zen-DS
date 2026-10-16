@@ -408,7 +408,7 @@ export function HrHomeTemplate() {
       ]} />,
       "on-leave": offToday.length
         ? <List aria-label="On leave today">{offToday.map((request) => leaveRow(request))}</List>
-        : <EmptyState title="No one is off today" headingLevel={3} illustration={false} icon="icon-calendar-heart-line">Approved leave shows up here.</EmptyState>,
+        : <EmptyState title="No one is off today" headingLevel={3} size="sm" icon="icon-calendar-heart-line">Approved leave shows up here.</EmptyState>,
       open: (
         <List aria-label="Open requests">
           {openLeave.map((request) => leaveRow(request, <Badge size="sm" theme={leaveStatusTheme[request.status]} background="subtle">{request.status}</Badge>))}
@@ -510,7 +510,7 @@ export function HrHomeTemplate() {
                   ) : null}
                 </Stack>
                 {waiting ? null : (
-                  <EmptyState title="No requests to review" headingLevel={4} illustration={false} icon="icon-check-circle-line"
+                  <EmptyState title="No requests to review" headingLevel={4} size="sm" icon="icon-check-circle-line"
                     secondaryAction={{ label: "Open approvals", onClick: () => go({ module: "time-off", page: "approvals" }) }}>
                     Leave requests and expense claims from your team show up here.
                   </EmptyState>
@@ -537,7 +537,7 @@ export function HrHomeTemplate() {
                   {out.length ? (
                     <List aria-label={`Out ${periods[period].label.toLowerCase()}`}>{out.map((request) => leaveRow(request))}</List>
                   ) : (
-                    <EmptyState title={`No one is off ${periods[period].label.toLowerCase()}`} headingLevel={4} illustration={false} icon="icon-calendar-heart-line"
+                    <EmptyState title={`No one is off ${periods[period].label.toLowerCase()}`} headingLevel={4} size="sm" icon="icon-calendar-heart-line"
                       secondaryAction={{ label: "Open calendar", onClick: () => go({ module: "time-off", page: "calendar" }) }}>
                       Approved leave shows up here.
                     </EmptyState>

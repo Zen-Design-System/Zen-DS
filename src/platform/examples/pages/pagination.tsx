@@ -204,7 +204,7 @@ function InvoiceTableExample() {
             </Chip>
           </Stack>
           <Table aria-label="Invoices" columns={invoiceColumns} rows={pageOf(rows, pageNo, pageSize)}
-            empty={<EmptyState illustration={false} headingLevel={2} title="No invoices match"
+            empty={<EmptyState headingLevel={2} icon="icon-search-medium-line" title="No invoices match"
               secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another status or client.</EmptyState>} />
           {rows.length ? (
             <Stack direction="row" justify="end">
@@ -253,7 +253,7 @@ function FileSearchExample() {
             </List>
           </ListBox>
         ) : (
-          <EmptyState illustration={false} headingLevel={4} title="No files match"
+          <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No files match"
             secondaryAction={{ label: "Clear search", onClick: clear }}>
             Check the spelling, or search by project or client name.
           </EmptyState>

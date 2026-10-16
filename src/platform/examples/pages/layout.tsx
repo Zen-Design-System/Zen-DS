@@ -108,7 +108,7 @@ function ProjectOverview() {
     { id: "status", header: "Status", width: "144px", cell: (task) => statusBadge(task.status) },
     { id: "due", header: "Due", width: "136px", cell: (task) => <TableText>{formatDate(task.due)}</TableText> },
   ];
-  const tasksEmpty = <EmptyState headingLevel={3} illustration={false} title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>;
+  const tasksEmpty = <EmptyState headingLevel={3} size="sm" icon="icon-search-medium-line" title="No tasks match" secondaryAction={{ label: "Clear filter", onClick: () => setStatus(null) }}>Try another status.</EmptyState>;
   const addTask = (title: string) => setRows((list) => [{ id: `new-${list.length}`, key: `LUM-${102 + list.length - lumenTasks.length}`, title, assignee: "alex", status: "To do", due: daysFromToday(7) }, ...list]);
   const invite = (email: string) => setTeam((list) => [...list, { id: email, title: email, caption: "Invited just now" }]);
 
@@ -394,7 +394,7 @@ function ClientInvoices() {
               trailing={<Badge theme={invoiceStatusTheme.Draft} background="subtle">Draft</Badge>} />
           </List>
         ) : (
-          <EmptyState headingLevel={5} compactTitle illustration title="No invoices yet" primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
+          <EmptyState size="sm" headingLevel={5} compactTitle title="No invoices yet" primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
             Bill Saola Outdoor for approved hours. Paid invoices stay here.
           </EmptyState>
         )}
@@ -901,7 +901,7 @@ function SettingsSection({ id, title, description, children }) {
   footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
   <Stack justify={invoices.length ? "start" : "center"} className="grow">
     {invoices.length ? <List aria-labelledby="invoices">…</List> : (
-      <EmptyState headingLevel={5} compactTitle illustration title="No invoices yet"
+      <EmptyState size="sm" headingLevel={5} compactTitle title="No invoices yet"
         primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
         Bill Saola Outdoor for approved hours. Paid invoices stay here.
       </EmptyState>

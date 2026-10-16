@@ -555,7 +555,7 @@ function TeamMessenger() {
             </List>
           </Box>
         ) : (
-          <EmptyState illustration={false} headingLevel={3} title="No chats match" secondaryAction={{ label: "Show all chats", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
+          <EmptyState size="sm" headingLevel={3} icon="icon-search-medium-line" title="No chats match" secondaryAction={{ label: "Show all chats", onClick: () => { setQuery(""); searchRef.current?.focus(); } }}>
             No person or group is called “{query.trim()}”.
           </EmptyState>
         )}

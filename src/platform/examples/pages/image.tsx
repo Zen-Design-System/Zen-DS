@@ -198,7 +198,7 @@ function MoodboardUploads() {
           ))}
         </List>
       ) : (
-        <EmptyState illustration={false} headingLevel={5} title="No photos yet"
+        <EmptyState size="sm" headingLevel={5} icon="icon-image-line" title="No photos yet"
           primaryAction={{ label: "Upload photos", onClick: () => { setUploads(firstUploads); toast({ type: "positive", title: `${plural(firstUploads.length, "photo")} uploaded` }); } }}>
           Photos you add to the moodboard show here.
         </EmptyState>

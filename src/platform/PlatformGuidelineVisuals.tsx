@@ -18,7 +18,7 @@ import { CurvePreview } from "../components/CurvePreview";
 import { Stack as LayoutStack } from "../components/Layout";
 import { Popover, PopoverItem, PopoverManualAddNew } from "../components/Popover";
 import { Link } from "../components/Link";
-import { Text } from "../components/Text";
+import { Heading, Text } from "../components/Text";
 import { MenuItem, MenuSeparator } from "../components/Menu";
 import { ProgressBar } from "../components/Progress";
 import { RadioButton } from "../components/RadioButton";
@@ -259,8 +259,11 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide"><Stack><InlineMessage theme="info" title="Heads up" /><InlineMessage theme="warning" title="Check this" /><InlineMessage theme="negative" title="Also this" /></Stack></div>, caption: "Stacked messages compete; merge them or show the most severe." } },
   ],
   "empty-state": [
-    { do: { preview: <EmptyState title="No projects yet" illustration={false} primaryAction={{ label: "Create project", onClick: noop }}>Projects you create show up here.</EmptyState>, caption: "Say what's empty and offer the next step." },
-      dont: { preview: <EmptyState title="Nothing here" illustration={false} primaryAction={{ label: "OK", onClick: noop }} />, caption: "A vague title and “OK” leave users stuck." } },
+    { do: { preview: <EmptyState title="No projects yet" size="sm" icon="icon-folder-line" primaryAction={{ label: "Create project", onClick: noop }}>Projects you create show up here.</EmptyState>, caption: "Say what's empty and offer the next step." },
+      dont: { preview: <EmptyState title="Nothing here" size="sm" primaryAction={{ label: "OK", onClick: noop }} />, caption: "A vague title and “OK” leave users stuck." } },
+    { do: { preview: <div className="pgv-wide"><Card theme="border" spacing="small"><Heading level={3} textStyle="Heading/Subheading">Invoices</Heading><EmptyState size="sm" headingLevel={4} compactTitle icon="icon-receipt-line" title="No invoices yet">Invoices you send appear here.</EmptyState></Card></div>, caption: "In a widget, card or section: Small, illustration kept. Medium is for a page that is empty." },
+      // zen-allow-no-illustration: the Don't preview shows the rule broken.
+      dont: { preview: <div className="pgv-wide"><Card theme="border" spacing="small"><Heading level={3} textStyle="Heading/Subheading">Invoices</Heading><EmptyState illustration={false} headingLevel={4} compactTitle title="No invoices yet">Invoices you send appear here.</EmptyState></Card></div>, caption: "Without the illustration the state reads as a stray line of text." } },
   ],
   stepper: [
     { do: { preview: <div className="pgv-wide"><Stepper aria-label="Checkout" current={1} steps={[{ id: "a", title: "Cart" }, { id: "b", title: "Shipping" }, { id: "c", title: "Payment" }]} /></div>, caption: "2–7 short noun steps; the current one is clear." },

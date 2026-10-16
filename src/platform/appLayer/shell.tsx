@@ -56,14 +56,14 @@ function MembersTable() {
 }
 
 /** The other pages of the sample navigation: an empty state in product copy with its one next step. */
-const emptyPages: Record<string, { title: string; body: string; action: string }> = {
-  home: { title: "Welcome to Zen Studio", body: "Start your first project, then invite the people who work on it.", action: "New project" },
-  projects: { title: "No projects yet", body: "Projects you create show up here for the whole team.", action: "New project" },
-  billing: { title: "No invoices yet", body: "Your first invoice arrives on Nov 1, 2026.", action: "Add payment method" },
+const emptyPages: Record<string, { title: string; body: string; action: string; icon: "icon-folder-line" | "icon-receipt-line" }> = {
+  home: { title: "Welcome to Zen Studio", body: "Start your first project, then invite the people who work on it.", action: "New project", icon: "icon-folder-line" },
+  projects: { title: "No projects yet", body: "Projects you create show up here for the whole team.", action: "New project", icon: "icon-folder-line" },
+  billing: { title: "No invoices yet", body: "Your first invoice arrives on Nov 1, 2026.", action: "Add payment method", icon: "icon-receipt-line" },
 };
 function EmptyPage({ id, onAction }: { id: string; onAction: (label: string) => void }) {
   const page = emptyPages[id] ?? emptyPages.projects;
-  return <EmptyState title={page.title} headingLevel={2} illustration={false} primaryAction={{ label: page.action, onClick: () => onAction(page.action) }}>{page.body}</EmptyState>;
+  return <EmptyState title={page.title} headingLevel={2} icon={page.icon} primaryAction={{ label: page.action, onClick: () => onAction(page.action) }}>{page.body}</EmptyState>;
 }
 
 const accountItems: MenuEntry[] = [

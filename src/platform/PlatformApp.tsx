@@ -362,7 +362,7 @@ export function PlatformApp() {
               {navQuery.trim() ? (navResults ? `${navResults} result${navResults === 1 ? "" : "s"}` : `No pages match “${navQuery.trim()}”`) : ""}
             </span>
             {navQuery.trim() && !navResults ? (
-              <EmptyState className="official-sidebar__empty" title="No pages found" illustration={false} secondaryAction={{ label: "Clear search", onClick: () => setNavQuery("") }}>
+              <EmptyState className="official-sidebar__empty" icon="icon-search-medium-line" title="No pages found" size="sm" secondaryAction={{ label: "Clear search", onClick: () => setNavQuery("") }}>
                 Nothing matches “{navQuery.trim()}”. Try a component name like “Button”.
               </EmptyState>
             ) : null}

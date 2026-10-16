@@ -343,7 +343,7 @@ function DraftInvoiceExample() {
   if (status === "Deleted") {
     return (
       <Stack><Card ref={cardRef} as="section" theme="flat" aria-label="Draft invoices" width="fill" maxWidth={720} alignSelf="center">
-        <EmptyState illustration={false} headingLevel={4} title="No draft invoices" primaryAction={{ label: "New draft", onClick: restart }}>
+        <EmptyState size="sm" headingLevel={4} icon="icon-receipt-line" title="No draft invoices" primaryAction={{ label: "New draft", onClick: restart }}>
           Start a draft from a project milestone.
         </EmptyState>
       </Card></Stack>

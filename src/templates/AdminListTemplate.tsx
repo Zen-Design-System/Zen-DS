@@ -407,8 +407,8 @@ export function AdminListTemplate() {
   };
   const filtered = roleFilter.length > 0 || statusFilter.length > 0;
   const empty = filtered || !query.trim()
-    ? <EmptyState title="No members match" headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another role or status.</EmptyState>
-    : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} illustration={false} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => { refine(() => setQuery("")); searchRef.current?.focus(); } }}>Search by name or email address.</EmptyState>;
+    ? <EmptyState title="No members match" headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear filters", onClick: clearFilters }}>Try another role or status.</EmptyState>
+    : <EmptyState title={`No results for “${query.trim()}”`} headingLevel={2} icon="icon-search-medium-line" secondaryAction={{ label: "Clear search", onClick: () => { refine(() => setQuery("")); searchRef.current?.focus(); } }}>Search by name or email address.</EmptyState>;
   /** Phone: a member's actions in a Bottom Sheet (the Menu's items, without the ones that are locked). */
   const sheetActions = (person: Member) => rowActions(person).filter((entry): entry is MenuItemData => entry.type !== "separator" && entry.type !== "group" && !entry.disabled);
 

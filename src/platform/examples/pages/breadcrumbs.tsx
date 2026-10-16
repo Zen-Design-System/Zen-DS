@@ -132,7 +132,7 @@ function FileBrowserExample() {
           {/* The folder's table is the page's content: it lies on the page, no Card. */}
           <Table aria-label={folder.name} rows={rows} columns={columns}
             onRowClick={(e) => (isFolder(e) ? setFolderId(e.id) : toast({ title: "Download started", children: e.name }))}
-            empty={<EmptyState headingLevel={2} illustration={false} title="No files yet" primaryAction={{ label: "New folder", onClick: () => setCreating(true) }}>Files shared in {folder.name} show up here.</EmptyState>} />
+            empty={<EmptyState headingLevel={2} icon="icon-folder-line" title="No files yet" primaryAction={{ label: "New folder", onClick: () => setCreating(true) }}>Files shared in {folder.name} show up here.</EmptyState>} />
         </Stack>
       </Container>
       <DemoFieldDialog open={creating} onOpenChange={setCreating} title="New folder" field={{ kind: "name", label: "Folder name", placeholder: "Round 2" }}

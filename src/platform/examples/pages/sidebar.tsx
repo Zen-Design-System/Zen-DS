@@ -314,7 +314,7 @@ function ProjectsFlyoutExample() {
             onItemClick={(item) => { open(item.id); focusProjects(); }}
           >
             {flyoutSections.length ? null : (
-              <EmptyState headingLevel={2} illustration={false} title="No projects match" secondaryAction={{ label: "Show all projects", onClick: () => setQuery("") }}>
+              <EmptyState headingLevel={2} size="sm" icon="icon-search-medium-line" title="No projects match" secondaryAction={{ label: "Show all projects", onClick: () => setQuery("") }}>
                 Try a project or client name.
               </EmptyState>
             )}
@@ -639,7 +639,7 @@ function SidebarStates() {
   if (page === "inbox") {
     content = (
       <Page title="Inbox" description="Mentions, approvals and comments">
-        <EmptyState headingLevel={2} illustration={false} icon="ic-inbox-01-line" title="You're all caught up"
+        <EmptyState headingLevel={2} size="sm" icon="ic-inbox-01-line" title="You're all caught up"
           secondaryAction={{ label: "Open projects", onClick: () => setPage("projects") }}>New mentions and approvals show up here.</EmptyState>
       </Page>
     );
@@ -744,7 +744,7 @@ const focusProjects = () => projectsItemRef.current?.focus();
       onItemClick={(item) => { open(item.id); focusProjects(); }}
     >
       {noMatches && (
-        <EmptyState headingLevel={2} illustration={false} title="No projects match"
+        <EmptyState headingLevel={2} size="sm" icon="icon-search-medium-line" title="No projects match"
           secondaryAction={{ label: "Show all projects", onClick: () => setQuery("") }}>
           Try a project or client name.
         </EmptyState>

@@ -7964,11 +7964,19 @@
           "deprecated": null
         },
         {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": null,
+          "description": "Illustration size, from where the Empty State sits. `md` (240, default): the Empty State fills the page's main\ncontent (first run, a page with no results, no access). `sm` (120): it fills one region of a page that still shows\nother content — a widget or Card, a table or list, a tab panel, a side panel, sheet or dialog. Default `sm` inside\na ChartCard (set for you).",
+          "deprecated": null
+        },
+        {
           "name": "illustration",
           "type": "boolean | ReactNode",
           "required": false,
           "default": "true",
-          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it.",
+          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art. `false` hides it —\navoid it: where space is short use `size=\"sm\"` (harness: empty-state/keep-illustration).",
           "deprecated": null
         },
         {
@@ -8023,6 +8031,14 @@
           "required": false,
           "default": "\"icon-user-circle-line\"",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"small\" | \"medium\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "`md` 240 (default) · `sm` 120.",
           "deprecated": null
         },
         {

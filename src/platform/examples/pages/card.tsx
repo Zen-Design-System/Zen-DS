@@ -109,7 +109,7 @@ function BrowseProjects() {
           ))}
         </Grid>
       ) : (
-        <EmptyState illustration={false} headingLevel={4} title="No projects match"
+        <EmptyState size="sm" headingLevel={4} icon="icon-search-medium-line" title="No projects match"
           secondaryAction={{ label: "Clear filters", onClick: clear }}>
           Try another status or lead.
         </EmptyState>

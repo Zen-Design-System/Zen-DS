@@ -13955,6 +13955,22 @@
                 ],
                 "description": "Figma Caption (Body/Base/Regular, Content/Neutral/Light)."
               },
+              "size": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "sm",
+                      "md",
+                      "small",
+                      "medium"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Illustration size, from where the Empty State sits."
+              },
               "illustration": {
                 "anyOf": [
                   {
@@ -13990,7 +14006,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it."
+                "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art."
               },
               "icon": {
                 "anyOf": [

@@ -433,7 +433,7 @@ function PhoneOrderExample() {
       ) : (
         // With nothing to order there is nothing to place: the bar goes with the last line.
         <Stack padding="lg">
-          <EmptyState illustration={false} headingLevel={2} title="Your order is empty" primaryAction={{ label: "Add your usual", onClick: () => screen.go(".platform-phone__footer button", () => setLines(usualOrder)) }}>
+          <EmptyState headingLevel={2} icon="icon-shopping-bag-01-line" title="Your order is empty" primaryAction={{ label: "Add your usual", onClick: () => screen.go(".platform-phone__footer button", () => setLines(usualOrder)) }}>
             Your usual is two Phin sữa đá, a lotus tea and a bánh mì.
           </EmptyState>
         </Stack>

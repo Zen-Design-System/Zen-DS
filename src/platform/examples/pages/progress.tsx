@@ -83,7 +83,7 @@ function StorageQuotaExample() {
                   trailing={<IconButton appearance="flat" size="md" icon="icon-trash-line" aria-label={`Delete ${file.name}`} onClick={() => remove(file)} />} />
               ))}
             </List>
-          ) : <EmptyState headingLevel={6} illustration={false} title="No large files">Every file left is under 1 GB.</EmptyState>}
+          ) : <EmptyState headingLevel={6} size="sm" icon="icon-folder-line" title="No large files">Every file left is under 1 GB.</EmptyState>}
         </Stack>
       </Stack>
     </Card>

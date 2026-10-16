@@ -6451,9 +6451,9 @@
       "avoid": [
         "Loading → Skeleton.",
         "Errors that need a retry → Inline Message (negative) with an action.",
-        "Tiny regions (a single table cell) → a short line of text."
+        "Tiny regions with no room for the Small illustration (a table cell, a menu, a select list) → a short line of text."
       ],
-      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240), gap XSmall, then the content wrapper (gap XLarge) of Title + Caption (gap 4) and the CTAs (full-width Pri",
+      "description": "Figma Empty-State (6085:25796): 320px centred column — illustration (240, or 120 at `size=\"sm\"`), gap XSmall, then the content wrapper (gap XLarge) of Title + Caption (gap 4) and t",
       "props": {
         "title": {
           "x-kind": "node",
@@ -6479,6 +6479,15 @@
           "x-kind": "node",
           "description": "Figma Caption (Body/Base/Regular, Content/Neutral/Light)."
         },
+        "size": {
+          "enum": [
+            "sm",
+            "md",
+            "small",
+            "medium"
+          ],
+          "description": "Illustration size, from where the Empty State sits."
+        },
         "illustration": {
           "anyOf": [
             {
@@ -6489,7 +6498,7 @@
             }
           ],
           "default": true,
-          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art; `false` hides it."
+          "description": "Figma Illustration: `true` renders the placeholder with `icon`; pass a node for your own art."
         },
         "icon": {
           "anyOf": [
@@ -16600,7 +16609,7 @@
         "Debounce remote search (~250ms) and keep the query when results refresh.",
         "Show the result count in an aria-live region (\"12 results\").",
         "When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup (\"dialog\", \"menu\", \"listbox\") and filterExpanded={open}; aria-expanded on Search itself lands on the input.",
-        "When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (illustration={false} in narrow panels such as sidebars and pickers)."
+        "When nothing matches, show an EmptyState that echoes the query and offers “Clear search” (size=\"sm\" in narrow panels such as sidebars and pickers)."
       ],
       "dont": [
         "Don't hide search behind an icon on desktop when search is a primary task.",
@@ -17188,10 +17197,13 @@
       "do": [
         "Say what is empty in the title (\"No projects yet\", \"No results for “tokns”\").",
         "Give the next step as a verb in primaryAction (Primary); a way out such as Clear filters or Clear search goes alone in secondaryAction (Tertiary) (harness: empty-state/way-out-tertiary).",
-        "Drop the illustration inside lists, tables and cards; keep it for full pages.",
+        "Pick the size from where it sits: Medium (240) when the Empty State fills the page's main content — first run, a page with no results, no access; Small (120) when it fills one region of a page that still shows other content — a widget or Card, a table or list, a tab panel, a sidebar, side panel, sheet, popover or dialog (harness: empty-state/small-in-box; ChartCard sets Small for you).",
+        "Keep the illustration and swap its icon to match what is missing (icon=\"icon-folder-line\").",
         "Keep the caption to one sentence."
       ],
       "dont": [
+        "Don't hide the illustration (illustration={false}): where space is short use size=\"sm\" (harness: empty-state/keep-illustration).",
+        "Don't put a Medium Empty State in a widget, card or panel, or a Small one on a page that is empty.",
         "Don't show an Empty State while data is still loading.",
         "Don't leave a first-run screen without an action.",
         "Don't use vague action labels (harness: empty-state/action-label).",
@@ -17201,6 +17213,8 @@
         "empty-state/needs-title",
         "empty-state/action-label",
         "empty-state/way-out-tertiary",
+        "empty-state/keep-illustration",
+        "empty-state/small-in-box",
         "api/overrides-studio-only",
         "icon/unknown-name",
         "copy/plural-count",

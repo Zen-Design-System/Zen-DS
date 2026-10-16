@@ -224,7 +224,9 @@ export const Good = () => <>
   <Text as="h1" textStyle="Body/Extra/Bold" className="zen-top-nav__title">Order #1042</Text>
   <Heading level={2} textStyle="Body/Small/Bold" tone="light">Pinned</Heading>
   <DescriptionList items={[{ term: "Subtotal", description: "$311.90" }, { term: "Total", description: "$321.90", emphasis: true }]} />
-  <EmptyState title="No members match" illustration={false} secondaryAction={{ label: "Clear filters", onClick: reset }} />
+  <EmptyState title="No members match" size="sm" secondaryAction={{ label: "Clear filters", onClick: reset }} />
+  <Card theme="border"><EmptyState size="sm" title="No invoices yet" headingLevel={4} primaryAction={{ label: "Create invoice", onClick: create }} /></Card>
+  <ChartCard title="Revenue"><EmptyState title="No revenue yet" primaryAction={{ label: "Connect billing", onClick: create }} /></ChartCard>
   <TableActions><IconButton onClick={act} appearance="flat" level="primary" aria-label="Actions for Ava" icon={<Icon name="icon-dots-horizontal-line" />} /></TableActions>
   <Menu trigger={<IconButton appearance="flat" level="primary" aria-label="Actions for Ava" icon="icon-dots-horizontal-line" />} align="end" items={[{ id: "edit", label: "Edit", onSelect: act }]} />
   <NumberField label="Width" value={width} onValueChange={setWidth} />
