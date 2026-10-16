@@ -23,6 +23,12 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- Line and stack charts keep their X labels right under the baseline when they grow (2026-10-16, user: "ghim nhãn dưới
+  baseline cả code và figma"): their lanes are a seventh of the chart's own height, at most 40px, so a stretched card
+  or a larger `height` gives the plot all the extra. A Donut or Radial beside its legend now grows with a stretched card
+  too (user: "Chart nên scale ra"), up to the width its legend leaves it; once the width stops it, the chart sits at the
+  card's foot so a row's charts end together. Figma: the X labels of the Trend set
+  (Line, Multi-Line, Chart-Card) and Stack-Bar-Chart are top-aligned at today's offset.
 - AppShell on phones (2026-10-16, user: "làm tiếp P3 + P4"): new props `topNavigation` and `bottomNavigation`; under
   744px the shell draws them instead of its top bar and `sections` (the Sidebar still opens as the drawer through
   `useAppShell().openNav()`); `layout` takes `"phone"`, the context's layout too. Example AppShell › Desktop and phone.
@@ -337,6 +343,9 @@ removed (four unused colour ramps were, see Removed).
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- ProgressBar Inline shows its bar in a box that sizes to its content (2026-10-16, user: Zen Studio's Main component
+  frame drew only the label): the track prefers 112px (Figma's Inline track is 119 of 163px) and still grows and shrinks
+  to fill a sized row as before.
 - 320px phones (2026-10-16, user: "sửa"): no docs page scrolls sideways any more (the section grids took their widest
   unbreakable child as their width; the Form and Input pages also ran 11px wide at 390), and under 375px the docs chrome
   gives an example 248px instead of 208px (page gutter 16, stage 8 + 12). ListItem: a caption word longer than the row

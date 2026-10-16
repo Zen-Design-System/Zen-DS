@@ -871,3 +871,15 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
   uses 8 styles (h1, h4, Subheading, body regular/medium/bold, small, caption). Exempt `screen: true` examples and
   templates, or raise their limit.
+
+## Done 2026-10-16 (session "Bug": Figma chart sizing)
+- [fixed 2026-10-16: segments in a `Segments` frame at STRETCH/SCALE, the Value slot at 0 top padding, column max 40] **P2 · Figma Stack-Bar segments don't scale in proportion (2026-10-16):** charts now fill a stretched Chart-Card in
+  Figma (every `Chart/*` set, Chart-Card, Metric-Card), but in `Chart/Stack-Bar-Chart` only the bottom segment of each
+  column takes the extra height: `.Primitives/Chart/Column/Stack-Bar/Single`'s Value slot is a vertical auto layout,
+  which can't share height by ratio. Proportional needs that slot rebuilt as a GRID with FLEX rows per segment value
+  (every sample column). Code scales correctly.
+- [fixed 2026-10-16, user: "ghim nhãn dưới baseline cả code và figma": code lanes min(base / 7, 40px); Figma Sector Containers top-aligned at today's offset] **P2 · Line / Stack-Bar / Multi-Line X labels drift from the baseline in a taller chart (2026-10-16, user's
+  responsive check):** code (`--zen-chart-lane-bottom: height / 7`, the label at the lane's bottom) and Figma (a FLEX
+  label row in the 14-row Trend grid) agree, so at 1.6× height the labels sit ~40px under the baseline. Fixing it pins
+  the label lane in both (code: a fixed lane; Figma: the label row FIXED, Y labels re-anchored). Waits for the user:
+  change both, or keep. Session log 2026-10-16 "Figma chart sizing".

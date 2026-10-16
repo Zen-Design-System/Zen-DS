@@ -207,7 +207,7 @@ export function PlotFrame({ labels, ticks, top, format, active, setActive, onKey
 }) {
   const id = useChartId();
   return (
-    <div className={["zen-chart", className].filter(Boolean).join(" ")} data-kind={kind} data-animate={animate ? undefined : "false"} data-dense={labels.length > 8 ? "true" : undefined} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))`, "--zen-chart-count": labels.length } as CSSProperties}>
+    <div className={["zen-chart", className].filter(Boolean).join(" ")} data-kind={kind} data-animate={animate ? undefined : "false"} data-dense={labels.length > 8 ? "true" : undefined} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))`, "--zen-chart-base": `${height}px`, "--zen-chart-count": labels.length } as CSSProperties}>
       <div className="zen-chart__y" aria-hidden="true">
         {ticks.map((tick) => <span key={tick} className={typographyStyles["Label/Small/Medium"]} style={{ bottom: `calc(var(--zen-chart-lane-bottom) + (100% - var(--zen-chart-lane-top) - var(--zen-chart-lane-bottom)) * ${tick / top})` }}>{format(tick)}</span>)}
       </div>
