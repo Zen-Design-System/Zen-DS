@@ -93,7 +93,7 @@ export function DonutChart({ data, format = defaultFormat, size = 200, "aria-lab
   const figure = current ? format(current.d.value) : value ?? format(total);
   const caption = current ? current.d.label : label ?? t.total;
   const ring = (
-    <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="donut" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `${size}px` } as CSSProperties}>
+    <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="donut" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${size}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
       <div className="zen-chart__round" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
         onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}
         data-picked={current ? "true" : undefined}>

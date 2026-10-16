@@ -25,6 +25,11 @@
  *              to it, or is cut off mid-text. The platform `overflow` check skips anything inside an `overflow: hidden`
  *              ancestor, so on 2026-09-28 a Segmented whose items shrank below their labels read "404 No resultsFirst use"
  *              and nothing was reported
+ *   card-gap   (error) (widgetLayout) a MetricCard or ChartCard stretched by its row whose content stops short, leaving an
+ *              empty band at its foot while a neighbour fills its height (the user 2026-10-16: a 48px Spark-Bars beside
+ *              64px sparklines left a 16px gap under it)
+ *   legend-column (error) (widgetLayout) a chart legend of three or more items stacked one per line under (or over) its
+ *              chart, with room for a row beside nothing (the user 2026-10-16: wrap it like Figma's auto layout)
  *
  * Opt out one element (with a reason in code) by `data-audit-skip-quality`.
  */
@@ -510,6 +515,87 @@ export function textFit({ scopeSel, regionSel }) {
         if (!p || (!p.matches(CONTROL) && p.textContent.trim() !== words)) break;
         a = p;
       }
+    }
+  }
+  return out;
+}
+
+/**
+ * Widget layout (the user's review 2026-10-16): `card-gap` — a MetricCard or ChartCard stretched by its row (siblings of
+ * one parent at the same top and height) whose content stops 12px or more above its foot while a neighbour's reaches
+ * its own (within 4px); `legend-column` — a chart legend of three or more items one per line, under or over its chart
+ * with nothing beside it, in a box wide enough for two items side by side (it should wrap as a row).
+ */
+export function widgetLayout({ scopeSel, regionSel }) {
+  const out = { "card-gap": [], "legend-column": [] };
+  const scope = scopeSel ? document.querySelector(scopeSel) : document;
+  if (!scope) return out;
+  const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
+  const regions = [...(scope.matches?.(REGION) ? [scope] : []), ...scope.querySelectorAll(REGION)]
+    .filter((r) => !r.closest(".platform-guideline-visual__dont, [data-verdict='dont']"));
+  const label = (el) => (el.closest("[data-audit-label]")?.getAttribute("data-audit-label") ?? el.closest(".pe-card")?.querySelector("h3")?.textContent ?? el.closest(".platform-example-panel")?.querySelector("h2")?.textContent ?? (el.closest(".official-portal-root") ? "overlay" : "page")).trim().slice(0, 40);
+  const px = (v) => parseFloat(v) || 0;
+  const visible = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && px(s.opacity) > 0.05 && !el.closest(".zen-visually-hidden, [data-audit-skip-quality]"); };
+  const scaleOf = (el) => (el.offsetHeight ? el.getBoundingClientRect().height / el.offsetHeight : 1);
+  const titleOf = (card) => (card.querySelector("h1, h2, h3, h4, h5, h6, [class*='__title'], [class*='__label']")?.textContent ?? "").trim().slice(0, 28);
+  // The lowest painted content of a card: leaves (no element children), pictures and boxes with their own text.
+  const contentBottom = (card) => {
+    let bottom = -Infinity;
+    for (const el of card.querySelectorAll("*")) {
+      if (el.closest(".zen-card__sub-action") || !(el.children.length === 0 || el.matches("svg, img, canvas") || [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))) continue;
+      if (el.closest("svg") && !el.matches("svg")) continue;
+      if (!visible(el)) continue;
+      bottom = Math.max(bottom, el.getBoundingClientRect().bottom);
+    }
+    return bottom;
+  };
+  const seen = new Set();
+  for (const region of regions) {
+    const cards = [...region.querySelectorAll(".zen-metric-card, .zen-chart-card")].filter((c) => !seen.has(c) && visible(c));
+    const rows = new Map();
+    for (const card of cards) {
+      seen.add(card);
+      const r = card.getBoundingClientRect();
+      const key = card.parentElement;
+      const row = rows.get(key) ?? rows.set(key, []).get(key);
+      row.push({ card, top: r.top, height: r.height });
+    }
+    for (const row of rows.values()) {
+      // Stretched siblings: one top, one height (a row of a grid or flex line).
+      const lines = [];
+      for (const item of row) { const line = lines.find((l) => Math.abs(l[0].top - item.top) <= 1 && Math.abs(l[0].height - item.height) <= 1); if (line) line.push(item); else lines.push([item]); }
+      for (const line of lines) {
+        if (line.length < 2) continue;
+        const slack = line.map(({ card }) => {
+          const k = scaleOf(card); const r = card.getBoundingClientRect(); const s = getComputedStyle(card);
+          const foot = r.bottom - (px(s.paddingBottom) + px(s.borderBottomWidth)) * k;
+          return { card, gap: (foot - contentBottom(card)) / k };
+        });
+        const least = Math.min(...slack.map((x) => x.gap));
+        if (least > 4) continue;
+        for (const { card, gap } of slack) if (gap >= 12) {
+          const kind = card.matches(".zen-metric-card") ? "MetricCard" : "ChartCard";
+          out["card-gap"].push(`${label(card)}: ${kind} "${titleOf(card)}" stops ${Math.round(gap)}px above its foot beside a card that fills the row — let its content fill the card (a ChartCard grows its chart, a MetricCard keeps its marks at the foot), or let the row's cards hug`);
+        }
+      }
+    }
+    for (const legend of region.querySelectorAll(".zen-chart__legend")) {
+      if (!visible(legend)) continue;
+      const items = [...legend.children].filter(visible);
+      if (items.length < 3) continue;
+      const rects = items.map((i) => i.getBoundingClientRect());
+      if (new Set(rects.map((q) => Math.round(q.top))).size !== items.length) continue;          // not one per line
+      if (Math.max(...rects.map((q) => q.left)) - Math.min(...rects.map((q) => q.left)) > 2) continue;
+      const block = legend.closest(".zen-chart-block");
+      if (!block) continue;
+      let unit = legend; while (unit.parentElement && unit.parentElement !== block) unit = unit.parentElement;
+      const L = unit.getBoundingClientRect();
+      const beside = [...block.children].some((c) => c !== unit && visible(c) && (() => { const q = c.getBoundingClientRect(); return q.top < L.bottom - 1 && q.bottom > L.top + 1; })());
+      if (beside) continue;
+      const k = scaleOf(block);
+      const widest = Math.max(...rects.map((q) => q.width)) / k;
+      if (block.getBoundingClientRect().width / k < 2 * widest + 8) continue;                   // no room for a row
+      out["legend-column"].push(`${label(legend)}: a chart legend stacks its ${items.length} items in a column under its chart with room for a row — let it wrap as a row (Figma auto layout Wrap)`);
     }
   }
   return out;

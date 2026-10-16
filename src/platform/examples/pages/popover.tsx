@@ -187,7 +187,7 @@ function SortFiles() {
   return (
     // A ListBox: the count and the Sort chip in its Header-Slot, the files in its Body-Slot.
     <ListBox width="fill"
-      header={<Stack direction="row" align="center" justify="between" gap="md">
+      header={<Stack direction="row" align="center" justify="between" gap="md" wrap>
         <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(studioFiles.length, "file")}</Text>
         <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line" popoverLabel="Sort by"
           popoverItems={sortOptions.map((option) => ({ ...option, selected: option.id === sort }))}
@@ -458,7 +458,7 @@ const unpick = (label) => { setPicked(toggleIn(picked, label)); focusNextTagOrCh
 
 {/* The ListBox's Body-Slot insets the rows (they pad 0) and keeps their fill (12px outside a row) inside it. */}
 <ListBox
-  header={<Stack direction="row" align="center" justify="between" gap="md">
+  header={<Stack direction="row" align="center" justify="between" gap="md" wrap>
     <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(files.length, "file")}</Text>
     <Chip variant="advanced" dropdown leading="icon-switch-vertical-01-line" popoverLabel="Sort by"
       popoverItems={[

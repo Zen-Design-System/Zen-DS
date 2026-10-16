@@ -38,16 +38,21 @@
 .zen-metric__body { position: relative; display: flex; min-width: 0; flex: 1 1 auto; align-items: stretch; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-metric__body > .zen-metric__icon { position: absolute; right: 0; bottom: 0; }
 .zen-metric__custom { display: flex; min-width: 0; flex-direction: column; }
-/* A Metric Card stretched by its grid row keeps the number at the bottom (Figma Contents: Space between, Fill). */
+/* A Metric Card stretched by its grid row keeps the number at the bottom (Figma Contents: Space between, Fill): the
+   stacked KPI (XLarge/Large) keeps its Dock-Icon at the top and its label, number and trend at the foot (audit card-gap). */
 .zen-metric-card > .zen-card__content { flex: 1 1 auto; }
+.zen-metric-card > .zen-card__content > .zen-metric[data-layout="stacked"],
+.zen-metric-card__body > .zen-metric[data-layout="stacked"] { flex: 1 1 auto; justify-content: space-between; }
 
 /* ── Metric-Card Type (Figma 6643:64008; MetricCard `type`, MetricMarks.tsx) ──
    Every type but KPI: Figma Metric-Body, a column Spacing/Gap/Medium apart — the Title-Highlight Metric, the type's own
    content, then the footer. */
 .zen-metric-card__body { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
-/* A card stretched by its grid row: Figma's Metric-Body grows with the card and keeps its content at the top (the Metric
-   hugs, so numbers line up under the titles across the row; the space stays under the type's content). */
+/* A card stretched by its grid row (Figma's cards hug, so this is code's call): the Metric (a comparison's title) stays at
+   the top, so numbers line up under the titles across the row, and the type's content and footer sit at the bottom, so a
+   48px Spark-Bars or a goal bar ends where its neighbours' 64px lines end instead of leaving a gap under it (audit card-gap). */
 .zen-metric-card__body > .zen-metric[data-variant="title-highlight"] { flex: 0 0 auto; }
+.zen-metric-card__body > :is(.zen-metric[data-variant="title-highlight"], .zen-metric-card__title) + * { margin-block-start: auto; }
 .zen-metric-card__footer { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* The title row never runs under the card's ⋮ Sub-Action (absolute at the card's top-right, Element-Size/Popular/Base). */
 .zen-metric-card:has(> .zen-card__sub-action) :is(.zen-metric-card__body > .zen-metric .zen-metric__header, .zen-metric-card__title) { padding-inline-end: calc(var(--zen-element-size-popular-base, 20px) + var(--zen-spacing-gap-xsmall, 8px)); }

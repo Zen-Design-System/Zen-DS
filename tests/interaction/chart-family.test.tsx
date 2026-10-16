@@ -184,6 +184,22 @@ describe("chart family layout", () => {
     const legend = document.querySelector('[data-kind="donut"] > .zen-chart__legend')!.getBoundingClientRect();
     expect(legend.top >= donut.bottom || legend.right <= donut.left).toBe(true);
   });
+
+  it("a legend beside the ring stays a column; wrapped under it in a narrow box it is a row that wraps", async () => {
+    const slices = ["Travel", "Software", "Meals", "Office", "Marketing", "Other"].map((label, i) => ({ id: label, label, value: 9 - i }));
+    await render(<ZenProvider>
+      <div style={{ width: 600, pointerEvents: "none" }}><DonutChart aria-label="Wide" size={240} legendPosition="end" data={slices} /></div>
+      <div style={{ width: 300, pointerEvents: "none" }}><DonutChart aria-label="Narrow" size={240} legendPosition="end" data={slices} /></div>
+    </ZenProvider>);
+    await expect.poll(() => document.querySelector('[aria-label="Narrow"]')!.closest(".zen-chart-block")!.getAttribute("data-wrapped")).toBe("true");
+    const legendOf = (name: string) => document.querySelector(`[aria-label="${name}"]`)!.closest(".zen-chart-block")!.querySelector(":scope > .zen-chart__legend")!;
+    expect(legendOf("Wide").closest(".zen-chart-block")!.getAttribute("data-wrapped")).toBeNull();
+    expect(getComputedStyle(legendOf("Wide")).flexDirection).toBe("column");
+    expect(getComputedStyle(legendOf("Narrow")).flexDirection).toBe("row");
+    // Six items share fewer rows than a column would take.
+    const tops = new Set(Array.from(legendOf("Narrow").children).map((li) => Math.round(li.getBoundingClientRect().top)));
+    expect(tops.size).toBeLessThan(6);
+  });
 });
 
 describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () => {

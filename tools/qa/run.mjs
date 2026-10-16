@@ -24,7 +24,7 @@
  *              effect styles and token sources are in scope)
  *              · figma-contract suites of the components in scope · Vitest related to the edited files · tokens/styles
  *              checks (when styles changed). A static ✗ skips the browser steps unless --keep-going.
- * ② Runtime    audit --smoke --quality --density at 1512 + 390 (text styles, hierarchy, token scale, concentric
+ * ② Runtime    audit --smoke --quality --density at 1512 + 390 + 320 (text styles, hierarchy, token scale, concentric
  *              corners, Comfortable fit, edges, overflow…) and --dark at 1512
  * ③ Behaviour  focus ring, keyboard reach, APG keys (tabs, menus, dialogs…), dead clicks, hover feedback
  * ④ Coverage   the example matrix of the pages whose examples you edited (other pages: one Backlog summary line)
@@ -405,8 +405,9 @@ if (failFast) {
   const main = path.join(runDir, "audit.json");
   const args = ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${main}`, "--quality"];
   if (QUICK) args.push("--viewports=1512", "--no-playground");
-  else if (TOKEN_ONLY) args.push("--viewports=1512,390", ...(TOKEN_SIZES ? ["--density"] : []));
-  else args.push("--viewports=1512,390", "--smoke", "--density");
+  // 320 (a small phone, the user 2026-10-16): what 390 hides — labels that overlap, rows that no longer fit.
+  else if (TOKEN_ONLY) args.push("--viewports=1512,390,320", ...(TOKEN_SIZES ? ["--density"] : []));
+  else args.push("--viewports=1512,390,320", "--smoke", "--density");
   const darkOut = path.join(runDir, "audit-dark.json");
   const behScript = path.join(root, "tools/platform-audit/behaviour.mjs");
   const behOut = path.join(runDir, "behaviour.json");
@@ -416,7 +417,7 @@ if (failFast) {
   const r = await jobMain();
   const report = readAudit(main);
   if (!report) step("runtime", "Platform audit", "fail", `audit crashed (exit ${r.code})`, tail(r.out, /./).slice(-12));
-  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 · smoke · quality · density"}${secs(r)}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
+  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 + 320 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 + 320 · smoke · quality · density"}${secs(r)}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
   if (!QUICK) {
     const dark = darkOut;
     const d = await jobDark();

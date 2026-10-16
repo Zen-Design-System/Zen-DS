@@ -54,7 +54,7 @@ export function RadialChart({ data, max = 100, format, size = 200, "aria-label":
   const legend = showLegend ? <ChartLegend items={rings.map((ring) => ({ id: ring.d.id, label: ring.d.label, color: ring.colour }))} /> : undefined;
   return (
     <ChartBlock ref={ref} kind="radial" legend={legend} position={legendPosition} className="zen-chart-round">
-      <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="radial" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `${size}px` } as CSSProperties}>
+      <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="radial" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${size}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <div className="zen-chart__round" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}
           data-picked={current ? "true" : undefined}>
