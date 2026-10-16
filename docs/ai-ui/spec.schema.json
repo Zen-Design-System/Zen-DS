@@ -29776,15 +29776,17 @@
                     "enum": [
                       "md",
                       "sm",
+                      "lg",
                       "medium",
-                      "small"
+                      "small",
+                      "large"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+                "description": "Short (sm, md, lg) or Figma (small, medium, large) spelling."
               },
               "variant": {
                 "anyOf": [
@@ -30287,15 +30289,17 @@
                     "enum": [
                       "md",
                       "sm",
+                      "lg",
                       "medium",
-                      "small"
+                      "small",
+                      "large"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Short (sm, md…) or Figma (small, medium…) spelling."
+                "description": "Short (sm, md, lg) or Figma (small, medium, large) spelling."
               },
               "variant": {
                 "anyOf": [

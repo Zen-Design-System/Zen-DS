@@ -1321,6 +1321,42 @@
         }
       },
       {
+        "name": "Tab-Item/Size/Large/Min-Width",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-64}",
+          "Comfortable": "{dm-72}",
+          "Studio": "{dm-64}"
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Large/Horizontal-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": 0,
+          "Comfortable": 0,
+          "Studio": 0
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Large/Vertical-Padding",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Spacing/Padding/XSmall}",
+          "Comfortable": "{Spacing/Padding/XSmall}",
+          "Studio": "{Spacing/Padding/XSmall}"
+        }
+      },
+      {
+        "name": "Tab-Item/Spacing/Large/Gap",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{Spacing/Gap/XSmall}",
+          "Comfortable": "{Spacing/Gap/XSmall}",
+          "Studio": "{Spacing/Gap/XSmall}"
+        }
+      },
+      {
         "name": "Table/Cell/Size",
         "type": "FLOAT",
         "valuesByMode": {
@@ -1543,6 +1579,15 @@
           "Compact": "{dm-40}",
           "Comfortable": "{dm-48}",
           "Studio": "{dm-32}"
+        }
+      },
+      {
+        "name": "Tab-Item/Size/Large/Height",
+        "type": "FLOAT",
+        "valuesByMode": {
+          "Compact": "{dm-64}",
+          "Comfortable": "{dm-72}",
+          "Studio": "{dm-64}"
         }
       },
       {

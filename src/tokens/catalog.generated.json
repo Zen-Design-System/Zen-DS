@@ -52,7 +52,7 @@
         "Comfortable",
         "Studio"
       ],
-      "variableCount": 190
+      "variableCount": 195
     },
     "spacing": {
       "name": "Spacing",
@@ -29757,6 +29757,70 @@
       ]
     },
     {
+      "name": "Tab-Item/Size/Large/Min-Width",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": "{dm-64}",
+        "Comfortable": "{dm-72}",
+        "Studio": "{dm-64}"
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
+      "name": "Tab-Item/Spacing/Large/Horizontal-Padding",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": 0,
+        "Comfortable": 0,
+        "Studio": 0
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
+      "name": "Tab-Item/Spacing/Large/Vertical-Padding",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": "{Spacing/Padding/XSmall}",
+        "Comfortable": "{Spacing/Padding/XSmall}",
+        "Studio": "{Spacing/Padding/XSmall}"
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
+      "name": "Tab-Item/Spacing/Large/Gap",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": "{Spacing/Gap/XSmall}",
+        "Comfortable": "{Spacing/Gap/XSmall}",
+        "Studio": "{Spacing/Gap/XSmall}"
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
       "name": "Table/Cell/Size",
       "type": "FLOAT",
       "valuesByMode": {
@@ -30147,6 +30211,22 @@
         "Compact": "{dm-40}",
         "Comfortable": "{dm-48}",
         "Studio": "{dm-32}"
+      },
+      "collectionSlug": "component-size",
+      "collectionName": "Component Size",
+      "modes": [
+        "Compact",
+        "Comfortable",
+        "Studio"
+      ]
+    },
+    {
+      "name": "Tab-Item/Size/Large/Height",
+      "type": "FLOAT",
+      "valuesByMode": {
+        "Compact": "{dm-64}",
+        "Comfortable": "{dm-72}",
+        "Studio": "{dm-64}"
       },
       "collectionSlug": "component-size",
       "collectionName": "Component Size",

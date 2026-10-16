@@ -1,18 +1,21 @@
 /* Tabs examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Alex Duong works through the Đìzai Studio
    workspace: the sections of a project page, a draft invoice, the work waiting on his dashboard, a colleague's profile on
    his phone and a client record in a narrow column. Tabs switch sections of one thing; filters stay Chips. */
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { AppShellAccount } from "../../../components/AppShell";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
+import { Divider } from "../../../components/Divider";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import type { IconName } from "../../../components/Icon";
 import { Box, Container, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { Menu } from "../../../components/Menu";
 import { MetricCard } from "../../../components/MetricWidget";
 import { PageHeader } from "../../../components/PageHeader";
 import { SkeletonShape, SkeletonText } from "../../../components/Skeleton";
@@ -24,12 +27,12 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
-  TODAY, activity, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme,
-  leaveRequests, leaveStatusTheme, people, peopleList, projectById, projectStatusTheme, projects, tasks, taskStatusTheme,
+  TODAY, activity, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices,
+  leaveRequests, leaveStatusTheme, me, people, peopleList, projectById, projectStatusTheme, projects, studio, tasks, taskStatusTheme,
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type Task,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
-import { PreviewPage } from "../../PlatformFrames";
+import { PreviewPage, StudioLogo, StudioMark } from "../../PlatformFrames";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -517,6 +520,106 @@ function ClientSectionsExample() {
   );
 }
 
+// ——— 6. Workspace top navigation ————————————————————————————————————————————————————————————————————
+const activeProjects = projects.filter((p) => p.status === "Active");
+const unpaidInvoices = invoices.filter((i) => i.status === "Sent" || i.status === "Overdue");
+const myOpenTasks = tasks.filter((t) => t.assignee === me.id && t.status !== "Done");
+const workspaceSections: Record<string, { title: string; description: string }> = {
+  home: { title: "Home", description: `${studio.name} this week` },
+  projects: { title: "Projects", description: `${activeProjects.length} active projects` },
+  invoices: { title: "Invoices", description: `${unpaidInvoices.length} invoices waiting for payment` },
+  people: { title: "People", description: `${peopleList.length} people in the studio` },
+};
+
+/** True while `ref`'s element is narrower than `width`: on a phone-width page the logo keeps only its mark. */
+function useNarrowerThan(width: number) {
+  const ref = useRef<HTMLElement>(null);
+  const [narrow, setNarrow] = useState(false);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element || typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(([entry]) => setNarrow(entry.contentRect.width < width));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [width]);
+  return [ref, narrow] as const;
+}
+
+function WorkspaceTopNavExample() {
+  const prefix = usePrefix("workspace");
+  const [tab, setTab] = useState("projects");
+  const { toast } = useToast();
+  const [pageRef, narrow] = useNarrowerThan(640);
+  const panel = (id: string, children: ReactNode) => <TabPanel idPrefix={prefix} id={id} hidden={tab !== id}>{children}</TabPanel>;
+
+  return (
+    <PreviewPage ref={pageRef}>
+      {/* The bar lies on the page's Canvas; the Divider under it is the tabs' baseline, so the 64px Large items fill the
+          bar and the selected indicator sits on that line. */}
+      <Container maxWidth="full">
+        <Stack direction="row" align="center" justify="between" gap="lg">
+          <Stack direction="row" align="center" gap="lg" width="fill">
+            {/* The logo slot is 24px high; on a phone-width page only the mark stays and the tabs scroll. */}
+            {narrow ? <StudioMark src={studio.logo} name={studio.name} /> : <Box width="hug" height={24}><StudioLogo src={studio.logo} name={studio.name} /></Box>}
+            <Tabs idPrefix={prefix} size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
+              { id: "home", label: "Home" },
+              { id: "projects", label: "Projects", badge: activeProjects.length },
+              { id: "invoices", label: "Invoices", badge: unpaidInvoices.length || undefined },
+              { id: "people", label: "People" },
+            ]} />
+          </Stack>
+          <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={[
+            { id: "profile", label: "Your profile", icon: "icon-user-circle-line", onSelect: () => setTab("people") },
+            { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line", onSelect: () => toast({ title: `Signed out of ${studio.name}` }) },
+          ]} />
+        </Stack>
+      </Container>
+      <Divider />
+      <Container maxWidth="full">
+        <Stack gap="xl" paddingY="xl">
+          <PageHeader title={workspaceSections[tab].title} description={workspaceSections[tab].description} />
+          {panel("home", (
+            <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
+              <MetricCard label="Active projects" value={`${activeProjects.length}`} icon="icon-folder-line" iconTheme="neutral" theme="flat" />
+              <MetricCard label="Unpaid invoices" value={formatMoney(unpaidInvoices.reduce((sum, i) => sum + i.amount, 0))} icon="icon-receipt-line" iconTheme="neutral" theme="flat" />
+              <MetricCard label="Your open tasks" value={`${myOpenTasks.length}`} icon="icon-check-square-line" iconTheme="neutral" theme="flat" />
+            </Grid>
+          ))}
+          {panel("projects", (
+            <ListBox>
+              <List aria-label="Active projects">
+                {activeProjects.map((p) => (
+                  <ListItem key={p.id} title={p.name} caption={`${p.client} · Due ${formatDate(p.due)}`}
+                    leading={<DockIcon icon={p.icon} theme="neutral" background="subtle" size="medium" />}
+                    trailing={<Text textStyle="Body/Small/Regular" tone="base">{`${p.progress}% done`}</Text>} />
+                ))}
+              </List>
+            </ListBox>
+          ))}
+          {panel("invoices", (
+            <ListBox>
+              <List aria-label="Unpaid invoices">
+                {unpaidInvoices.map((i) => (
+                  <ListItem key={i.id} title={i.number} caption={`${i.client} · ${formatMoney(i.amount, true)} · Due ${formatDate(i.due)}`}
+                    leading={<DockIcon icon="icon-receipt-line" theme="neutral" background="subtle" size="medium" />}
+                    trailing={<Badge theme={invoiceStatusTheme[i.status]} background="subtle">{i.status}</Badge>} />
+                ))}
+              </List>
+            </ListBox>
+          ))}
+          {panel("people", (
+            <ListBox>
+              <List aria-label="People">
+                {peopleList.slice(0, 6).map((p) => <ListItem key={p.id} title={p.name} caption={`${p.role} · ${p.team}`} leading={avatar(p)} />)}
+              </List>
+            </ListBox>
+          ))}
+        </Stack>
+      </Container>
+    </PreviewPage>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Project sections",
@@ -549,6 +652,37 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <TabPanel idPrefix="project" id="activity" hidden={tab !== "activity"}>
   <ListBox>{loaded ? <ActivityList /> : <SkeletonRows />}</ListBox>
 </TabPanel>`,
+  },
+  {
+    title: "Workspace top navigation",
+    description: "On desktop the studio's main sections sit in the top bar as Large tabs: 64px items that fill the bar, with the selected indicator on the Divider under it. Counts sit in badges and leave at zero; Your profile in the account menu opens People.",
+    wide: true,
+    screen: true,
+    render: () => <WorkspaceTopNavExample />,
+    code: `const [tab, setTab] = useState("projects");
+
+<Container maxWidth="full">
+  <Stack direction="row" align="center" justify="between" gap="lg">
+    <Stack direction="row" align="center" gap="lg" width="fill">
+      <Logo />
+      <Tabs idPrefix="workspace" size="lg" aria-label="Workspace" value={tab} onValueChange={setTab} items={[
+        { id: "home", label: "Home" },
+        { id: "projects", label: "Projects", badge: activeProjects.length },
+        { id: "invoices", label: "Invoices", badge: unpaidInvoices.length || undefined }, // hidden at 0
+        { id: "people", label: "People" },
+      ]} />
+    </Stack>
+    <Menu align="end" trigger={<AppShellAccount name={me.name} src={me.photo} />} items={accountItems} />
+  </Stack>
+</Container>
+<Divider /> {/* the tabs' baseline: the indicator sits on it */}
+<Container maxWidth="full">
+  <PageHeader title="Projects" description="3 active projects" /> {/* the screen's h1 */}
+  <TabPanel idPrefix="workspace" id="projects" hidden={tab !== "projects"}>
+    <ListBox><List aria-label="Active projects">{/* ListItems */}</List></ListBox>
+  </TabPanel>
+  …
+</Container>`,
   },
   {
     title: "Your work",
