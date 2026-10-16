@@ -351,7 +351,7 @@ function ClientShareCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
     <ChartCard title="Revenue by client" headingLevel={headingLevel} icon="icon-pie-chart-01-line" ranges={quarters} range={quarter} onRangeChange={setQuarter}>
       <DonutChart key={quarter} aria-label={`Revenue by client, ${quarter === "q3" ? "Q3 2026" : "Jan – Sep 2026"}`} data={quarter === "q3" ? clientShares : clientSharesYtd}
-        format={formatCompactMoney} size={168} legendPosition="start" />
+        format={formatCompactMoney} legendPosition="start" />
     </ChartCard>
   );
 }
@@ -360,7 +360,7 @@ function ClientShareCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
 function ClientShareSplitCard() {
   return (
     <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line">
-      <DonutChart aria-label="Revenue by client, Q3 2026" data={clientShares} format={formatCompactMoney} totalPosition="start" size={240}
+      <DonutChart aria-label="Revenue by client, Q3 2026" data={clientShares} format={formatCompactMoney} totalPosition="start" size="large"
         label="Invoiced in Q3 2026" value={formatMoney(clientShares.reduce((sum, c) => sum + c.value, 0))} />
     </ChartCard>
   );
@@ -762,7 +762,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
 
 <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line"
   ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={quarter} onRangeChange={setQuarter}>
-  <DonutChart key={quarter} aria-label="Revenue by client, Q3 2026" format={formatCompactMoney} size={168} legendPosition="start"
+  <DonutChart key={quarter} aria-label="Revenue by client, Q3 2026" format={formatCompactMoney} legendPosition="start"
     data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
 </ChartCard>`,
   },
@@ -772,7 +772,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     description: "On a half-width dashboard card the total leads in a column of its own, the legend lists down under it and the ring stands at the end with an empty hole (totalPosition=\"start\"). Picking a slice puts its amount in the total's place; on a narrow card the column comes first and the ring under it.",
     render: () => <ClientShareSplitRow />,
     code: `<ChartCard title="Revenue by client" icon="icon-pie-chart-01-line">
-  <DonutChart aria-label="Revenue by client, Q3 2026" totalPosition="start" size={240}
+  <DonutChart aria-label="Revenue by client, Q3 2026" totalPosition="start" size="large"
     label="Invoiced in Q3 2026" value="$296,800" format={formatCompactMoney}
     data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
 </ChartCard>`,

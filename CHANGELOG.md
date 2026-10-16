@@ -26,6 +26,12 @@ removed (four unused colour ramps were, see Removed).
 - DashboardHeader control-bar result count (2026-10-16, user: "hơi bự, nên đưa về body"): "86 expenses" is Body/Base/Regular
   (was Heading/Subheading), in code and in Figma Primitives/Dashboard/Header Type=Control-Bar (its description says so);
   harness `dashboard-header/count-body` (error) flags a Heading or a heading/display text style passed as the count.
+- DonutChart and RadialChart take a named `size` (2026-10-16, user: "Có nên cho chọn các cỡ pie chart không?", "thêm
+  XLarge 320px"): `small` 120 · `medium` 168 (the new default, was 200) · `large` 240 · `xlarge` 320, in either spelling;
+  a number still sets px, and the harness warns (`chart/ring-size-named`). Small shows the centre figure alone
+  (Body/Base/Bold), XLarge in Heading/3, and a Small Radial draws 6px rings 4px apart so four still fit. Figma:
+  Chart/Donut-Chart (12 variants) and Chart/Radial-Chart (8) have a Size variant drawn like code (4px slice gaps, fixed
+  ring widths); Studio's push / pull maps it.
 - ListBox footer actions (2026-10-16, user): a footer action ("Open calendar", "Go to Inbox") is a Tertiary Button,
   never plain text or a Link: harness `listbox/footer-action-tertiary` (error; AI UI specs and `check_usage` too), the
   Figma audit `list-box/footer-text-action`. A Button in the footer fills the box on desktop and tablet and hugs its

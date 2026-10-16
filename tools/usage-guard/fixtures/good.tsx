@@ -152,6 +152,7 @@ export const Good = () => <>
   <BarChart aria-label="Revenue per month, Jan – Dec 2026" data={data} />
   <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} />
   <RadialChart aria-label="Budget used by project" data={slices} legendPosition="end" />
+  <DonutChart aria-label="Revenue by client, Q3 2026" data={slices} size="large" />
   <LineChart aria-label="Weekly visits" data={data} showLegend={false} />
   <HeatmapChart aria-label="Hours logged by weekday and hour" rows={rows} columns={columns} values={values} />
   <BarList aria-label="Revenue by client, 2026 so far" headers={{ label: "Client", value: "Revenue" }} data={[{ label: "Lumen Bank", value: 96400 }, { label: "Phin & Co", value: 71200 }, { label: "Mekong Freight", value: 54800 }, { label: "Other clients", value: 60100 }]} />

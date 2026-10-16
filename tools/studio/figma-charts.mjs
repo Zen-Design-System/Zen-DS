@@ -110,6 +110,7 @@ export function chartFigma(name, values, notes, where) {
     if (!start && (position === "top" || position === "end")) notes.push(`${where}: legendPosition="${position}": Figma's ${set.name} has its legend at Bottom or Start (${legend} drawn)`);
     props.Legend = legend;
     props.Total = start ? "Start" : "Centre";
+    props.Size = ringSizeProp(values.size, notes, where, set.name);
     // The total's caption as the code shows it (the locale's "Total" without one); its figure only when the page writes
     // it (the code totals its data, Figma shows its sample's total).
     const label = values.label === undefined ? DONUT_TOTAL_LABEL : words(values.label);
@@ -122,6 +123,7 @@ export function chartFigma(name, values, notes, where) {
     const legend = { bottom: "Bottom", end: "End", top: "Bottom", start: "End" }[position] ?? "Bottom";
     if (position === "top" || position === "start") notes.push(`${where}: legendPosition="${position}": Figma's ${set.name} has its legend at Bottom or End (${legend} drawn)`);
     props.Legend = legend;
+    props.Size = ringSizeProp(values.size, notes, where, set.name);
   }
   if (AVERAGE.has(key)) {
     props["Show Average"] = values.showAverage === true;
@@ -161,6 +163,21 @@ const SET_IDS = new Map(Object.entries(CHART_SETS).map(([key, set]) => [set.id, 
 
 /** The chart set a Figma instance's set is (by name, else id), or null. */
 export const chartSetKey = (set) => (set ? SET_KEYS.get(set.name) ?? SET_IDS.get(set.id) ?? null : null);
+
+/** Ring sizes (DonutChart / RadialChart `size` ↔ Figma Size): the long spelling, its Figma value, its px. */
+const RING_SIZES = [["small", "Small", 120], ["medium", "Medium", 168], ["large", "Large", 240], ["xlarge", "XLarge", 320]];
+const RING_SHORT = { sm: "small", md: "medium", lg: "large", xl: "xlarge" };
+/** A ring chart's `size` as Figma's Size, noting a px size Figma draws at its nearest step. */
+function ringSizeProp(size, notes, where, setName) {
+  if (size === undefined) return "Medium";
+  if (typeof size === "number") {
+    const [, figma, px] = RING_SIZES.reduce((best, step) => (Math.abs(step[2] - size) < Math.abs(best[2] - size) ? step : best));
+    if (px !== size) notes.push(`${where}: size={${size}}: Figma's ${setName} has Small 120, Medium 168, Large 240 and XLarge 320 (${figma} drawn)`);
+    return figma;
+  }
+  const long = RING_SHORT[size] ?? size;
+  return RING_SIZES.find(([name]) => name === long)?.[1] ?? "Medium";
+}
 
 /** The palette sample (slots/palette.ts) each chart reads its data from, by set and variant. */
 function sampleId(key, props) {
@@ -266,6 +283,10 @@ export function chartFromFigma(node, notes, where) {
     if (typeof value === "string" && value && value !== DONUT_SAMPLE_TOTAL) set("value", value);
   }
   if (key === "radial" && figma.Legend === "End") set("legendPosition", "end");
+  if (key === "donut" || key === "radial") {
+    const step = RING_SIZES.find(([, name]) => name === figma.Size);
+    if (step && step[0] !== "medium") set("size", step[0]); else unset("size");
+  }
   if (AVERAGE.has(key)) { if (figma["Show Average"] === true) set("showAverage", true); else unset("showAverage"); }
   if (LEGEND.has(key) && typeof figma["Show Legend"] === "boolean") {
     const values = Object.fromEntries(Object.entries(props).map(([name, value]) => [name, plainOf(value)]));

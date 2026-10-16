@@ -3918,7 +3918,7 @@
         "DonutChart": [
           "data: ChartSlice[]",
           "format?: (value: number) => string = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "size?: number = 200",
+          "size?: ChartRingSize|number = medium",
           "aria-label: string",
           "value?: ReactNode",
           "label?: ReactNode",
@@ -3934,7 +3934,7 @@
           "data: ChartSlice[]",
           "max?: number = 100",
           "format?: (value: number) => string",
-          "size?: number = 200",
+          "size?: ChartRingSize|number = medium",
           "aria-label: string",
           "value?: ReactNode",
           "label?: ReactNode",
@@ -4069,6 +4069,7 @@
         ]
       },
       "do": [
+        "Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.",
         "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
         "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
         "Keep the legend whenever colour tells series, slices or rings apart (harness: chart/stack-needs-legend, chart/shares-need-legend, chart/series-need-legend) and the heatmap's Less → More scale (harness: chart/heatmap-needs-scale).",
@@ -4093,6 +4094,7 @@
         "chart/stack-needs-legend",
         "chart/needs-name",
         "chart/shares-need-legend",
+        "chart/ring-size-named",
         "chart/heatmap-needs-scale",
         "chart/bar-list-rows",
         "chart/bar-list-ranked",
