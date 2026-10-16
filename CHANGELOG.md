@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Segmented `size="sm"` follows the live Figma (2026-10-17, user: "Update token của component size Segmented"):
+  Segmented/Spacing/Small/Horizontal-Padding is 6 in Compact too (was 4), so each Small segment is 4px wider; Medium,
+  Comfortable and the Studio mode are unchanged.
 - Button / IconButton `appearance="overlay"` level `inverse-subtle` (2026-10-17, user: "Thêm 1 button inverse subtle
   cho các button Overlay"): Figma Button/Overlay and Button/Icon-Overlay get `Level=Inverse Subtle` (55 variants), a
   translucent Background/Inverse/Subtle fill with Content/Inverse/Strongest and the Overlay blur. Studio's Properties

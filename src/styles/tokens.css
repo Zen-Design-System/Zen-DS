@@ -3594,7 +3594,7 @@
   --zen-segmented-spacing-medium-vertical-padding: var(--zen-spacing-padding-xsmall);
   --zen-segmented-spacing-medium-gap: 0px;
   --zen-segmented-spacing-medium-text-wrapper-padding: var(--zen-spacing-padding-xsmall);
-  --zen-segmented-spacing-small-horizontal-padding: var(--zen-spacing-padding-2-xsmall);
+  --zen-segmented-spacing-small-horizontal-padding: 6px;
   --zen-segmented-spacing-small-vertical-padding: var(--zen-spacing-padding-2-xsmall);
   --zen-segmented-spacing-small-gap: 0px;
   --zen-segmented-size-medium: var(--zen-dm-36);
