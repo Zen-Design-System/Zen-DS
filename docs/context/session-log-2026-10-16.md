@@ -153,3 +153,27 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   with no overflow; Figma Metric-Card Type=Comparison set to the Heading/1 style, no placed comparison cards to sweep), and
   the gallery's first widget (KPI) to Title-Highlight Large (`widgets.tsx`, Studio palette). The gallery now has 8 styles
   (Display/4 only in the Hero). Docs margins under 375px kept (user: "ok").
+
+## Figma chart sizing, ProgressBar in Studio (session "Bug"; user: "Chart figma lỗi spacing. Các bar của group vẫn nhỏ quá", "Các progress circle không có nền xám", "sửa luôn Stack-Bar chart cho giống vậy", "kiểm tra lại responsive các chiều khác nhau của tất cả chart và chart card", "Lỗi hiển thị trên studio", a Leads-by-salesperson screenshot)
+
+- Figma 9nZv4uW2LT21yuHabMTCh1, all checked at 280 / default / 640 / 1.6× height on temporary boards (removed):
+  - Bar-Chart vertical: Column = horizontal auto layout (Padding/3XSmall sides, centred); `Lane` = 2-row FLEX GRID
+    [empty, bar], FILL up to 40px, the Bar FILL in row 2, so heights follow the plot and an instance sets its data as two
+    row weights (positions can't be overridden in an instance). `Bars` / `Grid` are fresh frames (old ones removed): 15
+    Leads-by-salesperson charts on ◆ Performance had a stale vertical flip in those frames that no override can undo.
+    Their data (Column paddingTop on a 176px column) moved into the lane weights [pt, 176 − pt]: 97/92/84/77/77/77/72/71
+    = 647, as the card says. Tooltip in a `Tooltip-Anchor` (SCALE, active column), CENTER.
+  - Grouped: groups of a 70% `Bars` track (SCALE), lanes 12–32px; Combo: a 50% track, lane 20–40px (as code).
+  - Stack-Bar: the 4 columns' segments in a `Segments` frame (STRETCH/SCALE), Container paddingTop 0, top segment
+    Corner-Radius/Small, slot fill cleared; the column primitive's Value max 48 → 40 (code; 286 placements follow).
+  - Tooltips: Line "$25.9K", Stack-Bar "$20.5K" (were "Value", "2"); Area in a MAX/SCALE anchor; Heatmap inside the
+    active cell; Multi-Line ×4 a chart-level tooltip at the right edge (the sector one hidden; it overflowed 21–30px).
+  - Donut Legend=Start ×2: the Ring FILLs its half up to its size, 1:1 lock, slices SCALE (at 280 the text no longer
+    breaks per letter). A wrap was tried and undone: Chart is FILL height, so a wrapped row overlaps.
+  - Progress-Circle/Icon: Base ellipses had arcData.innerRadius 1 (a hollow ring); 0 now, the Neutral/Subtle fill shows.
+  - Matches code, left: Donut Legend=Start ring at the end of a wide box. Asked the user (BACKLOG P2): X labels drift
+    under the baseline in a taller Line/Stack-Bar/Multi-Line, in code and Figma alike.
+- ProgressBar (`progress.css`): the Inline track has `width: --zen-dm-112` (flex 1 1 auto; Stacked resets it to auto). A
+  `flex-basis` did not help: Chromium sizes a hugging flex container from its items' widths. Studio Main component: the
+  Inline bar shows (94px at the canvas zoom); platform rows measured unchanged (track = row − label − gap).
+  Gate PASS (--isolated, progress: audit 1512/390/320, dark, behaviour, 69 browser tests).

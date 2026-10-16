@@ -871,3 +871,10 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   workspace, the Detail, HR Home and HR Expense overview templates, and the My expenses / My leaves panels. A real page
   uses 8 styles (h1, h4, Subheading, body regular/medium/bold, small, caption). Exempt `screen: true` examples and
   templates, or raise their limit.
+
+## Done 2026-10-16 (session "Bug": Figma chart sizing)
+- [fixed 2026-10-16: segments in a `Segments` frame at STRETCH/SCALE, the Value slot at 0 top padding, column max 40] **P2 · Figma Stack-Bar segments don't scale in proportion (2026-10-16):** charts now fill a stretched Chart-Card in
+  Figma (every `Chart/*` set, Chart-Card, Metric-Card), but in `Chart/Stack-Bar-Chart` only the bottom segment of each
+  column takes the extra height: `.Primitives/Chart/Column/Stack-Bar/Single`'s Value slot is a vertical auto layout,
+  which can't share height by ratio. Proportional needs that slot rebuilt as a GRID with FLEX rows per segment value
+  (every sample column). Code scales correctly.

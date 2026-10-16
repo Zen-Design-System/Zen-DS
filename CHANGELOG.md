@@ -325,6 +325,9 @@ removed (four unused colour ramps were, see Removed).
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- ProgressBar Inline shows its bar in a box that sizes to its content (2026-10-16, user: Zen Studio's Main component
+  frame drew only the label): the track prefers 112px (Figma's Inline track is 119 of 163px) and still grows and shrinks
+  to fill a sized row as before.
 - 320px phones (2026-10-16, user: "sửa"): no docs page scrolls sideways any more (the section grids took their widest
   unbreakable child as their width; the Form and Input pages also ran 11px wide at 390), and under 375px the docs chrome
   gives an example 248px instead of 208px (page gutter 16, stage 8 + 12). ListItem: a caption word longer than the row

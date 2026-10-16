@@ -11,7 +11,10 @@
 .zen-progress-bar[data-status="positive"] { --zen-progress-fill: var(--zen-color-background-positive-solid-default); }
 .zen-progress-bar[data-status="warning"] { --zen-progress-fill: var(--zen-color-background-warning-solid-default); }
 .zen-progress-bar[data-status="negative"] { --zen-progress-fill: var(--zen-color-background-negative-solid-default); }
-.zen-progress-bar__track { position: relative; height: 8px; min-width: 0; flex: 1 1 auto; overflow: hidden; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default); }
+/* The track's width is its preferred length (Figma Inline: Container 119 of 163px), so a bar in a box that sizes to its
+   content (a hugging grid cell, Zen Studio's Main component frame) still shows; in a sized row it grows and shrinks to
+   fill it exactly as before. */
+.zen-progress-bar__track { position: relative; width: var(--zen-dm-112, 112px); height: 8px; min-width: 0; flex: 1 1 auto; overflow: hidden; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default); }
 /* zen-allow-motion-layout: the fill animates width until scaleX() (P2-8 in the motion review). */
 .zen-progress-bar__fill { position: absolute; inset: 0 auto 0 0; background: var(--zen-progress-fill); transition: width var(--zen-motion-duration-slow, 280ms) var(--zen-motion-ease-standard, ease); }
 .zen-progress-bar__label { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
@@ -20,7 +23,7 @@
 .zen-progress-bar[data-layout="stacked"] { flex-direction: column; align-items: stretch; }
 .zen-progress-bar__header { display: flex; min-width: 0; align-items: baseline; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-progress-bar[data-layout="stacked"] .zen-progress-bar__label { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
-.zen-progress-bar[data-layout="stacked"] .zen-progress-bar__track { flex: 0 0 auto; }
+.zen-progress-bar[data-layout="stacked"] .zen-progress-bar__track { width: auto; flex: 0 0 auto; }
 .zen-progress-bar__value { flex: 0 0 auto; color: var(--zen-color-content-neutral-strongest); font-variant-numeric: tabular-nums; }
 
 .zen-progress-circle {

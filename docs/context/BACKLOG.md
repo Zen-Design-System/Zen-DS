@@ -7,11 +7,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P2 · Figma Stack-Bar segments don't scale in proportion (2026-10-16):** charts now fill a stretched Chart-Card in
-  Figma (every `Chart/*` set, Chart-Card, Metric-Card), but in `Chart/Stack-Bar-Chart` only the bottom segment of each
-  column takes the extra height: `.Primitives/Chart/Column/Stack-Bar/Single`'s Value slot is a vertical auto layout,
-  which can't share height by ratio. Proportional needs that slot rebuilt as a GRID with FLEX rows per segment value
-  (every sample column). Code scales correctly.
+- **P2 · Line / Stack-Bar / Multi-Line X labels drift from the baseline in a taller chart (2026-10-16, user's
+  responsive check):** code (`--zen-chart-lane-bottom: height / 7`, the label at the lane's bottom) and Figma (a FLEX
+  label row in the 14-row Trend grid) agree, so at 1.6× height the labels sit ~40px under the baseline. Fixing it pins
+  the label lane in both (code: a fixed lane; Figma: the label row FIXED, Y labels re-anchored). Waits for the user:
+  change both, or keep. Session log 2026-10-16 "Figma chart sizing".
 - **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
   chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
   examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
@@ -123,7 +123,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Light 2.9:1 on Cyan/Orange — code re-points); Solid hue cards: the series in the card's own hue uses Brand in code
   (On-Color/Tertiary washes out as an area); white on Solid Yellow 1.7:1; no Border/Inverse/Pale|Subtle token;
   Metric-Card Hero keeps a Brand Pale fill override on a Solid Brand Card (make it Pale/Brand?). Older chart diffs
-  to settle: X-label pill (16 tall Bold full-width vs 20 Medium hug), Stack-Bar column max 48 vs code 40, bar lanes
+  to settle: X-label pill (16 tall Bold full-width vs 20 Medium hug), bar lanes
   38/26 vs 36/28, horizontal/heatmap axis gaps 8 vs 16. Detail: `docs/research/widget-patterns-spec-2026-10-14.md`,
   `docs/research/chart-phase2-spec-2026-10-14.md` §4.
 - **P2 · Older chart sets bake their card (designer, 2026-10-13):** Bar, Donut, Radial, Heatmap (and Multi-Line) draw
