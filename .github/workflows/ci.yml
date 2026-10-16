@@ -55,7 +55,8 @@ jobs:
   platform-audit:
     name: Platform audit
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The audit takes 24–25 minutes now (pages, 320px, dark); 30 cancelled a PR's run on 2026-10-16.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
