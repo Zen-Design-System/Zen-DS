@@ -144,3 +144,12 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   template's scroll frame lines up with the next card's button).
 - Visual diff 1512 + 390 (1006 panels): changes are the Form/Input width fix, 1–37px of glyph edge from the caption clip,
   and other sessions' / timing ones (ai-ui skeleton, image loads).
+
+## Widgets gallery text styles (user: "cho xem trước", then two calls)
+
+- Previewed the Widgets gallery (9 text styles across 7 MetricCard types; each card uses 3–5). The user's calls:
+  comparison figures Heading/4 → Heading/1 (`MetricWidget.tsx` wraps the column value in Heading/1; `metric-widget.css`
+  stacks the columns at `16.5em` of a body sized to Heading/1: 462 / 528 / 594px in Dashboard / Mobile / Popular, probed
+  with no overflow; Figma Metric-Card Type=Comparison set to the Heading/1 style, no placed comparison cards to sweep), and
+  the gallery's first widget (KPI) to Title-Highlight Large (`widgets.tsx`, Studio palette). The gallery now has 8 styles
+  (Display/4 only in the Hero). Docs margins under 375px kept (user: "ok").

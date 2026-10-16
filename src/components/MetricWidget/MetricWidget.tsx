@@ -189,7 +189,8 @@ export interface MetricComparisonItem {
   id: string;
   /** Figma Label (Caption/Regular · Neutral/Light): "Invoiced". */
   label: ReactNode;
-  /** Figma Metric-Number (Heading/4), pre-formatted: "$105,700". */
+  /** Figma Metric-Number (Heading/1 since 2026-10-16, the user: the comparison's figures read as the card's numbers),
+   *  pre-formatted: "$105,700". */
   value: ReactNode;
   /** Figma Trend: the column's Metric-Trend badge ("+9% vs. August"; normal for a plain note such as "1 invoice"). */
   trend?: { direction: MetricTrendDirection; label: ReactNode };
@@ -280,7 +281,7 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, clas
         <div className="zen-metric-card__columns">
           {(comparison ?? []).map((item) => (
             <div key={item.id} className="zen-metric-card__column">
-              {nest.at("Column", item.id)("Metric", <Metric variant="title-highlight" size="sm" icon={false} label={item.label} value={item.value} trend={item.trend} />)}
+              {nest.at("Column", item.id)("Metric", <Metric variant="title-highlight" size="sm" icon={false} label={item.label} value={<span className={`zen-metric-card__column-value ${typographyStyles["Heading/1"]}`}>{item.value}</span>} trend={item.trend} />)}
             </div>
           ))}
         </div>
