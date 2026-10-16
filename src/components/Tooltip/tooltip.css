@@ -19,7 +19,7 @@
 }
 .zen-tooltip[data-size="small"] { padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); }
 .zen-tooltip[data-color="accent"] { --zen-tooltip-fill: var(--zen-color-background-accent-solid-default); --zen-tooltip-content: var(--zen-color-content-on-accent-default); }
-.zen-tooltip[data-color="white-overlay"] { --zen-tooltip-fill: var(--zen-color-background-white-solid-default); --zen-tooltip-content: var(--zen-color-content-neutral-strongest); }
+.zen-tooltip[data-color="white-overlay"] { --zen-tooltip-fill: var(--zen-color-background-white-solid-default); --zen-tooltip-content: var(--zen-color-content-on-white-overlay-strongest); }
 .zen-tooltip[data-color="black-overlay"] { --zen-tooltip-fill: var(--zen-color-background-black-overlay-default); --zen-tooltip-content: var(--zen-color-content-on-black-overlay-strongest); }
 .zen-tooltip__label { overflow-wrap: anywhere; }
 /* Figma Close=Yes: the label and a Wrapper side by side, Spacing/Gap/XSmall apart, top-aligned. The Wrapper is

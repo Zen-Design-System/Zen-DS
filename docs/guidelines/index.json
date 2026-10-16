@@ -3228,6 +3228,7 @@
       ],
       "avoid": [
         "Text on a Solid colour background → Content/On-Colors (or On-Brights on Lights-group solids), not a Content/<colour> level.",
+        "Text and icons on Background/White/Solid (a white that stays white in Dark mode: the white Tooltip, white overlay Buttons and Nav-Actions, On-Color Badge and Dock-Icon) → Content/On-White-Overlay/* (harness: content/on-white-solid; Figma audit: theme/on-white-solid), never Neutral or Inverse (they turn light in Dark mode) and never a raw black.",
         "Disabled and placeholder text → Content/Disabled and Content/Placeholder (or the overlay/inverse equivalents).",
         "Links → Content/Hyperlink/*."
       ],
@@ -3248,6 +3249,7 @@
       "rules": [
         "content/lights-no-light-text",
         "content/title-is-strongest",
+        "content/on-white-solid",
         "content/colour-light-is-highlight"
       ]
     },

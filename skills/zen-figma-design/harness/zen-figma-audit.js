@@ -52,6 +52,8 @@
 //   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale)
 //   theme/mode-override      error    a layer inside the screen (a component, card or frame) sets its own Light/Dark
 //                                     colour mode: only the screen frame does; a dark widget is Card Solid/Neutral
+//   theme/on-white-solid     error    text or an icon on a Background/White-Solid fill (white in Light and Dark mode)
+//                                     that is not Content/On-White-Overlay/*: Neutral and Inverse flip with the mode
 
 const ROOT_IDS = [];
 const MAX_PER_RULE = 25;
@@ -546,17 +548,44 @@ async function checkInstanceOverrides(instance) {
   }
 }
 
+/** The nearest painted layer above `node` is Background/White-Solid (white in both modes)? Images and other solids stop it. */
+async function onWhiteSolid(node) {
+  for (let current = node.parent; current && current.type !== "PAGE" && current.type !== "SECTION"; current = current.parent) {
+    const paints = "fills" in current && !isMixed(current.fills) ? visiblePaints(current.fills) : [];
+    const solid = paints.find((paint) => paint.type === "SOLID");
+    if (solid) return /Background\/White-Solid\//.test((await paintVar(solid)) ?? "");
+    if (paints.length) return false;
+    if (rootIds.has(current.id)) return false;
+  }
+  return false;
+}
+
+/** Text (or a placed icon) on a White-Solid fill takes Content/On-White-Overlay/*: the fill stays white in Dark mode. */
+async function checkOnWhiteSolid(node) {
+  let paint;
+  if (node.type === "TEXT") paint = isMixed(node.fills) ? null : visiblePaints(node.fills).find((candidate) => candidate.type === "SOLID");
+  else {
+    const vector = node.findOne((child) => child.type === "VECTOR" || child.type === "BOOLEAN_OPERATION");
+    paint = vector && !isMixed(vector.fills) ? visiblePaints(vector.fills).find((candidate) => candidate.type === "SOLID") : null;
+  }
+  if (!paint || !(await onWhiteSolid(node))) return;
+  const name = (await paintVar(paint)) ?? "a raw colour";
+  if (/Content\/On-White-Overlay\//.test(name)) return;
+  report("theme/on-white-solid", ERROR, node, `${name.replace("Color/", "")} on Background/White-Solid: use Content/On-White-Overlay/* (the fill stays white in Dark mode${/Neutral|Inverse/.test(name) ? ", this colour turns light there" : ""})`);
+}
+
 async function walk(node, instanceRoot, isRoot) {
   if (!node.visible) return;
   const inInstance = Boolean(instanceRoot);
   if (!isRoot && !inInstance) checkBounds(node);
   if (node.type === "TEXT") {
-    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); }
+    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); }
     checkText(node, instanceRoot);
     return;
   }
   if (node.type === "INSTANCE") {
     if (!inInstance) await checkInstanceOverrides(node);
+    if (!inInstance && /^ic(on)?-/i.test(node.name)) await checkOnWhiteSolid(node);
     if (!inInstance && footerActionHugs(node)) report("list-box/footer-action-hug", ERROR, node, "the footer Button hugs on a desktop or tablet screen: set its width to Fill (Hug only on mobile)");
   } else if (!inInstance) {
     checkPaints(node);

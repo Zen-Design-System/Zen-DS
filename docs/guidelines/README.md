@@ -52,7 +52,7 @@ Every component ships with usage guidelines (Do / Don't) **and** harness rules. 
 | [Side Panel](side-panel.md) | `side-panel/not-for-confirmations`, `api/deprecated-prop`, `api/overrides-studio-only`, `icon/unknown-name`, `interaction/no-noop-handler`, `interaction/controlled-needs-handler` |
 | [Container borders (Subtle vs Pale)](borders.md) | `border/subtle-static-box`, `border/pale-actionable-box`, `border/dashed-is-subtle`, `color/token-only` |
 | [Background layers (Canvas → Popover)](background-layers.md) | `layer/root-is-canvas`, `layer/canvas-is-page`, `layer/surface-flat-is-navigation`, `surface/no-shadow-on-tinted`, `layer/surface-on-canvas-alt-border`, `layer/container-is-modal`, `layer/popover-is-overlay` |
-| [Content colours (text & icons)](content-colors.md) | `content/lights-no-light-text`, `content/title-is-strongest`, `content/colour-light-is-highlight` |
+| [Content colours (text & icons)](content-colors.md) | `content/lights-no-light-text`, `content/title-is-strongest`, `content/on-white-solid`, `content/colour-light-is-highlight` |
 | [File Icon](file-icon.md) | `file-icon/not-an-action`, `interaction/no-noop-handler` |
 | [Flag](flag.md) | `flag/unknown-name`, `flag/no-emoji-flag`, `interaction/no-noop-handler` |
 | [Icon](icon.md) | `icon/unknown-name`, `icon/size-token`, `interaction/no-noop-handler` |

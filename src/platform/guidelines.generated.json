@@ -5783,6 +5783,7 @@
     ],
     "avoid": [
       "Text on a Solid colour background → Content/On-Colors (or On-Brights on Lights-group solids), not a Content/<colour> level.",
+      "Text and icons on Background/White/Solid (a white that stays white in Dark mode: the white Tooltip, white overlay Buttons and Nav-Actions, On-Color Badge and Dock-Icon) → Content/On-White-Overlay/* (harness: content/on-white-solid; Figma audit: theme/on-white-solid), never Neutral or Inverse (they turn light in Dark mode) and never a raw black.",
       "Disabled and placeholder text → Content/Disabled and Content/Placeholder (or the overlay/inverse equivalents).",
       "Links → Content/Hyperlink/*."
     ],
@@ -5856,6 +5857,12 @@
         "severity": "warn",
         "summary": "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",
         "allow": "title-level"
+      },
+      {
+        "id": "content/on-white-solid",
+        "severity": "error",
+        "summary": "Text and icons on a Background/White/Solid fill (white in light and dark mode: the white Tooltip, white overlay Buttons, On-Color Badge and Dock-Icon) take Content/On-White-Overlay/*: Neutral and Inverse flip with the mode and a raw black skips the token. Each state's content is judged against that state's fill (a white Button's Disabled sits on White-Disabled).",
+        "allow": "on-white-solid"
       },
       {
         "id": "content/colour-light-is-highlight",

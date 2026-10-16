@@ -70,7 +70,7 @@ and content are audited independently. In particular:
 | Main / Primary, Accent, Danger, Positive | Their dedicated content token (`Button-*` or `On-Colors`) | `Color/Background/Solid-Disabled` | `Color/Content/Inverse/Strongest` |
 | Main / Danger Subtle, Positive Subtle | Light; pressed switches to Negative/Positive **Base** | `Color/Background/Subtle-Disabled` | `Color/Content/Disabled` |
 | Overlay / Inverse | `Color/Content/Neutral/Strongest` | `Color/Background/Inverse-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
-| Overlay / White | global `Black` | `Color/Background/White-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
+| Overlay / White | `Color/Content/On-White-Overlay/Strongest` (White-Solid stays white in Dark mode; harness content/on-white-solid) | `Color/Background/White-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
 | Overlay / White Overlay, Black Overlay | global `White` | `Color/Background/White-Disabled` / `Inverse-Disabled` | `Color/Content/On-Black-Overlay/Disabled` |
 | Overlay / Inverse Subtle (background `Color/Background/Inverse/Subtle/*`, Effect/Overlay blur on both sets) | `Color/Content/Inverse/Strongest` | `Color/Background/Inverse-Disabled` | `Color/Content/Inverse/Disabled` |
 

@@ -953,6 +953,20 @@ export const rules = [
   { id: "content/title-is-strongest", css: true, components: [], severity: "warn", allow: "title-level", guideline: "docs/guidelines/content-colors.md",
     summary: "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",
     check: (css) => { if (!isTitleSel(css.selector)) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${NEUTRAL_FAMILY})-(base|light)\\b`).test(x)); return d && `colours a title with \`${d.slice(0, 70)}\` — titles use the -strongest level.`; } },
+  { id: "content/on-white-solid", css: true, components: [], severity: "error", allow: "on-white-solid", guideline: "docs/guidelines/content-colors.md",
+    summary: "Text and icons on a Background/White/Solid fill (white in light and dark mode: the white Tooltip, white overlay Buttons, On-Color Badge and Dock-Icon) take Content/On-White-Overlay/*: Neutral and Inverse flip with the mode and a raw black skips the token. Each state's content is judged against that state's fill (a white Button's Disabled sits on White-Disabled).",
+    check: (css) => {
+      const decls = (re) => (css.body.match(re) ?? []).map((d) => d.trim());
+      const prop = (d) => d.split(":")[0].trim();
+      const STATE = /-(hover|pressed|active|focus(?:ed)?|disabled|selected)\b/;
+      const fills = decls(/(^|[;{\s])(background(-color)?|--[\w-]*(background|bg|fill)[\w-]*)\s*:[^;]*/g).filter((d) => /^(background|--[\w-]*(background|bg|fill))/.test(prop(d)));
+      if (!fills.some((d) => /--zen-color-background-white-solid-/.test(d))) return null;
+      const fillFor = (state) => fills.find((f) => (state ? prop(f).endsWith(`-${state}`) : !STATE.test(prop(f))));
+      const d = decls(/(^|[;{\s])(color|fill|stroke|--[\w-]*(content|text|label|icon|caption|title|colou?r)[\w-]*)\s*:[^;]*/g)
+        .filter((x) => !/^--[\w-]*(background|bg|border|ring|shadow|fill)\b/.test(prop(x)) && !/:\s*(inherit|currentcolor|transparent|none)\b/i.test(x))
+        .find((x) => { const state = prop(x).match(STATE)?.[1]; const fill = (state && fillFor(state)) || fillFor(null); return fill && /--zen-color-background-white-solid-/.test(fill) && !/--zen-color-content-on-white-overlay-/.test(x); });
+      return d && `paints Background/White/Solid (white in both modes) and colours its content with \`${d.slice(0, 80)}\` — use --zen-color-content-on-white-overlay-* (strongest · base · light · placeholder · disabled).`;
+    } },
   { id: "content/colour-light-is-highlight", css: true, components: [], severity: "warn", allow: "colour-light-body", guideline: "docs/guidelines/content-colors.md",
     summary: "In colour families, Strongest/Base are for running text on Subtle backgrounds; Light is only for text or icons that must stand out, never body copy.",
     check: (css) => { if (!isBodySel(css.selector)) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${COLOUR_FAMILY})-light\\b`).test(x)); return d && `uses a colour Light level for body text (\`${d.slice(0, 70)}\`) — use -base or -strongest; keep Light for highlights.`; } },

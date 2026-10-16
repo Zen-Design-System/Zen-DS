@@ -21,6 +21,10 @@
 .card__title { color: var(--zen-color-content-neutral-light); }
 /* expect: content/colour-light-is-highlight */
 .callout__body { color: var(--zen-color-content-info-light); }
+/* expect: content/on-white-solid */
+.x-pill--white { background: var(--zen-color-background-white-solid-default); color: var(--zen-color-content-neutral-strongest); }
+/* expect: content/on-white-solid */
+.x-chip--white { --x-chip-fill: var(--zen-color-background-white-solid-default); --x-chip-content: var(--zen-black, #000); }
 /* expect: layer/root-is-canvas */
 body { background: var(--zen-color-background-surface-default); }
 /* expect: layer/canvas-is-page */

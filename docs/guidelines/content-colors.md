@@ -14,6 +14,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 
 ## Use something else for
 - Text on a Solid colour background → Content/On-Colors (or On-Brights on Lights-group solids), not a Content/`<colour>` level.
+- Text and icons on Background/White/Solid (a white that stays white in Dark mode: the white Tooltip, white overlay Buttons and Nav-Actions, On-Color Badge and Dock-Icon) → Content/On-White-Overlay/* (harness: content/on-white-solid; Figma audit: theme/on-white-solid), never Neutral or Inverse (they turn light in Dark mode) and never a raw black.
 - Disabled and placeholder text → Content/Disabled and Content/Placeholder (or the overlay/inverse equivalents).
 - Links → Content/Hyperlink/*.
 
@@ -49,6 +50,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 | --- | --- | --- | --- |
 | `content/lights-no-light-text` | error | Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`. | `zen-allow-lights-light-text: <reason>` |
 | `content/title-is-strongest` | warn | Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text. | `zen-allow-title-level: <reason>` |
+| `content/on-white-solid` | error | Text and icons on a Background/White/Solid fill (white in light and dark mode: the white Tooltip, white overlay Buttons, On-Color Badge and Dock-Icon) take Content/On-White-Overlay/*: Neutral and Inverse flip with the mode and a raw black skips the token. Each state's content is judged against that state's fill (a white Button's Disabled sits on White-Disabled). | `zen-allow-on-white-solid: <reason>` |
 | `content/colour-light-is-highlight` | warn | In colour families, Strongest/Base are for running text on Subtle backgrounds; Light is only for text or icons that must stand out, never body copy. | `zen-allow-colour-light-body: <reason>` |
 
 ## References

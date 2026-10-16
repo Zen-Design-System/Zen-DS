@@ -52,3 +52,25 @@
   (Donut 6 slices + 5 pills, Stack-Bar 6 columns, axis 50K → 0, 46.3K tooltip, the 1px rule on the active column).
 - Gates: figma-push selftest 269; plugin npm test; library-keys check 173/173. Open: Line/Bar/Area/Grouped/Combo still
   draw Figma's sample (BACKLOG); the direct ⌘V paste is next (user's order).
+
+## Master-layout variants, Top-Navigation Transparent, White-Solid content rule (session "Master layout variations") — tier M
+- Figma page ◇ Master-Layout · Variants (15902:109717): Read me + A (4 background compositions) + B (6 desktop) + C (7
+  mobile) + D (5 expressive mobile from the user's references). Figma-only; review notes are on the page.
+- Top-Navigation/Mobile 12014:45167 (user: "Thêm Type=Transparent cho Top-Navigation đi", chose "Cả hai"): +4 variants,
+  Type=Transparent (clone of Default, no fill) and Transparent-On-Color (clone of Default-Overlay, no fill, no blur) ×
+  Comfortable/Compact; clone() turned Control-Slot into a FRAME and dropped 9 refs: the source SLOT re-cloned and refs
+  copied, tree signature = source. Capline of Default-Overlay, Liquid-Overaly, Compact-Overlay and the new On-Color type
+  was Neutral/Light (dark on a dark scrim): now On-Black-Overlay/Base. Used in D1/D2/D3 (Transparent) and D5 (On-Color).
+- White-Solid rule (user: "nền màu white solid thì chữ phải luôn là on white overlay"): usage-guard `content/on-white-solid`
+  (CSS; each state's content judged on that state's fill, so a white Button's Disabled on White-Disabled passes) with
+  bad/good fixtures; Figma audit `theme/on-white-solid` (authored text and placed icons whose nearest painted layer is
+  Background/White-Solid) + audit-rules.md row; content-colors guideline line. Found and fixed: Tooltip white-overlay
+  (Figma Simple-Label On-White-Overlay variant + Close icon, `tooltip.css`) used Neutral/Strongest; Button/Overlay (60
+  layers), Button/Icon-Overlay (24), Nav-Action/Overlay (12), Nav-Action/Icon-Overlay (8) White used global Black (Figma +
+  `button.css` line for level white; docs/button-main.md paint row). Contracts: 60 + 24 bindings patched by hand,
+  `lock` rebuilt, live per-variant hashes of all 44 changed variants = lock; suites Button/Overlay 9000/9000,
+  Icon-Overlay 5940/5940. Light and dark checked in Figma (temporary frames, removed).
+- Lesson: `node.fills.find()` then `node.fills.map(p => p === f …)` never matches (every read returns a new array): the
+  first rebind run reported 128 changes and changed nothing; rebind by index and read back.
+- Colour balance (user: "Nghiên cứu thêm harness và rule cho việc cân bằng màu"): research + measurements +
+  proposal in docs/research/colour-balance-rule-2026-10-17.md; nothing built, 4 questions to the user.

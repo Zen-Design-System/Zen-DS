@@ -20,6 +20,13 @@ removed (four unused colour ramps were, see Removed).
 - Segmented `size="sm"` follows the live Figma (2026-10-17, user: "Update token của component size Segmented"):
   Segmented/Spacing/Small/Horizontal-Padding is 6 in Compact too (was 4), so each Small segment is 4px wider; Medium,
   Comfortable and the Studio mode are unchanged.
+- Harness rule `content/on-white-solid` + Figma audit `theme/on-white-solid` (2026-10-17, user: "nền màu white solid thì
+  chữ phải luôn là on white overlay"): text and icons on Background/White/Solid (white in light and dark) take
+  Content/On-White-Overlay/*. Fixed what it found: the white-overlay Tooltip used Neutral/Strongest (white on white in
+  dark mode), Button/Overlay, Icon-Overlay and Nav-Action `White` used the raw Black (Figma + `button.css`, contracts).
+- Figma Top-Navigation/Mobile `Type=Transparent` (no fill, standard content, for Pale/Subtle colour bands) and
+  `Type=Transparent-On-Color` (no fill, On-Black-Overlay content, for Solid bands and photos), both margins; the Capline of
+  every overlay type now uses On-Black-Overlay/Base (it was dark). Code `TopNavigation` types follow later.
 - Button / IconButton `appearance="overlay"` level `inverse-subtle` (2026-10-17, user: "Thêm 1 button inverse subtle
   cho các button Overlay"): Figma Button/Overlay and Button/Icon-Overlay get `Level=Inverse Subtle` (55 variants), a
   translucent Background/Inverse/Subtle fill with Content/Inverse/Strongest and the Overlay blur. Studio's Properties
