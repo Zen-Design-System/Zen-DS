@@ -168,8 +168,6 @@
 
 .studio-modes__head { display: grid; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-bottom: var(--zen-spacing-padding-2-xsmall, 4px); }
 .studio-modes__head > p { margin: 0; }
-.studio-modes__row { display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-modes__field { min-width: 0; }
 
 /* ── Admin drafts (DraftsControls): "Unsaved · N files" (opens the drafted-files panel) · Save all ── */
 .studio-drafts { position: relative; display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }

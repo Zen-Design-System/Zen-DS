@@ -31,6 +31,14 @@ removed (four unused colour ramps were, see Removed).
   lacks becomes a placeholder, and the plugin's Re-bind to Zen binds it once the library has it. Push: a DockIcon,
   Avatar, Icon… in a stretching column hugs (was FILL, a 520px Dock-Icon), and a plain Stack around wrapping text fills
   its column (a centred tagline collapsed to 175px).
+- Zen Studio Present (2026-10-16, user: "Mobile khi bấm present nên fix size", "tương tự ipad", "Giao diện không đồng bộ
+  với studio"): a phone or tablet Screen opens at its device's size (Phone 390 × 844, Tablet), scaled down to fit, and
+  the bar names it; a viewport picked in the bar wins. A large title folds as the screen scrolls (the scroll link
+  follows the stage that scrolls, not the page around it). The Modes panel draws the Inspector's rows (Inline-Field,
+  the mode's name inside). On a page you made, Delete removes the selected Screen or Overlay (also from its name on the
+  canvas or its row in Layers), one ⌘Z brings it back (E2E B-44).
+
+### Changed
 - DashboardHeader control-bar result count (2026-10-16, user: "hơi bự, nên đưa về body"): "86 expenses" is Body/Base/Regular
   (was Heading/Subheading), in code and in Figma Primitives/Dashboard/Header Type=Control-Bar (its description says so);
   harness `dashboard-header/count-body` (error) flags a Heading or a heading/display text style passed as the count.

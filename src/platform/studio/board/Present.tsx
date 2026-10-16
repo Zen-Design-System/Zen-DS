@@ -12,7 +12,7 @@ import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
-import { presentEscapeOwners, useViewportFit, ViewportHandles, type PresentViewport } from "./presentViewport";
+import { presentEscapeOwners, useViewportFit, VIEWPORT_PRESETS, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
 
 /** Present's own modes: what the user picked in its Modes panel. They hold while ‹ › step between examples and are
@@ -51,6 +51,10 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   // A phone screen opens in the phone modes (Comfortable, Mobile), a desktop one in the canvas modes; Present's own picks
   // win over both.
   const [phone, setPhone] = useState(false);
+  // A phone or tablet Screen shows at its device's size (the user 2026-10-16: "Mobile khi bấm present nên fix size",
+  // "tương tự ipad"): Auto takes its device's viewport (Phone 390 × 844, Tablet); a viewport picked in the bar wins.
+  const [device, setDevice] = useState<string | null>(null);
+  useLayoutEffect(() => setDevice(stageRef.current?.querySelector(".studio-builder-screen")?.getAttribute("data-device") ?? null), []);
   useLayoutEffect(() => setPhone(Boolean(stageRef.current?.querySelector(".platform-phone"))), []);
   const theme = own.theme ?? override?.theme ?? canvasModes.theme;
   const preview: StudioPreviewSettings = { ...canvasModes, ...(phone ? PHONE_MODES : null), ...own, theme };
@@ -102,10 +106,12 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   }, [exit, frame.id]);
 
   const width = resolveFrameWidth(frame.baseWidth, override?.width);
-  const fit = useViewportFit(viewport, stageRef);
+  const devicePreset = device === "phone" || device === "tablet" ? VIEWPORT_PRESETS.find((entry) => entry.id === device) : undefined;
+  const shown: PresentViewport = viewport ?? (devicePreset ? { width: devicePreset.width, height: devicePreset.height } : null);
+  const fit = useViewportFit(shown, stageRef);
   return (
     <div ref={layerRef} className="studio-present" role="dialog" aria-label={`${example.title}, full screen`} tabIndex={-1} data-screen={example.screen ? "true" : undefined} {...modes}>
-      <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={viewport} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} />
+      <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={shown} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} />
       {/* The page under the bar, as a browser's: a full-screen card and the example's overlays fill it, never the bar. */}
       <div className="studio-present__page">
         <ZenPortalProvider container={portalRoot}>
@@ -118,7 +124,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
                     <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
                       <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
                     </div>
-                    <ViewportHandles viewport={viewport} fit={fit} onChange={onViewportChange} />
+                    <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} />
                   </div>
                 </div>
               </div>

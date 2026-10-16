@@ -302,3 +302,19 @@ Worktree `../Zen-DS-copyfig`, branch `zen/feat/studio-copy-figma-20261016`; plug
   Live in the Zen file, page "Studio exports — QA" 15872:3 (left for session "Figma và Studio import chính xác"; my
   frames removed): fresh import 0 notes, re-import 0 diff, Re-bind restored 6 bindings + 1 style, again 0.
 - Waiting on the user: a test file with the official Zen library enabled, a library publish, a ⌘C → ⌘V try in Figma.
+
+## Studio Present fixes and frame Delete (tier S, session "Bug"; user: a scrolled Expenses phone screenshot "Bug", "Chưa bấm delete frame màn hình", "Giao diện không đồng bộ với studio", "Mobile khi bấm present nên fix size", "tương tự ipad")
+
+- Large title over the content in Present: `usePresentScroller` (runtime.tsx, the ended Header session's uncommitted
+  work) linked TopNavigation to `.studio-present__scroll`, but `.pe-card__stage` scrolls; it now takes the nearest
+  ancestor that scrolls its overflow inside the present page. Probe (isolated, Expenses screen-2): fold 0 → 64px.
+- Present viewport (Present.tsx): Auto shows a phone / tablet Screen in its device preset (VIEWPORT_PRESETS; the Screen's
+  `data-device`), the bar reads "Phone"; a picked viewport wins. Probe: 390 × 844 box, scaled 0.97.
+- Modes panel (ModesMenu PreviewModeFields): InspectorRow + RowSelectField (Inline-Field, name inside) instead of a
+  112px label column; the old `.studio-modes__row/__field` CSS is gone.
+- Delete on a frame: StudioApp's Delete handled only `selection.kind === "node"`, and a click on the frame's name leaves
+  focus on that button. Now a selected Screen / Overlay of a page you made goes through `removeFrame`
+  (builder/proto/addFrame.ts, removeElement with the file's hash: the server refuses a removal without it), from the
+  canvas, its name or its selected Layers row. E2E B-44 (recorded in the baseline); S-03, O-03, B-34, B-37 still work.
+- Told the Expenses session: its phone Screens use `TopNavigation type="compact"` (white) on Canvas/Alt; the guideline
+  wants `compact-alt`.
