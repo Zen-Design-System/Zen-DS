@@ -23,6 +23,14 @@ removed (four unused colour ramps were, see Removed).
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- Studio → Figma: copy a frame straight into Figma (2026-10-16, user: "copy trực tiếp frame vào figma … tự bind lại
+  component, style và variables"): ⌘C on a frame (or its Screen layer; menu Copy for Figma) also carries the frame's
+  Figma export, which ⌘V in the Zen plugin places on the page you have open. Exports carry the library's keys
+  (`docs/figma-contracts/library-keys.json`, `tools/studio/library-keys.mjs`), so the plugin binds sets, icons, text
+  styles and variables in any file that uses the published Zen library, not only in the Zen file; what the library
+  lacks becomes a placeholder, and the plugin's Re-bind to Zen binds it once the library has it. Push: a DockIcon,
+  Avatar, Icon… in a stretching column hugs (was FILL, a 520px Dock-Icon), and a plain Stack around wrapping text fills
+  its column (a centred tagline collapsed to 175px).
 - Zen Studio Present (2026-10-16, user: "Mobile khi bấm present nên fix size", "tương tự ipad", "Giao diện không đồng bộ
   với studio"): a phone or tablet Screen opens at its device's size (Phone 390 × 844, Tablet), scaled down to fit, and
   the bar names it; a viewport picked in the bar wins. A large title folds as the screen scrolls (the scroll link

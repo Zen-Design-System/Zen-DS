@@ -6,6 +6,7 @@ import path from "node:path";
 import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
 import { openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
+import { packageFromClip } from "../../figma-clip.mjs";
 
 /** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
 const HTML_PAGE = `// @zen-page {"format":1,"title":"HTML check"}
@@ -641,6 +642,59 @@ export const rows = [
       if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
       await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-11.png" }).catch(() => undefined);
       return `export ${pkg.page.version} kept; the read back: Update from Figma on ${id}, 2 changes applied; Container, titleLines, ListBox theme, aria kept`;
+    },
+  },
+  {
+    id: "HO-12", feature: "Copy for Figma (studio copy to Figma P2): ⌘C on a frame of a page you made puts its code (text/plain, the Studio's frame paste) and its Figma export (text/html, data-zen-studio-figma) on the clipboard — the export names the page and the frame, carries the library keys of what it uses, and holds that frame only; the same from the Screen layer (⌘C, and its menu's Copy for Figma)", wp: "copy to figma P2 2026-10-16",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, FIGMA_PAGE, "screen:screen-1");
+      const label = page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]');
+      await label.evaluate((element) => element.click());
+      await page.locator(".studio-viewport").focus();
+      const read = () => page.evaluate(async () => {
+        const out = { html: "", text: "" };
+        for (const item of await navigator.clipboard.read()) {
+          if (item.types.includes("text/html")) out.html = await (await item.getType("text/html")).text();
+          if (item.types.includes("text/plain")) out.text = await (await item.getType("text/plain")).text();
+        }
+        return out;
+      });
+      const check = async (how) => {
+        await until(async () => Boolean(packageFromClip(await read())), { timeout: 15_000, message: `${how}: the Figma export on the clipboard` });
+        const clip = await read();
+        const pkg = packageFromClip(clip);
+        const problems = [
+          pkg.format !== "zen-studio-figma" && `format ${pkg.format}`,
+          pkg.page?.id !== id && `page id ${pkg.page?.id}`,
+          pkg.page?.frame !== "screen:screen-1" && `frame ${pkg.page?.frame}`,
+          pkg.frame.name !== "Projects" && `frame name ${pkg.frame.name}`,
+          !Object.keys(pkg.library?.sets ?? {}).length && "no library keys",
+          !Object.values(pkg.library?.sets ?? {}).every((entry) => /^[0-9a-f]{40}$/.test(entry.key)) && "a set without its key",
+          !/<Screen\b[^>]*id="screen-1"/.test(clip.text) && "the code is not on the clipboard",
+        ].filter(Boolean);
+        if (problems.length) throw new Error(`${how}: ${problems.join(" · ")}`);
+        return pkg;
+      };
+      await page.evaluate(() => navigator.clipboard.writeText("before"));
+      await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+      const copied = await check("⌘C");
+      await until(async () => /Copied frame/.test(await statusText(page)), { timeout: 10_000, message: "the copy is said" });
+      // The Screen's menu (a right-click on its empty area, under the content, selects the Screen): Copy for Figma.
+      await page.evaluate(() => navigator.clipboard.writeText("before"));
+      await page.keyboard.press("Shift+2");
+      await sleep(600);
+      const box = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height - 24, { button: "right" });
+      await page.getByRole("menuitem", { name: "Copy for Figma" }).click();
+      await check("Copy for Figma");
+      // ⌘C with the Screen layer selected (the right-click selected it).
+      await page.evaluate(() => navigator.clipboard.writeText("before"));
+      await page.locator(".studio-viewport").focus();
+      await sleep(800);
+      await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+      await check("⌘C on the Screen layer");
+      return `⌘C on the frame and on its Screen layer, Copy for Figma: ${Object.keys(copied.library.sets).length} sets with keys, frame screen:screen-1, code beside it`;
     },
   },
 ];

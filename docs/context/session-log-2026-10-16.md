@@ -277,6 +277,32 @@ User: "sửa" (BACKLOG P1). 320 baseline 197 → 33 (isolated server, the gate's
   (`.studio-builder-screen__pin`, top / bottom) inside `__main`; `DeviceBars` takes `part`. Canvas frames unchanged
   (Playwright: no pin, no link). Checked in Play at 430 × 932: 80px folds the title, 30px settles open, bars stay.
 
+
+## Copy a Studio frame into Figma, bound to the library (user: "copy trực tiếp frame vào figma … tự bind lại component, style và variables"; "Duyệt theo đề xuất, làm A từ P0")
+
+Research and plan: `docs/research/studio-copy-to-figma-2026-10-16.md` (option A: paste into the Zen plugin; §9 progress).
+Worktree `../Zen-DS-copyfig`, branch `zen/feat/studio-copy-figma-20261016`; plugin (local git) 6e0e220, 169a6af, 912c04c, 6c24e7a.
+- Finding: Import from Studio bound only inside the Zen file (sets by node id, variables and text styles local only).
+  Zen file (read-only, 2026-10-16): 144/152 sets CHANGED, 8 UNPUBLISHED (List-Box, Description List, Inline-Field,
+  Color-Field, Color-Picker, Slider/Field, Curve-Preview, Help-Text); 28 of 30 sampled icons unpublished.
+- P0 `tools/studio/library-keys.mjs` + `docs/figma-contracts/library-keys.json` (read by hand-copied use_figma parts,
+  each checked by an FNV-1a hash; 11 parts, all matched). `figmaPackage` takes `libraryKeys` → `pkg.library`.
+- P1 plugin: key imports outside the Zen file (a same-id layer counts only with the library's key), variables by name
+  from the library's collections (`teamlibrary`, fork fallback), one note per kind; new frames on the open page at the
+  viewport; old frames found in sections too (bug: re-import made a second frame); bound paints keep their resolved
+  colour (use_figma renders drew them black). Push bugs found live and fixed: Dock-Icon/Avatar/Icon… FILL in a
+  stretching column (520px Dock-Icon), plain Stack around wrapping text hugging (tagline 175px wide).
+- P2 Studio: ⌘C on a frame or its Screen layer, menu Copy for Figma → clipboard code + export (`figma-clip.mjs`,
+  `builder/export/figmaClipboard.ts`); `exportFigma({ frame })` exports one frame (`page.frame`), not kept for Update
+  from Figma. Plugin: ⌘V in its window, Paste new copy (default) / Update / Cancel.
+- P3 plugin: binding intents on layers (`zenstudio/bind`), library keys on the frame, placeholders for missing sets
+  (`spec`), Import › Re-bind to Zen.
+- Checks: selftests library-keys 41, figma-clip 9, figma-push 248 (+2 cases, each red without its fix), full
+  `studio:selftest`; E2E HO-12 (baseline), handoff + builder 54/54; plugin `npm test` (studio-import, studio-paste-ui).
+  Live in the Zen file, page "Studio exports — QA" 15872:3 (left for session "Figma và Studio import chính xác"; my
+  frames removed): fresh import 0 notes, re-import 0 diff, Re-bind restored 6 bindings + 1 style, again 0.
+- Waiting on the user: a test file with the official Zen library enabled, a library publish, a ⌘C → ⌘V try in Figma.
+
 ## Studio Present fixes and frame Delete (tier S, session "Bug"; user: a scrolled Expenses phone screenshot "Bug", "Chưa bấm delete frame màn hình", "Giao diện không đồng bộ với studio", "Mobile khi bấm present nên fix size", "tương tự ipad")
 
 - Large title over the content in Present: `usePresentScroller` (runtime.tsx, the ended Header session's uncommitted

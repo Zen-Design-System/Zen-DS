@@ -2,13 +2,15 @@ import { useEffect } from "react";
 import { announceEditStatus } from "../api";
 import { isTypingTarget } from "../select/picker";
 import { canEdit, studioStore } from "../store";
+import { frameFigmaClip, writeFrameClip } from "./export/figmaClipboard";
 import { copyFrame, frameClip, moveFrames, type FrameClip } from "./frameEdit";
 import { dropLivePlace, livePlace, showLivePlace } from "./frameMove";
 
 /*
  * Keys for a selected frame on a page you made (Figma's): ⌘D duplicates it beside itself, ⌘C / ⌘V copy and paste it
  * (onto this page or another page you made), the arrow keys nudge it 1 px (⇧ 10 px; one undo step per burst). Taken
- * in the capture phase before the Studio's layer keys and clipboard, which act on layers only.
+ * in the capture phase before the Studio's layer keys and clipboard, which act on layers only. ⌘C also carries the
+ * frame's Figma export (export/figmaClipboard.ts), which ⌘V in the Zen plugin places in Figma.
  */
 
 const NUDGE_SETTLE_MS = 400;
@@ -34,13 +36,17 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
   useEffect(() => {
     // ⌘C writes the clipboard in the copy event itself: the selected frame's code is read ahead.
     let ready: FrameClip | null = null;
+    // Its Figma export, read ahead as well (the copy event takes only what is ready); null while it is read or failed.
+    let readyFigma: { frameId: string; html: string } | null = null;
     let reading = 0;
     const prefetch = () => {
       const state = studioStore.getState();
       const frameId = state.localPage === localPage && state.selection?.kind === "frame" ? state.selection.frameId : null;
       const run = (reading += 1);
+      readyFigma = null;
       if (!frameId) { ready = null; return; }
       void frameClip(localPage, frameId).then((next) => { if (run === reading) ready = next; });
+      void frameFigmaClip(localPage, frameId).then((next) => { if (run === reading && "html" in next) readyFigma = { frameId, html: next.html }; });
     };
     prefetch();
     let selection = studioStore.getState().selection;
@@ -94,7 +100,20 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
       }
       clip = ready;
       event.clipboardData?.setData("text/plain", ready.code);
-      announceEditStatus({ kind: "unchanged", message: "Copied frame — ⌘V pastes it beside itself, or on another page you made", at: Date.now() });
+      const copied = "Copied frame — ⌘V pastes it here, on another page you made, or in the Zen plugin in Figma";
+      if (readyFigma && readyFigma.frameId === frame.frameId) {
+        event.clipboardData?.setData("text/html", readyFigma.html);
+        announceEditStatus({ kind: "unchanged", message: copied, at: Date.now() });
+        return;
+      }
+      // Its Figma export is still being read: the clipboard takes both once it is ready (the code is already there).
+      const code = ready.code;
+      const html = frameFigmaClip(localPage, frame.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
+      announceEditStatus({ kind: "unchanged", message: "Copied frame — preparing it for Figma…", at: Date.now() });
+      void writeFrameClip(code, html).then(
+        () => announceEditStatus({ kind: "unchanged", message: copied, at: Date.now() }),
+        (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }),
+      );
     };
 
     const onPaste = (event: ClipboardEvent) => {
