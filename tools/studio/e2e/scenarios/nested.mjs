@@ -251,7 +251,9 @@ async function avatarThroughDesign(ctx, on) {
   const key = await photo.getAttribute("data-photo");
   const count = (text) => (text.match(new RegExp(`zen-media:${key}\\b`, "g")) ?? []).length;
   await photo.click();
-  const after = await until(async () => { const text = (await pageText(page, id)) ?? ""; return count(text) === count(before) + 1 ? text : null; }, { timeout: 10000, message: `zen-media:${key} on the Avatar` }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+  // A page on its master layout mirrors the desktop account into its linked phone bar (component-usage-rules §17), so
+  // the photo can show twice there: once on the Avatar, once in the phone's copy of it.
+  const after = await until(async () => { const text = (await pageText(page, id)) ?? ""; const added = count(text) - count(before); return added === 1 || (added === 2 && /phoneLinked=\{\[[^\]]*"topNavigation"/.test(text)) ? text : null; }, { timeout: 10000, message: `zen-media:${key} on the Avatar` }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
   await until(async () => avatar.evaluate((el, file) => [...el.querySelectorAll("img")].some((img) => img.src.includes(file) && img.complete), key), { timeout: 10000, message: "the photo on the Avatar" });
   const was = new Set(before.split("\n"));
   const changed = after.split("\n").filter((line) => !was.has(line)).length;

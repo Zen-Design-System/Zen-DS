@@ -96,27 +96,28 @@ export const rows = [
     },
   },
   {
-    id: "PT-02", feature: "Prototype by item: a tab bar shows one ⊕ per tab; Projects' ⊕ onto Screen 2 and the Inbox row → Screen 3 lead each tab to its own screen; Play follows the tab", wp: "prototype 2026-10-15", timeout: 40_000,
+    id: "PT-02", feature: "Prototype by item: a tab bar shows one ⊕ per tab (the phone's tabs are the Sidebar's rows since 2026-10-16); Projects' ⊕ onto Screen 2 and the People row → Screen 3 lead each tab to its own screen; Play follows the tab", wp: "prototype 2026-10-15", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await protoPage(ctx, { screens: 3 });
       const tab = page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').nth(1);
       await selectAt(page, await tab.boundingBox());
       await prototypeTab(page);
-      await until(async () => (await page.locator(".studio-proto-plus").count()) === 4, { message: "one ⊕ per tab (4)" });
+      // A new page's tabs are drawn from its Sidebar (Home, Projects, People: component-usage-rules §17).
+      await until(async () => (await page.locator(".studio-proto-plus").count()) === 3, { message: "one ⊕ per tab (3)" });
       await drag(page, center(await page.locator('.studio-proto-plus[data-item="projects"]').boundingBox()), await frameCenter(page, "screen:screen-2"));
       await until(async () => /onValueChange=\{proto\.navigate\(\{ projects: "screen-2" \}\)\}/.test(await text(page, id)), { message: "Projects → screen-2" });
-      await pickOption(page, "proto:onValueChange:item:inbox", "Screen 3");
-      await until(async () => /proto\.navigate\(\{ projects: "screen-2", inbox: "screen-3" \}\)/.test(await text(page, id)), { message: "Inbox → screen-3, Projects kept" });
+      await pickOption(page, "proto:onValueChange:item:people", "Screen 3");
+      await until(async () => /proto\.navigate\(\{ projects: "screen-2", people: "screen-3" \}\)/.test(await text(page, id)), { message: "People → screen-3, Projects kept" });
       await until(async () => (await page.locator(".studio-proto-links").getAttribute("data-links").catch(() => null)) === "2", { message: "an arrow from each linked tab" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
       await page.keyboard.press("p");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await playing(page).locator(".zen-bottom-nav__items li").nth(2).locator("button").first().click();
-      await until(async () => (await playScreen(page)) === "screen-3", { message: "Inbox → screen-3 in Play" });
+      await until(async () => (await playScreen(page)) === "screen-3", { message: "People → screen-3 in Play" });
       await page.keyboard.press("Escape");
       await until(async () => (await playing(page).count()) === 0, { message: "Esc leaves Play" });
-      return "4 tab ⊕ · drag → projects · row → inbox · 2 arrows · Play follows Inbox";
+      return "3 tab ⊕ · drag → projects · row → people · 2 arrows · Play follows People";
     },
   },
   {
@@ -127,7 +128,7 @@ export const rows = [
       const tab = page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').nth(1);
       await selectAt(page, await tab.boundingBox());
       await prototypeTab(page);
-      await until(async () => (await page.locator(".studio-proto-plus").count()) === 4, { message: "one ⊕ per tab" });
+      await until(async () => (await page.locator(".studio-proto-plus").count()) === 3, { message: "one ⊕ per tab" });
       await drag(page, center(await page.locator('.studio-proto-plus[data-item="projects"]').boundingBox()), await frameCenter(page, "screen:screen-2"));
       await until(async () => /proto\.navigate\(\{ projects: "screen-2" \}\)/.test(await text(page, id)), { message: "Projects → screen-2" });
       await page.locator(".studio-viewport").focus();
