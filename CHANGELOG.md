@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed).
+- Segmented `size="sm"` follows the live Figma (2026-10-17, user: "Update token của component size Segmented"):
+  Segmented/Spacing/Small/Horizontal-Padding is 6 in Compact too (was 4), so each Small segment is 4px wider; Medium,
+  Comfortable and the Studio mode are unchanged.
 - Studio → Figma import matches the page (2026-10-17, user: "Bản import ở figma và bản studio còn chưa chính xác"): a
   Metric-Card draws the page's sparkline, spark bars, goal and footer instead of Figma's sample; a ProgressBar fills its
   exact value (the Figma Progress-Bar's fill is now a two-column grid; the step is the nearest look) and shows its
